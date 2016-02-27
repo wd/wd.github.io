@@ -1,0 +1,34 @@
+---
+layout: post
+title: Qmail邮件队列工作原理zz
+tags:
+- Mail
+status: publish
+type: post
+published: true
+comments: true
+---
+http://www.gbunix.com/htmldata/2005_06/15/25/article_1223_1.html
+
+以下是qmail的数据流简图
+
+ qmail-smtpd --- &gt;&gt;qmail-queue ---&gt;&gt; qmail-send &lt;&lt;--- qmail-rspawn &lt;&lt;--- qmail-remote
+ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; / &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | 
+ &nbsp; &nbsp; &nbsp; qmail-inject _/ qmail-clean \_ qmail-lspawn &lt;&lt;--- qmail-local
+
+ &nbsp; &nbsp;qmail中，每一条消息都发送到中央队列等待发送，由qmail-queue进程控制。它在以下情况被调用：
+ &nbsp; &nbsp;1、当产生本地消息时，qmail-inject进程调用qmail-queue。
+ &nbsp; &nbsp;2、qmail-smtpd准备SMTP协议下的投递邮件任务时调用它。
+ &nbsp; &nbsp;3、向前（forwarded）发送邮件时，qmail－local调用它。
+ &nbsp; &nbsp;4、退回邮件时，qmail－send调用它。
+
+ &nbsp; &nbsp;每封邮件接着由qmail-lspawn 和qmail-rspawn协助qmail－sned进程完成投递，最后由qmail－clean清除邮件队列。这四个进程是系统由始至终都在运行的，十分重要。
+
+由smtpd从域外接受邮件之后，会交给queue处理（也就是2），之后转到qmal-send，然后看是域内还是域外，域内用qmail-lspawn，域外用qmail-rspawn。域内邮件调用qmail-local处理，如果遇到.qmail文件转发邮件（也就是上面的3），还会交给queue处理，如果没有，就直接投递给用户（？）。域外邮件调用qmail-remote处理，如果对方拒收邮件，他就会产生一个新的邮件（bounce），交给qmail-send，然后交给queue（也就是4？）。
+
+本地用户发送mail的时候调用qmail-inject，然后交给queue（也就是1）。
+
+有几个问题。
+1&nbsp; 收到域外邮件之后，判断本机是否有这个用户后才接受邮件呢，还是先接受进来放到queue里等qmail-local处理的时候再说？
+
+2&nbsp; qmail-clean这个程序是怎么工作的？实时扫描queue的文件夹？

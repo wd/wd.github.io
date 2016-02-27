@@ -1,0 +1,93 @@
+---
+layout: post
+title: 生成缩略图和给图片
+tags:
+- Web
+status: publish
+type: post
+published: true
+comments: true
+---
+一个自动生成缩略图的程序
+
+<br><!--more--><pre lang="php">
+<?
+
+$FILENAME="image_name";
+
+// 生成图片的宽度
+$RESIZEWIDTH=400;
+
+// 生成图片的高度
+$RESIZEHEIGHT=400;
+
+
+function ResizeImage($im,$maxwidth,$maxheight,$name){
+	$width = imagesx($im);
+	$height = imagesy($im);
+	
+	if(($maxwidth && $width > $maxwidth) || ($maxheight && $height > $maxheight)){
+		if($maxwidth && $width > $maxwidth){
+			$widthratio = $maxwidth/$width;
+			$RESIZEWIDTH=true;
+		}
+
+		if($maxheight && $height > $maxheight){
+			$heightratio = $maxheight/$height;
+			$RESIZEHEIGHT=true;
+		}
+
+		if($RESIZEWIDTH && $RESIZEHEIGHT){
+			if($widthratio < $heightratio){
+				$ratio = $widthratio;
+			}else{
+				$ratio = $heightratio;
+			}
+		}elseif($RESIZEWIDTH){
+			$ratio = $widthratio;
+		}elseif($RESIZEHEIGHT){
+			$ratio = $heightratio;
+		}
+		
+		$newwidth = $width * $ratio;
+		$newheight = $height * $ratio;
+		
+		if(function_exists("imagecopyresampled")){
+			$newim = imagecreatetruecolor($newwidth, $newheight);
+			imagecopyresampled($newim, $im, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
+		}else{
+			$newim = imagecreate($newwidth, $newheight);
+			imagecopyresized($newim, $im, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);
+		}
+		
+		ImageJpeg ($newim,$name . ".jpg");
+		ImageDestroy ($newim);
+	}else{
+		ImageJpeg ($im,$name . ".jpg");
+	}
+}
+
+
+
+if($_FILES[&#39;image&#39;][&#39;size&#39;]){
+	if($_FILES[&#39;image&#39;][&#39;type&#39;] == "image/pjpeg"){
+		$im = imagecreatefromjpeg($_FILES[&#39;image&#39;][&#39;tmp_name&#39;]);
+	}elseif($_FILES[&#39;image&#39;][&#39;type&#39;] == "image/x-png"){
+		$im = imagecreatefrompng($_FILES[&#39;image&#39;][&#39;tmp_name&#39;]);
+	}elseif($_FILES[&#39;image&#39;][&#39;type&#39;] == "image/gif"){
+		$im = imagecreatefromgif($_FILES[&#39;image&#39;][&#39;tmp_name&#39;]);
+	}
+	
+	if($im){
+		if(file_exists("$FILENAME.jpg")){
+			unlink("$FILENAME.jpg");
+		}
+		ResizeImage($im,$RESIZEWIDTH,$RESIZEHEIGHT,$FILENAME);
+		ImageDestroy ($im);
+	}
+}
+
+?>
+</pre>
+
+自动

@@ -1,0 +1,39 @@
+---
+layout: post
+title: 使用 grep sort 等工具的时候要注意 LANG 的设置
+tags:
+- grep
+- Linux
+- sort
+status: publish
+type: post
+published: true
+comments: true
+---
+发现在使用 sort 或 grep 等工具的时候，LANG 会影响到速度。
+
+1.5G 的文件，grep -Ei 'keyword' file, LANG=C 的时候执行时间是 22 秒，LANG=en_US.UTF-8 的时候，执行时间是 3分53秒，最后结果是一样的。
+
+这还不是最恐怖的，恐怖的是下面的
+<pre class="prettyprint lang-text">
+$ cat a
+a
+b
+C
+d
+E
+
+$ LANG=en_US.UTF-8 egrep '[a-z]' a
+a
+b
+C
+d
+E
+
+$ LANG=C egrep '[a-z]' a
+a
+b
+d
+</pre>
+
+以后用这些工具还是小心一点吧。。。。。

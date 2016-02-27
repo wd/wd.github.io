@@ -1,0 +1,103 @@
+---
+layout: post
+title: org-mode 里面自动归档任务
+tags:
+- emacs
+- Linux
+- org-mode
+status: publish
+type: post
+published: true
+comments: true
+---
+<p>我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
+</p>
+<p>
+org-mode 本身提供了 remember 来创建 todo list。
+</p>
+<p>
+新建一个 org 文件 ~/org/todo.org，包含两行内容如下
+</p>
+
+
+<pre class="prettyprint lang-text">
+* Tasks
+* Done
+</pre>
+
+<p>
+然后设置下面的内容
+</p>
+
+
+<pre class="prettyprint lang-lisp">
+(define-key global-map "\C-ca" 'org-agenda)
+(global-set-key (kbd "C-c m r") 'org-capture)
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks")
+         "* TODO %?\nCREATED: %U")
+        ("j" "Journal" entry (file+datetree "~/org/journal.org")
+         "* %?\nEntered on %U\n  %i\n  %a")))
+(defun wd-move-done-task-to-done-cats ( task-pos )
+  "move done task to *DONE cats"
+  (let* ((entry (org-get-entry))
+        (title (org-get-heading))
+        (task (format "** %s\n%s\n" title entry))
+        )
+    (goto-char (point-min))
+    (when (search-forward-regexp "^* Tasks$latex ")
+      (goto-char (point-min))
+      (when (search-forward-regexp "^* Done$")
+        (goto-char (match-beginning 0))
+        (forward-line)      
+        (insert task)
+        (goto-char task-pos)
+        (delete-region (org-entry-beginning-position) (org-entry-end-position))      
+        )
+      )
+    )
+  )
+
+(defun wd-track-task-status ( changes-plist )
+   "Track task status, and move it to '* Done' cats if it is stats change from to to done
+1 TODO 文件至少需要包含两个标题 * Tasks 和 * Done
+2 * Tasks 里面的 TODO 内容变成 DONE 的时候，会自动把这个条目移动到 * Done
+3 org-todo-keywords 的设置里面不能包含自动增加时间等的设置，否则增加的内容不能正确加到这个条目
+"
+   ;; (interactive)
+   (let ((type (plist-get change-plist :type))
+          (pos (plist-get change-plist :position))
+          (from (plist-get change-plist :from))
+          (to (plist-get change-plist :to))
+          )
+     (when (and (string= from "TODO")
+                (string= to "DONE"))
+       ;; (let ((answer (read-char "Move this entry to *DONE ? Y/N (Y)")))
+       ;;   (when (or (= answer (string-to-char "y"))
+       ;;             (= answer (string-to-char "Y"))
+       ;;             (= answer (string-to-char "
+"))
+       ;;             )
+           (wd-move-done-task-to-done-cats pos)
+         ;; ))
+       )
+     )
+   )
+
+(add-hook 'org-trigger-hook 'wd-track-task-status)
+
+;; (setq org-todo-keywords
+;;       '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "WAIT(w)" "|" "DONE(d)" "CANCELED(c)")))
+</pre>
+
+<p>
+在任何地方按一下 C-c m r，会出来一个 window 让你选择要创建 todo 还是 journal。选 t，然后输入内容就会自动插入到 ~/org/todo.org 的 * Tasks 里面。
+</p>
+<p>
+此后，如果任务完成的时候，打开 todo.org，然后在任务上面 C-c C-t，会提示输入状态。如果是从 TODO 变成了 DONE，那这条任务会被转移到 * Done 里面。
+</p>
+<p>
+因为里面都有时间，所以在 agenda list 里面，可以用 L 看到任务完成时间等。也将就用了。
+</p>

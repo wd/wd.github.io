@@ -1,0 +1,41 @@
+---
+layout: post
+title: 为debian unstable做镜像
+tags:
+- Debian
+status: publish
+type: post
+published: true
+comments: true
+---
+#HOST=opensource.nchc.org.tw
+HOST=debian.nctu.edu.tw
+#HOST_NONUS=opensource.nchc.org.tw
+#HOST_NONUS=debian.cn99.com
+HOST_NONUS=debian.nctu.edu.tw
+
+DISTS="unstable"
+DISTS_NONUS="unstable/non-US"
+DISTS_SEC="unstable/updates"
+
+ARCHS="i386"
+
+MIRROR_ROOT='/data/debian/debian'
+MIRROR_ROOT_NONUS='/data/debian/debian-non-US'
+
+OPTIONS="--getcontents --progress --nosource --method=http -s main,contrib,non-free --ignore-release-gpg"
+
+
+#ADDDIRS="dists/unstable/main/disks-i386" 
+
+
+echo "Processing standard using $HOST" 
+/usr/bin/debmirror --host=$HOST --dist=$DISTS --arch=$ARCHS $OPTIONS -r /debian $MIRROR_ROOT
+
+echo "Processing non-US using $HOST_NONUS" 
+/usr/bin/debmirror --host=$HOST_NONUS --dist=$DISTS_NONUS --arch=$ARCHS $OPTIONS -r /debian-non-US $MIRROR_ROOT_NONUS
+
+echo "Processing xfce4.2 using www.os-works.com"
+
+/usr/bin/debmirror -a i386 -s main -h www.os-works.com -d testing -r /debian --progress -e http --ignore-release-gpg /data/debian/xf
+ce4.2

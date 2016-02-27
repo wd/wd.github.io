@@ -1,0 +1,92 @@
+---
+layout: post
+title: smsd 发送中文短信乱码
+tags:
+- gnokii
+- Linux
+- Other
+- smsd
+status: publish
+type: post
+published: true
+comments: true
+---
+<p>smsd是使用mysql数据库的，所以这个乱码很容易把人搞晕。我之前<a href="http://blog.wdicc.com/wordpress/gnokii_howto_chinese_sms/">写过</a>gnokii发送短信是和locale有关系的，只要在utf8的locale下面就可以正常发送中文短信了。而smsd也和这个类似，也需要utf8的locale。但是还需要注意的一点就是mysql也是有编码设置的。所以可能会认为，文本插入数据库之前是不是也需要对数据库做utf8的设置呢？其实是不需要的，这么做反而会造成乱码。</p> <p>smsd连接mysql用的是mysql默认的字符集，那么我们插入文本的时候，也同样需要使用这个字符集，需要注意的是，这个文本也需要是utf8编码的。mysql默认的字符集通常是 “default-character-set&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; latin1”。</p> <p>我写的一个python的用来插入数据库要发送的信息的程序。</p> <p><pre lang="python">#!/usr/bin/env python2.3
+#coding=utf-8
+import sys
+import MySQLdb
+
+#  inbox
+#+------------+------------------+------+-----+---------------------+----------------+
+#| Field      | Type             | Null | Key | Default             | Extra          |
+#+------------+------------------+------+-----+---------------------+----------------+
+#| id         | int(10) unsigned |      | PRI | NULL                | auto_increment |
+#| number     | varchar(20)      |      |     |                     |                |
+#| smsdate    | datetime         |      |     | 0000-00-00 00:00:00 |                |
+#| insertdate | timestamp        | YES  |     | CURRENT_TIMESTAMP   |                |
+#| text       | varchar(160)     | YES  |     | NULL                |                |
+#| phone      | tinyint(4)       | YES  |     | NULL                |                |
+#| processed  | tinyint(4)       |      |     | 0                   |                |
+#+------------+------------------+------+-----+---------------------+----------------+
+
+#  outbox
+#+----------------+------------------+------+-----+---------------------+----------------+
+#| Field          | Type             | Null | Key | Default             | Extra          |
+#+----------------+------------------+------+-----+---------------------+----------------+
+#| id             | int(10) unsigned |      | PRI | NULL                | auto_increment |
+#| number         | varchar(20)      |      |     |                     |                |
+#| processed_date | timestamp        | YES  |     | CURRENT_TIMESTAMP   |                |
+#| insertdate     | timestamp        | YES  |     | 0000-00-00 00:00:00 |                |
+#| text           | varchar(160)     | YES  |     | NULL                |                |
+#| phone          | tinyint(4)       | YES  |     | NULL                |                |
+#| processed      | tinyint(4)       |      |     | 0                   |                |
+#| error          | tinyint(4)       |      |     | -1                  |                |
+#| dreport        | tinyint(4)       |      |     | 0                   |                |
+#| not_before     | time             |      |     | 00:00:00            |                |
+#| not_after      | time             |      |     | 23:59:59            |                |
+#+----------------+------------------+------+-----+---------------------+----------------+
+
+class Mydb:
+        def __init__(self):
+                try:
+                        self.db=MySQLdb.Connection(host="localhost",user="gnokii",
+                                passwd="gnokii",db="gnokii")
+
+                except MySQLdb.OperationalError, message:
+                        errorMessage = "Error %d:\n%s" % (message[ 0 ], message[ 1 ] )
+                        print errorMessage
+                        sys.exit(1)
+                else:   
+                        self.cursor = self.db.cursor()
+#                       self.cursor.execute("SET NAMES 'utf8'")
+                        return
+                        
+        def insert(self,sql):
+                self.cursor.execute(sql)
+        
+        def showdata(self,sql):
+                self.cursor.execute(sql)
+                return self.cursor.fetchall()
+                
+        def __del__(self):
+                self.cursor.close
+                self.db.close
+
+text = sys.stdin.read()
+db = Mydb()
+
+if len(sys.argv) &gt; 1 and len(text):
+        number = sys.argv[1]
+        sql = 'insert into outbox (number,text) VALUES ("' + number + '","' + text + '")'
+        
+        db.insert(sql)
+
+else:   
+        print 
+        print "    ********** outbox ********** "
+        for rs in db.showdata("select * from outbox"):
+                print rs[0],rs[1],rs[2],rs[-7],rs[-5]
+        
+        print "    ********** inbox *********"
+        for rs2 in db.showdata("select * from inbox"):
+                print rs2[0],rs2[1],rs2[-3]</pre>

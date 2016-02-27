@@ -1,0 +1,40 @@
+---
+layout: post
+title: 使用 perl 发送中文邮件标题乱码
+tags:
+- Linux
+- perl
+- sendmail
+status: publish
+type: post
+published: true
+comments: true
+---
+
+代码如下面，解决乱码的方法是使用 base64 编码。
+
+<pre class="prettyprint lang-perl">
+use MIME::Base64::Perl;
+
+open(MAIL, '|/usr/sbin/sendmail -t');
+
+my $recver = 'wangdong@abc.com';
+my $alertTitle = "中文 asdfsdf sdfsdf sdf sdf s df sd fsd f sd fsd f sdf sdf sdf";
+my $alertText = "body ";
+
+my $encoded = encode_base64($alertTitle, "");
+
+print MAIL "From: alert\@abc.com\r\n";
+print MAIL "To: $recver\r\n";
+print MAIL "Subject: =?UTF-8?B?" . $encoded . "?=\r\n";
+print MAIL "MIME-Version: 1.0\r\n";
+print MAIL "Content-type: text/plain; charset=utf-8\r\n";
+print MAIL "\n";
+print MAIL "$alertText";
+
+close(MAIL);
+</pre>
+
+这里面 encode_base64 可以把文本做 base64 编码，要注意的是这个方法的第二个参数，是用来把编码结果进行格式化的，会每 76 个字符插入一个这个参数，默认是换行。
+
+如果不是 utf8 的文本，那把里面的 utf8 改一下就好了。

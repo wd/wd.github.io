@@ -1,0 +1,85 @@
+---
+layout: post
+title: unix 进程
+tags:
+- Linux
+- Other
+- signal
+- 进程
+status: publish
+type: post
+published: true
+comments: true
+---
+看了 <a href="http://www-128.ibm.com/developerworks/aix/library/au-speakingunix8/?ca=dgr-lnxw01speakunix8">Speaking UNIX, Part 8: UNIX processes</a> 之后做一点笔记。
+
+<b>A real multitasker</b>
+
+在unix、linux、freebsd、mac os x、windows等系统里面，计算任务都表现为进程。unix 看上去可以同时运行很多任务，因为每个进程都只占用一部分cpu时间。
+
+进程就像一个容器，包括运行的程序，环境变量，程序的输入输出等。可以把进程想像为一个国家，有自己的边界，资源和产品。
+
+每个进程也都有自己的owner（属组），owner通常是运行这个程序的人，有些系统服务的owner或许会是某个特殊的用户，或者是root。例如，为了安全，某个Apache server的owner可能是属于一个叫www的用户的，这个用户有权限来存取web服务需要的文件，这些文件别的用户是不能访问的。
+
+一个进程的owner可能会改变，但是一个进程在同一个时间只能有一个owner。
+
+setuid和setgid可以让一个进程获得比owner更高的权限。
+
+一个setuid进程，例如top，运行的时候使用的是owner的权限。因此，当你运行top的时候，你的权限就被提升为root了。类似的，一个setgid进程，运行的时候具有的是group owner的权限。
+
+例如，在Mac osx里面的wall命令（就是write all的缩写），因为他需要给每个物理或者虚拟的终端设备写信息，所以他被setgid tty。
+
+<b>Taking inventory</b>
+
+类似其他系统资源，unix系统里面的进程id总数虽然多，但是是有限的（实际上，一个系统几乎从来都不会出现进程id数不够的情况）。每一个新的进程，例如运行vi或者xclock，都会立刻分配一个进程id。在unix系统里面可以用ps命令查看进程。
+
+ps -a -w -x 可以显示所有进程列表。-a显示所有在tty设备上面运行的进程，-x显示所有不是在tty设备上面运行的程序，-w使用“宽”模式显示，用来查看进程一些长的项目。
+
+-o 还可以指定输出信息的列表。比如 -o pid,uname,command,state,stime,time 。
+
+<b>Daddy, where do processes come from?</b>
+
+ 在unix系统里面，有些进程会从系统启动到关闭整个过程中一直运行。大部分进程从任务开始到结束都很快。
+
+ 每个新的unix进程都是从已经存在的进程产生的。另外，每个新的进程（子进程）都克隆自他的父进程。at least for an instant, until the child continues execution independently.如果每个进程都来自一个已经存在的进程，那么“第一个进程来自哪里？”，先有鸡还是先有蛋的问题。
+
+第一个进程是由kernel在启动过程中产生的，叫做init。ps -l 1命令可以查看。
+F S   UID   PID  PPID  C PRI  NI ADDR SZ WCHAN  TTY        TIME CMD
+4 S     0     1     0  0  76   0 -   376 -      ?          0:06 init [2]  
+
+可以看到，init的uid是0，也就是root。不像其他进程，init的ppid（父进程id）是0。
+
+图 2,3 稍微解释一下。
+<ol><li>进程A运行了几条指令。进程A有自己的资源、输入输出、环境变量等。</li><li>遇到一条fork()指令，会产生一个新的进程。进程A遇到fork之后，立刻产生一个新的进程Z。进程Z是A的克隆，有与A一行的环境变量、内存内容、程序状态、打开文件等。</li><li>进程Z一开始就从fork后面的指令继续执行，就是进程A剩下的部分。进程A也继续执行剩下的部分。</li><li>在fork指令后面的指令中，会检查当前的进程是子进程还是父进程。就是说，进程Z和进程A在后续的指令中各自分别确定自己是父进程还是子进程。区别是，fork指令会在子进程中返回0，而且父进程中返回子进程的进程id。</li><li>在前面的测试之后，进程A和进程Z各自使用独立的code path，就好像他们都来自一条路，后来选择了不同的岔路一样。</li></ol>
+
+在fork之后，进程A也许会继续运行同样的程序。然而，进程Z或许会立刻变成另外一个程序。进程Z现在完全就是一个独立于其父进程A的进程了。
+
+<b>Forking around</b>
+
+可以在命令行实际体验一下fork。打开一个新的xterm，你现在应该知道xterm有自己的进程，而且，在xterm里面，shell是有xterm产生的一个单独的进程。
+
+通过ps命令的输出可以看到，在ppid字段那里，就是父进程的id。 
+
+使用&符号可以将程序放到后台执行。执行的时候会同时输出各个进程的id。jobs命令可以查看当前运行的进程。标签1，2，3可以用来标记不同的会话。kill %N 就是结束第N个会话。fg %N 可以将一个会话放到前台。
+
+<b>To the great process pool in the sky</b>
+
+有些进程是一直存在的，例如init，有些会将自己转变成其他的（例如shell）。大部分进程最终都会自然死掉，也就是程序运行完毕的时候。
+
+你可以让一个进程suspended（挂起），也可以让他复苏。还有像前面说的，你也可以使用kill命令结束一个进程。
+
+ctrl-Z 可以挂起一个进程。进程在前台运行的时候，ctrl+c 可以结束这个进程。在shell内部使用unix signals来对一个进程产生影响。你可以从一个进程像另一个发送signal（信号），也可以让进程自己给自己发送信号。
+
+man 7 signal或者kill -L 可以看到所有的signal。使用kill命令可以发送这些signal。
+
+刚针对fork测试了一下，写一个简单的c程序
+<pre class="prettyprint lang-c">
+
+main(){
+        int a;
+        printf("Before fork.\\n");
+        a = fork();
+        printf("After fork, fork returns %d\\n", a);
+}</pre>
+
+保存之后用gcc编译一下，执行一个，可以看到结果。fork之后的程序会继续执行下面的指令，唯独fork的返回值不同。

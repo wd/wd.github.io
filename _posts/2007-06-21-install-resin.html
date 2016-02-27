@@ -1,0 +1,32 @@
+---
+layout: post
+title: resin 的安装步骤
+tags:
+- Linux
+- Other
+- resin
+status: publish
+type: post
+published: true
+comments: true
+---
+<p>resin目前已经到了3.1版本，从resin网站上面下载的resin不带jdk，需要自己去下载。resin的下载页面在<a href="http://www.caucho.com/download/index.xtp">这里</a>。下载最新的 Resin Pro 3.1.1 版本。</p> <p>jdk的下载地址在 <a href="http://java.sun.com/javase/downloads/index.jsp">这里</a>&nbsp;，resin 3.1需要1.5及以上版本的jdk。</p> <p>先来安装resin：</p> <p><pre lang="bash">tar zxvf resin-pro-3.1.1
+cd resin-pro-3.1.1
+./configure --prefix=/usr/local/resin #安装的目的地址
+make &amp;&amp; make install</pre>
+<p>安装完resin之后，安装jdk：</p>
+<p><pre lang="bash">cd /usr/local
+chmod +x /root/jdk-6u1-linux-i586.bin
+/root/jdk-6u1-linux-i586.bin</pre>
+<p>此后会在/usr/local/下面建立一个jdk1.6.0_01目录，jdk就安装完毕了。</p>
+<p>resin 的配置文件在 /usr/loca/resin/conf 下面，主要是 resin.conf 。默认的端口是8080。</p>
+<p><pre lang="txt"><http port="8080" address="*"></pre>
+<p></p>
+<p>然后就是添加自己的应用地址了。</p>
+<p><pre lang="txt"><host id="" root-directory=".">
+      <web-app id="/" root-directory="webapps/ROOT"></pre>
+<p></p>
+<p>在这下面添加一行</p>
+<p><pre lang="txt"><web-app id="/test" root-directory="/www/test/"></pre>
+<p></p>
+<p>此后呢，访问 http://ip:8080/test 就可以访问到你的应用了。 

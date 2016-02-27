@@ -1,0 +1,13 @@
+---
+layout: post
+title: 找到一个wp coding插件的bug
+tags:
+- Web
+status: publish
+type: post
+published: true
+comments: true
+---
+coding插件用的是geshi来加格式的。发现贴了一个html后coding不支持，找了半天bug，总算找到了。
+
+在 $pattern 这个正则里面，(([^<]|<[^\/])*) 匹配的应该是不是<或者< /的字符串，而html代码里面很多都是< /，这样html代码就不会匹配了。修改一下就好了。(([^<]|<[^\/]|<\/[^pP])*)。

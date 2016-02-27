@@ -1,0 +1,68 @@
+---
+layout: post
+title: 用 emacs 写 blog
+tags:
+- emacs
+- Linux
+- wordpress
+status: publish
+type: post
+published: true
+comments: true
+---
+不想看大段文字的可以直接看 http://github.com/wd/work/tree/master/weblogger.el/。
+
+先看看 <a href="http://emacser.com/weblogger.htm">这个</a>， 我用的weblogger.el 就是从那来的，这个 el 打了 html 支持和 tags(summary) 的支持。
+
+因为写中文 title 的时候，生成的 url 会有一堆的中文字符，看起来就是乱码，不可读，这时候可以在 wp 的后台指定一个 post-slug，url 会根据这个生成。这里我主要是研究了一下对 post-slug 的支持。
+
+weblogger.el 里面 应该是在 weblogger-determine-capabilities 里面判断一下你的 blog 支持的类型，我看了 wordpress 的支持的 methods，里面metaWeblog.newPost, 和 blogger.newPost 应该都是支持的，他应该首选的是 metaWeblog 那个。
+
+然后呢，就是看 wp 的 xml-rpc 文件，里面有个 mw_newPost 对应的就是 metaWeblog.newPost 应该是。在这个函数头试了一把，用的确实是这个。然后就看这里面是怎么处理的了。
+
+这里面最后用的是 wp_insert_post 发的贴子，再看这个函数，能看到里面用的是 post_name 来生成的 post-slug。那么我们只要设置一下这个变量就可以了。在这个函数里面，搜一下 post-name 能看到
+<pre class="prettyprint">
+// Let WordPress generate the post_name (slug) unless
+// one has been provided.
+$post_name = "";
+if(isset($content_struct["wp_slug"])) {
+    $post_name = $content_struct["wp_slug"];
+}
+</pre>
+
+我们只要在 weblogger.el 里面 post 一个这个变量就好了。在 post 里面能看到如果有个 X-url 的话，他会 post 一个 link 字段出来。那就好了，把上面那个 wp_slug 改成 link，然后写 blog 的时候加一个字段 X-url 就会使用这个你指定的 url 了。
+
+这个文章就是用 emacs 写的。 :D
+
+又研究了下，再补充点内容，呵呵。(2010-03-10)
+
+问题是这样的，新建一个 post 的时候会出来 subject, keywords, newsgroup 这三个字段，怎么能让他加上 summary 和 x-url 呢，这样我就不用每次都手动写了，怎么弄呢，我就找啊找啊，总算找到方法了。
+
+新建的 buffer 里面不是会有个提示么，什么 '--text follows this line --', 就找这个，看是哪里提供的。在 weblogger.el 里面，找了半天，发现没有这个提示。怎么回事？要相信程序，肯定是会有的，只能是找错了地方。
+
+看看这个 el 的看头，引用了 message.el，搜了一下，这个原来是 gnus 提供的，找到这个 el，搜了一下，找到那几个字符了。原来是在这里面添加的。然后我就尝试定义 message-required-news-headers 这个变量，发现不好用，看来还是得在 weblogger.el 里面弄。在这里面找到 weblogger-edit-entry 这个函数，这个就是发帖子的时候用的，在里面有个顺序往下看，这个 message-goto-keywords 比较可疑，在 message.el 里面搜了下，果然，同时还看到一个 message-goto-summary，加上看看，嘿嘿，果然就搞定了。再找找 x-url，没找到，那就仿 summary 的写一个呗
+<pre class="prettyprint">
+(defun message-goto-x-url ()
+  "Move point to the x-url header."
+  (interactive)
+  (message-position-on-field "X-url" "Subject"))
+</pre>
+
+这不完了么，这下就爽多了，嘿嘿。。不过如果能把那些 keywords, summary 等字段改成什么 categories,tags 就好了。。。有时间看看。。。
+
+又研究了一下，加点内容。。(2010-03-11)
+
+其实就是上面留的这点东西，我自己改吧了一下，好像能用了。地址在 http://github.com/wd/work/tree/master/weblogger.el/，里面的 permlink 就是指定 url 的。我看发文章好像没问题了。
+
+另外，我试着在这个 mode 里面让他自动启动 auto-complete-mode，可是怎么弄都不行，不知道怎么回事。下面是我在 .emacs 用的代码。
+<pre class="prettyprint">
+(add-hook 'weblogger-start-edit-entry-hook (lambda()
+    (auto-fill-mode -1)
+    (abbrev-mode -1)
+    (auto-complete-mode 1)
+    ))
+</pre>
+
+有人能帮忙不。。。
+
+又修改了一些东西。。可以看看 github 的 commit log 。。。。(2010-03-12)

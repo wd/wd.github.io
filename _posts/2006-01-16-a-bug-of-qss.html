@@ -1,0 +1,49 @@
+---
+layout: post
+title: qss不正常显示的问题
+tags:
+- Mail
+status: publish
+type: post
+published: true
+comments: true
+---
+1 php3.x版本以上不正常显示
+
+设置php.ini的<font color="#FF0000">register_globals = On</font>
+
+或者
+
+修改getGraph.php添加
+<font color="#FF0000">$data=$_GET[&#39;data&#39;];
+$t=$_GET[&#39;t&#39;];
+修改getGraph1.php添加
+$data=$_GET[&#39;data&#39;];
+$s=$_GET[&#39;s&#39;];</font>
+
+2 还不能正常显示
+
+那可能你的qmail-scanner的版本是1.2以上的，此版本以上的log文件格式有些变化，qss却没有做相应更新，所以会有问题。你可以看看你的log文件的日期是不是下面这种格式
+Mon, 03 Jan 2005 04:01:57 CST
+如果是，那么差不多就是这个问题了。
+
+解决方法是在index.php里面查找
+<font color="#FF0000"># Calc the date timestamp</font>
+把他下面的5行语句用下面的替换
+<font color="#FF0000">   if ( eregi("(^[0-9]+)", $val[0]) )
+   {
+      # Calc the date timestamp
+      $date = explode("/",$val[0]);
+      $dateT = $date[0];
+      $date[0] = $date[1];
+      $date[1] = $dateT;
+      $date = strtotime(implode("/",$date));
+   }
+   else
+   {
+      $date = strtotime ($val[0]);
+   };
+</font>
+
+参考网址
+<a href="http://www.tnpi.biz/internet/mail/toaster/faq.shtml#how_do_i_get_qmailscanner_statistics_to_work" target="_blank">here</a>

@@ -1,0 +1,73 @@
+---
+layout: post
+title: 在mdk安装xsim输入法
+tags:
+- Other
+status: publish
+type: post
+published: true
+comments: true
+---
+以前写的一个安装文档，今天看到了，贴上来，呵呵。
+
+给菜鸟看得，老鸟就别看了，因为是菜鸟写的，所以可能有些名词命令什么的会遭到老鸟的鄙视，但是俺说了，不是给你们看得，但是如果你看了，发现什么错误或者有意见建议，欢迎提出来，thx
+
+<br><!--more-->在mdk安装xsim输入法，有以下几项工作要做
+1 准备软件
+
+xsim安装需要db4,我的mdk9.1安装的时候我已经选择了大部分软件，但是还是没有这个，所以你也可能需要这个，如果不确定，可以先跳过第3步看看，因为我也不知道怎么看有没有装。软件到这里下载http://www.sleepycat.com/download/index.shtml,下载GNU gzip/tar format
+然后下在xsim,到这里http://download.berlios.de/xsim找到xsim-x.x.x.tar.gz(那里有个rpm的，但是我用rpm尝试了很多次，始终是装上了进入kde就死，可能是我设置的问题，你可以试试看，如果安装了不行，可以用rpm -e xxx.rpm卸载了重来)
+
+2 准备安装
+
+很多地方都说需要先把什么xcin,Chinput卸载了，我也照做了，可能是会有冲突吧。卸载命令
+rpm -e xcin
+rpm -e Chinput
+
+3 安装db4
+
+下载以后，你可以在windows下解压看看里面的文档，用winrar就可以解，在docs目录下面，或者直接看关于unix安装部分docsrefbuild_unixintro.html里面有安装方法
+1）先把你的包解压了
+tar xvzf db-4.x.x.tar.gz(我还不明白xvzf的意思，总之是参数了)
+解压以后应该在当然目录会多出来一个db-4.x.x文件夹。
+
+2）进入其中的build_unix目录，执行下面的命令
+../dist/configure --enable-cxx --prefix=/usr/local
+make
+make install
+在此过程中要注意看有没有错误，一般就是个xxx error之类，停下来。如果有，。。。。。我也不知道怎么办，你去重新下载一个看看，或者详细参看上面提到的他的文档。
+
+3）如果要重装，执行下面的命令
+make realclean
+
+ok,make install不出意外，你的db4就应该没有问题了。
+
+4 安装xsim
+
+解压，和上面的命令类似 tar xvzf xsim-x.x.x.x.tar.gz
+进入xsim-x.x.x.x目录，执行下面的命令
+./configure
+make
+make install
+在此过程中不能有错误
+然后make install-data
+这个命令我每次执行都会出错，后来我执行到这一步的时候，先把xsim文件夹改名字，例如xsim2,然后用rpm安装了他的rpm,命令rpm -ivh xxx.rpm，然后拷贝/usr/local/xsim/dat目录里面的东西到/usr/local/xsim2/dat里面，然后在卸载rpm,然后把xsim文件夹删除了，用rmdir -r xsim命令。然后把xsim2改为xsim
+然后还需要修改dat文件夹的权限，chown -R xxx dat其中的xxx为x用户的用户名，其他的我也不会。
+这样xsim也ok啦
+
+5 配置
+
+修改/etc/sysconfig/i18n文件，把里面的下面的对应项修改,其他的都是什么zh_CN或者zh_CN.GB2312,zh_CN.GB1380之类，反正有zh_CN就行了吧，我觉得，不是很清楚。
+XIM=XSIM
+XIM_PROGRAM=xsim
+XMODIFIERS="@im=XSIM"
+
+修改完后，在控制台输入执行echo $XMODIFIERS命令，如果输出是@im=XSIM，那就好了。
+
+我在安装的过程中还修改过/etc/init.d/XIM文件，将里面的Chinput改成xsim，但是我觉得这个可能不需要修改，你可以先不修改。
+
+6  运行个startx看看吧，上天保佑你。反正我看到那个右下角的“简”字兴奋了半天。切出输入法的快捷健是ctrl+space。
+
+That&#39;s all
+感谢eyes同学的指导，呵呵
+从rh8开始装，到了mdk9才搞定，我是不是太笨了？ :P

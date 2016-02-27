@@ -1,0 +1,42 @@
+---
+layout: post
+title: gentoo 里面字体
+tags:
+- Linux
+status: publish
+type: post
+published: true
+comments: true
+---
+ubuntu 做了一个好事，给好几个包打了个补丁，让字体效果达到了空前的好效果。在 gentoo 里面也可以用这几个补丁。
+
+这几个包是下面这几个。在 devnull 这个 overlay 里面有打了补丁的包，版本更新也能跟得上 portage ，建议直接加这个 overlay。
+media-libs/fontconfig
+media-libs/freetype
+x11-libs/libXft
+x11-libs/cairo
+
+加了 devnull overlay 后，加一个全局的 ubuntu 的 use（或许再加一个-cleartype 的use, 这两个 use 是互相冲突的，效果好像差不多）。
+
+然后重新 emerge 那几个包，要注意看装的是不是都是 overlay 里面的。
+
+装好后，执行 eselect fontconfig list 看看，应该多了一些东东。
+  [1]   10-antialias.conf *
+  [2]   10-autohint.conf
+  [3]   10-hinting.conf *
+  [4]   10-hinting-full.conf
+  [5]   10-hinting-medium.conf *
+  [6]   10-hinting-slight.conf
+  [7]   10-no-sub-pixel.conf
+  [8]   10-sub-pixel-bgr.conf
+  [9]   10-sub-pixel-rgb.conf *
+  [10]  10-sub-pixel-vbgr.conf
+  [11]  10-sub-pixel-vrgb.conf
+  [12]  10-unhinted.conf
+
+最主要就这几个了吧，看看那个 *，按照这个选了，然后程序启动一下 fx 看看效果。
+<del datetime="2009-11-29T15:06:28+00:00">那个 10-hinting-* 可以试试看 full 和 slight，看喜欢哪种效果了。</del> 见鬼了，今天又发现字体好像不怎么好看了，然后折腾了会，发现用 autohint 的效果是最好的。。。晕了。。 2008-11-29.
+
+这样设置好之后，就不需要在 local.conf 里面设置相关的了。我的 local.conf 里面只是修改了一下 sans sans-serif 等的排序。对了我用的是雅黑+consolas ，效果大概就是这个吧 http://twitpic.com/7dg2q 。抓这个图后好像还改了些东西，还是有些变化的。
+
+建议还是用这个 eselect 来调整字体吧。

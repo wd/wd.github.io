@@ -1,0 +1,136 @@
+---
+layout: post
+title: PAM入门介绍
+tags:
+- Other
+- pam
+status: publish
+type: post
+published: true
+comments: true
+---
+来源 <a target="_blank" href="http://sinbad.zhoubin.com/read.html?board=UNIX&num=482">这里</a>
+
+PAM（Pluggable Authentication Modules ）是由Sun提出的一种认证机制。它通过提供一些
+动态链接库和一套统一的API，将系统提供的服务 和该服务的认证方式分开，使得系统管理
+员可以灵活地根据需要给不同的服务配置不同的认证方式而无需更改服务程序，同时也便于
+向系 统中添加新的认证手段。
+PAM最初是集成在Solaris中，目前已移植到其它系统中，如Linux、SunOS、HP-UX 9.0等。
+
+一、PAM的结构
+
+PAM的整个框架结构如下图所示：
+
+
+系统管理员通过PAM配置文件来制定认证策略，即指定什么服务该采用什么样的认证方法；应
+用程序开发者通过在服务程序中使用PAM API而实现对认证方法的调用；而PAM服务模块（se
+rvice module）的开发者则利用PAM SPI（Service Module API）来编写认证模块（主 要是
+引出一些函数pam_sm_xxxx( )供libpam调用），将不同的认证机制（比如传统的UNIX认证方
+法、Kerberos等）加入到系统中；PAM核 心库（libpam）则读取配置文件，以此为根据将服
+务程序和相应的认证方法联系起来。<!--more-->
+二、PAM支持的四种管理界面：
+
+1、认证管理（authentication management）
+主要是接受用户名和密码，进而对该用户的密码进行认证，并负责设置用户的一些秘密
+信息。
+2、帐户管理（account management）
+主要是检查帐户是否被允许登录系统，帐号是否已经过期，帐号的登录是否有时间段的
+限制等等。
+3、密码管理（password management）
+主要是用来修改用户的密码。
+4、会话管理（session management）
+主要是提供对会话的管理和记账（accounting）。
+
+三、PAM的文件：
+
+/usr/lib/libpam.so.*                  PAM核心库
+/etc/pam.conf或者/etc/pam.d/          PAM配置文件
+/usr/lib/security/pam_*.so            可动态加载的PAM service module
+对于RedHat，其目录不是/usr/lib，而是/lib。
+
+四、PAM的配置：
+
+PAM的配置是通过单个配置文件/etc/pam.conf。RedHat还支持另外一种配置方式，即通过配
+置目录/etc/pam.d/，且这种的优先级要高于单 个配置文件的方式。
+
+1、使用配置文件/etc/pam.conf
+
+该文件是由如下的行所组成的：
+service-name  module-type  control-flag  module-path  arguments
+
+service-name 服务的名字，比如telnet、login、ftp等，服务名字“OTHER”代表所有没有
+在该文件中明确配置的其它服务。
+module-type  模块类型有四种：auth、account、session、password，即对应PAM所支持的
+四种管理方式。同一个服务可以调用多个 PAM模块进行认证，这些模块构成一个stack。
+control-flag 用来告诉PAM库该如何处理与该服务相关的PAM模块的成功或失败情况。它有四
+种可能的 值：required，requisite，sufficient，optional。
+required 表示本模块必须返回成功才能通过认证，但是如果该模块返回失败的话，失败
+结果也不会立即通知用户，而是要等到同一stack 中的所有模块全部执行完毕再将失败结果
+返回给应用程序。可以认为是一个必要条件。
+requisite 与required类似，该模块必须返回成功才能通过认证，但是一旦该模块返回
+失败，将不再执行同一stack内的任何模块，而是直 接将控制权返回给应用程序。是一个必
+要条件。注：这种只有RedHat支持，Solaris不支持。
+sufficient 表明本模块返回成功已经足以通过身份认证的要求，不必再执行同一stack
+内的其它模块，但是如果本模块返回失败的话可以 忽略。可以认为是一个充分条件。
+optional表明本模块是可选的，它的成功与否一般不会对身份认证起关键作用，其返回
+值一般被忽略。
+对于control-flag，从Linux-PAM-0.63版本起，支持一种新的语法，具体可参看Linux
+PAM文档。
+module-path 用来指明本模块对应的程序文件的路径名，一般采用绝对路径，如果没有给出
+绝对路径，默认该文件在目录/usr/lib/security下 面。
+arguments  是用来传递给该模块的参数。一般来说每个模块的参数都不相同，可以由该模块
+的开发者自己定义，但是也有以下几个共同 的参数：
+debug          该模块应当用syslog( )将调试信息写入到系统日志文件中。
+no_warn        表明该模块不应把警告信息发送给应用程序。
+use_first_pass  表明该模块不能提示用户输入密码，而应使用前一个模块从用户那里
+得到的密码。
+try_first_pass  表明该模块首先应当使用前一个模块从用户那里得到的密码，如果该
+密码验证不通过，再提示用户输入新的密码。
+use_mapped_pass 该模块不能提示用户输入密码，而是使用映射过的密码。
+expose_account  允许该模块显示用户的帐号名等信息，一般只能在安全的环境下使用
+，因为泄漏用户名会对安全造成一定程度的威 胁。
+
+2、使用配置目录/etc/pam.d/（只适用于RedHat Linux）
+
+该目录下的每个文件的名字对应服务名，例如ftp服务对应文件/etc/pam.d/ftp。如果名为x
+xxx的服务所对应的配置文件/etc/pam.d/xxxx不存 在，则该服务将使用默认的配置文件/et
+c/pam.d/other。每个文件由如下格式的文本行所构成：
+module-type  control-flag  module-path  arguments
+每个字段的含义和/etc/pam.conf中的相同。
+
+3、配置的例子
+
+例一：用/etc/pam.conf配置默认的认证方式。
+
+下面的例子将拒绝所有没有在/etc/pam.conf中明确配置的服务。OTHER代表没有明确配置的
+其它所有服务，pam_deny模块的作用只是简 单地拒绝通过认证。
+OTHER  auth    required      /usr/lib/security/pam_deny.so
+OTHER  account  required      /usr/lib/security/pam_deny.so
+OTHER  password required      /usr/lib/security/pam_deny.so
+OTHER  session  required      /usr/lib/security/pam_deny.so
+
+
+例二：通过/etc/pam.d/rsh文件配置rsh服务的认证方式。
+
+rsh服务认证用户时，先使用/etc/hosts.equiv和.rhosts文件的认证方式，然后再根据/etc
+/nologin文件的存在与否来判断是否允许该用户使用 rsh，最后使用password database来认
+证用户。
+
+auth      required    /lib/security/pam_rhosts_auth.so
+auth      required    /lib/security/pam_nologin.so
+account    required    /lib/security/pam_pwdb.so
+session    required    /lib/security/pam_pwdb.so
+
+
+例三：通过/etc/pam.conf配置ftpd的认证方式。
+
+下面是ftpd服务利用PAM模块进行用户认证的三个步骤。首先用pam_ftp模块检查当前用户是
+否为匿名用户，如果是匿名用户，则 sufficient控制标志表明无需再进行后面的认证步骤，
+直接通过认证；否则继续使用pam_unix_auth模块来进行标准的unix认证，即用/etc/ passw
+d和/etc/shadow进行认证；通过了pam_unix_auth模块的认证之后，还要继续用pam_listfil
+e模块来检查该用户是否出现在文件/etc/ ftpusers中，如果是则该用户被deny掉。
+ftpd    auth    sufficient  /usr/lib/security/pam_ftp.so
+ftpd    auth    required    /usr/lib/security/pam_unix_auth.so use_first_pass
+ftpd    auth    required    /usr/lib/security/pam_listfile.so \
+onerr=succeed item=user sense=deny file=/etc/ftpuser
+s

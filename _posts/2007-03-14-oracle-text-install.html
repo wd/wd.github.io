@@ -1,0 +1,39 @@
+---
+layout: post
+title: oracle 文本界面的安装
+tags:
+- Linux
+- oracle
+- Other
+status: publish
+type: post
+published: true
+comments: true
+---
+oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是<font color="#3333ff">远程</font>文本界面。这样很有必要看看如何通过文本界面来安装oracle。
+
+oracle本身的安装程序也提供了这个方法，就是使用 responseFile 。这个 responseFile 其实就是在图形界面安装的时候的一些选择，保存到文件之后，直接告诉安装程序从这里读取设置就好了。将oracle的安装文件 ship.db.lnx32.cpio.gz 解压：
+
+<pre class="prettyprint lang-bash">
+cpio -idmv < ship.db.cpio</pre>
+
+这样可以看到有个Disk1的文件夹，里面有个response目录，里面好多response文件，不过我还不知道这些有什么区别，里面设置项也很多，还没弄明白。我使用的不是这里的response文件。是通过下面的方法获取的rsp文件。
+
+可以通过在记录模式中运行软件或通过手动编辑示例响应文件来创建响应文件。以下是一个基本演示：
+
+   1. 用此命令启动 OUI 来创建响应文件：
+
+      ./runInstaller -record -destinationFile /tmp/recorded.rsp
+       
+   2. 选择您需要的所有部分（源目标目录、主目录、主目录名、产品）。
+   3. 当您看到 Summary 屏幕时，不要单击 Install，而是单击 Cancel。
+   4. 仔细查看在 tmp/recorded.rsp 中创建的结果响应文件。如果需要，可以手动编辑该文件，只要您遵守使用规定的格式即可（请参见文档）。
+   5. 现在如下执行静默安装：
+
+      ./runInstaller -silent -responseFile /tmp/recorded.rsp
+
+      在运行脚本时将会报告安装的进度。
+
+如果您由于响应文件中的条目不正确而遇到安装故障，安装将失败并显示一条诊断消息。详细信息可在 oraInventory/logs 目录中找到。在每次使用响应文件运行 OUI 时，会创建具有 installActions-<时间戳>.log 和 silentInstall<时间戳>.log 格式名称的日志。
+
+这样，只需要找台机器在图形界面下面运行一下安装程序，生成一个rsp文件，然后放到真正需要安装的服务器上面，修改一下安装路径，设置一下sys密码，就可以开始安装了。

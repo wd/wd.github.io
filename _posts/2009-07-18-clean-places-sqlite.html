@@ -1,0 +1,27 @@
+---
+layout: post
+title: 清理 firefox places.sqlite 来提速
+tags:
+- firefox
+- Linux
+status: publish
+type: post
+published: true
+comments: true
+---
+来自这里 http://forum.moztw.org/viewtopic.php?t=26802
+
+使用前先备份，后悔了还能弄回去。
+
+<pre class="prettyprint lang-sql">
+sqlite3 places.sqlite "DELETE FROM moz_historyvisits WHERE place_id IN (SELECT id FROM moz_places WHERE visit_count <=2 );"
+
+sqlite3 places.sqlite "DELETE FROM moz_places WHERE (visit_count <=2 AND hidden <> 1 AND id NOT IN (SELECT place_id FROM moz_annos UNION SELECT fk FROM moz_bookmarks));"
+
+sqlite3 places.sqlite "DELETE FROM moz_inputhistory WHERE place_id NOT IN (SELECT id FROM moz_places);"
+
+sqlite3 places.sqlite "DELETE FROM moz_favicons WHERE id NOT IN (SELECT
+favicon_id FROM moz_places);"
+
+sqlite3 places.sqlite "VACUUM;"
+</pre>
