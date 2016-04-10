@@ -1,0 +1,359 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>org-mode 里面自动归档任务 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
+&lt;/p&gt;
+&lt;p&gt;
+org-mode 本身提供了 remember 来创建 todo list。
+&lt;/p&gt;
+&lt;p&gt;
+新建一个 org 文件 ~/org/todo.org，包含两行内容如下
+&lt;/p&gt;
+
+
+&lt;pre class=&quot;prettyprint lang-text&quot;&gt;
+* Tasks
+* Done
+&lt;/pre&gt;
+
+&lt;p&gt;
+然后设置下面的内容
+&lt;/p&gt;
+
+
+&lt;pre class=&quot;prettyprint lang-lisp&quot;&gt;
+(define-key global-map &quot;\C-ca&quot; &#39;org-agenda)
+(global-set-key (kbd &quot;C-c m r&quot;) &#39;org-capture)
+(setq org-capture-templates
+      &#39;((&quot;t&quot; &quot;Todo&quot; entry (file+headline &quot;~/org/todo.org&quot; &quot;Tasks&quot;)
+         &quot;* TODO %?\nCREATED: %U&quot;)
+        (&quot;j&quot; &quot;Journal&quot; entry (file+datetree &quot;~/org/journal.org&quot;)
+         &quot;* %?\nEntered on %U\n  %i\n  %a&quot;)))
+(defun wd-move-done-task-to-done-cats ( task-pos )
+  &quot;move done task to *DONE cats&quot;
+  (let* ((entry (org-get-entry))
+        (title (org-get-heading))
+        (task (format &quot;** %s\n%s\n&quot; title entry))
+        )
+    (goto-char (point-min))
+    (when (search-forward-regexp &quot;^* Tasks$latex &quot;)
+      (goto-char (point-min))
+      (when (search-forward-regexp &quot;^* Done$&quot;)
+        (goto-char (match-beginning 0))
+        (forward-line)      
+        (insert task)
+        (goto-char task-pos)
+        (delete-region (org-entry-beginning-position) (org-entry-end-position))      
+        )
+      )
+    )
+  )
+
+(defun wd-track-task-status ( changes-plist )
+   &quot;Track task status, and move it to &#39;* Done&#39; cats if it is stats change from to to done
+1 TODO 文件至少需要包含两个标题 * Tasks 和 * Done
+2 * Tasks 里面的 TODO 内容变成 DONE 的时候，会自动把这个条目移动到 * Done
+3 org-todo-keywords 的设置里面不能包含自动增加时间等的设置，否则增加的内容不能正确加到这个条目
+&quot;
+   ;; (interactive)
+   (let ((type (plist-get change-plist :type))
+          (pos (plist-get change-plist :position))
+          (from (plist-get change-plist :from))
+          (to (plist-get change-plist :to))
+          )
+     (when (and (string= from &quot;TODO&quot;)
+                (string= to &quot;DONE&quot;))
+       ;; (let ((answer (read-char &quot;Move this entry to *DONE ? Y/N (Y)&quot;)))
+       ;;   (when (or (= answer (string-to-char &quot;y&quot;))
+       ;;             (= answer (string-to-char &quot;Y&quot;))
+       ;;             (= answer (string-to-char &quot;
+&quot;))
+       ;;             )
+           (wd-move-done-task-to-done-cats pos)
+         ;; ))
+       )
+     )
+   )
+
+(add-hook &#39;org-trigger-hook &#39;wd-track-task-status)
+
+;; (setq org-todo-keywords
+;;       &#39;((sequence &quot;TODO(t)&quot; &quot;WAIT(w@/!)&quot; &quot;|&quot; &quot;DONE(d!)&quot; &quot;CANCELED(c@)&quot;)))
+(setq org-todo-keywords
+      &#39;((sequence &quot;TODO(t)&quot; &quot;WAIT(w)&quot; &quot;|&quot; &quot;DONE(d)&quot; &quot;CANCELED(c)&quot;)))
+&lt;/pre&gt;
+
+&lt;p&gt;
+在任何地方按一下 C-c m r，会出来一个 window 让你选择要创建 todo 还是 journal。选 t，然后输入内容就会自动插入到 ~/org/todo.org 的 * Tasks 里面。
+&lt;/p&gt;
+&lt;p&gt;
+此后，如果任务完成的时候，打开 todo.org，然后在任务上面 C-c C-t，会提示输入状态。如果是从 TODO 变成了 DONE，那这条任务会被转移到 * Done 里面。
+&lt;/p&gt;
+&lt;p&gt;
+因为里面都有时间，所以在 agenda list 里面，可以用 L 看到任务完成时间等。也将就用了。
+&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">org-mode 里面自动归档任务</h2>
+	<div class="entry-content"><p>我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
+</p>
+<p>
+org-mode 本身提供了 remember 来创建 todo list。
+</p>
+<p>
+新建一个 org 文件 ~/org/todo.org，包含两行内容如下
+</p>
+
+
+<pre class="prettyprint lang-text">
+* Tasks
+* Done
+</pre>
+
+<p>
+然后设置下面的内容
+</p>
+
+
+<pre class="prettyprint lang-lisp">
+(define-key global-map "\C-ca" 'org-agenda)
+(global-set-key (kbd "C-c m r") 'org-capture)
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks")
+         "* TODO %?\nCREATED: %U")
+        ("j" "Journal" entry (file+datetree "~/org/journal.org")
+         "* %?\nEntered on %U\n  %i\n  %a")))
+(defun wd-move-done-task-to-done-cats ( task-pos )
+  "move done task to *DONE cats"
+  (let* ((entry (org-get-entry))
+        (title (org-get-heading))
+        (task (format "** %s\n%s\n" title entry))
+        )
+    (goto-char (point-min))
+    (when (search-forward-regexp "^* Tasks$latex ")
+      (goto-char (point-min))
+      (when (search-forward-regexp "^* Done$")
+        (goto-char (match-beginning 0))
+        (forward-line)      
+        (insert task)
+        (goto-char task-pos)
+        (delete-region (org-entry-beginning-position) (org-entry-end-position))      
+        )
+      )
+    )
+  )
+
+(defun wd-track-task-status ( changes-plist )
+   "Track task status, and move it to '* Done' cats if it is stats change from to to done
+1 TODO 文件至少需要包含两个标题 * Tasks 和 * Done
+2 * Tasks 里面的 TODO 内容变成 DONE 的时候，会自动把这个条目移动到 * Done
+3 org-todo-keywords 的设置里面不能包含自动增加时间等的设置，否则增加的内容不能正确加到这个条目
+"
+   ;; (interactive)
+   (let ((type (plist-get change-plist :type))
+          (pos (plist-get change-plist :position))
+          (from (plist-get change-plist :from))
+          (to (plist-get change-plist :to))
+          )
+     (when (and (string= from "TODO")
+                (string= to "DONE"))
+       ;; (let ((answer (read-char "Move this entry to *DONE ? Y/N (Y)")))
+       ;;   (when (or (= answer (string-to-char "y"))
+       ;;             (= answer (string-to-char "Y"))
+       ;;             (= answer (string-to-char "
+"))
+       ;;             )
+           (wd-move-done-task-to-done-cats pos)
+         ;; ))
+       )
+     )
+   )
+
+(add-hook 'org-trigger-hook 'wd-track-task-status)
+
+;; (setq org-todo-keywords
+;;       '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "WAIT(w)" "|" "DONE(d)" "CANCELED(c)")))
+</pre>
+
+<p>
+在任何地方按一下 C-c m r，会出来一个 window 让你选择要创建 todo 还是 journal。选 t，然后输入内容就会自动插入到 ~/org/todo.org 的 * Tasks 里面。
+</p>
+<p>
+此后，如果任务完成的时候，打开 todo.org，然后在任务上面 C-c C-t，会提示输入状态。如果是从 TODO 变成了 DONE，那这条任务会被转移到 * Done 里面。
+</p>
+<p>
+因为里面都有时间，所以在 agenda list 里面，可以用 L 看到任务完成时间等。也将就用了。
+</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="auto-archive-task-for-org-mode/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'auto-archive-task-for-org-mode/';
+        var disqus_url = 'auto-archive-task-for-org-mode/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

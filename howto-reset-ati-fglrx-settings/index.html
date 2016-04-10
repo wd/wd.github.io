@@ -1,0 +1,199 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>万恶的 ATI fglrx 驱动 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="ATI 官方驱动带了一个 amdcccle 命令，可以显示图形界面对显示器作一些设置，例如修改分辨率，twinview, dual head, bigdesktop 这些设置。其实 nvidia 的官方驱动也是带了这么一个工具的。
+
+但是呢，有时候就会发现，通过这个命令修改显示之后，你的xorg.conf 里面的设置就不起作用了！无论你之后如何去修改你的 xorg.conf ，他根本不会去理会。
+
+我遇到的问题就是，某次通过 amdcccle 设置了一下 bigdesktop，结果导致接上我的另外一个LCD之后，那个LCD的分辨率死活就卡在 1024x768 上了。要知道，那个LCD是支持 1280x1024的，可是无论如何设置，就是不能提高分辨率了。查看 xorg 的log，能看到读取的 /etc/X11/xorg.conf 文件，可是就是没效果。
+
+开始怀疑是显示器出于保护，把分辨率设置底了，结果接到别人的笔记本上面是没问题的。后来研究来研究去，发现还是 ATI 驱动的问题。
+
+/etc/ati 下面有不少文件，也不知道这些文件是什么用途，但是 amdpcsdb 这个文件就是罪魁祸首了。删掉后LCD的分辨率就正常了。
+
+很奇怪，我执行 amdcccle 的时候，用的可不是 sudo ，他是怎么写到这个文件里面的？
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">万恶的 ATI fglrx 驱动</h2>
+	<div class="entry-content">ATI 官方驱动带了一个 amdcccle 命令，可以显示图形界面对显示器作一些设置，例如修改分辨率，twinview, dual head, bigdesktop 这些设置。其实 nvidia 的官方驱动也是带了这么一个工具的。
+
+但是呢，有时候就会发现，通过这个命令修改显示之后，你的xorg.conf 里面的设置就不起作用了！无论你之后如何去修改你的 xorg.conf ，他根本不会去理会。
+
+我遇到的问题就是，某次通过 amdcccle 设置了一下 bigdesktop，结果导致接上我的另外一个LCD之后，那个LCD的分辨率死活就卡在 1024x768 上了。要知道，那个LCD是支持 1280x1024的，可是无论如何设置，就是不能提高分辨率了。查看 xorg 的log，能看到读取的 /etc/X11/xorg.conf 文件，可是就是没效果。
+
+开始怀疑是显示器出于保护，把分辨率设置底了，结果接到别人的笔记本上面是没问题的。后来研究来研究去，发现还是 ATI 驱动的问题。
+
+/etc/ati 下面有不少文件，也不知道这些文件是什么用途，但是 amdpcsdb 这个文件就是罪魁祸首了。删掉后LCD的分辨率就正常了。
+
+很奇怪，我执行 amdcccle 的时候，用的可不是 sudo ，他是怎么写到这个文件里面的？
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="howto-reset-ati-fglrx-settings/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'howto-reset-ati-fglrx-settings/';
+        var disqus_url = 'howto-reset-ati-fglrx-settings/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

@@ -1,0 +1,217 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>Some tips for bash scripting - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;最近几天写了一些 bash 脚本，又有些心得，记录一下。&lt;/p&gt;
+&lt;h2 id=&quot;获取当前路径的绝对路径&quot;&gt;获取当前路径的绝对路径&lt;/h2&gt;&lt;p&gt;比较常见的需求可能是获取相对路径，这样方便程序复制到其他目录也可以运行。使用 &lt;code&gt;$(dirname $0)&lt;/code&gt; 就可以获取相对路径，不过这里说的是绝对路径。&lt;/p&gt;
+&lt;p&gt;其实也简单，相对路径加上当前目录，那不就是绝对路径么。不过是，有时候 &lt;code&gt;$(dirname $0)&lt;/code&gt; 取到的也可能是绝对路径（一般期望相对路径的程序也能跑通，所以不大关心）。&lt;/p&gt;
+&lt;p&gt;可以用下面的做法，大意是先判断一下获取到的路径是不是 &lt;code&gt;/&lt;/code&gt; 开头，如果是，那就不处理，如果不是，那就把当前的路径附加上去得到一个绝对路径。&lt;/p&gt;
+&lt;figure class=&quot;highlight bash&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;PG_DIR=&lt;span class=&quot;string&quot;&gt;&quot;&lt;span class=&quot;variable&quot;&gt;$(dirname $0)&lt;/span&gt;/../&quot;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;echo&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;&lt;span class=&quot;variable&quot;&gt;$PG_DIR&lt;/span&gt;&quot;&lt;/span&gt; | grep -q ^/&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; [ $? &lt;span class=&quot;operator&quot;&gt;-ne&lt;/span&gt; &lt;span class=&quot;number&quot;&gt;0&lt;/span&gt; ];&lt;span class=&quot;keyword&quot;&gt;then&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        PG_DIR=&lt;span class=&quot;string&quot;&gt;&quot;&lt;span class=&quot;variable&quot;&gt;$(pwd)&lt;/span&gt;/&lt;span class=&quot;variable&quot;&gt;$PG_DIR&lt;/span&gt;&quot;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;fi&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;h2 id=&quot;使用_getopt_获取命令行参数&quot;&gt;使用 getopt 获取命令行参数&lt;/h2&gt;&lt;p&gt;获取参数比较常见的做法是取 &lt;code&gt;$1&lt;/code&gt; &lt;code&gt;$2&lt;/code&gt; 这些，不过不太专业，这里说的是类似于 &lt;code&gt;--prefix=/path/to/install -v&lt;/code&gt; 这种。&lt;/p&gt;
+&lt;p&gt;bash 本身提供了一个内部命令 &lt;code&gt;getopts&lt;/code&gt; 来做这个事情，不过那个只能支持 short_opts，就是类似 &lt;code&gt;-v&lt;/code&gt; 这种，不支持长的。&lt;/p&gt;
+&lt;p&gt;getopt 是一个 GNU 程序，他支持 long_opts。下面是个例子。代码基本来自网上。&lt;/p&gt;
+&lt;figure class=&quot;highlight bash&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;15&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;16&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;17&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;18&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;19&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;20&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;21&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;ARGS=$(getopt &lt;span class=&quot;operator&quot;&gt;-a&lt;/span&gt; -o h &lt;span class=&quot;operator&quot;&gt;-l&lt;/span&gt; initdb::,&lt;span class=&quot;built_in&quot;&gt;help&lt;/span&gt; -- &lt;span class=&quot;string&quot;&gt;&quot;&lt;span class=&quot;variable&quot;&gt;$@&lt;/span&gt;&quot;&lt;/span&gt;)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;[ $? &lt;span class=&quot;operator&quot;&gt;-ne&lt;/span&gt; &lt;span class=&quot;number&quot;&gt;0&lt;/span&gt; ] &amp;amp;&amp;amp; usage&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;eval&lt;/span&gt; &lt;span class=&quot;built_in&quot;&gt;set&lt;/span&gt; -- &lt;span class=&quot;string&quot;&gt;&quot;&lt;span class=&quot;variable&quot;&gt;$&amp;#123;ARGS&amp;#125;&lt;/span&gt;&quot;&lt;/span&gt; &lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;while&lt;/span&gt; &lt;span class=&quot;literal&quot;&gt;true&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;do&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;variable&quot;&gt;$1&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;in&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                --initdb)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                        initdb &lt;span class=&quot;variable&quot;&gt;$2&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                        ;;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                -h|--help)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                        usage;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                        ;;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                --)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                        &lt;span class=&quot;built_in&quot;&gt;shift&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                        &lt;span class=&quot;built_in&quot;&gt;break&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                        ;;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;esac&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;built_in&quot;&gt;shift&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;done&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;解释一下上面的参数的含义:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;code&gt;-o&lt;/code&gt; 参数指定的就是短参数，我试过，貌似还得指定至少一个短参数。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;-l&lt;/code&gt; 参数指定的就是长参数。&lt;/li&gt;
+&lt;li&gt;多个参数用逗号 &lt;code&gt;,&lt;/code&gt; 分隔。&lt;/li&gt;
+&lt;li&gt;参数后面跟一个冒号 &lt;code&gt;:&lt;/code&gt; 表示这个参数(option)必须要给一个参数(argument)，类似上面的 &lt;code&gt;--prefix=/path/to/install&lt;/code&gt; 这种。&lt;/li&gt;
+&lt;li&gt;参数后面跟2个冒号 &lt;code&gt;::&lt;/code&gt; 表示这个参数后面的参数可有可无。比如例子里面的 &lt;code&gt;--initdb&lt;/code&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2 id=&quot;find_exec_提示_No_such_file_or_directory&quot;&gt;find exec 提示 No such file or directory&lt;/h2&gt;&lt;p&gt;这个是之前用来日志删除的一个程序，大概命令类似 &lt;code&gt;find ./ -name &amp;#39;2012*&amp;#39; -exec rm -r {} \;&lt;/code&gt;，后来总发现报 &lt;code&gt;No such file or directory&lt;/code&gt; 这个错误，可是去看的时候，发现那些目录也被删掉了。开始觉得可能是有其他人的程序也在删除这个目录，问了一圈结果没人删。&lt;/p&gt;
+&lt;p&gt;后来经过测试琢磨找到原因了，在于这个命令的执行思路大概是先去找那个名字的文件或者目录，然后挨个执行后面的命令。那么，如果找到的既有上级目录，也有下级文件的时候，如果目录先被删掉了，那删文件的时候可不就是 &lt;code&gt;No such file or directory&lt;/code&gt; 么。&lt;/p&gt;
+&lt;p&gt;好在 find 提供了一个参数 &lt;code&gt;-prune&lt;/code&gt;&lt;br&gt;&lt;figure class=&quot;highlight livecodeserver&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;-prune True; &lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; &lt;span class=&quot;operator&quot;&gt;the&lt;/span&gt; &lt;span class=&quot;built_in&quot;&gt;file&lt;/span&gt; is &lt;span class=&quot;operator&quot;&gt;a&lt;/span&gt; &lt;span class=&quot;built_in&quot;&gt;directory&lt;/span&gt;, &lt;span class=&quot;built_in&quot;&gt;do&lt;/span&gt; &lt;span class=&quot;operator&quot;&gt;not&lt;/span&gt; descend &lt;span class=&quot;keyword&quot;&gt;into&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;it&lt;/span&gt;. If -depth is given, &lt;span class=&quot;constant&quot;&gt;false&lt;/span&gt;; no effect.  Because -&lt;span class=&quot;built_in&quot;&gt;delete&lt;/span&gt; implies -depth, you can-&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;       &lt;span class=&quot;operator&quot;&gt;not&lt;/span&gt; usefully use -prune &lt;span class=&quot;operator&quot;&gt;and&lt;/span&gt; -&lt;span class=&quot;built_in&quot;&gt;delete&lt;/span&gt; together.&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Some tips for bash scripting</h2>
+	<div class="entry-content"><p>最近几天写了一些 bash 脚本，又有些心得，记录一下。</p>
+<h2 id="获取当前路径的绝对路径">获取当前路径的绝对路径</h2><p>比较常见的需求可能是获取相对路径，这样方便程序复制到其他目录也可以运行。使用 <code>$(dirname $0)</code> 就可以获取相对路径，不过这里说的是绝对路径。</p>
+<p>其实也简单，相对路径加上当前目录，那不就是绝对路径么。不过是，有时候 <code>$(dirname $0)</code> 取到的也可能是绝对路径（一般期望相对路径的程序也能跑通，所以不大关心）。</p>
+<p>可以用下面的做法，大意是先判断一下获取到的路径是不是 <code>/</code> 开头，如果是，那就不处理，如果不是，那就把当前的路径附加上去得到一个绝对路径。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">PG_DIR=<span class="string">"<span class="variable">$(dirname $0)</span>/../"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$PG_DIR</span>"</span> | grep -q ^/</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ $? <span class="operator">-ne</span> <span class="number">0</span> ];<span class="keyword">then</span></span><br><span class="line">        PG_DIR=<span class="string">"<span class="variable">$(pwd)</span>/<span class="variable">$PG_DIR</span>"</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
+<h2 id="使用_getopt_获取命令行参数">使用 getopt 获取命令行参数</h2><p>获取参数比较常见的做法是取 <code>$1</code> <code>$2</code> 这些，不过不太专业，这里说的是类似于 <code>--prefix=/path/to/install -v</code> 这种。</p>
+<p>bash 本身提供了一个内部命令 <code>getopts</code> 来做这个事情，不过那个只能支持 short_opts，就是类似 <code>-v</code> 这种，不支持长的。</p>
+<p>getopt 是一个 GNU 程序，他支持 long_opts。下面是个例子。代码基本来自网上。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">ARGS=$(getopt <span class="operator">-a</span> -o h <span class="operator">-l</span> initdb::,<span class="built_in">help</span> -- <span class="string">"<span class="variable">$@</span>"</span>)</span><br><span class="line">[ $? <span class="operator">-ne</span> <span class="number">0</span> ] &amp;&amp; usage</span><br><span class="line"></span><br><span class="line"><span class="built_in">eval</span> <span class="built_in">set</span> -- <span class="string">"<span class="variable">$&#123;ARGS&#125;</span>"</span> </span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="literal">true</span></span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">        <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">                --initdb)</span><br><span class="line">                        initdb <span class="variable">$2</span></span><br><span class="line">                        ;;</span><br><span class="line">                -h|--help)</span><br><span class="line">                        usage;</span><br><span class="line">                        ;;</span><br><span class="line">                --)</span><br><span class="line">                        <span class="built_in">shift</span></span><br><span class="line">                        <span class="built_in">break</span></span><br><span class="line">                        ;;</span><br><span class="line">        <span class="keyword">esac</span></span><br><span class="line">        <span class="built_in">shift</span></span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<p>解释一下上面的参数的含义:</p>
+<ul>
+<li><code>-o</code> 参数指定的就是短参数，我试过，貌似还得指定至少一个短参数。</li>
+<li><code>-l</code> 参数指定的就是长参数。</li>
+<li>多个参数用逗号 <code>,</code> 分隔。</li>
+<li>参数后面跟一个冒号 <code>:</code> 表示这个参数(option)必须要给一个参数(argument)，类似上面的 <code>--prefix=/path/to/install</code> 这种。</li>
+<li>参数后面跟2个冒号 <code>::</code> 表示这个参数后面的参数可有可无。比如例子里面的 <code>--initdb</code></li>
+</ul>
+<h2 id="find_exec_提示_No_such_file_or_directory">find exec 提示 No such file or directory</h2><p>这个是之前用来日志删除的一个程序，大概命令类似 <code>find ./ -name &#39;2012*&#39; -exec rm -r {} \;</code>，后来总发现报 <code>No such file or directory</code> 这个错误，可是去看的时候，发现那些目录也被删掉了。开始觉得可能是有其他人的程序也在删除这个目录，问了一圈结果没人删。</p>
+<p>后来经过测试琢磨找到原因了，在于这个命令的执行思路大概是先去找那个名字的文件或者目录，然后挨个执行后面的命令。那么，如果找到的既有上级目录，也有下级文件的时候，如果目录先被删掉了，那删文件的时候可不就是 <code>No such file or directory</code> 么。</p>
+<p>好在 find 提供了一个参数 <code>-prune</code><br><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-prune True; <span class="keyword">if</span> <span class="operator">the</span> <span class="built_in">file</span> is <span class="operator">a</span> <span class="built_in">directory</span>, <span class="built_in">do</span> <span class="operator">not</span> descend <span class="keyword">into</span> <span class="keyword">it</span>. If -depth is given, <span class="constant">false</span>; no effect.  Because -<span class="built_in">delete</span> implies -depth, you can-</span><br><span class="line">       <span class="operator">not</span> usefully use -prune <span class="operator">and</span> -<span class="built_in">delete</span> together.</span><br></pre></td></tr></table></figure></p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="some-tips-on-bash-scripting/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'some-tips-on-bash-scripting/';
+        var disqus_url = 'some-tips-on-bash-scripting/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

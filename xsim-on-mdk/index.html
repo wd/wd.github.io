@@ -1,0 +1,303 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>在mdk安装xsim输入法 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="以前写的一个安装文档，今天看到了，贴上来，呵呵。
+
+给菜鸟看得，老鸟就别看了，因为是菜鸟写的，所以可能有些名词命令什么的会遭到老鸟的鄙视，但是俺说了，不是给你们看得，但是如果你看了，发现什么错误或者有意见建议，欢迎提出来，thx
+
+&lt;br&gt;&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;在mdk安装xsim输入法，有以下几项工作要做
+1 准备软件
+
+xsim安装需要db4,我的mdk9.1安装的时候我已经选择了大部分软件，但是还是没有这个，所以你也可能需要这个，如果不确定，可以先跳过第3步看看，因为我也不知道怎么看有没有装。软件到这里下载http://www.sleepycat.com/download/index.shtml,下载GNU gzip/tar format
+然后下在xsim,到这里http://download.berlios.de/xsim找到xsim-x.x.x.tar.gz(那里有个rpm的，但是我用rpm尝试了很多次，始终是装上了进入kde就死，可能是我设置的问题，你可以试试看，如果安装了不行，可以用rpm -e xxx.rpm卸载了重来)
+
+2 准备安装
+
+很多地方都说需要先把什么xcin,Chinput卸载了，我也照做了，可能是会有冲突吧。卸载命令
+rpm -e xcin
+rpm -e Chinput
+
+3 安装db4
+
+下载以后，你可以在windows下解压看看里面的文档，用winrar就可以解，在docs目录下面，或者直接看关于unix安装部分docsrefbuild_unixintro.html里面有安装方法
+1）先把你的包解压了
+tar xvzf db-4.x.x.tar.gz(我还不明白xvzf的意思，总之是参数了)
+解压以后应该在当然目录会多出来一个db-4.x.x文件夹。
+
+2）进入其中的build_unix目录，执行下面的命令
+../dist/configure --enable-cxx --prefix=/usr/local
+make
+make install
+在此过程中要注意看有没有错误，一般就是个xxx error之类，停下来。如果有，。。。。。我也不知道怎么办，你去重新下载一个看看，或者详细参看上面提到的他的文档。
+
+3）如果要重装，执行下面的命令
+make realclean
+
+ok,make install不出意外，你的db4就应该没有问题了。
+
+4 安装xsim
+
+解压，和上面的命令类似 tar xvzf xsim-x.x.x.x.tar.gz
+进入xsim-x.x.x.x目录，执行下面的命令
+./configure
+make
+make install
+在此过程中不能有错误
+然后make install-data
+这个命令我每次执行都会出错，后来我执行到这一步的时候，先把xsim文件夹改名字，例如xsim2,然后用rpm安装了他的rpm,命令rpm -ivh xxx.rpm，然后拷贝/usr/local/xsim/dat目录里面的东西到/usr/local/xsim2/dat里面，然后在卸载rpm,然后把xsim文件夹删除了，用rmdir -r xsim命令。然后把xsim2改为xsim
+然后还需要修改dat文件夹的权限，chown -R xxx dat其中的xxx为x用户的用户名，其他的我也不会。
+这样xsim也ok啦
+
+5 配置
+
+修改/etc/sysconfig/i18n文件，把里面的下面的对应项修改,其他的都是什么zh_CN或者zh_CN.GB2312,zh_CN.GB1380之类，反正有zh_CN就行了吧，我觉得，不是很清楚。
+XIM=XSIM
+XIM_PROGRAM=xsim
+XMODIFIERS=&quot;@im=XSIM&quot;
+
+修改完后，在控制台输入执行echo $XMODIFIERS命令，如果输出是@im=XSIM，那就好了。
+
+我在安装的过程中还修改过/etc/init.d/XIM文件，将里面的Chinput改成xsim，但是我觉得这个可能不需要修改，你可以先不修改。
+
+6  运行个startx看看吧，上天保佑你。反正我看到那个右下角的“简”字兴奋了半天。切出输入法的快捷健是ctrl+space。
+
+That&amp;#39;s all
+感谢eyes同学的指导，呵呵
+从rh8开始装，到了mdk9才搞定，我是不是太笨了？ :P
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">在mdk安装xsim输入法</h2>
+	<div class="entry-content">以前写的一个安装文档，今天看到了，贴上来，呵呵。
+
+给菜鸟看得，老鸟就别看了，因为是菜鸟写的，所以可能有些名词命令什么的会遭到老鸟的鄙视，但是俺说了，不是给你们看得，但是如果你看了，发现什么错误或者有意见建议，欢迎提出来，thx
+
+<br><a id="more"></a>在mdk安装xsim输入法，有以下几项工作要做
+1 准备软件
+
+xsim安装需要db4,我的mdk9.1安装的时候我已经选择了大部分软件，但是还是没有这个，所以你也可能需要这个，如果不确定，可以先跳过第3步看看，因为我也不知道怎么看有没有装。软件到这里下载http://www.sleepycat.com/download/index.shtml,下载GNU gzip/tar format
+然后下在xsim,到这里http://download.berlios.de/xsim找到xsim-x.x.x.tar.gz(那里有个rpm的，但是我用rpm尝试了很多次，始终是装上了进入kde就死，可能是我设置的问题，你可以试试看，如果安装了不行，可以用rpm -e xxx.rpm卸载了重来)
+
+2 准备安装
+
+很多地方都说需要先把什么xcin,Chinput卸载了，我也照做了，可能是会有冲突吧。卸载命令
+rpm -e xcin
+rpm -e Chinput
+
+3 安装db4
+
+下载以后，你可以在windows下解压看看里面的文档，用winrar就可以解，在docs目录下面，或者直接看关于unix安装部分docsrefbuild_unixintro.html里面有安装方法
+1）先把你的包解压了
+tar xvzf db-4.x.x.tar.gz(我还不明白xvzf的意思，总之是参数了)
+解压以后应该在当然目录会多出来一个db-4.x.x文件夹。
+
+2）进入其中的build_unix目录，执行下面的命令
+../dist/configure --enable-cxx --prefix=/usr/local
+make
+make install
+在此过程中要注意看有没有错误，一般就是个xxx error之类，停下来。如果有，。。。。。我也不知道怎么办，你去重新下载一个看看，或者详细参看上面提到的他的文档。
+
+3）如果要重装，执行下面的命令
+make realclean
+
+ok,make install不出意外，你的db4就应该没有问题了。
+
+4 安装xsim
+
+解压，和上面的命令类似 tar xvzf xsim-x.x.x.x.tar.gz
+进入xsim-x.x.x.x目录，执行下面的命令
+./configure
+make
+make install
+在此过程中不能有错误
+然后make install-data
+这个命令我每次执行都会出错，后来我执行到这一步的时候，先把xsim文件夹改名字，例如xsim2,然后用rpm安装了他的rpm,命令rpm -ivh xxx.rpm，然后拷贝/usr/local/xsim/dat目录里面的东西到/usr/local/xsim2/dat里面，然后在卸载rpm,然后把xsim文件夹删除了，用rmdir -r xsim命令。然后把xsim2改为xsim
+然后还需要修改dat文件夹的权限，chown -R xxx dat其中的xxx为x用户的用户名，其他的我也不会。
+这样xsim也ok啦
+
+5 配置
+
+修改/etc/sysconfig/i18n文件，把里面的下面的对应项修改,其他的都是什么zh_CN或者zh_CN.GB2312,zh_CN.GB1380之类，反正有zh_CN就行了吧，我觉得，不是很清楚。
+XIM=XSIM
+XIM_PROGRAM=xsim
+XMODIFIERS="@im=XSIM"
+
+修改完后，在控制台输入执行echo $XMODIFIERS命令，如果输出是@im=XSIM，那就好了。
+
+我在安装的过程中还修改过/etc/init.d/XIM文件，将里面的Chinput改成xsim，但是我觉得这个可能不需要修改，你可以先不修改。
+
+6  运行个startx看看吧，上天保佑你。反正我看到那个右下角的“简”字兴奋了半天。切出输入法的快捷健是ctrl+space。
+
+That&#39;s all
+感谢eyes同学的指导，呵呵
+从rh8开始装，到了mdk9才搞定，我是不是太笨了？ :P
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="xsim-on-mdk/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'xsim-on-mdk/';
+        var disqus_url = 'xsim-on-mdk/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

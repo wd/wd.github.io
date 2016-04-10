@@ -1,0 +1,229 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>Linux下面的网上邻居 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="linux下面有个samba可以mount网上邻居的共享到本地，然后进行访问什么的。可是这样做就需要你事先知道有谁共享了什么，或者需要自己通过一 些命令来查看有谁共享了什么。那么，有没有更加弱智一点的操作方法呢？就像windows里面，有个文件夹，打开之后里面就是网上邻居里面的一些电脑呢？ 有的。
+
+首先安装smbnetfs这个包，同时他会关联fuse这个包，安装fuse之后，会提示你需要将fuse模块加入内核。
+$sudo modprobe fuse
+
+自己修改rc.conf，把他加上，每次启动会自己加载。
+
+然后呢，启动smbnetfs。
+$sudo /etc/rc.d/smbnetfs start
+
+他会给你把网上邻居mount到/mnt/smbnet，去那里看看，是不是网上邻居都出来了？
+如果进某台电脑进不去，我也不知道怎么解决，也不知道是什么问题不行就试试看fusesmb吧。
+
+smbnetfs的配置文件都在/etc/smbnet/.smb下面，smb.conf可以直接cp /etc/samba/smb.conf，smbnetfs.conf是他的配置文件，里面的内容根据自己需要修改。
+
+smbnetfs.auth,smbnetfs.host这俩个文件里面可能涉及到密码，所以设置合适的权限。
+
+auth文件的格式类似如下：
+auth &quot;xfs&quot; &quot;SIC.COM/wd&quot; &quot;wdddd&quot;
+auth &quot;FS&quot; &quot;wd&quot; &quot;wwwwd&quot;
+
+调试好了之后，你就可以把smbnetfs加到rc.conf的启动列表里面了，这样每次开机之后，直接访问/mnt/smbnet就是网上邻居了。
+
+除了smbnetfs之外，还有fusesmb也可以实现类似功能，不过效果都差不多。fusesmb源里面没有，aur有，需要自己编译。
+
+ps:经过一段时间的使用比较之后，发现fusesmb比smbnetfs效果好。smbnetfs经常出现电脑打不开的情况，还有更新不及时的问题。fusesmb就好多了。fusesmb的配置文件在~/.smb/下面，格式可以通过man来查看，配置起来感觉比smbnetfs简单。 需要更新网上邻居列表的时候，执行fusesmb.cache命令就可以。
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Linux下面的网上邻居</h2>
+	<div class="entry-content">linux下面有个samba可以mount网上邻居的共享到本地，然后进行访问什么的。可是这样做就需要你事先知道有谁共享了什么，或者需要自己通过一 些命令来查看有谁共享了什么。那么，有没有更加弱智一点的操作方法呢？就像windows里面，有个文件夹，打开之后里面就是网上邻居里面的一些电脑呢？ 有的。
+
+首先安装smbnetfs这个包，同时他会关联fuse这个包，安装fuse之后，会提示你需要将fuse模块加入内核。
+$sudo modprobe fuse
+
+自己修改rc.conf，把他加上，每次启动会自己加载。
+
+然后呢，启动smbnetfs。
+$sudo /etc/rc.d/smbnetfs start
+
+他会给你把网上邻居mount到/mnt/smbnet，去那里看看，是不是网上邻居都出来了？
+如果进某台电脑进不去，我也不知道怎么解决，也不知道是什么问题不行就试试看fusesmb吧。
+
+smbnetfs的配置文件都在/etc/smbnet/.smb下面，smb.conf可以直接cp /etc/samba/smb.conf，smbnetfs.conf是他的配置文件，里面的内容根据自己需要修改。
+
+smbnetfs.auth,smbnetfs.host这俩个文件里面可能涉及到密码，所以设置合适的权限。
+
+auth文件的格式类似如下：
+auth "xfs" "SIC.COM/wd" "wdddd"
+auth "FS" "wd" "wwwwd"
+
+调试好了之后，你就可以把smbnetfs加到rc.conf的启动列表里面了，这样每次开机之后，直接访问/mnt/smbnet就是网上邻居了。
+
+除了smbnetfs之外，还有fusesmb也可以实现类似功能，不过效果都差不多。fusesmb源里面没有，aur有，需要自己编译。
+
+ps:经过一段时间的使用比较之后，发现fusesmb比smbnetfs效果好。smbnetfs经常出现电脑打不开的情况，还有更新不及时的问题。fusesmb就好多了。fusesmb的配置文件在~/.smb/下面，格式可以通过man来查看，配置起来感觉比smbnetfs简单。 需要更新网上邻居列表的时候，执行fusesmb.cache命令就可以。
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="network-neiborhood-in-linux/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'network-neiborhood-in-linux/';
+        var disqus_url = 'network-neiborhood-in-linux/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

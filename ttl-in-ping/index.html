@@ -1,0 +1,445 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>PING命令中TTL的具体含义zz - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="有台服务器ping的时候老出现 Time to live exceeded 这个错误，这样就会误报服务器挂掉，很烦人。找了半天似乎找到了解决方法了。
+
+ping的时候返回的包的ttl值是根据对方系统的设置来的，默认情况下，win是128,linux是64,返回的时候，每经过一个节点，就减1,这样，根据返回包的ttl值就可以判断经过了几个路由节点。而节点要是比较多的话，会导致这个ttl值为0,这样就出现上面提到的问题了。当然，要是遇到包进了环路，也会产生这样的问题，详细的内容可以看下面的转载文章。
+
+这样，解决这个问题的方法就是修改对方系统的默认ttl 值，比如修改为255，这样如果还产生上面的错误的话，那就没准是哪里的问题了。呵呵。
+
+&lt;font color=&quot;#333333&quot; style=&quot;line-height: 18px&quot;&gt; Linux下修改方法:
+
+方法1(重启后有效)：
+#sysctl -w net.ipv4.ip_default_ttl=N
+(N=0~255),若N&gt;255,则ttl=0
+方法2(重启后无效)：
+#echo N(N为0～255) &gt; /proc/sys/net/ipv4/ip_default_ttl&lt;/font&gt;
+
+原文地址：&lt;a href=&quot;http://blog.zol.com.cn/blog/wjf_top/35836.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;这里&lt;/a&gt;
+&lt;div align=&quot;left&quot; style=&quot;width: 98%&quot;&gt;&lt;span class=&quot;neirong1_12u&quot; style=&quot;overflow: hidden; width: 100%&quot;&gt; 								PING命令中TTL的具体含义
+提供者 vitty简单来说，TTL全程Time to Live，意思就是生存周期。
+首先要说明ping命令是使用的网络层协议ICMP，所以TTL指的是一个网络层的网络数据包（package）的生存周期，这句话不懂的先回去复习OSI7层协议去。
+
+第一个问题，为什么要有生存周期这个概念。
+
+很 显然，一个package从一台机器到另一台机器中间需要经过很长的路径，显然这个路径不是单一的，是很复杂的，并且很可能存在环路。如果一个数据包在传 输过程中进入了环路，如果不终止它的话，它会一直循环下去，如果很多个数据包都这样循环的话，那对于网络来说这就是灾难了。所以需要在包中设置这样一个 值，包在每经过一个节点，将这个值减1，反复这样操作，最终可能造成2个结果：包在这个值还为正数的时候到达了目的地，或者是在经过一定数量的节点后，这 个值减为了0。前者代表完成了一次正常的传输，后者代表包可能选择了一条非常长的路径甚至是进入了环路，这显然不是我们期望的，所以在这个值为0的时候， 网络设备将不会再传递这个包而是直接将他抛弃，并发送一个通知给包的源地址，说这个包已死。
+其实TTL值这个东西本身并代表不了什么，对于使用者来说，关心的问题应该是包是否到达了目的地而不是经过了几个节点后到达。但是TTL值还是可以得到有意思的信息的。
+
+每 个操作系统对TTL值得定义都不同，这个值甚至可以通过修改某些系统的网络参数来修改，例如Win2000默认为128，通过注册表也可以修改。而 Linux大多定义为64。不过一般来说，很少有人会去修改自己机器的这个值的，这就给了我们机会可以通过ping的回显TTL来大体判断一台机器是什么 操作系统。
+&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;
+以我公司2台机器为例
+看如下命令
+D:Documents and Settingshx&amp;gt;ping 61.152.93.131
+
+Pinging 61.152.93.131 with 32 bytes of data:
+
+Reply from 61.152.93.131: bytes=32 time=21ms TTL=118
+Reply from 61.152.93.131: bytes=32 time=19ms TTL=118
+Reply from 61.152.93.131: bytes=32 time=18ms TTL=118
+Reply from 61.152.93.131: bytes=32 time=22ms TTL=118
+
+Ping statistics for 61.152.93.131:
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss
+Approximate round trip times in milli-seconds:
+Minimum = 18ms， Maximum = 22ms， Average = 20ms
+
+D:Documents and Settingshx&amp;gt;ping 61.152.104.40
+
+Pinging 61.152.104.40 with 32 bytes of data:
+
+Reply from 61.152.104.40: bytes=32 time=28ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=18ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=18ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=13ms TTL=54
+
+Ping statistics for 61.152.104.40:
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss
+Approximate round trip times in milli-seconds:
+Minimum = 13ms， Maximum = 28ms， Average = 19ms
+第一台TTL为118，则基本可以判断这是一台Windows机器，从我的机器到这台机器经过了10个节点，因为128-118=10。而第二台应该是台Linux，理由一样64-54=10。
+了解了上面的东西，可能有人会有一些疑问，例如以下：
+
+1，不是说包可能走很多路径吗，为什么我看到的4个包TTL都是一样的，没有出现不同？
+
+这是由于包经过的路径是经过了一些最优选择算法来定下来的，在网络拓扑稳定一段时间后，包的路由路径也会相对稳定在一个最短路径上。具体怎么算出来的要去研究路由算法了，不在讨论之列。
+
+2，对于上面例子第二台机器，为什么不认为它是经过了74个节点的Windows机器？因为128-74=54。
+
+对于这个问题，我们要引入另外一个很好的ICMP协议工具。不过首先要声明的是，一个包经过74个节点这个有些恐怖，这样的路径还是不用为好。
+
+要介绍的这个工具是tracert（*nix下为traceroute），让我们来看对上面的第二台机器用这个命令的结果
+D:Documents and Settingshx&amp;gt;tracert 61.152.104.40
+
+Tracing route to 61.152.104.40 over a maximum of 30 hops
+
+1 13 ms 16 ms 9 ms 10.120.32.1
+2 9 ms 9 ms 11 ms 219.233.244.105
+3 12 ms 10 ms 10 ms 219.233.238.173
+4 15 ms 15 ms 17 ms 219.233.238.13
+5 14 ms 19 ms 19 ms 202.96.222.73
+6 14 ms 17 ms 13 ms 202.96.222.121
+7 14 ms 15 ms 14 ms 61.152.81.86
+8 15 ms 14 ms 13 ms 61.152.87.162
+9 16 ms 16 ms 28 ms 61.152.99.26
+10 12 ms 13 ms 18 ms 61.152.99.94
+11 14 ms 18 ms 16 ms 61.152.104.40
+
+Trace complete.
+
+从这个命令的结果能够看到从我的机器到服务器所走的路由，确实是11个节点（上面说10个好像是我犯了忘了算0的错误了，应该是64-54+1，嘿嘿），而不是128的TTL经过了70多个节点。
+既然已经说到这里了，不妨顺便说说关于这两个ICMP命令的高级一点的东西。
+首先是ping命令，其实ping有这样一个参数，可以无视操作系统默认TTL值而使用自己定义的值来发送ICMP Request包。
+例如还是用那台Linux机器，用以下命令：
+D:Documents and Settingshx&amp;gt;ping 61.152.104.40 -i 11
+
+Pinging 61.152.104.40 with 32 bytes of data:
+
+Reply from 61.152.104.40: bytes=32 time=10ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=13ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=10ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=13ms TTL=54
+
+Ping statistics for 61.152.104.40:
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss)，
+Approximate round trip times in milli-seconds:
+Minimum = 10ms， Maximum = 13ms， Average = 11ms
+
+D:Documents and Settingshx&amp;gt;
+这个命令我们定义了发包的TTL为11，而前面我们知道，我到这台服务器是要经过11个节点的，所以这个输出和以前没什么不同。现在再用这个试试看：
+D:Documents and Settingshx&amp;gt;ping 61.152.104.40 -i 10
+
+Pinging 61.152.104.40 with 32 bytes of data:
+
+Reply from 61.152.99.94: TTL expired in transit.
+Reply from 61.152.99.94: TTL expired in transit.
+Reply from 61.152.99.94: TTL expired in transit.
+Reply from 61.152.99.94: TTL expired in transit.
+
+Ping statistics for 61.152.104.40:
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss)，
+Approximate round trip times in milli-seconds:
+Minimum = 0ms， Maximum = 0ms， Average = 0ms
+
+D:Documents and Settingshx&amp;gt;
+
+可 以看到，结果不一样了，我定义了TTL为10来发包，结果是TTL expired in transit.就是说在到达服务器之前这个包的生命周期就结束了。注意看这句话前面的ip，这个ip恰好是我们前面tracert结果到服务器之前的最 后1个ip，包的TTL就是在这里减少到0了，根据我们前面的讨论，当TTL减为0时设备会丢弃包并发送一个TTL过期的ICMP反馈给源地址，这里的结 果就是最好的证明。
+通过这里再次又证明了从我机器到服务器是经过了11个节点而不是70多个，呵呵。
+最后再巩固一下知识，有人可能觉得tracer这个命令很神奇，可以发现一个包所经过的路由路径。其实这个命令的原理就在我们上面的讨论中。
+
+想象一下，如果我给目的服务器发送一个TTL为1的包，结果会怎样？
+根据前面的讨论，在包港出发的第一个节点，TTL就会减少为0，这时这个节点就会回应TTL失效的反馈，这个回应包含了设备本身的ip地址，这样我们就得到了路由路径的第一个节点的地址。
+因此，我们继续发送TTL=2的包，也就受到第二个节点的TTL失效回应
+
+依次类推，我们一个一个的发现，当最终返回的结果不是TTL失效而是ICMP Response的时候，我们的tracert也就结束了，就是这么简单。
+
+顺便补一句ping命令还有个-n的参数指定要发包的数量，指定了这个数字就会按照你的要求来发包了而不是默认的4个包。如果使用-t参数的话，命令会一直发包直到你强行中止它。
+&lt;/span&gt;&lt;/div&gt;
+&lt;!-- 分割 --&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">PING命令中TTL的具体含义zz</h2>
+	<div class="entry-content">有台服务器ping的时候老出现 Time to live exceeded 这个错误，这样就会误报服务器挂掉，很烦人。找了半天似乎找到了解决方法了。
+
+ping的时候返回的包的ttl值是根据对方系统的设置来的，默认情况下，win是128,linux是64,返回的时候，每经过一个节点，就减1,这样，根据返回包的ttl值就可以判断经过了几个路由节点。而节点要是比较多的话，会导致这个ttl值为0,这样就出现上面提到的问题了。当然，要是遇到包进了环路，也会产生这样的问题，详细的内容可以看下面的转载文章。
+
+这样，解决这个问题的方法就是修改对方系统的默认ttl 值，比如修改为255，这样如果还产生上面的错误的话，那就没准是哪里的问题了。呵呵。
+
+<font color="#333333" style="line-height: 18px"> Linux下修改方法:
+
+方法1(重启后有效)：
+#sysctl -w net.ipv4.ip_default_ttl=N
+(N=0~255),若N>255,则ttl=0
+方法2(重启后无效)：
+#echo N(N为0～255) > /proc/sys/net/ipv4/ip_default_ttl</font>
+
+原文地址：<a href="http://blog.zol.com.cn/blog/wjf_top/35836.html" target="_blank" rel="external">这里</a>
+<div align="left" style="width: 98%"><span class="neirong1_12u" style="overflow: hidden; width: 100%"> 								PING命令中TTL的具体含义
+提供者 vitty简单来说，TTL全程Time to Live，意思就是生存周期。
+首先要说明ping命令是使用的网络层协议ICMP，所以TTL指的是一个网络层的网络数据包（package）的生存周期，这句话不懂的先回去复习OSI7层协议去。
+
+第一个问题，为什么要有生存周期这个概念。
+
+很 显然，一个package从一台机器到另一台机器中间需要经过很长的路径，显然这个路径不是单一的，是很复杂的，并且很可能存在环路。如果一个数据包在传 输过程中进入了环路，如果不终止它的话，它会一直循环下去，如果很多个数据包都这样循环的话，那对于网络来说这就是灾难了。所以需要在包中设置这样一个 值，包在每经过一个节点，将这个值减1，反复这样操作，最终可能造成2个结果：包在这个值还为正数的时候到达了目的地，或者是在经过一定数量的节点后，这 个值减为了0。前者代表完成了一次正常的传输，后者代表包可能选择了一条非常长的路径甚至是进入了环路，这显然不是我们期望的，所以在这个值为0的时候， 网络设备将不会再传递这个包而是直接将他抛弃，并发送一个通知给包的源地址，说这个包已死。
+其实TTL值这个东西本身并代表不了什么，对于使用者来说，关心的问题应该是包是否到达了目的地而不是经过了几个节点后到达。但是TTL值还是可以得到有意思的信息的。
+
+每 个操作系统对TTL值得定义都不同，这个值甚至可以通过修改某些系统的网络参数来修改，例如Win2000默认为128，通过注册表也可以修改。而 Linux大多定义为64。不过一般来说，很少有人会去修改自己机器的这个值的，这就给了我们机会可以通过ping的回显TTL来大体判断一台机器是什么 操作系统。
+<a id="more"></a>
+以我公司2台机器为例
+看如下命令
+D:Documents and Settingshx&gt;ping 61.152.93.131
+
+Pinging 61.152.93.131 with 32 bytes of data:
+
+Reply from 61.152.93.131: bytes=32 time=21ms TTL=118
+Reply from 61.152.93.131: bytes=32 time=19ms TTL=118
+Reply from 61.152.93.131: bytes=32 time=18ms TTL=118
+Reply from 61.152.93.131: bytes=32 time=22ms TTL=118
+
+Ping statistics for 61.152.93.131:
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss
+Approximate round trip times in milli-seconds:
+Minimum = 18ms， Maximum = 22ms， Average = 20ms
+
+D:Documents and Settingshx&gt;ping 61.152.104.40
+
+Pinging 61.152.104.40 with 32 bytes of data:
+
+Reply from 61.152.104.40: bytes=32 time=28ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=18ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=18ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=13ms TTL=54
+
+Ping statistics for 61.152.104.40:
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss
+Approximate round trip times in milli-seconds:
+Minimum = 13ms， Maximum = 28ms， Average = 19ms
+第一台TTL为118，则基本可以判断这是一台Windows机器，从我的机器到这台机器经过了10个节点，因为128-118=10。而第二台应该是台Linux，理由一样64-54=10。
+了解了上面的东西，可能有人会有一些疑问，例如以下：
+
+1，不是说包可能走很多路径吗，为什么我看到的4个包TTL都是一样的，没有出现不同？
+
+这是由于包经过的路径是经过了一些最优选择算法来定下来的，在网络拓扑稳定一段时间后，包的路由路径也会相对稳定在一个最短路径上。具体怎么算出来的要去研究路由算法了，不在讨论之列。
+
+2，对于上面例子第二台机器，为什么不认为它是经过了74个节点的Windows机器？因为128-74=54。
+
+对于这个问题，我们要引入另外一个很好的ICMP协议工具。不过首先要声明的是，一个包经过74个节点这个有些恐怖，这样的路径还是不用为好。
+
+要介绍的这个工具是tracert（*nix下为traceroute），让我们来看对上面的第二台机器用这个命令的结果
+D:Documents and Settingshx&gt;tracert 61.152.104.40
+
+Tracing route to 61.152.104.40 over a maximum of 30 hops
+
+1 13 ms 16 ms 9 ms 10.120.32.1
+2 9 ms 9 ms 11 ms 219.233.244.105
+3 12 ms 10 ms 10 ms 219.233.238.173
+4 15 ms 15 ms 17 ms 219.233.238.13
+5 14 ms 19 ms 19 ms 202.96.222.73
+6 14 ms 17 ms 13 ms 202.96.222.121
+7 14 ms 15 ms 14 ms 61.152.81.86
+8 15 ms 14 ms 13 ms 61.152.87.162
+9 16 ms 16 ms 28 ms 61.152.99.26
+10 12 ms 13 ms 18 ms 61.152.99.94
+11 14 ms 18 ms 16 ms 61.152.104.40
+
+Trace complete.
+
+从这个命令的结果能够看到从我的机器到服务器所走的路由，确实是11个节点（上面说10个好像是我犯了忘了算0的错误了，应该是64-54+1，嘿嘿），而不是128的TTL经过了70多个节点。
+既然已经说到这里了，不妨顺便说说关于这两个ICMP命令的高级一点的东西。
+首先是ping命令，其实ping有这样一个参数，可以无视操作系统默认TTL值而使用自己定义的值来发送ICMP Request包。
+例如还是用那台Linux机器，用以下命令：
+D:Documents and Settingshx&gt;ping 61.152.104.40 -i 11
+
+Pinging 61.152.104.40 with 32 bytes of data:
+
+Reply from 61.152.104.40: bytes=32 time=10ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=13ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=10ms TTL=54
+Reply from 61.152.104.40: bytes=32 time=13ms TTL=54
+
+Ping statistics for 61.152.104.40:
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss)，
+Approximate round trip times in milli-seconds:
+Minimum = 10ms， Maximum = 13ms， Average = 11ms
+
+D:Documents and Settingshx&gt;
+这个命令我们定义了发包的TTL为11，而前面我们知道，我到这台服务器是要经过11个节点的，所以这个输出和以前没什么不同。现在再用这个试试看：
+D:Documents and Settingshx&gt;ping 61.152.104.40 -i 10
+
+Pinging 61.152.104.40 with 32 bytes of data:
+
+Reply from 61.152.99.94: TTL expired in transit.
+Reply from 61.152.99.94: TTL expired in transit.
+Reply from 61.152.99.94: TTL expired in transit.
+Reply from 61.152.99.94: TTL expired in transit.
+
+Ping statistics for 61.152.104.40:
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss)，
+Approximate round trip times in milli-seconds:
+Minimum = 0ms， Maximum = 0ms， Average = 0ms
+
+D:Documents and Settingshx&gt;
+
+可 以看到，结果不一样了，我定义了TTL为10来发包，结果是TTL expired in transit.就是说在到达服务器之前这个包的生命周期就结束了。注意看这句话前面的ip，这个ip恰好是我们前面tracert结果到服务器之前的最 后1个ip，包的TTL就是在这里减少到0了，根据我们前面的讨论，当TTL减为0时设备会丢弃包并发送一个TTL过期的ICMP反馈给源地址，这里的结 果就是最好的证明。
+通过这里再次又证明了从我机器到服务器是经过了11个节点而不是70多个，呵呵。
+最后再巩固一下知识，有人可能觉得tracer这个命令很神奇，可以发现一个包所经过的路由路径。其实这个命令的原理就在我们上面的讨论中。
+
+想象一下，如果我给目的服务器发送一个TTL为1的包，结果会怎样？
+根据前面的讨论，在包港出发的第一个节点，TTL就会减少为0，这时这个节点就会回应TTL失效的反馈，这个回应包含了设备本身的ip地址，这样我们就得到了路由路径的第一个节点的地址。
+因此，我们继续发送TTL=2的包，也就受到第二个节点的TTL失效回应
+
+依次类推，我们一个一个的发现，当最终返回的结果不是TTL失效而是ICMP Response的时候，我们的tracert也就结束了，就是这么简单。
+
+顺便补一句ping命令还有个-n的参数指定要发包的数量，指定了这个数字就会按照你的要求来发包了而不是默认的4个包。如果使用-t参数的话，命令会一直发包直到你强行中止它。
+</span></div>
+<!-- 分割 -->
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="ttl-in-ping/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'ttl-in-ping/';
+        var disqus_url = 'ttl-in-ping/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

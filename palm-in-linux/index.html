@@ -1,0 +1,223 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>linux 下面同步 palm 手机 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="plam 是万能的，呵呵。
+
+主要参考了 gentoo wiki 上面的&lt;a href=&quot;http://gentoo-wiki.com/Category:Palm&quot; target=&quot;_blank&quot;&gt;几篇文章&lt;/a&gt;。编译好内核，然后 modprobe visor ，接着按hotsync同步按钮。此时可以看到 dmesg 的输出。
+
+&lt;pre class=&quot;prettyprint lang-txt&quot;&gt;
+usb 2-2: new full speed USB device using uhci_hcd and address 6
+usb 2-2: configuration #1 chosen from 1 choice
+visor 2-2:1.0: Handspring Visor / Palm OS converter detected
+usb 2-2: Handspring Visor / Palm OS converter now attached to ttyUSB0
+usb 2-2: Handspring Visor / Palm OS converter now attached to ttyUSB1&lt;/pre&gt;
+
+然后还需要建立一个 udev 的 rule。
+
+&lt;pre class=&quot;prettyprint lang-txt&quot;&gt;
+$ cat /etc/udev/rules.d/10-palm.rules 
+# PalmOne Tungsten T3
+BUS==&quot;usb&quot;,SYSFS{serial}==&quot;PalmSN12345678&quot;, KNERNEL=&quot;ttyUSB*&quot;,OWNER=&quot;root&quot;,GROUP=&quot;plugdev&quot;,MODE=&quot;0666&quot;,SYMLINK=&quot;pilot&quot;, RUN=&quot;/bin/su - wd -c &#39;/usr/bin/jpilot -s&#39;&quot;
+#BUS=&quot;usb&quot;, SYSFS{product}=&quot;Palm Handheld*&quot;, KERNEL=&quot;ttyUSB*&quot;, MODE=&quot;666&quot;, SYMLINK=&quot;pilot&quot;, RUN=&quot;/bin/su - wd -c &#39;/usr/bin/jpilot -s&#39;&quot;
+&lt;/pre&gt;
+
+注意里面那个 serial，如果你不知道你的，或许可以用下面的那个 product。其实也可以查看 /proc/bus/usb/devices 来获取上面那些 serial 或者 product 信息的。仔细找找。另外还需要修改那个 wd 为你自己的用户名。
+
+然后还需要装一个 jpilot 这个软件。需要先设置一下首选项，设置设备是 /dev/ttyUSB1 。以后同步的时候，只需要先启动 jpilot，然后按那个hotsync同步按钮就行了。还可以装软件，呵呵，不过似乎没办法选择装卡上还是手机上，估计都是手机上面了。
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">linux 下面同步 palm 手机</h2>
+	<div class="entry-content">plam 是万能的，呵呵。
+
+主要参考了 gentoo wiki 上面的<a href="http://gentoo-wiki.com/Category:Palm" target="_blank">几篇文章</a>。编译好内核，然后 modprobe visor ，接着按hotsync同步按钮。此时可以看到 dmesg 的输出。
+
+<pre class="prettyprint lang-txt">
+usb 2-2: new full speed USB device using uhci_hcd and address 6
+usb 2-2: configuration #1 chosen from 1 choice
+visor 2-2:1.0: Handspring Visor / Palm OS converter detected
+usb 2-2: Handspring Visor / Palm OS converter now attached to ttyUSB0
+usb 2-2: Handspring Visor / Palm OS converter now attached to ttyUSB1</pre>
+
+然后还需要建立一个 udev 的 rule。
+
+<pre class="prettyprint lang-txt">
+$ cat /etc/udev/rules.d/10-palm.rules 
+# PalmOne Tungsten T3
+BUS=="usb",SYSFS{serial}=="PalmSN12345678", KNERNEL="ttyUSB*",OWNER="root",GROUP="plugdev",MODE="0666",SYMLINK="pilot", RUN="/bin/su - wd -c '/usr/bin/jpilot -s'"
+#BUS="usb", SYSFS{product}="Palm Handheld*", KERNEL="ttyUSB*", MODE="666", SYMLINK="pilot", RUN="/bin/su - wd -c '/usr/bin/jpilot -s'"
+</pre>
+
+注意里面那个 serial，如果你不知道你的，或许可以用下面的那个 product。其实也可以查看 /proc/bus/usb/devices 来获取上面那些 serial 或者 product 信息的。仔细找找。另外还需要修改那个 wd 为你自己的用户名。
+
+然后还需要装一个 jpilot 这个软件。需要先设置一下首选项，设置设备是 /dev/ttyUSB1 。以后同步的时候，只需要先启动 jpilot，然后按那个hotsync同步按钮就行了。还可以装软件，呵呵，不过似乎没办法选择装卡上还是手机上，估计都是手机上面了。
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="palm-in-linux/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'palm-in-linux/';
+        var disqus_url = 'palm-in-linux/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

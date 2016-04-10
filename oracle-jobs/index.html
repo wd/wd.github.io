@@ -1,0 +1,325 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>oracle 的 job 又遇到问题了 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;还是高级复制的问题，这次可能是因为job执行过程中，对方机器刚好重启导致的。反正job是卡在那里了，都10多天了。&lt;/p&gt; &lt;p&gt;查看 dba_jobs_running 表，可以看到卡住的job的 job_id 和 sid 。查看 dba_jobs 表，可以看到相应 job 的信息，this_date 如果有数据的话，表示的是 job 开始执行的时间，next_date 是下次执行 job 的时间，如果 job 正常执行完毕，那么 this_date 应该是空的。根据 sid 还可以查看 v$session_wait 和 v$session 里面的这个 job 的一些状态。&lt;/p&gt; &lt;p&gt;尝试了下面的方法来重新运行job，当时好像不好用，不过今天来看的时候，job是执行了。现在也不清楚是不是我这个操作起作用了，真晕。&lt;/p&gt; &lt;p&gt;&lt;pre lang=&quot;txt&quot;&gt;SQL&amp;gt; exec dbms_job.broken(109,true);
+
+PL/SQL procedure successfully completed.
+
+SQL&amp;gt; commit;
+
+Commit complete.
+
+SQL&amp;gt; select job,sid from dba_jobs_running;
+
+       JOB        SID
+---------- ----------
+       109        656
+
+SQL&amp;gt; select saddr,sid,serial#,paddr,username,status from v$session where username = &#39;REPADMIN&#39;;
+
+SADDR           SID    SERIAL# PADDR    USERNAME                       STATUS
+-------- ---------- ---------- -------- ------------------------------ --------
+973CF8C4        626         27 98F96BB8 REPADMIN                       ACTIVE
+973D2E7C        629         10 98F88670 REPADMIN                       ACTIVE
+973F11F4        656         10 98F88174 REPADMIN                       ACTIVE
+
+SQL&amp;gt; alter system kill session &#39;656,10&#39;;
+
+System altered.
+
+SQL&amp;gt; select saddr,sid,serial#,paddr,username,status from v$session where username = &#39;REPADMIN&#39;;
+
+no rows selected
+
+SQL&amp;gt; select job,sid from dba_jobs_running;
+
+no rows selected
+
+SQL&amp;gt; select job,log_user,last_date,next_date from dba_jobs where log_user=&#39;REPADMIN&#39;;
+
+       JOB LOG_USER                       LAST_DATE
+---------- ------------------------------ -------------------
+NEXT_DATE
+-------------------
+       106 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+
+       109 REPADMIN                       2007-06-28 16:07:38
+4000-01-01 00:00:00
+
+       110 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+
+
+SQL&amp;gt; exec dbms_job.broken(109,false,sysdate);
+
+PL/SQL procedure successfully completed.
+
+SQL&amp;gt; commit;
+
+Commit complete.
+
+SQL&amp;gt; select job,log_user,last_date,next_date from dba_jobs where log_user=&#39;REPADMIN&#39;;
+
+       JOB LOG_USER                       LAST_DATE
+---------- ------------------------------ -------------------
+NEXT_DATE
+-------------------
+       106 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+
+       109 REPADMIN                       2007-06-28 16:07:38
+2007-06-28 16:28:40
+
+       110 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+&lt;/pre&gt;
+&lt;/p&gt;&lt;p&gt;此后就我所知道的，就只能等着了。dbms_job.run(job_id) 也可以让 job 立即执行。关键是看 this_date ，他的值就是开始执行 job 的时间，job 如果执行时间太长，而下次执行又太快的话，可能也会导致问题。所以还可以尝试手动执行 job 看看。 dba_jobs 的 waht 字段就是对于的语句。&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">oracle 的 job 又遇到问题了</h2>
+	<div class="entry-content"><p>还是高级复制的问题，这次可能是因为job执行过程中，对方机器刚好重启导致的。反正job是卡在那里了，都10多天了。</p> <p>查看 dba_jobs_running 表，可以看到卡住的job的 job_id 和 sid 。查看 dba_jobs 表，可以看到相应 job 的信息，this_date 如果有数据的话，表示的是 job 开始执行的时间，next_date 是下次执行 job 的时间，如果 job 正常执行完毕，那么 this_date 应该是空的。根据 sid 还可以查看 v$session_wait 和 v$session 里面的这个 job 的一些状态。</p> <p>尝试了下面的方法来重新运行job，当时好像不好用，不过今天来看的时候，job是执行了。现在也不清楚是不是我这个操作起作用了，真晕。</p> <p><pre lang="txt">SQL&gt; exec dbms_job.broken(109,true);
+
+PL/SQL procedure successfully completed.
+
+SQL&gt; commit;
+
+Commit complete.
+
+SQL&gt; select job,sid from dba_jobs_running;
+
+       JOB        SID
+---------- ----------
+       109        656
+
+SQL&gt; select saddr,sid,serial#,paddr,username,status from v$session where username = 'REPADMIN';
+
+SADDR           SID    SERIAL# PADDR    USERNAME                       STATUS
+-------- ---------- ---------- -------- ------------------------------ --------
+973CF8C4        626         27 98F96BB8 REPADMIN                       ACTIVE
+973D2E7C        629         10 98F88670 REPADMIN                       ACTIVE
+973F11F4        656         10 98F88174 REPADMIN                       ACTIVE
+
+SQL&gt; alter system kill session '656,10';
+
+System altered.
+
+SQL&gt; select saddr,sid,serial#,paddr,username,status from v$session where username = 'REPADMIN';
+
+no rows selected
+
+SQL&gt; select job,sid from dba_jobs_running;
+
+no rows selected
+
+SQL&gt; select job,log_user,last_date,next_date from dba_jobs where log_user='REPADMIN';
+
+       JOB LOG_USER                       LAST_DATE
+---------- ------------------------------ -------------------
+NEXT_DATE
+-------------------
+       106 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+
+       109 REPADMIN                       2007-06-28 16:07:38
+4000-01-01 00:00:00
+
+       110 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+
+
+SQL&gt; exec dbms_job.broken(109,false,sysdate);
+
+PL/SQL procedure successfully completed.
+
+SQL&gt; commit;
+
+Commit complete.
+
+SQL&gt; select job,log_user,last_date,next_date from dba_jobs where log_user='REPADMIN';
+
+       JOB LOG_USER                       LAST_DATE
+---------- ------------------------------ -------------------
+NEXT_DATE
+-------------------
+       106 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+
+       109 REPADMIN                       2007-06-28 16:07:38
+2007-06-28 16:28:40
+
+       110 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+</pre>
+</p><p>此后就我所知道的，就只能等着了。dbms_job.run(job_id) 也可以让 job 立即执行。关键是看 this_date ，他的值就是开始执行 job 的时间，job 如果执行时间太长，而下次执行又太快的话，可能也会导致问题。所以还可以尝试手动执行 job 看看。 dba_jobs 的 waht 字段就是对于的语句。</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="oracle-jobs/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'oracle-jobs/';
+        var disqus_url = 'oracle-jobs/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

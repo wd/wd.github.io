@@ -1,0 +1,753 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="undefined"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        
+  <article class="post">
+	<h2 class="title">
+		<a href="udf-in-hive/">hive 里面的 UDTF</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-04-23T16:00:00.000Z" itemprop="datePublished">Apr 24, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/hive/">hive</a>
+</div>
+    </div>
+      
+        hive 支持 UDF， UDAF， UDTF，这几个让你使用 hive 更加便捷。
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1">UDF</h2>
+<div id="text-1" class="outline-text-2">
+
+udf 就是一个自定义的 function，输入一个或多个参数，返回一个返回值，类似 substr/trim 之类。写起来比较简单，重构 UDF 类的 evaluate 方法就可以了。可以参考 <a href="http://richiehu.blog.51cto.com/2093113/386112" target="_blank" rel="external">http://richiehu.blog.51cto.com/2093113/386112</a> 。
+
+这是一个 urldecode 函数。
+<pre class="prettyprint lang-java">
+
+import org.apache.hadoop.hive.ql.exec.UDF;
+import java.net.URLDecoder;
+
+public final class urldecode extends UDF {
+
+    public String evaluate(final String s) {
+        if (s == null) { return null; }
+        return getString(s);
+    }
+
+    public static String getString(String s) {
+        String a;
+        try {
+            a = URLDecoder.decode(s);
+        } catch ( Exception e) {
+            a = "";
+        }
+        return a;
+    }
+
+    public static void main(String args[]) {
+        String t = "%E5%A4%AA%E5%8E%9F-%E4%B8%89%E4%BA%9A";
+        System.out.println( getString(t) );
+    }
+}</pre>
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2">UDAF</h2>
+<div id="text-2" class="outline-text-2">
+
+udaf 就是自定义的聚合函数，类似 sum/avg 这类，输入多行的一个或多个参数，返回一个返回值。这个还没写过，可以参考 <a href="http://richiehu.blog.51cto.com/2093113/386113" target="_blank" rel="external">http://richiehu.blog.51cto.com/2093113/386113</a> 。
+
+&nbsp;
+
+</div>
+&nbsp;
+
+</div>
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3">UDTF</h2>
+<div id="text-3" class="outline-text-2">
+
+udtf 是针对输入一行，输出多行的需求来的，类似 explode 函数。可以参考 <a href="http://www.linezing.com/blog/?p=323" target="_blank" rel="external">http://www.linezing.com/blog/?p=323</a> 。
+
+这个是输入数组字段，输出两列，一列是数组元素的位置，一列是数组元素。比 explode 多了一列位置，不过数组元素只能是 String 类型的。
+<pre class="prettyprint lang-java">
+
+import java.util.ArrayList;
+import java.util.List;
+
+//import org.apache.hadoop.io.Text;
+
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDTF;
+
+import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
+import org.apache.hadoop.hive.ql.exec.description;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
+import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
+
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+
+@description(
+        name = "explodeWithPos",
+        value = "_FUNC_(a) - separates the elements of array a into multiple rows with pos as first col "
+        )
+
+public class explodeWithPos extends GenericUDTF {
+
+    ListObjectInspector listOI = null;
+
+    @Override
+        public void close() throws HiveException{
+        }
+
+    @Override
+        public StructObjectInspector initialize(ObjectInspector [] args) throws UDFArgumentException {
+
+            if (args.length != 1) {
+                throw new UDFArgumentException("explodeWithPos() takes only one argument");
+            }
+
+            if (args[0].getCategory() != ObjectInspector.Category.LIST) {
+                throw new UDFArgumentException("explodeWithPos() takes an array as a parameter");
+            }
+
+            listOI = (ListObjectInspector)args[0];
+
+            ArrayList fieldNames = new ArrayList();
+            ArrayList fieldOIs = new ArrayList();
+
+            fieldNames.add("col1");
+            //fieldOIs.add(listOI.getListElementObjectInspector());
+            fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+
+            fieldNames.add("col2");
+            //fieldOIs.add(listOI.getListElementObjectInspector());
+            fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+
+            return ObjectInspectorFactory.getStandardStructObjectInspector(fieldNames, fieldOIs);
+        }
+
+        //Object forwardObj[] = new Object[2];
+        Object forwardObj[] = new String[2];
+
+    @Override
+        public void process(Object [] o) throws HiveException {
+
+            List list = listOI.getList(o[0]);
+
+            if ( list == null ) {
+                return;
+            }
+
+            int i =0;
+            for (Object r : list) {
+                forwardObj[0] = String.valueOf(i);
+                forwardObj[1] = r.toString();
+                this.forward(forwardObj);
+                i++;
+            }
+        }
+
+    @Override
+        public String toString() {
+            return "explodeWithPos";
+        }
+}</pre>
+</div>
+</div>
+</div>
+</div>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="udf-in-hive/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="rsync-files-from-option/">rsync files-from 参数</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-04-15T16:00:00.000Z" itemprop="datePublished">Apr 16, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/org2blog/">org2blog</a> <a href="../tags/rsync/">rsync</a>
+</div>
+    </div>
+      
+        <div id="outline-container-1" class="outline-2">
+<h2 id="sec-1">rsync</h2>
+<div id="outline-container-1_1" class="outline-3">
+<h3 id="sec-1_1">include/exclude</h3>
+<div id="text-1_1" class="outline-text-3">
+
+rsync 支持使用 include/exclude 来过滤要同步的文件，使用这两个参数的时候，需要注意下面的这个问题
+<pre class="prettyprint">
+Note that, when using the –recursive (-r) option (which is implied by -a), every subcomponent of every path  is  vis‐
+        ited  from the top down, so include/exclude patterns get applied recursively to each subcomponent’s full name (e.g. to
+        include "/foo/bar/baz" the subcomponents "/foo" and "/foo/bar" must not be excluded).  The exclude  patterns  actually
+        short-circuit  the  directory  traversal stage when rsync finds the files to send.  If a pattern excludes a particular
+        parent directory, it can render a deeper include pattern ineffectual  because  rsync  did  not  descend  through  that
+        excluded section of the hierarchy.  This is particularly important when using a trailing ’*’ rule.  For instance, this
+        won’t work: 
+
+/some/path/this-file-will-not-be-found
+/file-is-included 
+*</pre>
+rsync 使用 -r 来遍历子目录的时候，如果还想用 exclude include 来过滤文件，那么要注意 一个目录如果满足了 exclude，而且还没有对应的 include，那这个目录下面的子目录也会被 exclude，就算你对这个子目录写了 include 。
+
+虽然能解决问题，可实在很费劲，直到无意中发现了 files-from 参数。
+
+</div>
+</div>
+<div id="outline-container-1_2" class="outline-3">
+<h3 id="sec-1_2">files-from</h3>
+<div id="text-1_2" class="outline-text-3">
+
+files-from 是通过指定一个本地/远程的文件来定义需要同步的文件。这个文件生成方法可就多了，你可以用 find/sed/awk/xxxxx 等搭配来得到你这个文件，一行命令不够还可以多行，是不是爽多了？
+<pre class="prettyprint">
+如果是远程文件，那就 –files-from=:/path/to/files。
+
+</pre></div>
+</div>
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2">写在后面</h2>
+<div id="text-2" class="outline-text-2">
+
+顺便测试一下 org2blog，这帖子是用 org2blog 写的，给作者提了个建议，加上 permlink 的支持，没几天居然给加上了，刚好测试一下，呵呵。
+
+</div>
+</div>
+</div>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="rsync-files-from-option/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="twittering-mode/">emacs 上推神器 twittering-mode</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-04-02T16:00:00.000Z" itemprop="datePublished">Apr 3, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Emacs/">Emacs</a>
+</div>
+    </div>
+      
+        emacs 里面可以干很多事情，包括上 twitter。 在 @xwl 的努力下，还能上 sina 微博。。。
+
+emacswiki 地址在这里 http://www.emacswiki.org/emacs/TwitteringMode， xwl 的 fork 在这里 https://github.com/xwl/twittering-mode/，增加了 sina 微博的支持，好像最近还增加了 douban 的支持。
+
+我的配置在这里 https://github.com/wd/emacs.d/blob/master/site-lisp/config/wd-twitter.el，里面 twitter 使用的是代理。
+
+我用到的 twmod 的按键设置:
+推上面 <ret> 回复
+j/k/h/l 类似 vim 里面
+h 到第一条
+C-c C-s 发推
+C-u M-x twittering-update-status-interactive 可以选择同时更新两个
+M-x twittering-switch-to-unread-timeline 切换到未读的 timeline，可以绑定到一个按键上面
+
+其他的看 C-h m 里面的说明吧，效果在这里 http://flic.kr/p/9vy96G
+</ret>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="twittering-mode/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="parse-qqwry-dat/">解析纯真 ip 库</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-03-09T16:00:00.000Z" itemprop="datePublished">Mar 10, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/perl/">perl</a>
+</div>
+    </div>
+      
+        纯真的 ip 库应用比较广泛，就那个 qqwry.dat。以前尝试过解析，死活弄不明白那写地址和 pack/unpack 啥的，晕的不行。这两天需要解析下，就尝试用 perl 写一个。
+
+开始用 sysread/sysseek 很多都读不出来，看了n遍程序，没觉得有啥问题。后来全部改成了 read/seek 就好了，也不知道怎么回事。画了一个图说明下，参考了 http://lumaqq.linuxsir.org/article/qqwry_format_detail.html 。
+
+<table style="width:auto;"><tr><td><a href="https://picasaweb.google.com/lh/photo/f83_NZhjf6QchgG9gGRueg?feat=embedwebsite" target="_blank" rel="external"><img src="https://lh6.googleusercontent.com/_7OB6ilikjVs/TXie-yreH2I/AAAAAAAAAKY/fTPMq-pkuqU/s640/qqwry.png" height="640" width="269"></a></td></tr><tr><td style="font-family:arial,sans-serif; font-size:11px; text-align:right">发件人 <a href="https://picasaweb.google.com/wdicc0/2011310?feat=embedwebsite" target="_blank" rel="external">2011-3-10</a></td></tr></table>
+
+读来的3字节地址需要加 "\0" 才能 unpack，不知道怎么回事，对这些问题弄不明白。对了，网上还有个 perl 版的，也能用，需要的话可以搜一下。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="parse-qqwry-dat/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="days-in-2010/">总结 2010</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-02-12T16:00:00.000Z" itemprop="datePublished">Feb 13, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a> <a href="../tags/life/">life</a> <a href="../tags/work/">work</a>
+</div>
+    </div>
+      
+        这都 2011 年的 2 月份了才写 2010 年的总结，好像晚了点，呵呵。不过其实这不是才过年了，还不算晚。
+
+翻翻看 2009 年的，比对一下。 http://wdicc.com/2009/
+
+写程序方面应该是更熟悉了，perl 里面的 pm 啥的也写了几个，甭管好不好用吧，反正是也算是用上了。另外就是 js 也写了不少，不过都是瞎写。
+
+2010 年开年就不利，投资错误损失了 2 万多。换了工作，并有了第一辆车，在还没来得及开一个长途之前，车就又没了。还赶上悲催的北京限车令，现在还没的开。车没了也导致直接损失 1 万多，还好有保险。一年到头本来也没多少钱。
+
+2010 还真有一次自驾游，去了平谷，庆祝刷版 10 周年，一帮人玩了两天。
+
+开源上面好像没什么特别的贡献，自从用上 gentoo，懒的不行了。英语也没什么长进.... 2011 年努力吧。
+
+2011 年希望能来一次远一点旅游，出国最好了。实在去不了，国内也行。这几年都没有出去玩过了。
+
+2011 年也希望工作上面能有成就，每天上班的时候能有激情。
+
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="days-in-2010/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="blackberry-8900/">入了一个 BlackBerry 8900</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-01-26T16:00:00.000Z" itemprop="datePublished">Jan 27, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/bb/">bb</a> <a href="../tags/blackberry/">blackberry</a>
+</div>
+    </div>
+      
+        前两个一个小姨子让帮忙买一个黑莓9800，也不知道小孩怎么想的，告诉她这个难用，还断网，但就是不听，说要买一个用的人少的。。。
+
+顺道，就弄了一个 8900 自己用。之前那个 g1 现在很不给力，速度慢，费电。用上了 89 还是挺不错的，又有点 650 的感觉了，就是软件少了点。
+
+linux 下面有个 barry 可以简单管理一下 bb，不过很有限。可以用 bjavaloader 装 cod 倒是不错，想加一个 service book 发现不行，很郁闷，不过能装软件就不错了。
+
+尝试过在 virtualbox 里面使用，需要 disable usb 2.0。不过后来给 bb 弄了一个 sd 卡之后，发现 vbox 里面不认了，设置里面禁掉卡也不行，也不知道怎么回事。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="blackberry-8900/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="signal-in-perl/">perl 里面的信号处理</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2010-12-31T16:00:00.000Z" itemprop="datePublished">Jan 1, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/perl/">perl</a>
+</div>
+    </div>
+      
+        perl 里面的信号处理很简单，就是给 %SIG 这个 hash 赋值就好了。前几天遇到个问题，处理 SIG{CHLD} 的时候，我本来只起一个 child 进程，可是发现这个信号会被触发多次，开始弄不明白，后来偶然想到是不是 system，exec 之类的函数弄出来的，搜了下果然。
+
+perl 里面调用外部命令是会 fork 一个子进程的，所以也会触发那个信号，想避免可以设置局部变量，例如
+<pre class="prettyprint">
+$SIG{CHLD} = sub {
+    print "main\n";
+};
+
+.....
+{
+    local $SIG{CHLD} = undef; # 注意调用外部命令的时候，如果 IGNORE 就捕捉不了结果了
+    `mv xxx yyy`;
+    system(xxxxx);
+}
+
+.....
+</pre>
+
+使用 {} 来构造局部变量的方法有时候会让问题变的非常简单。
+
+另外，信号触发的时候，会把 sleep 中断，这个在 sleep 的 doc 里面说的很明白。如果还是想 sleep 到足够的时间，可以用下面的方法。
+<pre class="prettyprint">
+my $timeLeft = 10;
+while ( 1 ) {
+    last if $timeLeft <= 0;="" my="" $acttime="sleep($timeLeft);" $timeleft="$timeLeft" -="" $acttime;="" }="" <="" pre="">
+
+越来越感觉写 perl 还是很给力的，很多的奇技淫巧，不过我现在也是属于没弄明白多少，瞎写。
+</=></pre>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="signal-in-perl/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="oracle-install-guide/">又安装了一次 oracle</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2010-11-04T16:00:00.000Z" itemprop="datePublished">Nov 5, 2010</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/oracle/">oracle</a>
+</div>
+    </div>
+      
+        好久没有弄 oracle 了，今天有机会又折腾了一天 oracle 的安装，本来觉得是挺简单的事情，没想到也折腾了挺长时间的，我觉得可能主要是因为使用的系统比较新，而 oracle 是 10g 有比较老的缘故。
+
+1 配置 x11forward
+我这安装了 xauth 和 libXtst，然后使用 ssh -Y user@host 连接的。使用 -X 好像从来没成功过，也不知道怎么回事，懒得研究了。
+
+2 运行安装程序
+解压什么的就没什么好说的了，主要是运行的时候他会检测是不是他支持的发行版，可以使用 -ignoreSysPrereqs，跳过系统检测。
+
+然后其他正常，就是到最后运行 dbca 的时候，会 hung 卡在那，等多久都完成不了。这一步做的操作是会给你 create database，建 init 文件等，没这个的话 oracle 是不可用的。如果你知道手动操作这些后续步骤也可以不理会这个。
+
+dbca 卡住后，可以点那个取消，然后再开一个 term， ps 找到 dbca 然后 kill 掉，前面那个界面应该就会有反应了，就可以继续往下走了。到最后 exit 了事。
+
+然后就是单独启动 dbca 来完成后面的工作。执行 dbca 命令（需要你提前配置好 path），会启动一个窗口，要注意的是，在这时候能看到一个关于字体的错误，据说这个错误就是上面 huang 住的原因，如果看到了这个错误，那么 dbca 的最后一步可能是会执行不了的。。。
+
+我尝试了 n 种方法解决这个问题，发现最简单的是装一个 jdk 1.6 然后把 java 命令链接覆盖 oracle 安装的那个 jdk 1.4 的 $ORACLE_HOME/jdk/jre/bin/java 命令。等于就是说使用 1.6 的 java 来启动 dbca。如果这么做还不行，那可能需要装一些字体相关的东西，比如 xorg-x11-fonts-truetype。如果还不行那就不知道怎么弄了。
+
+dbca 启动后，还遇到了 ora-27102 out of memery 和 ora-01034 oracle not aviliable。后面这个是在遇到前面那个的时候点 ignore 出来的。主要是前面那个。前面那个是因为 kernel 参数关于内存的配置配置的有问题，最大共享内存太大导致的。如果遇到这个问题就去改那些参数吧。
+
+
+dbca 配置好后，oracle 应该就启动了。你可以连上去看看了。
+
+3 导入导出
+导出使用 exp，导入 imp，一般不需要加什么参数。据说加那个 full=y 后，导入的时候会建立用户，不用你操心。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="oracle-install-guide/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="autossh-and-auto-enter-password/">自动连接 ssh 并输入密码</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2010-10-12T16:00:00.000Z" itemprop="datePublished">Oct 13, 2010</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/expect/">expect</a> <a href="../tags/ssh/">ssh</a>
+</div>
+    </div>
+      
+        这年头不翻墙就看不到真像了，前几天整了个 ssh 代理，就研究了下自动登录。
+
+ssh 自动登录首选就是使用 key 了，可对方不干，那就只能使用密码了。自动输入密码可以用 expect。查这个的时候发现了一个 expect-lite，发现也挺有意思的，他把写 expect 脚本简单化了，比如想 send xxx，那就用 >xxxx 就行了，想 expect yyy 那就 <yyy 就好了，等等这些，呵呵。不过我后来没用这个，还是用的标准的="" expect，代码如下。="" <pre="" class="prettyprint lang-expect">
+spawn autossh -M 20000 -p SSH_PORT -N -D 7070 YOUR_NAME@YOUR_SERVER
+set timeout 60
+expect {
+     assword: {
+         stty -echo
+         send "YOUR_PASS\r"
+         stty echo
+         #exp_continue
+     }
+    incorrect {
+         send_user "invalid password or account\n"
+         exit
+     }
+    timeout {
+         send_user "connection to host timed out\n"
+         exit
+     }
+    eof {
+         send_user "connection to host failed\n"
+         exit
+     }
+}
+if {[fork]!=0} exit
+disconnect
+
+
+那里面那个 autossh 能自动给你重连，没仔细研究。那个 20000 后面的参数都是给 ssh 的，具体含意可以看 ssh 的 man。
+
+最主要是最后那两行，能做到连接上之后主程序就退出了，不占用你的终端，而不影响 ssh 的连接。
+</yyy>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="autossh-and-auto-enter-password/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="some-font-configuration-for-chrome/">chrome 的几个字体配置</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2010-09-30T16:00:00.000Z" itemprop="datePublished">Oct 1, 2010</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/chrome/">chrome</a>
+</div>
+    </div>
+      
+        随着各种 ext 的开发，chrome 目前的可用性已经很高了。阻碍我使用的最大一个问题，主要是字体。在 firefox 里面我喜欢自己配置中文英文字体。英文喜欢使用等宽，比如 consolas，Monaco, dejavu sans mono 之类。比较喜欢 monaco，可是目前能下载到的字体好像有点问题，有些字号没有。
+
+前几天看到 ghost 在 twitter 上说到 chrome，就又动了试试看的念头。后来总算整好了。
+
+chrome 本身自己有个字体设置的地方，在 tools -> options -> Under the Hood 里面，可以设置字体，在这里设置的字体感觉好像比平时理解的要小一点。比如我设置的 15 号才感觉好像看着舒服了点。另外，我这里设置的是英文，中文会根据 fontconfig 配置的来显示，我使用的是 WenQuanYi Zen Hei。
+
+这么设置之后，在很多页面应该已经可以了。不过可能你在 google 的页面里面，还有 extension 的页面里面，还是会看到讨厌的字体。这是因为在设置了使用 css 使用的字体后，chrome 好像会优先使用 css 的设置。google 的页面和 extension 的页面使用的是 Arial 字体。在 term 使用 fc-match arial 可以看到实际使用的字体。
+
+那么修改一下 fontconfig 的配置，设置一下字体替换，比如我这个。
+<pre class="prettyprint">
+<match target="pattern">
+     <test qual="any" name="family"><string>Liberation Sans</string></test>
+     <edit name="family" mode="assign"><string>DejaVu Sans Mono</string></edit>
+ </match>
+ </pre>
+
+ 再启动 chrome 应该就能看到效果了。:)
+
+ 此后还有个问题，那就是 chrome 界面上面没有最小字体的设置，然后很多 n 小的文字，让人讨厌。通过 google 找到了一个<a href="http://wange.im/minimum-font-size-for-chrome-is-12px.html" target="_blank" rel="external">解决办法</a>，我把他贴这里。
+ <pre lang="txt">
+ 到chrome安装目录下的User Data\Default文件夹；
+用记事本打开Preferences，找到：
+"webkit": {
+"webprefs": {
+"default_fixed_font_size": 13,
+"default_font_size": 16,
+}
+在｝里面加上：
+"minimum_font_size": 1,
+"minimum_logical_font_size": 1
+ </pre>
+
+ 现在看，我的 chrome 就好多了，呵呵。效果可以看看这里 http://www.webpagescreenshot.info/img/420779-9292010114845AM .
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="some-font-configuration-for-chrome/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+  <nav id="pagenavi">
+    
+        <a href="/page/4/" class="prev">Prev</a>
+    
+    
+        <a href="/page/6/" class="next">Next</a>
+    
+  <div class="center"><a href="/archives/index.html">Blog Archives</a></div>
+  </nav>
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

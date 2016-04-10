@@ -1,0 +1,227 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>Custom Netgear r6300v2 wireless router - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;接 &lt;a href=&quot;/Across-the-Great-Wall-we-can-reach-every-corner-in-the-world&quot;&gt;科学上网&lt;/a&gt;。买了群晖之后，一直通过群晖上面跑一个 haproxy 来做转发。不过心里总觉得有点不爽，毕竟一方面多转发了一次，另外群晖在不使用的时候，还会休眠，又或多或少担心影响休眠（经过测试应该是不影响的，但是..）。所以买了 r6300v2 之后，就琢磨通过路由器做这个事情。&lt;/p&gt;
+&lt;p&gt;路由器上面搞就有两个选择，一是从 iptables 入手，直接转发出去，另外一个是从软件层面做。&lt;/p&gt;
+&lt;p&gt;开始搞了几天的 iptables，发现原有系统 iptables 条目还是挺多的，加上路由器翻墙的功能也需要加一些条目，导致尝试了好几天之后总算能够转发过去链接了，但是数据包过不去，为了调试就开始打算在路由器安装 tcpdump。然后找到了 &lt;a href=&quot;https://github.com/Entware/entware&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;https://github.com/Entware/entware&lt;/a&gt; ，配置好之后可以使用 opkg 来安装包。包列表可以参考这里 &lt;a href=&quot;http://pkg.entware.net/binaries/armv7/Packages.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://pkg.entware.net/binaries/armv7/Packages.html&lt;/a&gt; ，这个路由器是 armv7 版本的 cpu。&lt;/p&gt;
+&lt;p&gt;安装 opkg 之前先得了解下，梅林固件分两部分存储，一部分是系统区，一部分是自定义区。系统区应该是你刷的固件所在的地方，是不能修改的，自定义区是可以存放一些自己定义的脚本的。每次系统启动的时候，你的一些自定义的东西都是存在自定义区加载的。自定义区就是 /jffs 分区。想要使用，得在 系统管理 -&amp;gt; 系统设置 里面，打开 JFFS 的配置，允许执行上面的脚本。&lt;/p&gt;
+&lt;p&gt;因为系统自带的 /jffs 分区只有 60M 左右，而我们装包的时候很容易就超过这个限制了，我现在已经用了 8xM 空间。所以最好还是用一个 u 盘来做这个事情。每次想要自动加载 u 盘，启动 u 盘里面的程序的话，还需要一些自定义的脚本来做这个事情。&lt;/p&gt;
+&lt;p&gt;先把 opkg 配置好，需要先准备好 /opt 目录。&lt;/p&gt;
+&lt;figure class=&quot;highlight vim&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;mkdir&lt;/span&gt; -&lt;span class=&quot;keyword&quot;&gt;p&lt;/span&gt; /tmp/&lt;span class=&quot;keyword&quot;&gt;opt&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;mount -&lt;span class=&quot;keyword&quot;&gt;t&lt;/span&gt; ext4 -&lt;span class=&quot;keyword&quot;&gt;o&lt;/span&gt; rw,noatime /dev/sda1 /&lt;span class=&quot;keyword&quot;&gt;opt&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。&lt;/p&gt;
+&lt;p&gt;然后参考 &lt;a href=&quot;https://github.com/Entware/entware&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;https://github.com/Entware/entware&lt;/a&gt; 操作就可以了，可以看到他会在 /opt 给你安装一陀东西。因为这个是 u 盘，所以东西重启也不会丢失。&lt;/p&gt;
+&lt;p&gt;然后参考&lt;a href=&quot;https://github.com/RMerl/asuswrt-merlin/wiki/User-scripts&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;梅林的 wiki&lt;/a&gt;，它允许用户在 &lt;code&gt;/jffs/scripts&lt;/code&gt; 自定义一些启动脚本，来支持我们自动挂载和启动 u 盘上面的程序。&lt;/p&gt;
+&lt;p&gt;post-mount 内容如下，前面几个注释的是调试用的。最后一个 if 里面内容是执行一些 opkg 安装的程序的启动脚本，这个后面说。&lt;br&gt;&lt;figure class=&quot;highlight bash&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;shebang&quot;&gt;#!/bin/sh&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;#echo $(date) &amp;gt; /tmp/000service-start&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;#echo &quot;$1&quot; &amp;gt;&amp;gt; /tmp/000service-start&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;#ls /dev/sda* &amp;gt;&amp;gt; /tmp/000service-start&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; [ -b /dev/sda1 ];&lt;span class=&quot;keyword&quot;&gt;then&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        mkdir -p /tmp/opt&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        mount -t ext4 -o rw,noatime /dev/sda1 /opt&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;fi&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; [ -x /opt/bin/opkg ];&lt;span class=&quot;keyword&quot;&gt;then&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        /opt/etc/init.d/rc.unslung start&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;fi&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;要记得 &lt;code&gt;sudo chmod +x post-mount&lt;/code&gt;，然后可以重启路由器看看是不是启动之后就能看到 /opt 有了你上次安装的程序了。&lt;/p&gt;
+&lt;p&gt;上面一阶段搞定之后，就可以装一些软件了，比如我装了 vim, tcpdump，bind-dig, haproxy。opkg 的命令使用可以参考这里 &lt;a href=&quot;https://wiki.openwrt.org/doc/techref/opkg&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;https://wiki.openwrt.org/doc/techref/opkg&lt;/a&gt; 。&lt;/p&gt;
+&lt;p&gt;接着上面的话题，本来打算装好 tcpdump 来调试的，然后发现可以比较方便的启动 haproxy 之后，就打算用 haproxy 弄了，路由表太多，分析比较麻烦，还是走简单的吧。。&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;/opt/etc/haproxy.cfg&lt;/code&gt; 如下，把 IP 和 PORT 改成你自己的。&lt;/p&gt;
+&lt;figure class=&quot;highlight x86asm&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;15&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;16&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;17&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;global&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        ulimit-n  &lt;span class=&quot;number&quot;&gt;331071&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;defaults&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        log &lt;span class=&quot;built_in&quot;&gt;global&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        mode    tcp&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;preprocessor&quot;&gt;option&lt;/span&gt;  dontlognull&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        timeout connect &lt;span class=&quot;number&quot;&gt;1000&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        timeout client &lt;span class=&quot;number&quot;&gt;150000&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        timeout server &lt;span class=&quot;number&quot;&gt;150000&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;frontend &lt;span class=&quot;literal&quot;&gt;ss&lt;/span&gt;-&lt;span class=&quot;keyword&quot;&gt;in&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        bind *:本机PORT&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        default_backend &lt;span class=&quot;literal&quot;&gt;ss&lt;/span&gt;-&lt;span class=&quot;keyword&quot;&gt;out&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;backend &lt;span class=&quot;literal&quot;&gt;ss&lt;/span&gt;-&lt;span class=&quot;keyword&quot;&gt;out&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        server server1 &lt;span class=&quot;literal&quot;&gt;IP&lt;/span&gt;:远端PORT maxconn &lt;span class=&quot;number&quot;&gt;20480&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;&lt;code&gt;/opt/etc/init.d/S001haproxy.sh&lt;/code&gt; 如下，&lt;code&gt;sudo chmod +x /etc/init.d/S001haproxy.sh&lt;/code&gt;&lt;/p&gt;
+&lt;figure class=&quot;highlight bash&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;15&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;16&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;17&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;18&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;19&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;20&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;21&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;22&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;23&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;24&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;25&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;shebang&quot;&gt;#!/bin/sh&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;haproxy_bin=/opt/sbin/haproxy&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;haproxy_cfg=/opt/etc/haproxy.cfg&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;pid=/opt/var/run/haproxy.pid&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;action=&lt;span class=&quot;variable&quot;&gt;$1&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;if&lt;/span&gt; [ -z &lt;span class=&quot;string&quot;&gt;&quot;&lt;span class=&quot;variable&quot;&gt;$action&lt;/span&gt;&quot;&lt;/span&gt; ];&lt;span class=&quot;keyword&quot;&gt;then&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;built_in&quot;&gt;printf&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;Usage: &lt;span class=&quot;variable&quot;&gt;$0&lt;/span&gt; &amp;#123;start|stop|restart&amp;#125;\n&quot;&lt;/span&gt; &amp;gt;&amp;amp;&lt;span class=&quot;number&quot;&gt;2&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;built_in&quot;&gt;exit&lt;/span&gt; &lt;span class=&quot;number&quot;&gt;1&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;fi&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;case&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;&lt;span class=&quot;variable&quot;&gt;$action&lt;/span&gt;&quot;&lt;/span&gt; &lt;span class=&quot;keyword&quot;&gt;in&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        start)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                &lt;span class=&quot;variable&quot;&gt;$haproxy_bin&lt;/span&gt; &lt;span class=&quot;operator&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;variable&quot;&gt;$haproxy_cfg&lt;/span&gt; -p &lt;span class=&quot;variable&quot;&gt;$pid&lt;/span&gt; -D&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                ;;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        stop)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                &lt;span class=&quot;built_in&quot;&gt;kill&lt;/span&gt; $(cat &lt;span class=&quot;variable&quot;&gt;$pid&lt;/span&gt;)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                ;;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        restart)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                &lt;span class=&quot;built_in&quot;&gt;kill&lt;/span&gt; $(cat &lt;span class=&quot;variable&quot;&gt;$pid&lt;/span&gt;)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                &lt;span class=&quot;variable&quot;&gt;$haproxy_bin&lt;/span&gt; &lt;span class=&quot;operator&quot;&gt;-f&lt;/span&gt; &lt;span class=&quot;variable&quot;&gt;$haproxy_cfg&lt;/span&gt; -p &lt;span class=&quot;variable&quot;&gt;$pid&lt;/span&gt; -D&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;                ;;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;esac&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;因为前面在 post-mount 最后一个 if 里面的语句，这样启动路由器就会自动启动 haproxy 了。&lt;/p&gt;
+&lt;p&gt;想使用这个端口转发，还需要在路由器配置界面里面增加一个到路由器 ip 的映射，然后还需要一个 &lt;code&gt;/jffs/scripts/firewall-start&lt;/code&gt; 如下&lt;/p&gt;
+&lt;figure class=&quot;highlight bash&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;shebang&quot;&gt;#!/bin/sh&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;iptables -I INPUT -i ppp0 -p tcp --destination-port PORT -j ACCEPT&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;我使用的过程中还发现一个问题，pkg.entware.net 貌似被墙了。。虽然配置了翻墙但是不太明白为什么路由器上面时好时坏，而我局域网内的 mac 访问总是 ok 的，很奇怪。路由器上面不能访问有个办法是通过 mac 代理一下。&lt;/p&gt;
+&lt;p&gt;mac 上面启动一个 ngx，配置如下，使用 nginx -p ./ -c nginx.conf 启动。&lt;br&gt;&lt;figure class=&quot;highlight nginx&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;title&quot;&gt;events&lt;/span&gt; &amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;title&quot;&gt;worker_connections&lt;/span&gt; &lt;span class=&quot;number&quot;&gt;1024&lt;/span&gt;;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;title&quot;&gt;http&lt;/span&gt; &amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;title&quot;&gt;server&lt;/span&gt; &amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;      &lt;span class=&quot;title&quot;&gt;listen&lt;/span&gt; &lt;span class=&quot;number&quot;&gt;0.0.0.0:8000&lt;/span&gt;;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;      &lt;span class=&quot;title&quot;&gt;location&lt;/span&gt; / &amp;#123;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;           &lt;span class=&quot;title&quot;&gt;proxy_pass&lt;/span&gt; &lt;span class=&quot;url&quot;&gt;http://pkg.entware.net&lt;/span&gt;;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;      &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &amp;#125;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&amp;#125;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;然后修改路由器上面 /opt/etc/opkg.conf &lt;code&gt;src/gz packages http://MAC_IP:8000/binaries/armv7&lt;/code&gt;，然后就可以了。&lt;/p&gt;
+&lt;p&gt;写完自己看发现这不是一份操作指南，只能算是一些提示，如果有人照着做能不能成功可能还是得看自己。。。&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Custom Netgear r6300v2 wireless router</h2>
+	<div class="entry-content"><p>接 <a href="/Across-the-Great-Wall-we-can-reach-every-corner-in-the-world">科学上网</a>。买了群晖之后，一直通过群晖上面跑一个 haproxy 来做转发。不过心里总觉得有点不爽，毕竟一方面多转发了一次，另外群晖在不使用的时候，还会休眠，又或多或少担心影响休眠（经过测试应该是不影响的，但是..）。所以买了 r6300v2 之后，就琢磨通过路由器做这个事情。</p>
+<p>路由器上面搞就有两个选择，一是从 iptables 入手，直接转发出去，另外一个是从软件层面做。</p>
+<p>开始搞了几天的 iptables，发现原有系统 iptables 条目还是挺多的，加上路由器翻墙的功能也需要加一些条目，导致尝试了好几天之后总算能够转发过去链接了，但是数据包过不去，为了调试就开始打算在路由器安装 tcpdump。然后找到了 <a href="https://github.com/Entware/entware" target="_blank" rel="external">https://github.com/Entware/entware</a> ，配置好之后可以使用 opkg 来安装包。包列表可以参考这里 <a href="http://pkg.entware.net/binaries/armv7/Packages.html" target="_blank" rel="external">http://pkg.entware.net/binaries/armv7/Packages.html</a> ，这个路由器是 armv7 版本的 cpu。</p>
+<p>安装 opkg 之前先得了解下，梅林固件分两部分存储，一部分是系统区，一部分是自定义区。系统区应该是你刷的固件所在的地方，是不能修改的，自定义区是可以存放一些自己定义的脚本的。每次系统启动的时候，你的一些自定义的东西都是存在自定义区加载的。自定义区就是 /jffs 分区。想要使用，得在 系统管理 -&gt; 系统设置 里面，打开 JFFS 的配置，允许执行上面的脚本。</p>
+<p>因为系统自带的 /jffs 分区只有 60M 左右，而我们装包的时候很容易就超过这个限制了，我现在已经用了 8xM 空间。所以最好还是用一个 u 盘来做这个事情。每次想要自动加载 u 盘，启动 u 盘里面的程序的话，还需要一些自定义的脚本来做这个事情。</p>
+<p>先把 opkg 配置好，需要先准备好 /opt 目录。</p>
+<figure class="highlight vim"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">mkdir</span> -<span class="keyword">p</span> /tmp/<span class="keyword">opt</span></span><br><span class="line">mount -<span class="keyword">t</span> ext4 -<span class="keyword">o</span> rw,noatime /dev/sda1 /<span class="keyword">opt</span></span><br></pre></td></tr></table></figure>
+<p>上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</p>
+<p>然后参考 <a href="https://github.com/Entware/entware" target="_blank" rel="external">https://github.com/Entware/entware</a> 操作就可以了，可以看到他会在 /opt 给你安装一陀东西。因为这个是 u 盘，所以东西重启也不会丢失。</p>
+<p>然后参考<a href="https://github.com/RMerl/asuswrt-merlin/wiki/User-scripts" target="_blank" rel="external">梅林的 wiki</a>，它允许用户在 <code>/jffs/scripts</code> 自定义一些启动脚本，来支持我们自动挂载和启动 u 盘上面的程序。</p>
+<p>post-mount 内容如下，前面几个注释的是调试用的。最后一个 if 里面内容是执行一些 opkg 安装的程序的启动脚本，这个后面说。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line"><span class="shebang">#!/bin/sh</span><br><span class="line"></span></span><br><span class="line"><span class="comment">#echo $(date) &gt; /tmp/000service-start</span></span><br><span class="line"><span class="comment">#echo "$1" &gt;&gt; /tmp/000service-start</span></span><br><span class="line"><span class="comment">#ls /dev/sda* &gt;&gt; /tmp/000service-start</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -b /dev/sda1 ];<span class="keyword">then</span></span><br><span class="line">        mkdir -p /tmp/opt</span><br><span class="line">        mount -t ext4 -o rw,noatime /dev/sda1 /opt</span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -x /opt/bin/opkg ];<span class="keyword">then</span></span><br><span class="line">        /opt/etc/init.d/rc.unslung start</span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure></p>
+<p>要记得 <code>sudo chmod +x post-mount</code>，然后可以重启路由器看看是不是启动之后就能看到 /opt 有了你上次安装的程序了。</p>
+<p>上面一阶段搞定之后，就可以装一些软件了，比如我装了 vim, tcpdump，bind-dig, haproxy。opkg 的命令使用可以参考这里 <a href="https://wiki.openwrt.org/doc/techref/opkg" target="_blank" rel="external">https://wiki.openwrt.org/doc/techref/opkg</a> 。</p>
+<p>接着上面的话题，本来打算装好 tcpdump 来调试的，然后发现可以比较方便的启动 haproxy 之后，就打算用 haproxy 弄了，路由表太多，分析比较麻烦，还是走简单的吧。。</p>
+<p><code>/opt/etc/haproxy.cfg</code> 如下，把 IP 和 PORT 改成你自己的。</p>
+<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="built_in">global</span></span><br><span class="line">        ulimit-n  <span class="number">331071</span></span><br><span class="line"></span><br><span class="line">defaults</span><br><span class="line">        log <span class="built_in">global</span></span><br><span class="line">        mode    tcp</span><br><span class="line">        <span class="preprocessor">option</span>  dontlognull</span><br><span class="line">        timeout connect <span class="number">1000</span></span><br><span class="line">        timeout client <span class="number">150000</span></span><br><span class="line">        timeout server <span class="number">150000</span></span><br><span class="line"></span><br><span class="line">frontend <span class="literal">ss</span>-<span class="keyword">in</span></span><br><span class="line">        bind *:本机PORT</span><br><span class="line">        default_backend <span class="literal">ss</span>-<span class="keyword">out</span></span><br><span class="line"></span><br><span class="line">backend <span class="literal">ss</span>-<span class="keyword">out</span></span><br><span class="line">        server server1 <span class="literal">IP</span>:远端PORT maxconn <span class="number">20480</span></span><br></pre></td></tr></table></figure>
+<p><code>/opt/etc/init.d/S001haproxy.sh</code> 如下，<code>sudo chmod +x /etc/init.d/S001haproxy.sh</code></p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="shebang">#!/bin/sh</span><br><span class="line"></span></span><br><span class="line">haproxy_bin=/opt/sbin/haproxy</span><br><span class="line">haproxy_cfg=/opt/etc/haproxy.cfg</span><br><span class="line">pid=/opt/var/run/haproxy.pid</span><br><span class="line"></span><br><span class="line">action=<span class="variable">$1</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ -z <span class="string">"<span class="variable">$action</span>"</span> ];<span class="keyword">then</span></span><br><span class="line">        <span class="built_in">printf</span> <span class="string">"Usage: <span class="variable">$0</span> &#123;start|stop|restart&#125;\n"</span> &gt;&amp;<span class="number">2</span></span><br><span class="line">        <span class="built_in">exit</span> <span class="number">1</span></span><br><span class="line"><span class="keyword">fi</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">case</span> <span class="string">"<span class="variable">$action</span>"</span> <span class="keyword">in</span></span><br><span class="line">        start)</span><br><span class="line">                <span class="variable">$haproxy_bin</span> <span class="operator">-f</span> <span class="variable">$haproxy_cfg</span> -p <span class="variable">$pid</span> -D</span><br><span class="line">                ;;</span><br><span class="line">        stop)</span><br><span class="line">                <span class="built_in">kill</span> $(cat <span class="variable">$pid</span>)</span><br><span class="line">                ;;</span><br><span class="line">        restart)</span><br><span class="line">                <span class="built_in">kill</span> $(cat <span class="variable">$pid</span>)</span><br><span class="line">                <span class="variable">$haproxy_bin</span> <span class="operator">-f</span> <span class="variable">$haproxy_cfg</span> -p <span class="variable">$pid</span> -D</span><br><span class="line">                ;;</span><br><span class="line"><span class="keyword">esac</span></span><br></pre></td></tr></table></figure>
+<p>因为前面在 post-mount 最后一个 if 里面的语句，这样启动路由器就会自动启动 haproxy 了。</p>
+<p>想使用这个端口转发，还需要在路由器配置界面里面增加一个到路由器 ip 的映射，然后还需要一个 <code>/jffs/scripts/firewall-start</code> 如下</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="shebang">#!/bin/sh</span><br><span class="line"></span></span><br><span class="line">iptables -I INPUT -i ppp0 -p tcp --destination-port PORT -j ACCEPT</span><br></pre></td></tr></table></figure>
+<p>我使用的过程中还发现一个问题，pkg.entware.net 貌似被墙了。。虽然配置了翻墙但是不太明白为什么路由器上面时好时坏，而我局域网内的 mac 访问总是 ok 的，很奇怪。路由器上面不能访问有个办法是通过 mac 代理一下。</p>
+<p>mac 上面启动一个 ngx，配置如下，使用 nginx -p ./ -c nginx.conf 启动。<br><figure class="highlight nginx"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="title">events</span> &#123;</span><br><span class="line">  <span class="title">worker_connections</span> <span class="number">1024</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="title">http</span> &#123;</span><br><span class="line">  <span class="title">server</span> &#123;</span><br><span class="line">      <span class="title">listen</span> <span class="number">0.0.0.0:8000</span>;</span><br><span class="line">      <span class="title">location</span> / &#123;</span><br><span class="line">           <span class="title">proxy_pass</span> <span class="url">http://pkg.entware.net</span>;</span><br><span class="line">      &#125;</span><br><span class="line">  &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>然后修改路由器上面 /opt/etc/opkg.conf <code>src/gz packages http://MAC_IP:8000/binaries/armv7</code>，然后就可以了。</p>
+<p>写完自己看发现这不是一份操作指南，只能算是一些提示，如果有人照着做能不能成功可能还是得看自己。。。</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="Custom-Netgear-r6300v2-wireless-router/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'Custom-Netgear-r6300v2-wireless-router/';
+        var disqus_url = 'Custom-Netgear-r6300v2-wireless-router/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

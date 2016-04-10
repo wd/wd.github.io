@@ -1,0 +1,201 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>还是cacti的问题 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="前面那个帖子似乎没有解决问题，查看了一下log，有些异常：
+cactid ERROR: SNMP timeout detected [500 milliseconds]
+搜了一下，找到一个&lt;a target=&quot;_blank&quot; href=&quot;http://forums.cacti.net/about5487.html&quot;&gt;文章&lt;/a&gt;，似乎说升级就ok了，可是那个日期是2005年的，我的应该没那么老吧。不过还是上cacti的&lt;a target=&quot;_blank&quot; href=&quot;http://cacti.net/&quot;&gt;主页&lt;/a&gt;看了看，看到cacti和cactid都升级了，就打算升级一下看看。debian上面怎么玩呢？cacti还好说，之前升级过一次，不需要编译，直接按照&lt;a target=&quot;_blank&quot; href=&quot;http://www.cacti.net/downloads/docs/html/upgrade.html&quot;&gt;文档&lt;/a&gt;升级就好，cactid可得编译，我也不打算直接覆盖安装（其实真这么装没准还简单了），还是做一个deb包吧，一直没有体验过deb如何做，刚好机会来了。
+
+搜了半天，找到一个&lt;a target=&quot;_blank&quot; href=&quot;http://debian.linuxsir.org/doc/inthedebianway/debian_build_package.html&quot;&gt;文档&lt;/a&gt;，按照里面的步骤，下载了diff、dsc等文件， 解压之后修改control文件和一些depands，然后编译打包，好像没什么问题，试着装了一下，装上了，运行了一下，好像也没问题，呵呵，就这么搞定了。
+
+之后按照同样的步骤搞cacti，结果安装打包的文件后，出问题了，呵呵。不过还好，东弄西弄，总算还是弄好了。按照cacti的文档手动升级了一下，也没遇到问题。不过plugin-arch也需要同时升级一下。还有poller.php和cmd.php都需要加执行权限。
+
+cactid i这个版本似乎执行的时候输出没有g那么多了，很好，要不然log会搞的很大。cmd.php的输出倒是没多少内容，不过没有cactid的多线程爽亚，呵呵。执行cactid之后，会发现还有些问题:
+Host[6] DS[46] WARNING: Result from SNMP not valid. Partial Result: ...
+
+搜了一下，找到一个&lt;a href=&quot;http://forums.cacti.net/post-63188.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;文章&lt;/a&gt;， 里面说到了问题的所在。我这里是因为一些有问题的data souce导致，比如这些本来就获取不到数据、或者之前的设备比如网卡现在没有了等等，都会导致cactid获取不到需要的数据，就会提示那个错误。按照里面提示的DS[46]，在http://your_ip/cacti/data_sources.php?action=ds_edit&amp;id=num这个链接的num那里直接输入数字就能知道是哪个ds出问题了，删掉或者更新就ok了。
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">还是cacti的问题</h2>
+	<div class="entry-content">前面那个帖子似乎没有解决问题，查看了一下log，有些异常：
+cactid ERROR: SNMP timeout detected [500 milliseconds]
+搜了一下，找到一个<a target="_blank" href="http://forums.cacti.net/about5487.html">文章</a>，似乎说升级就ok了，可是那个日期是2005年的，我的应该没那么老吧。不过还是上cacti的<a target="_blank" href="http://cacti.net/">主页</a>看了看，看到cacti和cactid都升级了，就打算升级一下看看。debian上面怎么玩呢？cacti还好说，之前升级过一次，不需要编译，直接按照<a target="_blank" href="http://www.cacti.net/downloads/docs/html/upgrade.html">文档</a>升级就好，cactid可得编译，我也不打算直接覆盖安装（其实真这么装没准还简单了），还是做一个deb包吧，一直没有体验过deb如何做，刚好机会来了。
+
+搜了半天，找到一个<a target="_blank" href="http://debian.linuxsir.org/doc/inthedebianway/debian_build_package.html">文档</a>，按照里面的步骤，下载了diff、dsc等文件， 解压之后修改control文件和一些depands，然后编译打包，好像没什么问题，试着装了一下，装上了，运行了一下，好像也没问题，呵呵，就这么搞定了。
+
+之后按照同样的步骤搞cacti，结果安装打包的文件后，出问题了，呵呵。不过还好，东弄西弄，总算还是弄好了。按照cacti的文档手动升级了一下，也没遇到问题。不过plugin-arch也需要同时升级一下。还有poller.php和cmd.php都需要加执行权限。
+
+cactid i这个版本似乎执行的时候输出没有g那么多了，很好，要不然log会搞的很大。cmd.php的输出倒是没多少内容，不过没有cactid的多线程爽亚，呵呵。执行cactid之后，会发现还有些问题:
+Host[6] DS[46] WARNING: Result from SNMP not valid. Partial Result: ...
+
+搜了一下，找到一个<a href="http://forums.cacti.net/post-63188.html" target="_blank" rel="external">文章</a>， 里面说到了问题的所在。我这里是因为一些有问题的data souce导致，比如这些本来就获取不到数据、或者之前的设备比如网卡现在没有了等等，都会导致cactid获取不到需要的数据，就会提示那个错误。按照里面提示的DS[46]，在http://your_ip/cacti/data_sources.php?action=ds_edit&id=num这个链接的num那里直接输入数字就能知道是哪个ds出问题了，删掉或者更新就ok了。
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="problem-in-cacti/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'problem-in-cacti/';
+        var disqus_url = 'problem-in-cacti/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

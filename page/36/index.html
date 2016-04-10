@@ -1,0 +1,506 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="undefined"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        
+  <article class="post">
+	<h2 class="title">
+		<a href="how-mail-from-a-to-b/">邮件如何从A点到达B点zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-29T16:00:00.000Z" itemprop="datePublished">Mar 30, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Mail/">Mail</a>
+</div>
+    </div>
+      
+        <p>当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. </p>  <p>假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com,     下面是发送接收过程: </p>  <p>1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题,     加上邮件本身的文本部分. 整个邮件看起来是下面这样的: </p><pre>    To: bob@beta
+    Subject: lunch
+
+    How about pizza?
+</pre>  <p>2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. </p>  <p>3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta     替换为"Bob &lt;bob@beta.example.com&gt;") 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入:     MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给     MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA     可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序. </p>  <p>4. 如果注入成功--邮件句法正确, 并且 sendmail 调用适当--那么现在邮件已经在 MTA 的职责内了. 不同的 MTA 细节是完全不同的,     通常MTA首先检查邮件头决定邮件将发往何处. 然后建立一个到主机beta的SMTP连接, 转发邮件给 beta 系统上的MTA. SMTP对话要求邮件被分成两部分发送:     信封, 这个部分确定了接收者的地址(bob@beta.example.com)和返回地址(alice@alpha.example.com), 以及邮件本身,     包括邮件头和邮件主体. </p>  <p>5. 如果beta主机的MTA拒绝这个邮件, 可能原因是在beta系统上没有这个bob用户, 在alpha 上的MTA发送一个反弹邮件给返回地址, 也就是     alice@alpha, 通知她邮件发送出现了问题. </p>  <p>6. 如果 beta主机上的 MTA接收了邮件, 它查看接收者地址, 决定是发送给本地local 还是远程 remote系统的邮件. 这个例子里面,     接收者是本地用户, 然后MTA或者传送邮件给 mail delivery agent (MDA), 比如 /bin/mail或者传送给 procmail.   </p>  <p>7. 如果传输失败了, 可能是Bob的邮箱超过了使用限额, beta 主机上的 MTA 将发送一个反弹信息给信封上的返回地址, 即 alice@alpha.   </p>  <p>8. 如果传输成功, 邮件将在Bob的邮箱中等待, 直到他使用MUA来阅读和显示邮件. </p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="how-mail-from-a-to-b/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="about-awk/">AWK：Linux 管理员的智能工具包zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-26T16:00:00.000Z" itemprop="datePublished">Mar 27, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a>
+</div>
+    </div>
+      
+        引用地址：http://www.oracle.com/technology/global/cn/pub/articles/dulaney_awk.html
+还可以参考：http://www.example.net.cn/archives/2005/01/awknieec.html
+
+<p><span class="boldbodycopy">您正在学习 Linux 吗？本文对于非常有用的 AWK 文本操作工具进行了介绍，非常有价值。</span></p><p>&lt;!--use&gt; <span class="bodycopy">AWK实用工具带有其自己的自包含语言，它不仅是 Linux中也是任何环境中现有的功能最强大的数据处理引擎之一。这种编程及数据操作语言（其名称得自于它的创始人 Alfred Aho、PeterWeinberger 和 Brian Kernighan姓氏的首个字母）的最大功能取决于一个人所拥有的知识。它允许您创建简短的程序，这些程序读取输入文件、为数据排序、处理数据、对输入执行计算以及生成报表，还有无数其他的功能。</span></p><p><span class="parahead1"><br>
+        
+          <p class="more-link">
+            <a href="about-awk/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="about-awk/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="about-tcp-ip/">TCP三次握手及原理 zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-26T16:00:00.000Z" itemprop="datePublished">Mar 27, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Windows/">Windows</a>
+</div>
+    </div>
+      
+        <span class="unnamed3">TCP/IP是很多的不同的协议组成，实际上是一个协议组，TCP用户数据报表协议(也称作TCP传输控制协议，Transport ControlProtocol。可靠的主机到主机层协议。这里要先强调一下，传输控制协议是OSI网络的第四层的叫法，TCP传输控制协议是TCP/IP传输的6个基本协议的一种。两个TCP意思非相同。)。TCP是一种可靠的面向连接的传送服务。它在传送数据时是分段进行的，主机交换数据必须建立一个会话。它用比特流通信，即数据被作为无结构的字节流。通过每个TCP传输的字段指定顺序号，以获得可靠性。是在OSI参考模型中的第四层，TCP是使用IP的网间互联功能而提供可靠的数据传输，IP不停的把报文放到网络上，而TCP是负责确信报文到达。在协同IP的操作中TCP负责：握手过程、报文管理、流量控制、错误检测和处理（控制），可以根据一定的编号顺序对非正常顺序的报文给予从新排列顺序。关于TCP的RFC文档有RFC793、RFC791、RFC1700。
+<p>　　在TCP会话初期，有所谓的“三握手”：对每次发送的数据量是怎样跟踪进行协商使数据段的发送和接收同步，根据所接收到的数据量而确定的数据确认数及数据发送、接收完毕后何时撤消联系，并建立虚连接。为了提供可靠的传送，TCP在发送新的数据之前，以特定的顺序将数据包的序号，并需要这些包传送给目标机之后的确认消息。TCP总是用来发送大批量的数据。当应用程序在收到数据后要做出确认时也要用到TCP。由于TCP需要时刻跟踪，这需要额外开销，使得TCP的格式有些显得复杂。下面就让我们看一个TCP的经典案例，这是后来被称为MITNICK攻击中KEVIN开创了两种攻击技术： </p><p>　　TCP会话劫持 
+　　SYN FLOOD（同步洪流） </p>
+<br>
+        
+          <p class="more-link">
+            <a href="about-tcp-ip/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="about-tcp-ip/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="lns-firewall/">LNS防火墙中级使用指南zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-25T16:00:00.000Z" itemprop="datePublished">Mar 26, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Windows/">Windows</a>
+</div>
+    </div>
+      
+        http://bbs.zol.com.cn/index20060306/index_40_72576.html
+
+<p><span style="font-size: 12px">安装方法： 
+
+双击运行LooknStop_Setup_205p2.exe即可！ 
+
+注意：安装时会弹出一个没有通过 Windows 徽标测试的提示窗口，点击仍然继续即可！ 
+
+
+汉化方法： 
+
+将汉化补丁文件内的语言文件chinese.lng及语言插件复制到look'n'stop的安装目录下(默认是C:\ProgramFiles\Soft4Ever\looknstop)，然后打开look'n'stop就应该是中文界面了，如果仍是英文界面，可以按下面的步骤操作： 
+
+1) 点击"Options"选项卡的"Advanced Options"按钮； 
+2) 点击"Plugins"按钮； 
+3) 在"Avilable_plugins"框中打勾"plugin_language.dll"； 
+4) 点击"Configure"按钮； 
+5) 选中"简体中文"，确定。 
+
+注册方法： 
+
+切换到"注册"选项卡，然后复制"代码"里的注册代码，接着运行"注册机.exe"即可取得序列号！ 
+
+注意： 
+
+1.如果安装look'n'stop后无法上网，可以这样解决：切换到主界面的"互联网过滤"，然后双击最后一条规则<a name="3"></a>"All oter packets"，把以"太网 : 类型"的中的"全部"改为"IP"，保存后应用即可！ 
+2.该防火墙功能强大，但设置也非常繁多复杂，因此建议一般用户请谨慎使用！ 
+
+注意：你在使用下述图解时，<span style="color: rgb(255, 0, 0)">请一定先打开“选项”—&gt;选中“高级模式”</span>，切记。 
+</span></p><p><span style="font-size: 12px"><br>
+        
+          <p class="more-link">
+            <a href="lns-firewall/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="lns-firewall/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="about-ip/">详解：IP的分类、寻址规则及子网掩码zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-24T16:00:00.000Z" itemprop="datePublished">Mar 25, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Windows/">Windows</a>
+</div>
+    </div>
+      
+        http://www.edu.cn/20031208/3095629.shtml
+<p>　　随着电脑技术的普及和因特网技术的迅猛发展，因特网已作为二十一世纪人类的一种新的生活方式而深入到寻常百姓家。谈到因特网，IP地址就不能不提，因为无论是从学习还是使用因特网的角度来看，IP地址都是一个十分重要的概念，INTERNET的许多服务和特点都是通过IP地址体现出来的。 </p><p>　　<strong>一、IP地址的概念</strong></p><p>　　我们知道因特网是全世界范围内的计算机联为一体而构成的通信网络的总称。联在某个网络上的两台计算机之间在相互通信时，在它们所传送的数据包里都会含有某些附加信息，这些附加信息就是发送数据的计算机的地址和接受数据的计算机的地址。象这样，人们为了通信的方便给每一台计算机都事先分配一个类似我们日常生活中的电话号码一样的标识地址，该标识地址就是我们今天所要介绍的IP地址。根据TCP/IP协议规定，IP地址是由32位二进制数组成，而且在INTERNET范围内是唯一的。例如，某台联在因特网上的计算机的IP地址为： </p><p>　　11010010 01001001 10001100 00000010 </p><p>　　很明显，这些数字对于人来说不太好记忆。人们为了方便记忆，就将组成计算机的IP地址的32位二进制分成四段，每段8位，中间用小数点隔开，然后将每八位二进制转换成十进制数，这样上述计算机的IP地址就变成了：210.73.140.2。</p><br>
+        
+          <p class="more-link">
+            <a href="about-ip/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="about-ip/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="code-in-tt/">tt 1.0.1中CODE</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Web/">Web</a>
+</div>
+    </div>
+      
+        借鉴的是tt 0.9.6中的方法。
+
+修改blog目录下的
+
+category/index.php
+archive/index.php,item.php
+entry/index.php
+search/index.php
+tag/index.php
+keylog/index.php
+notice/index.php,item.php
+index.php
+item.php
+
+文件，找到function bindTags($id,$content)这个函数，其实所有包含这个函数的都需要做如下修改，不知道为啥不单独将这个函数写到一个文件，修改起来好麻烦。
+
+在这个函数的第一行前面添
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="code-in-tt/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="LDAPLightweight-Directory-Access-Protocol/">LDAP,Lightweight Directory Access Protocol</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a>
+</div>
+    </div>
+      
+        <strong>1 什么是LDAP</strong>
+
+LDAP的英文全称是Lightweight Directory Access Protocol，一般都简称为LDAP。
+
+LDAP目录中可以存储各种类型的数据：电子邮件地址、邮件路由信息、人力资源数据、公用密匙、联系人列表，等等。通过把LDAP目录作为系统集成中的一个重要环节，可以简化员工在企业内部查询信息的步骤，甚至连主要的数据源都可以放在任何地方。
+
+<br>
+        
+          <p class="more-link">
+            <a href="LDAPLightweight-Directory-Access-Protocol/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="LDAPLightweight-Directory-Access-Protocol/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="L3-switch/">L3 switch</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Windows/">Windows</a>
+</div>
+    </div>
+      
+        http://vbb3.twftp.org/archive/index.php/t-4016.html
+
+一般常用的交換器 Switch 是屬於第二層交換器 Layer 2 Switch，這種交換器是利用 OSI 第二層 MAC 位址的資訊來進行資料交換，它可以記憶學習第一個 Port 連接的 MAC 位址，透過 MAC 位址及封包目的的位址的辨別，L2 Switch 會將該封包直接傳送至連接目的地的 Port，而不會將該封包傳送到其他的 Port。若並無此目的地 IP 的資訊時，則 L2 Switch 會廣播至所有的連接埠上，待目的 IP 回應時，將新的連接埠對應學習起來，那麼下次就不用廣播而直接傳送。
+
+如果再把路由表的功能加入 L2 Switch，那麼它就會變成 L3 Switch，可以為 VLAN 建立適當的路由表，讓效能更加提昇。L3 的交換器又稱為 IP Switch 或 Switch Router，透過專屬的 ASIC 晶片來解析第三層表頭（如 IP Header）以達到傳送目的，因此通常可以提高到每秒百萬封包的效能以及數十個高速乙太網路連接埠之容量。L3 Switch 的路由表可以對 VLAN 做更有效的管制，讓廣播封包不會無限制的傳送。
+http://140.111.152.100/archives/2004_09.html
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="L3-switch/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="a-test/">测试一下</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a>
+</div>
+    </div>
+      
+        在xh这里蹭了一块地方，哈哈哈，不知道能蹭多久。先测试一下有没有问题。yahoo的dns修改了2天才生效，这个郁闷啊。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="a-test/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="flickr-free-photo-album/">flickr,免费相册</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Web/">Web</a>
+</div>
+    </div>
+      
+        其实很早就知道flickr了，不过是发现那上面的图片似乎只能看小图，不能看大图，那多郁闷。刚才又去看了一下，发现可以看大图了，哇哇。。。这个真不错，推荐大家使用。
+
+比较详细的使用说明
+<a href="http://www.mugou.com/user3/13903/archives/2006/8374.shtml" target="_blank" rel="external">http://www.mugou.com/user3/13903/archives/2006/8374.shtml</a>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="flickr-free-photo-album/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+  <nav id="pagenavi">
+    
+        <a href="/page/35/" class="prev">Prev</a>
+    
+    
+        <a href="/page/37/" class="next">Next</a>
+    
+  <div class="center"><a href="/archives/index.html">Blog Archives</a></div>
+  </nav>
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

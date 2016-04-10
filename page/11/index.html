@@ -1,0 +1,748 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="undefined"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        
+  <article class="post">
+	<h2 class="title">
+		<a href="disable-gnome-terminal-close-button/">去掉了 gnome-terminal 的 tab 上面的关闭按钮</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-02-05T16:00:00.000Z" itemprop="datePublished">Feb 6, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/gnome/">gnome</a>
+</div>
+    </div>
+      
+        gnome-terminal 上面有个红红的 叉叉，就是关闭按钮了。因为开 tab 多的时候会不小心按到，所以就想把他干掉。可惜 gnome 没提供去掉的选项，google 了下，发现不少人烦这个，可是 gnome 不理会这些声音，2007 年有人写了个<a href="https://bugs.launchpad.net/gnome-terminal/+bug/99978" target="_blank">补丁</a>，可惜没转正。我琢磨琢磨改巴改巴把他弄到自己能用了。原来那个补丁还添加了 gconf 的配置项，我没那需求，就去掉了。这个是对 gentoo 里面的 gnome-terminal-2.24.2 打的补丁，别的版本没准还得改改。
+
+<pre class="prettyprint lang-diff">
+diff -ur gnome-terminal-2.24.2.org/src/terminal-window.c gnome-terminal-2.24.2/src/terminal-window.c
+--- gnome-terminal-2.24.2.org/src/terminal-window.c	2009-02-06 17:51:54.277755771 +0800
++++ gnome-terminal-2.24.2/src/terminal-window.c	2009-02-06 18:04:34.601756240 +0800
+@@ -1929,7 +1929,7 @@
+ 
+   gtk_box_pack_start (GTK_BOX (hbox), label, TRUE, TRUE, 0);
+ 
+-  close_button = gtk_button_new ();
++/*  close_button = gtk_button_new ();
+   gtk_button_set_relief (GTK_BUTTON (close_button), GTK_RELIEF_NONE);
+   gtk_button_set_focus_on_click (GTK_BUTTON (close_button), FALSE);
+   gtk_button_set_relief (GTK_BUTTON (close_button), GTK_RELIEF_NONE);
+@@ -1939,17 +1939,17 @@
+   image = gtk_image_new_from_stock (GTK_STOCK_CLOSE, GTK_ICON_SIZE_MENU);
+   gtk_container_add (GTK_CONTAINER (close_button), image);
+   gtk_box_pack_end (GTK_BOX (hbox), close_button, FALSE, FALSE, 0);
+-
++*/
+   sync_tab_label (screen, NULL, label);
+   g_signal_connect (screen, "notify::title",
+                     G_CALLBACK (sync_tab_label), label);
+ 
+-  g_signal_connect (close_button, "clicked",
++/*  g_signal_connect (close_button, "clicked",
+ 		    G_CALLBACK (close_button_clicked_cb), screen_container);
+ 
+   g_signal_connect (hbox, "style-set",
+                     G_CALLBACK (tab_label_style_set_cb), close_button);
+-
++*/
+   gtk_widget_show_all (hbox);
+ 
+   return hbox;
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="disable-gnome-terminal-close-button/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="writing-a-kde-plasma-applet/">写了一个 kde plasma applet</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-01-22T16:00:00.000Z" itemprop="datePublished">Jan 23, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/plasma/">plasma</a> <a href="../tags/pyqt4/">pyqt4</a> <a href="../tags/python/">python</a>
+</div>
+    </div>
+      
+        用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。
+
+第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。
+
+这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。
+
+昨天花了一个下午，总算弄好了。参考的文档 <a href="http://www.qtopia.org.cn/doc/qiliang.net/qt/classes.html" target="_blank" rel="external">qt的类</a>, <a href="http://www.zetcode.com/tutorials/pyqt4/" target="_blank" rel="external">pyqt4 turtorial</a>,<a href="http://techbase.kde.org/Development/Tutorials/Plasma/Python/GettingStarted" target="_blank" rel="external">plasma python</a> .
+
+效果就这样。电池旁边那个就是。
+
+<a href="http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png" target="_blank"><img src="http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png" alt="" width="300"></a>
+
+代码
+<pre class="prettyprint lang-python">
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+from PyKDE4.plasma import Plasma
+from PyKDE4 import plasmascript
+import time                                      
+
+class Cpuinfo(plasmascript.Applet):
+        def __init__(self,parent,args=None):
+                plasmascript.Applet.__init__(self,parent)
+
+        def init(self):
+                self.freqnow = ''
+                self.freqmax = ''
+                self.temp = ''
+                self.text = ''   
+
+                self.getCurrentFreq()
+                self.getMaxFreq()
+                self.getTemp()       
+
+                self.setHasConfigurationInterface(False)
+                self.setMinimumWidth(100)
+                self.setAspectRatioMode(Plasma.Square)
+                self.startTimer(1000)
+
+        def getCurrentFreq (self):
+                line = open ('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqnow = line
+
+        def getMaxFreq (self):
+                line = file('/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqmax = line
+
+        def getTemp (self):
+                line = file('/proc/acpi/thermal_zone/TZ1/temperature', 'r').read().rstrip('\n')
+                line = " ".join(line.split()[1:])
+                self.temp = line
+
+        def timerEvent(self, event):
+                self.getCurrentFreq()
+                self.getTemp()
+                self.text = "%s\n%.2f %d%%" % (self.temp, self.freqnow, self.freqnow / self.freqmax * 100)
+                self.update() 
+
+        def paintInterface(self, painter, option, rect):
+                painter.save()
+                painter.setPen(Qt.white)
+                #painter.setFont(QFont('Consolas',11))
+                painter.drawText(rect, Qt.AlignVCenter | Qt.AlignHCenter, self.text)
+                painter.restore()
+
+def CreateApplet(parent):
+                return Cpuinfo(parent)
+
+if __name__ == '__main__':
+        a = Cpuinfo(None)
+        a.init()
+        print a.freqnow</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="writing-a-kde-plasma-applet/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="use-kde-42-in-gentoo/">将 gnome 换成 kde 4.2</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-01-22T16:00:00.000Z" itemprop="datePublished">Jan 23, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/gentoo/">gentoo</a> <a href="../tags/kde/">kde</a>
+</div>
+    </div>
+      
+        下面的步骤一定要明白干的是什么再操作，否则后果自负 :)。
+
+1 修改 make.conf 里面的 use 为 kde4 -kde -gnome qt4 -qt3 -avahi -esd 这样。把 gnome 相关的 use 都 - 掉。我还有 -arts，看需要。使用 kde 这个use有时会导致安装 kde3，所以如果要使用最好在 /etc/portage/package.use 里面单独指定。如果不介意 kde + gnome 共存，那么 1,2 不是必须的。
+
+2 emerge -uDN world
+
+3 修改 /etc/portage/package.unmask ,加入 &gt;sys-apps/portage-2.1, unmask portage 2.2 ，2.2 才支持 set
+
+4 layman -a kde-testing
+
+5 emerge -av @kdebase-4.2
+其他想装的东西可以去 /usr/local/portage/layman/kde-testing/sets 里面看。比如 emerge -av @kdepim-4.2，或者装里面的某个包，emerge kde-base/kmail:4.2
+
+6 修改 /var/lib/portage/world ，删掉里面的 gnome 的包，当然不介意 gnome 和 kde 共存的话后面的就不需要做了。
+
+7 emerge --depclean -p 清理 gnome 的包。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="use-kde-42-in-gentoo/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="perl-cookie/">使用 perl 来登录网页</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-01-05T16:00:00.000Z" itemprop="datePublished">Jan 6, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/cookie/">cookie</a> <a href="../tags/perl/">perl</a>
+</div>
+    </div>
+      
+        应该不能用。。。只是为了记录
+
+使用 LWP::UserAgent 可以简单的去访问网页，获取页面内容。例如
+
+<pre class="prettyprint lang-perl">
+use LWP::UserAgent;
+
+my $ua = LWP::UserAgent->new();
+$ua->timeout(10);
+$ua->agent('mozilla');
+
+my $r = $ua->get('http::/www.google.com');
+print $r->content; # or $r->decoded->content
+</pre>
+
+$r 的其它属性可以去 cpan 看看。这样就获取到了内容。但是，如果一个网页是需要登录的怎么办？可以用保存 cookie 的方式。
+
+<pre class="prettyprint lang-perl">
+use LWP::UserAgent;
+use HTTP::Cookies;
+use Digest::MD5 qw(md5 md5_hex); # 用来生成 md5 的
+use JSON; # 用来在 json 串和 perl 的 hash 串之间转换
+use Data::Dumper;
+
+my $cookie_jar = HTTP::Cookies->new(
+	file => "lw.dat",
+	autosave => 1
+);
+
+my $ua = LWP::UserAgent->new();
+$ua->timeout(10);
+$ua->agent('mozilla');
+
+my(@rest) = ("/", ".yahoo.com", undef, 0, 0, 60*60, 0);
+$cookie_jar->set_cookie(0, 'session', $session, @rest);
+
+$ua->cookie_jar($cookie_jar);
+
+$o = $ua->get($url);
+........
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="perl-cookie/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="convert-reiserfs-t-ext4/">把硬盘的分区都换成了 ext4</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-01-02T16:00:00.000Z" itemprop="datePublished">Jan 3, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/ext4/">ext4</a> <a href="../tags/reiserfs/">reiserfs</a>
+</div>
+    </div>
+      
+        我的分区都是 reiserfs 的。这次 ext4 吵的这么火爆，实在忍不住了，就换过去了。
+
+我的磁盘比较小，转换还费了点功夫。先找一个和 / 分区差不多的分区，用来放 / 的数据。我找的是 /home ，然后把 / /home 之外的分区转换了。方法就是先把其中一个的数据弄到其它的上面，然后重新格式化，然后再把数据弄回来。
+
+可以用 cp -p /source /dest 的方式，也可以用 tar cpf - --exclude=/home | tar xpf - 的方式，后面这个方法可以支持过滤掉某个目录不考。
+
+这些都弄好之后就可以弄 / /home 了。先把 /home 的东西备分一下， tar cpf /data/home.tar ，/data 最好是一个单独的分区。
+
+rc-update del xdm ，然后重启 root 登录。格式化 /home，再 mount 上他，用来复制 / 的内容过来。复制的时候需要注意下，先把 / /home 之外的那些分区都 umount，省得复制的时候不小心一起复制了过来。
+
+cd /home; tar cpf - --exclude=/home --exclude=/proc --exclude=/sys | tar xpf -
+
+复制完之后，在 /home 下建立 /home/proc /home/sys 目录。修改 /home/boot/grub/menu.lst 文件（如果是独立的 boot 分区，需要挂上再修改），kernel 参数为新的 root，建议新加一行，保留原来的，免得有问题还能方便回去。然后修改 /etc/fstab。就可以重启了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="convert-reiserfs-t-ext4/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="change-wm-in-gnome/">在 gnome 中替换 wm</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-12-31T16:00:00.000Z" itemprop="datePublished">Jan 1, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/gnome/">gnome</a> <a href="../tags/openbox/">openbox</a>
+</div>
+    </div>
+      
+        gnome 中的 window manger (wm) 是 metacity，有时候可能会用的不爽，换成 openbox ，或着 xfwm4 之类。
+
+gnome 提供了简单的方法，就是设置 WINDOW_MANAGER 这个变量。如果用的是 dm，例如 gdm ，那么在 .profile 里面放上下面一句就可以了。startx 的话，放在 .xinitrc 里面。
+
+export WINDOW_MANAGER="/usr/bin/openbox"
+
+用 gdm 的话，还可以在启动的时候选择 openbox-gnome-session 这个来使用 openbox 做为 wm，那个命令是个 shell 脚本，可以看看。
+
+如果设置了不管用，可以看看 gconf 里面的 desktop/gnome/session/required_components/windowmanager 的值。/usr/bin/gnome-wm 这个程序可能会用这个，具体好像和 gnome 的版本有关，这个文件是 gnome-base/gnome-session 这个包里面的。
+
+gdm 启动的时候，会运行 /etc/X11/gdm/Xsession 这个程序。可以试试看在这里面小小的 debug 一下。
+
+最后郁闷一下，openbox 在 gnome 的 dual head 里面好像有个 <a href="http://bugzilla.icculus.org/show_bug.cgi?id=3922" target="_blank">bug</a>，提交给了 openbox，还没回复，只能继续 metacity 了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="change-wm-in-gnome/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="upgrade-kenerl-to-2-6-28/">更新 kenerl 到了 2.6.28</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-12-26T16:00:00.000Z" itemprop="datePublished">Dec 27, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/hibernate/">hibernate</a> <a href="../tags/kernel/">kernel</a> <a href="../tags/tuxonice/">tuxonice</a> <a href="../tags/休眠/">休眠</a>
+</div>
+    </div>
+      
+        之前用的是 tuxonice 的 kernel, 为了体验他的休眠。可是最近发现我基本就不用休眠。而且 tuxonice 的内核还一直停留在 2.6.26 上面。最近 2.6.28 火的不行，所以就给他升级了。
+
+升级没遇到什么问题。新选择了 ext4 支持，等哪天把 fs 都修改到 ext4 去，不过好像有点折腾，呵呵。
+
+gentoo-souces 也是支持的休眠的。想要在 gnome 下面休眠的话，安装一个 pm-utilus 这个包就可以了。在电源管理那里选休眠就可以了。不过发现 挂起 好像不支持，挂起了就不能唤醒了，很郁闷。我记得 tuxonice 下面挂起好像也不支持，不管他了。
+
+那个号称革命性的 GEM 不知道什么时候能在 radeon 上面出现。等着吧。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="upgrade-kenerl-to-2-6-28/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="monkey-test/">科学家们拿猴子作了几个试验</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-12-03T16:00:00.000Z" itemprop="datePublished">Dec 4, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Joke/">Joke</a> <a href="../tags/猴子/">猴子</a>
+</div>
+    </div>
+      
+        <strong>- 道德的起源 -</strong>
+把五只猴子关在一个笼子里，上头有一串香蕉实验人员装了一个自动装置,一旦侦测到有猴。子要去拿香蕉，马上就会有水喷向笼子而这五只猴子都会一身湿. 首先有只猴子想去拿香。蕉，当然，结果就是每只猴子都淋湿了. 之後每只猴子在几次的尝试後，发现莫不如此, 於是猴子们达到一个共识：不要去拿香蕉，以避免被水喷到. 後来实验人员把其中的一只猴子释放，换进去一只新猴A, 这只猴子A看到香蕉，马上想要去拿.结果，被其他四只猴子海K了一顿 因为其他四只猴子认为猴子A会害他们被水淋到，所以制止他去拿香蕉 A尝试了几次，虽被打的满头包，依然没有拿到香蕉 当然，这五只猴子就没有被水喷到 後来实验人员再把一只旧猴子释放，换上另外一只新猴子B 这猴子B看到香蕉，也是迫不及待要去拿 当然，一如刚才所发生的情形，其他四只猴子海K了B一顿 特别的是，那只A猴子打的特别用力（这叫老兵欺负新兵，或是媳妇熬成婆 ^O^）。B猴子试了几次总是被打的很惨，只好作罢。 後来慢慢的一只一只的，所有的旧猴子都换成新猴子了，大家都不敢去动那香蕉 但是他们都不知道为什麽，只知道去动香蕉会被猴扁。这就是道德的起源
+
+<strong>－阶级的起源－</strong>
+实验人员继续他们的实验，不过这一次他们改变了喷水装置，一旦侦测到有猴子要去拿香蕉，马上就会有水喷向拿香蕉的猴子，而不是全体。 然后实验人员又把其中的一只猴子释放，换进去一只新猴子C ，不同以往的是猴子C特别的孔武有力。当然猴子C看到香蕉，也马上想要去拿，一如以前所发生的情形，其他四只猴子也想海K猴子C一顿。不过他们错误估计了C的实力，所以结果是反被C海K了一顿。于是猴子C拿到了香蕉，当然也被淋了个透湿。一边打着喷嚏一边吃着香蕉，美味但是也美中不足。A、B、D、E没有香蕉吃却也比较快乐，毕竟没有被淋到嘛！后来C发现只有拿香蕉的那个才会被淋到，他就要最弱小的A替他去拿。A不想被K，只好每天拿香蕉然后被水淋。B、D、E越发的快乐了起来，这就叫比上不足，比下有余嘛  于是五只猴子有了三个阶级，这下子阶级也随着道德的起源了。
+
+<strong>－道德的沦丧－</strong>
+天变热了，笼子里的猴子们想冲凉却找不到地方。终于出现了一位反潮流英雄，猴HERO。HERO在无意中碰到了香蕉，理所当然的引来了一顿饱打。但在挨打的过程中，猴子们享受到了冲凉的乐趣。等身上 的水干了之后，猴子A在无意中碰撞了HERO，使HERO又一次接触到了香蕉，于是，猴子们享受了第二次冲凉，HERO遭到了第二次痛殴。在此之后，只要大家有冲凉的需要，就会有一只猴子X挺身而出，对HERO进行合理冲撞。 大家对HERO的态度也有了明显的不同，在平时大家会对HERO异常温和，以弥补在冲凉时为维护规则而不得不对它进行的暴力举动。一天， 在大家冲凉时，饱受折磨的HERO闻到了香蕉的清香旁鹜时将香蕉吃了。而且此后没有了新的香蕉来填补空缺。猴子们陷入了另一个尴尬境地没有冲凉的水，也没有香蕉，只有HERO。于是，另一个规则形成了。猴子在烦躁的时候会痛打HERO出气，HERO不得反抗。当笼子里的旧猴子被新猴子换掉时，新猴子会在最快的时间内学会殴打HERO。 终于有一天，老天有眼，历尽沧桑的HERO被另一只猴子代替了。猴子们失去了发泄的对象只能任意选取一个目标进行攻击。从此以后，笼子里的猴子们不吃不喝不冲凉，唯一的举动就是打架。这就是道德的沦丧。
+
+<strong>－道德的重建－</strong>
+实验人员对猴子们的争斗不休感到不安。为了重建道德秩序，他们决定继续供应香蕉。一天，正在混战的猴子们发现头顶多了一串香蕉，它们其中的一个A不顾身上的剧痛，把香蕉摘了下来。于是久违的甘露出现了，未曾尝过甜头的猴子们先是茫然失措，继而争先恐后的加入冲凉的行列。香蕉反而被遗忘了。当猴子B、C、D、E发现A在享受淋浴的同时还吃着美味的香蕉，嫉妒心使它们暂时团结起来，共同K了A一顿，将A吃剩的香蕉夺过来，但是，此刻的香蕉成了匹夫怀里的宝玉，得到它的猴子虽然可以享受美味，但付出的代价也是巨大的。 实验人员不断放入香蕉，却发现战斗比以前更激烈了。分析清楚原因后，他们用木头做了一个假香蕉扔进了笼子。此时猴子们已经学聪明了，它们知道触摸香蕉可以享淋浴，而试图独占香蕉则会遭到痛扁。于是，一个新的现象出现了，当猴子们有冲凉的需要时，会有一只猴子将香蕉拿起来，而当它发现有遭到攻击的可能时，它会马上放下香蕉逃到一边去。这样，猴子们都能冲凉，但是又不至于再象以前那样N败俱伤。 (没有猴子发现那个香蕉是假的。)
+
+<strong>－信仰的起源－</strong>
+五只猴子A、B、C、D、E三个阶级快乐地生活了很久。他们精确的给出了三个阶级的定义，即吃香阶级、拿香阶级和干看着阶级。 可惜猴子A由于长期的水中作业无可避免地引发了它肺部功能的衰竭。一天他在例行的拿香蕉作业中跌倒了就再也没有爬起来。于是实验人员又送进了一只同样孔武有力的猴F ，当然他还是对屋顶的香蕉很有兴趣。不幸的是他最终以微弱的劣势被以C为首的群猴再次K。第二天，又到了拿香蕉的时候，猴子C很无所谓，反正他还要吃香蕉，反正他不会被水淋到，真正恐慌的是B、D、E三猴。F是那么的健壮，他们这些媳妇是熬不成婆了。他们将面临一个艰难的抉择，谁该去步A的后尘? 猴子B、D、E展开了激烈的争论，讨论谁最应该做下一个拿香阶级。猴子F很奇怪也很好奇，什么叫“拿香阶级”呢？猴子B、D、E解释道：所谓“拿香阶级”就是猴子界勇敢者的阶级，需具备一不怕苦二不怕死的大无畏精神方能得此殊荣。猴子F闻听不禁有些神往，有些跃跃欲试。当然他最终达到了目的，作了唯一的拿香阶级。再后来，B、D、E三猴陆续被换出局，换来的猴子个个健壮如C ，他们继续大大出手，不过目标不是香蕉，而是那个唯一的拿香阶级。于是信仰也出现了
+
+<strong>－迷信的起源－</strong>
+后来Ａ终于被好心的实验人员拉出了苦海。新来了猴子F。 Ｃ觉得有必要维护自己的阶级地位，Ｂ、Ｄ、Ｅ则生怕自己顶了Ａ的缸……在各种复杂心情的作用下，B、Ｄ、Ｅ在Ｃ的带领下爆扁了F一顿，然后强令Ｆ做拿香蕉阶级。 Ｆ开始不乐意，后来慢慢在Ｂ等的劝说下等“待多年的媳妇熬成婆”这一宿命。 慢慢的老资格的Ｂ、Ｄ、Ｅ猴子渐渐被淘汰，Ｃ发现自己在体力上不再占有优势，很难再通过武力让这一游戏规则继续下去，觉得十分苦恼。这时，一只最有希望升级为吃香蕉阶级（暨Ｃ的理所当然接班人）也是Ｃ谋臣的Ｈ向Ｃ进言。于是君臣定计。Ｈ开始依靠自己多懂几种猴语而在其他若干猴面前树立的权威形象向其他猴鼓吹：“每一只新来笼子的猴子都是有罪的，这种罪责来自血统。……只有摘香蕉的猴子才能被（实验人员）送到天堂。” 事实上，因为被水冲很容易得肺炎病倒而被实验人员淘汰掉，猴子们不知道反而以为被淘汰的猴子真的进了天堂。渐渐，猴子都相信了这套理论，并且讲给每一只新猴子听。然后就这么流传下去越传越神奇。以至于后来摘香蕉阶级的猴子都为了能摘香蕉而大打出手。……这些都是Ｃ没有想到，Ｈ没有看到的，那时他们都已经死了。然而迷信就这么诞生了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="monkey-test/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="send-mail-with-attachment/">命令行发送有附件的邮件</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-11-30T16:00:00.000Z" itemprop="datePublished">Dec 1, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Mail/">Mail</a> <a href="../tags/sendmail/">sendmail</a>
+</div>
+    </div>
+      
+        命令行下面发送邮件比较简单，恐怕都会使用。
+
+<pre class="prettyprint lang-bash">
+$ echo "hello .. " | mail -s subject xxx@abc.com
+$ cat /path/to/file | mail -s subject xxx@abc.com
+$ mail -s subject xxx@abc.com << EOF
+hi
+the end..
+EOF
+</pre>
+
+上面这些方法都可以发送邮件。还有一种方法。
+
+<pre class="prettyprint lang-bash">
+$ cat a.txt
+Subject: test
+From: xxx@abc.com
+To: xxx@abc.com
+
+hi
+sdfsdfsdf
+the end.
+$ cat a.txt | sendmail -t
+</pre>
+
+这样可以把邮件头信息写到文件里面的，你也可以用 php，perl 来打印类似的信息给 sendmail -t ，让他来发。
+
+那么如果有附件应该怎么办？可以使用 uuencode。
+
+<pre class="prettyprint lang-bash">
+$ uuencode a.txt a.txt | mail -s test xxx@abc.com
+$ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t
+</pre>
+
+应该说的很明白了吧？
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="send-mail-with-attachment/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="lyx-unicode-howto/">lyx 的中文化</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-11-26T16:00:00.000Z" itemprop="datePublished">Nov 27, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/latex/">latex</a> <a href="../tags/lyx/">lyx</a> <a href="../tags/pdf/">pdf</a>
+</div>
+    </div>
+      
+        lyx 可以认为是一个 latex 的所见即所得的编辑工具。
+
+先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。
+
+首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。
+
+此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。
+<pre class="prettyprint lang-latex">
+\usepackage{fontspec}
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing
+\begin{document}
+中Eng文混排，“标点压缩”，间 距 调 整 ……
+\end{document}</pre>
+里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。
+
+接下来配置 lyx。我参考了<a href="http://blog.bs2.to/post/EdwardLee/8545" target="_blank" rel="external">这个</a>文章，新建一个文档，设置几个地方。
+
+文档-&gt; 首选项-&gt; 语言 使用 utf8。
+
+文档-&gt; 首选项-&gt; latex序 添加下面的内容。
+<pre class="prettyprint lang-latex">
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing</pre>
+我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。
+
+还需要设置
+
+lyx 可以认为是一个 latex 的所见即所得的编辑工具。
+
+先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。
+
+首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。
+
+此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。
+<pre class="prettyprint lang-latex">
+\usepackage{fontspec}
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing
+\begin{document}
+中Eng文混排，“标点压缩”，间 距 调 整 ……
+\end{document}</pre>
+里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。
+
+接下来配置 lyx。我参考了<a href="http://blog.bs2.to/post/EdwardLee/8545" target="_blank" rel="external">这个</a>文章，新建一个文档，设置几个地方。
+
+文档-&gt; 首选项-&gt; 语言 使用 utf8。
+
+文档-&gt; 首选项-&gt; latex序 添加下面的内容。
+<pre class="prettyprint lang-latex">
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing</pre>
+我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。
+
+还需要设置 工具-&gt;首选项-&gt;file handling-&gt;转换器 这里的 latex(pdflatex)-&gt;PDF(pdflatex) 这项，然后设置 转换器 为 xelatex $$i 。点击那个修改按钮，保存，应用。
+
+这样，以后写好文件，点那个 pdf 的图标就可以直接预览到 pdf 文件啦。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="lyx-unicode-howto/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+  <nav id="pagenavi">
+    
+        <a href="/page/10/" class="prev">Prev</a>
+    
+    
+        <a href="/page/12/" class="next">Next</a>
+    
+  <div class="center"><a href="/archives/index.html">Blog Archives</a></div>
+  </nav>
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

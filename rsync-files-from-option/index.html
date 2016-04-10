@@ -1,0 +1,265 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>rsync files-from 参数 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;div id=&quot;outline-container-1&quot; class=&quot;outline-2&quot;&gt;
+&lt;h2 id=&quot;sec-1&quot;&gt;rsync&lt;/h2&gt;
+&lt;div id=&quot;outline-container-1_1&quot; class=&quot;outline-3&quot;&gt;
+&lt;h3 id=&quot;sec-1_1&quot;&gt;include/exclude&lt;/h3&gt;
+&lt;div id=&quot;text-1_1&quot; class=&quot;outline-text-3&quot;&gt;
+
+rsync 支持使用 include/exclude 来过滤要同步的文件，使用这两个参数的时候，需要注意下面的这个问题
+&lt;pre class=&quot;prettyprint&quot;&gt;
+Note that, when using the –recursive (-r) option (which is implied by -a), every subcomponent of every path  is  vis‐
+        ited  from the top down, so include/exclude patterns get applied recursively to each subcomponent’s full name (e.g. to
+        include &quot;/foo/bar/baz&quot; the subcomponents &quot;/foo&quot; and &quot;/foo/bar&quot; must not be excluded).  The exclude  patterns  actually
+        short-circuit  the  directory  traversal stage when rsync finds the files to send.  If a pattern excludes a particular
+        parent directory, it can render a deeper include pattern ineffectual  because  rsync  did  not  descend  through  that
+        excluded section of the hierarchy.  This is particularly important when using a trailing ’*’ rule.  For instance, this
+        won’t work: 
+
+/some/path/this-file-will-not-be-found
+/file-is-included 
+*&lt;/pre&gt;
+rsync 使用 -r 来遍历子目录的时候，如果还想用 exclude include 来过滤文件，那么要注意 一个目录如果满足了 exclude，而且还没有对应的 include，那这个目录下面的子目录也会被 exclude，就算你对这个子目录写了 include 。
+
+虽然能解决问题，可实在很费劲，直到无意中发现了 files-from 参数。
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;outline-container-1_2&quot; class=&quot;outline-3&quot;&gt;
+&lt;h3 id=&quot;sec-1_2&quot;&gt;files-from&lt;/h3&gt;
+&lt;div id=&quot;text-1_2&quot; class=&quot;outline-text-3&quot;&gt;
+
+files-from 是通过指定一个本地/远程的文件来定义需要同步的文件。这个文件生成方法可就多了，你可以用 find/sed/awk/xxxxx 等搭配来得到你这个文件，一行命令不够还可以多行，是不是爽多了？
+&lt;pre class=&quot;prettyprint&quot;&gt;
+如果是远程文件，那就 –files-from=:/path/to/files。
+
+&lt;/pre&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&quot;outline-container-2&quot; class=&quot;outline-2&quot;&gt;
+&lt;h2 id=&quot;sec-2&quot;&gt;写在后面&lt;/h2&gt;
+&lt;div id=&quot;text-2&quot; class=&quot;outline-text-2&quot;&gt;
+
+顺便测试一下 org2blog，这帖子是用 org2blog 写的，给作者提了个建议，加上 permlink 的支持，没几天居然给加上了，刚好测试一下，呵呵。
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">rsync files-from 参数</h2>
+	<div class="entry-content"><div id="outline-container-1" class="outline-2">
+<h2 id="sec-1">rsync</h2>
+<div id="outline-container-1_1" class="outline-3">
+<h3 id="sec-1_1">include/exclude</h3>
+<div id="text-1_1" class="outline-text-3">
+
+rsync 支持使用 include/exclude 来过滤要同步的文件，使用这两个参数的时候，需要注意下面的这个问题
+<pre class="prettyprint">
+Note that, when using the –recursive (-r) option (which is implied by -a), every subcomponent of every path  is  vis‐
+        ited  from the top down, so include/exclude patterns get applied recursively to each subcomponent’s full name (e.g. to
+        include "/foo/bar/baz" the subcomponents "/foo" and "/foo/bar" must not be excluded).  The exclude  patterns  actually
+        short-circuit  the  directory  traversal stage when rsync finds the files to send.  If a pattern excludes a particular
+        parent directory, it can render a deeper include pattern ineffectual  because  rsync  did  not  descend  through  that
+        excluded section of the hierarchy.  This is particularly important when using a trailing ’*’ rule.  For instance, this
+        won’t work: 
+
+/some/path/this-file-will-not-be-found
+/file-is-included 
+*</pre>
+rsync 使用 -r 来遍历子目录的时候，如果还想用 exclude include 来过滤文件，那么要注意 一个目录如果满足了 exclude，而且还没有对应的 include，那这个目录下面的子目录也会被 exclude，就算你对这个子目录写了 include 。
+
+虽然能解决问题，可实在很费劲，直到无意中发现了 files-from 参数。
+
+</div>
+</div>
+<div id="outline-container-1_2" class="outline-3">
+<h3 id="sec-1_2">files-from</h3>
+<div id="text-1_2" class="outline-text-3">
+
+files-from 是通过指定一个本地/远程的文件来定义需要同步的文件。这个文件生成方法可就多了，你可以用 find/sed/awk/xxxxx 等搭配来得到你这个文件，一行命令不够还可以多行，是不是爽多了？
+<pre class="prettyprint">
+如果是远程文件，那就 –files-from=:/path/to/files。
+
+</pre></div>
+</div>
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2">写在后面</h2>
+<div id="text-2" class="outline-text-2">
+
+顺便测试一下 org2blog，这帖子是用 org2blog 写的，给作者提了个建议，加上 permlink 的支持，没几天居然给加上了，刚好测试一下，呵呵。
+
+</div>
+</div>
+</div>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="rsync-files-from-option/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'rsync-files-from-option/';
+        var disqus_url = 'rsync-files-from-option/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

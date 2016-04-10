@@ -1,0 +1,205 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>broadcom BCM wireless card on gentoo - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;昨天又折腾了一下我的无线，是 dell 的本子，broadcom 的卡 BCM4313，准备写一下的时候，发现之前居然折腾过 &lt;a href=&quot;/bcm4312broadcom-stawpa_supplicantkernel2-6-33/&quot;&gt;BCM4312&lt;/a&gt;。。感觉真蛋疼。。&lt;/p&gt;
+&lt;figure class=&quot;highlight bash&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;$ lspci -vnn &lt;span class=&quot;operator&quot;&gt;-d&lt;/span&gt; &lt;span class=&quot;number&quot;&gt;14&lt;/span&gt;e4:&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;number&quot;&gt;02&lt;/span&gt;:&lt;span class=&quot;number&quot;&gt;00.0&lt;/span&gt; Network controller [&lt;span class=&quot;number&quot;&gt;0280&lt;/span&gt;]: Broadcom Corporation BCM4313 &lt;span class=&quot;number&quot;&gt;802.11&lt;/span&gt;b/g/n Wireless LAN Controller [&lt;span class=&quot;number&quot;&gt;14&lt;/span&gt;e4:&lt;span class=&quot;number&quot;&gt;4727&lt;/span&gt;] (rev &lt;span class=&quot;number&quot;&gt;01&lt;/span&gt;)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        Subsystem: Dell Inspiron M5010 / XPS &lt;span class=&quot;number&quot;&gt;8300&lt;/span&gt; [&lt;span class=&quot;number&quot;&gt;1028&lt;/span&gt;:&lt;span class=&quot;number&quot;&gt;0010&lt;/span&gt;]&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        Flags: fast devsel, IRQ &lt;span class=&quot;number&quot;&gt;17&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        Memory at e5300000 (&lt;span class=&quot;number&quot;&gt;64&lt;/span&gt;-bit, non-prefetchable) [size=&lt;span class=&quot;number&quot;&gt;16&lt;/span&gt;K]&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        Capabilities: &amp;lt;access denied&amp;gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        Kernel modules: bcma&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;根据 &lt;a href=&quot;http://wireless.kernel.org/en/users/Drivers/b43#bcm43xx.2C_b43legacy.2C_b43.2C_softmac.2C..._the_full_story&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;这里&lt;/a&gt; ， BCM 的网卡有三种可用驱动&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;b43，kernel 自带，源自 broadcom linux 驱动的逆向工程&lt;/li&gt;
+&lt;li&gt;brcmsmac, kernel 自带，似乎源自 broadcom 某个开源的驱动&lt;/li&gt;
+&lt;li&gt;wl, broadcom 发布的 linux 驱动&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;另外，kernel 自带的 b43 和 brcmsmac 支持标准的 802.11 栈，可以通过 iw iwconfig 之类的工具来配置，获取状态。wl 就不行了。&lt;/p&gt;
+&lt;p&gt;如果想使用 b43 或者 brcmsmac，需要选择下面的 kernel 选项，要注意都选择成 module，因为还需要加载 firmware，如果编译进内核那需要把 firmware 也编译到内核才可以。&lt;br&gt;&lt;figure class=&quot;highlight lasso&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;Networking support  --&lt;span class=&quot;subst&quot;&gt;-&amp;gt;  &lt;/span&gt;Wireless  --&lt;span class=&quot;subst&quot;&gt;-&amp;gt; &lt;/span&gt;Generic IEEE &lt;span class=&quot;number&quot;&gt;802.11&lt;/span&gt; Networking &lt;span class=&quot;built_in&quot;&gt;Stack&lt;/span&gt; (mac80211)&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;Device Drivers  --&lt;span class=&quot;subst&quot;&gt;-&amp;gt; &lt;/span&gt;Broadcom specific AMBA  --&lt;span class=&quot;subst&quot;&gt;-&amp;gt;  &lt;/span&gt;BCMA support&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;&lt;/p&gt;
+&lt;p&gt;针对 b43 选择 &lt;code&gt;Device Drivers  ---&amp;gt; Network device support  ---&amp;gt;  Wireless LAN  ---&amp;gt;  Broadcom 43xx wireless support (mac80211 stack)&lt;/code&gt;, 还需要安装 &lt;code&gt;sys-firmware/b43-firmware&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;针对 brcmsmac 选择 &lt;code&gt;Device Drivers  ---&amp;gt; Network device support  ---&amp;gt;  Wireless LAN  ---&amp;gt;  Broadcom IEEE802.11n PCIe SoftMAC WLAN driver&lt;/code&gt;，还需要安装 &lt;code&gt;sys-kernel/linux-firmware&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;对于 wl，需要安装 &lt;code&gt;net-wireless/broadcom-sta&lt;/code&gt;，安装的时候会自动检查必要的内核选项，按照提示选择好就可以了。主要是要注意去掉上面的 kernel 的选项，另外可能还需要一个 ipw2100 来提供某一个隐藏的 kernel 选项。此外还有个 PREEMPT_RCU 检查，需要选择下面的内核选项 &lt;code&gt;Processor type and features  ---&amp;gt;  Preemption Model (Voluntary Kernel Preemption (Desktop))  ---&amp;gt;  Voluntary Kernel Preemption (Desktop)&lt;/code&gt;。&lt;/p&gt;
+&lt;p&gt;如此之后编译安装重启就可以了。&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">broadcom BCM wireless card on gentoo</h2>
+	<div class="entry-content"><p>昨天又折腾了一下我的无线，是 dell 的本子，broadcom 的卡 BCM4313，准备写一下的时候，发现之前居然折腾过 <a href="/bcm4312broadcom-stawpa_supplicantkernel2-6-33/">BCM4312</a>。。感觉真蛋疼。。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">$ lspci -vnn <span class="operator">-d</span> <span class="number">14</span>e4:</span><br><span class="line"><span class="number">02</span>:<span class="number">00.0</span> Network controller [<span class="number">0280</span>]: Broadcom Corporation BCM4313 <span class="number">802.11</span>b/g/n Wireless LAN Controller [<span class="number">14</span>e4:<span class="number">4727</span>] (rev <span class="number">01</span>)</span><br><span class="line">        Subsystem: Dell Inspiron M5010 / XPS <span class="number">8300</span> [<span class="number">1028</span>:<span class="number">0010</span>]</span><br><span class="line">        Flags: fast devsel, IRQ <span class="number">17</span></span><br><span class="line">        Memory at e5300000 (<span class="number">64</span>-bit, non-prefetchable) [size=<span class="number">16</span>K]</span><br><span class="line">        Capabilities: &lt;access denied&gt;</span><br><span class="line">        Kernel modules: bcma</span><br></pre></td></tr></table></figure>
+<p>根据 <a href="http://wireless.kernel.org/en/users/Drivers/b43#bcm43xx.2C_b43legacy.2C_b43.2C_softmac.2C..._the_full_story" target="_blank" rel="external">这里</a> ， BCM 的网卡有三种可用驱动</p>
+<ul>
+<li>b43，kernel 自带，源自 broadcom linux 驱动的逆向工程</li>
+<li>brcmsmac, kernel 自带，似乎源自 broadcom 某个开源的驱动</li>
+<li>wl, broadcom 发布的 linux 驱动</li>
+</ul>
+<p>另外，kernel 自带的 b43 和 brcmsmac 支持标准的 802.11 栈，可以通过 iw iwconfig 之类的工具来配置，获取状态。wl 就不行了。</p>
+<p>如果想使用 b43 或者 brcmsmac，需要选择下面的 kernel 选项，要注意都选择成 module，因为还需要加载 firmware，如果编译进内核那需要把 firmware 也编译到内核才可以。<br><figure class="highlight lasso"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">Networking support  --<span class="subst">-&gt;  </span>Wireless  --<span class="subst">-&gt; </span>Generic IEEE <span class="number">802.11</span> Networking <span class="built_in">Stack</span> (mac80211)</span><br><span class="line">Device Drivers  --<span class="subst">-&gt; </span>Broadcom specific AMBA  --<span class="subst">-&gt;  </span>BCMA support</span><br></pre></td></tr></table></figure></p>
+<p>针对 b43 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom 43xx wireless support (mac80211 stack)</code>, 还需要安装 <code>sys-firmware/b43-firmware</code>。</p>
+<p>针对 brcmsmac 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom IEEE802.11n PCIe SoftMAC WLAN driver</code>，还需要安装 <code>sys-kernel/linux-firmware</code>。</p>
+<p>对于 wl，需要安装 <code>net-wireless/broadcom-sta</code>，安装的时候会自动检查必要的内核选项，按照提示选择好就可以了。主要是要注意去掉上面的 kernel 的选项，另外可能还需要一个 ipw2100 来提供某一个隐藏的 kernel 选项。此外还有个 PREEMPT_RCU 检查，需要选择下面的内核选项 <code>Processor type and features  ---&gt;  Preemption Model (Voluntary Kernel Preemption (Desktop))  ---&gt;  Voluntary Kernel Preemption (Desktop)</code>。</p>
+<p>如此之后编译安装重启就可以了。</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="broadcom-wireless-card-on-gentoo/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'broadcom-wireless-card-on-gentoo/';
+        var disqus_url = 'broadcom-wireless-card-on-gentoo/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

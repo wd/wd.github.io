@@ -1,0 +1,243 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>chrome 的几个字体配置 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="随着各种 ext 的开发，chrome 目前的可用性已经很高了。阻碍我使用的最大一个问题，主要是字体。在 firefox 里面我喜欢自己配置中文英文字体。英文喜欢使用等宽，比如 consolas，Monaco, dejavu sans mono 之类。比较喜欢 monaco，可是目前能下载到的字体好像有点问题，有些字号没有。
+
+前几天看到 ghost 在 twitter 上说到 chrome，就又动了试试看的念头。后来总算整好了。
+
+chrome 本身自己有个字体设置的地方，在 tools -&gt; options -&gt; Under the Hood 里面，可以设置字体，在这里设置的字体感觉好像比平时理解的要小一点。比如我设置的 15 号才感觉好像看着舒服了点。另外，我这里设置的是英文，中文会根据 fontconfig 配置的来显示，我使用的是 WenQuanYi Zen Hei。
+
+这么设置之后，在很多页面应该已经可以了。不过可能你在 google 的页面里面，还有 extension 的页面里面，还是会看到讨厌的字体。这是因为在设置了使用 css 使用的字体后，chrome 好像会优先使用 css 的设置。google 的页面和 extension 的页面使用的是 Arial 字体。在 term 使用 fc-match arial 可以看到实际使用的字体。
+
+那么修改一下 fontconfig 的配置，设置一下字体替换，比如我这个。
+&lt;pre class=&quot;prettyprint&quot;&gt;
+&lt;match target=&quot;pattern&quot;&gt;
+     &lt;test qual=&quot;any&quot; name=&quot;family&quot;&gt;&lt;string&gt;Liberation Sans&lt;/string&gt;&lt;/test&gt;
+     &lt;edit name=&quot;family&quot; mode=&quot;assign&quot;&gt;&lt;string&gt;DejaVu Sans Mono&lt;/string&gt;&lt;/edit&gt;
+ &lt;/match&gt;
+ &lt;/pre&gt;
+
+ 再启动 chrome 应该就能看到效果了。:)
+
+ 此后还有个问题，那就是 chrome 界面上面没有最小字体的设置，然后很多 n 小的文字，让人讨厌。通过 google 找到了一个&lt;a href=&quot;http://wange.im/minimum-font-size-for-chrome-is-12px.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;解决办法&lt;/a&gt;，我把他贴这里。
+ &lt;pre lang=&quot;txt&quot;&gt;
+ 到chrome安装目录下的User Data\Default文件夹；
+用记事本打开Preferences，找到：
+&quot;webkit&quot;: {
+&quot;webprefs&quot;: {
+&quot;default_fixed_font_size&quot;: 13,
+&quot;default_font_size&quot;: 16,
+}
+在｝里面加上：
+&quot;minimum_font_size&quot;: 1,
+&quot;minimum_logical_font_size&quot;: 1
+ &lt;/pre&gt;
+
+ 现在看，我的 chrome 就好多了，呵呵。效果可以看看这里 http://www.webpagescreenshot.info/img/420779-9292010114845AM .
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">chrome 的几个字体配置</h2>
+	<div class="entry-content">随着各种 ext 的开发，chrome 目前的可用性已经很高了。阻碍我使用的最大一个问题，主要是字体。在 firefox 里面我喜欢自己配置中文英文字体。英文喜欢使用等宽，比如 consolas，Monaco, dejavu sans mono 之类。比较喜欢 monaco，可是目前能下载到的字体好像有点问题，有些字号没有。
+
+前几天看到 ghost 在 twitter 上说到 chrome，就又动了试试看的念头。后来总算整好了。
+
+chrome 本身自己有个字体设置的地方，在 tools -> options -> Under the Hood 里面，可以设置字体，在这里设置的字体感觉好像比平时理解的要小一点。比如我设置的 15 号才感觉好像看着舒服了点。另外，我这里设置的是英文，中文会根据 fontconfig 配置的来显示，我使用的是 WenQuanYi Zen Hei。
+
+这么设置之后，在很多页面应该已经可以了。不过可能你在 google 的页面里面，还有 extension 的页面里面，还是会看到讨厌的字体。这是因为在设置了使用 css 使用的字体后，chrome 好像会优先使用 css 的设置。google 的页面和 extension 的页面使用的是 Arial 字体。在 term 使用 fc-match arial 可以看到实际使用的字体。
+
+那么修改一下 fontconfig 的配置，设置一下字体替换，比如我这个。
+<pre class="prettyprint">
+<match target="pattern">
+     <test qual="any" name="family"><string>Liberation Sans</string></test>
+     <edit name="family" mode="assign"><string>DejaVu Sans Mono</string></edit>
+ </match>
+ </pre>
+
+ 再启动 chrome 应该就能看到效果了。:)
+
+ 此后还有个问题，那就是 chrome 界面上面没有最小字体的设置，然后很多 n 小的文字，让人讨厌。通过 google 找到了一个<a href="http://wange.im/minimum-font-size-for-chrome-is-12px.html" target="_blank" rel="external">解决办法</a>，我把他贴这里。
+ <pre lang="txt">
+ 到chrome安装目录下的User Data\Default文件夹；
+用记事本打开Preferences，找到：
+"webkit": {
+"webprefs": {
+"default_fixed_font_size": 13,
+"default_font_size": 16,
+}
+在｝里面加上：
+"minimum_font_size": 1,
+"minimum_logical_font_size": 1
+ </pre>
+
+ 现在看，我的 chrome 就好多了，呵呵。效果可以看看这里 http://www.webpagescreenshot.info/img/420779-9292010114845AM .
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="some-font-configuration-for-chrome/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'some-font-configuration-for-chrome/';
+        var disqus_url = 'some-font-configuration-for-chrome/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

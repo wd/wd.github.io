@@ -1,0 +1,341 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>使用 org-mode 来做自己的 job tracker - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="用 emacs 的应该都知道 org-mode 这个大杀器，一直以来都想在工作里面用上他，可总是习惯不了。
+
+这几天尝试把 org-mode 打造成了我的一个 job tracker，用来记录自己的 todo 和完成情况。
+
+&lt;pre class=&quot;prettyprint lang-lisp&quot;&gt;
+;;
+;; org-mode
+;;
+
+;; (setq org-agenda-files &#39;(&quot;~/org&quot;))
+(setq org-agenda-files (file-expand-wildcards &quot;~/org/*.org&quot;))  ;; 把 ~/org/*.org 都加入到 agenda 里面，使用 C-c a a 看 agenda 的时候，会从这些文件里面读
+(add-to-list &#39;auto-mode-alist &#39;(&quot;\\.org$&quot; . org-mode))
+(define-key global-map &quot;\C-cl&quot; &#39;org-store-link)
+(define-key global-map &quot;\C-ca&quot; &#39;org-agenda)
+(setq org-log-done t) ;; 变到 done 状态的时候，记录一下时间
+
+(add-hook &#39;org-mode-hook
+          (lambda ()
+            (org-set-local &#39;yas/trigger-key [tab])
+            (define-key yas/keymap [tab] &#39;yas/next-field-group)))
+
+(setq org-todo-keywords
+      &#39;((sequence &quot;TODO(t)&quot; &quot;WAIT(w@/!)&quot; &quot;|&quot; &quot;DONE(d!)&quot; &quot;CANCELED(c@)&quot;)))  ;; 设置一下 todo 的关键字，| 左边的是未完成状态，右边是 done 的状态
+
+
+(setq org-default-notes-file &quot;~/org/todo.org&quot;) ;; 设置 remember 的默认文件 
+
+;;;  Load Org Remember Stuff
+(require &#39;remember)
+(org-remember-insinuate)
+
+;; Start clock in a remember buffer and switch back to previous clocking task on save
+;; (add-hook &#39;remember-mode-hook &#39;org-clock-in &#39;append)
+;; (add-hook &#39;org-remember-before-finalize-hook &#39;bh/clock-in-interrupted-task)
+
+;; I use C-M-r to start org-remember
+(global-set-key (kbd &quot;C-c m r&quot;) &#39;org-remember)
+;; (define-key global-map &quot;\C-cr&quot; &#39;org-remember)
+
+;; Keep clocks running
+(setq org-remember-clock-out-on-exit nil)
+
+;; C-c C-c stores the note immediately
+(setq org-remember-store-without-prompt t)
+
+;; I don&#39;t use this -- but set it in case I forget to specify a location in a future template
+(setq org-remember-default-headline &quot;Tasks&quot;) ;; 设置默认 remember 添加的 headline
+
+;; 3 remember templates for TODO tasks, Notes, and Phone calls
+(setq org-remember-templates (quote ((&quot;todo&quot; ?t &quot;** TODO %?\nCREATED: %U&quot; nil nil nil)
+                                     ;; (&quot;note&quot; ?n &quot;* %?                                                                            :NOTE:\n  %U\n  %a\n  :CLOCK:\n  :END:&quot; nil bottom nil)
+                                     ;; (&quot;appointment&quot; ?a &quot;* %?\n  %U&quot; &quot;~/git/org/todo.org&quot; &quot;Appointments&quot; nil)
+                                     ;; (&quot;org-protocol&quot; ?w &quot;* TODO Review %c%!\n  %U&quot; nil bottom nil))))
+                                     ))) ;;设置 todo 的模板，里面第三个参数是模板，里面的变量的意思 google 下
+
+
+&lt;/pre&gt;
+
+在 todo.org 里面有两个 headline，一个是 * Tasks ，一个是 * Done。
+
+配置好后，在任意的 buffer 按 C-c m r 就可以打开个 buffer，输入 todo 信息，然后按 C-c C-c 就可以把 todo 添加到 todo.org 里面去了，会添加到 * Tasks 这个 headline 下面。
+
+完成一个任务的时候，在那上面按 C-c C-t 然后选择 done 就可以设置完成。手动（还不会自动。。。）把完成的任务挪到 Done 里面。
+
+如果想看看有完成情况的统计，可以在 agenda 里面看，C-c a a，然后按 v，选择不同的模式看。每周的工作情况在那里面一目了然，呵呵。
+
+&lt;pre class=&quot;prettyprint&quot;&gt;
+Week-agenda (W29):
+Monday     19 July 2010 W29
+Tuesday    20 July 2010
+Wednesday  21 July 2010
+  todo:       17:33...... [ TODO 多看看 org-mode 的 agenda
+Thursday   22 July 2010
+  todo:       15:18...... Closed:     DONE a test
+  todo:       15:18...... [ DONE a test
+Friday     23 July 2010
+  todo:       14:50...... [ TODO 梳理一下
+  todo:       17:08...... [ TODO 了解下
+  todo:       22:49...... [ TODO 申请
+Saturday   24 July 2010
+Sunday     25 July 2010
+&lt;/pre&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">使用 org-mode 来做自己的 job tracker</h2>
+	<div class="entry-content">用 emacs 的应该都知道 org-mode 这个大杀器，一直以来都想在工作里面用上他，可总是习惯不了。
+
+这几天尝试把 org-mode 打造成了我的一个 job tracker，用来记录自己的 todo 和完成情况。
+
+<pre class="prettyprint lang-lisp">
+;;
+;; org-mode
+;;
+
+;; (setq org-agenda-files '("~/org"))
+(setq org-agenda-files (file-expand-wildcards "~/org/*.org"))  ;; 把 ~/org/*.org 都加入到 agenda 里面，使用 C-c a a 看 agenda 的时候，会从这些文件里面读
+(add-to-list 'auto-mode-alist '("\\.org$" . org-mode))
+(define-key global-map "\C-cl" 'org-store-link)
+(define-key global-map "\C-ca" 'org-agenda)
+(setq org-log-done t) ;; 变到 done 状态的时候，记录一下时间
+
+(add-hook 'org-mode-hook
+          (lambda ()
+            (org-set-local 'yas/trigger-key [tab])
+            (define-key yas/keymap [tab] 'yas/next-field-group)))
+
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))  ;; 设置一下 todo 的关键字，| 左边的是未完成状态，右边是 done 的状态
+
+
+(setq org-default-notes-file "~/org/todo.org") ;; 设置 remember 的默认文件 
+
+;;;  Load Org Remember Stuff
+(require 'remember)
+(org-remember-insinuate)
+
+;; Start clock in a remember buffer and switch back to previous clocking task on save
+;; (add-hook 'remember-mode-hook 'org-clock-in 'append)
+;; (add-hook 'org-remember-before-finalize-hook 'bh/clock-in-interrupted-task)
+
+;; I use C-M-r to start org-remember
+(global-set-key (kbd "C-c m r") 'org-remember)
+;; (define-key global-map "\C-cr" 'org-remember)
+
+;; Keep clocks running
+(setq org-remember-clock-out-on-exit nil)
+
+;; C-c C-c stores the note immediately
+(setq org-remember-store-without-prompt t)
+
+;; I don't use this -- but set it in case I forget to specify a location in a future template
+(setq org-remember-default-headline "Tasks") ;; 设置默认 remember 添加的 headline
+
+;; 3 remember templates for TODO tasks, Notes, and Phone calls
+(setq org-remember-templates (quote (("todo" ?t "** TODO %?\nCREATED: %U" nil nil nil)
+                                     ;; ("note" ?n "* %?                                                                            :NOTE:\n  %U\n  %a\n  :CLOCK:\n  :END:" nil bottom nil)
+                                     ;; ("appointment" ?a "* %?\n  %U" "~/git/org/todo.org" "Appointments" nil)
+                                     ;; ("org-protocol" ?w "* TODO Review %c%!\n  %U" nil bottom nil))))
+                                     ))) ;;设置 todo 的模板，里面第三个参数是模板，里面的变量的意思 google 下
+
+
+</pre>
+
+在 todo.org 里面有两个 headline，一个是 * Tasks ，一个是 * Done。
+
+配置好后，在任意的 buffer 按 C-c m r 就可以打开个 buffer，输入 todo 信息，然后按 C-c C-c 就可以把 todo 添加到 todo.org 里面去了，会添加到 * Tasks 这个 headline 下面。
+
+完成一个任务的时候，在那上面按 C-c C-t 然后选择 done 就可以设置完成。手动（还不会自动。。。）把完成的任务挪到 Done 里面。
+
+如果想看看有完成情况的统计，可以在 agenda 里面看，C-c a a，然后按 v，选择不同的模式看。每周的工作情况在那里面一目了然，呵呵。
+
+<pre class="prettyprint">
+Week-agenda (W29):
+Monday     19 July 2010 W29
+Tuesday    20 July 2010
+Wednesday  21 July 2010
+  todo:       17:33...... [ TODO 多看看 org-mode 的 agenda
+Thursday   22 July 2010
+  todo:       15:18...... Closed:     DONE a test
+  todo:       15:18...... [ DONE a test
+Friday     23 July 2010
+  todo:       14:50...... [ TODO 梳理一下
+  todo:       17:08...... [ TODO 了解下
+  todo:       22:49...... [ TODO 申请
+Saturday   24 July 2010
+Sunday     25 July 2010
+</pre>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="use-org-mode-as-a-job-tracker/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'use-org-mode-as-a-job-tracker/';
+        var disqus_url = 'use-org-mode-as-a-job-tracker/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

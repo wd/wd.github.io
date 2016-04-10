@@ -1,0 +1,229 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>bash中的数组变量zz - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;h3 class=&quot;title&quot;&gt;http://xiaowang.net/bgb-cn/ch10s02.html
+&lt;/h3&gt;&lt;h3 class=&quot;title&quot;&gt;10.2.1. 建立数组                     &lt;/h3&gt;                                                         &lt;p&gt;数组是一个包含多个值的变量。任何变量都可以在数组中使用。数组的尺寸没有最大限制，也不要求成员变量连续索引或者赋值。数组是基于0的：第一个元素的下标以0开始。&lt;/p&gt;            &lt;p&gt;间接的声明使用以下的语法来声明一个变量：&lt;/p&gt;            &lt;div class=&quot;cmdsynopsis&quot;&gt;               &lt;p&gt;&lt;code class=&quot;command&quot;&gt;&lt;code class=&quot;varname&quot;&gt;ARRAY[INDEXNR]&lt;/code&gt;=value&lt;/code&gt;                &lt;/p&gt;            &lt;/div&gt;            &lt;p&gt; &lt;span class=&quot;emphasis&quot;&gt;&lt;em&gt;INDEXNR&lt;/em&gt;&lt;/span&gt; 需要使用一个值为正数的数学表达式。            &lt;/p&gt;            &lt;p&gt;一个数组的外部声明使用内建命令 &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;declare&lt;/strong&gt;&lt;/span&gt; 来完成：            &lt;/p&gt;            &lt;div class=&quot;cmdsynopsis&quot;&gt;               &lt;p&gt;&lt;code class=&quot;command&quot;&gt;declare &lt;code class=&quot;option&quot;&gt;-a&lt;/code&gt; &lt;code class=&quot;varname&quot;&gt;ARRAYNAME&lt;/code&gt;&lt;/code&gt;                &lt;/p&gt;            &lt;/div&gt;            &lt;p&gt;一个带有索引值的声明也是可以接受的，但是索引值将被忽略。对数组的指定属性可以通过使用内建命令 &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;declare&lt;/strong&gt;&lt;/span&gt; 和 &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;readonly&lt;/strong&gt;&lt;/span&gt;。属性对数组中的所有变量起作用；你不能使用混合数组。            &lt;/p&gt;            &lt;p&gt;数组变量也可以使用这种格式的复合赋值来建立：&lt;/p&gt;            &lt;div class=&quot;cmdsynopsis&quot;&gt;               &lt;p&gt;&lt;code class=&quot;command&quot;&gt;&lt;code class=&quot;varname&quot;&gt;ARRAY&lt;/code&gt;=(value1 value2 ... valueN)&lt;/code&gt;                &lt;/p&gt;            &lt;/div&gt;            &lt;p&gt;每个值将以这种形式 &lt;span class=&quot;emphasis&quot;&gt;&lt;em&gt;[indexnumber=]string&lt;/em&gt;&lt;/span&gt; 排列。索引号是可选的。如果提供，索引号就赋给它；otherwise the index of the element assigned is the number of the last index that was assigned, plus               one.  这样的格式 &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;declare&lt;/strong&gt;&lt;/span&gt; 也可以接受。如果不提供索引值，那索引自动从零开始。            &lt;/p&gt;            &lt;p&gt;在数组中加入缺少或者额外的成员使用以下语法：&lt;/p&gt;            &lt;div class=&quot;cmdsynopsis&quot;&gt;               &lt;p&gt;&lt;code class=&quot;command&quot;&gt;&lt;code class=&quot;varname&quot;&gt;ARRAYNAME[indexnumber]&lt;/code&gt;=value&lt;/code&gt;                &lt;/p&gt;            &lt;/div&gt;            &lt;p&gt;记住 &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;read&lt;/strong&gt;&lt;/span&gt; 内建命令提供 &lt;code class=&quot;option&quot;&gt;-a&lt;/code&gt; 选项，来允许对一个数组的成员变量进行读取和赋值。            &lt;/p&gt;                  &lt;div class=&quot;sect2&quot; lang=&quot;zh-cn&quot;&gt;            &lt;div class=&quot;titlepage&quot;&gt;               &lt;div&gt;                  &lt;div&gt;                     &lt;h3 class=&quot;title&quot;&gt;&lt;a name=&quot;sect_10_02_02&quot;&gt;&lt;/a&gt;10.2.2. 对数组的变量解引用                     &lt;/h3&gt;                  &lt;/div&gt;               &lt;/div&gt;            &lt;/div&gt;            &lt;p&gt;为了指明在一个数组中的项目的内容，为了指向一个数组中的一个项目的内容，使用{}。这样是必须的，正如你可以从下面的例子看出，来绕过扩展操作符的shell解释。如果索引的数字是 &lt;span class=&quot;emphasis&quot;&gt;&lt;em&gt;@&lt;/em&gt;&lt;/span&gt; 或者 &lt;span class=&quot;emphasis&quot;&gt;&lt;em&gt;*&lt;/em&gt;&lt;/span&gt;，一个数组的所有的成员都将被引用。            &lt;/p&gt;&lt;pre class=&quot;screen&quot;&gt;&lt;code class=&quot;prompt&quot;&gt;[bob in ~]&lt;/code&gt; &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;&lt;code class=&quot;varname&quot;&gt;ARRAY&lt;/code&gt;=&lt;em class=&quot;parameter&quot;&gt;&lt;code&gt;(one two three)&lt;/code&gt;&lt;/em&gt;&lt;/strong&gt;&lt;/span&gt;
+
+&lt;code class=&quot;prompt&quot;&gt;[bob in ~]&lt;/code&gt; &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;echo &lt;code class=&quot;varname&quot;&gt;${ARRAY[*]}&lt;/code&gt;&lt;/strong&gt;&lt;/span&gt;
+one two three
+
+&lt;code class=&quot;prompt&quot;&gt;[bob in ~]&lt;/code&gt; &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;echo &lt;code class=&quot;varname&quot;&gt;$ARRAY[*]&lt;/code&gt;&lt;/strong&gt;&lt;/span&gt;
+one[*]
+
+&lt;code class=&quot;prompt&quot;&gt;[bob in ~]&lt;/code&gt; &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;echo &lt;code class=&quot;varname&quot;&gt;${ARRAY[2]}&lt;/code&gt;&lt;/strong&gt;&lt;/span&gt;
+three
+
+&lt;code class=&quot;prompt&quot;&gt;[bob in ~]&lt;/code&gt; &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;&lt;code class=&quot;varname&quot;&gt;ARRAY[3]&lt;/code&gt;=&lt;em class=&quot;parameter&quot;&gt;&lt;code&gt;four&lt;/code&gt;&lt;/em&gt;&lt;/strong&gt;&lt;/span&gt;
+
+&lt;code class=&quot;prompt&quot;&gt;[bob in ~]&lt;/code&gt; &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;echo &lt;code class=&quot;varname&quot;&gt;${ARRAY[*]}&lt;/code&gt;&lt;/strong&gt;&lt;/span&gt;
+one two three four
+&lt;/pre&gt;&lt;p&gt;不提供索引号码来指向某个数组的一个数字变量的内容和指向第一个元素的内容是一样的。&lt;/p&gt;         &lt;/div&gt;         &lt;div class=&quot;sect2&quot; lang=&quot;zh-cn&quot;&gt;            &lt;div class=&quot;titlepage&quot;&gt;               &lt;div&gt;                  &lt;div&gt;                     &lt;h3 class=&quot;title&quot;&gt;&lt;a name=&quot;sect_10_02_03&quot;&gt;&lt;/a&gt;10.2.3. 删除数组变量                     &lt;/h3&gt;                  &lt;/div&gt;               &lt;/div&gt;            &lt;/div&gt;            &lt;p&gt; &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;unset&lt;/strong&gt;&lt;/span&gt; 内建命令用来删除数组或者数组成员：            &lt;/p&gt;&lt;pre class=&quot;screen&quot;&gt;&lt;code class=&quot;prompt&quot;&gt;[bob in ~]&lt;/code&gt; &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;unset &lt;code class=&quot;varname&quot;&gt;ARRAY[1]&lt;/code&gt;&lt;/strong&gt;&lt;/span&gt;
+
+&lt;code class=&quot;prompt&quot;&gt;[bob in ~]&lt;/code&gt; &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;echo &lt;code class=&quot;varname&quot;&gt;${ARRAY[*]}&lt;/code&gt;&lt;/strong&gt;&lt;/span&gt;
+one three four
+
+&lt;code class=&quot;prompt&quot;&gt;[bob in ~]&lt;/code&gt; &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;unset &lt;code class=&quot;varname&quot;&gt;ARRAY&lt;/code&gt;&lt;/strong&gt;&lt;/span&gt;
+
+&lt;code class=&quot;prompt&quot;&gt;[bob in ~]&lt;/code&gt; &lt;span&gt;&lt;strong class=&quot;command&quot;&gt;echo &lt;code class=&quot;varname&quot;&gt;${ARRAY[*]}&lt;/code&gt;&lt;/strong&gt;&lt;/span&gt;
+&amp;lt;--no output--&amp;gt;
+&lt;/pre&gt;&lt;/div&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">bash中的数组变量zz</h2>
+	<div class="entry-content"><h3 class="title">http://xiaowang.net/bgb-cn/ch10s02.html
+</h3><h3 class="title">10.2.1. 建立数组                     </h3>                                                         <p>数组是一个包含多个值的变量。任何变量都可以在数组中使用。数组的尺寸没有最大限制，也不要求成员变量连续索引或者赋值。数组是基于0的：第一个元素的下标以0开始。</p>            <p>间接的声明使用以下的语法来声明一个变量：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAY[INDEXNR]</code>=value</code>                </p>            </div>            <p> <span class="emphasis"><em>INDEXNR</em></span> 需要使用一个值为正数的数学表达式。            </p>            <p>一个数组的外部声明使用内建命令 <span><strong class="command">declare</strong></span> 来完成：            </p>            <div class="cmdsynopsis">               <p><code class="command">declare <code class="option">-a</code> <code class="varname">ARRAYNAME</code></code>                </p>            </div>            <p>一个带有索引值的声明也是可以接受的，但是索引值将被忽略。对数组的指定属性可以通过使用内建命令 <span><strong class="command">declare</strong></span> 和 <span><strong class="command">readonly</strong></span>。属性对数组中的所有变量起作用；你不能使用混合数组。            </p>            <p>数组变量也可以使用这种格式的复合赋值来建立：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAY</code>=(value1 value2 ... valueN)</code>                </p>            </div>            <p>每个值将以这种形式 <span class="emphasis"><em>[indexnumber=]string</em></span> 排列。索引号是可选的。如果提供，索引号就赋给它；otherwise the index of the element assigned is the number of the last index that was assigned, plus               one.  这样的格式 <span><strong class="command">declare</strong></span> 也可以接受。如果不提供索引值，那索引自动从零开始。            </p>            <p>在数组中加入缺少或者额外的成员使用以下语法：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAYNAME[indexnumber]</code>=value</code>                </p>            </div>            <p>记住 <span><strong class="command">read</strong></span> 内建命令提供 <code class="option">-a</code> 选项，来允许对一个数组的成员变量进行读取和赋值。            </p>                  <div class="sect2" lang="zh-cn">            <div class="titlepage">               <div>                  <div>                     <h3 class="title"><a name="sect_10_02_02"></a>10.2.2. 对数组的变量解引用                     </h3>                  </div>               </div>            </div>            <p>为了指明在一个数组中的项目的内容，为了指向一个数组中的一个项目的内容，使用{}。这样是必须的，正如你可以从下面的例子看出，来绕过扩展操作符的shell解释。如果索引的数字是 <span class="emphasis"><em>@</em></span> 或者 <span class="emphasis"><em>*</em></span>，一个数组的所有的成员都将被引用。            </p><pre class="screen"><code class="prompt">[bob in ~]</code> <span><strong class="command"><code class="varname">ARRAY</code>=<em class="parameter"><code>(one two three)</code></em></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one two three
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">$ARRAY[*]</code></strong></span>
+one[*]
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[2]}</code></strong></span>
+three
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command"><code class="varname">ARRAY[3]</code>=<em class="parameter"><code>four</code></em></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one two three four
+</pre><p>不提供索引号码来指向某个数组的一个数字变量的内容和指向第一个元素的内容是一样的。</p>         </div>         <div class="sect2" lang="zh-cn">            <div class="titlepage">               <div>                  <div>                     <h3 class="title"><a name="sect_10_02_03"></a>10.2.3. 删除数组变量                     </h3>                  </div>               </div>            </div>            <p> <span><strong class="command">unset</strong></span> 内建命令用来删除数组或者数组成员：            </p><pre class="screen"><code class="prompt">[bob in ~]</code> <span><strong class="command">unset <code class="varname">ARRAY[1]</code></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one three four
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">unset <code class="varname">ARRAY</code></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+&lt;--no output--&gt;
+</pre></div>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="var-in-bash/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'var-in-bash/';
+        var disqus_url = 'var-in-bash/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

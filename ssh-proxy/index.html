@@ -1,0 +1,179 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>ssh 之穿越与反穿越 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;有时候我们不得不和网管对着干，去想办法去穿越某些防火墙，访问到我们要访问的资源。例如下面的情况，A 和 C 之间是有个墙的，不通。可有个 B 能访问到 C，而 A 又能访问到 B ，那我们可以通过你 ssh 做代理穿越那个墙。&lt;/p&gt;&lt;p&gt;A -&amp;gt; | -&amp;gt; C&lt;br&gt; \-&amp;gt; B -&amp;gt; C&lt;/p&gt;&lt;p&gt;在A 上面执行下面的命令&lt;/p&gt;&lt;p&gt;ssh -f -N -g -L 8888:C_ip:80 B_ip&lt;br&gt;参数的含义：-f 放到后台&lt;br&gt;-N 不在对方机器请求 shell&lt;br&gt;-g 能使得别的机器能连接 A 的那个端口&lt;br&gt;-L 就是代理，具体看 man &lt;/p&gt;&lt;p&gt;这样，在 A 上面访问 8888 端口，就能访问到 C 的 80 端口了。&lt;/p&gt;&lt;p&gt;那如果是下面的网络情况，那怎么办？A 能访问到 C，但是 C 不能直接访问 A。&lt;/p&gt;&lt;p&gt;A -&amp;gt; C&lt;br&gt;C-&amp;gt; | -&amp;gt; A&lt;/p&gt;&lt;p&gt;在 A 上面执行下面的命令&lt;/p&gt;&lt;p&gt;ssh -f -N -R 9999:A_ip:80 C_ip&lt;br&gt;-R 是反向代理, -g 在这里好像不好用不知道为什么&lt;/p&gt;&lt;p&gt;从 C 上面访问自己的 9999 端口，就会访问到 A 的 80 端口。&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">ssh 之穿越与反穿越</h2>
+	<div class="entry-content"><p>有时候我们不得不和网管对着干，去想办法去穿越某些防火墙，访问到我们要访问的资源。例如下面的情况，A 和 C 之间是有个墙的，不通。可有个 B 能访问到 C，而 A 又能访问到 B ，那我们可以通过你 ssh 做代理穿越那个墙。</p><p>A -&gt; | -&gt; C<br> \-&gt; B -&gt; C</p><p>在A 上面执行下面的命令</p><p>ssh -f -N -g -L 8888:C_ip:80 B_ip<br>参数的含义：-f 放到后台<br>-N 不在对方机器请求 shell<br>-g 能使得别的机器能连接 A 的那个端口<br>-L 就是代理，具体看 man </p><p>这样，在 A 上面访问 8888 端口，就能访问到 C 的 80 端口了。</p><p>那如果是下面的网络情况，那怎么办？A 能访问到 C，但是 C 不能直接访问 A。</p><p>A -&gt; C<br>C-&gt; | -&gt; A</p><p>在 A 上面执行下面的命令</p><p>ssh -f -N -R 9999:A_ip:80 C_ip<br>-R 是反向代理, -g 在这里好像不好用不知道为什么</p><p>从 C 上面访问自己的 9999 端口，就会访问到 A 的 80 端口。</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="ssh-proxy/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'ssh-proxy/';
+        var disqus_url = 'ssh-proxy/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

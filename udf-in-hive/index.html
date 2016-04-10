@@ -1,0 +1,463 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>hive 里面的 UDTF - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="hive 支持 UDF， UDAF， UDTF，这几个让你使用 hive 更加便捷。
+&lt;div id=&quot;outline-container-1&quot; class=&quot;outline-2&quot;&gt;
+&lt;h2 id=&quot;sec-1&quot;&gt;UDF&lt;/h2&gt;
+&lt;div id=&quot;text-1&quot; class=&quot;outline-text-2&quot;&gt;
+
+udf 就是一个自定义的 function，输入一个或多个参数，返回一个返回值，类似 substr/trim 之类。写起来比较简单，重构 UDF 类的 evaluate 方法就可以了。可以参考 &lt;a href=&quot;http://richiehu.blog.51cto.com/2093113/386112&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://richiehu.blog.51cto.com/2093113/386112&lt;/a&gt; 。
+
+这是一个 urldecode 函数。
+&lt;pre class=&quot;prettyprint lang-java&quot;&gt;
+
+import org.apache.hadoop.hive.ql.exec.UDF;
+import java.net.URLDecoder;
+
+public final class urldecode extends UDF {
+
+    public String evaluate(final String s) {
+        if (s == null) { return null; }
+        return getString(s);
+    }
+
+    public static String getString(String s) {
+        String a;
+        try {
+            a = URLDecoder.decode(s);
+        } catch ( Exception e) {
+            a = &quot;&quot;;
+        }
+        return a;
+    }
+
+    public static void main(String args[]) {
+        String t = &quot;%E5%A4%AA%E5%8E%9F-%E4%B8%89%E4%BA%9A&quot;;
+        System.out.println( getString(t) );
+    }
+}&lt;/pre&gt;
+&lt;div id=&quot;outline-container-2&quot; class=&quot;outline-2&quot;&gt;
+&lt;h2 id=&quot;sec-2&quot;&gt;UDAF&lt;/h2&gt;
+&lt;div id=&quot;text-2&quot; class=&quot;outline-text-2&quot;&gt;
+
+udaf 就是自定义的聚合函数，类似 sum/avg 这类，输入多行的一个或多个参数，返回一个返回值。这个还没写过，可以参考 &lt;a href=&quot;http://richiehu.blog.51cto.com/2093113/386113&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://richiehu.blog.51cto.com/2093113/386113&lt;/a&gt; 。
+
+&amp;nbsp;
+
+&lt;/div&gt;
+&amp;nbsp;
+
+&lt;/div&gt;
+&lt;div id=&quot;outline-container-3&quot; class=&quot;outline-2&quot;&gt;
+&lt;h2 id=&quot;sec-3&quot;&gt;UDTF&lt;/h2&gt;
+&lt;div id=&quot;text-3&quot; class=&quot;outline-text-2&quot;&gt;
+
+udtf 是针对输入一行，输出多行的需求来的，类似 explode 函数。可以参考 &lt;a href=&quot;http://www.linezing.com/blog/?p=323&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://www.linezing.com/blog/?p=323&lt;/a&gt; 。
+
+这个是输入数组字段，输出两列，一列是数组元素的位置，一列是数组元素。比 explode 多了一列位置，不过数组元素只能是 String 类型的。
+&lt;pre class=&quot;prettyprint lang-java&quot;&gt;
+
+import java.util.ArrayList;
+import java.util.List;
+
+//import org.apache.hadoop.io.Text;
+
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDTF;
+
+import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
+import org.apache.hadoop.hive.ql.exec.description;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
+import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
+
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+
+@description(
+        name = &quot;explodeWithPos&quot;,
+        value = &quot;_FUNC_(a) - separates the elements of array a into multiple rows with pos as first col &quot;
+        )
+
+public class explodeWithPos extends GenericUDTF {
+
+    ListObjectInspector listOI = null;
+
+    @Override
+        public void close() throws HiveException{
+        }
+
+    @Override
+        public StructObjectInspector initialize(ObjectInspector [] args) throws UDFArgumentException {
+
+            if (args.length != 1) {
+                throw new UDFArgumentException(&quot;explodeWithPos() takes only one argument&quot;);
+            }
+
+            if (args[0].getCategory() != ObjectInspector.Category.LIST) {
+                throw new UDFArgumentException(&quot;explodeWithPos() takes an array as a parameter&quot;);
+            }
+
+            listOI = (ListObjectInspector)args[0];
+
+            ArrayList fieldNames = new ArrayList();
+            ArrayList fieldOIs = new ArrayList();
+
+            fieldNames.add(&quot;col1&quot;);
+            //fieldOIs.add(listOI.getListElementObjectInspector());
+            fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+
+            fieldNames.add(&quot;col2&quot;);
+            //fieldOIs.add(listOI.getListElementObjectInspector());
+            fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+
+            return ObjectInspectorFactory.getStandardStructObjectInspector(fieldNames, fieldOIs);
+        }
+
+        //Object forwardObj[] = new Object[2];
+        Object forwardObj[] = new String[2];
+
+    @Override
+        public void process(Object [] o) throws HiveException {
+
+            List list = listOI.getList(o[0]);
+
+            if ( list == null ) {
+                return;
+            }
+
+            int i =0;
+            for (Object r : list) {
+                forwardObj[0] = String.valueOf(i);
+                forwardObj[1] = r.toString();
+                this.forward(forwardObj);
+                i++;
+            }
+        }
+
+    @Override
+        public String toString() {
+            return &quot;explodeWithPos&quot;;
+        }
+}&lt;/pre&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">hive 里面的 UDTF</h2>
+	<div class="entry-content">hive 支持 UDF， UDAF， UDTF，这几个让你使用 hive 更加便捷。
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1">UDF</h2>
+<div id="text-1" class="outline-text-2">
+
+udf 就是一个自定义的 function，输入一个或多个参数，返回一个返回值，类似 substr/trim 之类。写起来比较简单，重构 UDF 类的 evaluate 方法就可以了。可以参考 <a href="http://richiehu.blog.51cto.com/2093113/386112" target="_blank" rel="external">http://richiehu.blog.51cto.com/2093113/386112</a> 。
+
+这是一个 urldecode 函数。
+<pre class="prettyprint lang-java">
+
+import org.apache.hadoop.hive.ql.exec.UDF;
+import java.net.URLDecoder;
+
+public final class urldecode extends UDF {
+
+    public String evaluate(final String s) {
+        if (s == null) { return null; }
+        return getString(s);
+    }
+
+    public static String getString(String s) {
+        String a;
+        try {
+            a = URLDecoder.decode(s);
+        } catch ( Exception e) {
+            a = "";
+        }
+        return a;
+    }
+
+    public static void main(String args[]) {
+        String t = "%E5%A4%AA%E5%8E%9F-%E4%B8%89%E4%BA%9A";
+        System.out.println( getString(t) );
+    }
+}</pre>
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2">UDAF</h2>
+<div id="text-2" class="outline-text-2">
+
+udaf 就是自定义的聚合函数，类似 sum/avg 这类，输入多行的一个或多个参数，返回一个返回值。这个还没写过，可以参考 <a href="http://richiehu.blog.51cto.com/2093113/386113" target="_blank" rel="external">http://richiehu.blog.51cto.com/2093113/386113</a> 。
+
+&nbsp;
+
+</div>
+&nbsp;
+
+</div>
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3">UDTF</h2>
+<div id="text-3" class="outline-text-2">
+
+udtf 是针对输入一行，输出多行的需求来的，类似 explode 函数。可以参考 <a href="http://www.linezing.com/blog/?p=323" target="_blank" rel="external">http://www.linezing.com/blog/?p=323</a> 。
+
+这个是输入数组字段，输出两列，一列是数组元素的位置，一列是数组元素。比 explode 多了一列位置，不过数组元素只能是 String 类型的。
+<pre class="prettyprint lang-java">
+
+import java.util.ArrayList;
+import java.util.List;
+
+//import org.apache.hadoop.io.Text;
+
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDTF;
+
+import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
+import org.apache.hadoop.hive.ql.exec.description;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
+import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
+
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+
+@description(
+        name = "explodeWithPos",
+        value = "_FUNC_(a) - separates the elements of array a into multiple rows with pos as first col "
+        )
+
+public class explodeWithPos extends GenericUDTF {
+
+    ListObjectInspector listOI = null;
+
+    @Override
+        public void close() throws HiveException{
+        }
+
+    @Override
+        public StructObjectInspector initialize(ObjectInspector [] args) throws UDFArgumentException {
+
+            if (args.length != 1) {
+                throw new UDFArgumentException("explodeWithPos() takes only one argument");
+            }
+
+            if (args[0].getCategory() != ObjectInspector.Category.LIST) {
+                throw new UDFArgumentException("explodeWithPos() takes an array as a parameter");
+            }
+
+            listOI = (ListObjectInspector)args[0];
+
+            ArrayList fieldNames = new ArrayList();
+            ArrayList fieldOIs = new ArrayList();
+
+            fieldNames.add("col1");
+            //fieldOIs.add(listOI.getListElementObjectInspector());
+            fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+
+            fieldNames.add("col2");
+            //fieldOIs.add(listOI.getListElementObjectInspector());
+            fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+
+            return ObjectInspectorFactory.getStandardStructObjectInspector(fieldNames, fieldOIs);
+        }
+
+        //Object forwardObj[] = new Object[2];
+        Object forwardObj[] = new String[2];
+
+    @Override
+        public void process(Object [] o) throws HiveException {
+
+            List list = listOI.getList(o[0]);
+
+            if ( list == null ) {
+                return;
+            }
+
+            int i =0;
+            for (Object r : list) {
+                forwardObj[0] = String.valueOf(i);
+                forwardObj[1] = r.toString();
+                this.forward(forwardObj);
+                i++;
+            }
+        }
+
+    @Override
+        public String toString() {
+            return "explodeWithPos";
+        }
+}</pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="udf-in-hive/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'udf-in-hive/';
+        var disqus_url = 'udf-in-hive/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

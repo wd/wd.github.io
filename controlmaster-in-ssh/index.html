@@ -1,0 +1,265 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>有跳板机的 ssh 登陆 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="
+&lt;p&gt;我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。
+&lt;/p&gt;
+&lt;p&gt;
+大意是通过设置 proxycommand 来实现，我也写过一个 &lt;a href=&quot;http://wdicc.com/cow-ssh-proxycommand/&quot;&gt;http://wdicc.com/cow-ssh-proxycommand/&lt;/a&gt; 。配置如下
+&lt;/p&gt;
+
+
+&lt;pre class=&quot;prettyprint lang-conf&quot;&gt;
+# gateways
+Host abc
+     Hostname abc.com
+
+# servers
+Host *.xxx
+     ProxyCommand ssh abc exec nc %h %p 2&gt;/dev/null
+&lt;/pre&gt;
+
+&lt;p&gt;
+这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。
+&lt;/p&gt;
+&lt;p&gt;
+倒霉的是，我厂有些 gateway 机器还需要使用 token，并不能使用 key 验证。虽然有了上面设置，如果从某个机器 cp 数据的时候，还得来回输入哪个 token，真他妈的 2b。
+&lt;/p&gt;
+&lt;p&gt;
+还好 ssh 还提供了一个 controlmaster，很好的解决了这个问题。
+&lt;/p&gt;
+
+
+&lt;pre class=&quot;prettyprint lang-conf&quot;&gt;
+Host *
+     User dong.wang
+     ServerAliveInterval 30
+     ControlMaster auto
+     ControlPath /tmp/ssh/master-%r@%h:%p
+     ControlPersist yes
+&lt;/pre&gt;
+
+&lt;p&gt;
+上面这个设置是所有服务器启用 controlmaster，哪个 /tmp/ssh 目录可以自己设置，没有就创建一个。哪个 ControlPersist 可以是个时间。
+&lt;/p&gt;
+&lt;p&gt;
+这样设置之后，第一次连接的时候，会启动一个 master。后续连接都会走这个，连接速度很快不说，还完全不需要输入什么 token。并且因为只有 gateway 需要输入 token，所以一个 gateway 只需要输入一次。实在是爽大了，真是居家旅行必备啊。就冲着连接速度快这一点也值了。
+&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">有跳板机的 ssh 登陆</h2>
+	<div class="entry-content">
+<p>我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。
+</p>
+<p>
+大意是通过设置 proxycommand 来实现，我也写过一个 <a href="http://wdicc.com/cow-ssh-proxycommand/">http://wdicc.com/cow-ssh-proxycommand/</a> 。配置如下
+</p>
+
+
+<pre class="prettyprint lang-conf">
+# gateways
+Host abc
+     Hostname abc.com
+
+# servers
+Host *.xxx
+     ProxyCommand ssh abc exec nc %h %p 2>/dev/null
+</pre>
+
+<p>
+这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。
+</p>
+<p>
+倒霉的是，我厂有些 gateway 机器还需要使用 token，并不能使用 key 验证。虽然有了上面设置，如果从某个机器 cp 数据的时候，还得来回输入哪个 token，真他妈的 2b。
+</p>
+<p>
+还好 ssh 还提供了一个 controlmaster，很好的解决了这个问题。
+</p>
+
+
+<pre class="prettyprint lang-conf">
+Host *
+     User dong.wang
+     ServerAliveInterval 30
+     ControlMaster auto
+     ControlPath /tmp/ssh/master-%r@%h:%p
+     ControlPersist yes
+</pre>
+
+<p>
+上面这个设置是所有服务器启用 controlmaster，哪个 /tmp/ssh 目录可以自己设置，没有就创建一个。哪个 ControlPersist 可以是个时间。
+</p>
+<p>
+这样设置之后，第一次连接的时候，会启动一个 master。后续连接都会走这个，连接速度很快不说，还完全不需要输入什么 token。并且因为只有 gateway 需要输入 token，所以一个 gateway 只需要输入一次。实在是爽大了，真是居家旅行必备啊。就冲着连接速度快这一点也值了。
+</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="controlmaster-in-ssh/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'controlmaster-in-ssh/';
+        var disqus_url = 'controlmaster-in-ssh/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

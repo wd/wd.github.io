@@ -1,0 +1,181 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>稍微深入了解了一下cacti的thold插件的邮件通知 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;通过cacti的thold插件，可以做到snmp抓取到的数值低于你规定的值的时候进行邮件通知，例如我用他来监控磁盘空间，当磁盘空间低于某个数的时候就会给指定的email发邮件。但是有一点郁闷的是，有时候，可能是由于网络原因，抓取会超时，这样就会导致触发trigger，给你发送邮件。5分钟抓取一次，我这里的情况是几乎每个小时总会有2，3封这种邮件，很烦人，而且根本没意义。早就想屏蔽掉这种情况了，看了代码挺复杂就懒得弄，今天实在受不了了，深入了解了一下。&lt;/p&gt; &lt;p&gt;其实thold本身已经考虑到了这种情况，在 thold 的设置里面，就有一项 Default Trigger Count （Number of consecutive times the data source must be in breach of the threshold for an alert to be raised），就是连续触发几次才认为他真的低于 thold 了，才发送邮件。我尝试过修改这个设置，发现不管用。看了代码才了解，每个 &lt;strong&gt;Thresholds&lt;/strong&gt;&amp;nbsp;都有自己的 trigger 值，那个 default trigger count 只对新建的 thresholds 才有用。所以针对现有的，需要逐个去修改才行。如果不设置这个选项，那么使用的就是上面设置的那个默认的，所以没特殊需要，还是不要针对每个 thresholds 设置自己的 trigger 值比较好，这样方便修改。我通过修改数据库的方法，直接把这些都修改了。&lt;/p&gt; &lt;p&gt;&lt;pre lang=&quot;sql&quot;&gt;update thold_data set thold_fail_trigger = NULL;&lt;/pre&gt;
+&lt;/p&gt;&lt;p&gt;修改了之后还没有收到，这下应该清净了吧？&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">稍微深入了解了一下cacti的thold插件的邮件通知</h2>
+	<div class="entry-content"><p>通过cacti的thold插件，可以做到snmp抓取到的数值低于你规定的值的时候进行邮件通知，例如我用他来监控磁盘空间，当磁盘空间低于某个数的时候就会给指定的email发邮件。但是有一点郁闷的是，有时候，可能是由于网络原因，抓取会超时，这样就会导致触发trigger，给你发送邮件。5分钟抓取一次，我这里的情况是几乎每个小时总会有2，3封这种邮件，很烦人，而且根本没意义。早就想屏蔽掉这种情况了，看了代码挺复杂就懒得弄，今天实在受不了了，深入了解了一下。</p> <p>其实thold本身已经考虑到了这种情况，在 thold 的设置里面，就有一项 Default Trigger Count （Number of consecutive times the data source must be in breach of the threshold for an alert to be raised），就是连续触发几次才认为他真的低于 thold 了，才发送邮件。我尝试过修改这个设置，发现不管用。看了代码才了解，每个 <strong>Thresholds</strong>&nbsp;都有自己的 trigger 值，那个 default trigger count 只对新建的 thresholds 才有用。所以针对现有的，需要逐个去修改才行。如果不设置这个选项，那么使用的就是上面设置的那个默认的，所以没特殊需要，还是不要针对每个 thresholds 设置自己的 trigger 值比较好，这样方便修改。我通过修改数据库的方法，直接把这些都修改了。</p> <p><pre lang="sql">update thold_data set thold_fail_trigger = NULL;</pre>
+</p><p>修改了之后还没有收到，这下应该清净了吧？</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="change-trigger-setting-for-thold/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'change-trigger-setting-for-thold/';
+        var disqus_url = 'change-trigger-setting-for-thold/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

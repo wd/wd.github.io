@@ -1,0 +1,481 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>无聊又写一个用来发邮件的 pm.. - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="
+继使用 perl 发&lt;a href=&quot;http://wdicc.com/sendmail-use-perl/&quot;&gt;中文标题邮件&lt;/a&gt;，和&lt;a href=&quot;http://wdicc.com/sned-mail-with-attachment/&quot;&gt;中文附件邮件&lt;/a&gt;后，又把他们整合了一下写了一个 pm 干这个事。
+
+其实发带附件的邮件应该是有现成的 pm 干这个事的，比如 MIME::Lite 之类，没特殊需求还是用那个吧，这个纯属无聊写的。
+
+文件前面有使用方法。。
+
+&lt;pre class=&quot;prettyprint&quot;&gt;
+package SendMail;
+
+use strict;
+use warnings;
+use Data::Dumper;
+use Encode;
+use MIME::Base64;
+
+=head1 Examples
+use SendMail;
+
+my $sm = SendMail-&gt;new( {
+    To =&gt; &#39;you@foo.com, other@bar.com&#39;,
+    Subject =&gt; &#39;just a test 中文&#39;,
+    });
+
+-- or --
+
+my $sm = SendMail-&gt;new( {
+    From =&gt; &#39;me@abc.com&#39;,
+    To =&gt; &#39;you@foo.com, other@bar.com&#39;,
+    Subject =&gt; &#39;just a test 中文&#39;,
+    } );
+
+-- or --
+
+my $sm = SendMail-&gt;new( {
+    From =&gt; &#39;me@abc.com&#39;,
+    To =&gt; &#39;you@foo.com, other@bar.com&#39;,
+    Cc =&gt; &#39;cc@foobar.com&#39;,
+    Subject =&gt; &#39;just a test 中文&#39;,
+    } );
+
+
+$sm-&gt;attach( {
+    Type =&gt; &quot;text/plain&quot;,
+    Data =&gt; &quot;只是一个测试..a test&quot;
+    });
+
+$sm-&gt;attach( {
+    Type =&gt; &#39;application/octet-stream&#39;,
+    Filename =&gt; &#39;test 中文.txt&#39;,
+    Data =&gt; &quot;只是一个 test ...&quot;
+    });
+
+$sm-&gt;test;
+
+-- or --
+
+$sm-&gt;send;
+
+=cut
+
+
+
+use vars qw($VERSION);
+$VERSION = &#39;0.01&#39;;
+
+our $boundary = &quot;FFFFFFFFKKKKKK&quot;;
+our $from = &#39;no-reply@abc.com&#39;;
+our $subject = &quot;No subject&quot;;
+
+our $to;
+our $cc;
+our @body;
+
+
+sub new {
+    my $package = shift;
+    my $info = shift;
+
+    $subject = $info-&gt;{Subject} || $subject;
+    $subject = encode(&#39;MIME-B&#39;, decode(&#39;utf8&#39;, $subject));
+    $from = $info-&gt;{From} || $from;
+    $to = $info-&gt;{To} || die &quot;Need to set MailTo &#39;To&#39;!&quot;;
+    $cc = $info-&gt;{Cc} || &quot;&quot;;
+
+    push @body, &quot;MIME-Version: 1.0&quot;;
+    push @body, &quot;Content-Type: multipart/mixed; boundary=\&quot;$boundary\&quot;&quot;;
+    push @body, &quot;&quot;;
+
+    return bless( {}, $package);
+}
+
+sub attach {
+    my $self = shift;
+    my $f_hash = shift;
+
+    die &quot;Need data when attach!&quot; if ( not defined $f_hash-&gt;{Data} );
+
+    my $type = &quot;text/plain&quot;;
+    $type = $f_hash-&gt;{Type} if defined $f_hash-&gt;{Type};
+
+    my @t;
+    push @t, &quot;--$boundary&quot;;
+    if ( $type eq &quot;text/plain&quot; ) {
+        push @t, &quot;Content-Type: $type; charset=utf-8&quot;;
+    } else {
+        my $filename = &quot;file1.txt&quot;;
+        $filename = encode(&#39;MIME-B&#39;, decode(&#39;utf8&#39;, $f_hash-&gt;{Filename})) if defined $f_hash-&gt;{Filename};
+        push @t, &quot;Content-Type: $type&quot;;
+        push @t, &quot;Content-Disposition: attachment; filename=$filename&quot;;
+    }
+    push @t, &quot;Content-Transfer-Encoding: base64&quot;;
+    push @t, &quot;&quot;;
+    push @t, encode_base64($f_hash-&gt;{Data});
+
+    push @body, @t;
+}
+
+sub send {
+    my $self = shift;
+
+    open(my $fh, &#39;|/usr/sbin/sendmail -t&#39;);
+    $self-&gt;print_to($fh);
+    close($fh);
+}
+
+sub print_to {
+    my $self = shift;
+    my $fh = shift;
+
+    push @body, &quot;--$boundary--&quot;;
+
+    print $fh &quot;From: $from\r\n&quot;;
+    print $fh &quot;To: $to\r\n&quot;;
+    print $fh &quot;Cc: $cc\r\n&quot; if $cc;
+    print $fh &quot;Subject: $subject\r\n&quot;;
+
+    for ( @body ) {
+        print $fh &quot;$_\r\n&quot;;
+    }
+}
+
+sub test {
+    my $self = shift;
+
+    open ( my $fh, &#39;&gt;-&#39;);
+    $self-&gt;print_to($fh);
+    close($fh);
+}
+
+1;
+&lt;/pre&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">无聊又写一个用来发邮件的 pm..</h2>
+	<div class="entry-content">
+继使用 perl 发<a href="http://wdicc.com/sendmail-use-perl/">中文标题邮件</a>，和<a href="http://wdicc.com/sned-mail-with-attachment/">中文附件邮件</a>后，又把他们整合了一下写了一个 pm 干这个事。
+
+其实发带附件的邮件应该是有现成的 pm 干这个事的，比如 MIME::Lite 之类，没特殊需求还是用那个吧，这个纯属无聊写的。
+
+文件前面有使用方法。。
+
+<pre class="prettyprint">
+package SendMail;
+
+use strict;
+use warnings;
+use Data::Dumper;
+use Encode;
+use MIME::Base64;
+
+=head1 Examples
+use SendMail;
+
+my $sm = SendMail->new( {
+    To => 'you@foo.com, other@bar.com',
+    Subject => 'just a test 中文',
+    });
+
+-- or --
+
+my $sm = SendMail->new( {
+    From => 'me@abc.com',
+    To => 'you@foo.com, other@bar.com',
+    Subject => 'just a test 中文',
+    } );
+
+-- or --
+
+my $sm = SendMail->new( {
+    From => 'me@abc.com',
+    To => 'you@foo.com, other@bar.com',
+    Cc => 'cc@foobar.com',
+    Subject => 'just a test 中文',
+    } );
+
+
+$sm->attach( {
+    Type => "text/plain",
+    Data => "只是一个测试..a test"
+    });
+
+$sm->attach( {
+    Type => 'application/octet-stream',
+    Filename => 'test 中文.txt',
+    Data => "只是一个 test ..."
+    });
+
+$sm->test;
+
+-- or --
+
+$sm->send;
+
+=cut
+
+
+
+use vars qw($VERSION);
+$VERSION = '0.01';
+
+our $boundary = "FFFFFFFFKKKKKK";
+our $from = 'no-reply@abc.com';
+our $subject = "No subject";
+
+our $to;
+our $cc;
+our @body;
+
+
+sub new {
+    my $package = shift;
+    my $info = shift;
+
+    $subject = $info->{Subject} || $subject;
+    $subject = encode('MIME-B', decode('utf8', $subject));
+    $from = $info->{From} || $from;
+    $to = $info->{To} || die "Need to set MailTo 'To'!";
+    $cc = $info->{Cc} || "";
+
+    push @body, "MIME-Version: 1.0";
+    push @body, "Content-Type: multipart/mixed; boundary=\"$boundary\"";
+    push @body, "";
+
+    return bless( {}, $package);
+}
+
+sub attach {
+    my $self = shift;
+    my $f_hash = shift;
+
+    die "Need data when attach!" if ( not defined $f_hash->{Data} );
+
+    my $type = "text/plain";
+    $type = $f_hash->{Type} if defined $f_hash->{Type};
+
+    my @t;
+    push @t, "--$boundary";
+    if ( $type eq "text/plain" ) {
+        push @t, "Content-Type: $type; charset=utf-8";
+    } else {
+        my $filename = "file1.txt";
+        $filename = encode('MIME-B', decode('utf8', $f_hash->{Filename})) if defined $f_hash->{Filename};
+        push @t, "Content-Type: $type";
+        push @t, "Content-Disposition: attachment; filename=$filename";
+    }
+    push @t, "Content-Transfer-Encoding: base64";
+    push @t, "";
+    push @t, encode_base64($f_hash->{Data});
+
+    push @body, @t;
+}
+
+sub send {
+    my $self = shift;
+
+    open(my $fh, '|/usr/sbin/sendmail -t');
+    $self->print_to($fh);
+    close($fh);
+}
+
+sub print_to {
+    my $self = shift;
+    my $fh = shift;
+
+    push @body, "--$boundary--";
+
+    print $fh "From: $from\r\n";
+    print $fh "To: $to\r\n";
+    print $fh "Cc: $cc\r\n" if $cc;
+    print $fh "Subject: $subject\r\n";
+
+    for ( @body ) {
+        print $fh "$_\r\n";
+    }
+}
+
+sub test {
+    my $self = shift;
+
+    open ( my $fh, '>-');
+    $self->print_to($fh);
+    close($fh);
+}
+
+1;
+</pre>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="sendmail-pm/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'sendmail-pm/';
+        var disqus_url = 'sendmail-pm/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

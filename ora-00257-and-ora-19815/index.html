@@ -1,0 +1,473 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>ORA-00257 和 ORA-19815 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="这几天遇到了这两个错误，记录一下。
+
+使用 perl 的 DBI 连接的时候，会提示 ora-00257 错误，这个用 三qlplus 估计也是一样的错误，注意时远程连接才出错。
+
+&lt;pre class=&quot;prettyprint lang-txt&quot;&gt;
+CRITICAL : Can&#39;t connect &quot;db8.sds.cnb.yahoo.com&quot;&lt;/pre&gt;
+
+同时，数据库的alert 里面有下面的信息
+
+&lt;pre class=&quot;prettyprint lang-txt&quot;&gt;
+ORA-19815: WARNING: db_recovery_file_dest_size of 268435456000 bytes is 100.00% used, and has 0 remaining bytes available.
+************************************************************************
+You have following choices to free up space from flash recovery area:
+1. Consider changing RMAN RETENTION POLICY. If you are using Data Guard,
+   then consider changing RMAN ARCHIVELOG DELETION POLICY.
+2. Back up files to tertiary device such as tape using RMAN
+   BACKUP RECOVERY AREA command.
+3. Add disk space and increase db_recovery_file_dest_size parameter to
+   reflect the new space.
+4. Delete unnecessary files using RMAN DELETE command. If an operating
+   system command was used to delete files, then use RMAN CROSSCHECK and
+   DELETE EXPIRED commands.
+************************************************************************
+ARCH: Archival stopped, error occurred. Will continue retrying
+ORACLE Instance nirv3 - Archival Error&lt;/pre&gt;
+
+登陆上数据库看看
+
+&lt;pre class=&quot;prettyprint lang-txt&quot;&gt;
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+archive_lag_target                   integer                0
+log_archive_config                   string                 dg_config=(stb1)
+log_archive_dest                     string
+log_archive_dest_1                   string                 location=&quot;USE_DB_RECOVERY_FILE
+log_archive_dest_10                  string
+log_archive_dest_2                   string
+log_archive_dest_3                   string
+log_archive_dest_4                   string
+log_archive_dest_5                   string
+log_archive_dest_6                   string
+log_archive_dest_7                   string
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+log_archive_dest_8                   string
+log_archive_dest_9                   string
+log_archive_dest_state_1             string                 ENABLE
+log_archive_dest_state_10            string                 enable
+log_archive_dest_state_2             string                 ENABLE
+log_archive_dest_state_3             string                 enable
+log_archive_dest_state_4             string                 enable
+log_archive_dest_state_5             string                 enable
+log_archive_dest_state_6             string                 enable
+log_archive_dest_state_7             string                 enable
+log_archive_dest_state_8             string                 enable
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+log_archive_dest_state_9             string                 enable
+log_archive_duplex_dest              string
+log_archive_format                   string                 %s_%t_%r_%a.arc
+log_archive_local_first              boolean                TRUE
+log_archive_max_processes            integer                4
+log_archive_min_succeed_dest         integer                1
+log_archive_start                    boolean                FALSE
+log_archive_trace                    integer                0
+standby_archive_dest                 string                 ?/dbs/arch
+
+SQL&amp;gt; select * from v$log;
+
+    GROUP#    THREAD#  SEQUENCE#      BYTES    MEMBERS ARCHIV STATUS                           FIRST_CHANGE# FIRST_TIME
+---------- ---------- ---------- ---------- ---------- ------ -------------------------------- ------------- ------------
+         1          1     221250   52428800          1 YES    INACTIVE                            5082709437 05-SEP-08
+         2          1     221252   52428800          1 NO     INACTIVE                            5082713458 05-SEP-08
+         3          2     270972   52428800          1 YES    INACTIVE                            5082699510 05-SEP-08
+         4          2     270975   52428800          1 NO     CURRENT                             5082713581 05-SEP-08
+         9          1     221251   52428800          1 NO     INACTIVE                            5082712943 05-SEP-08
+        10          2     270973   52428800          1 YES    INACTIVE                            5082705151 05-SEP-08
+        11          1     221253   52428800          1 NO     CURRENT                             5082713765 05-SEP-08
+        12          2     270974   52428800          1 NO     INACTIVE                            5082711887 05-SEP-08
+        13          3     275581   52428800          1 NO     INACTIVE                            5082712519 05-SEP-08
+        14          3     275582   52428800          1 NO     CURRENT                             5082713078 05-SEP-08
+        15          3     275579   52428800          1 NO     INACTIVE                            5082710114 05-SEP-08
+
+    GROUP#    THREAD#  SEQUENCE#      BYTES    MEMBERS ARCHIV STATUS                           FIRST_CHANGE# FIRST_TIME
+---------- ---------- ---------- ---------- ---------- ------ -------------------------------- ------------- ------------
+        16          3     275580   52428800          1 NO     INACTIVE                            5082711321 05-SEP-08
+
+12 rows selected.
+
+SQL&amp;gt; ????select value from v$diag_info where name =&#39;Diag Trace&#39;;
+
+VALUE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+/home/oracle/app/diag/rdbms/nirv/nirv3/trace
+
+SQL&amp;gt; select * from V$FLASH_RECOVERY_AREA_USAGE;
+
+FILE_TYPE                                PERCENT_SPACE_USED PERCENT_SPACE_RECLAIMABLE NUMBER_OF_FILES
+---------------------------------------- ------------------ ------------------------- ---------------
+CONTROL FILE                                              0                         0               0
+REDO LOG                                                  0                         0               0
+ARCHIVED LOG                                            100                         0           13109
+BACKUP PIECE                                              0                         0               0
+IMAGE COPY                                                0                         0               0
+FLASHBACK LOG                                             0                         0               0
+FOREIGN ARCHIVED LOG                                      0                         0               0
+
+7 rows selected.
+
+SQL&amp;gt; show parameter db_recovery_file_dest_size
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+db_recovery_file_dest_size           big integer            250G
+SQL&amp;gt; show parameter DB_RECOVERY_FILE_DEST
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+db_recovery_file_dest                string                 /sds/oradata
+db_recovery_file_dest_size           big integer            250G
+SQL&amp;gt; alter system set db_recovery_file_dest_size=300G;  
+
+System altered.
+
+SQL&amp;gt; show parameter DB_RECOVERY_FILE_DEST
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+db_recovery_file_dest                string                 /sds/oradata
+db_recovery_file_dest_size           big integer            300G
+SQL&amp;gt; select * from V$FLASH_RECOVERY_AREA_USAGE;
+
+FILE_TYPE                                PERCENT_SPACE_USED PERCENT_SPACE_RECLAIMABLE NUMBER_OF_FILES
+---------------------------------------- ------------------ ------------------------- ---------------
+CONTROL FILE                                              0                         0               0
+REDO LOG                                                  0                         0               0
+ARCHIVED LOG                                          83.41                         0           13115
+BACKUP PIECE                                              0                         0               0
+IMAGE COPY                                                0                         0               0
+FLASHBACK LOG                                             0                         0               0
+FOREIGN ARCHIVED LOG                                      0                         0               0
+
+7 rows selected.&lt;/pre&gt;
+
+可以看到空间是 83% 了，数据库应该就好了。不过这个是治标不治本的操作，需要把archive log删掉才行，具体怎么搞我也不会。。。汗。。
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">ORA-00257 和 ORA-19815</h2>
+	<div class="entry-content">这几天遇到了这两个错误，记录一下。
+
+使用 perl 的 DBI 连接的时候，会提示 ora-00257 错误，这个用 三qlplus 估计也是一样的错误，注意时远程连接才出错。
+
+<pre class="prettyprint lang-txt">
+CRITICAL : Can't connect "db8.sds.cnb.yahoo.com"</pre>
+
+同时，数据库的alert 里面有下面的信息
+
+<pre class="prettyprint lang-txt">
+ORA-19815: WARNING: db_recovery_file_dest_size of 268435456000 bytes is 100.00% used, and has 0 remaining bytes available.
+************************************************************************
+You have following choices to free up space from flash recovery area:
+1. Consider changing RMAN RETENTION POLICY. If you are using Data Guard,
+   then consider changing RMAN ARCHIVELOG DELETION POLICY.
+2. Back up files to tertiary device such as tape using RMAN
+   BACKUP RECOVERY AREA command.
+3. Add disk space and increase db_recovery_file_dest_size parameter to
+   reflect the new space.
+4. Delete unnecessary files using RMAN DELETE command. If an operating
+   system command was used to delete files, then use RMAN CROSSCHECK and
+   DELETE EXPIRED commands.
+************************************************************************
+ARCH: Archival stopped, error occurred. Will continue retrying
+ORACLE Instance nirv3 - Archival Error</pre>
+
+登陆上数据库看看
+
+<pre class="prettyprint lang-txt">
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+archive_lag_target                   integer                0
+log_archive_config                   string                 dg_config=(stb1)
+log_archive_dest                     string
+log_archive_dest_1                   string                 location="USE_DB_RECOVERY_FILE
+log_archive_dest_10                  string
+log_archive_dest_2                   string
+log_archive_dest_3                   string
+log_archive_dest_4                   string
+log_archive_dest_5                   string
+log_archive_dest_6                   string
+log_archive_dest_7                   string
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+log_archive_dest_8                   string
+log_archive_dest_9                   string
+log_archive_dest_state_1             string                 ENABLE
+log_archive_dest_state_10            string                 enable
+log_archive_dest_state_2             string                 ENABLE
+log_archive_dest_state_3             string                 enable
+log_archive_dest_state_4             string                 enable
+log_archive_dest_state_5             string                 enable
+log_archive_dest_state_6             string                 enable
+log_archive_dest_state_7             string                 enable
+log_archive_dest_state_8             string                 enable
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+log_archive_dest_state_9             string                 enable
+log_archive_duplex_dest              string
+log_archive_format                   string                 %s_%t_%r_%a.arc
+log_archive_local_first              boolean                TRUE
+log_archive_max_processes            integer                4
+log_archive_min_succeed_dest         integer                1
+log_archive_start                    boolean                FALSE
+log_archive_trace                    integer                0
+standby_archive_dest                 string                 ?/dbs/arch
+
+SQL&gt; select * from v$log;
+
+    GROUP#    THREAD#  SEQUENCE#      BYTES    MEMBERS ARCHIV STATUS                           FIRST_CHANGE# FIRST_TIME
+---------- ---------- ---------- ---------- ---------- ------ -------------------------------- ------------- ------------
+         1          1     221250   52428800          1 YES    INACTIVE                            5082709437 05-SEP-08
+         2          1     221252   52428800          1 NO     INACTIVE                            5082713458 05-SEP-08
+         3          2     270972   52428800          1 YES    INACTIVE                            5082699510 05-SEP-08
+         4          2     270975   52428800          1 NO     CURRENT                             5082713581 05-SEP-08
+         9          1     221251   52428800          1 NO     INACTIVE                            5082712943 05-SEP-08
+        10          2     270973   52428800          1 YES    INACTIVE                            5082705151 05-SEP-08
+        11          1     221253   52428800          1 NO     CURRENT                             5082713765 05-SEP-08
+        12          2     270974   52428800          1 NO     INACTIVE                            5082711887 05-SEP-08
+        13          3     275581   52428800          1 NO     INACTIVE                            5082712519 05-SEP-08
+        14          3     275582   52428800          1 NO     CURRENT                             5082713078 05-SEP-08
+        15          3     275579   52428800          1 NO     INACTIVE                            5082710114 05-SEP-08
+
+    GROUP#    THREAD#  SEQUENCE#      BYTES    MEMBERS ARCHIV STATUS                           FIRST_CHANGE# FIRST_TIME
+---------- ---------- ---------- ---------- ---------- ------ -------------------------------- ------------- ------------
+        16          3     275580   52428800          1 NO     INACTIVE                            5082711321 05-SEP-08
+
+12 rows selected.
+
+SQL&gt; ????select value from v$diag_info where name ='Diag Trace';
+
+VALUE
+------------------------------------------------------------------------------------------------------------------------------------------------------
+/home/oracle/app/diag/rdbms/nirv/nirv3/trace
+
+SQL&gt; select * from V$FLASH_RECOVERY_AREA_USAGE;
+
+FILE_TYPE                                PERCENT_SPACE_USED PERCENT_SPACE_RECLAIMABLE NUMBER_OF_FILES
+---------------------------------------- ------------------ ------------------------- ---------------
+CONTROL FILE                                              0                         0               0
+REDO LOG                                                  0                         0               0
+ARCHIVED LOG                                            100                         0           13109
+BACKUP PIECE                                              0                         0               0
+IMAGE COPY                                                0                         0               0
+FLASHBACK LOG                                             0                         0               0
+FOREIGN ARCHIVED LOG                                      0                         0               0
+
+7 rows selected.
+
+SQL&gt; show parameter db_recovery_file_dest_size
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+db_recovery_file_dest_size           big integer            250G
+SQL&gt; show parameter DB_RECOVERY_FILE_DEST
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+db_recovery_file_dest                string                 /sds/oradata
+db_recovery_file_dest_size           big integer            250G
+SQL&gt; alter system set db_recovery_file_dest_size=300G;  
+
+System altered.
+
+SQL&gt; show parameter DB_RECOVERY_FILE_DEST
+
+NAME                                 TYPE                   VALUE
+------------------------------------ ---------------------- ------------------------------
+db_recovery_file_dest                string                 /sds/oradata
+db_recovery_file_dest_size           big integer            300G
+SQL&gt; select * from V$FLASH_RECOVERY_AREA_USAGE;
+
+FILE_TYPE                                PERCENT_SPACE_USED PERCENT_SPACE_RECLAIMABLE NUMBER_OF_FILES
+---------------------------------------- ------------------ ------------------------- ---------------
+CONTROL FILE                                              0                         0               0
+REDO LOG                                                  0                         0               0
+ARCHIVED LOG                                          83.41                         0           13115
+BACKUP PIECE                                              0                         0               0
+IMAGE COPY                                                0                         0               0
+FLASHBACK LOG                                             0                         0               0
+FOREIGN ARCHIVED LOG                                      0                         0               0
+
+7 rows selected.</pre>
+
+可以看到空间是 83% 了，数据库应该就好了。不过这个是治标不治本的操作，需要把archive log删掉才行，具体怎么搞我也不会。。。汗。。
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="ora-00257-and-ora-19815/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'ora-00257-and-ora-19815/';
+        var disqus_url = 'ora-00257-and-ora-19815/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

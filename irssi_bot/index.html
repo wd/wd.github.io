@@ -1,0 +1,313 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>我的第一个perl脚本 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="是给irssi写的，只不过通过他和irssi接口，所有功能都是bash脚本实现的，回头看看如何转到perl。
+&lt;pre class=&quot;prettyprint lang-perl&quot;&gt;
+use vars qw($VERSION %IRSSI);
+
+use Irssi;
+$VERSION = &#39;1.00&#39;;
+%IRSSI = (
+authors     =&gt; &#39;wd&#39;,
+contact     =&gt; &#39;wd@wdicc.com&#39;,
+name        =&gt; &#39;My First Script&#39;,
+description =&gt; &#39;This script allows &#39; .
+&#39;you to query weather and other info &#39; .
+&#39;using some command.&#39;,
+license     =&gt; &#39;Public Domain&#39;,
+);
+
+sub send_msg {
+my ($server, $who, @result) = @_;
+my $count;
+$count = 1;
+while ($count &lt;= @result)=&quot;&quot; {=&quot;&quot; $server-=&quot;&quot;&gt;command(&quot;msg $who $result[$count-1]&quot;);
+$count++;
+}
+}
+
+sub pre_send {
+my ($server, $who) =@_;
+$server-&gt;command(&quot;msg $who 0I&#39;m working,Waiting me...&quot;);
+}
+
+sub end_send {
+my ($server, $who) =@_;
+$server-&gt;command(&quot;msg $who 0...The end.&quot;);
+}
+
+sub msg_public {
+my ($server, $msg, $nick, $address, $target) = @_;
+my @result;my $who;
+
+$who = $target;
+if ($target eq &quot;&quot;) { $who = $nick; }
+
+if ($msg =~ /^!([Dd]ict|[Ww]eather|[Gg]oogle|[Hh]elp|nslookup|rss).*$/) {
+&amp;pre_send($server,$who);
+$msg =~ s/!//;
+if ($msg =~ /^[Hh]elp.*$/) {
+@result = (&quot;Usage:&quot;,
+&quot;!dict ur_word&quot;,
+&quot;   eg: !dict license&quot;,
+&quot;!weather location [today|tomorrow]&quot;,
+&quot;   eg: !weather beijing&quot;,
+&quot;!google sth.&quot;,
+&quot;   eg: !google archlinux&quot;,
+&quot;!nslookup domin_name&quot;,
+&quot;   eg: !nslookup archlinux.org&quot;,
+&quot;!rss feed_url&quot;,
+&quot;   eg: !rss http://blog.wdicc.com/wordpress/feed/&quot;);
+} else {
+@result = `/home/stef/get $msg`;
+}
+#$server-&gt;print(&quot;#arch-cn&quot;, &quot;$nick, $target, $who&quot;);
+&amp;send_msg($server, $who, @result);
+&amp;end_send($server, $who);
+}
+}
+
+Irssi::signal_add_first(&#39;message public&#39;, &#39;msg_public&#39;);
+Irssi::signal_add_first(&#39;message private&#39;, &#39;msg_public&#39;);&lt;/=&gt;&lt;/pre&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">我的第一个perl脚本</h2>
+	<div class="entry-content">是给irssi写的，只不过通过他和irssi接口，所有功能都是bash脚本实现的，回头看看如何转到perl。
+<pre class="prettyprint lang-perl">
+use vars qw($VERSION %IRSSI);
+
+use Irssi;
+$VERSION = '1.00';
+%IRSSI = (
+authors     => 'wd',
+contact     => 'wd@wdicc.com',
+name        => 'My First Script',
+description => 'This script allows ' .
+'you to query weather and other info ' .
+'using some command.',
+license     => 'Public Domain',
+);
+
+sub send_msg {
+my ($server, $who, @result) = @_;
+my $count;
+$count = 1;
+while ($count <= @result)="" {="" $server-="">command("msg $who $result[$count-1]");
+$count++;
+}
+}
+
+sub pre_send {
+my ($server, $who) =@_;
+$server->command("msg $who 0I'm working,Waiting me...");
+}
+
+sub end_send {
+my ($server, $who) =@_;
+$server->command("msg $who 0...The end.");
+}
+
+sub msg_public {
+my ($server, $msg, $nick, $address, $target) = @_;
+my @result;my $who;
+
+$who = $target;
+if ($target eq "") { $who = $nick; }
+
+if ($msg =~ /^!([Dd]ict|[Ww]eather|[Gg]oogle|[Hh]elp|nslookup|rss).*$/) {
+&pre_send($server,$who);
+$msg =~ s/!//;
+if ($msg =~ /^[Hh]elp.*$/) {
+@result = ("Usage:",
+"!dict ur_word",
+"   eg: !dict license",
+"!weather location [today|tomorrow]",
+"   eg: !weather beijing",
+"!google sth.",
+"   eg: !google archlinux",
+"!nslookup domin_name",
+"   eg: !nslookup archlinux.org",
+"!rss feed_url",
+"   eg: !rss http://blog.wdicc.com/wordpress/feed/");
+} else {
+@result = `/home/stef/get $msg`;
+}
+#$server->print("#arch-cn", "$nick, $target, $who");
+&send_msg($server, $who, @result);
+&end_send($server, $who);
+}
+}
+
+Irssi::signal_add_first('message public', 'msg_public');
+Irssi::signal_add_first('message private', 'msg_public');</=></pre>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="irssi_bot/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'irssi_bot/';
+        var disqus_url = 'irssi_bot/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

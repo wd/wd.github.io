@@ -1,0 +1,273 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>Oracle10g EM乱码之快速解决 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="来源 &lt;a target=&quot;_blank&quot; href=&quot;http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html&quot;&gt;这里&lt;/a&gt;
+
+一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.
+
+如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.
+
+在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:
+&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;
+[oracle@danaly ~]$ cd $ORACLE_HOME/jdk/jre/lib
+[oracle@danaly lib]$ ls font*zh_CN*
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
+
+[oracle@danaly lib]$ cd $ORACLE_HOME/jre/1.4.2/lib/
+[oracle@danaly lib]$ ls font*zh_CN*
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
+
+我们只要用合适的中文字符集文件替换缺省文件即可,我选择使用font.properties.zh_CN.Redhat来替换缺省字体定义文件:
+
+[oracle@danaly lib]$ cp font.properties.zh_CN.Redhat font.properties
+
+替换之后需要清理一下Cache,重启EM即可.
+
+Cache路径通常位于:
+
+$ORACLE_HOME/oc4j/j2ee/oc4j_applications/applications/em/em/cabo/images/cache/zhs
+
+清除所有gif文件即可.然后重新启动EM:
+
+[oracle@danaly zhs]$ emctl stop dbconsole
+TZ set to PRC
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
+Stopping Oracle Enterprise Manager 10g Database Control ...
+...  Stopped.
+[oracle@danaly zhs]$ emctl start dbconsole
+TZ set to PRC
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
+Starting Oracle Enterprise Manager 10g Database Control .............. started.
+------------------------------------------------------------------
+Logs are generated in directory
+/opt/oracle/product/10.2.0/danaly.hurrray.com.cn_danaly/sysman/log
+
+现在登陆Web页面,EM显示就可以正常显示中文了.
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Oracle10g EM乱码之快速解决</h2>
+	<div class="entry-content">来源 <a target="_blank" href="http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html">这里</a>
+
+一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.
+
+如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.
+
+在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:
+<a id="more"></a>
+[oracle@danaly ~]$ cd $ORACLE_HOME/jdk/jre/lib
+[oracle@danaly lib]$ ls font*zh_CN*
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
+
+[oracle@danaly lib]$ cd $ORACLE_HOME/jre/1.4.2/lib/
+[oracle@danaly lib]$ ls font*zh_CN*
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
+
+我们只要用合适的中文字符集文件替换缺省文件即可,我选择使用font.properties.zh_CN.Redhat来替换缺省字体定义文件:
+
+[oracle@danaly lib]$ cp font.properties.zh_CN.Redhat font.properties
+
+替换之后需要清理一下Cache,重启EM即可.
+
+Cache路径通常位于:
+
+$ORACLE_HOME/oc4j/j2ee/oc4j_applications/applications/em/em/cabo/images/cache/zhs
+
+清除所有gif文件即可.然后重新启动EM:
+
+[oracle@danaly zhs]$ emctl stop dbconsole
+TZ set to PRC
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
+Stopping Oracle Enterprise Manager 10g Database Control ...
+...  Stopped.
+[oracle@danaly zhs]$ emctl start dbconsole
+TZ set to PRC
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
+Starting Oracle Enterprise Manager 10g Database Control .............. started.
+------------------------------------------------------------------
+Logs are generated in directory
+/opt/oracle/product/10.2.0/danaly.hurrray.com.cn_danaly/sysman/log
+
+现在登陆Web页面,EM显示就可以正常显示中文了.
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="oracle-em-encoding/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'oracle-em-encoding/';
+        var disqus_url = 'oracle-em-encoding/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

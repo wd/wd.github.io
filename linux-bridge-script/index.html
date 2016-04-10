@@ -1,0 +1,239 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>Linux下双网接入高级路由配置脚本zz - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="http://lwfs.net/2005/11/28/10/
+&lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
+    #!/bin/bash
+
+    IP0=&lt;ip of=&quot;&quot; your=&quot;&quot; eth0=&quot;&quot;&gt;
+    IP1=&lt;ip of=&quot;&quot; your=&quot;&quot; eth1=&quot;&quot;&gt;
+    GW0=&lt;gateway of=&quot;&quot; your=&quot;&quot; first=&quot;&quot; net=&quot;&quot;&gt;
+    GW1=&lt;gateway of=&quot;&quot; your=&quot;&quot; second=&quot;&quot; net=&quot;&quot;&gt;
+    NET0=&lt;network address=&quot;&quot; of=&quot;&quot; your=&quot;&quot; first=&quot;&quot; net:=&quot;&quot; network=&quot;&quot; netmask=&quot;&quot;&gt;
+    NET1=&lt;same as=&quot;&quot; above,=&quot;&quot; the=&quot;&quot; second=&quot;&quot; net=&quot;&quot;&gt;
+    DEV0=eth0
+    DEV1=eth1
+
+    # comment the next two line after first run this script.
+    echo 200 cernet &gt;&gt;/etc/iproute2/rt_tables
+    echo 210 chinanet &gt;&gt;/etc/iproute2/rt_tables
+
+    ip route add ${NET0} dev ${DEV0} src ${IP0} table cernet
+    ip route add default via ${GW0} table cernet
+    ip route add ${NET1} dev ${DEV1} src ${IP1} table chinanet
+    ip route add default via ${GW1} table chinanet
+    ip route add ${NET0} dev ${DEV0} src ${IP0}
+    ip route add ${NET1} dev ${DEV1} src ${IP1}
+
+    # delete old rule
+    ip rule del from ${IP0}
+    ip rule del from ${IP1}
+    # setup new rule
+    ip rule add from ${IP0} table cernet
+    ip rule add from ${IP1} table chinanet 
+&lt;/same&gt;&lt;/network&gt;&lt;/gateway&gt;&lt;/gateway&gt;&lt;/ip&gt;&lt;/ip&gt;&lt;/pre&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Linux下双网接入高级路由配置脚本zz</h2>
+	<div class="entry-content">http://lwfs.net/2005/11/28/10/
+<pre class="prettyprint lang-bash">
+    #!/bin/bash
+
+    IP0=<ip of="" your="" eth0="">
+    IP1=<ip of="" your="" eth1="">
+    GW0=<gateway of="" your="" first="" net="">
+    GW1=<gateway of="" your="" second="" net="">
+    NET0=<network address="" of="" your="" first="" net:="" network="" netmask="">
+    NET1=<same as="" above,="" the="" second="" net="">
+    DEV0=eth0
+    DEV1=eth1
+
+    # comment the next two line after first run this script.
+    echo 200 cernet >>/etc/iproute2/rt_tables
+    echo 210 chinanet >>/etc/iproute2/rt_tables
+
+    ip route add ${NET0} dev ${DEV0} src ${IP0} table cernet
+    ip route add default via ${GW0} table cernet
+    ip route add ${NET1} dev ${DEV1} src ${IP1} table chinanet
+    ip route add default via ${GW1} table chinanet
+    ip route add ${NET0} dev ${DEV0} src ${IP0}
+    ip route add ${NET1} dev ${DEV1} src ${IP1}
+
+    # delete old rule
+    ip rule del from ${IP0}
+    ip rule del from ${IP1}
+    # setup new rule
+    ip rule add from ${IP0} table cernet
+    ip rule add from ${IP1} table chinanet 
+</same></network></gateway></gateway></ip></ip></pre>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="linux-bridge-script/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'linux-bridge-script/';
+        var disqus_url = 'linux-bridge-script/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

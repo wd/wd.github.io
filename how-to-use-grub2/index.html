@@ -1,0 +1,321 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>使用 grub2 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="看到 ub 要默认用 grub2 了，看来这个东西够稳定了，就折腾了下。过程还有点头大，呵呵。这个东西最大的问题就是文档怎么那么少？。。。
+
+国内的大都是抄的 &lt;a href=&quot;http://linuxtoy.org/archives/grub-2-installation-and-configuration.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;这个&lt;/a&gt; ，里面不知道为什么没有排版，那个样例用的是 debian，我用的 gentoo，有点小区别。
+
+gentoo 里面先 keyword unmask grub 1.96，然后安装他。
+&lt;pre class=&quot;prettyprint lang-bash&quot;&gt;echo &quot;=sys-boot/grub-1.96 **&quot;&gt;
+
+安装之后，先重新生成 device.map。然后执行 update-grub 生成 grub 的一些配置文件，这个生成是根据的 /etc/grub.d 下面的文件，如果有兴趣可以去配置，我反正没配置，我手动修改的配置文件。
+&lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
+sudo update-grub # 不是必须，可以手动生成配置文件&lt;/pre&gt;
+
+现在去看看 /boot/grub/grub.cfg 文件，里面应该会根据你的系统生成了一些东西。再改巴改巴，下面是我的。对了这个文件是只读的，改一下属性就好了。
+&lt;pre class=&quot;prettyprint lang-conf&quot;&gt;
+set default=0
+set timeout=5
+set root=(hd0,1)
+
+insmod terminal
+insmod gfxterm
+insmod vbe
+insmod font
+insmod png
+
+font /boot/grub/unifont.pff
+set gfxmode=1024x768
+terminal gfxterm
+
+set menu_color_normal=white/black
+set menu_color_highlight=white/dark-gray
+
+#background_image /boot/grub/bg.tga
+background_image /boot/grub/dev2.png
+
+
+### END /etc/grub.d/00_header ###
+
+### BEGIN /etc/grub.d/10_hurd ###
+### END /etc/grub.d/10_hurd ###
+
+### BEGIN /etc/grub.d/10_linux ###
+menuentry &quot;无敌Gentoo&quot; {
+	linux	/vmlinuz root=/dev/hda5 ro video=uvesafb:1024x768-32,mtrr:3,ywrap
+}
+
+menuentry &quot;Gentoo (old kernel)&quot; {
+	linux /vmlinuz-old root=/dev/hda5 ro video=uvesafb:1024x768-32,mtrr:3,ywrap
+}
+
+menuentry &quot;测试JPEG背景图片&quot; {
+  background_image /boot/grub/dev.tga
+}
+
+
+#title		Gentoo bootchartd
+#root		(hd0,0)
+#kernel		/vmlinuz root=/dev/hda5 video=uvesafb:1024x768-32,mtrr:3,ywrap init=/sbin/bootchartd
+#savedefault
+#
+#
+#title		Gentoo (rescue)
+#root		(hd0,0)
+#kernel		/vmlinuz root=/dev/hda5 init=/bin/bb
+#savedefault
+&lt;/pre&gt;
+
+注意后面两个注释，其实就是老的 grub 用的，对照一下就应该知道怎么改了。原来的 hd0,0 变成了 hd0,1 ，这个是需要注意的。
+
+那个背景图片是有要求的，我的用 file 查看是这样的 &quot;dev.png: PNG image, 800 x 600, 8-bit/color RGBA, non-interlaced&quot;，具体对 png jpg tga 的要求，还是去看 &lt;a href=&quot;http://grub.enbug.org/FranklinPiat/grub.cfg.manpage&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;man&lt;/a&gt; 吧。我试了 tga 文件，好像有点慢，我那个 png 速度还行。
+
+那个 font 是从 &lt;a href=&quot;http://grub4dos.sourceforge.net/grub2/unifont.pff&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;这里&lt;/a&gt; 下的，支持中文。
+
+配置好之后执行 sudo grub-install /dev/hda 就安装好了，没什么错误的话就可以重启看效果了。
+&lt;/pre&gt;"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">使用 grub2</h2>
+	<div class="entry-content">看到 ub 要默认用 grub2 了，看来这个东西够稳定了，就折腾了下。过程还有点头大，呵呵。这个东西最大的问题就是文档怎么那么少？。。。
+
+国内的大都是抄的 <a href="http://linuxtoy.org/archives/grub-2-installation-and-configuration.html" target="_blank" rel="external">这个</a> ，里面不知道为什么没有排版，那个样例用的是 debian，我用的 gentoo，有点小区别。
+
+gentoo 里面先 keyword unmask grub 1.96，然后安装他。
+<pre class="prettyprint lang-bash">echo "=sys-boot/grub-1.96 **">
+
+安装之后，先重新生成 device.map。然后执行 update-grub 生成 grub 的一些配置文件，这个生成是根据的 /etc/grub.d 下面的文件，如果有兴趣可以去配置，我反正没配置，我手动修改的配置文件。
+<pre class="prettyprint lang-bash">
+sudo update-grub # 不是必须，可以手动生成配置文件</pre>
+
+现在去看看 /boot/grub/grub.cfg 文件，里面应该会根据你的系统生成了一些东西。再改巴改巴，下面是我的。对了这个文件是只读的，改一下属性就好了。
+<pre class="prettyprint lang-conf">
+set default=0
+set timeout=5
+set root=(hd0,1)
+
+insmod terminal
+insmod gfxterm
+insmod vbe
+insmod font
+insmod png
+
+font /boot/grub/unifont.pff
+set gfxmode=1024x768
+terminal gfxterm
+
+set menu_color_normal=white/black
+set menu_color_highlight=white/dark-gray
+
+#background_image /boot/grub/bg.tga
+background_image /boot/grub/dev2.png
+
+
+### END /etc/grub.d/00_header ###
+
+### BEGIN /etc/grub.d/10_hurd ###
+### END /etc/grub.d/10_hurd ###
+
+### BEGIN /etc/grub.d/10_linux ###
+menuentry "无敌Gentoo" {
+	linux	/vmlinuz root=/dev/hda5 ro video=uvesafb:1024x768-32,mtrr:3,ywrap
+}
+
+menuentry "Gentoo (old kernel)" {
+	linux /vmlinuz-old root=/dev/hda5 ro video=uvesafb:1024x768-32,mtrr:3,ywrap
+}
+
+menuentry "测试JPEG背景图片" {
+  background_image /boot/grub/dev.tga
+}
+
+
+#title		Gentoo bootchartd
+#root		(hd0,0)
+#kernel		/vmlinuz root=/dev/hda5 video=uvesafb:1024x768-32,mtrr:3,ywrap init=/sbin/bootchartd
+#savedefault
+#
+#
+#title		Gentoo (rescue)
+#root		(hd0,0)
+#kernel		/vmlinuz root=/dev/hda5 init=/bin/bb
+#savedefault
+</pre>
+
+注意后面两个注释，其实就是老的 grub 用的，对照一下就应该知道怎么改了。原来的 hd0,0 变成了 hd0,1 ，这个是需要注意的。
+
+那个背景图片是有要求的，我的用 file 查看是这样的 "dev.png: PNG image, 800 x 600, 8-bit/color RGBA, non-interlaced"，具体对 png jpg tga 的要求，还是去看 <a href="http://grub.enbug.org/FranklinPiat/grub.cfg.manpage" target="_blank" rel="external">man</a> 吧。我试了 tga 文件，好像有点慢，我那个 png 速度还行。
+
+那个 font 是从 <a href="http://grub4dos.sourceforge.net/grub2/unifont.pff" target="_blank" rel="external">这里</a> 下的，支持中文。
+
+配置好之后执行 sudo grub-install /dev/hda 就安装好了，没什么错误的话就可以重启看效果了。
+</pre></div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="how-to-use-grub2/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'how-to-use-grub2/';
+        var disqus_url = 'how-to-use-grub2/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

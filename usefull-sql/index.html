@@ -1,0 +1,549 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>Oracle维护常用SQL语句 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="查看所有用户
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select username,password from dba_users;
+&lt;/pre&gt;
+1、查看表空间的名称及大小
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
+from dba_tablespaces t, dba_data_files d
+where t.tablespace_name = d.tablespace_name
+group by t.tablespace_name;
+&lt;/pre&gt;
+2、查看表空间物理文件的名称及大小
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select tablespace_name, file_id, file_name,
+round(bytes/(1024*1024),0) total_space
+from dba_data_files
+order by tablespace_name;
+&lt;/pre&gt;
+&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;
+3、查看回滚段名称及大小
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select segment_name, tablespace_name, r.status,
+(initial_extent/1024) InitialExtent,(next_extent/1024) NextExtent,
+max_extents, v.curext CurExtent
+From dba_rollback_segs r, v$rollstat v
+Where r.segment_id = v.usn(+)
+order by segment_name ;
+&lt;/pre&gt;
+4、查看控制文件
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select name from v$controlfile;
+&lt;/pre&gt;
+5、查看日志文件
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select member from v$logfile;
+&lt;/pre&gt;
+6、查看表空间的使用情况
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select sum(bytes)/(1024*1024) as free_space,tablespace_name
+from dba_free_space
+group by tablespace_name;
+
+SELECT A.TABLESPACE_NAME,A.BYTES TOTAL,B.BYTES USED, C.BYTES FREE,
+(B.BYTES*100)/A.BYTES &quot;% USED&quot;,(C.BYTES*100)/A.BYTES &quot;% FREE&quot;
+FROM SYS.SM$TS_AVAIL A,SYS.SM$TS_USED B,SYS.SM$TS_FREE C
+WHERE A.TABLESPACE_NAME=B.TABLESPACE_NAME AND A.TABLESPACE_NAME=C.TABLESPACE_NAME;
+&lt;/pre&gt;
+7、查看数据库库对象
+select owner, object_type, status, count(*) count# from all_objects group by owner, object_type, status;
+
+8、查看数据库的版本
+Select version FROM Product_component_version
+Where SUBSTR(PRODUCT,1,6)=&#39;Oracle&#39;;
+
+9、查看数据库的创建日期和归档方式
+Select Created, Log_Mode, Log_Mode From V$Database;
+
+10、捕捉运行很久的SQL
+column username format a12
+column opname format a16
+column progress format a8
+select username,sid,opname,
+round(sofar*100 / totalwork,0) || &#39;%&#39; as progress,
+time_remaining,sql_text
+from v$session_longops , v$sql
+where time_remaining &lt;&gt; 0
+and sql_address = address
+and sql_hash_value = hash_value
+/
+
+11、查看数据表的参数信息
+SELECT partition_name, high_value, high_value_length, tablespace_name,
+pct_free, pct_used, ini_trans, max_trans, initial_extent,
+next_extent, min_extent, max_extent, pct_increase, FREELISTS,
+freelist_groups, LOGGING, BUFFER_POOL, num_rows, blocks,
+empty_blocks, avg_space, chain_cnt, avg_row_len, sample_size,
+last_analyzed
+FROM dba_tab_partitions
+--WHERE table_name = :tname AND table_owner = :towner
+ORDER BY partition_position
+
+12、查看还没提交的事务
+select * from v$locked_object;
+select * from v$transaction;
+
+13、查找object为哪些进程所用
+select
+p.spid,
+s.sid,
+s.serial# serial_num,
+s.username user_name,
+a.type object_type,
+s.osuser os_user_name,
+a.owner,
+a.object object_name,
+decode(sign(48 - command),
+1,
+to_char(command), &#39;Action Code #&#39; || to_char(command) ) action,
+p.program oracle_process,
+s.terminal terminal,
+s.program program,
+s.status session_status
+from v$session s, v$access a, v$process p
+where s.paddr = p.addr and
+s.type = &#39;USER&#39; and
+a.sid = s.sid and
+a.object=&#39;SUBSCRIBER_ATTR&#39;
+order by s.username, s.osuser
+
+14、回滚段查看
+select rownum, sys.dba_rollback_segs.segment_name Name, v$rollstat.extents
+Extents, v$rollstat.rssize Size_in_Bytes, v$rollstat.xacts XActs,
+v$rollstat.gets Gets, v$rollstat.waits Waits, v$rollstat.writes Writes,
+sys.dba_rollback_segs.status status from v$rollstat, sys.dba_rollback_segs,
+v$rollname where v$rollname.name(+) = sys.dba_rollback_segs.segment_name and
+v$rollstat.usn (+) = v$rollname.usn order by rownum
+
+15、耗资源的进程(top session)
+select s.schemaname schema_name, decode(sign(48 - command), 1,
+to_char(command), &#39;Action Code #&#39; || to_char(command) ) action, status
+session_status, s.osuser os_user_name, s.sid, p.spid , s.serial# serial_num,
+nvl(s.username, &#39;[Oracle process]&#39;) user_name, s.terminal terminal,
+s.program program, st.value criteria_value from v$sesstat st, v$session s , v$process p
+where st.sid = s.sid and st.statistic# = to_number(&#39;38&#39;) and (&#39;ALL&#39; = &#39;ALL&#39;
+or s.status = &#39;ALL&#39;) and p.addr = s.paddr order by st.value desc, p.spid asc, s.username asc, s.osuser asc
+
+16、查看锁(lock)情况
+select /*+ RULE */ ls.osuser os_user_name, ls.username user_name,
+decode(ls.type, &#39;RW&#39;, &#39;Row wait enqueue lock&#39;, &#39;TM&#39;, &#39;DML enqueue lock&#39;, &#39;TX&#39;,
+&#39;Transaction enqueue lock&#39;, &#39;UL&#39;, &#39;User supplied lock&#39;) lock_type,
+o.object_name object, decode(ls.lmode, 1, null, 2, &#39;Row Share&#39;, 3,
+&#39;Row Exclusive&#39;, 4, &#39;Share&#39;, 5, &#39;Share Row Exclusive&#39;, 6, &#39;Exclusive&#39;, null)
+lock_mode, o.owner, ls.sid, ls.serial# serial_num, ls.id1, ls.id2
+from sys.dba_objects o, ( select s.osuser, s.username, l.type,
+l.lmode, s.sid, s.serial#, l.id1, l.id2 from v$session s,
+v$lock l where s.sid = l.sid ) ls where o.object_id = ls.id1 and o.owner
+&lt;&gt; &#39;SYS&#39; order by o.owner, o.object_name
+
+17、查看等待(wait)情况
+SELECT v$waitstat.class, v$waitstat.count count, SUM(v$sysstat.value) sum_value
+FROM v$waitstat, v$sysstat WHERE v$sysstat.name IN (&#39;db block gets&#39;,
+&#39;consistent gets&#39;) group by v$waitstat.class, v$waitstat.count
+
+18、查看sga情况
+SELECT NAME, BYTES FROM SYS.V_$SGASTAT ORDER BY NAME ASC
+
+19、查看catched object
+SELECT owner, name, db_link, namespace,
+type, sharable_mem, loads, executions,
+locks, pins, kept FROM v$db_object_cache
+
+20、查看V$SQLAREA
+SELECT SQL_TEXT, SHARABLE_MEM, PERSISTENT_MEM, RUNTIME_MEM, SORTS,
+VERSION_COUNT, LOADED_VERSIONS, OPEN_VERSIONS, USERS_OPENING, EXECUTIONS,
+USERS_EXECUTING, LOADS, FIRST_LOAD_TIME, INVALIDATIONS, PARSE_CALLS, DISK_READS,
+BUFFER_GETS, ROWS_PROCESSED FROM V$SQLAREA
+
+21、查看object分类数量
+select decode (o.type#,1,&#39;INDEX&#39; , 2,&#39;TABLE&#39; , 3 , &#39;CLUSTER&#39; , 4, &#39;VIEW&#39; , 5 ,
+&#39;SYNONYM&#39; , 6 , &#39;SEQUENCE&#39; , &#39;OTHER&#39; ) object_type , count(*) quantity from
+sys.obj$ o where o.type# &gt; 1 group by decode (o.type#,1,&#39;INDEX&#39; , 2,&#39;TABLE&#39; , 3
+, &#39;CLUSTER&#39; , 4, &#39;VIEW&#39; , 5 , &#39;SYNONYM&#39; , 6 , &#39;SEQUENCE&#39; , &#39;OTHER&#39; ) union select
+&#39;COLUMN&#39; , count(*) from sys.col$ union select &#39;DB LINK&#39; , count(*) from
+
+22、按用户查看object种类
+select u.name schema, sum(decode(o.type#, 1, 1, NULL)) indexes,
+sum(decode(o.type#, 2, 1, NULL)) tables, sum(decode(o.type#, 3, 1, NULL))
+clusters, sum(decode(o.type#, 4, 1, NULL)) views, sum(decode(o.type#, 5, 1,
+NULL)) synonyms, sum(decode(o.type#, 6, 1, NULL)) sequences,
+sum(decode(o.type#, 1, NULL, 2, NULL, 3, NULL, 4, NULL, 5, NULL, 6, NULL, 1))
+others from sys.obj$ o, sys.user$ u where o.type# &gt;= 1 and u.user# =
+o.owner# and u.name &lt;&gt; &#39;PUBLIC&#39; group by u.name order by
+sys.link$ union select &#39;CONSTRAINT&#39; , count(*) from sys.con$
+
+23、有关connection的相关信息
+
+1)查看有哪些用户连接
+select s.osuser os_user_name, decode(sign(48 - command), 1, to_char(command),
+&#39;Action Code #&#39; || to_char(command) ) action, p.program oracle_process,
+status session_status, s.terminal terminal, s.program program,
+s.username user_name, s.fixed_table_sequence activity_meter, &#39;&#39; query,
+0 memory, 0 max_memory, 0 cpu_usage, s.sid, s.serial# serial_num
+from v$session s, v$process p where s.paddr=p.addr and s.type = &#39;USER&#39;
+order by s.username, s.osuser
+
+2)
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Oracle维护常用SQL语句</h2>
+	<div class="entry-content">查看所有用户
+<pre class="prettyprint lang-sql">
+select username,password from dba_users;
+</pre>
+1、查看表空间的名称及大小
+<pre class="prettyprint lang-sql">
+select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
+from dba_tablespaces t, dba_data_files d
+where t.tablespace_name = d.tablespace_name
+group by t.tablespace_name;
+</pre>
+2、查看表空间物理文件的名称及大小
+<pre class="prettyprint lang-sql">
+select tablespace_name, file_id, file_name,
+round(bytes/(1024*1024),0) total_space
+from dba_data_files
+order by tablespace_name;
+</pre>
+<a id="more"></a>
+3、查看回滚段名称及大小
+<pre class="prettyprint lang-sql">
+select segment_name, tablespace_name, r.status,
+(initial_extent/1024) InitialExtent,(next_extent/1024) NextExtent,
+max_extents, v.curext CurExtent
+From dba_rollback_segs r, v$rollstat v
+Where r.segment_id = v.usn(+)
+order by segment_name ;
+</pre>
+4、查看控制文件
+<pre class="prettyprint lang-sql">
+select name from v$controlfile;
+</pre>
+5、查看日志文件
+<pre class="prettyprint lang-sql">
+select member from v$logfile;
+</pre>
+6、查看表空间的使用情况
+<pre class="prettyprint lang-sql">
+select sum(bytes)/(1024*1024) as free_space,tablespace_name
+from dba_free_space
+group by tablespace_name;
+
+SELECT A.TABLESPACE_NAME,A.BYTES TOTAL,B.BYTES USED, C.BYTES FREE,
+(B.BYTES*100)/A.BYTES "% USED",(C.BYTES*100)/A.BYTES "% FREE"
+FROM SYS.SM$TS_AVAIL A,SYS.SM$TS_USED B,SYS.SM$TS_FREE C
+WHERE A.TABLESPACE_NAME=B.TABLESPACE_NAME AND A.TABLESPACE_NAME=C.TABLESPACE_NAME;
+</pre>
+7、查看数据库库对象
+select owner, object_type, status, count(*) count# from all_objects group by owner, object_type, status;
+
+8、查看数据库的版本
+Select version FROM Product_component_version
+Where SUBSTR(PRODUCT,1,6)='Oracle';
+
+9、查看数据库的创建日期和归档方式
+Select Created, Log_Mode, Log_Mode From V$Database;
+
+10、捕捉运行很久的SQL
+column username format a12
+column opname format a16
+column progress format a8
+select username,sid,opname,
+round(sofar*100 / totalwork,0) || '%' as progress,
+time_remaining,sql_text
+from v$session_longops , v$sql
+where time_remaining <> 0
+and sql_address = address
+and sql_hash_value = hash_value
+/
+
+11、查看数据表的参数信息
+SELECT partition_name, high_value, high_value_length, tablespace_name,
+pct_free, pct_used, ini_trans, max_trans, initial_extent,
+next_extent, min_extent, max_extent, pct_increase, FREELISTS,
+freelist_groups, LOGGING, BUFFER_POOL, num_rows, blocks,
+empty_blocks, avg_space, chain_cnt, avg_row_len, sample_size,
+last_analyzed
+FROM dba_tab_partitions
+--WHERE table_name = :tname AND table_owner = :towner
+ORDER BY partition_position
+
+12、查看还没提交的事务
+select * from v$locked_object;
+select * from v$transaction;
+
+13、查找object为哪些进程所用
+select
+p.spid,
+s.sid,
+s.serial# serial_num,
+s.username user_name,
+a.type object_type,
+s.osuser os_user_name,
+a.owner,
+a.object object_name,
+decode(sign(48 - command),
+1,
+to_char(command), 'Action Code #' || to_char(command) ) action,
+p.program oracle_process,
+s.terminal terminal,
+s.program program,
+s.status session_status
+from v$session s, v$access a, v$process p
+where s.paddr = p.addr and
+s.type = 'USER' and
+a.sid = s.sid and
+a.object='SUBSCRIBER_ATTR'
+order by s.username, s.osuser
+
+14、回滚段查看
+select rownum, sys.dba_rollback_segs.segment_name Name, v$rollstat.extents
+Extents, v$rollstat.rssize Size_in_Bytes, v$rollstat.xacts XActs,
+v$rollstat.gets Gets, v$rollstat.waits Waits, v$rollstat.writes Writes,
+sys.dba_rollback_segs.status status from v$rollstat, sys.dba_rollback_segs,
+v$rollname where v$rollname.name(+) = sys.dba_rollback_segs.segment_name and
+v$rollstat.usn (+) = v$rollname.usn order by rownum
+
+15、耗资源的进程(top session)
+select s.schemaname schema_name, decode(sign(48 - command), 1,
+to_char(command), 'Action Code #' || to_char(command) ) action, status
+session_status, s.osuser os_user_name, s.sid, p.spid , s.serial# serial_num,
+nvl(s.username, '[Oracle process]') user_name, s.terminal terminal,
+s.program program, st.value criteria_value from v$sesstat st, v$session s , v$process p
+where st.sid = s.sid and st.statistic# = to_number('38') and ('ALL' = 'ALL'
+or s.status = 'ALL') and p.addr = s.paddr order by st.value desc, p.spid asc, s.username asc, s.osuser asc
+
+16、查看锁(lock)情况
+select /*+ RULE */ ls.osuser os_user_name, ls.username user_name,
+decode(ls.type, 'RW', 'Row wait enqueue lock', 'TM', 'DML enqueue lock', 'TX',
+'Transaction enqueue lock', 'UL', 'User supplied lock') lock_type,
+o.object_name object, decode(ls.lmode, 1, null, 2, 'Row Share', 3,
+'Row Exclusive', 4, 'Share', 5, 'Share Row Exclusive', 6, 'Exclusive', null)
+lock_mode, o.owner, ls.sid, ls.serial# serial_num, ls.id1, ls.id2
+from sys.dba_objects o, ( select s.osuser, s.username, l.type,
+l.lmode, s.sid, s.serial#, l.id1, l.id2 from v$session s,
+v$lock l where s.sid = l.sid ) ls where o.object_id = ls.id1 and o.owner
+<> 'SYS' order by o.owner, o.object_name
+
+17、查看等待(wait)情况
+SELECT v$waitstat.class, v$waitstat.count count, SUM(v$sysstat.value) sum_value
+FROM v$waitstat, v$sysstat WHERE v$sysstat.name IN ('db block gets',
+'consistent gets') group by v$waitstat.class, v$waitstat.count
+
+18、查看sga情况
+SELECT NAME, BYTES FROM SYS.V_$SGASTAT ORDER BY NAME ASC
+
+19、查看catched object
+SELECT owner, name, db_link, namespace,
+type, sharable_mem, loads, executions,
+locks, pins, kept FROM v$db_object_cache
+
+20、查看V$SQLAREA
+SELECT SQL_TEXT, SHARABLE_MEM, PERSISTENT_MEM, RUNTIME_MEM, SORTS,
+VERSION_COUNT, LOADED_VERSIONS, OPEN_VERSIONS, USERS_OPENING, EXECUTIONS,
+USERS_EXECUTING, LOADS, FIRST_LOAD_TIME, INVALIDATIONS, PARSE_CALLS, DISK_READS,
+BUFFER_GETS, ROWS_PROCESSED FROM V$SQLAREA
+
+21、查看object分类数量
+select decode (o.type#,1,'INDEX' , 2,'TABLE' , 3 , 'CLUSTER' , 4, 'VIEW' , 5 ,
+'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) object_type , count(*) quantity from
+sys.obj$ o where o.type# > 1 group by decode (o.type#,1,'INDEX' , 2,'TABLE' , 3
+, 'CLUSTER' , 4, 'VIEW' , 5 , 'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) union select
+'COLUMN' , count(*) from sys.col$ union select 'DB LINK' , count(*) from
+
+22、按用户查看object种类
+select u.name schema, sum(decode(o.type#, 1, 1, NULL)) indexes,
+sum(decode(o.type#, 2, 1, NULL)) tables, sum(decode(o.type#, 3, 1, NULL))
+clusters, sum(decode(o.type#, 4, 1, NULL)) views, sum(decode(o.type#, 5, 1,
+NULL)) synonyms, sum(decode(o.type#, 6, 1, NULL)) sequences,
+sum(decode(o.type#, 1, NULL, 2, NULL, 3, NULL, 4, NULL, 5, NULL, 6, NULL, 1))
+others from sys.obj$ o, sys.user$ u where o.type# >= 1 and u.user# =
+o.owner# and u.name <> 'PUBLIC' group by u.name order by
+sys.link$ union select 'CONSTRAINT' , count(*) from sys.con$
+
+23、有关connection的相关信息
+
+1)查看有哪些用户连接
+select s.osuser os_user_name, decode(sign(48 - command), 1, to_char(command),
+'Action Code #' || to_char(command) ) action, p.program oracle_process,
+status session_status, s.terminal terminal, s.program program,
+s.username user_name, s.fixed_table_sequence activity_meter, '' query,
+0 memory, 0 max_memory, 0 cpu_usage, s.sid, s.serial# serial_num
+from v$session s, v$process p where s.paddr=p.addr and s.type = 'USER'
+order by s.username, s.osuser
+
+2)
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="usefull-sql/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'usefull-sql/';
+        var disqus_url = 'usefull-sql/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

@@ -1,0 +1,253 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>使用cacti获取snmp发送的自定义信息 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="★ 需求
+
+服务器运行了weblogic和apache，可是有时weblogic进程会莫名crash，业务都在这上面，所以需要能监控程序的运行。我在服务器端写了一个脚本，使用curl检测这两个服务的状态，返回一个数字来确定是哪个服务down了，然后远程通过cacti采集数据画图。
+
+&lt;br&gt;&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;★ 解决方法
+
+snmp提供了发送自定义信息的功能。查看snmpd.conf会看到有一个小节是关于外部脚本的，Executables/scripts。这个小节里面也举了例子，告诉你怎么通过snmp发送信息。我的做法如下（下面假定你已经配置好了snmp，通过cacti已经能采集到信息了）。
+
+在任意位置添加一行：
+exec .1.3.6.1.4.1.2021.51 wlsapache /root/wlsapache status
+其中wlsapache是命令的名称，后面是命令以及参数。命令的名称可以随便起。脚本执行的结果类似下面：
+# ./wlsapache status
+3
+ALL ok.
+我这个脚本的“ALL ok”其实是副产品，对于采集数据没有用。
+
+重启snmpd，然后远程通过snmpwalk接收一下数据看看：
+# snmpwalk -v 1 192.168.1.201 -c public .1.3.6.1.4.1.2021.51 &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;
+UCD-SNMP-MIB::ucdavis.51.1.1 = INTEGER: 1
+UCD-SNMP-MIB::ucdavis.51.2.1 = STRING: &quot;wlsapache&quot;
+UCD-SNMP-MIB::ucdavis.51.3.1 = STRING: &quot;/root/wlsapache status&quot;
+UCD-SNMP-MIB::ucdavis.51.100.1 = INTEGER: 0
+UCD-SNMP-MIB::ucdavis.51.101.1 = STRING: &quot;3&quot;
+UCD-SNMP-MIB::ucdavis.51.101.2 = STRING: &quot;ALL ok.&quot;
+UCD-SNMP-MIB::ucdavis.51.102.1 = INTEGER: 0
+
+其中我们需要的是UCD-SNMP-MIB::ucdavis.51.101.1 = STRING: &quot;3&quot;这一行：
+# snmpwalk -v 1 192.168.1.201 -c public .1.3.6.1.4.1.2021.51.101.1
+UCD-SNMP-MIB::ucdavis.51.101.1 = STRING: &quot;3&quot;
+
+能采集到数据之后，就可以配置cacti来接收了。在cacti界面中console-&amp;gt;Templates-&amp;gt;Data Templates，然后点击右上角的Add，Data Templates中的name是给这个数据模板的命名，Data Source中的name将来显示在Data Sources中，我这里添加“|host_description| - Network - wlsapache”，选get snmp data，Internal Data Source Name也可以随便添，这个用来给rrd文件命名。设置完后就可以save了，save之后会发现下面多了一些选项，在最下面那个添上我们需要的数据的OID“.1.3.6.1.4.1.2021.51.101.1”，可以保存了。
+
+此后需要创建一个Graph Templates，好让cacti生成图片。在cacti界面中console-&amp;gt;Templates-&amp;gt;Graph Templates，然后点击右上角的Add，Templates中的name是给这个数据模板的命名，Graph Template中的name是将来显示在图片上面中间的内容，我这里添加“|host_description| - wlsapache status”，其他保持默认，保存之后上面会出来一些选项。
+
+在Graph Template Items中添加一个item，Data Source选之前添加的，color选择一个图片的颜色，Graph Item Type选AREA，也就是区域，也可以选其他的线条，Text Format设置说明。然后再添加一个，Graph Item Type选GPRINT，Consolidation Function选LAST，也就是当前的值，Text Format输入current。你还可以添加一些Graph Item Type为COMMENT的注释说明等。
+现在只要为host添加这个画图模板就可以看到画出来的图了。
+
+&lt;center&gt;&lt;img src=&quot;/wordpress/wp-content/uploads/1320809656.png&quot; width=&quot;576&quot; height=&quot;212&quot; alt=&quot;&quot;&gt;&lt;/center&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">使用cacti获取snmp发送的自定义信息</h2>
+	<div class="entry-content">★ 需求
+
+服务器运行了weblogic和apache，可是有时weblogic进程会莫名crash，业务都在这上面，所以需要能监控程序的运行。我在服务器端写了一个脚本，使用curl检测这两个服务的状态，返回一个数字来确定是哪个服务down了，然后远程通过cacti采集数据画图。
+
+<br><a id="more"></a>★ 解决方法
+
+snmp提供了发送自定义信息的功能。查看snmpd.conf会看到有一个小节是关于外部脚本的，Executables/scripts。这个小节里面也举了例子，告诉你怎么通过snmp发送信息。我的做法如下（下面假定你已经配置好了snmp，通过cacti已经能采集到信息了）。
+
+在任意位置添加一行：
+exec .1.3.6.1.4.1.2021.51 wlsapache /root/wlsapache status
+其中wlsapache是命令的名称，后面是命令以及参数。命令的名称可以随便起。脚本执行的结果类似下面：
+# ./wlsapache status
+3
+ALL ok.
+我这个脚本的“ALL ok”其实是副产品，对于采集数据没有用。
+
+重启snmpd，然后远程通过snmpwalk接收一下数据看看：
+# snmpwalk -v 1 192.168.1.201 -c public .1.3.6.1.4.1.2021.51 &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;
+UCD-SNMP-MIB::ucdavis.51.1.1 = INTEGER: 1
+UCD-SNMP-MIB::ucdavis.51.2.1 = STRING: "wlsapache"
+UCD-SNMP-MIB::ucdavis.51.3.1 = STRING: "/root/wlsapache status"
+UCD-SNMP-MIB::ucdavis.51.100.1 = INTEGER: 0
+UCD-SNMP-MIB::ucdavis.51.101.1 = STRING: "3"
+UCD-SNMP-MIB::ucdavis.51.101.2 = STRING: "ALL ok."
+UCD-SNMP-MIB::ucdavis.51.102.1 = INTEGER: 0
+
+其中我们需要的是UCD-SNMP-MIB::ucdavis.51.101.1 = STRING: "3"这一行：
+# snmpwalk -v 1 192.168.1.201 -c public .1.3.6.1.4.1.2021.51.101.1
+UCD-SNMP-MIB::ucdavis.51.101.1 = STRING: "3"
+
+能采集到数据之后，就可以配置cacti来接收了。在cacti界面中console-&gt;Templates-&gt;Data Templates，然后点击右上角的Add，Data Templates中的name是给这个数据模板的命名，Data Source中的name将来显示在Data Sources中，我这里添加“|host_description| - Network - wlsapache”，选get snmp data，Internal Data Source Name也可以随便添，这个用来给rrd文件命名。设置完后就可以save了，save之后会发现下面多了一些选项，在最下面那个添上我们需要的数据的OID“.1.3.6.1.4.1.2021.51.101.1”，可以保存了。
+
+此后需要创建一个Graph Templates，好让cacti生成图片。在cacti界面中console-&gt;Templates-&gt;Graph Templates，然后点击右上角的Add，Templates中的name是给这个数据模板的命名，Graph Template中的name是将来显示在图片上面中间的内容，我这里添加“|host_description| - wlsapache status”，其他保持默认，保存之后上面会出来一些选项。
+
+在Graph Template Items中添加一个item，Data Source选之前添加的，color选择一个图片的颜色，Graph Item Type选AREA，也就是区域，也可以选其他的线条，Text Format设置说明。然后再添加一个，Graph Item Type选GPRINT，Consolidation Function选LAST，也就是当前的值，Text Format输入current。你还可以添加一些Graph Item Type为COMMENT的注释说明等。
+现在只要为host添加这个画图模板就可以看到画出来的图了。
+
+<center><img src="/wordpress/wp-content/uploads/1320809656.png" width="576" height="212" alt=""></center>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="cacti-snmp/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'cacti-snmp/';
+        var disqus_url = 'cacti-snmp/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

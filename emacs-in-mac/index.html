@@ -1,0 +1,207 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>总算是将就同步好了 gentoo 和 mac 的 emacs - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="mac 里面居然自带了一个 emacs，，版本是 22.1.1，有够老的反正是。因为 gentoo 用的是 emacs24，所以按照不知道哪里推荐的，去下载了一个 emacs24。然后就是尝试在 mac 下面配置好我的 emacs 了，配置好才好通过 org2blog 写 blog。。。
+
+老早就随大流把 .emacs.d 放到了 github，所以这部分比较简单，只要 clone 一下就可以了。
+
+之前没想到的是我的一部分 elisp 包是通过 gentoo 管理的，这样只有 .emacs.d 显然是不行的。然后使用了 dropbox 这个方案，把 gentoo 里面的 site-lisp 部分也同步过来。主要是 &lt;em&gt;usr/share/emacs/etc&lt;/em&gt; 和 &lt;em&gt;usr/share/emacs/site-lisp&lt;/em&gt; 两个目录。把 gentoo里面的这两个目录转移到 dropbox 里面，然后做个软链。mac 里面也从 dropbox 里面做好软链，要注意路径位置不能变化，变化的话 gentoo 里面的 site-gentoo.el 里面写死的路径就不能用了。不过不变化那个路径的话，其实是会影响系统自带的 emacs22.1.1 的使用的，不过不管了，爱咋匝地吧，反正我也不用那个。
+
+接下来就是在 .emacs 里面加 load-path 就可以了。gentoo 是不需要的，所以用下面的代码
+&lt;pre class=&quot;prettyprint lang-lisp&quot;&gt;
+    (setq load-path
+        (cons &quot;/usr/share/emacs/site-lisp/&quot; load-path)))&lt;/pre&gt;
+mac 里面用 emacs 一个郁闷的问题是，command 键挤在了 alt 和 space 中间，和普通键盘不一样，导致习惯了普通键盘的我经常按错。很郁闷，不知道能不能把那个 command 弄成 alt，反正好像 command 在 emacs 里面没用。。。
+
+可以用上面类似的方法处理一些两个系统的特例。
+
+顺便再吐槽下 mac 的输入法，装了个 sogou，发现这小子启动慢，经常切换过去后打了几个字母了都，他还没反应，字母就上屏了。fit的词库又不行，词频调整也有问题。‘在’我这半天输入 n 个了都，还是处在‘再’的后面，很讨厌。不知道有没有其他靠谱的。。。
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">总算是将就同步好了 gentoo 和 mac 的 emacs</h2>
+	<div class="entry-content">mac 里面居然自带了一个 emacs，，版本是 22.1.1，有够老的反正是。因为 gentoo 用的是 emacs24，所以按照不知道哪里推荐的，去下载了一个 emacs24。然后就是尝试在 mac 下面配置好我的 emacs 了，配置好才好通过 org2blog 写 blog。。。
+
+老早就随大流把 .emacs.d 放到了 github，所以这部分比较简单，只要 clone 一下就可以了。
+
+之前没想到的是我的一部分 elisp 包是通过 gentoo 管理的，这样只有 .emacs.d 显然是不行的。然后使用了 dropbox 这个方案，把 gentoo 里面的 site-lisp 部分也同步过来。主要是 <em>usr/share/emacs/etc</em> 和 <em>usr/share/emacs/site-lisp</em> 两个目录。把 gentoo里面的这两个目录转移到 dropbox 里面，然后做个软链。mac 里面也从 dropbox 里面做好软链，要注意路径位置不能变化，变化的话 gentoo 里面的 site-gentoo.el 里面写死的路径就不能用了。不过不变化那个路径的话，其实是会影响系统自带的 emacs22.1.1 的使用的，不过不管了，爱咋匝地吧，反正我也不用那个。
+
+接下来就是在 .emacs 里面加 load-path 就可以了。gentoo 是不需要的，所以用下面的代码
+<pre class="prettyprint lang-lisp">
+    (setq load-path
+        (cons "/usr/share/emacs/site-lisp/" load-path)))</pre>
+mac 里面用 emacs 一个郁闷的问题是，command 键挤在了 alt 和 space 中间，和普通键盘不一样，导致习惯了普通键盘的我经常按错。很郁闷，不知道能不能把那个 command 弄成 alt，反正好像 command 在 emacs 里面没用。。。
+
+可以用上面类似的方法处理一些两个系统的特例。
+
+顺便再吐槽下 mac 的输入法，装了个 sogou，发现这小子启动慢，经常切换过去后打了几个字母了都，他还没反应，字母就上屏了。fit的词库又不行，词频调整也有问题。‘在’我这半天输入 n 个了都，还是处在‘再’的后面，很讨厌。不知道有没有其他靠谱的。。。
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="emacs-in-mac/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'emacs-in-mac/';
+        var disqus_url = 'emacs-in-mac/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

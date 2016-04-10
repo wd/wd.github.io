@@ -1,0 +1,207 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>VIM查找替换归纳总结zz - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;&lt;a href=&quot;http://spaces.msn.com/dingy/blog/cns!2F24B9E66A542581!327.entry&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://spaces.msn.com/dingy/blog/cns!2F24B9E66A542581!327.entry&lt;/a&gt;
+
+VIM中常用的替换模式总结。&lt;/p&gt;&lt;p&gt;1，简单替换表达式&lt;/p&gt;&lt;p&gt;替换命令可以在全文中用一个单词替换另一个单词：&lt;/p&gt;&lt;p&gt;:%s/four/4/g&lt;/p&gt;&lt;br&gt;&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;&lt;p&gt;&quot;%&quot; 范围前缀表示在所有行中执行替换。最后的 &quot;g&quot; 标记表示替换行中的所有匹配点。如果仅仅对当前行进行操作，那么只要去掉%即可&lt;/p&gt;&lt;p&gt;&amp;nbsp; 如果你有一个象 &quot;thirtyfour&quot; 这样的单词，上面的命令会出错。这种情况下，这个单词会被替换成&quot;thirty4&quot;。要解决这个问题，用 &quot;\&amp;lt;&quot; 来指定匹配单词开头：&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; :%s/\&amp;lt;four/4/g&lt;/p&gt;
+&lt;p&gt;显然，这样在处理 &quot;fourty&quot; 的时候还是会出错。用 &quot;\&amp;gt;&quot; 来解决这个问题：&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; :%s/\&amp;lt;four\&amp;gt;/4/g&lt;/p&gt;
+&lt;p&gt;如果你在编码，你可能只想替换注释中的 &quot;four&quot;，而保留代码中的。由于这很难指定，可以在替换命令中加一个 &quot;c&quot; 标记，这样，Vim 会在每次替换前提示你：&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; :%s/\&amp;lt;four\&amp;gt;/4/gc&lt;/p&gt;
+&lt;p&gt;2，删除多余的空格&lt;/p&gt;&lt;p&gt;要删除这些每行后面多余的空格，可以执行如下命令：&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; :%s/\s\+$//&lt;/p&gt;
+&lt;p&gt;命令前面指明范围是 &quot;%&quot;，所以这会作用于整个文件。&quot;substitute&quot; 命令的匹配模式是&lt;/p&gt;&lt;p&gt;&quot;\s\+$&quot;。这表示行末（$）前的一个或者多个（\+）空格（\s）。替换命令的 &quot;to&quot; 部分是空的：&quot;//&quot;。这样就会删除那些匹配的空白字符。&lt;/p&gt;
+&lt;p&gt;3，匹配重复性模式&lt;/p&gt;&lt;p&gt;星号项 &quot;*&quot; 规定在它前面的项可以重复任意次。因此:&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; /a*&lt;/p&gt;&lt;p&gt;匹配 &quot;a&quot;，&quot;aa&quot;，&quot;aaa&quot;，等等。但也匹配 &quot;&quot; (空字串)，因为零次也包含在内。星号 &quot;*&quot; 仅仅应用于那个紧邻在它前面的项。因此 &quot;ab*&quot; 匹配 &quot;a&quot;，&quot;ab&quot;，&quot;abb&quot;,&quot;abbb&quot;，等等。如要多次重复整个字符串，那么该字符串必须被组成一个项。组成一项的方法就是在它前面加 &quot;\(&quot;，后面加 &quot;\)&quot;。因此这个命令:&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; /\(ab\)*&lt;/p&gt;
+&lt;p&gt;匹配: &quot;ab&quot;，&quot;abab&quot;，&quot;ababab&quot;，等等。而且也匹配 &quot;&quot;。&lt;/p&gt;
+&lt;p&gt;要避免匹配空字串，使用 &quot;\+&quot;。这表示前面一项可以被匹配一次或多次。&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; /ab\+&lt;/p&gt;&lt;p&gt;匹配 &quot;ab&quot;，&quot;abb&quot;，&quot;abbb&quot;，等等。它不匹配 后面没有跟随 &quot;b&quot; 的 &quot;a&quot;。&lt;/p&gt;
+&lt;p&gt;要匹配一个可选项，用 &quot;\=&quot;。 例如:&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; /folders\=&lt;/p&gt;&lt;p&gt;匹配 &quot;folder&quot; 和 &quot;folders&quot;。&lt;/p&gt;
+&lt;p&gt;4，指定重复次数&lt;/p&gt;&lt;p&gt;要匹配某一项的特定次数重复，使用 &quot;\{n,m}&quot; 这样的形式。其中 &quot;n&quot; 和 &quot;m&quot; 都是数字。在它前面的那个项将被重复 &quot;n&quot; 到 &quot;m&quot; 次 (|inclusive| 包含 &quot;n&quot; 和 &quot;m&quot;)。例如:&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; /ab\{3,5}&lt;/p&gt;&lt;p&gt;匹配 &quot;abbb&quot;，&quot;abbbb&quot; 以及 &quot;abbbbb&quot;。&lt;/p&gt;&lt;p&gt;&amp;nbsp; 当 &quot;n&quot; 省略时，被默认为零。当 &quot;m&quot; 省略时，被默认为无限大。当 &quot;,m&quot; 省略时，就表示重复正好 &quot;n&quot; 次。例如:&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; 模式 &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; 匹配次数 &lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; \{,4} &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; 0，1，2，3 或 4&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; \{3,} &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; 3，4，5，等等&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; \{0,1} &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; 0 或 1，同 \=&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; \{0,} &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; 0 或 更多，同 *&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; \{1,} &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; 1 或 更多，同 \+&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; \{3} &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; 3&lt;/p&gt;
+&lt;p&gt;5，多选一匹配&lt;/p&gt;&lt;p&gt;在一个查找模式中，&quot;或&quot; 运算符是 &quot;\|&quot;。例如:&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; /foo\|bar&lt;/p&gt;&lt;p&gt;这个命令匹配了 &quot;foo&quot; 或 &quot;bar&quot;。更多的抉择可以连在后面:&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; /one\|two\|three&lt;/p&gt;&lt;p&gt;匹配 &quot;one&quot;，&quot;two&quot; 或 &quot;three&quot;。&lt;/p&gt;
+&lt;p&gt;&amp;nbsp; 如要匹配其多次重复，那么整个抉择结构须置于 &quot;\(&quot; 和 &quot;\)&quot; 之间:&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; /\(foo\|bar\)\+&lt;/p&gt;&lt;p&gt;这个命令匹配 &quot;foo&quot;，&quot;foobar&quot;，&quot;foofoo&quot;，&quot;barfoobar&quot;，等等。&lt;/p&gt;
+&lt;p&gt;&amp;nbsp; 再举个例子:&lt;/p&gt;&lt;p&gt;&amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; /end\(if\|while\|for\)&lt;/p&gt;&lt;p&gt;这个命令匹配 &quot;endif&quot;，&quot;endwhile&quot; 和 &quot;endfor&quot;。&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">VIM查找替换归纳总结zz</h2>
+	<div class="entry-content"><p><a href="http://spaces.msn.com/dingy/blog/cns!2F24B9E66A542581!327.entry" target="_blank" rel="external">http://spaces.msn.com/dingy/blog/cns!2F24B9E66A542581!327.entry</a>
+
+VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替换命令可以在全文中用一个单词替换另一个单词：</p><p>:%s/four/4/g</p><br><a id="more"></a><p>"%" 范围前缀表示在所有行中执行替换。最后的 "g" 标记表示替换行中的所有匹配点。如果仅仅对当前行进行操作，那么只要去掉%即可</p><p>&nbsp; 如果你有一个象 "thirtyfour" 这样的单词，上面的命令会出错。这种情况下，这个单词会被替换成"thirty4"。要解决这个问题，用 "\&lt;" 来指定匹配单词开头：</p><p>&nbsp; &nbsp; &nbsp;&nbsp; :%s/\&lt;four/4/g</p>
+<p>显然，这样在处理 "fourty" 的时候还是会出错。用 "\&gt;" 来解决这个问题：</p><p>&nbsp; &nbsp; &nbsp;&nbsp; :%s/\&lt;four\&gt;/4/g</p>
+<p>如果你在编码，你可能只想替换注释中的 "four"，而保留代码中的。由于这很难指定，可以在替换命令中加一个 "c" 标记，这样，Vim 会在每次替换前提示你：</p><p>&nbsp; &nbsp; &nbsp;&nbsp; :%s/\&lt;four\&gt;/4/gc</p>
+<p>2，删除多余的空格</p><p>要删除这些每行后面多余的空格，可以执行如下命令：</p><p>&nbsp; &nbsp; &nbsp;&nbsp; :%s/\s\+$//</p>
+<p>命令前面指明范围是 "%"，所以这会作用于整个文件。"substitute" 命令的匹配模式是</p><p>"\s\+$"。这表示行末（$）前的一个或者多个（\+）空格（\s）。替换命令的 "to" 部分是空的："//"。这样就会删除那些匹配的空白字符。</p>
+<p>3，匹配重复性模式</p><p>星号项 "*" 规定在它前面的项可以重复任意次。因此:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /a*</p><p>匹配 "a"，"aa"，"aaa"，等等。但也匹配 "" (空字串)，因为零次也包含在内。星号 "*" 仅仅应用于那个紧邻在它前面的项。因此 "ab*" 匹配 "a"，"ab"，"abb","abbb"，等等。如要多次重复整个字符串，那么该字符串必须被组成一个项。组成一项的方法就是在它前面加 "\("，后面加 "\)"。因此这个命令:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /\(ab\)*</p>
+<p>匹配: "ab"，"abab"，"ababab"，等等。而且也匹配 ""。</p>
+<p>要避免匹配空字串，使用 "\+"。这表示前面一项可以被匹配一次或多次。</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /ab\+</p><p>匹配 "ab"，"abb"，"abbb"，等等。它不匹配 后面没有跟随 "b" 的 "a"。</p>
+<p>要匹配一个可选项，用 "\="。 例如:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /folders\=</p><p>匹配 "folder" 和 "folders"。</p>
+<p>4，指定重复次数</p><p>要匹配某一项的特定次数重复，使用 "\{n,m}" 这样的形式。其中 "n" 和 "m" 都是数字。在它前面的那个项将被重复 "n" 到 "m" 次 (|inclusive| 包含 "n" 和 "m")。例如:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /ab\{3,5}</p><p>匹配 "abbb"，"abbbb" 以及 "abbbbb"。</p><p>&nbsp; 当 "n" 省略时，被默认为零。当 "m" 省略时，被默认为无限大。当 ",m" 省略时，就表示重复正好 "n" 次。例如:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; 模式 &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 匹配次数 </p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{,4} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 0，1，2，3 或 4</p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{3,} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 3，4，5，等等</p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{0,1} &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 或 1，同 \=</p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{0,} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 0 或 更多，同 *</p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{1,} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 1 或 更多，同 \+</p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{3} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 3</p>
+<p>5，多选一匹配</p><p>在一个查找模式中，"或" 运算符是 "\|"。例如:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /foo\|bar</p><p>这个命令匹配了 "foo" 或 "bar"。更多的抉择可以连在后面:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /one\|two\|three</p><p>匹配 "one"，"two" 或 "three"。</p>
+<p>&nbsp; 如要匹配其多次重复，那么整个抉择结构须置于 "\(" 和 "\)" 之间:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /\(foo\|bar\)\+</p><p>这个命令匹配 "foo"，"foobar"，"foofoo"，"barfoobar"，等等。</p>
+<p>&nbsp; 再举个例子:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /end\(if\|while\|for\)</p><p>这个命令匹配 "endif"，"endwhile" 和 "endfor"。</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="search-in-vim/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'search-in-vim/';
+        var disqus_url = 'search-in-vim/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

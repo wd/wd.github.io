@@ -1,0 +1,277 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>Jemplate 的简单介绍 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="如果你还在用 php 写 web，那么你 out 了，呵呵。现在流行的是 rest + js。当然，rest 层可能还是 php 写的，不过还有用 perl 写的 openresty 1.0 和完全用 c 写的 openresty 2.0。openresty 是个很不错的东西，本来想细说一下，发现不知道怎么说好。去 cpan 上面搜吧。openresty 2.0 是基于 nginx 的，agentzh 在他上面加了好多的模块，让 nginx 直接和数据库通信，都不用 php 了。前端完全用 js 来搞定，以后应该都是 js 工程师了。
+
+smarty 写 php 的人应该都知道吧，Jemplate 是很类似的一个东西，是方便你写 js 的一个工具。我这写了一个非常简单的例子。
+
+下面这个是 Jemplate 的一个模板，保存为 test.tt。
+&lt;pre class=&quot;prettyprint&quot;&gt;
+&lt;div&gt;[% test %]&lt;/div&gt;
+&lt;p&gt;
+[% FILTER html %]
+    asdff &lt; sdf &gt; sdfsdf
+[% END %]
+&lt;/p&gt;
+&lt;/pre&gt;
+
+然后用 Jemplate 编译一下
+&lt;pre class=&quot;prettyprint&quot;&gt;
+jemplate --runtime &gt; a.js
+jemplate --compile test.tt &gt;&gt; a.js
+&lt;/pre&gt;
+
+这之后就和 test.tt 没关系了，除非你改了他，那就需要重新生成这个 a.js。
+
+再看我们的页面。里面 jquery-1.4.2.min.js 是为了方便操作页面使用的，jquery 决对是个好东西，写 js 应该使用他。那个 jquery.b.js 是我们自己写的，真正把数据添加到页面的代码。
+&lt;pre class=&quot;prettyprint&quot;&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;meta http-equiv=&quot;content-type&quot; content=&quot;text/html; charset=utf-8&quot;&gt;
+    &lt;title&gt;test&lt;/title&gt;
+    &lt;script src=&quot;jquery-1.4.2.min.js&quot; type=&quot;text/javascript&quot; charset=&quot;utf-8&quot;&gt; &lt;/script&gt;
+    &lt;script src=&quot;a.js&quot; type=&quot;text/javascript&quot; charset=&quot;utf-8&quot;&gt; &lt;/script&gt;
+    &lt;script src=&quot;jquery.b.js&quot; type=&quot;text/javascript&quot; charset=&quot;utf-8&quot;&gt; &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div id=&quot;main&quot;&gt;&lt;/div&gt;    
+&lt;/body&gt;
+&lt;/html&gt;
+&lt;/pre&gt;
+
+在这个 jquery.b.js 里面，我们让 jemplate 处理了一下 test.tt，给他里面的 test 变量赋值 ffffff，然后把设置到 #main 的 html 里面。
+&lt;pre class=&quot;prettyprint&quot;&gt;
+$(function() {
+    var html= Jemplate.process(
+        &#39;test.tt&#39;, { test: &#39;ffffff&#39; }
+    );
+
+    $(&#39;#main&#39;).html(html);
+});
+&lt;/pre&gt;
+
+这样这个页面就完事了，简单么，呵呵。你可以用 jemplate 和 js 强大的语法来实现更多的功能的。
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Jemplate 的简单介绍</h2>
+	<div class="entry-content">如果你还在用 php 写 web，那么你 out 了，呵呵。现在流行的是 rest + js。当然，rest 层可能还是 php 写的，不过还有用 perl 写的 openresty 1.0 和完全用 c 写的 openresty 2.0。openresty 是个很不错的东西，本来想细说一下，发现不知道怎么说好。去 cpan 上面搜吧。openresty 2.0 是基于 nginx 的，agentzh 在他上面加了好多的模块，让 nginx 直接和数据库通信，都不用 php 了。前端完全用 js 来搞定，以后应该都是 js 工程师了。
+
+smarty 写 php 的人应该都知道吧，Jemplate 是很类似的一个东西，是方便你写 js 的一个工具。我这写了一个非常简单的例子。
+
+下面这个是 Jemplate 的一个模板，保存为 test.tt。
+<pre class="prettyprint">
+<div>[% test %]</div>
+<p>
+[% FILTER html %]
+    asdff < sdf > sdfsdf
+[% END %]
+</p>
+</pre>
+
+然后用 Jemplate 编译一下
+<pre class="prettyprint">
+jemplate --runtime > a.js
+jemplate --compile test.tt >> a.js
+</pre>
+
+这之后就和 test.tt 没关系了，除非你改了他，那就需要重新生成这个 a.js。
+
+再看我们的页面。里面 jquery-1.4.2.min.js 是为了方便操作页面使用的，jquery 决对是个好东西，写 js 应该使用他。那个 jquery.b.js 是我们自己写的，真正把数据添加到页面的代码。
+<pre class="prettyprint">
+<html>
+<head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8">
+    <title>test</title>
+    <script src="jquery-1.4.2.min.js" type="text/javascript" charset="utf-8"> </script>
+    <script src="a.js" type="text/javascript" charset="utf-8"> </script>
+    <script src="jquery.b.js" type="text/javascript" charset="utf-8"> </script>
+</head>
+<body>
+<div id="main"></div>    
+</body>
+</html>
+</pre>
+
+在这个 jquery.b.js 里面，我们让 jemplate 处理了一下 test.tt，给他里面的 test 变量赋值 ffffff，然后把设置到 #main 的 html 里面。
+<pre class="prettyprint">
+$(function() {
+    var html= Jemplate.process(
+        'test.tt', { test: 'ffffff' }
+    );
+
+    $('#main').html(html);
+});
+</pre>
+
+这样这个页面就完事了，简单么，呵呵。你可以用 jemplate 和 js 强大的语法来实现更多的功能的。
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="introduce-to-jemplate/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'introduce-to-jemplate/';
+        var disqus_url = 'introduce-to-jemplate/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

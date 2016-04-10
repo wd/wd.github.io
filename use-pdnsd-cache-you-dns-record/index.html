@@ -1,0 +1,253 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>使用 pdnsd 来缓存 dns - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="如果你的网络实在很快，好像也没这个必要。当然我用他还有一个目的就是我的 dns 我做主，省的被劫持。
+
+打开一个网页有时候 dns 查询就占了一些时间，如果想把这个时间也节省下来，那可以试试看这个。类似的软件还有 dnsmasq，我觉得 dnsmasq 没 pdnsd 灵活一点，反正基本的缓存功能肯定是都有的。。。我这还有同事用 bind 做缓存，呵呵，选什么看各自喜好了。
+
+我用的 wicd, 他会修改 /etc/resolv.conf 这个文件，就算在他的设置里面设置了全局 dns 也没用。不过还好他提供了一个 /etc/resolv.conf.head 文件。这个文件里面的东西会被放到 /etc/resolv.conf 的开头。所以我在那里面写上了 nameserver 127.0.0.1。
+
+具体到 pdns 的设置，好像我也没改什么。
+&lt;pre class=&quot;prettyprint lang-conf&quot;&gt;
+server {
+	label = &quot;opendns&quot;;
+	ip = 202.181.224.2, 202.181.202.140;
+	#ip = 208.67.222.222, 208.67.220.220;
+#	reject = 208.69.32.0/24,  # You may need to add additional address ranges
+#	         208.69.34.0/24,  # here if the addresses of their search engines
+#	         208.67.219.0/24; # change.
+	reject_policy = fail;     # If you do not provide any alternative server
+	                          # sections, like the following root-server
+	                          # example, &quot;negate&quot; may be more appropriate here.
+	timeout = 4;
+	uptest = ping;            # Test availability using ICMP echo requests.
+   ping_timeout = 100;       # ping test will time out after 10 seconds.
+	interval = 15m;           # Test every 15 minutes.
+	preset = off;
+	policy=included;
+	exclude=&quot;.abc.com&quot;;
+}
+
+server {
+	label = &quot;yahoo&quot;;
+	ip = 10.62.163.4, 10.62.163.9;
+	timeout = 4;
+	uptest = ping;
+	ping_timeout = 100;
+	interval = 15m;
+}
+&lt;/pre&gt;
+
+我设置两个 server。第一个解析除了 .abc.com 之外的，第二个解析 .abc.com 。这个 abc.com 实际上是我们内网的一个地址，只能在内网 dns 解析。
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">使用 pdnsd 来缓存 dns</h2>
+	<div class="entry-content">如果你的网络实在很快，好像也没这个必要。当然我用他还有一个目的就是我的 dns 我做主，省的被劫持。
+
+打开一个网页有时候 dns 查询就占了一些时间，如果想把这个时间也节省下来，那可以试试看这个。类似的软件还有 dnsmasq，我觉得 dnsmasq 没 pdnsd 灵活一点，反正基本的缓存功能肯定是都有的。。。我这还有同事用 bind 做缓存，呵呵，选什么看各自喜好了。
+
+我用的 wicd, 他会修改 /etc/resolv.conf 这个文件，就算在他的设置里面设置了全局 dns 也没用。不过还好他提供了一个 /etc/resolv.conf.head 文件。这个文件里面的东西会被放到 /etc/resolv.conf 的开头。所以我在那里面写上了 nameserver 127.0.0.1。
+
+具体到 pdns 的设置，好像我也没改什么。
+<pre class="prettyprint lang-conf">
+server {
+	label = "opendns";
+	ip = 202.181.224.2, 202.181.202.140;
+	#ip = 208.67.222.222, 208.67.220.220;
+#	reject = 208.69.32.0/24,  # You may need to add additional address ranges
+#	         208.69.34.0/24,  # here if the addresses of their search engines
+#	         208.67.219.0/24; # change.
+	reject_policy = fail;     # If you do not provide any alternative server
+	                          # sections, like the following root-server
+	                          # example, "negate" may be more appropriate here.
+	timeout = 4;
+	uptest = ping;            # Test availability using ICMP echo requests.
+   ping_timeout = 100;       # ping test will time out after 10 seconds.
+	interval = 15m;           # Test every 15 minutes.
+	preset = off;
+	policy=included;
+	exclude=".abc.com";
+}
+
+server {
+	label = "yahoo";
+	ip = 10.62.163.4, 10.62.163.9;
+	timeout = 4;
+	uptest = ping;
+	ping_timeout = 100;
+	interval = 15m;
+}
+</pre>
+
+我设置两个 server。第一个解析除了 .abc.com 之外的，第二个解析 .abc.com 。这个 abc.com 实际上是我们内网的一个地址，只能在内网 dns 解析。
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="use-pdnsd-cache-you-dns-record/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'use-pdnsd-cache-you-dns-record/';
+        var disqus_url = 'use-pdnsd-cache-you-dns-record/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

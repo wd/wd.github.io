@@ -1,0 +1,363 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>alarm 使用不当遇到的问题 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。
+&lt;/p&gt;
+&lt;p&gt;
+大概流程是有个 perl 程序 a.pl
+&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;
+.....
+my $pid = fork();
+if ( !$pid ) {
+   my $cmdRet = `b.pl 2&gt;&amp;1`;
+   print FILE $cmdRet;
+   if ( $status ) {
+       warn &quot;task failed&quot;;
+   } else {
+      warn &quot;task success&quot;;
+   }
+   exit;
+}
+
+waitpid ........
+&lt;/pre&gt;
+&lt;p&gt;
+b.pl 里面会执行 rsync 去获取一些文件，他会循环到几个机器上面去 rsync
+&lt;pre class=&quot;prettyprint&quot;&gt;
+for ( @hosts ) {
+    my $result = `rsync xxxxx 2&gt;&amp;1`;
+    if ( $? ) {
+        log($result);
+        log(&quot;failed&quot;);
+    } else {
+        log($result);
+        log(&quot;success&quot;);
+    }
+}
+
+sub log {
+    my $msg = shift;
+    print $msg;
+    # 然后通过 IO::Socket::INET 发送给另外一个 server  a
+}
+&lt;/pre&gt;
+
+现象是，时不时的， b.pl 会只 rsync 了某几台(不确定是几台)机器上面的文件，然后就不继续了，从 server a 上面能收到他发日志，最后一条是 success 的信息
+&lt;/p&gt;
+&lt;p&gt;
+从 a.pl 记录的日志那里看, FILE 里面记录的内容丢失了 server a 收到的最后一部分的数据，多少数据不一定，不过肯定是没有那个 success 信息。 这个文件里面也没有任何的错误信息。
+&lt;/p&gt;
+&lt;p&gt;
+程序代码啥的都不动，rsync 的文件数不是总是一样的，也有文件多的时候没出错的时候,同时也设置了打开文件数为 65536.
+&lt;/p&gt;
+&lt;p&gt;
+后来发现问题就在 b.pl 里面的 log 里面。因为要发送到其他机器，怕挂住影响后续程序，所以设置了一个 alarm。
+&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;
+eval {
+    alarm 5;
+    xxxxxxx;
+    alarm 0;
+};
+
+if ( $@ ) {
+    print &quot;error when send&quot;;
+}
+&lt;/pre&gt;
+
+&lt;p&gt;
+这个 alarm 没有设置 handle 的函数，这样就会导致 alarm 到期的时候，会直接让整个 perl 程序挂掉，并显示 &quot;Alarm clock&quot;，而且这个输出不在标准错误和标准输出里面。
+&lt;/p&gt;
+&lt;p&gt;
+修复也简单，alarm 前设置一个 handler 就好了。
+&lt;/p&gt;
+&lt;p&gt;
+另外，还有个问题，一个 alarm 会中断前一个 alarm，所以类似 sleep 的使用，可以这样
+&lt;/p&gt;
+
+&lt;pre class=&quot;prettyprint&quot;&gt;
+my $previousAlarm = 0;
+eval {
+    local $SIG{ALRM} = sub { die &#39;alarm&#39;; };
+    $previousAlarm = alarm 5;
+     xxxx
+     alarm 0;
+};
+alarm 0;
+
+if ( $@ ) {
+    xxxxx;
+}
+
+alarm $previousAlarm;
+&lt;/pre&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">alarm 使用不当遇到的问题</h2>
+	<div class="entry-content"><p>前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。
+</p>
+<p>
+大概流程是有个 perl 程序 a.pl
+</p>
+
+<pre class="prettyprint">
+.....
+my $pid = fork();
+if ( !$pid ) {
+   my $cmdRet = `b.pl 2>&1`;
+   print FILE $cmdRet;
+   if ( $status ) {
+       warn "task failed";
+   } else {
+      warn "task success";
+   }
+   exit;
+}
+
+waitpid ........
+</pre>
+<p>
+b.pl 里面会执行 rsync 去获取一些文件，他会循环到几个机器上面去 rsync
+<pre class="prettyprint">
+for ( @hosts ) {
+    my $result = `rsync xxxxx 2>&1`;
+    if ( $? ) {
+        log($result);
+        log("failed");
+    } else {
+        log($result);
+        log("success");
+    }
+}
+
+sub log {
+    my $msg = shift;
+    print $msg;
+    # 然后通过 IO::Socket::INET 发送给另外一个 server  a
+}
+</pre>
+
+现象是，时不时的， b.pl 会只 rsync 了某几台(不确定是几台)机器上面的文件，然后就不继续了，从 server a 上面能收到他发日志，最后一条是 success 的信息
+</p>
+<p>
+从 a.pl 记录的日志那里看, FILE 里面记录的内容丢失了 server a 收到的最后一部分的数据，多少数据不一定，不过肯定是没有那个 success 信息。 这个文件里面也没有任何的错误信息。
+</p>
+<p>
+程序代码啥的都不动，rsync 的文件数不是总是一样的，也有文件多的时候没出错的时候,同时也设置了打开文件数为 65536.
+</p>
+<p>
+后来发现问题就在 b.pl 里面的 log 里面。因为要发送到其他机器，怕挂住影响后续程序，所以设置了一个 alarm。
+</p>
+
+<pre class="prettyprint">
+eval {
+    alarm 5;
+    xxxxxxx;
+    alarm 0;
+};
+
+if ( $@ ) {
+    print "error when send";
+}
+</pre>
+
+<p>
+这个 alarm 没有设置 handle 的函数，这样就会导致 alarm 到期的时候，会直接让整个 perl 程序挂掉，并显示 "Alarm clock"，而且这个输出不在标准错误和标准输出里面。
+</p>
+<p>
+修复也简单，alarm 前设置一个 handler 就好了。
+</p>
+<p>
+另外，还有个问题，一个 alarm 会中断前一个 alarm，所以类似 sleep 的使用，可以这样
+</p>
+
+<pre class="prettyprint">
+my $previousAlarm = 0;
+eval {
+    local $SIG{ALRM} = sub { die 'alarm'; };
+    $previousAlarm = alarm 5;
+     xxxx
+     alarm 0;
+};
+alarm 0;
+
+if ( $@ ) {
+    xxxxx;
+}
+
+alarm $previousAlarm;
+</pre>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="alarm-signal-in-perl/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'alarm-signal-in-perl/';
+        var disqus_url = 'alarm-signal-in-perl/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

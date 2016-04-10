@@ -1,0 +1,217 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>今天又理解了nagios的两个配置 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;b&gt;Host and Service Dependencies&lt;/b&gt;
+
+当监控的host或者service之间有依赖关系的时候，可以通过定义dependence来让nagios知道应该通知什么。
+
+比如我这里的服务器都在idc托管，而我的nagios却是运行在公司的一台服务器上面。这样，有时候可能就需要考虑依赖关系了。比如当公司的网络出问题的时候（事实上经常出现），比如断网，总不能让他也认为是idc托管的服务器出问题了而给你发通知吧。host dependence正好可以解决这个问题。
+
+比如 A 是idc的，B 是公司的网关（或者某个应该一直在线的服务器，比如sina.com.cn）。当nagios检测到A连不上的时候，他会根据dependence来检测B，如果B也连不上了，那么就只通知你B连不上了。
+
+大概的配置如下
+&lt;pre class=&quot;prettyprint lang-text&quot;&gt;
+        host_name                       B
+        dependent_host_name             A
+        notification_failure_criteria   d,u
+        }&lt;/pre&gt;
+
+&lt;b&gt;Notification Escalations&lt;/b&gt;
+
+escalations 的意思就是扩大。整个这个的意思应该就是扩大通知范围。之前一直没理解是什么意思，今天看了才明白。其实就是定义出问题的时候，什么时候扩大通知。
+
+比如A服务器挂了，他对应的contactgroup就会立刻得到通知。但是，如果这个组里面的人在睡觉或者在做什么事情忽略了这个通知，怎么办呢？当然nagios会通知多次，但是如果这些都忽略掉了或者没有收到怎么办？这样这个escalations就有作用了，他可以定义几次通知contatgroup之后就开始通知别的人。还有一些别的功能，就不多说了。
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">今天又理解了nagios的两个配置</h2>
+	<div class="entry-content"><b>Host and Service Dependencies</b>
+
+当监控的host或者service之间有依赖关系的时候，可以通过定义dependence来让nagios知道应该通知什么。
+
+比如我这里的服务器都在idc托管，而我的nagios却是运行在公司的一台服务器上面。这样，有时候可能就需要考虑依赖关系了。比如当公司的网络出问题的时候（事实上经常出现），比如断网，总不能让他也认为是idc托管的服务器出问题了而给你发通知吧。host dependence正好可以解决这个问题。
+
+比如 A 是idc的，B 是公司的网关（或者某个应该一直在线的服务器，比如sina.com.cn）。当nagios检测到A连不上的时候，他会根据dependence来检测B，如果B也连不上了，那么就只通知你B连不上了。
+
+大概的配置如下
+<pre class="prettyprint lang-text">
+        host_name                       B
+        dependent_host_name             A
+        notification_failure_criteria   d,u
+        }</pre>
+
+<b>Notification Escalations</b>
+
+escalations 的意思就是扩大。整个这个的意思应该就是扩大通知范围。之前一直没理解是什么意思，今天看了才明白。其实就是定义出问题的时候，什么时候扩大通知。
+
+比如A服务器挂了，他对应的contactgroup就会立刻得到通知。但是，如果这个组里面的人在睡觉或者在做什么事情忽略了这个通知，怎么办呢？当然nagios会通知多次，但是如果这些都忽略掉了或者没有收到怎么办？这样这个escalations就有作用了，他可以定义几次通知contatgroup之后就开始通知别的人。还有一些别的功能，就不多说了。
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="nagios-conf/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'nagios-conf/';
+        var disqus_url = 'nagios-conf/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

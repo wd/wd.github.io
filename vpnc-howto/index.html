@@ -1,0 +1,235 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>说说 vpn - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="好久没更新了，最近改了改 vpnc 的设置，就发一个吧。
+
+有些公司启用了 vpn 来让员工可以访问到公司内网的一些信息，或者让员工访问公司服务器的时候更加安全。一般可以用 cisco 的硬件 vpn 来搞定，也可以用 linux 下面的 openvpn 之类软件来构建一个 vpn server。
+
+构建 vpn server 咱没搞过，我们公司用的是 cisco 的产品。连接 vpn server 的 client 有 vpnc 和 openvpn 什么的。
+
+我使用的是 vpnc。networkmanager 还有他的插件（当然，也有 openvpn 的），就是说你可以做到点点鼠标就连接上你的 vpn。不过我这里没用他，因为他缺少一些 vpnc 配置文件支持的配置项，曾经还修改过 net-misc/networkmanager-vpnc 0.6.4 的源代码，来做到支持我的 vpn server，后来发现图形界面的不可靠，有时候连不上，一些错误信息还看不到。升级到了 0.7 之后，也一直懒得改源代码，字符界面的用起来也不错。图形界面一定要改，因为我不能让他记住密码我们的密码是一个 pin 码 + token 生成的，token 是变化的。而有个 group 密码是必须要记住的，因为这个又长又没有规律。图形界面没办法实现这个组合，只能修改源代码硬写到代码里面。
+
+vpnc 的配置文件在 /etc/vpnc/ 下面。这里面有个 default.conf，当然你也可以写自己的 xxx.conf。如果执行 sudo vpnc xxx，那么用到的就是 xxx.conf，如果没有参数，那么使用 default.conf。
+&lt;pre class=&quot;prettyprint lang-conf&quot;&gt;
+# example vpnc configuration file
+# see vpnc --long-help for details
+
+#Interface name tun0
+#IKE DH Group dh2
+#Perfect Forward Secrecy nopfs
+
+# You may replace this script with something better
+Script /etc/vpnc/custom-script
+
+IPSec gateway vpn.xxx.com
+IPSec ID General
+IPSec secret xxxxxx
+Xauth username wd
+NAT Traversal Mode cisco-udp
+#Xauth password&lt;/pre&gt;
+gateway 就是你的 vpn server 的地址，IPSec secret 就是我说的 group pwd，Xauth password 是你的密码。还可以加上 debug level xxx 来显示 debug 信息，xxx 是一个数字，越大信息越多。
+
+注意里面有个 script 行，这个就是最近修改的一个参数。有时候使用 vpn 可能只是需要连接一下公司的服务器而已，我可不想让他作为我的默认路由，比如我在开 bt 下载的时候如果用了 vpn 作%
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">说说 vpn</h2>
+	<div class="entry-content">好久没更新了，最近改了改 vpnc 的设置，就发一个吧。
+
+有些公司启用了 vpn 来让员工可以访问到公司内网的一些信息，或者让员工访问公司服务器的时候更加安全。一般可以用 cisco 的硬件 vpn 来搞定，也可以用 linux 下面的 openvpn 之类软件来构建一个 vpn server。
+
+构建 vpn server 咱没搞过，我们公司用的是 cisco 的产品。连接 vpn server 的 client 有 vpnc 和 openvpn 什么的。
+
+我使用的是 vpnc。networkmanager 还有他的插件（当然，也有 openvpn 的），就是说你可以做到点点鼠标就连接上你的 vpn。不过我这里没用他，因为他缺少一些 vpnc 配置文件支持的配置项，曾经还修改过 net-misc/networkmanager-vpnc 0.6.4 的源代码，来做到支持我的 vpn server，后来发现图形界面的不可靠，有时候连不上，一些错误信息还看不到。升级到了 0.7 之后，也一直懒得改源代码，字符界面的用起来也不错。图形界面一定要改，因为我不能让他记住密码我们的密码是一个 pin 码 + token 生成的，token 是变化的。而有个 group 密码是必须要记住的，因为这个又长又没有规律。图形界面没办法实现这个组合，只能修改源代码硬写到代码里面。
+
+vpnc 的配置文件在 /etc/vpnc/ 下面。这里面有个 default.conf，当然你也可以写自己的 xxx.conf。如果执行 sudo vpnc xxx，那么用到的就是 xxx.conf，如果没有参数，那么使用 default.conf。
+<pre class="prettyprint lang-conf">
+# example vpnc configuration file
+# see vpnc --long-help for details
+
+#Interface name tun0
+#IKE DH Group dh2
+#Perfect Forward Secrecy nopfs
+
+# You may replace this script with something better
+Script /etc/vpnc/custom-script
+
+IPSec gateway vpn.xxx.com
+IPSec ID General
+IPSec secret xxxxxx
+Xauth username wd
+NAT Traversal Mode cisco-udp
+#Xauth password</pre>
+gateway 就是你的 vpn server 的地址，IPSec secret 就是我说的 group pwd，Xauth password 是你的密码。还可以加上 debug level xxx 来显示 debug 信息，xxx 是一个数字，越大信息越多。
+
+注意里面有个 script 行，这个就是最近修改的一个参数。有时候使用 vpn 可能只是需要连接一下公司的服务器而已，我可不想让他作为我的默认路由，比如我在开 bt 下载的时候如果用了 vpn 作%
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="vpnc-howto/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'vpnc-howto/';
+        var disqus_url = 'vpnc-howto/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

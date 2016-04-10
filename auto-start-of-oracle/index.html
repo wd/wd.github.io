@@ -1,0 +1,587 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>在linux重新启动下如何设置oracle服务自动开启 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="来源 &lt;a target=&quot;_blank&quot; href=&quot;http://community.csdn.net/Expert/FAQ/FAQ_Index.asp?id=210567&quot;&gt;这里&lt;/a&gt;
+
+我装的是redhat  linux  9，oracle9.2.0.1.0,用sqlplus  &quot;/as  sysdba&quot;  startup可开启实例服务，用lsnrctl  start开启侦听服务，但这些都是通过手工输入操作的，能不能有办法让这些服务就象在windows一样设置为自动，让他在重启之后就可自动运行
+---------------------------------------------------------------
+
+这个问题近期有人问过好多遍了，下面是  liuyi8903(好好学习)  的关于此问题的一个回复：
+
+下面是我在linux  as  3下做的:
+
+1.  创建文件/etc/oratab
+添加
+
+#添加如下内容到/etc/oratab文件中,
+#$ORACLE_SID是你的Oracle数据库的sid
+#$ORACLE_HOME是你的Oracle数据库的Oracle_home
+#Y表示要求在系统启动的时候启动Oracle数据库.N表示不要在系统启动的时候启动Oracle
+$ORACLE_SID:$ORACLE_HOME:Y
+
+&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;
+
+2.  修改文件/etc/rc.local添加一下两行
+su  -  oracle  -c  &#39;dbstart&#39;
+su  -  oracle  -c  &#39;lsnrctl  start&#39;
+---------------------------------------------------------------
+
+以下是10G在Linux下oracle自启动的官方表述，可以参考一下，9i应该也有这方面的表述，可以去www.oracle.com找9i的文档看看：
+
+
+1.Log  in  as  the  root  user.
+
+2.Edit  the  oratab  file  for  your  platform.
+
+To  open  the  file,  use  one  of  the  following  commands:
+
+On  Solaris:
+
+#  vi  /var/opt/oracle/oratab
+
+On  AIX,  HP-UX,  Linux,  and  Tru64  UNIX:
+
+#  vi  /etc/oratab
+
+Database  entries  in  the  oratab  file  are  displayed  in  the  following  format:
+
+SID:ORACLE_HOME:{Y  &amp;brvbarN  &amp;brvbarW}
+
+In  this  example,  the  values  Y  and  N  specify  whether  you  want  the  scripts  to  start  up  or  shut  down  the  database,  respectively.  For  each  database  for  which  you  want  to  automate  shutdown  and  startup,  first  determine  the  instance  identifier  (SID)  for  that  database,  which  is  identified  by  the  SID  in  the  first  field.  Then,  change  the  last  field  for  each  to  Y.
+
+You  can  set  dbstart  to  auto-start  a  single-instance  database  that  uses  an  Automatic  Storage  Management  installation  that  is  auto-started  by  Oracle  Clusterware.  This  is  the  default  behavior  for  an  Automatic  Storage  Management  cluster.  If  you  want  to  do  this,  then  you  must  change  the  oratab  entry  of  the  database  and  the  Automatic  Storage  Management  installation  to  use  a  third  field  with  the  value  W  and  N,  respectively.  These  values  specify  that  dbstart  auto-starts  the  database  only  after  the  Automatic  Storage  Management  instance  is  started.
+
+
+Note:
+
+If  you  add  new  database  instances  to  the  system  and  if  you  want  to  automate  startup  for  them,  then  you  must  edit  the  entries  for  those  instances  in  the  oratab  file.
+
+
+3.Change  directory  to  one  of  the  following  depending  on  your  operating  system:
+
+Platform  Initialization  File  Directory
+AIX  /etc
+Linux  and  Solaris  /etc/init.d
+HP-UX  and  Tru64  UNIX  /sbin/init.d
+
+
+4.Create  a  file  called  dbora,  and  copy  the  following  lines  into  this  file:
+
+
+Note:
+
+Change  the  value  of  the  ORACLE_HOME  environment  variable  to  an  Oracle  home  directory  for  the  installation.  Change  the  value  of  the  ORACLE  environment  variable  to  the  user  name  of  the  owner  of  the  database  installed  in  the  Oracle  home  directory  (typically,  oracle).
+
+
+#!  /bin/sh    -x
+#
+#  Change  the  value  of  ORACLE_HOME  to  specify  the  correct  Oracle  home
+#  directory  for  your  installation.
+
+ORACLE_HOME=/u01/app/oracle/product/10.2.0/db_1
+#
+#  Change  the  value  of  ORACLE  to  the  login  name  of  the
+#  oracle  owner  at  your  site.
+#
+ORACLE=oracle
+
+PATH=${PATH}:$ORACLE_HOME/bin
+HOST=`hostname`
+PLATFORM=`uname`
+export  ORACLE_HOME  PATH
+#
+if  [  !  &quot;$2&quot;  =  &quot;ORA_DB&quot;  ]  ;  then
+if  [  &quot;$PLATFORM&quot;  =  &quot;HP-UX&quot;  ]  ;  then
+remsh  $HOST  -l  $ORACLE  -n  &quot;$0  $1  ORA_DB&quot;
+exit
+else
+rsh  $HOST  -l  $ORACLE    $0  $1  ORA_DB
+exit
+fi
+fi
+#
+case  $1  in
+&#39;start&#39;)
+$ORACLE_HOME/bin/dbstart  $ORACLE_HOME  &amp;
+;;
+&#39;stop&#39;)
+$ORACLE_HOME/bin/dbshut  $ORACLE_HOME  &amp;
+;;
+*)
+echo  &quot;usage:  $0  {start  &amp;brvbarstop}&quot;
+exit
+;;
+esac
+#
+exit
+
+
+Note:
+
+This  script  can  only  stop  Oracle  Net  listener  for  which  a  password  has  not  been  set.  In  addition,  if  the  listener  name  is  not  the  default  name,  LISTENER,  then  you  must  specify  the  listener  name  in  the  stop  and  start  commands:
+$ORACLE_HOME/bin/lsnrctl  {start  &amp;brvbarstop}  listener_name
+
+
+
+5.Change  the  group  of  the  dbora  file  to  the  OSDBA  group  (typically  dba),  and  set  the  permissions  to  750:
+
+#  chgrp  dba  dbora
+#  chmod  750  dbora
+
+6.Create  symbolic  links  to  the  dbora  script  in  the  appropriate  run-level  script  directories  as  follows:
+
+Platform  Symbolic  Links  Commands
+
+Linux  #  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc3.d/K01dbora
+#  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc3.d/S99dbora
+#  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc5.d/K01dbora
+#  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc5.d/S99dbora
+---------------------------------------------------------------
+
+Oracle在linux下的自动启动脚本
+
+环境是redhat  9+oracle  9.2.0.4
+
+1、在/etc/rc.d/init.d下创建脚本，名字就取为oracle，内容如下。假设oracle的安装用户是ora9。
+case  &quot;$1&quot;  in
+start)
+echo  &quot;Starting  Oracle  Databases  ...  &quot;
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+date  +&quot;  %T  %a  %D  :  Starting  Oracle  Databasee  as  part  of  system  up.&quot;  &gt;&gt;  /var/log/oracle
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+su  -  ora9  -c  &quot;dbstart&quot;  &gt;&gt;  /var/log/oracle
+echo  &quot;Done.&quot;
+echo  &quot;Starting  Oracle  Listeners  ...  &quot;
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+date  +&quot;  %T  %a  %D  :  Starting  Oracle  Listeners  as  part  of  system  up.&quot;  &gt;&gt;  /var/log/oracle
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+su  -  ora9  -c  &quot;lsnrctl  start&quot;  &gt;&gt;  /var/log/oracle
+echo  &quot;Done.&quot;
+echo  &quot;&quot;
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+date  +&quot;  %T  %a  %D  :  Finished.&quot;  &gt;&gt;  /var/log/oracle
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+touch  /var/lock/subsys/oracle
+
+;;
+stop)
+echo  &quot;Stoping  Oracle  Listeners  ...  &quot;
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+date  +&quot;  %T  %a  %D  :  Stoping  Oracle  Listener  as  part  of  system  down.&quot;  &gt;&gt;  /var/log/oracle
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+su  -  ora9  -c  &quot;lsnrctl  stop&quot;  &gt;&gt;  /var/log/oracle
+echo  &quot;Done.&quot;
+rm  -f  /var/lock/subsys/oracle
+echo  &quot;Stoping  Oracle  Databases  ...  &quot;
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+date  +&quot;  %T  %a  %D  :  Stoping  Oracle  Databases  as  part  of  system  down.&quot;  &gt;&gt;  /var/log/oracle
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+su  -  ora9  -c  &quot;dbshut&quot;  &gt;&gt;/var/log/oracle
+echo  &quot;Done.&quot;
+echo  &quot;&quot;
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+date  +&quot;  %T  %a  %D  :  Finished.&quot;  &gt;&gt;  /var/log/oracle
+echo  &quot;-------------------------------------------------&quot;  &gt;&gt;  /var/log/oracle
+
+;;
+restart)
+$0  stop
+$0  start
+
+;;
+*)
+echo  &quot;Usage:  oracle  {start  &amp;brvbarstop  &amp;brvbarrestart}&quot;
+exit  1
+esac
+
+2、修改/etc/rc.d/init.d/oracle的属性为755。
+
+3、创建不同级别的link文件。
+$  ln  -s  /etc/rc.d/init.d/oracle  /etc/rc.d/rc5.d/S99oracle
+$  ln  -s  /etc/rc.d/init.d/oracle  /etc/rc.d/rc0.d/K01oracle
+$  ln  -s  /etc/rc.d/init.d/oracle  /etc/rc.d/rc1.d/K01oracle
+
+4、编辑/etc/oratab文件，设置需要自动启动的数据库实例。
+
+5、在$ORACLE_HOME/dbs下，创建符号连接文件init$ORACLE_SID
+cd  $ORACLE_HOME/dbs
+ln  -s  spfile$ORACLE_SID.ora  init$ORACLE_SID.ora
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">在linux重新启动下如何设置oracle服务自动开启</h2>
+	<div class="entry-content">来源 <a target="_blank" href="http://community.csdn.net/Expert/FAQ/FAQ_Index.asp?id=210567">这里</a>
+
+我装的是redhat  linux  9，oracle9.2.0.1.0,用sqlplus  "/as  sysdba"  startup可开启实例服务，用lsnrctl  start开启侦听服务，但这些都是通过手工输入操作的，能不能有办法让这些服务就象在windows一样设置为自动，让他在重启之后就可自动运行
+---------------------------------------------------------------
+
+这个问题近期有人问过好多遍了，下面是  liuyi8903(好好学习)  的关于此问题的一个回复：
+
+下面是我在linux  as  3下做的:
+
+1.  创建文件/etc/oratab
+添加
+
+#添加如下内容到/etc/oratab文件中,
+#$ORACLE_SID是你的Oracle数据库的sid
+#$ORACLE_HOME是你的Oracle数据库的Oracle_home
+#Y表示要求在系统启动的时候启动Oracle数据库.N表示不要在系统启动的时候启动Oracle
+$ORACLE_SID:$ORACLE_HOME:Y
+
+<a id="more"></a>
+
+2.  修改文件/etc/rc.local添加一下两行
+su  -  oracle  -c  'dbstart'
+su  -  oracle  -c  'lsnrctl  start'
+---------------------------------------------------------------
+
+以下是10G在Linux下oracle自启动的官方表述，可以参考一下，9i应该也有这方面的表述，可以去www.oracle.com找9i的文档看看：
+
+
+1.Log  in  as  the  root  user.
+
+2.Edit  the  oratab  file  for  your  platform.
+
+To  open  the  file,  use  one  of  the  following  commands:
+
+On  Solaris:
+
+#  vi  /var/opt/oracle/oratab
+
+On  AIX,  HP-UX,  Linux,  and  Tru64  UNIX:
+
+#  vi  /etc/oratab
+
+Database  entries  in  the  oratab  file  are  displayed  in  the  following  format:
+
+SID:ORACLE_HOME:{Y  &brvbarN  &brvbarW}
+
+In  this  example,  the  values  Y  and  N  specify  whether  you  want  the  scripts  to  start  up  or  shut  down  the  database,  respectively.  For  each  database  for  which  you  want  to  automate  shutdown  and  startup,  first  determine  the  instance  identifier  (SID)  for  that  database,  which  is  identified  by  the  SID  in  the  first  field.  Then,  change  the  last  field  for  each  to  Y.
+
+You  can  set  dbstart  to  auto-start  a  single-instance  database  that  uses  an  Automatic  Storage  Management  installation  that  is  auto-started  by  Oracle  Clusterware.  This  is  the  default  behavior  for  an  Automatic  Storage  Management  cluster.  If  you  want  to  do  this,  then  you  must  change  the  oratab  entry  of  the  database  and  the  Automatic  Storage  Management  installation  to  use  a  third  field  with  the  value  W  and  N,  respectively.  These  values  specify  that  dbstart  auto-starts  the  database  only  after  the  Automatic  Storage  Management  instance  is  started.
+
+
+Note:
+
+If  you  add  new  database  instances  to  the  system  and  if  you  want  to  automate  startup  for  them,  then  you  must  edit  the  entries  for  those  instances  in  the  oratab  file.
+
+
+3.Change  directory  to  one  of  the  following  depending  on  your  operating  system:
+
+Platform  Initialization  File  Directory
+AIX  /etc
+Linux  and  Solaris  /etc/init.d
+HP-UX  and  Tru64  UNIX  /sbin/init.d
+
+
+4.Create  a  file  called  dbora,  and  copy  the  following  lines  into  this  file:
+
+
+Note:
+
+Change  the  value  of  the  ORACLE_HOME  environment  variable  to  an  Oracle  home  directory  for  the  installation.  Change  the  value  of  the  ORACLE  environment  variable  to  the  user  name  of  the  owner  of  the  database  installed  in  the  Oracle  home  directory  (typically,  oracle).
+
+
+#!  /bin/sh    -x
+#
+#  Change  the  value  of  ORACLE_HOME  to  specify  the  correct  Oracle  home
+#  directory  for  your  installation.
+
+ORACLE_HOME=/u01/app/oracle/product/10.2.0/db_1
+#
+#  Change  the  value  of  ORACLE  to  the  login  name  of  the
+#  oracle  owner  at  your  site.
+#
+ORACLE=oracle
+
+PATH=${PATH}:$ORACLE_HOME/bin
+HOST=`hostname`
+PLATFORM=`uname`
+export  ORACLE_HOME  PATH
+#
+if  [  !  "$2"  =  "ORA_DB"  ]  ;  then
+if  [  "$PLATFORM"  =  "HP-UX"  ]  ;  then
+remsh  $HOST  -l  $ORACLE  -n  "$0  $1  ORA_DB"
+exit
+else
+rsh  $HOST  -l  $ORACLE    $0  $1  ORA_DB
+exit
+fi
+fi
+#
+case  $1  in
+'start')
+$ORACLE_HOME/bin/dbstart  $ORACLE_HOME  &
+;;
+'stop')
+$ORACLE_HOME/bin/dbshut  $ORACLE_HOME  &
+;;
+*)
+echo  "usage:  $0  {start  &brvbarstop}"
+exit
+;;
+esac
+#
+exit
+
+
+Note:
+
+This  script  can  only  stop  Oracle  Net  listener  for  which  a  password  has  not  been  set.  In  addition,  if  the  listener  name  is  not  the  default  name,  LISTENER,  then  you  must  specify  the  listener  name  in  the  stop  and  start  commands:
+$ORACLE_HOME/bin/lsnrctl  {start  &brvbarstop}  listener_name
+
+
+
+5.Change  the  group  of  the  dbora  file  to  the  OSDBA  group  (typically  dba),  and  set  the  permissions  to  750:
+
+#  chgrp  dba  dbora
+#  chmod  750  dbora
+
+6.Create  symbolic  links  to  the  dbora  script  in  the  appropriate  run-level  script  directories  as  follows:
+
+Platform  Symbolic  Links  Commands
+
+Linux  #  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc3.d/K01dbora
+#  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc3.d/S99dbora
+#  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc5.d/K01dbora
+#  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc5.d/S99dbora
+---------------------------------------------------------------
+
+Oracle在linux下的自动启动脚本
+
+环境是redhat  9+oracle  9.2.0.4
+
+1、在/etc/rc.d/init.d下创建脚本，名字就取为oracle，内容如下。假设oracle的安装用户是ora9。
+case  "$1"  in
+start)
+echo  "Starting  Oracle  Databases  ...  "
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+date  +"  %T  %a  %D  :  Starting  Oracle  Databasee  as  part  of  system  up."  >>  /var/log/oracle
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+su  -  ora9  -c  "dbstart"  >>  /var/log/oracle
+echo  "Done."
+echo  "Starting  Oracle  Listeners  ...  "
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+date  +"  %T  %a  %D  :  Starting  Oracle  Listeners  as  part  of  system  up."  >>  /var/log/oracle
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+su  -  ora9  -c  "lsnrctl  start"  >>  /var/log/oracle
+echo  "Done."
+echo  ""
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+date  +"  %T  %a  %D  :  Finished."  >>  /var/log/oracle
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+touch  /var/lock/subsys/oracle
+
+;;
+stop)
+echo  "Stoping  Oracle  Listeners  ...  "
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+date  +"  %T  %a  %D  :  Stoping  Oracle  Listener  as  part  of  system  down."  >>  /var/log/oracle
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+su  -  ora9  -c  "lsnrctl  stop"  >>  /var/log/oracle
+echo  "Done."
+rm  -f  /var/lock/subsys/oracle
+echo  "Stoping  Oracle  Databases  ...  "
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+date  +"  %T  %a  %D  :  Stoping  Oracle  Databases  as  part  of  system  down."  >>  /var/log/oracle
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+su  -  ora9  -c  "dbshut"  >>/var/log/oracle
+echo  "Done."
+echo  ""
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+date  +"  %T  %a  %D  :  Finished."  >>  /var/log/oracle
+echo  "-------------------------------------------------"  >>  /var/log/oracle
+
+;;
+restart)
+$0  stop
+$0  start
+
+;;
+*)
+echo  "Usage:  oracle  {start  &brvbarstop  &brvbarrestart}"
+exit  1
+esac
+
+2、修改/etc/rc.d/init.d/oracle的属性为755。
+
+3、创建不同级别的link文件。
+$  ln  -s  /etc/rc.d/init.d/oracle  /etc/rc.d/rc5.d/S99oracle
+$  ln  -s  /etc/rc.d/init.d/oracle  /etc/rc.d/rc0.d/K01oracle
+$  ln  -s  /etc/rc.d/init.d/oracle  /etc/rc.d/rc1.d/K01oracle
+
+4、编辑/etc/oratab文件，设置需要自动启动的数据库实例。
+
+5、在$ORACLE_HOME/dbs下，创建符号连接文件init$ORACLE_SID
+cd  $ORACLE_HOME/dbs
+ln  -s  spfile$ORACLE_SID.ora  init$ORACLE_SID.ora
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="auto-start-of-oracle/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'auto-start-of-oracle/';
+        var disqus_url = 'auto-start-of-oracle/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

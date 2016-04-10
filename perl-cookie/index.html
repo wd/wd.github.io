@@ -1,0 +1,259 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>使用 perl 来登录网页 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="应该不能用。。。只是为了记录
+
+使用 LWP::UserAgent 可以简单的去访问网页，获取页面内容。例如
+
+&lt;pre class=&quot;prettyprint lang-perl&quot;&gt;
+use LWP::UserAgent;
+
+my $ua = LWP::UserAgent-&gt;new();
+$ua-&gt;timeout(10);
+$ua-&gt;agent(&#39;mozilla&#39;);
+
+my $r = $ua-&gt;get(&#39;http::/www.google.com&#39;);
+print $r-&gt;content; # or $r-&gt;decoded-&gt;content
+&lt;/pre&gt;
+
+$r 的其它属性可以去 cpan 看看。这样就获取到了内容。但是，如果一个网页是需要登录的怎么办？可以用保存 cookie 的方式。
+
+&lt;pre class=&quot;prettyprint lang-perl&quot;&gt;
+use LWP::UserAgent;
+use HTTP::Cookies;
+use Digest::MD5 qw(md5 md5_hex); # 用来生成 md5 的
+use JSON; # 用来在 json 串和 perl 的 hash 串之间转换
+use Data::Dumper;
+
+my $cookie_jar = HTTP::Cookies-&gt;new(
+	file =&gt; &quot;lw.dat&quot;,
+	autosave =&gt; 1
+);
+
+my $ua = LWP::UserAgent-&gt;new();
+$ua-&gt;timeout(10);
+$ua-&gt;agent(&#39;mozilla&#39;);
+
+my(@rest) = (&quot;/&quot;, &quot;.yahoo.com&quot;, undef, 0, 0, 60*60, 0);
+$cookie_jar-&gt;set_cookie(0, &#39;session&#39;, $session, @rest);
+
+$ua-&gt;cookie_jar($cookie_jar);
+
+$o = $ua-&gt;get($url);
+........
+&lt;/pre&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">使用 perl 来登录网页</h2>
+	<div class="entry-content">应该不能用。。。只是为了记录
+
+使用 LWP::UserAgent 可以简单的去访问网页，获取页面内容。例如
+
+<pre class="prettyprint lang-perl">
+use LWP::UserAgent;
+
+my $ua = LWP::UserAgent->new();
+$ua->timeout(10);
+$ua->agent('mozilla');
+
+my $r = $ua->get('http::/www.google.com');
+print $r->content; # or $r->decoded->content
+</pre>
+
+$r 的其它属性可以去 cpan 看看。这样就获取到了内容。但是，如果一个网页是需要登录的怎么办？可以用保存 cookie 的方式。
+
+<pre class="prettyprint lang-perl">
+use LWP::UserAgent;
+use HTTP::Cookies;
+use Digest::MD5 qw(md5 md5_hex); # 用来生成 md5 的
+use JSON; # 用来在 json 串和 perl 的 hash 串之间转换
+use Data::Dumper;
+
+my $cookie_jar = HTTP::Cookies->new(
+	file => "lw.dat",
+	autosave => 1
+);
+
+my $ua = LWP::UserAgent->new();
+$ua->timeout(10);
+$ua->agent('mozilla');
+
+my(@rest) = ("/", ".yahoo.com", undef, 0, 0, 60*60, 0);
+$cookie_jar->set_cookie(0, 'session', $session, @rest);
+
+$ua->cookie_jar($cookie_jar);
+
+$o = $ua->get($url);
+........
+</pre>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="perl-cookie/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'perl-cookie/';
+        var disqus_url = 'perl-cookie/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

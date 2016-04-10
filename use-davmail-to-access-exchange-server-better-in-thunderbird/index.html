@@ -1,0 +1,297 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>thunderbird 和 davmail 配合连接 exchange - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="
+&lt;p&gt;exchange 是个恶心玩意，虽然提供了 imap 接口，但是速度巨慢，发送接收都慢。davmail 可以解决这个问题。
+&lt;/p&gt;
+
+&lt;div id=&quot;outline-container-1&quot; class=&quot;outline-2&quot;&gt;
+&lt;h2 id=&quot;sec-1&quot;&gt;davmail 能干啥&lt;/h2&gt;
+&lt;div class=&quot;outline-text-2&quot; id=&quot;text-1&quot;&gt;
+
+
+&lt;p&gt;
+&lt;a href=&quot;http://davmail.sourceforge.net/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;davmail&lt;/a&gt; 可以理解为就是一个 proxy，他负责和 exchange 通讯，其他邮件客户端连接 davmail 来获取邮件什么的。网站上面有图，看
+着更加直观一点。
+&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div id=&quot;outline-container-2&quot; class=&quot;outline-2&quot;&gt;
+&lt;h2 id=&quot;sec-2&quot;&gt;安装配置 davmail&lt;/h2&gt;
+&lt;div class=&quot;outline-text-2&quot; id=&quot;text-2&quot;&gt;
+
+
+&lt;p&gt;
+ubuntu 里面好像直接就有，apt-get 安装就可以了。gentoo 里面没有，我在 overlay 里面找到一个 ebuild，自己修了一下，放到我的
+&lt;a href=&quot;https://github.com/wd/overlay&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;overlay&lt;/a&gt; 了，在 net-mail/davmail-bin 下面。启用 server 这个 use。
+&lt;/p&gt;
+&lt;p&gt;
+安装后会创建一个 davmail 用户，需要建立一个 /var/log/davmail 的目录，给 davmail 写权限。
+&lt;/p&gt;
+&lt;p&gt;
+然后手动运行 &lt;i&gt;opt/davmail/davmail.sh，有界面，配置好 exchange owa 的地址，保存，会生成 ~&lt;/i&gt;.davmail.properties 文件。
+&lt;/p&gt;
+&lt;p&gt;
+这里有个问题，如果 owa 地址是 http 的，那直接继续下面的就可以了，如果是 https 的，那还需要配置对应的 ssl 相关参数。我是
+直接在 thunderbird 里面配置好之后，收了一下邮件，然后会提示一个什么证书的东西，这之后再继续下面的事情就可以了，这个时候
+他会给你配置好里面 ssl 相关的东西。
+&lt;/p&gt;
+&lt;p&gt;
+复制到 /etc/davmail.properties，把里面的 davmail.server=fales 改成 true，设置好 log 为 /var/log/davmail/davmail.log，级
+别先使用 debug，测试好了之后改成 warn。
+&lt;/p&gt;
+&lt;/div&gt;
+
+&lt;/div&gt;
+
+&lt;div id=&quot;outline-container-3&quot; class=&quot;outline-2&quot;&gt;
+&lt;h2 id=&quot;sec-3&quot;&gt;配置 thunderbird&lt;/h2&gt;
+&lt;div class=&quot;outline-text-2&quot; id=&quot;text-3&quot;&gt;
+
+
+&lt;p&gt;
+参考 davmail 网站上面关于 thunderbird 的配置就好了。
+&lt;/p&gt;
+&lt;p&gt;
+可配置的有接收，发送，地址簿，日历。
+&lt;/p&gt;
+&lt;p&gt;
+排错就看看 /var/log/davmail/davmail.log 把，信息很详细。  
+&lt;/p&gt;&lt;/div&gt;
+&lt;/div&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">thunderbird 和 davmail 配合连接 exchange</h2>
+	<div class="entry-content">
+<p>exchange 是个恶心玩意，虽然提供了 imap 接口，但是速度巨慢，发送接收都慢。davmail 可以解决这个问题。
+</p>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1">davmail 能干啥</h2>
+<div class="outline-text-2" id="text-1">
+
+
+<p>
+<a href="http://davmail.sourceforge.net/" target="_blank" rel="external">davmail</a> 可以理解为就是一个 proxy，他负责和 exchange 通讯，其他邮件客户端连接 davmail 来获取邮件什么的。网站上面有图，看
+着更加直观一点。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2">安装配置 davmail</h2>
+<div class="outline-text-2" id="text-2">
+
+
+<p>
+ubuntu 里面好像直接就有，apt-get 安装就可以了。gentoo 里面没有，我在 overlay 里面找到一个 ebuild，自己修了一下，放到我的
+<a href="https://github.com/wd/overlay" target="_blank" rel="external">overlay</a> 了，在 net-mail/davmail-bin 下面。启用 server 这个 use。
+</p>
+<p>
+安装后会创建一个 davmail 用户，需要建立一个 /var/log/davmail 的目录，给 davmail 写权限。
+</p>
+<p>
+然后手动运行 <i>opt/davmail/davmail.sh，有界面，配置好 exchange owa 的地址，保存，会生成 ~</i>.davmail.properties 文件。
+</p>
+<p>
+这里有个问题，如果 owa 地址是 http 的，那直接继续下面的就可以了，如果是 https 的，那还需要配置对应的 ssl 相关参数。我是
+直接在 thunderbird 里面配置好之后，收了一下邮件，然后会提示一个什么证书的东西，这之后再继续下面的事情就可以了，这个时候
+他会给你配置好里面 ssl 相关的东西。
+</p>
+<p>
+复制到 /etc/davmail.properties，把里面的 davmail.server=fales 改成 true，设置好 log 为 /var/log/davmail/davmail.log，级
+别先使用 debug，测试好了之后改成 warn。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3">配置 thunderbird</h2>
+<div class="outline-text-2" id="text-3">
+
+
+<p>
+参考 davmail 网站上面关于 thunderbird 的配置就好了。
+</p>
+<p>
+可配置的有接收，发送，地址簿，日历。
+</p>
+<p>
+排错就看看 /var/log/davmail/davmail.log 把，信息很详细。  
+</p></div>
+</div>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="use-davmail-to-access-exchange-server-better-in-thunderbird/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'use-davmail-to-access-exchange-server-better-in-thunderbird/';
+        var disqus_url = 'use-davmail-to-access-exchange-server-better-in-thunderbird/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

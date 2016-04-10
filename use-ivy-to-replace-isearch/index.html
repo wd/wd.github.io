@@ -1,0 +1,187 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>use ivy to replace isearch - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;之前习惯使用 &lt;code&gt;isearch&lt;/code&gt; 来搜索了，最近看别人使用 &lt;code&gt;ivy&lt;/code&gt; 看着心痒痒的，就想试试看。其实 ivy 的效果和 &lt;code&gt;swoop&lt;/code&gt; 很像，不过区别是 ivy 是在 minibuffer 来显示可选信息的，swoop 是在一个 buffer 显示的。有洁癖的可能稍微计较一下。&lt;/p&gt;
+&lt;figure class=&quot;highlight scheme&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;2&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;3&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;4&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;5&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;6&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;7&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;8&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;9&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;10&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;11&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;12&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;13&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;14&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;15&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;16&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;17&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;18&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;19&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;20&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;21&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;22&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;23&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;24&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;25&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;;; ivy swiper&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;defun&lt;/span&gt; wd-swiper-at-point &lt;span class=&quot;list&quot;&gt;()&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;string&quot;&gt;&quot;Pull next word from buffer into search string.&quot;&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;interactive&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;let&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;query&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;with-ivy-window&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;      &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;let&lt;/span&gt;&lt;/span&gt; &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;tmp&lt;/span&gt; &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;symbol-at-point&lt;/span&gt;)&lt;/span&gt;)&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;        &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;setq&lt;/span&gt; query tmp)&lt;/span&gt;)&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;    &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;when&lt;/span&gt;&lt;/span&gt; query&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;      &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;insert&lt;/span&gt; &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;format&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;%s&quot;&lt;/span&gt; query)&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;      )&lt;/span&gt;)&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;use-package&lt;/span&gt; ivy&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  :config&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;ivy-mode&lt;/span&gt; &lt;span class=&quot;number&quot;&gt;1&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;setq&lt;/span&gt; ivy-use-virtual-buffers t)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;set-variable&lt;/span&gt; &lt;span class=&quot;variable&quot;&gt;&#39;ivy-on-del-error-function&lt;/span&gt; &#39;&lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;&lt;span class=&quot;built_in&quot;&gt;lambda&lt;/span&gt;&lt;/span&gt;&lt;span class=&quot;list&quot;&gt;()&lt;/span&gt;)&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  )&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;&lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;use-package&lt;/span&gt; swiper&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  :config&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;global-set-key&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;\C-s&quot;&lt;/span&gt; &lt;span class=&quot;variable&quot;&gt;&#39;swiper&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;define-key&lt;/span&gt; swiper-map &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;kbd&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;C-w&quot;&lt;/span&gt;)&lt;/span&gt; &lt;span class=&quot;variable&quot;&gt;&#39;wd-swiper-at-point&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;define-key&lt;/span&gt; swiper-map &lt;span class=&quot;list&quot;&gt;(&lt;span class=&quot;keyword&quot;&gt;kbd&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;C-f&quot;&lt;/span&gt;)&lt;/span&gt; &lt;span class=&quot;variable&quot;&gt;&#39;swiper-avy&lt;/span&gt;)&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;span class=&quot;line&quot;&gt;  )&lt;/span&gt;&lt;/span&gt;&lt;br&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;我大致做了上面几个设定，&lt;code&gt;\C-s&lt;/code&gt; 绑定了 swiper，启动 swiper 之后用 &lt;code&gt;\C-w&lt;/code&gt; 可以快速把光标位置的 symbol 放到 minibuffer 来搜索。然后 swiper 和 isearch 有个区别是，默认情况下，swiper 如果 minibuffer 没有内容，按 backspace 会退出，这个和 isearch 的习惯不一样，把 &lt;code&gt;ivy-on-del-error-function&lt;/code&gt; 重新绑定一下就可以了。&lt;/p&gt;
+&lt;p&gt;ivy 默认会绑定一个快捷键是在你 minibuffer 输入一些内容之后，会出来很多匹配结果，这个时候可以按 &lt;code&gt;C-&amp;#39;&lt;/code&gt; 调用 &lt;code&gt;swiper-avy&lt;/code&gt; 方便你快速定位，也挺好用的。不过我这里不好用，不知道怎么回事，只好重新绑定了一下。&lt;/p&gt;
+&lt;p&gt;还可以在 swiper 查询阶段按 &lt;code&gt;M-q&lt;/code&gt; 进入替换模式。&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">use ivy to replace isearch</h2>
+	<div class="entry-content"><p>之前习惯使用 <code>isearch</code> 来搜索了，最近看别人使用 <code>ivy</code> 看着心痒痒的，就想试试看。其实 ivy 的效果和 <code>swoop</code> 很像，不过区别是 ivy 是在 minibuffer 来显示可选信息的，swoop 是在一个 buffer 显示的。有洁癖的可能稍微计较一下。</p>
+<figure class="highlight scheme"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">;; ivy swiper</span></span><br><span class="line"><span class="list">(<span class="keyword">defun</span> wd-swiper-at-point <span class="list">()</span></span><br><span class="line">  <span class="string">"Pull next word from buffer into search string."</span></span><br><span class="line">  <span class="list">(<span class="keyword">interactive</span>)</span></span><br><span class="line">  <span class="list">(<span class="keyword"><span class="built_in">let</span></span> <span class="list">(<span class="keyword">query</span>)</span></span><br><span class="line">    <span class="list">(<span class="keyword">with-ivy-window</span></span><br><span class="line">      <span class="list">(<span class="keyword"><span class="built_in">let</span></span> <span class="list">(<span class="list">(<span class="keyword">tmp</span> <span class="list">(<span class="keyword">symbol-at-point</span>)</span>)</span>)</span></span><br><span class="line">        <span class="list">(<span class="keyword">setq</span> query tmp)</span>)</span>)</span></span><br><span class="line">    <span class="list">(<span class="keyword"><span class="built_in">when</span></span> query</span><br><span class="line">      <span class="list">(<span class="keyword">insert</span> <span class="list">(<span class="keyword">format</span> <span class="string">"%s"</span> query)</span>)</span></span><br><span class="line">      )</span>)</span>)</span></span><br><span class="line"></span><br><span class="line"><span class="list">(<span class="keyword">use-package</span> ivy</span><br><span class="line">  :config</span><br><span class="line">  <span class="list">(<span class="keyword">ivy-mode</span> <span class="number">1</span>)</span></span><br><span class="line">  <span class="list">(<span class="keyword">setq</span> ivy-use-virtual-buffers t)</span></span><br><span class="line">  <span class="list">(<span class="keyword">set-variable</span> <span class="variable">'ivy-on-del-error-function</span> '<span class="list">(<span class="keyword"><span class="built_in">lambda</span></span><span class="list">()</span>)</span>)</span></span><br><span class="line">  )</span></span><br><span class="line"></span><br><span class="line"><span class="list">(<span class="keyword">use-package</span> swiper</span><br><span class="line">  :config</span><br><span class="line">  <span class="list">(<span class="keyword">global-set-key</span> <span class="string">"\C-s"</span> <span class="variable">'swiper</span>)</span></span><br><span class="line">  <span class="list">(<span class="keyword">define-key</span> swiper-map <span class="list">(<span class="keyword">kbd</span> <span class="string">"C-w"</span>)</span> <span class="variable">'wd-swiper-at-point</span>)</span></span><br><span class="line">  <span class="list">(<span class="keyword">define-key</span> swiper-map <span class="list">(<span class="keyword">kbd</span> <span class="string">"C-f"</span>)</span> <span class="variable">'swiper-avy</span>)</span></span><br><span class="line">  )</span></span><br></pre></td></tr></table></figure>
+<p>我大致做了上面几个设定，<code>\C-s</code> 绑定了 swiper，启动 swiper 之后用 <code>\C-w</code> 可以快速把光标位置的 symbol 放到 minibuffer 来搜索。然后 swiper 和 isearch 有个区别是，默认情况下，swiper 如果 minibuffer 没有内容，按 backspace 会退出，这个和 isearch 的习惯不一样，把 <code>ivy-on-del-error-function</code> 重新绑定一下就可以了。</p>
+<p>ivy 默认会绑定一个快捷键是在你 minibuffer 输入一些内容之后，会出来很多匹配结果，这个时候可以按 <code>C-&#39;</code> 调用 <code>swiper-avy</code> 方便你快速定位，也挺好用的。不过我这里不好用，不知道怎么回事，只好重新绑定了一下。</p>
+<p>还可以在 swiper 查询阶段按 <code>M-q</code> 进入替换模式。</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="use-ivy-to-replace-isearch/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'use-ivy-to-replace-isearch/';
+        var disqus_url = 'use-ivy-to-replace-isearch/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

@@ -1,0 +1,179 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>安装配置一台 apache+php+mysql 的rh el4服务器 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;&lt;strong&gt;系统&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;rh el4 是四张盘，用第一张启动电脑。前面没啥好说的了，后面选择软件的时候，不要选x界面的东西，开发工具全选上，别的好像默认就行了，大概需要2G好像是。&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Apache&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;apache的下载地址：&lt;a title=&quot;http://httpd.apache.org/download.cgi&quot; href=&quot;http://httpd.apache.org/download.cgi&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://httpd.apache.org/download.cgi&lt;/a&gt;，选一个mirror，下载就行了。&lt;/p&gt; &lt;p&gt;编译选项： ./configure --prefix=/usr/local/apache/ --enable-rewrite --enable-so&lt;/p&gt; &lt;p&gt;rewrite还是很有必要装上的，enable so让apache可以加载php模块。&lt;/p&gt; &lt;p&gt;&lt;strong&gt;Mysql&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;mysql 的下载地址(以5.0为例)：&lt;a title=&quot;http://mysql.org/downloads/mysql/5.0.html#source&quot; href=&quot;http://mysql.org/downloads/mysql/5.0.html#source&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://mysql.org/downloads/mysql/5.0.html#source&lt;/a&gt;&lt;/p&gt; &lt;p&gt;注意我们这里下载的是 source，要自己来编译。这样可以控制mysql默认的字符集是什么。&lt;/p&gt; &lt;p&gt;编译选项： ./configure --prefix=/data/mysql --with-charset=gbk --with-extra-charsets=all&lt;/p&gt; &lt;p&gt;这里设置的字符集是gbk，根据需要自己来设计自己的。别的安装的过程可以参考源码目录里面的INSTALL文件，基本按照那个一步一步来就行了。&lt;/p&gt; &lt;p&gt;&lt;strong&gt;libjpeg&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;安装php之前，先需要自己编译一个 libjpeg 和 libpng，系统安装的少东西，php编译不过去。&lt;/p&gt; &lt;p&gt;libjpeg 的下载地址：&lt;a title=&quot;ftp://ftp.uu.net/graphics/jpeg/jpegsrc.v6b.tar.gz&quot; href=&quot;ftp://ftp.uu.net/graphics/jpeg/jpegsrc.v6b.tar.gz&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;ftp://ftp.uu.net/graphics/jpeg/jpegsrc.v6b.tar.gz&lt;/a&gt;&lt;/p&gt; &lt;p&gt;编译选项：./configure --enable-static --enable-shared --prefix=/usr/local/libjpeg&lt;/p&gt; &lt;p&gt;&lt;strong&gt;libpng&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;libpng的下载地址：&lt;a title=&quot;http://prdownloads.sourceforge.net/libpng/libpng-1.2.20.tar.bz2?download&quot; href=&quot;http://prdownloads.sourceforge.net/libpng/libpng-1.2.20.tar.bz2?download&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://prdownloads.sourceforge.net/libpng/libpng-1.2.20.tar.bz2?download&lt;/a&gt;&lt;/p&gt; &lt;p&gt;编译选项：./configure --prefix=/usr/local/libpng&lt;/p&gt; &lt;p&gt;&lt;strong&gt;php&lt;/strong&gt;&lt;/p&gt; &lt;p&gt;php的下载地址(目前的最新版)：&lt;a title=&quot;http://cn.php.net/get/php-5.2.4.tar.bz2/from/this/mirror&quot; href=&quot;http://cn.php.net/get/php-5.2.4.tar.bz2/from/this/mirror&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://cn.php.net/get/php-5.2.4.tar.bz2/from/this/mirror&lt;/a&gt;&lt;/p&gt; &lt;p&gt;编译选项：&lt;/p&gt; &lt;p&gt;./configure --with-apxs2=/usr/local/apache/bin/apxs --with-mysql=/data/mysql/&amp;nbsp; --prefix=/usr/local/php5/ --with-config-file-path=/usr/local/php5/etc --with-openssl --enable-mbstring --with-iconv --with-curl --with-gd --with-zlib&amp;nbsp; --with-png-dir=/usr/local/libpng --with-jpeg-dir=/usr/local/libjpeg&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">安装配置一台 apache+php+mysql 的rh el4服务器</h2>
+	<div class="entry-content"><p><strong>系统</strong></p> <p>rh el4 是四张盘，用第一张启动电脑。前面没啥好说的了，后面选择软件的时候，不要选x界面的东西，开发工具全选上，别的好像默认就行了，大概需要2G好像是。</p> <p><strong>Apache</strong></p> <p>apache的下载地址：<a title="http://httpd.apache.org/download.cgi" href="http://httpd.apache.org/download.cgi" target="_blank" rel="external">http://httpd.apache.org/download.cgi</a>，选一个mirror，下载就行了。</p> <p>编译选项： ./configure --prefix=/usr/local/apache/ --enable-rewrite --enable-so</p> <p>rewrite还是很有必要装上的，enable so让apache可以加载php模块。</p> <p><strong>Mysql</strong></p> <p>mysql 的下载地址(以5.0为例)：<a title="http://mysql.org/downloads/mysql/5.0.html#source" href="http://mysql.org/downloads/mysql/5.0.html#source" target="_blank" rel="external">http://mysql.org/downloads/mysql/5.0.html#source</a></p> <p>注意我们这里下载的是 source，要自己来编译。这样可以控制mysql默认的字符集是什么。</p> <p>编译选项： ./configure --prefix=/data/mysql --with-charset=gbk --with-extra-charsets=all</p> <p>这里设置的字符集是gbk，根据需要自己来设计自己的。别的安装的过程可以参考源码目录里面的INSTALL文件，基本按照那个一步一步来就行了。</p> <p><strong>libjpeg</strong></p> <p>安装php之前，先需要自己编译一个 libjpeg 和 libpng，系统安装的少东西，php编译不过去。</p> <p>libjpeg 的下载地址：<a title="ftp://ftp.uu.net/graphics/jpeg/jpegsrc.v6b.tar.gz" href="ftp://ftp.uu.net/graphics/jpeg/jpegsrc.v6b.tar.gz" target="_blank" rel="external">ftp://ftp.uu.net/graphics/jpeg/jpegsrc.v6b.tar.gz</a></p> <p>编译选项：./configure --enable-static --enable-shared --prefix=/usr/local/libjpeg</p> <p><strong>libpng</strong></p> <p>libpng的下载地址：<a title="http://prdownloads.sourceforge.net/libpng/libpng-1.2.20.tar.bz2?download" href="http://prdownloads.sourceforge.net/libpng/libpng-1.2.20.tar.bz2?download" target="_blank" rel="external">http://prdownloads.sourceforge.net/libpng/libpng-1.2.20.tar.bz2?download</a></p> <p>编译选项：./configure --prefix=/usr/local/libpng</p> <p><strong>php</strong></p> <p>php的下载地址(目前的最新版)：<a title="http://cn.php.net/get/php-5.2.4.tar.bz2/from/this/mirror" href="http://cn.php.net/get/php-5.2.4.tar.bz2/from/this/mirror" target="_blank" rel="external">http://cn.php.net/get/php-5.2.4.tar.bz2/from/this/mirror</a></p> <p>编译选项：</p> <p>./configure --with-apxs2=/usr/local/apache/bin/apxs --with-mysql=/data/mysql/&nbsp; --prefix=/usr/local/php5/ --with-config-file-path=/usr/local/php5/etc --with-openssl --enable-mbstring --with-iconv --with-curl --with-gd --with-zlib&nbsp; --with-png-dir=/usr/local/libpng --with-jpeg-dir=/usr/local/libjpeg</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="setup-apache-mysql-php-in-rhel4/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'setup-apache-mysql-php-in-rhel4/';
+        var disqus_url = 'setup-apache-mysql-php-in-rhel4/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

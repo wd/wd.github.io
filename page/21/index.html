@@ -1,0 +1,568 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="undefined"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        
+  <article class="post">
+	<h2 class="title">
+		<a href="nagios-conf/">今天又理解了nagios的两个配置</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-15T16:00:00.000Z" itemprop="datePublished">Apr 16, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/Other/">Other</a> <a href="../tags/nagios/">nagios</a>
+</div>
+    </div>
+      
+        <b>Host and Service Dependencies</b>
+
+当监控的host或者service之间有依赖关系的时候，可以通过定义dependence来让nagios知道应该通知什么。
+
+比如我这里的服务器都在idc托管，而我的nagios却是运行在公司的一台服务器上面。这样，有时候可能就需要考虑依赖关系了。比如当公司的网络出问题的时候（事实上经常出现），比如断网，总不能让他也认为是idc托管的服务器出问题了而给你发通知吧。host dependence正好可以解决这个问题。
+
+比如 A 是idc的，B 是公司的网关（或者某个应该一直在线的服务器，比如sina.com.cn）。当nagios检测到A连不上的时候，他会根据dependence来检测B，如果B也连不上了，那么就只通知你B连不上了。
+
+大概的配置如下
+<pre class="prettyprint lang-text">
+        host_name                       B
+        dependent_host_name             A
+        notification_failure_criteria   d,u
+        }</pre>
+
+<b>Notification Escalations</b>
+
+escalations 的意思就是扩大。整个这个的意思应该就是扩大通知范围。之前一直没理解是什么意思，今天看了才明白。其实就是定义出问题的时候，什么时候扩大通知。
+
+比如A服务器挂了，他对应的contactgroup就会立刻得到通知。但是，如果这个组里面的人在睡觉或者在做什么事情忽略了这个通知，怎么办呢？当然nagios会通知多次，但是如果这些都忽略掉了或者没有收到怎么办？这样这个escalations就有作用了，他可以定义几次通知contatgroup之后就开始通知别的人。还有一些别的功能，就不多说了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="nagios-conf/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="twitter-what-are-u-doing/">twitter ? 我知道你在干什么</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-13T16:00:00.000Z" itemprop="datePublished">Apr 14, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Web/">Web</a> <a href="../tags/twitter/">twitter</a>
+</div>
+    </div>
+      
+        twitter 已经流行很久了，一直没以为怎么回事。又不能和im结合，我还总去你的网站看啊，没意思。刚又看到有人说这个，去看了一下，发现这个支持rss输出，这下就爽很多了呀，弄到lilina里面不就可以了么？不错不错。。
+
+我的地址是   http://twitter.com/wd ，注册了这个的给一个地址呀，呵呵。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="twitter-what-are-u-doing/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="a-bug-of-magpie/">发现了一个magpie的bug</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-12T16:00:00.000Z" itemprop="datePublished">Apr 13, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Web/">Web</a>
+</div>
+    </div>
+      
+        在 rss_parse.inc 里面，创建xml parser的时候，针对php5，用的是xml_parser_create('')，就那个''，导致了问题的出现。但是问题不是总有的，有的source可以，有的就会卡住。例如下面这个html就会卡住。
+
+<pre class="prettyprint lang-text"><html xmlns="http://www.w3.org/1999/xhtml ">
+                <head><title>Connect Error</title></head>
+                <body>
+                        <h1>Connect Error</h1>
+                        <p>Could not connect to MySQL database.</p>             </body>
+        </html></pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="a-bug-of-magpie/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="a-bug-for-coding-plugin/">找到一个wp coding插件的bug</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-12T16:00:00.000Z" itemprop="datePublished">Apr 13, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Web/">Web</a>
+</div>
+    </div>
+      
+        coding插件用的是geshi来加格式的。发现贴了一个html后coding不支持，找了半天bug，总算找到了。
+
+在 $pattern 这个正则里面，(([^
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="a-bug-for-coding-plugin/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="study-lilina/">今天仔细研究了一下lilina</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-11T16:00:00.000Z" itemprop="datePublished">Apr 12, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a>
+</div>
+    </div>
+      
+        lilina 最近总是出问题，又用不惯别的，今天花了点时间看了看。
+
+lilina 的rss解析用的是 magpie ，feed文件下载用的是 Snoopy 。下载之后 magpie 用 xml_parse 来做处理。lilina 使用 magpie 的 fetch_rss() 函数来处理rss。而在 inc/magpie/rss_fetch.php 里面又用 _fetch_remote_file() 函数来获取rss文件，文件的获取用的是 Snoopy 类。获取文件内容之后，又用 magpie 的 MagpieRSS 类的 MagpieRSS 函数来处理文件，里面用到了 xml_parse() 函数。再后面就没有仔细看了。
+
+我遇到的问题是 Snoopy 获取文件是没问题的，出问题的是 xml_parse ,如果获取的source不是有效的xml文件，xml_parse 会死掉，所以我就在 xml_parse 前面检查了一下 source 是不是一个正常的feed。有人推荐 tidy 来验证，那太麻烦了，我就直接match了一下feed这个关键字。。。目前看好像每问题。。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="study-lilina/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="off-phone/">后挂电话的人</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-10T16:00:00.000Z" itemprop="datePublished">Apr 11, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a> <a href="../tags/挂电话/">挂电话</a>
+</div>
+    </div>
+      
+        这是第二次写了。唉，真郁闷。昨天写了一拖丢了。
+
+前天晚上值班回家的时候老婆打电话过了问我到哪里了，聊了几句就互相挂了电话。之后就想起来这个了。
+
+打电话的时候，通常都会想像对方是在面前的，会想像对方的样子。高兴、生气、撒娇，都像对着对方一样，所以说电话是一个很伟大的发明。挂电话的死后总会有先后了，不过你要说还有一起挂的那就算了，哼，不争这个。后挂电话的人在对方电话“咔嗒”一声挂上的时候是会有失落感的，就像晚上看电视突然停电一样，对方的形象突然就没了。就像风筝断了线一样，开始还能抓住对方，能知道对方的表情，可接下来一瞬间就断了。
+
+如果谁有一个愿意后挂电话的人，那么这个人无疑肯定是幸福的。你有没有？
+
+之前老婆还不是老婆的时候，每次电话我都会尽量做到后挂电话，现在变成老婆了，反到少了，说完事情就挂了，可能是双方太熟悉的缘故，也不需要相互表达的很清楚，对方就知道。但是这些显然都是借口了，借口的意思就是说，这个理由说出来的比不说出效果还好 :( ，以后我要改了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="off-phone/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="unix-process/">unix 进程</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-10T16:00:00.000Z" itemprop="datePublished">Apr 11, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/Other/">Other</a> <a href="../tags/signal/">signal</a> <a href="../tags/进程/">进程</a>
+</div>
+    </div>
+      
+        看了 <a href="http://www-128.ibm.com/developerworks/aix/library/au-speakingunix8/?ca=dgr-lnxw01speakunix8" target="_blank" rel="external">Speaking UNIX, Part 8: UNIX processes</a> 之后做一点笔记。
+
+<b>A real multitasker</b>
+
+在unix、linux、freebsd、mac os x、windows等系统里面，计算任务都表现为进程。unix 看上去可以同时运行很多任务，因为每个进程都只占用一部分cpu时间。
+
+进程就像一个容器，包括运行的程序，环境变量，程序的输入输出等。可以把进程想像为一个国家，有自己的边界，资源和产品。
+
+每个进程也都有自己的owner（属组），owner通常是运行这个程序的人，有些系统服务的owner或许会是某个特殊的用户，或者是root。例如，为了安全，某个Apache server的owner可能是属于一个叫www的用户的，这个用户有权限来存取web服务需要的文件，这些文件别的用户是不能访问的。
+
+一个进程的owner可能会改变，但是一个进程在同一个时间只能有一个owner。
+
+setuid和setgid可以让一个进程获得比owner更高的权限。
+
+一个setuid进程，例如top，运行的时候使用的是owner的权限。因此，当你运行top的时候，你的权限就被提升为root了。类似的，一个setgid进程，运行的时候具有的是group owner的权限。
+
+例如，在Mac osx里面的wall命令（就是write all的缩写），因为他需要给每个物理或者虚拟的终端设备写信息，所以他被setgid tty。
+
+<b>Taking inventory</b>
+
+类似其他系统资源，unix系统里面的进程id总数虽然多，但是是有限的（实际上，一个系统几乎从来都不会出现进程id数不够的情况）。每一个新的进程，例如运行vi或者xclock，都会立刻分配一个进程id。在unix系统里面可以用ps命令查看进程。
+
+ps -a -w -x 可以显示所有进程列表。-a显示所有在tty设备上面运行的进程，-x显示所有不是在tty设备上面运行的程序，-w使用“宽”模式显示，用来查看进程一些长的项目。
+
+-o 还可以指定输出信息的列表。比如 -o pid,uname,command,state,stime,time 。
+
+<b>Daddy, where do processes come from?</b>
+
+ 在unix系统里面，有些进程会从系统启动到关闭整个过程中一直运行。大部分进程从任务开始到结束都很快。
+
+ 每个新的unix进程都是从已经存在的进程产生的。另外，每个新的进程（子进程）都克隆自他的父进程。at least for an instant, until the child continues execution independently.如果每个进程都来自一个已经存在的进程，那么“第一个进程来自哪里？”，先有鸡还是先有蛋的问题。
+
+第一个进程是由kernel在启动过程中产生的，叫做init。ps -l 1命令可以查看。
+F S   UID   PID  PPID  C PRI  NI ADDR SZ WCHAN  TTY        TIME CMD
+4 S     0     1     0  0  76   0 -   376 -      ?          0:06 init [2]  
+
+可以看到，init的uid是0，也就是root。不像其他进程，init的ppid（父进程id）是0。
+
+图 2,3 稍微解释一下。
+<ol><li>进程A运行了几条指令。进程A有自己的资源、输入输出、环境变量等。</li><li>遇到一条fork()指令，会产生一个新的进程。进程A遇到fork之后，立刻产生一个新的进程Z。进程Z是A的克隆，有与A一行的环境变量、内存内容、程序状态、打开文件等。</li><li>进程Z一开始就从fork后面的指令继续执行，就是进程A剩下的部分。进程A也继续执行剩下的部分。</li><li>在fork指令后面的指令中，会检查当前的进程是子进程还是父进程。就是说，进程Z和进程A在后续的指令中各自分别确定自己是父进程还是子进程。区别是，fork指令会在子进程中返回0，而且父进程中返回子进程的进程id。</li><li>在前面的测试之后，进程A和进程Z各自使用独立的code path，就好像他们都来自一条路，后来选择了不同的岔路一样。</li></ol>
+
+在fork之后，进程A也许会继续运行同样的程序。然而，进程Z或许会立刻变成另外一个程序。进程Z现在完全就是一个独立于其父进程A的进程了。
+
+<b>Forking around</b>
+
+可以在命令行实际体验一下fork。打开一个新的xterm，你现在应该知道xterm有自己的进程，而且，在xterm里面，shell是有xterm产生的一个单独的进程。
+
+通过ps命令的输出可以看到，在ppid字段那里，就是父进程的id。 
+
+使用&符号可以将程序放到后台执行。执行的时候会同时输出各个进程的id。jobs命令可以查看当前运行的进程。标签1，2，3可以用来标记不同的会话。kill %N 就是结束第N个会话。fg %N 可以将一个会话放到前台。
+
+<b>To the great process pool in the sky</b>
+
+有些进程是一直存在的，例如init，有些会将自己转变成其他的（例如shell）。大部分进程最终都会自然死掉，也就是程序运行完毕的时候。
+
+你可以让一个进程suspended（挂起），也可以让他复苏。还有像前面说的，你也可以使用kill命令结束一个进程。
+
+ctrl-Z 可以挂起一个进程。进程在前台运行的时候，ctrl+c 可以结束这个进程。在shell内部使用unix signals来对一个进程产生影响。你可以从一个进程像另一个发送signal（信号），也可以让进程自己给自己发送信号。
+
+man 7 signal或者kill -L 可以看到所有的signal。使用kill命令可以发送这些signal。
+
+刚针对fork测试了一下，写一个简单的c程序
+<pre class="prettyprint lang-c">
+
+main(){
+        int a;
+        printf("Before fork.\\n");
+        a = fork();
+        printf("After fork, fork returns %d\\n", a);
+}</pre>
+
+保存之后用gcc编译一下，执行一个，可以看到结果。fork之后的程序会继续执行下面的指令，唯独fork的返回值不同。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="unix-process/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="about-hula-hoop/">呼拉圈的问题</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-05T16:00:00.000Z" itemprop="datePublished">Apr 6, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a> <a href="../tags/呼拉圈/">呼拉圈</a>
+</div>
+    </div>
+      
+        感觉呼拉圈这玩意挺怪异的，为什么我就学不会呢？后来总结了一下，有以下2个可能。<br><br><ol><li>有啤酒肚。这样，呼拉圈好像就不太能卡到腰上。所以总往下掉。</li><li>腰扭不起来。总不能和谐的和呼拉圈一起转，这样，扭几下之后，呼拉圈就因为没有动力掉下来了。初学者可能都有这个问题。</li></ol>其实我也转起来过，偶尔能转个好几圈，那时候很有感觉，可是一高兴就掉了。然后又转不起来了。 :(<br><br>呼拉圈减肥也需要运动时间足够长，可以参考国家体委会推行的”三三三”运动：每周运动三次，每次至少三十分钟，心跳达一百三十下。由于摇呼啦圈的运动强度不够，如果要增加心跳速率，就必须要加快摇动的速度。<br><br>我看来是学不会这个了，玩玩别的吧。<br>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="about-hula-hoop/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="adjust-of-bus/">第五批 公交线路调整</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-03T16:00:00.000Z" itemprop="datePublished">Apr 4, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a> <a href="../tags/公交/">公交</a>
+</div>
+    </div>
+      
+        虽然调整没几条，但是涉及到我们小区的，倒是有三条。
+
+<blockquote>831 改成 675 ，通州李庄-> 左家庄
+通州李庄 上潞园小区 小潞邑北站 小潞邑 龙旺庄 焦王庄 结研所 北京物资学院 五里桥路口东 东十里堡村 常营路口东 常营路口西 黄渠村黄渠西站 白家楼桥东 亮马厂 黄杉木店 青年路口 十里堡北里 农民日报社 农民日报社北 石佛营东里 豆各庄路口南 豆各庄路口西 朝阳公园桥东朝阳公园桥西 朝阳公园 团结湖 亮马桥 燕莎桥南 燕莎桥西 新源南路西口 新源里 左家庄
+5：30-22：00</blockquote>
+
+
+<blockquote>834 改成 498 ，常营民族家园->燕莎桥南
+常营民族家园 常营西路 常营北路 常营 常营路口西 黄渠村 黄渠西站 白家楼桥东 亮马厂 黄杉木店 青年路口北 姚家园村 万杰医院 姚家园西 姚家园西口 豆各庄路口西 朝阳公园桥东 朝阳公园桥西 朝阳公园 团结湖 亮马桥 燕莎桥南
+常营民族家园5：30-21：15  燕莎桥南6：15-22：00</blockquote>
+
+
+<blockquote>742 改成 506 ，常营民族家园->四惠
+常营民族家园 常营西路 常营北路 常营 科技大学管庄校区 管庄路口北 管庄 周家井 双桥西 茶家坟 梆子井 高碑店桥东 四惠东站 四惠站
+上林苑小区5：30—21：00  北京华侨城6：30—22：00</blockquote>
+
+
+742改的挺好，以前线路太长，四惠等车的时候半天不来。反正我也从来不到南三环，刚好，哈哈。以后四惠等车就爽了，没准还有座，嘿嘿。
+
+831就不爽了，以前往北三环走多舒服，速度很快。834还好，走城里，速度慢，所以也无所谓了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="adjust-of-bus/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="compress-apache/">给apache加了一个compress模块，mod_deflate</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-01T16:00:00.000Z" itemprop="datePublished">Apr 2, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Web/">Web</a> <a href="../tags/apache/">apache</a>
+</div>
+    </div>
+      
+        apache 1.3 里面有个压缩模块叫做 mod_gzip ，不支持 2.x。在2.x 里面有一个 <a href="http://httpd.apache.org/docs/2.0/mod/mod_deflate.html" target="_blank" rel="external">mod_deflate</a> 模块，也是类似的效果。想使用的话，很简单，编译的时候加上 --enable-deflate 就可以了。之后可以用 apachectl -l  看是不是正常加载了这个模块。
+
+httpd.conf 添加下面的语句
+<pre class="prettyprint lang-txt">
+
+对所有指定类似的文件都应用这个模块。添加之后访问看看。
+
+<pre class="prettyprint lang-txt">
+203.86.x.x - - [02/Apr/2007:15:24:23 +0800] "GET / HTTP/1.1" 200 <font color="#FF0000">4718</font> "-" 
+"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) 
+Gecko/20070309 Firefox/2.0.0.3"
+
+203.86.x.x - - [02/Apr/2007:15:46:16 +0800] "GET / HTTP/1.1" 200 <font color="#FF0000">1684</font> "-" 
+"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) 
+Gecko/20070309 irefox/2.0.0.3"</pre>
+
+好像是小了。。。
+
+如果error.log 里面出现了下面的错误
+<pre class="prettyprint lang-txt">
+
+ 这表示apache的那个模块没有安装正确。
+</pre></pre>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="compress-apache/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+
+  <nav id="pagenavi">
+    
+        <a href="/page/20/" class="prev">Prev</a>
+    
+    
+        <a href="/page/22/" class="next">Next</a>
+    
+  <div class="center"><a href="/archives/index.html">Blog Archives</a></div>
+  </nav>
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        var disqus_script = 'count.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

@@ -1,0 +1,321 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>给系统加上 fbsplash 支持 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="先贴几个参考文章。
+&lt;li&gt;1 &lt;a href=&quot;http://forums.gentoo.org/viewtopic-t-728450-highlight-grub2.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;HOWTO: Fancy Grub and fbsplash on a machine with Intel graphic chipsets&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;2 &lt;a href=&quot;http://www.gentoo-wiki.info/Fbsplash&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Fbsplash&lt;/a&gt;&lt;/li&gt;
+&lt;br&gt;
+这两个文章里面最重要是那些内核选项的支持，弄好了那些才有下面的内容。里面有个要注意的是 General Setup ---&gt; Initial RAM filesystem and RAM disk (initramfs/initrd) support ---&gt; Built-in initramfs compression mode 这个选项，好像是从 2.6.30 出来的。这个压缩模式选的是什么，关系到后面的工作。
+
+安装 splashutils[fbcondecor] 和 media-gfx/splash-themes-gentoo 或 media-gfx/splash-themes-livecd 这两个都是提供一些 theme，在 /etc/splash 目录下面。
+
+我的 kernel 没有 initrd 文件，是编译到内核的，所以这么做。
+&lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
+cd /usr/src/linux &amp;&amp; make &amp;&amp; make install # recompile kernel, this is my way
+&lt;/pre&gt;
+
+然后就是设置内核参数，下面是我的。那个 quiet 会让 kernel 不显示信息，如果你不想，那就去掉。
+video=uvesafb:1024x768-32,mtrr:3,ywrap quiet splash=silent,theme:natural_gentoo console=tty1 fbcon=scrollback:64K
+
+如果用的是 tuxonice 内核，那还可以给 sys-apps/tuxonice-userui 加上 fbsplash use，装好后会提示你 ln 一个 splash theme 为 tuxonice ，照做就是了。另外还需要在内核里面 Power management and ACPI options ---&gt; Enhanced Hibernation (TuxOnIce) ---&gt; Default userui program location 设置为 /sbin/tuxoniceui_fbsplash ，重编内核。。。
+
+这么弄完之后会发现，休眠后再启动的时候会显示一个没找到 /sbin/tuoniceui_fbsplash 的错误，还有一些百分比，这些实际上不影响正常启动。不过好像有点影响美观。我琢磨了下，觉得那个错误可能是没有把那个文件弄到 initramfs 里面的缘故，弄进去之后果然没了，不过还是有那个百分比出来。
+
+先 cp 一份这个文件 /usr/src/linux/usr/initramfs_data.cpio[看压缩设置] 到临时目录，file 看看属性，我的是 gzip 压缩的，那就解压一下。然后用 cpio 看下里面的文件。
+&lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
+$ file initramfs_data.cpio 
+initramfs_data.cpio: gzip compressed data, was &quot;initramfs_data.cpio&quot;, from Unix, last modified: Sat Jul 25 19:26:29 2009
+$ mv initramfs_data.cpio initramfs_data.cpio.gz
+$ gzip -d initramfs_data.cpio.gz 
+$ file initramfs_data.cpio 
+initramfs_data.cpio: ASCII cpio archive (SVR4 with no CRC)
+$ cpio --list &lt; initramfs_data.cpio
+.
+lib
+lib/splash
+lib/splash/sys
+lib/splash/proc
+sbin
+sbin/v86d
+sbin/fbcondecor_helper
+sbin/splash_helper
+root
+dev
+dev/mem
+dev/tty1
+dev/fb
+dev/tty0
+dev/zero
+dev/misc
+dev/null
+dev/vc
+dev/console
+etc
+etc/splash
+etc/splash/luxisri.ttf
+etc/splash/natural_gentoo
+etc/splash/natural_gentoo/1024x768.cfg
+etc/splash/natural_gentoo/images
+etc/splash/natural_gentoo/images/silent-1024x768.jpg
+etc/splash/natural_gentoo/images/verbose-1024x768.jpg
+xxx blocks
+$ cat f
+sbin/tuxoniceui_fbsplash
+$ ls sbin
+tuxoniceui_fbsplash
+$ cpio -ov --format=newc -A -O initramfs_data.cpio &lt; f
+sbin/tuxoniceui_fbsplash
+xxx blocks
+$ gzip -c initramfs_data.cpio initramfs_data.cpio.gz
+$ mv initramfs_data.cpio.gz /usr/src/linux/usr/initramfs_data.cpio
+&lt;/pre&gt;
+
+ok， 这里你可以再看看文件里面的东西。没问题就可以复制过去了，要注意压缩格式。
+
+回头录一个视频放上来玩玩，呵呵。
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">给系统加上 fbsplash 支持</h2>
+	<div class="entry-content">先贴几个参考文章。
+<li>1 <a href="http://forums.gentoo.org/viewtopic-t-728450-highlight-grub2.html" target="_blank" rel="external">HOWTO: Fancy Grub and fbsplash on a machine with Intel graphic chipsets</a></li>
+<li>2 <a href="http://www.gentoo-wiki.info/Fbsplash" target="_blank" rel="external">Fbsplash</a></li>
+<br>
+这两个文章里面最重要是那些内核选项的支持，弄好了那些才有下面的内容。里面有个要注意的是 General Setup ---> Initial RAM filesystem and RAM disk (initramfs/initrd) support ---> Built-in initramfs compression mode 这个选项，好像是从 2.6.30 出来的。这个压缩模式选的是什么，关系到后面的工作。
+
+安装 splashutils[fbcondecor] 和 media-gfx/splash-themes-gentoo 或 media-gfx/splash-themes-livecd 这两个都是提供一些 theme，在 /etc/splash 目录下面。
+
+我的 kernel 没有 initrd 文件，是编译到内核的，所以这么做。
+<pre class="prettyprint lang-bash">
+cd /usr/src/linux && make && make install # recompile kernel, this is my way
+</pre>
+
+然后就是设置内核参数，下面是我的。那个 quiet 会让 kernel 不显示信息，如果你不想，那就去掉。
+video=uvesafb:1024x768-32,mtrr:3,ywrap quiet splash=silent,theme:natural_gentoo console=tty1 fbcon=scrollback:64K
+
+如果用的是 tuxonice 内核，那还可以给 sys-apps/tuxonice-userui 加上 fbsplash use，装好后会提示你 ln 一个 splash theme 为 tuxonice ，照做就是了。另外还需要在内核里面 Power management and ACPI options ---> Enhanced Hibernation (TuxOnIce) ---> Default userui program location 设置为 /sbin/tuxoniceui_fbsplash ，重编内核。。。
+
+这么弄完之后会发现，休眠后再启动的时候会显示一个没找到 /sbin/tuoniceui_fbsplash 的错误，还有一些百分比，这些实际上不影响正常启动。不过好像有点影响美观。我琢磨了下，觉得那个错误可能是没有把那个文件弄到 initramfs 里面的缘故，弄进去之后果然没了，不过还是有那个百分比出来。
+
+先 cp 一份这个文件 /usr/src/linux/usr/initramfs_data.cpio[看压缩设置] 到临时目录，file 看看属性，我的是 gzip 压缩的，那就解压一下。然后用 cpio 看下里面的文件。
+<pre class="prettyprint lang-bash">
+$ file initramfs_data.cpio 
+initramfs_data.cpio: gzip compressed data, was "initramfs_data.cpio", from Unix, last modified: Sat Jul 25 19:26:29 2009
+$ mv initramfs_data.cpio initramfs_data.cpio.gz
+$ gzip -d initramfs_data.cpio.gz 
+$ file initramfs_data.cpio 
+initramfs_data.cpio: ASCII cpio archive (SVR4 with no CRC)
+$ cpio --list < initramfs_data.cpio
+.
+lib
+lib/splash
+lib/splash/sys
+lib/splash/proc
+sbin
+sbin/v86d
+sbin/fbcondecor_helper
+sbin/splash_helper
+root
+dev
+dev/mem
+dev/tty1
+dev/fb
+dev/tty0
+dev/zero
+dev/misc
+dev/null
+dev/vc
+dev/console
+etc
+etc/splash
+etc/splash/luxisri.ttf
+etc/splash/natural_gentoo
+etc/splash/natural_gentoo/1024x768.cfg
+etc/splash/natural_gentoo/images
+etc/splash/natural_gentoo/images/silent-1024x768.jpg
+etc/splash/natural_gentoo/images/verbose-1024x768.jpg
+xxx blocks
+$ cat f
+sbin/tuxoniceui_fbsplash
+$ ls sbin
+tuxoniceui_fbsplash
+$ cpio -ov --format=newc -A -O initramfs_data.cpio < f
+sbin/tuxoniceui_fbsplash
+xxx blocks
+$ gzip -c initramfs_data.cpio initramfs_data.cpio.gz
+$ mv initramfs_data.cpio.gz /usr/src/linux/usr/initramfs_data.cpio
+</pre>
+
+ok， 这里你可以再看看文件里面的东西。没问题就可以复制过去了，要注意压缩格式。
+
+回头录一个视频放上来玩玩，呵呵。
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="fbsplash-howto/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'fbsplash-howto/';
+        var disqus_url = 'fbsplash-howto/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

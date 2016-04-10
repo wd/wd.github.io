@@ -1,0 +1,325 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>写了一个 kde plasma applet - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。
+
+第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。
+
+这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。
+
+昨天花了一个下午，总算弄好了。参考的文档 &lt;a href=&quot;http://www.qtopia.org.cn/doc/qiliang.net/qt/classes.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;qt的类&lt;/a&gt;, &lt;a href=&quot;http://www.zetcode.com/tutorials/pyqt4/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;pyqt4 turtorial&lt;/a&gt;,&lt;a href=&quot;http://techbase.kde.org/Development/Tutorials/Plasma/Python/GettingStarted&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;plasma python&lt;/a&gt; .
+
+效果就这样。电池旁边那个就是。
+
+&lt;a href=&quot;http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png&quot; target=&quot;_blank&quot;&gt;&lt;img src=&quot;http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png&quot; alt=&quot;&quot; width=&quot;300&quot;&gt;&lt;/a&gt;
+
+代码
+&lt;pre class=&quot;prettyprint lang-python&quot;&gt;
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+from PyKDE4.plasma import Plasma
+from PyKDE4 import plasmascript
+import time                                      
+
+class Cpuinfo(plasmascript.Applet):
+        def __init__(self,parent,args=None):
+                plasmascript.Applet.__init__(self,parent)
+
+        def init(self):
+                self.freqnow = &#39;&#39;
+                self.freqmax = &#39;&#39;
+                self.temp = &#39;&#39;
+                self.text = &#39;&#39;   
+
+                self.getCurrentFreq()
+                self.getMaxFreq()
+                self.getTemp()       
+
+                self.setHasConfigurationInterface(False)
+                self.setMinimumWidth(100)
+                self.setAspectRatioMode(Plasma.Square)
+                self.startTimer(1000)
+
+        def getCurrentFreq (self):
+                line = open (&#39;/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq&#39;, &#39;r&#39;).read().rstrip(&#39;\n&#39;)
+                line = int(line) / 1000 /1000.0
+                self.freqnow = line
+
+        def getMaxFreq (self):
+                line = file(&#39;/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq&#39;, &#39;r&#39;).read().rstrip(&#39;\n&#39;)
+                line = int(line) / 1000 /1000.0
+                self.freqmax = line
+
+        def getTemp (self):
+                line = file(&#39;/proc/acpi/thermal_zone/TZ1/temperature&#39;, &#39;r&#39;).read().rstrip(&#39;\n&#39;)
+                line = &quot; &quot;.join(line.split()[1:])
+                self.temp = line
+
+        def timerEvent(self, event):
+                self.getCurrentFreq()
+                self.getTemp()
+                self.text = &quot;%s\n%.2f %d%%&quot; % (self.temp, self.freqnow, self.freqnow / self.freqmax * 100)
+                self.update() 
+
+        def paintInterface(self, painter, option, rect):
+                painter.save()
+                painter.setPen(Qt.white)
+                #painter.setFont(QFont(&#39;Consolas&#39;,11))
+                painter.drawText(rect, Qt.AlignVCenter | Qt.AlignHCenter, self.text)
+                painter.restore()
+
+def CreateApplet(parent):
+                return Cpuinfo(parent)
+
+if __name__ == &#39;__main__&#39;:
+        a = Cpuinfo(None)
+        a.init()
+        print a.freqnow&lt;/pre&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">写了一个 kde plasma applet</h2>
+	<div class="entry-content">用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。
+
+第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。
+
+这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。
+
+昨天花了一个下午，总算弄好了。参考的文档 <a href="http://www.qtopia.org.cn/doc/qiliang.net/qt/classes.html" target="_blank" rel="external">qt的类</a>, <a href="http://www.zetcode.com/tutorials/pyqt4/" target="_blank" rel="external">pyqt4 turtorial</a>,<a href="http://techbase.kde.org/Development/Tutorials/Plasma/Python/GettingStarted" target="_blank" rel="external">plasma python</a> .
+
+效果就这样。电池旁边那个就是。
+
+<a href="http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png" target="_blank"><img src="http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png" alt="" width="300"></a>
+
+代码
+<pre class="prettyprint lang-python">
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+from PyKDE4.plasma import Plasma
+from PyKDE4 import plasmascript
+import time                                      
+
+class Cpuinfo(plasmascript.Applet):
+        def __init__(self,parent,args=None):
+                plasmascript.Applet.__init__(self,parent)
+
+        def init(self):
+                self.freqnow = ''
+                self.freqmax = ''
+                self.temp = ''
+                self.text = ''   
+
+                self.getCurrentFreq()
+                self.getMaxFreq()
+                self.getTemp()       
+
+                self.setHasConfigurationInterface(False)
+                self.setMinimumWidth(100)
+                self.setAspectRatioMode(Plasma.Square)
+                self.startTimer(1000)
+
+        def getCurrentFreq (self):
+                line = open ('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqnow = line
+
+        def getMaxFreq (self):
+                line = file('/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqmax = line
+
+        def getTemp (self):
+                line = file('/proc/acpi/thermal_zone/TZ1/temperature', 'r').read().rstrip('\n')
+                line = " ".join(line.split()[1:])
+                self.temp = line
+
+        def timerEvent(self, event):
+                self.getCurrentFreq()
+                self.getTemp()
+                self.text = "%s\n%.2f %d%%" % (self.temp, self.freqnow, self.freqnow / self.freqmax * 100)
+                self.update() 
+
+        def paintInterface(self, painter, option, rect):
+                painter.save()
+                painter.setPen(Qt.white)
+                #painter.setFont(QFont('Consolas',11))
+                painter.drawText(rect, Qt.AlignVCenter | Qt.AlignHCenter, self.text)
+                painter.restore()
+
+def CreateApplet(parent):
+                return Cpuinfo(parent)
+
+if __name__ == '__main__':
+        a = Cpuinfo(None)
+        a.init()
+        print a.freqnow</pre>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="writing-a-kde-plasma-applet/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'writing-a-kde-plasma-applet/';
+        var disqus_url = 'writing-a-kde-plasma-applet/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

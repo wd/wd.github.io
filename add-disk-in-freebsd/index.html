@@ -1,0 +1,285 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>给freebsd添加新硬盘 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="没想到freebsd里面这么变态，linux下面可能fdisk就搞定的事情，到了这里需要好几个操作，还搞不明白怎么回事。。。
+
+要弄清楚这个，先要了解几个概念。bsd下面的ide硬盘叫做 ad，scsi 硬盘叫做da。ad0,ad1,ad2...，按照ide接口来定的。假定新加的硬盘是 ad2。每个ad又可以分4个 slice，这样就有了 ad2s1, ad2s2...。每个slice下面呢，又可以分几个区，例如 ad2s1e, ad2s1f ，可以从 a 到 h 八个，abcd是有特殊意思的。最后实际挂载使用的就是这个 /dev/ad2s1e 了。
+
+这样整个过程就分几个步骤。
+
+&lt;strong&gt;1 先初始化硬盘&lt;/strong&gt;
+&lt;pre class=&quot;prettyprint lang-txt&quot;&gt;
+1+0 records in
+1+0 records out
+1024 bytes transferred in 0.000160 secs (6400845 bytes/sec)&lt;/pre&gt;
+或者
+&lt;pre class=&quot;prettyprint lang-txt&quot;&gt;
+******* Working on device /dev/ad2 *******&lt;/pre&gt;
+此后可以用 fdisk ad2 命令看到一些信息，可以看到整个硬盘的信息。
+&lt;pre class=&quot;prettyprint lang-txt&quot;&gt;
+parameters extracted from in-core disklabel are:
+cylinders=516822 heads=15 sectors/track=63 (945 blks/cyl)
+
+Figures below won&#39;t work with BIOS for partitions not in cyl 1
+parameters to be used for BIOS calculations are:
+cylinders=516822 heads=15 sectors/track=63 (945 blks/cyl)
+
+Media sector size is 512
+Warning: BIOS sector numbering starts with sector 1
+Information from DOS bootblock is:
+The data for partition 1 is:
+sysid 165,(FreeBSD/NetBSD/386BSD)
+start 63, size 488396727 (238474 Meg), flag 80 (active)
+beg: cyl 0/ head 1/ sector 1;
+end: cyl 725/ head 14/ sector 63
+The data for partition 2 is:
+&amp;lt;unused&amp;gt;
+The data for partition 3 is:
+&amp;lt;unused&amp;gt;
+The data for partition 4 is:
+&amp;lt;unused&amp;gt;&lt;/pre&gt;
+&lt;strong&gt;2 使用 fdisk 命令分 slice&lt;/strong&gt;
+
+fdisk -i ad2 会一步一步询问4个slice的设置，比较麻烦。不过这里也可以不分，就一个slice，一样用，呵呵。
+
+&lt;strong&gt;3 使用 disklabel 命令分区&lt;/strong&gt;
+
+这里假定我们就一个slice。为这个 slice 建立分区。
+&lt;pre class=&quot;prettyprint lang-txt&quot;&gt;
+这样就建立了一个 ad2s1c 的分区，c表示的是整个硬盘。使用下面的命令进行分区，这个还不会玩。。:(
+&lt;pre class=&quot;prettyprint lang-txt&quot;&gt;
+&lt;strong&gt;4 使用newfs建立文件系统&lt;/strong&gt;
+
+就以分一个区为例，执行下面的命令。
+&lt;pre class=&quot;prettyprint lang-txt&quot;&gt;
+这个命令会打印一堆数字，应该表示的是建立文件系统的进度，等会打印完了，分区就可以用了。
+
+参考文章： http://bbs.fyjy.net/printthread.php?t=2037
+&lt;/pre&gt;&lt;/pre&gt;&lt;/pre&gt;"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">给freebsd添加新硬盘</h2>
+	<div class="entry-content">没想到freebsd里面这么变态，linux下面可能fdisk就搞定的事情，到了这里需要好几个操作，还搞不明白怎么回事。。。
+
+要弄清楚这个，先要了解几个概念。bsd下面的ide硬盘叫做 ad，scsi 硬盘叫做da。ad0,ad1,ad2...，按照ide接口来定的。假定新加的硬盘是 ad2。每个ad又可以分4个 slice，这样就有了 ad2s1, ad2s2...。每个slice下面呢，又可以分几个区，例如 ad2s1e, ad2s1f ，可以从 a 到 h 八个，abcd是有特殊意思的。最后实际挂载使用的就是这个 /dev/ad2s1e 了。
+
+这样整个过程就分几个步骤。
+
+<strong>1 先初始化硬盘</strong>
+<pre class="prettyprint lang-txt">
+1+0 records in
+1+0 records out
+1024 bytes transferred in 0.000160 secs (6400845 bytes/sec)</pre>
+或者
+<pre class="prettyprint lang-txt">
+******* Working on device /dev/ad2 *******</pre>
+此后可以用 fdisk ad2 命令看到一些信息，可以看到整个硬盘的信息。
+<pre class="prettyprint lang-txt">
+parameters extracted from in-core disklabel are:
+cylinders=516822 heads=15 sectors/track=63 (945 blks/cyl)
+
+Figures below won't work with BIOS for partitions not in cyl 1
+parameters to be used for BIOS calculations are:
+cylinders=516822 heads=15 sectors/track=63 (945 blks/cyl)
+
+Media sector size is 512
+Warning: BIOS sector numbering starts with sector 1
+Information from DOS bootblock is:
+The data for partition 1 is:
+sysid 165,(FreeBSD/NetBSD/386BSD)
+start 63, size 488396727 (238474 Meg), flag 80 (active)
+beg: cyl 0/ head 1/ sector 1;
+end: cyl 725/ head 14/ sector 63
+The data for partition 2 is:
+&lt;unused&gt;
+The data for partition 3 is:
+&lt;unused&gt;
+The data for partition 4 is:
+&lt;unused&gt;</pre>
+<strong>2 使用 fdisk 命令分 slice</strong>
+
+fdisk -i ad2 会一步一步询问4个slice的设置，比较麻烦。不过这里也可以不分，就一个slice，一样用，呵呵。
+
+<strong>3 使用 disklabel 命令分区</strong>
+
+这里假定我们就一个slice。为这个 slice 建立分区。
+<pre class="prettyprint lang-txt">
+这样就建立了一个 ad2s1c 的分区，c表示的是整个硬盘。使用下面的命令进行分区，这个还不会玩。。:(
+<pre class="prettyprint lang-txt">
+<strong>4 使用newfs建立文件系统</strong>
+
+就以分一个区为例，执行下面的命令。
+<pre class="prettyprint lang-txt">
+这个命令会打印一堆数字，应该表示的是建立文件系统的进度，等会打印完了，分区就可以用了。
+
+参考文章： http://bbs.fyjy.net/printthread.php?t=2037
+</pre></pre></pre></div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="add-disk-in-freebsd/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'add-disk-in-freebsd/';
+        var disqus_url = 'add-disk-in-freebsd/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

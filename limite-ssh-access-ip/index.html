@@ -1,0 +1,379 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>限制ssh访问的ip - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="★ 需求
+
+最近公司服务器上面某个用户的帐号密码被修改了好几次。查看了一下，确实有人用他的帐号从外网ip（国外的ip）登陆过，猜想可能是他自己的电脑中木马或者什么病毒了。用户自己没有安全意识是很头痛的一个问题，其实给他们新建帐号的时候使用的都是简单密码，但是似乎都没有人上服务器自己修改，但是你又不能要求你的用户如何如何（比如给自己电脑装防火墙、杀毒软件etc），因为那是人家自己的事情。那么我就想，有没有一个方法可以限制某个用户只能从某个ip（或者ip列表）登陆呢？下面是一些解决方法。
+
+&lt;br&gt;&lt;a id=&quot;more&quot;&gt;&lt;/a&gt;★ 解决方案
+
+1) 通过修改/etc/ssh/sshd_config文件，让sshd只监听内网ip。这样只有内网ip才能登陆ssh。但是这样的话就不能远程维护服务器了，有点得不偿失得感觉。
+
+2) 通过修改/etc/hosts.allow和/etc/hosts.deny来限制某个ip的登陆。这个方式其实和上面得类似，你也不知道hacker会从哪个ip登陆，所以你没办法deny他得ip，deny他得时候可能连你自己也deny了。
+
+3) 可以通过/etc/ssh/sshd_config文件来实现。
+
+ &amp;nbsp; &amp;nbsp; AllowUsers
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; This keyword can be followed by a list of user name patterns,
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; separated by spaces.&amp;nbsp; If specified, login is allowed only for us-
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; er names that match one of the patterns.&amp;nbsp; Only user names are
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; valid; a numerical user ID is not recognized.&amp;nbsp; By default, login
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; is allowed for all users.&amp;nbsp; If the pattern takes the form US-
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; ER@HOST then USER and HOST are separately checked, restricting
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; logins to particular users from particular hosts.&amp;nbsp; The allow/deny
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; directives are processed in the following order: DenyUsers,
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; AllowUsers, DenyGroups, and finally AllowGroups.
+
+PATTERNS
+ &amp;nbsp; &amp;nbsp; A pattern consists of zero or more non-whitespace characters, `*&#39; (a
+ &amp;nbsp; &amp;nbsp; wildcard that matches zero or more characters), or `?&#39; (a wildcard that
+ &amp;nbsp; &amp;nbsp; matches exactly one character).&amp;nbsp; For example, to specify a set of decla-
+ &amp;nbsp; &amp;nbsp; rations for any host in the ``.co.uk&#39;&#39; set of domains, the following pat-
+ &amp;nbsp; &amp;nbsp; tern could be used:
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Host *.co.uk
+
+ &amp;nbsp; &amp;nbsp; The following pattern would match any host in the 192.168.0.[0-9] network
+ &amp;nbsp; &amp;nbsp; range:
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Host 192.168.0.?
+
+ &amp;nbsp; &amp;nbsp; A pattern-list is a comma-separated list of patterns.&amp;nbsp; Patterns within
+ &amp;nbsp; &amp;nbsp; pattern-lists may be negated by preceding them with an exclamation mark
+ &amp;nbsp; &amp;nbsp; (`!&#39;).&amp;nbsp; For example, to allow a key to be used from anywhere within an
+ &amp;nbsp; &amp;nbsp; organisation except from the ``dialup&#39;&#39; pool, the following entry (in au-
+ &amp;nbsp; &amp;nbsp; thorized_keys) could be used:
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; from=&quot;!*.dialup.example.com,*.example.com&quot;
+
+比如不允许test用户从192.168.0.x登陆，那么可以添加一行
+
+denyusers test@192.168.0.
+
+按照上面的PATTERNS说明，似乎可以加叹号来排除某个ip，但是尝试过没有成功，不知道什么原因了。
+
+按照文档，deny是级别最高的，而设置了allow之后，就只能allow的用户访问了，所以如果想限制某个用户只能从某个ip段登陆，用这个似乎实现不了。
+
+4) 使用ssh得RSA/DSA key。
+
+参考地址:http://www.5ilinux.com/ssh01.html 
+
+用ssh-keygen命令生成一对公匙密匙，然后把密匙给用户，并且限制ssh只能通过RSA方式认证。这样会导致所有ssh用户都得用这种方式登陆了，会更加郁闷。
+
+这种方式可以在用户得authorized_keys2文件中，加入from=&quot;!192.168.1.158,*&quot;来让用户只能通过158登陆。（这个没有做过验证）
+
+
+PATTERNS
+ &amp;nbsp; &amp;nbsp; A pattern consists of zero or more non-whitespace characters, `*&#39; (a
+ &amp;nbsp; &amp;nbsp; wildcard that matches zero or more characters), or `?&#39; (a wildcard that
+ &amp;nbsp; &amp;nbsp; matches exactly one character).&amp;nbsp; For example, to specify a set of decla-
+ &amp;nbsp; &amp;nbsp; rations for any host in the ``.co.uk&#39;&#39; set of domains, the following pat-
+ &amp;nbsp; &amp;nbsp; tern could be used:
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Host *.co.uk
+
+ &amp;nbsp; &amp;nbsp; The following pattern would match any host in the 192.168.0.[0-9] network
+ &amp;nbsp; &amp;nbsp; range:
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Host 192.168.0.?
+
+ &amp;nbsp; &amp;nbsp; A pattern-list is a comma-separated list of patterns.&amp;nbsp; Patterns within
+ &amp;nbsp; &amp;nbsp; pattern-lists may be negated by preceding them with an exclamation mark
+ &amp;nbsp; &amp;nbsp; (`!&#39;).&amp;nbsp; For example, to allow a key to be used from anywhere within an
+ &amp;nbsp; &amp;nbsp; organisation except from the ``dialup&#39;&#39; pool, the following entry (in au-
+ &amp;nbsp; &amp;nbsp; thorized_keys) could be used:
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; from=&quot;!*.dialup.example.com,*.example.com&quot;
+
+
+
+5) 用pam。
+
+参考地址:http://www.linuxmine.com/1078.html 
+
+看看/etc/pam.d/login文件，有没有pam_access.so的设置。我的debian系统中，ssh相关的都在/etc/pam.d/ssh文件中设置。加入一行
+
+account&amp;nbsp; required &amp;nbsp; &amp;nbsp; &amp;nbsp; pam_access.so
+
+然后修改他的配置文件/etc/security/access.conf文件。加入一行
+
+-:wd:192.168.1. EXCEPT 192.168.1.158
+
+这样，wd用户从192.168.1.x（192.168.1.158除外）的登陆权限被去掉了。也就是说，wd这个用户就只能从158这个ip以及外网ip登陆了。
+
+大功告成。 :)
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">限制ssh访问的ip</h2>
+	<div class="entry-content">★ 需求
+
+最近公司服务器上面某个用户的帐号密码被修改了好几次。查看了一下，确实有人用他的帐号从外网ip（国外的ip）登陆过，猜想可能是他自己的电脑中木马或者什么病毒了。用户自己没有安全意识是很头痛的一个问题，其实给他们新建帐号的时候使用的都是简单密码，但是似乎都没有人上服务器自己修改，但是你又不能要求你的用户如何如何（比如给自己电脑装防火墙、杀毒软件etc），因为那是人家自己的事情。那么我就想，有没有一个方法可以限制某个用户只能从某个ip（或者ip列表）登陆呢？下面是一些解决方法。
+
+<br><a id="more"></a>★ 解决方案
+
+1) 通过修改/etc/ssh/sshd_config文件，让sshd只监听内网ip。这样只有内网ip才能登陆ssh。但是这样的话就不能远程维护服务器了，有点得不偿失得感觉。
+
+2) 通过修改/etc/hosts.allow和/etc/hosts.deny来限制某个ip的登陆。这个方式其实和上面得类似，你也不知道hacker会从哪个ip登陆，所以你没办法deny他得ip，deny他得时候可能连你自己也deny了。
+
+3) 可以通过/etc/ssh/sshd_config文件来实现。
+
+ &nbsp; &nbsp; AllowUsers
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; This keyword can be followed by a list of user name patterns,
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; separated by spaces.&nbsp; If specified, login is allowed only for us-
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; er names that match one of the patterns.&nbsp; Only user names are
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; valid; a numerical user ID is not recognized.&nbsp; By default, login
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; is allowed for all users.&nbsp; If the pattern takes the form US-
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; ER@HOST then USER and HOST are separately checked, restricting
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; logins to particular users from particular hosts.&nbsp; The allow/deny
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; directives are processed in the following order: DenyUsers,
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; AllowUsers, DenyGroups, and finally AllowGroups.
+
+PATTERNS
+ &nbsp; &nbsp; A pattern consists of zero or more non-whitespace characters, `*' (a
+ &nbsp; &nbsp; wildcard that matches zero or more characters), or `?' (a wildcard that
+ &nbsp; &nbsp; matches exactly one character).&nbsp; For example, to specify a set of decla-
+ &nbsp; &nbsp; rations for any host in the ``.co.uk'' set of domains, the following pat-
+ &nbsp; &nbsp; tern could be used:
+
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Host *.co.uk
+
+ &nbsp; &nbsp; The following pattern would match any host in the 192.168.0.[0-9] network
+ &nbsp; &nbsp; range:
+
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Host 192.168.0.?
+
+ &nbsp; &nbsp; A pattern-list is a comma-separated list of patterns.&nbsp; Patterns within
+ &nbsp; &nbsp; pattern-lists may be negated by preceding them with an exclamation mark
+ &nbsp; &nbsp; (`!').&nbsp; For example, to allow a key to be used from anywhere within an
+ &nbsp; &nbsp; organisation except from the ``dialup'' pool, the following entry (in au-
+ &nbsp; &nbsp; thorized_keys) could be used:
+
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; from="!*.dialup.example.com,*.example.com"
+
+比如不允许test用户从192.168.0.x登陆，那么可以添加一行
+
+denyusers test@192.168.0.
+
+按照上面的PATTERNS说明，似乎可以加叹号来排除某个ip，但是尝试过没有成功，不知道什么原因了。
+
+按照文档，deny是级别最高的，而设置了allow之后，就只能allow的用户访问了，所以如果想限制某个用户只能从某个ip段登陆，用这个似乎实现不了。
+
+4) 使用ssh得RSA/DSA key。
+
+参考地址:http://www.5ilinux.com/ssh01.html 
+
+用ssh-keygen命令生成一对公匙密匙，然后把密匙给用户，并且限制ssh只能通过RSA方式认证。这样会导致所有ssh用户都得用这种方式登陆了，会更加郁闷。
+
+这种方式可以在用户得authorized_keys2文件中，加入from="!192.168.1.158,*"来让用户只能通过158登陆。（这个没有做过验证）
+
+
+PATTERNS
+ &nbsp; &nbsp; A pattern consists of zero or more non-whitespace characters, `*' (a
+ &nbsp; &nbsp; wildcard that matches zero or more characters), or `?' (a wildcard that
+ &nbsp; &nbsp; matches exactly one character).&nbsp; For example, to specify a set of decla-
+ &nbsp; &nbsp; rations for any host in the ``.co.uk'' set of domains, the following pat-
+ &nbsp; &nbsp; tern could be used:
+
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Host *.co.uk
+
+ &nbsp; &nbsp; The following pattern would match any host in the 192.168.0.[0-9] network
+ &nbsp; &nbsp; range:
+
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; Host 192.168.0.?
+
+ &nbsp; &nbsp; A pattern-list is a comma-separated list of patterns.&nbsp; Patterns within
+ &nbsp; &nbsp; pattern-lists may be negated by preceding them with an exclamation mark
+ &nbsp; &nbsp; (`!').&nbsp; For example, to allow a key to be used from anywhere within an
+ &nbsp; &nbsp; organisation except from the ``dialup'' pool, the following entry (in au-
+ &nbsp; &nbsp; thorized_keys) could be used:
+
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; from="!*.dialup.example.com,*.example.com"
+
+
+
+5) 用pam。
+
+参考地址:http://www.linuxmine.com/1078.html 
+
+看看/etc/pam.d/login文件，有没有pam_access.so的设置。我的debian系统中，ssh相关的都在/etc/pam.d/ssh文件中设置。加入一行
+
+account&nbsp; required &nbsp; &nbsp; &nbsp; pam_access.so
+
+然后修改他的配置文件/etc/security/access.conf文件。加入一行
+
+-:wd:192.168.1. EXCEPT 192.168.1.158
+
+这样，wd用户从192.168.1.x（192.168.1.158除外）的登陆权限被去掉了。也就是说，wd这个用户就只能从158这个ip以及外网ip登陆了。
+
+大功告成。 :)
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="limite-ssh-access-ip/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'limite-ssh-access-ip/';
+        var disqus_url = 'limite-ssh-access-ip/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

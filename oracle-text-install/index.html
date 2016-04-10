@@ -1,0 +1,231 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>oracle 文本界面的安装 - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是&lt;font color=&quot;#3333ff&quot;&gt;远程&lt;/font&gt;文本界面。这样很有必要看看如何通过文本界面来安装oracle。
+
+oracle本身的安装程序也提供了这个方法，就是使用 responseFile 。这个 responseFile 其实就是在图形界面安装的时候的一些选择，保存到文件之后，直接告诉安装程序从这里读取设置就好了。将oracle的安装文件 ship.db.lnx32.cpio.gz 解压：
+
+&lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
+cpio -idmv &lt; ship.db.cpio&lt;/pre&gt;
+
+这样可以看到有个Disk1的文件夹，里面有个response目录，里面好多response文件，不过我还不知道这些有什么区别，里面设置项也很多，还没弄明白。我使用的不是这里的response文件。是通过下面的方法获取的rsp文件。
+
+可以通过在记录模式中运行软件或通过手动编辑示例响应文件来创建响应文件。以下是一个基本演示：
+
+   1. 用此命令启动 OUI 来创建响应文件：
+
+      ./runInstaller -record -destinationFile /tmp/recorded.rsp
+       
+   2. 选择您需要的所有部分（源目标目录、主目录、主目录名、产品）。
+   3. 当您看到 Summary 屏幕时，不要单击 Install，而是单击 Cancel。
+   4. 仔细查看在 tmp/recorded.rsp 中创建的结果响应文件。如果需要，可以手动编辑该文件，只要您遵守使用规定的格式即可（请参见文档）。
+   5. 现在如下执行静默安装：
+
+      ./runInstaller -silent -responseFile /tmp/recorded.rsp
+
+      在运行脚本时将会报告安装的进度。
+
+如果您由于响应文件中的条目不正确而遇到安装故障，安装将失败并显示一条诊断消息。详细信息可在 oraInventory/logs 目录中找到。在每次使用响应文件运行 OUI 时，会创建具有 installActions-&lt;时间戳&gt;.log 和 silentInstall&lt;时间戳&gt;.log 格式名称的日志。
+
+这样，只需要找台机器在图形界面下面运行一下安装程序，生成一个rsp文件，然后放到真正需要安装的服务器上面，修改一下安装路径，设置一下sys密码，就可以开始安装了。
+&lt;/时间戳&gt;&lt;/时间戳&gt;"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">oracle 文本界面的安装</h2>
+	<div class="entry-content">oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是<font color="#3333ff">远程</font>文本界面。这样很有必要看看如何通过文本界面来安装oracle。
+
+oracle本身的安装程序也提供了这个方法，就是使用 responseFile 。这个 responseFile 其实就是在图形界面安装的时候的一些选择，保存到文件之后，直接告诉安装程序从这里读取设置就好了。将oracle的安装文件 ship.db.lnx32.cpio.gz 解压：
+
+<pre class="prettyprint lang-bash">
+cpio -idmv < ship.db.cpio</pre>
+
+这样可以看到有个Disk1的文件夹，里面有个response目录，里面好多response文件，不过我还不知道这些有什么区别，里面设置项也很多，还没弄明白。我使用的不是这里的response文件。是通过下面的方法获取的rsp文件。
+
+可以通过在记录模式中运行软件或通过手动编辑示例响应文件来创建响应文件。以下是一个基本演示：
+
+   1. 用此命令启动 OUI 来创建响应文件：
+
+      ./runInstaller -record -destinationFile /tmp/recorded.rsp
+       
+   2. 选择您需要的所有部分（源目标目录、主目录、主目录名、产品）。
+   3. 当您看到 Summary 屏幕时，不要单击 Install，而是单击 Cancel。
+   4. 仔细查看在 tmp/recorded.rsp 中创建的结果响应文件。如果需要，可以手动编辑该文件，只要您遵守使用规定的格式即可（请参见文档）。
+   5. 现在如下执行静默安装：
+
+      ./runInstaller -silent -responseFile /tmp/recorded.rsp
+
+      在运行脚本时将会报告安装的进度。
+
+如果您由于响应文件中的条目不正确而遇到安装故障，安装将失败并显示一条诊断消息。详细信息可在 oraInventory/logs 目录中找到。在每次使用响应文件运行 OUI 时，会创建具有 installActions-<时间戳>.log 和 silentInstall<时间戳>.log 格式名称的日志。
+
+这样，只需要找台机器在图形界面下面运行一下安装程序，生成一个rsp文件，然后放到真正需要安装的服务器上面，修改一下安装路径，设置一下sys密码，就可以开始安装了。
+</时间戳></时间戳></div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="oracle-text-install/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+<script type="text/javascript">
+      var disqus_shortname = 'wdicc';
+      
+        // var disqus_developer = 1;
+        var disqus_identifier = 'oracle-text-install/';
+        var disqus_url = 'oracle-text-install/';
+        var disqus_script = 'embed.js';
+      
+    (function () {
+      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    }());
+</script>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>
