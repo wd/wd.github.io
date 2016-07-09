@@ -94,6 +94,46 @@
         
   <article class="post">
 	<h2 class="title">
+		<a href="emacs-in-mac/">总算是将就同步好了 gentoo 和 mac 的 emacs</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2012-02-19T16:00:00.000Z" itemprop="datePublished">Feb 20, 2012</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a>
+</div>
+    </div>
+      
+        mac 里面居然自带了一个 emacs，，版本是 22.1.1，有够老的反正是。因为 gentoo 用的是 emacs24，所以按照不知道哪里推荐的，去下载了一个 emacs24。然后就是尝试在 mac 下面配置好我的 emacs 了，配置好才好通过 org2blog 写 blog。。。
+
+老早就随大流把 .emacs.d 放到了 github，所以这部分比较简单，只要 clone 一下就可以了。
+
+之前没想到的是我的一部分 elisp 包是通过 gentoo 管理的，这样只有 .emacs.d 显然是不行的。然后使用了 dropbox 这个方案，把 gentoo 里面的 site-lisp 部分也同步过来。主要是 <em>usr/share/emacs/etc</em> 和 <em>usr/share/emacs/site-lisp</em> 两个目录。把 gentoo里面的这两个目录转移到 dropbox 里面，然后做个软链。mac 里面也从 dropbox 里面做好软链，要注意路径位置不能变化，变化的话 gentoo 里面的 site-gentoo.el 里面写死的路径就不能用了。不过不变化那个路径的话，其实是会影响系统自带的 emacs22.1.1 的使用的，不过不管了，爱咋匝地吧，反正我也不用那个。
+
+接下来就是在 .emacs 里面加 load-path 就可以了。gentoo 是不需要的，所以用下面的代码
+<pre class="prettyprint lang-lisp">
+    (setq load-path
+        (cons "/usr/share/emacs/site-lisp/" load-path)))</pre>
+mac 里面用 emacs 一个郁闷的问题是，command 键挤在了 alt 和 space 中间，和普通键盘不一样，导致习惯了普通键盘的我经常按错。很郁闷，不知道能不能把那个 command 弄成 alt，反正好像 command 在 emacs 里面没用。。。
+
+可以用上面类似的方法处理一些两个系统的特例。
+
+顺便再吐槽下 mac 的输入法，装了个 sogou，发现这小子启动慢，经常切换过去后打了几个字母了都，他还没反应，字母就上屏了。fit的词库又不行，词频调整也有问题。‘在’我这半天输入 n 个了都，还是处在‘再’的后面，很讨厌。不知道有没有其他靠谱的。。。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="emacs-in-mac/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="wine-in-mac/">mac 上面安装 wine</a>
 	</h2>
     <div class="entry-content">
@@ -762,49 +802,6 @@ hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，
 
   <article class="post">
 	<h2 class="title">
-		<a href="about-svn-merge/">svn merge</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2011-05-07T16:00:00.000Z" itemprop="datePublished">May 8, 2011</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/svn/">svn</a>
-</div>
-    </div>
-      
-        <p>svn merge 的 help 信息
-<pre class="prettyprint">
-usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
-       2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH]
-       3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH]
-</pre>
-
-svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。
-</p>
-<p>
-所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。
-</p>
-<p>
-一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。
-</p>
-<p>
-最好在 merge 之前加一个 &ndash;dry-run 看看他会修改哪些文件。 
-</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="about-svn-merge/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="alarm-signal-in-perl/">alarm 使用不当遇到的问题</a>
 	</h2>
     <div class="entry-content">
@@ -923,31 +920,35 @@ alarm $previousAlarm;
 
   <article class="post">
 	<h2 class="title">
-		<a href="cant-drop-table-in-hive/">hive 里面不能 drop table</a>
+		<a href="about-svn-merge/">svn merge</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2011-05-02T16:00:00.000Z" itemprop="datePublished">May 3, 2011</time>
+      <div class="date">Published on: <time datetime="2011-05-07T16:00:00.000Z" itemprop="datePublished">May 8, 2011</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Linux/">Linux</a> <a href="../tags/hive/">hive</a> <a href="../tags/postgress/">postgress</a>
+<a href="../tags/Linux/">Linux</a> <a href="../tags/svn/">svn</a>
 </div>
     </div>
       
-        <p>之前部署 hive 0.6 的时候，发现用 postgress 存 metadb 的时候，不能 drop table，一执行就卡住了。当时试过 mysql，好像是有个什么问题，就没用了，后来只好用 hive 0.5 完事。
+        <p>svn merge 的 help 信息
+<pre class="prettyprint">
+usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
+       2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH]
+       3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH]
+</pre>
+
+svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。
 </p>
 <p>
-前几天有个别的事情工作不正常，以为可能是版本的问题，毕竟现在都 0.7 了。所以尝试了下直接升级到 0.7。在 0.6 版本的 hive 里面，自带了一个 postgress 用的升级 sql，但是 0.7 的没有。执行这个 sql 后，hive 0.7 能查询，但是同样的，也遇到了不能 drop table 的问题。
+所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。
 </p>
 <p>
-后来发现 drop table 的时候，hive 在尝试去查一个不存在的表，然后就卡在了这个 sql 上面，也不报错，也不超时，不知道是不是 jdbc 的问题。
+一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。
 </p>
 <p>
-然后把 mysql 用的升级 sql 迁移到了 postgress，这样 hive 0.7 在 postgress 里面也没问题了。
-</p>
-<p>
-升级 sql 和邮件列表的主题在 <a href="http://www.mail-archive.com/user@hive.apache.org/msg01293.html" target="_blank" rel="external">http://www.mail-archive.com/user@hive.apache.org/msg01293.html</a> 。升级的时候要注意，新建的表的 owner 需要是 hive 使用的用户。
+最好在 merge 之前加一个 &ndash;dry-run 看看他会修改哪些文件。 
 </p>
 
       
@@ -955,7 +956,7 @@ alarm $previousAlarm;
 
 <div class="meta">
 	
-		<span class="comments"><a href="cant-drop-table-in-hive/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="about-svn-merge/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

@@ -94,6 +94,40 @@
         
   <article class="post">
 	<h2 class="title">
+		<a href="178-accident/">178事故</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-04-29T16:00:00.000Z" itemprop="datePublished">Apr 30, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a> <a href="../tags/route/">route</a> <a href="../tags/路由/">路由</a>
+</div>
+    </div>
+      
+        ★ 由来
+
+做服务器间相互备份的时候，到某两台服务器的时候，暂且称为A、B吧，发现他们之间不能互通，查看了ip，内网ip都是一个网段的，查看防火墙，端口也都是打开的，更加离奇的是，通过rsync从B访问A的时候，提示对方拒绝连接，同时在A上面用tcpdump监听相应端口，发现没有任何数据来往，而在A上面同时用tcpdump监听，却发现发出的请求对方都有回应。这个就太离奇了，到底是怎么回事呢？在A上面查看ip设置，注意到A有三个网卡，一个公网，两个内网ip，两个内网ip分别是10.x.x.0/24网段和192.168.0.0/24网段的，而B上面只有两块网卡，一个公网ip，一个内网ip，内网是192.168.0.0/24网段的，此时突然想起来A上面有snmpd监控，查看了一下，发现A的192.168.0.0/24 网段根本从来就没有任何流量，所以就断定肯定是网线插错了。打电话给机房也不太可能，就想着自己修改一下服务器的ip好了，反正是内网ip，即使修改出问题也不会出现连不上的情况，这样至少我远程还可以继续维护。这样，恶梦开始了。。。。
+
+<br>
+        
+          <p class="more-link">
+            <a href="178-accident/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="178-accident/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="limite-ssh-access-ip/">限制ssh访问的ip</a>
 	</h2>
     <div class="entry-content">
@@ -390,55 +424,6 @@ Splunk是个商业的日志分析软件，运行于Unix环境，可以支持任�
 <div class="meta">
 	
 		<span class="comments"><a href="about-nagios/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="qmail-queue/">Qmail邮件队列工作原理zz</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-03-29T16:00:00.000Z" itemprop="datePublished">Mar 30, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Mail/">Mail</a>
-</div>
-    </div>
-      
-        http://www.gbunix.com/htmldata/2005_06/15/25/article_1223_1.html
-
-以下是qmail的数据流简图
-
- qmail-smtpd --- &gt;&gt;qmail-queue ---&gt;&gt; qmail-send &lt;&lt;--- qmail-rspawn &lt;&lt;--- qmail-remote
- &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; / &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | 
- &nbsp; &nbsp; &nbsp; qmail-inject _/ qmail-clean \_ qmail-lspawn &lt;&lt;--- qmail-local
-
- &nbsp; &nbsp;qmail中，每一条消息都发送到中央队列等待发送，由qmail-queue进程控制。它在以下情况被调用：
- &nbsp; &nbsp;1、当产生本地消息时，qmail-inject进程调用qmail-queue。
- &nbsp; &nbsp;2、qmail-smtpd准备SMTP协议下的投递邮件任务时调用它。
- &nbsp; &nbsp;3、向前（forwarded）发送邮件时，qmail－local调用它。
- &nbsp; &nbsp;4、退回邮件时，qmail－send调用它。
-
- &nbsp; &nbsp;每封邮件接着由qmail-lspawn 和qmail-rspawn协助qmail－sned进程完成投递，最后由qmail－clean清除邮件队列。这四个进程是系统由始至终都在运行的，十分重要。
-
-由smtpd从域外接受邮件之后，会交给queue处理（也就是2），之后转到qmal-send，然后看是域内还是域外，域内用qmail-lspawn，域外用qmail-rspawn。域内邮件调用qmail-local处理，如果遇到.qmail文件转发邮件（也就是上面的3），还会交给queue处理，如果没有，就直接投递给用户（？）。域外邮件调用qmail-remote处理，如果对方拒收邮件，他就会产生一个新的邮件（bounce），交给qmail-send，然后交给queue（也就是4？）。
-
-本地用户发送mail的时候调用qmail-inject，然后交给queue（也就是1）。
-
-有几个问题。
-1&nbsp; 收到域外邮件之后，判断本机是否有这个用户后才接受邮件呢，还是先接受进来放到queue里等qmail-local处理的时候再说？
-
-2&nbsp; qmail-clean这个程序是怎么工作的？实时扫描queue的文件夹？
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="qmail-queue/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
