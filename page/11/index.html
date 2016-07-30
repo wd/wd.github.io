@@ -92,6 +92,13 @@
 <!-- begin toload -->
     <div id="content" class="inner">
         
+
+    
+        <script id="dsq-count-scr" src="//wdicc.disqus.com/count.js" async></script>
+    
+
+
+
   <article class="post">
 	<h2 class="title">
 		<a href="perl-and-fork/">perl and fork</a>
@@ -278,6 +285,47 @@ diff -ur gnome-terminal-2.24.2.org/src/terminal-window.c gnome-terminal-2.24.2/s
 
   <article class="post">
 	<h2 class="title">
+		<a href="use-kde-42-in-gentoo/">将 gnome 换成 kde 4.2</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-01-22T16:00:00.000Z" itemprop="datePublished">Jan 23, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/gentoo/">gentoo</a> <a href="../tags/kde/">kde</a>
+</div>
+    </div>
+      
+        下面的步骤一定要明白干的是什么再操作，否则后果自负 :)。
+
+1 修改 make.conf 里面的 use 为 kde4 -kde -gnome qt4 -qt3 -avahi -esd 这样。把 gnome 相关的 use 都 - 掉。我还有 -arts，看需要。使用 kde 这个use有时会导致安装 kde3，所以如果要使用最好在 /etc/portage/package.use 里面单独指定。如果不介意 kde + gnome 共存，那么 1,2 不是必须的。
+
+2 emerge -uDN world
+
+3 修改 /etc/portage/package.unmask ,加入 &gt;sys-apps/portage-2.1, unmask portage 2.2 ，2.2 才支持 set
+
+4 layman -a kde-testing
+
+5 emerge -av @kdebase-4.2
+其他想装的东西可以去 /usr/local/portage/layman/kde-testing/sets 里面看。比如 emerge -av @kdepim-4.2，或者装里面的某个包，emerge kde-base/kmail:4.2
+
+6 修改 /var/lib/portage/world ，删掉里面的 gnome 的包，当然不介意 gnome 和 kde 共存的话后面的就不需要做了。
+
+7 emerge --depclean -p 清理 gnome 的包。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="use-kde-42-in-gentoo/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="writing-a-kde-plasma-applet/">写了一个 kde plasma applet</a>
 	</h2>
     <div class="entry-content">
@@ -371,47 +419,6 @@ if __name__ == '__main__':
 <div class="meta">
 	
 		<span class="comments"><a href="writing-a-kde-plasma-applet/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="use-kde-42-in-gentoo/">将 gnome 换成 kde 4.2</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-01-22T16:00:00.000Z" itemprop="datePublished">Jan 23, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/gentoo/">gentoo</a> <a href="../tags/kde/">kde</a>
-</div>
-    </div>
-      
-        下面的步骤一定要明白干的是什么再操作，否则后果自负 :)。
-
-1 修改 make.conf 里面的 use 为 kde4 -kde -gnome qt4 -qt3 -avahi -esd 这样。把 gnome 相关的 use 都 - 掉。我还有 -arts，看需要。使用 kde 这个use有时会导致安装 kde3，所以如果要使用最好在 /etc/portage/package.use 里面单独指定。如果不介意 kde + gnome 共存，那么 1,2 不是必须的。
-
-2 emerge -uDN world
-
-3 修改 /etc/portage/package.unmask ,加入 &gt;sys-apps/portage-2.1, unmask portage 2.2 ，2.2 才支持 set
-
-4 layman -a kde-testing
-
-5 emerge -av @kdebase-4.2
-其他想装的东西可以去 /usr/local/portage/layman/kde-testing/sets 里面看。比如 emerge -av @kdepim-4.2，或者装里面的某个包，emerge kde-base/kmail:4.2
-
-6 修改 /var/lib/portage/world ，删掉里面的 gnome 的包，当然不介意 gnome 和 kde 共存的话后面的就不需要做了。
-
-7 emerge --depclean -p 清理 gnome 的包。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="use-kde-42-in-gentoo/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -642,14 +649,6 @@ gentoo-souces 也是支持的休眠的。想要在 gnome 下面休眠的话，�
     
   <div class="center"><a href="/archives/index.html">Blog Archives</a></div>
   </nav>
-
-
-
-
-    
-        <script id="dsq-count-scr" src="//" + wdicc + ".disqus.com/count.js" async></script>
-    
-
 
 
     </div>
