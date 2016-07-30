@@ -97,7 +97,7 @@ BUT，其实并不是不能发现监控项，也是可以的。不过是，这�
     "8022.conf.md5": "6cab272daa07202ccb57c4064c0dcfb8"
 }
 ```
-上面就是一个 discovery 项目，filter 是 `{#SSH_PORT}`，和 2 个 item prototype，分别是 `{#SSH_PORT}.cnn.cnt` 和 `{#SSH_PORT}.conf.md5`。
+上面就是一个 discovery 项目，filter 是 {% raw %}{#SSH_PORT}{% endraw %}，和 2 个 item prototype，分别是 {% raw %}{#SSH_PORT}.cnn.cnt{% endraw %} 和 {% raw %}{#SSH_PORT}.conf.md5{% endraw %}。
 
 ## 复杂一点的 LLD
 
@@ -114,7 +114,7 @@ BUT，其实并不是不能发现监控项，也是可以的。不过是，这�
 }
 ```
 
-这个除了我们前面讲的 ssh 服务，还发现了两个 pg 的服务。在服务器端，只需要添加两个 discovery 规则就可以了，分别使用 ```{#SSH_PORT}``` 和 ```{#PG_PORT}``` 这两个宏来过滤数据。
+这个除了我们前面讲的 ssh 服务，还发现了两个 pg 的服务。在服务器端，只需要添加两个 discovery 规则就可以了，分别使用 {% raw %}{#SSH_PORT}{% endraw %} 和 {% raw %}{#PG_PORT}{% endraw %} 这两个宏来过滤数据。
 
 ```
 {
@@ -129,7 +129,7 @@ BUT，其实并不是不能发现监控项，也是可以的。不过是，这�
 }
 ```
 
-上面这个，除了有 2 个 db 之外，还有一个 db 是个 master，能看到他对应的 slave 有哪些。要注意，我们在新增加的这个发现项里面，不能再使用 ```{#PG_PORT}'``` 这个宏了，因为如果使用了这个宏，就会和第3，4个项目无法区分了。所以我们改了一下名字。
+上面这个，除了有 2 个 db 之外，还有一个 db 是个 master，能看到他对应的 slave 有哪些。要注意，我们在新增加的这个发现项里面，不能再使用 {% raw %}{#PG_PORT}{% endraw %} 这个宏了，因为如果使用了这个宏，就会和第3，4个项目无法区分了。所以我们改了一下名字。
 
 到此为止，只是我们的构思，想要告诉 zabbix 我们想要监控什么。真正使用还需要走一些路。
 
@@ -199,7 +199,7 @@ BUT，其实并不是不能发现监控项，也是可以的。不过是，这�
 
 上面的例子很完美，但实际上 zabbix 是有一些限制的。比如 item 定义。
 
-假如对于发现的 pg 服务，有一个监控项是连接数，比如 ```{#PG_PORT}.conn.cnt```，此时你会发现在 zabbix 新建 item 的 `Key` 那个设置里面，这么写无法提交。需要使用假装类似 userParameter 的方式来写，比如 ```pg.[{#PG.PORT}.conn.cnt]```，假装那个 `pg.` 是个 userParameter 命令，```[{#PG.PORT}.conn.cnt]``` 里面的内容是他的参数。当然，这个 pg. 可以基本可以是任何字符串，比如 abc，你自己觉得有意义就好了。
+假如对于发现的 pg 服务，有一个监控项是连接数，比如 {% raw %}{#PG_PORT}.conn.cnt{% endraw %}，此时你会发现在 zabbix 新建 item 的 `Key` 那个设置里面，这么写无法提交。需要使用假装类似 userParameter 的方式来写，比如 {% raw %}pg.[{#PG.PORT}.conn.cnt]{% endraw %}，假装那个 `pg.` 是个 userParameter 命令，{% raw %}[{#PG.PORT}.conn.cnt]{% endraw %} 里面的内容是他的参数。当然，这个 pg. 可以基本可以是任何字符串，比如 abc，你自己觉得有意义就好了。
 
 那么这个时候对于发现那块，我们基本不用动，需要动的是被发送的服务的监控项的命名上面。
 
@@ -225,7 +225,7 @@ BUT，其实并不是不能发现监控项，也是可以的。不过是，这�
 }
 ```
 
-对应的 2 个 item prototype，key 分别修改为 ```ssh[{#SSH_PORT}.cnn.cnt]``` 和 ```ssh[{#SSH_PORT}.conf.md5]```。那个 ssh 可以随意起。并且其实并不一定就得是这种模式，比如叫做 ```ssh.conf.md5[{#SSH_PORT}]``` 应该也可以，当然需要你发送的数据也做对应修改。
+对应的 2 个 item prototype，key 分别修改为 {% raw %}ssh[{#SSH_PORT}.cnn.cnt]{% endraw %} 和 {% raw %}ssh[{#SSH_PORT}.conf.md5]{% endraw %}。那个 ssh 可以随意起。并且其实并不一定就得是这种模式，比如叫做 {% raw %}ssh.conf.md5[{#SSH_PORT}]{% endraw %} 应该也可以，当然需要你发送的数据也做对应修改。
 
 ## 如何发送监控数据
 
