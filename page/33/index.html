@@ -94,6 +94,57 @@
         
   <article class="post">
 	<h2 class="title">
+		<a href="var-in-bash/">bash中的数组变量zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-06-13T16:00:00.000Z" itemprop="datePublished">Jun 14, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a>
+</div>
+    </div>
+      
+        <h3 class="title">http://xiaowang.net/bgb-cn/ch10s02.html
+</h3><h3 class="title">10.2.1. 建立数组                     </h3>                                                         <p>数组是一个包含多个值的变量。任何变量都可以在数组中使用。数组的尺寸没有最大限制，也不要求成员变量连续索引或者赋值。数组是基于0的：第一个元素的下标以0开始。</p>            <p>间接的声明使用以下的语法来声明一个变量：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAY[INDEXNR]</code>=value</code>                </p>            </div>            <p> <span class="emphasis"><em>INDEXNR</em></span> 需要使用一个值为正数的数学表达式。            </p>            <p>一个数组的外部声明使用内建命令 <span><strong class="command">declare</strong></span> 来完成：            </p>            <div class="cmdsynopsis">               <p><code class="command">declare <code class="option">-a</code> <code class="varname">ARRAYNAME</code></code>                </p>            </div>            <p>一个带有索引值的声明也是可以接受的，但是索引值将被忽略。对数组的指定属性可以通过使用内建命令 <span><strong class="command">declare</strong></span> 和 <span><strong class="command">readonly</strong></span>。属性对数组中的所有变量起作用；你不能使用混合数组。            </p>            <p>数组变量也可以使用这种格式的复合赋值来建立：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAY</code>=(value1 value2 ... valueN)</code>                </p>            </div>            <p>每个值将以这种形式 <span class="emphasis"><em>[indexnumber=]string</em></span> 排列。索引号是可选的。如果提供，索引号就赋给它；otherwise the index of the element assigned is the number of the last index that was assigned, plus               one.  这样的格式 <span><strong class="command">declare</strong></span> 也可以接受。如果不提供索引值，那索引自动从零开始。            </p>            <p>在数组中加入缺少或者额外的成员使用以下语法：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAYNAME[indexnumber]</code>=value</code>                </p>            </div>            <p>记住 <span><strong class="command">read</strong></span> 内建命令提供 <code class="option">-a</code> 选项，来允许对一个数组的成员变量进行读取和赋值。            </p>                  <div class="sect2" lang="zh-cn">            <div class="titlepage">               <div>                  <div>                     <h3 class="title"><a name="sect_10_02_02"></a>10.2.2. 对数组的变量解引用                     </h3>                  </div>               </div>            </div>            <p>为了指明在一个数组中的项目的内容，为了指向一个数组中的一个项目的内容，使用{}。这样是必须的，正如你可以从下面的例子看出，来绕过扩展操作符的shell解释。如果索引的数字是 <span class="emphasis"><em>@</em></span> 或者 <span class="emphasis"><em>*</em></span>，一个数组的所有的成员都将被引用。            </p><pre class="screen"><code class="prompt">[bob in ~]</code> <span><strong class="command"><code class="varname">ARRAY</code>=<em class="parameter"><code>(one two three)</code></em></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one two three
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">$ARRAY[*]</code></strong></span>
+one[*]
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[2]}</code></strong></span>
+three
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command"><code class="varname">ARRAY[3]</code>=<em class="parameter"><code>four</code></em></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one two three four
+</pre><p>不提供索引号码来指向某个数组的一个数字变量的内容和指向第一个元素的内容是一样的。</p>         </div>         <div class="sect2" lang="zh-cn">            <div class="titlepage">               <div>                  <div>                     <h3 class="title"><a name="sect_10_02_03"></a>10.2.3. 删除数组变量                     </h3>                  </div>               </div>            </div>            <p> <span><strong class="command">unset</strong></span> 内建命令用来删除数组或者数组成员：            </p><pre class="screen"><code class="prompt">[bob in ~]</code> <span><strong class="command">unset <code class="varname">ARRAY[1]</code></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one three four
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">unset <code class="varname">ARRAY</code></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+&lt;--no output--&gt;
+</pre></div>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="var-in-bash/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="ip-blance/">IP负载均衡技术zz</a>
 	</h2>
     <div class="entry-content">
@@ -229,7 +280,7 @@ http://resource.intel.com/telecom/support/releases/winnt/sr511/docs/htmlfiles/us
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Other/">Other</a> <a href="../tags/apache/">apache</a> <a href="../tags/weblogic/">weblogic</a>
+<a href="../tags/Other/">Other</a> <a href="../tags/weblogic/">weblogic</a> <a href="../tags/apache/">apache</a>
 </div>
     </div>
       
@@ -296,7 +347,7 @@ weblogic产生这个错误以后，就会拒绝服务，这时通过IE已经访�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Miranda/">Miranda</a> <a href="../tags/Miranda-IM/">Miranda IM</a>
+<a href="../tags/Miranda-IM/">Miranda IM</a> <a href="../tags/Miranda/">Miranda</a>
 </div>
     </div>
       
@@ -374,34 +425,6 @@ http://www.bea.com.cn/support_pattern/Too_Many_Open_Files_Pattern.html
 </div>
 </article>
 
-  <article class="post">
-	<h2 class="title">
-		<a href="weblogic-apache-bridge/">weblogic apache 桥接指南</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-21T16:00:00.000Z" itemprop="datePublished">May 22, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Other/">Other</a> <a href="../tags/weblogic/">weblogic</a>
-</div>
-    </div>
-      
-        Using Web Server Plug-Ins with WebLogic Server
-
-http://edocs.bea.com/wls/docs90/plugins/apache.html
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="weblogic-apache-bridge/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
 
   <nav id="pagenavi">
     
@@ -416,17 +439,9 @@ http://edocs.bea.com/wls/docs90/plugins/apache.html
 
 
 
-<script type="text/javascript">
-      var disqus_shortname = 'wdicc';
-      
-        var disqus_script = 'count.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+    
+        <script id="dsq-count-scr" src="//" + wdicc + ".disqus.com/count.js" async></script>
+    
 
 
 

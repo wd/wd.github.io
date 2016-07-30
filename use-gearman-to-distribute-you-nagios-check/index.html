@@ -6,10 +6,10 @@
 	<title>use gearman to distribute you nagios check - wd and cc</title>
     <meta name="author" content="wd">
     
-	<meta name="description" content="&lt;h1 id=&quot;安装&quot;&gt;安装&lt;/h1&gt;&lt;h2 id=&quot;gearman&quot;&gt;gearman&lt;/h2&gt;&lt;p&gt;需要 boost &amp;gt; 1.39, libevent-devel, libuuid-devel, gperf&lt;br&gt;需要 gcc &amp;gt;= 4.2&lt;/p&gt;
+	<meta name="description" content="&lt;h1 id=&quot;安装&quot;&gt;&lt;a href=&quot;#安装&quot; class=&quot;headerlink&quot; title=&quot;安装&quot;&gt;&lt;/a&gt;安装&lt;/h1&gt;&lt;h2 id=&quot;gearman&quot;&gt;&lt;a href=&quot;#gearman&quot; class=&quot;headerlink&quot; title=&quot;gearman&quot;&gt;&lt;/a&gt;gearman&lt;/h2&gt;&lt;p&gt;需要 boost &amp;gt; 1.39, libevent-devel, libuuid-devel, gperf&lt;br&gt;需要 gcc &amp;gt;= 4.2&lt;/p&gt;
 &lt;p&gt;export CC=gcc44&lt;br&gt;export CC=g++44&lt;/p&gt;
-&lt;h2 id=&quot;mod-gearman&quot;&gt;mod-gearman&lt;/h2&gt;&lt;p&gt;libtool-ltdl-devel ncurses-devel&lt;br&gt;—with-gearman&lt;/p&gt;
-&lt;h1 id=&quot;配置&quot;&gt;配置&lt;/h1&gt;&lt;p&gt;gearman 分为几个模块&lt;/p&gt;
+&lt;h2 id=&quot;mod-gearman&quot;&gt;&lt;a href=&quot;#mod-gearman&quot; class=&quot;headerlink&quot; title=&quot;mod-gearman&quot;&gt;&lt;/a&gt;mod-gearman&lt;/h2&gt;&lt;p&gt;libtool-ltdl-devel ncurses-devel&lt;br&gt;–with-gearman&lt;/p&gt;
+&lt;h1 id=&quot;配置&quot;&gt;&lt;a href=&quot;#配置&quot; class=&quot;headerlink&quot; title=&quot;配置&quot;&gt;&lt;/a&gt;配置&lt;/h1&gt;&lt;p&gt;gearman 分为几个模块&lt;/p&gt;
 &lt;ul&gt;
 &lt;li&gt;mod_gearman: 负责把 nagios 中的检查任务发给 gearmand job server&lt;/li&gt;
 &lt;li&gt;gearmand: 负责接收任务，分配给 worker 执行。这个是个通用的队列管理服务。&lt;/li&gt;
@@ -23,18 +23,18 @@
 &lt;li&gt;mod-gearman/etc/mod_gearman/mod_gearman_neb.conf broker 的配置文件&lt;/li&gt;
 &lt;li&gt;mod-gearman/etc/mod_gearman/mod_gearman_worker.conf workder 的配置文件&lt;/li&gt;
 &lt;/ul&gt;
-&lt;h1 id=&quot;启动&quot;&gt;启动&lt;/h1&gt;&lt;ul&gt;
+&lt;h1 id=&quot;启动&quot;&gt;&lt;a href=&quot;#启动&quot; class=&quot;headerlink&quot; title=&quot;启动&quot;&gt;&lt;/a&gt;启动&lt;/h1&gt;&lt;ul&gt;
 &lt;li&gt;先启动 gearmand 使用 mod-gearman/etc/init.d/gearmand 这个脚本。&lt;/li&gt;
 &lt;li&gt;启动 worker 使用 mod-gearman/etc/init.d/mod_gearman_worker 这个脚本。启动之后可以用 gearman_top 看到多了一些队列。&lt;/li&gt;
 &lt;li&gt;重启 nagios&lt;/li&gt;
 &lt;/ul&gt;
 &lt;p&gt;确认 nagios.log 里面正常加载了 gearman，然后看 gearman_top 里面开始有一些 run 的 job 了。&lt;/p&gt;
-&lt;h1 id=&quot;注意事项&quot;&gt;注意事项&lt;/h1&gt;&lt;p&gt;基本上使用 gearman 还算是对用户透明，需要配置的东西不多，默认配置就可以跑。&lt;/p&gt;
+&lt;h1 id=&quot;注意事项&quot;&gt;&lt;a href=&quot;#注意事项&quot; class=&quot;headerlink&quot; title=&quot;注意事项&quot;&gt;&lt;/a&gt;注意事项&lt;/h1&gt;&lt;p&gt;基本上使用 gearman 还算是对用户透明，需要配置的东西不多，默认配置就可以跑。&lt;/p&gt;
 &lt;p&gt;一般使用 gearman 的时候都是现有 nagios 遇到瓶颈了，这个时候扩展的时候需要注意下，第一步可以在 nagios 机器上面（或者弄一台新的机器）做 gearman 的 job server，然后在 nagios 的机器上面跑一个 worker，这样基本就是 0 配置都可以跑起来，不会有任何问题。&lt;/p&gt;
 &lt;p&gt;第一步完成之后就会需要增加 worker，这个时候就要注意了，新的 worker 机器上面，需要在相同的路径下面包括所有你用到的 nagios plugin（包括自己写的，也包括这些 plugin 依赖的其他内容，比如临时文件路径，配置文件等），否则分发过来的 job 会执行不成功。&lt;/p&gt;
 &lt;p&gt;这个时候有个办法，就是把原来机器的 nagios 相关目录通过 nfs 共享给其他机器（但是得注意二进制程序是兼容的）。&lt;/p&gt;
 &lt;p&gt;另外如果需要测试一下新的 worker，也可以通过配置只让 worker 执行某些 servicegroup 或者 hostgroup 的任务。要注意这个时候需要配置 service, eventhandler, host 都为 no，然后配置 servicegroups 或者 hostgroups。&lt;/p&gt;
-&lt;h1 id=&quot;Footnotes&quot;&gt;Footnotes&lt;/h1&gt;&lt;p&gt;[1] 其实 worker 是可以被配置为只处理某些监控的，这个后面会讲。&lt;/p&gt;
+&lt;h1 id=&quot;Footnotes&quot;&gt;&lt;a href=&quot;#Footnotes&quot; class=&quot;headerlink&quot; title=&quot;Footnotes&quot;&gt;&lt;/a&gt;Footnotes&lt;/h1&gt;&lt;p&gt;[1] 其实 worker 是可以被配置为只处理某些监控的，这个后面会讲。&lt;/p&gt;
 "> <!-- TODO: truncate -->
 	
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
@@ -122,10 +122,10 @@
     <div id="content" class="inner">
         <article class="post">
 	<h2 class="title">use gearman to distribute you nagios check</h2>
-	<div class="entry-content"><h1 id="安装">安装</h1><h2 id="gearman">gearman</h2><p>需要 boost &gt; 1.39, libevent-devel, libuuid-devel, gperf<br>需要 gcc &gt;= 4.2</p>
+	<div class="entry-content"><h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="gearman"><a href="#gearman" class="headerlink" title="gearman"></a>gearman</h2><p>需要 boost &gt; 1.39, libevent-devel, libuuid-devel, gperf<br>需要 gcc &gt;= 4.2</p>
 <p>export CC=gcc44<br>export CC=g++44</p>
-<h2 id="mod-gearman">mod-gearman</h2><p>libtool-ltdl-devel ncurses-devel<br>—with-gearman</p>
-<h1 id="配置">配置</h1><p>gearman 分为几个模块</p>
+<h2 id="mod-gearman"><a href="#mod-gearman" class="headerlink" title="mod-gearman"></a>mod-gearman</h2><p>libtool-ltdl-devel ncurses-devel<br>–with-gearman</p>
+<h1 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h1><p>gearman 分为几个模块</p>
 <ul>
 <li>mod_gearman: 负责把 nagios 中的检查任务发给 gearmand job server</li>
 <li>gearmand: 负责接收任务，分配给 worker 执行。这个是个通用的队列管理服务。</li>
@@ -139,18 +139,18 @@
 <li>mod-gearman/etc/mod_gearman/mod_gearman_neb.conf broker 的配置文件</li>
 <li>mod-gearman/etc/mod_gearman/mod_gearman_worker.conf workder 的配置文件</li>
 </ul>
-<h1 id="启动">启动</h1><ul>
+<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h1><ul>
 <li>先启动 gearmand 使用 mod-gearman/etc/init.d/gearmand 这个脚本。</li>
 <li>启动 worker 使用 mod-gearman/etc/init.d/mod_gearman_worker 这个脚本。启动之后可以用 gearman_top 看到多了一些队列。</li>
 <li>重启 nagios</li>
 </ul>
 <p>确认 nagios.log 里面正常加载了 gearman，然后看 gearman_top 里面开始有一些 run 的 job 了。</p>
-<h1 id="注意事项">注意事项</h1><p>基本上使用 gearman 还算是对用户透明，需要配置的东西不多，默认配置就可以跑。</p>
+<h1 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h1><p>基本上使用 gearman 还算是对用户透明，需要配置的东西不多，默认配置就可以跑。</p>
 <p>一般使用 gearman 的时候都是现有 nagios 遇到瓶颈了，这个时候扩展的时候需要注意下，第一步可以在 nagios 机器上面（或者弄一台新的机器）做 gearman 的 job server，然后在 nagios 的机器上面跑一个 worker，这样基本就是 0 配置都可以跑起来，不会有任何问题。</p>
 <p>第一步完成之后就会需要增加 worker，这个时候就要注意了，新的 worker 机器上面，需要在相同的路径下面包括所有你用到的 nagios plugin（包括自己写的，也包括这些 plugin 依赖的其他内容，比如临时文件路径，配置文件等），否则分发过来的 job 会执行不成功。</p>
 <p>这个时候有个办法，就是把原来机器的 nagios 相关目录通过 nfs 共享给其他机器（但是得注意二进制程序是兼容的）。</p>
 <p>另外如果需要测试一下新的 worker，也可以通过配置只让 worker 执行某些 servicegroup 或者 hostgroup 的任务。要注意这个时候需要配置 service, eventhandler, host 都为 no，然后配置 servicegroups 或者 hostgroups。</p>
-<h1 id="Footnotes">Footnotes</h1><p>[1] 其实 worker 是可以被配置为只处理某些监控的，这个后面会讲。</p>
+<h1 id="Footnotes"><a href="#Footnotes" class="headerlink" title="Footnotes"></a>Footnotes</h1><p>[1] 其实 worker 是可以被配置为只处理某些监控的，这个后面会讲。</p>
 </div>
 
 <div class="meta">
@@ -176,20 +176,21 @@
 
 
 
-<script type="text/javascript">
-      var disqus_shortname = 'wdicc';
-      
-        // var disqus_developer = 1;
-        var disqus_identifier = 'use-gearman-to-distribute-you-nagios-check/';
-        var disqus_url = 'use-gearman-to-distribute-you-nagios-check/';
-        var disqus_script = 'embed.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = 'use-gearman-to-distribute-you-nagios-check/';
+            this.page.identifier = 'use-gearman-to-distribute-you-nagios-check/';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//' + wdicc + '.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
 
 
 <section id="comment">

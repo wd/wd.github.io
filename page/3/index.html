@@ -94,6 +94,477 @@
         
   <article class="post">
 	<h2 class="title">
+		<a href="postgresql-explain/">PostgreSQL Explain</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2013-02-03T09:40:00.000Z" itemprop="datePublished">Feb 3, 2013</time>
+</div>
+      <div class="tags">Tags: 
+
+
+</div>
+    </div>
+      
+        <div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 notice</a></li>
+<li><a href="#sec-2">2 explain basics</a></li>
+<li><a href="#sec-3">3 explain analyse</a></li>
+<li><a href="#sec-4">4 Caveats 注意事项</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-3">
+<h3 id="sec-1"><span class="section-number-3">1</span> notice</h3>
+<div class="outline-text-3" id="text-1">
+
+
+<p>
+简单翻译了一下 <a href="http://www.postgresql.org/docs/9.2/static/using-explain.html" target="_blank" rel="external">http://www.postgresql.org/docs/9.2/static/using-explain.html</a> ，里面有些内容没翻译。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-3">
+<h3 id="sec-2"><span class="section-number-3">2</span> explain basics</h3>
+<div class="outline-text-3" id="text-2">
+
+
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1;
+
+                         QUERY PLAN
+-------------------------------------------------------------
+ Seq Scan on tenk1  (cost=0.00..458.00 rows=10000 width=244)
+</pre>
+
+
+<ul>
+<li>第一行输出需要的消耗。
+</li>
+<li>最后一行输出需要的消耗。
+</li>
+<li>返回的行数，假定全部返回。并非扫描处理的行数。
+</li>
+<li>每行的平均数据量，字节
+</li>
+</ul>
+
+
+<p>
+消耗是使用设置的规划器的一些 cost常量<sup><a class="footref" name="fnr.1" href="#fn.1">1</a></sup> 来计算出来的，上一级的 node 的 消耗包括了所有子 node 的消耗，消耗不包括传输结果花的时间。
+</p>
+
+
+
+<pre class="example">SELECT relpages, reltuples FROM pg_class WHERE relname = 'tenk1';
+</pre>
+
+
+<p>
+从上面这个语句可以看到，tenk1 有 358 磁盘页和 10000 行。这个查询的消耗计算公式如下
+</p>
+<pre class="example">
+ (disk pages read * seq_page_cost) + (rows scanned * cpu_tuple_cost)
+</pre>
+
+
+<p>
+默认情况下 <code>seq_page_cost = 1.0, cpu_tuple_cost = 0.01</code>, 所以最总消耗是 <code>(358 * 1.0) + (10000 * 0.01) = 458</code> 。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 7000;
+
+                         QUERY PLAN
+------------------------------------------------------------
+ Seq Scan on tenk1  (cost=0.00..483.00 rows=7001 width=244)
+   Filter: (unique1 &lt; 7000)
+</pre>
+
+
+<p>
+再看这个，加了一个 where 条件，多了一个 filter 操作，返回结果变少，但是消耗变多了。因为总体需要处理的数据没有变少，并且还多了
+</p>
+<pre class="example">
+ 10000 * cpu_operator_cost
+</pre>
+
+
+<p>
+需要的消耗。
+</p>
+<p>
+这些计算方法得到的数值可能和你系统的会稍有区别，使用 analyse 命令可能会改变计算结果，因为它会根据一些随机的样本重新收集表的状态信息。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100;
+
+                                  QUERY PLAN
+------------------------------------------------------------------------------
+ Bitmap Heap Scan on tenk1  (cost=5.03..229.17 rows=101 width=244)
+   Recheck Cond: (unique1 &lt; 100)
+   -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0)
+         Index Cond: (unique1 &lt; 100)
+</pre>
+
+
+<p>
+再来看一个。子执行计划节点会先扫描索引，上一级的执行计划节点会根据索引返回的位置来获取数据。获取散列数据比获取全部数据消耗要大，不过因为毕竟是少量数据，可以看到消耗还是小于全表扫描。上级的节点会在获取散列数据之前做一个磁盘排序，好减少获取的消耗，而 Bitmap 字样表示索引返回的结果是按照存储位置排好序的，这就是使用索引的一个原因。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND stringu1 = 'xxx';
+
+                                  QUERY PLAN
+------------------------------------------------------------------------------
+ Bitmap Heap Scan on tenk1  (cost=5.01..229.40 rows=1 width=244)
+   Recheck Cond: (unique1 &lt; 100)
+   Filter: (stringu1 = 'xxx'::name)
+   -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0)
+         Index Cond: (unique1 &lt; 100)
+</pre>
+
+
+<p>
+stringu1 = 'xxx' 减少了输出的行数，因为还需要扫描同样的行数，所以没有减少执行计划的消耗，而且还有稍微的增加，
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 = 42;
+
+                                 QUERY PLAN
+-----------------------------------------------------------------------------
+ Index Scan using tenk1_unique1 on tenk1  (cost=0.00..8.27 rows=1 width=244)
+   Index Cond: (unique1 = 42)
+</pre>
+
+
+<p>
+数据根据索引排序来获取，不需要额外的排序。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND unique2 &gt; 9000;
+
+                                     QUERY PLAN
+-------------------------------------------------------------------------------------
+ Bitmap Heap Scan on tenk1  (cost=25.01..60.14 rows=10 width=244)
+   Recheck Cond: ((unique1 &lt; 100) AND (unique2 &gt; 9000))
+   -&gt;  BitmapAnd  (cost=25.01..25.01 rows=10 width=0)
+         -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0)
+               Index Cond: (unique1 &lt; 100)
+         -&gt;  Bitmap Index Scan on tenk1_unique2  (cost=0.00..19.74 rows=999 width=0)
+               Index Cond: (unique2 &gt; 9000)
+
+EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND unique2 &gt; 9000 LIMIT 2;
+
+                                     QUERY PLAN
+-------------------------------------------------------------------------------------
+ Limit  (cost=0.00..14.25 rows=2 width=244)
+   -&gt;  Index Scan using tenk1_unique2 on tenk1  (cost=0.00..71.23 rows=10 width=244)
+         Index Cond: (unique2 &gt; 9000)
+         Filter: (unique1 &lt; 100)
+</pre>
+
+
+<p>
+这两个查询，第一个分别查两个索引，然后做 BitmapAnd 得到结果。第二个只查了其中一个索引，然后使用 filter 方式来做过滤，可以看到第二个查询里面的消耗 71.23 表示的是返回所有数据需要的消耗，Limit 节点在得到需要的结果厚，会终止执行，所以最终没有返回那么多，最终消耗小一点，比第一个查询小。
+</p>
+
+
+
+
+<pre class="example">EXPLAIN SELECT *
+FROM tenk1 t1, tenk2 t2
+WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2;
+
+                                      QUERY PLAN
+--------------------------------------------------------------------------------------
+ Nested Loop  (cost=4.33..118.25 rows=10 width=488)
+   -&gt;  Bitmap Heap Scan on tenk1 t1  (cost=4.33..39.44 rows=10 width=244)
+         Recheck Cond: (unique1 &lt; 10)
+         -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..4.33 rows=10 width=0)
+               Index Cond: (unique1 &lt; 10)
+   -&gt;  Index Scan using tenk2_unique2 on tenk2 t2  (cost=0.00..7.87 rows=1 width=244)
+         Index Cond: (unique2 = t1.unique2)
+</pre>
+
+
+<p>
+这个是两表 join，最后通过嵌套循环节点来做的 join。先查询外层 <code>Bitmap heap scan</code> 这个节点，这个节点还有个子节点。这个节点的查询和 <code>select ... where unique1 &lt; 10</code> 的查询类似。然后执行内层 <code>Index scan using</code> 这个节点，外层查询获取到的数据会插入进来，这个时候 t1.unique2 的值已经有了，所以这层的查询和 <code>select ... where t2.unique2 = 常量</code> 的查询类似，消耗比前面的小是因为第一次查询有了 cache，这次就会稍微快了一点。这层查询的消耗是 <code>外层行数*内层的消耗=10 * 7.87</code> 加上一些 cpu 消耗。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT *
+FROM tenk1 t1, tenk2 t2
+WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2 AND t1.hundred &lt; t2.hundred;
+
+                                      QUERY PLAN
+--------------------------------------------------------------------------------------
+ Nested Loop  (cost=4.33..118.28 rows=3 width=488)
+   Join Filter: (t1.hundred &lt; t2.hundred)
+   -&gt;  Bitmap Heap Scan on tenk1 t1  (cost=4.33..39.44 rows=10 width=244)
+         Recheck Cond: (unique1 &lt; 10)
+         -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..4.33 rows=10 width=0)
+               Index Cond: (unique1 &lt; 10)
+   -&gt;  Index Scan using tenk2_unique2 on tenk2 t2  (cost=0.00..7.87 rows=1 width=244)
+         Index Cond: (unique2 = t1.unique2)
+</pre>
+
+
+<p>
+如果有条件无法在两个子节点上面执行，那就只能在 join 节点来做 filter，类似上面这个。实际执行时间和前面那个没有 t1.hundred &lt; t2.hundred 条件的差不多。
+</p>
+<p>
+outer join 的时候，还可能会有 Join Filter 和 Filter 同时出现的情况，join filter 出现在外表的 on 语句里面，不匹配的数据依然会返回 null。而 filter 这个时候是用来过滤 join 结果的。
+</p>
+<p>
+对于 inner join，Join Filter 和 Filter 两个没有区别。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT *
+FROM tenk1 t1, tenk2 t2
+WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2;
+
+                                        QUERY PLAN
+------------------------------------------------------------------------------------------
+ Hash Join  (cost=230.43..713.94 rows=101 width=488)
+   Hash Cond: (t2.unique2 = t1.unique2)
+   -&gt;  Seq Scan on tenk2 t2  (cost=0.00..445.00 rows=10000 width=244)
+   -&gt;  Hash  (cost=229.17..229.17 rows=101 width=244)
+         -&gt;  Bitmap Heap Scan on tenk1 t1  (cost=5.03..229.17 rows=101 width=244)
+               Recheck Cond: (unique1 &lt; 100)
+               -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0)
+                     Index Cond: (unique1 &lt; 100)
+</pre>
+
+
+<p>
+改变一些条件，会看到执行计划变了，选择了 hash join。一个表的结果会在内层里面记录一个 hash 表，查另一个表的时候会查这个 hash 表来查看匹配的数据。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT *
+FROM tenk1 t1, onek t2
+WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2;
+
+                                        QUERY PLAN
+------------------------------------------------------------------------------------------
+ Merge Join  (cost=197.83..267.93 rows=10 width=488)
+   Merge Cond: (t1.unique2 = t2.unique2)
+   -&gt;  Index Scan using tenk1_unique2 on tenk1 t1  (cost=0.00..656.25 rows=101 width=244)
+         Filter: (unique1 &lt; 100)
+   -&gt;  Sort  (cost=197.83..200.33 rows=1000 width=244)
+         Sort Key: t2.unique2
+         -&gt;  Seq Scan on onek t2  (cost=0.00..148.00 rows=1000 width=244)
+</pre>
+
+
+<p>
+这是一个 merge jion 操作。merge join 需要输入的表都按照 join 字段先进行排序。从 t1 直接通过索引进行了查询，得到的结果就是顺序的。因为 t2 需要返回的数据量大，从 t2 做了全表扫描，然后进行了排序。通常全表扫描+排序比走索引消耗小。
+</p>
+<p>
+出同样的结果有很多路可以走，如果想看看其他执行计划是否更实惠，可以通过打开关闭一些标志<sup><a class="footref" name="fnr.2" href="#fn.2">2</a></sup>来做到。
+</p>
+
+
+
+<pre class="example">SET enable_sort = off;
+
+EXPLAIN SELECT *
+FROM tenk1 t1, onek t2
+WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2;
+
+                                        QUERY PLAN
+------------------------------------------------------------------------------------------
+ Merge Join  (cost=0.00..292.36 rows=10 width=488)
+   Merge Cond: (t1.unique2 = t2.unique2)
+   -&gt;  Index Scan using tenk1_unique2 on tenk1 t1  (cost=0.00..656.25 rows=101 width=244)
+         Filter: (unique1 &lt; 100)
+   -&gt;  Index Scan using onek_unique2 on onek t2  (cost=0.00..224.76 rows=1000 width=244)
+</pre>
+
+
+<p>
+可以看到走索引比全表扫描消耗更大。
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-3">
+<h3 id="sec-3"><span class="section-number-3">3</span> explain analyse</h3>
+<div class="outline-text-3" id="text-3">
+
+
+<p>
+explain 的 analyse 选项可以看看规划器执行 sql 所用的真实时间。
+</p>
+
+
+
+<pre class="example">EXPLAIN ANALYZE SELECT *
+FROM tenk1 t1, tenk2 t2
+WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2;
+
+                                                           QUERY PLAN
+---------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop  (cost=4.33..118.25 rows=10 width=488) (actual time=0.370..1.126 rows=10 loops=1)
+   -&gt;  Bitmap Heap Scan on tenk1 t1  (cost=4.33..39.44 rows=10 width=244) (actual time=0.254..0.380 rows=10 loops=1)
+         Recheck Cond: (unique1 &lt; 10)
+         -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..4.33 rows=10 width=0) (actual time=0.164..0.164 rows=10 loops=1)
+               Index Cond: (unique1 &lt; 10)
+   -&gt;  Index Scan using tenk2_unique2 on tenk2 t2  (cost=0.00..7.87 rows=1 width=244) (actual time=0.041..0.048 rows=1 loops=10)
+         Index Cond: (unique2 = t1.unique2)
+ Total runtime: 2.414 ms
+</pre>
+
+
+<p>
+如上所示，会显示出来真实的执行时间（毫秒），返回的行数等其他信息。为了和 explain 里面消耗的取值能匹配上，loop 大于 1 的节点显示的是单次执行的时间，需要乘以循环次数。
+</p>
+
+
+
+<pre class="example">EXPLAIN ANALYZE SELECT *
+FROM tenk1 t1, tenk2 t2
+WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2 ORDER BY t1.fivethous;
+
+                                                                 QUERY PLAN
+--------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=717.30..717.56 rows=101 width=488) (actual time=104.950..105.327 rows=100 loops=1)
+   Sort Key: t1.fivethous
+   Sort Method: quicksort  Memory: 68kB
+   -&gt;  Hash Join  (cost=230.43..713.94 rows=101 width=488) (actual time=3.680..102.396 rows=100 loops=1)
+         Hash Cond: (t2.unique2 = t1.unique2)
+         -&gt;  Seq Scan on tenk2 t2  (cost=0.00..445.00 rows=10000 width=244) (actual time=0.046..46.219 rows=10000 loops=1)
+         -&gt;  Hash  (cost=229.17..229.17 rows=101 width=244) (actual time=3.184..3.184 rows=100 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 27kB
+               -&gt;  Bitmap Heap Scan on tenk1 t1  (cost=5.03..229.17 rows=101 width=244) (actual time=0.612..1.959 rows=100 loops=1)
+                     Recheck Cond: (unique1 &lt; 100)
+                     -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0) (actual time=0.390..0.390 rows=100 loops=1)
+                           Index Cond: (unique1 &lt; 100)
+ Total runtime: 107.392 ms
+</pre>
+
+
+<p>
+有时候还会显示更多的一些信息，比如 sort 和 hash 节点。sort 节点会显示排序的方法，内存磁盘的占用。hash 节点会显示桶（buckets）和批次（batches），如果 batches 大于 1 会使用磁盘空间。
+</p>
+
+
+
+<pre class="example">EXPLAIN ANALYZE SELECT * FROM tenk1 WHERE ten &lt; 7;
+
+                                                QUERY PLAN
+----------------------------------------------------------------------------------------------------------
+ Seq Scan on tenk1  (cost=0.00..483.00 rows=7000 width=244) (actual time=0.111..59.249 rows=7000 loops=1)
+   Filter: (ten &lt; 7)
+   Rows Removed by Filter: 3000
+ Total runtime: 85.340 ms
+</pre>
+
+
+<p>
+上面这个执行计划显示了 filter 移除了多少行结果。
+</p>
+<p>
+explain 还提供了一个 buffers 选项。能得到 query 的哪部分 io 最密集。
+</p>
+
+
+
+<pre class="example">EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND unique2 &gt; 9000;
+
+                                                            QUERY PLAN
+-----------------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on tenk1  (cost=25.07..60.23 rows=10 width=244) (actual time=3.069..3.213 rows=10 loops=1)
+   Recheck Cond: ((unique1 &lt; 100) AND (unique2 &gt; 9000))
+   Buffers: shared hit=16
+   -&gt;  BitmapAnd  (cost=25.07..25.07 rows=10 width=0) (actual time=2.967..2.967 rows=0 loops=1)
+         Buffers: shared hit=7
+         -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.02 rows=102 width=0) (actual time=0.732..0.732 rows=200 loops=1)
+               Index Cond: (unique1 &lt; 100)
+               Buffers: shared hit=2
+         -&gt;  Bitmap Index Scan on tenk1_unique2  (cost=0.00..19.80 rows=1007 width=0) (actual time=2.015..2.015 rows=1009 loops=1)
+               Index Cond: (unique2 &gt; 9000)
+               Buffers: shared hit=5
+ Total runtime: 3.917 ms
+</pre>
+
+
+<p>
+要注意的是，explain analyse 会真的执行 sql，所以对于 update，insert，delete 等的 sql 操作，最好在执行的时候启用事务，执行完 explain 之后 rollback。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-3">
+<h3 id="sec-4"><span class="section-number-3">4</span> Caveats 注意事项</h3>
+<div class="outline-text-3" id="text-4">
+
+
+<p>
+有两个情况可能会影响 explain analyse 和实际执行的差别
+1 因为没有任何输出，所以 I/O 和网络网络传输消耗没有体现。
+2 因为要输出执行时间，而有些系统里面 gettimeofday() 这个系统调用很慢，所以会导致消耗增加。
+</p>
+<p>
+在衡量 explain 执行结果的时候，最好是在情况类似的 db 上面，否则可能没有任何参考价值。比如在一个小表上面的执行计划可能和大表就会很不一样。
+</p>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+<p class="footnote"><sup><a class="footnum" name="fn.1" href="#fnr.1">1</a></sup> : http://www.postgresql.org/docs/9.2/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-CONSTANTS
+</p>
+
+
+<p class="footnote"><sup><a class="footnum" name="fn.2" href="#fnr.2">2</a></sup> : http://www.postgresql.org/docs/9.2/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE
+</p></div>
+</div>
+
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2013-02-03 18:27:03 CST</p>
+<p class="author">Author: Wang Dong</p>
+<p class="creator">Org version 7.8.11 with Emacs version 24</p>
+<a href="http://validator.w3.org/check?uri=referer" target="_blank" rel="external">Validate XHTML 1.0</a>
+</div>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="postgresql-explain/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="redmine-a-good-project-tracker/">redmine-a-good-project-tracker</a>
 	</h2>
     <div class="entry-content">
@@ -109,23 +580,23 @@
         <p>其实很早，大概2，3年前就听说了 redmine 了，不过他环境是 ruby 的，一直没有勇气去搭一个环境。现在项目人多了，bug 阿 feature 阿，就需要记录一下了，因为有些事情不记录下来总是会忘记。之前是尝试通过 wiki ＋ bugfree 来记录的，bugfree 记录在提测之后的一些问题，wiki 记录一些 feature request 什么的。bugfree 我们没权限管理，wiki 记录又不方便，然后我就又想起来 redmine 了。</p>
 <p>哦对，其实公司还提供了一个 jira 给大家用，我用了几次我觉得那玩意太难用了，和那个 confluence 的 wiki 一样难用。</p>
 <p>本身搭建没什么难度，编译一个 ruby，然后 gem 安装几个包，下载 redmine，使用 rake 命令操作就好了。启动他的 server 之后，就可以访问了。下面几个东西是我花了一些时间配置的。</p>
-<h2 id="和_ldap_集成">和 ldap 集成</h2><p>在 redmine 的设置里面，本身是有一项和 redmine 集成的功能的，设置 basedn，和下面的 attributes 内容（sAMAccountName,givenName,sN,mail)就可以了。点测试，得能通过。</p>
+<h2 id="和-ldap-集成"><a href="#和-ldap-集成" class="headerlink" title="和 ldap 集成"></a>和 ldap 集成</h2><p>在 redmine 的设置里面，本身是有一项和 redmine 集成的功能的，设置 basedn，和下面的 attributes 内容（sAMAccountName,givenName,sN,mail)就可以了。点测试，得能通过。</p>
 <p>在我这里，光设置这个还不行，还需要 hack 一段代码。注意下面的那个 <code>@xxxx.com</code>，这个对应你自己的。</p>
-<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line">ndex: app/models/auth_source_ldap.rb</span><br><span class="line"><span class="header">===================================================================</span></span><br><span class="line"><span class="header">--- app/models/auth_source_ldap.rb	(版本 10947)</span></span><br><span class="line"><span class="header">+++ app/models/auth_source_ldap.rb	(工作副本)</span></span><br><span class="line"><span class="chunk">@@ -135,11 +135,12 @@</span></span><br><span class="line">   # Get the user's dn and any attributes for them, given their login</span><br><span class="line">   def get_user_dn(login, password)</span><br><span class="line">     ldap_con = nil</span><br><span class="line"><span class="deletion">-    if self.account &amp;&amp; self.account.include?("$login")</span></span><br><span class="line"><span class="deletion">-      ldap_con = initialize_ldap_con(self.account.sub("$login", Net::LDAP::DN.escape(login)), password)</span></span><br><span class="line"><span class="deletion">-    else</span></span><br><span class="line"><span class="deletion">-      ldap_con = initialize_ldap_con(self.account, self.account_password)</span></span><br><span class="line"><span class="deletion">-    end</span></span><br><span class="line"><span class="addition">+    ldap_con = initialize_ldap_con(login + '@xxxxx.com', password)</span></span><br><span class="line"><span class="addition">+    #if self.account &amp;&amp; self.account.include?("$login")</span></span><br><span class="line"><span class="addition">+    #  ldap_con = initialize_ldap_con(self.account.sub("$login", Net::LDAP::DN.escape(login)), password)</span></span><br><span class="line"><span class="addition">+    #else</span></span><br><span class="line"><span class="addition">+    #  ldap_con = initialize_ldap_con(self.account, self.account_password)</span></span><br><span class="line"><span class="addition">+    #end</span></span><br><span class="line">     login_filter = Net::LDAP::Filter.eq( self.attr_login, login )</span><br><span class="line">     object_filter = Net::LDAP::Filter.eq( "objectClass", "*" )</span><br><span class="line">     attrs = &#123;&#125;</span><br><span class="line"><span class="chunk">@@ -149,6 +150,8 @@</span></span><br><span class="line">       search_filter = search_filter &amp; f</span><br><span class="line">     end</span><br><span class="line"> </span><br><span class="line"><span class="addition">+    logger.debug "------------get_user_dn #&#123;login&#125; #&#123;self.base_dn&#125; #&#123;search_filter&#125; #&#123;search_attributes&#125;" if logger &amp;&amp; logger.debug?</span></span><br><span class="line"><span class="addition">+</span></span><br><span class="line">     ldap_con.search( :base =&gt; self.base_dn,</span><br><span class="line">                      :filter =&gt; search_filter,</span><br><span class="line">                      :attributes=&gt; search_attributes) do |entry|</span><br></pre></td></tr></table></figure>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line">ndex: app/models/auth_source_ldap.rb</div><div class="line"><span class="comment">===================================================================</span></div><div class="line"><span class="comment">--- app/models/auth_source_ldap.rb	(版本 10947)</span></div><div class="line"><span class="comment">+++ app/models/auth_source_ldap.rb	(工作副本)</span></div><div class="line"><span class="meta">@@ -135,11 +135,12 @@</span></div><div class="line">   # Get the user's dn and any attributes for them, given their login</div><div class="line">   def get_user_dn(login, password)</div><div class="line">     ldap_con = nil</div><div class="line"><span class="deletion">-    if self.account &amp;&amp; self.account.include?("$login")</span></div><div class="line"><span class="deletion">-      ldap_con = initialize_ldap_con(self.account.sub("$login", Net::LDAP::DN.escape(login)), password)</span></div><div class="line"><span class="deletion">-    else</span></div><div class="line"><span class="deletion">-      ldap_con = initialize_ldap_con(self.account, self.account_password)</span></div><div class="line"><span class="deletion">-    end</span></div><div class="line"><span class="addition">+    ldap_con = initialize_ldap_con(login + '@xxxxx.com', password)</span></div><div class="line"><span class="addition">+    #if self.account &amp;&amp; self.account.include?("$login")</span></div><div class="line"><span class="addition">+    #  ldap_con = initialize_ldap_con(self.account.sub("$login", Net::LDAP::DN.escape(login)), password)</span></div><div class="line"><span class="addition">+    #else</span></div><div class="line"><span class="addition">+    #  ldap_con = initialize_ldap_con(self.account, self.account_password)</span></div><div class="line"><span class="addition">+    #end</span></div><div class="line">     login_filter = Net::LDAP::Filter.eq( self.attr_login, login )</div><div class="line">     object_filter = Net::LDAP::Filter.eq( "objectClass", "*" )</div><div class="line">     attrs = &#123;&#125;</div><div class="line"><span class="meta">@@ -149,6 +150,8 @@</span></div><div class="line">       search_filter = search_filter &amp; f</div><div class="line">     end</div><div class="line"> </div><div class="line"><span class="addition">+    logger.debug "------------get_user_dn #&#123;login&#125; #&#123;self.base_dn&#125; #&#123;search_filter&#125; #&#123;search_attributes&#125;" if logger &amp;&amp; logger.debug?</span></div><div class="line"><span class="addition">+</span></div><div class="line">     ldap_con.search( :base =&gt; self.base_dn,</div><div class="line">                      :filter =&gt; search_filter,</div><div class="line">                      :attributes=&gt; search_attributes) do |entry|</div></pre></td></tr></table></figure>
 <p>总之登陆验证的代码关键就在这里了，可以自己做尝试，建议先写最简单的代码测试。比如</p>
-<figure class="highlight ruby"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">require</span> <span class="string">'rubygems'</span></span><br><span class="line"><span class="keyword">require</span> <span class="string">'net/ldap'</span></span><br><span class="line"></span><br><span class="line">ldap = <span class="constant">Net::LDAP</span>.new <span class="symbol">:host</span> =&gt; <span class="string">'qunarldap.corp.qunar.com'</span>,</span><br><span class="line">     <span class="symbol">:port</span> =&gt; <span class="number">389</span>,</span><br><span class="line">     <span class="symbol">:auth</span> =&gt; &#123;</span><br><span class="line">           <span class="symbol">:method</span> =&gt; <span class="symbol">:simple</span>,</span><br><span class="line">           <span class="symbol">:username</span> =&gt; <span class="string">"wd@xxxx.com"</span>,</span><br><span class="line">           <span class="symbol">:password</span> =&gt; <span class="string">"pwd"</span></span><br><span class="line">     &#125;</span><br><span class="line"></span><br><span class="line">filter = <span class="constant">Net::LDAP::Filter</span>.eq(<span class="string">"sAMAccountName"</span>,<span class="string">"wd*"</span>)</span><br><span class="line">object_filter = <span class="constant">Net::LDAP::Filter</span>.eq( <span class="string">"objectClass"</span>, <span class="string">"*"</span> )</span><br><span class="line">search_filter = filter &amp; object_filter</span><br><span class="line"></span><br><span class="line">treebase = <span class="string">"你的 basedn"</span> <span class="comment">#</span></span><br><span class="line"></span><br><span class="line">attr = [<span class="string">"dn"</span>, <span class="string">"givenName"</span>, <span class="string">"sN"</span>, <span class="string">"mail"</span>]</span><br><span class="line"></span><br><span class="line">ldap.search(<span class="symbol">:base</span> =&gt; treebase, <span class="symbol">:filter</span> =&gt; search_filter, <span class="symbol">:attributes</span> =&gt; attr ) <span class="keyword">do</span> |entry|</span><br><span class="line">  puts <span class="string">"DN: <span class="subst">#&#123;entry.dn&#125;</span>"</span></span><br><span class="line">  entry.each <span class="keyword">do</span> |attribute, values|</span><br><span class="line">    puts <span class="string">"   <span class="subst">#&#123;attribute&#125;</span>:"</span></span><br><span class="line">    values.each <span class="keyword">do</span> |value|</span><br><span class="line">      puts <span class="string">"      ---&gt;<span class="subst">#&#123;value&#125;</span>"</span></span><br><span class="line">    <span class="keyword">end</span></span><br><span class="line">  <span class="keyword">end</span></span><br><span class="line"><span class="keyword">end</span></span><br><span class="line"></span><br><span class="line">p ldap.get_operation_result</span><br></pre></td></tr></table></figure>
+<figure class="highlight ruby"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">require</span> <span class="string">'rubygems'</span></div><div class="line"><span class="keyword">require</span> <span class="string">'net/ldap'</span></div><div class="line"></div><div class="line">ldap = Net::LDAP.new <span class="symbol">:host</span> =&gt; <span class="string">'qunarldap.corp.qunar.com'</span>,</div><div class="line">     <span class="symbol">:port</span> =&gt; <span class="number">389</span>,</div><div class="line">     <span class="symbol">:auth</span> =&gt; &#123;</div><div class="line">           <span class="symbol">:method</span> =&gt; <span class="symbol">:simple</span>,</div><div class="line">           <span class="symbol">:username</span> =&gt; <span class="string">"wd@xxxx.com"</span>,</div><div class="line">           <span class="symbol">:password</span> =&gt; <span class="string">"pwd"</span></div><div class="line">     &#125;</div><div class="line"></div><div class="line">filter = Net::LDAP::Filter.eq(<span class="string">"sAMAccountName"</span>,<span class="string">"wd*"</span>)</div><div class="line">object_filter = Net::LDAP::Filter.eq( <span class="string">"objectClass"</span>, <span class="string">"*"</span> )</div><div class="line">search_filter = filter &amp; object_filter</div><div class="line"></div><div class="line">treebase = <span class="string">"你的 basedn"</span> <span class="comment">#</span></div><div class="line"></div><div class="line">attr = [<span class="string">"dn"</span>, <span class="string">"givenName"</span>, <span class="string">"sN"</span>, <span class="string">"mail"</span>]</div><div class="line"></div><div class="line">ldap.search(<span class="symbol">:base</span> =&gt; treebase, <span class="symbol">:filter</span> =&gt; search_filter, <span class="symbol">:attributes</span> =&gt; attr ) <span class="keyword">do</span> <span class="params">|entry|</span></div><div class="line">  puts <span class="string">"DN: <span class="subst">#&#123;entry.dn&#125;</span>"</span></div><div class="line">  entry.each <span class="keyword">do</span> <span class="params">|attribute, values|</span></div><div class="line">    puts <span class="string">"   <span class="subst">#&#123;attribute&#125;</span>:"</span></div><div class="line">    values.each <span class="keyword">do</span> <span class="params">|value|</span></div><div class="line">      puts <span class="string">"      ---&gt;<span class="subst">#&#123;value&#125;</span>"</span></div><div class="line">    <span class="keyword">end</span></div><div class="line">  <span class="keyword">end</span></div><div class="line"><span class="keyword">end</span></div><div class="line"></div><div class="line">p ldap.get_operation_result</div></pre></td></tr></table></figure>
 <p>搞定这块，就可以通过 ldap 用户直接登陆了，登陆会自动创建用户。</p>
-<h2 id="通过回复邮件自动创建和更新_issue">通过回复邮件自动创建和更新 issue</h2><p>用过 bugzilla 的都知道，可以通过邮件回复的方式来 comment issue。redmine 也提供了这个功能。我这种对 mail 服务器无权的用户，只能申请一个邮箱专门做这个事情了。公司邮箱是 exchange 的，没有打开 imap。redmine 只提供了 imap，pop 之类的方式。好在还有 davmail。先配置好一个 davmail，然后通过 imap 来做这个事情，imap 比 pop 好处多很多，比如可以指定 inbox，可以 move 到 read 之类，就不多说了。</p>
+<h2 id="通过回复邮件自动创建和更新-issue"><a href="#通过回复邮件自动创建和更新-issue" class="headerlink" title="通过回复邮件自动创建和更新 issue"></a>通过回复邮件自动创建和更新 issue</h2><p>用过 bugzilla 的都知道，可以通过邮件回复的方式来 comment issue。redmine 也提供了这个功能。我这种对 mail 服务器无权的用户，只能申请一个邮箱专门做这个事情了。公司邮箱是 exchange 的，没有打开 imap。redmine 只提供了 imap，pop 之类的方式。好在还有 davmail。先配置好一个 davmail，然后通过 imap 来做这个事情，imap 比 pop 好处多很多，比如可以指定 inbox，可以 move 到 read 之类，就不多说了。</p>
 <p>crontab 指令大概如下。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="shebang">#!/bin/bash</span><br><span class="line"></span></span><br><span class="line">LOG=/<span class="built_in">export</span>/redmine/<span class="built_in">log</span>/mail_recieve.log</span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"start <span class="variable">$(date)</span>"</span> &gt;&gt; <span class="variable">$LOG</span></span><br><span class="line"></span><br><span class="line">/usr/<span class="built_in">local</span>/ruby/bin/rake --silent <span class="operator">-f</span> /<span class="built_in">export</span>/redmine/Rakefile redmine:email:receive_imap RAILS_ENV=<span class="string">"production"</span> host=localhost username=abc password=def port=<span class="number">1143</span> move_on_success=<span class="built_in">read</span> move_on_failure=failed unknown_user=accept &gt;&gt; <span class="variable">$LOG</span> <span class="number">2</span>&gt;&amp;<span class="number">1</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"end <span class="variable">$(date)</span>"</span> &gt;&gt; <span class="variable">$LOG</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#!/bin/bash</span></div><div class="line"></div><div class="line">LOG=/<span class="built_in">export</span>/redmine/<span class="built_in">log</span>/mail_recieve.log</div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="string">"start <span class="variable">$(date)</span>"</span> &gt;&gt; <span class="variable">$LOG</span></div><div class="line"></div><div class="line">/usr/<span class="built_in">local</span>/ruby/bin/rake --silent <span class="_">-f</span> /<span class="built_in">export</span>/redmine/Rakefile redmine:email:receive_imap RAILS_ENV=<span class="string">"production"</span> host=localhost username=abc password=def port=1143 move_on_success=<span class="built_in">read</span> move_on_failure=failed unknown_user=accept &gt;&gt; <span class="variable">$LOG</span> 2&gt;&amp;1</div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="string">"end <span class="variable">$(date)</span>"</span> &gt;&gt; <span class="variable">$LOG</span></div></pre></td></tr></table></figure>
 <p>不过如果 redmine 就这么简单就搞定的话，那我也没必要单独拿出来掰了。关键是，通过 imap 死活就是不行。只好又看了一下代码。</p>
-<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="header">Index: lib/redmine/imap.rb</span></span><br><span class="line"><span class="header">===================================================================</span></span><br><span class="line"><span class="header">--- lib/redmine/imap.rb	(版本 10947)</span></span><br><span class="line"><span class="header">+++ lib/redmine/imap.rb	(工作副本)</span></span><br><span class="line"><span class="chunk">@@ -30,8 +30,9 @@</span></span><br><span class="line">         imap.login(imap_options[:username], imap_options[:password]) unless imap_options[:username].nil?</span><br><span class="line">         imap.select(folder)</span><br><span class="line">         imap.search(['NOT', 'SEEN']).each do |message_id|</span><br><span class="line"><span class="deletion">-          msg = imap.fetch(message_id,'RFC822')[0].attr['RFC822']</span></span><br><span class="line"><span class="deletion">-          logger.debug "Receiving message #&#123;message_id&#125;" if logger &amp;&amp; logger.debug?</span></span><br><span class="line"><span class="addition">+          #msg = imap.fetch(message_id,'RFC822')[0].attr['RFC822']</span></span><br><span class="line"><span class="addition">+          msg = imap.fetch(message_id,'BODY[]')[0].attr['BODY[]']</span></span><br><span class="line"><span class="addition">+          logger.debug "Receiving message #&#123;message_id&#125;, msg:\n#&#123;msg&#125;" if logger &amp;&amp; logger.debug?</span></span><br><span class="line">           if MailHandler.receive(msg, options)</span><br><span class="line">             logger.debug "Message #&#123;message_id&#125; successfully received" if logger &amp;&amp; logger.debug?</span><br><span class="line">             if imap_options[:move_on_success]</span><br></pre></td></tr></table></figure>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">Index: lib/redmine/imap.rb</span></div><div class="line"><span class="comment">===================================================================</span></div><div class="line"><span class="comment">--- lib/redmine/imap.rb	(版本 10947)</span></div><div class="line"><span class="comment">+++ lib/redmine/imap.rb	(工作副本)</span></div><div class="line"><span class="meta">@@ -30,8 +30,9 @@</span></div><div class="line">         imap.login(imap_options[:username], imap_options[:password]) unless imap_options[:username].nil?</div><div class="line">         imap.select(folder)</div><div class="line">         imap.search(['NOT', 'SEEN']).each do |message_id|</div><div class="line"><span class="deletion">-          msg = imap.fetch(message_id,'RFC822')[0].attr['RFC822']</span></div><div class="line"><span class="deletion">-          logger.debug "Receiving message #&#123;message_id&#125;" if logger &amp;&amp; logger.debug?</span></div><div class="line"><span class="addition">+          #msg = imap.fetch(message_id,'RFC822')[0].attr['RFC822']</span></div><div class="line"><span class="addition">+          msg = imap.fetch(message_id,'BODY[]')[0].attr['BODY[]']</span></div><div class="line"><span class="addition">+          logger.debug "Receiving message #&#123;message_id&#125;, msg:\n#&#123;msg&#125;" if logger &amp;&amp; logger.debug?</span></div><div class="line">           if MailHandler.receive(msg, options)</div><div class="line">             logger.debug "Message #&#123;message_id&#125; successfully received" if logger &amp;&amp; logger.debug?</div><div class="line">             if imap_options[:move_on_success]</div></pre></td></tr></table></figure>
 <p>这里把那个 RFC822 改成 BODY[] 就好了，入丝般润滑。。。</p>
-<h2 id="过滤掉邮件回复的垃圾内容">过滤掉邮件回复的垃圾内容</h2><p>邮件回复 ok 之后，紧跟着问题就是，他会把整封邮件都作为回复记录进去，这个太恶心了。还好他提供了设置，在 email notification 选项里面，配置一个 email header <code>--Reply above this line--</code>，在 incoming mail 里面配置一个 Truncate emails after one of these lines <code>--Reply above this line--</code>，他就会截取这个字符前面的内容了。</p>
+<h2 id="过滤掉邮件回复的垃圾内容"><a href="#过滤掉邮件回复的垃圾内容" class="headerlink" title="过滤掉邮件回复的垃圾内容"></a>过滤掉邮件回复的垃圾内容</h2><p>邮件回复 ok 之后，紧跟着问题就是，他会把整封邮件都作为回复记录进去，这个太恶心了。还好他提供了设置，在 email notification 选项里面，配置一个 email header <code>--Reply above this line--</code>，在 incoming mail 里面配置一个 Truncate emails after one of these lines <code>--Reply above this line--</code>，他就会截取这个字符前面的内容了。</p>
 <p>不过还有问题就是，一般邮件回复都开头都是个 <code>On xxxx xxx wrote:</code>，这个他不会截掉，那就再 hack 一下。。</p>
-<figure class="highlight diff"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line"><span class="header">--- app/models/mail_handler.rb	(版本 10947)</span></span><br><span class="line"><span class="header">+++ app/models/mail_handler.rb	(工作副本)</span></span><br><span class="line"><span class="chunk">@@ -463,9 +464,12 @@</span></span><br><span class="line"> </span><br><span class="line">   # Removes the email body of text after the truncation configurations.</span><br><span class="line">   def cleanup_body(body)</span><br><span class="line"><span class="deletion">-    delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map &#123;|s| Regexp.escape(s)&#125;</span></span><br><span class="line"><span class="addition">+    #delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map &#123;|s| Regexp.escape(s)&#125;</span></span><br><span class="line"><span class="addition">+    delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map &#123;|s| s&#125;</span></span><br><span class="line"><span class="addition">+</span></span><br><span class="line">     unless delimiters.empty?</span><br><span class="line">       regex = Regexp.new("^[&gt; ]*(#&#123; delimiters.join('|') &#125;)\s*[\r\n].*", Regexp::MULTILINE)</span><br><span class="line"><span class="addition">+      #regex = Regexp.new("(^[&gt; ]*(#&#123; delimiters.join('|') &#125;)\s*[\r\n].*)|(On (.*)wrote:[\r\n].*)", Regexp::MULTILINE)</span></span><br><span class="line">       body = body.gsub(regex, '')</span><br><span class="line">     end</span><br><span class="line">     body.strip</span><br></pre></td></tr></table></figure>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div></pre></td><td class="code"><pre><div class="line"><span class="comment">--- app/models/mail_handler.rb	(版本 10947)</span></div><div class="line"><span class="comment">+++ app/models/mail_handler.rb	(工作副本)</span></div><div class="line"><span class="meta">@@ -463,9 +464,12 @@</span></div><div class="line"> </div><div class="line">   # Removes the email body of text after the truncation configurations.</div><div class="line">   def cleanup_body(body)</div><div class="line"><span class="deletion">-    delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map &#123;|s| Regexp.escape(s)&#125;</span></div><div class="line"><span class="addition">+    #delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map &#123;|s| Regexp.escape(s)&#125;</span></div><div class="line"><span class="addition">+    delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map &#123;|s| s&#125;</span></div><div class="line"><span class="addition">+</span></div><div class="line">     unless delimiters.empty?</div><div class="line">       regex = Regexp.new("^[&gt; ]*(#&#123; delimiters.join('|') &#125;)\s*[\r\n].*", Regexp::MULTILINE)</div><div class="line"><span class="addition">+      #regex = Regexp.new("(^[&gt; ]*(#&#123; delimiters.join('|') &#125;)\s*[\r\n].*)|(On (.*)wrote:[\r\n].*)", Regexp::MULTILINE)</span></div><div class="line">       body = body.gsub(regex, '')</div><div class="line">     end</div><div class="line">     body.strip</div></pre></td></tr></table></figure>
 <p>这里搞定之后，在那个 Truncate emails after one of these lines 里面就可以写正则了，增加一行 <code>On (.*)wrote:</code>，然后就可以了。</p>
-<h2 id="code_review">code review</h2><p>增加了一个 code review 插件，已有项目需要在项目的模块里面启用。并且需要 admin 在角色配置里面，给相应角色增加 code review 的权限。不过貌似这插件不太好用，只能一行一行来。</p>
+<h2 id="code-review"><a href="#code-review" class="headerlink" title="code review"></a>code review</h2><p>增加了一个 code review 插件，已有项目需要在项目的模块里面启用。并且需要 admin 在角色配置里面，给相应角色增加 code review 的权限。不过貌似这插件不太好用，只能一行一行来。</p>
 
       
 	</div>
@@ -152,14 +623,14 @@
     </div>
       
         <p>最近几天写了一些 bash 脚本，又有些心得，记录一下。</p>
-<h2 id="获取当前路径的绝对路径">获取当前路径的绝对路径</h2><p>比较常见的需求可能是获取相对路径，这样方便程序复制到其他目录也可以运行。使用 <code>$(dirname $0)</code> 就可以获取相对路径，不过这里说的是绝对路径。</p>
+<h2 id="获取当前路径的绝对路径"><a href="#获取当前路径的绝对路径" class="headerlink" title="获取当前路径的绝对路径"></a>获取当前路径的绝对路径</h2><p>比较常见的需求可能是获取相对路径，这样方便程序复制到其他目录也可以运行。使用 <code>$(dirname $0)</code> 就可以获取相对路径，不过这里说的是绝对路径。</p>
 <p>其实也简单，相对路径加上当前目录，那不就是绝对路径么。不过是，有时候 <code>$(dirname $0)</code> 取到的也可能是绝对路径（一般期望相对路径的程序也能跑通，所以不大关心）。</p>
 <p>可以用下面的做法，大意是先判断一下获取到的路径是不是 <code>/</code> 开头，如果是，那就不处理，如果不是，那就把当前的路径附加上去得到一个绝对路径。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">PG_DIR=<span class="string">"<span class="variable">$(dirname $0)</span>/../"</span></span><br><span class="line"></span><br><span class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$PG_DIR</span>"</span> | grep -q ^/</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> [ $? <span class="operator">-ne</span> <span class="number">0</span> ];<span class="keyword">then</span></span><br><span class="line">        PG_DIR=<span class="string">"<span class="variable">$(pwd)</span>/<span class="variable">$PG_DIR</span>"</span></span><br><span class="line"><span class="keyword">fi</span></span><br></pre></td></tr></table></figure>
-<h2 id="使用_getopt_获取命令行参数">使用 getopt 获取命令行参数</h2><p>获取参数比较常见的做法是取 <code>$1</code> <code>$2</code> 这些，不过不太专业，这里说的是类似于 <code>--prefix=/path/to/install -v</code> 这种。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">PG_DIR=<span class="string">"<span class="variable">$(dirname $0)</span>/../"</span></div><div class="line"></div><div class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$PG_DIR</span>"</span> | grep -q ^/</div><div class="line"></div><div class="line"><span class="keyword">if</span> [ $? <span class="_">-ne</span> 0 ];<span class="keyword">then</span></div><div class="line">        PG_DIR=<span class="string">"<span class="variable">$(pwd)</span>/<span class="variable">$PG_DIR</span>"</span></div><div class="line"><span class="keyword">fi</span></div></pre></td></tr></table></figure>
+<h2 id="使用-getopt-获取命令行参数"><a href="#使用-getopt-获取命令行参数" class="headerlink" title="使用 getopt 获取命令行参数"></a>使用 getopt 获取命令行参数</h2><p>获取参数比较常见的做法是取 <code>$1</code> <code>$2</code> 这些，不过不太专业，这里说的是类似于 <code>--prefix=/path/to/install -v</code> 这种。</p>
 <p>bash 本身提供了一个内部命令 <code>getopts</code> 来做这个事情，不过那个只能支持 short_opts，就是类似 <code>-v</code> 这种，不支持长的。</p>
 <p>getopt 是一个 GNU 程序，他支持 long_opts。下面是个例子。代码基本来自网上。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line">ARGS=$(getopt <span class="operator">-a</span> -o h <span class="operator">-l</span> initdb::,<span class="built_in">help</span> -- <span class="string">"<span class="variable">$@</span>"</span>)</span><br><span class="line">[ $? <span class="operator">-ne</span> <span class="number">0</span> ] &amp;&amp; usage</span><br><span class="line"></span><br><span class="line"><span class="built_in">eval</span> <span class="built_in">set</span> -- <span class="string">"<span class="variable">$&#123;ARGS&#125;</span>"</span> </span><br><span class="line"></span><br><span class="line"><span class="keyword">while</span> <span class="literal">true</span></span><br><span class="line"><span class="keyword">do</span></span><br><span class="line">        <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></span><br><span class="line">                --initdb)</span><br><span class="line">                        initdb <span class="variable">$2</span></span><br><span class="line">                        ;;</span><br><span class="line">                -h|--help)</span><br><span class="line">                        usage;</span><br><span class="line">                        ;;</span><br><span class="line">                --)</span><br><span class="line">                        <span class="built_in">shift</span></span><br><span class="line">                        <span class="built_in">break</span></span><br><span class="line">                        ;;</span><br><span class="line">        <span class="keyword">esac</span></span><br><span class="line">        <span class="built_in">shift</span></span><br><span class="line"><span class="keyword">done</span></span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div></pre></td><td class="code"><pre><div class="line">ARGS=$(getopt <span class="_">-a</span> -o h <span class="_">-l</span> initdb::,<span class="built_in">help</span> -- <span class="string">"<span class="variable">$@</span>"</span>)</div><div class="line">[ $? <span class="_">-ne</span> 0 ] &amp;&amp; usage</div><div class="line"></div><div class="line"><span class="built_in">eval</span> <span class="built_in">set</span> -- <span class="string">"<span class="variable">$&#123;ARGS&#125;</span>"</span> </div><div class="line"></div><div class="line"><span class="keyword">while</span> <span class="literal">true</span></div><div class="line"><span class="keyword">do</span></div><div class="line">        <span class="keyword">case</span> <span class="variable">$1</span> <span class="keyword">in</span></div><div class="line">                --initdb)</div><div class="line">                        initdb <span class="variable">$2</span></div><div class="line">                        ;;</div><div class="line">                -h|--help)</div><div class="line">                        usage;</div><div class="line">                        ;;</div><div class="line">                --)</div><div class="line">                        <span class="built_in">shift</span></div><div class="line">                        <span class="built_in">break</span></div><div class="line">                        ;;</div><div class="line">        <span class="keyword">esac</span></div><div class="line">        <span class="built_in">shift</span></div><div class="line"><span class="keyword">done</span></div></pre></td></tr></table></figure>
 <p>解释一下上面的参数的含义:</p>
 <ul>
 <li><code>-o</code> 参数指定的就是短参数，我试过，貌似还得指定至少一个短参数。</li>
@@ -168,9 +639,9 @@
 <li>参数后面跟一个冒号 <code>:</code> 表示这个参数(option)必须要给一个参数(argument)，类似上面的 <code>--prefix=/path/to/install</code> 这种。</li>
 <li>参数后面跟2个冒号 <code>::</code> 表示这个参数后面的参数可有可无。比如例子里面的 <code>--initdb</code></li>
 </ul>
-<h2 id="find_exec_提示_No_such_file_or_directory">find exec 提示 No such file or directory</h2><p>这个是之前用来日志删除的一个程序，大概命令类似 <code>find ./ -name &#39;2012*&#39; -exec rm -r {} \;</code>，后来总发现报 <code>No such file or directory</code> 这个错误，可是去看的时候，发现那些目录也被删掉了。开始觉得可能是有其他人的程序也在删除这个目录，问了一圈结果没人删。</p>
+<h2 id="find-exec-提示-No-such-file-or-directory"><a href="#find-exec-提示-No-such-file-or-directory" class="headerlink" title="find exec 提示 No such file or directory"></a>find exec 提示 No such file or directory</h2><p>这个是之前用来日志删除的一个程序，大概命令类似 <code>find ./ -name &#39;2012*&#39; -exec rm -r {} \;</code>，后来总发现报 <code>No such file or directory</code> 这个错误，可是去看的时候，发现那些目录也被删掉了。开始觉得可能是有其他人的程序也在删除这个目录，问了一圈结果没人删。</p>
 <p>后来经过测试琢磨找到原因了，在于这个命令的执行思路大概是先去找那个名字的文件或者目录，然后挨个执行后面的命令。那么，如果找到的既有上级目录，也有下级文件的时候，如果目录先被删掉了，那删文件的时候可不就是 <code>No such file or directory</code> 么。</p>
-<p>好在 find 提供了一个参数 <code>-prune</code><br><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-prune True; <span class="keyword">if</span> <span class="operator">the</span> <span class="built_in">file</span> is <span class="operator">a</span> <span class="built_in">directory</span>, <span class="built_in">do</span> <span class="operator">not</span> descend <span class="keyword">into</span> <span class="keyword">it</span>. If -depth is given, <span class="constant">false</span>; no effect.  Because -<span class="built_in">delete</span> implies -depth, you can-</span><br><span class="line">       <span class="operator">not</span> usefully use -prune <span class="operator">and</span> -<span class="built_in">delete</span> together.</span><br></pre></td></tr></table></figure></p>
+<p>好在 find 提供了一个参数 <code>-prune</code><br><figure class="highlight livecodeserver"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">-prune True; <span class="keyword">if</span> <span class="keyword">the</span> <span class="built_in">file</span> is <span class="keyword">a</span> <span class="built_in">directory</span>, <span class="built_in">do</span> <span class="keyword">not</span> descend <span class="keyword">into</span> <span class="keyword">it</span>. If -depth is given, <span class="literal">false</span>; no effect.  Because -<span class="built_in">delete</span> implies -depth, you can-</div><div class="line">       <span class="keyword">not</span> usefully use -prune <span class="keyword">and</span> -<span class="built_in">delete</span> together.</div></pre></td></tr></table></figure></p>
 
       
 	</div>
@@ -347,7 +818,7 @@ Host *
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Linux/">Linux</a> <a href="../tags/dbi/">dbi</a> <a href="../tags/fdw/">fdw</a> <a href="../tags/postgresql/">postgresql</a>
+<a href="../tags/Linux/">Linux</a> <a href="../tags/postgresql/">postgresql</a> <a href="../tags/dbi/">dbi</a> <a href="../tags/fdw/">fdw</a>
 </div>
     </div>
       
@@ -745,101 +1216,6 @@ org-mode 本身提供了 remember 来创建 todo list。
 </div>
 </article>
 
-  <article class="post">
-	<h2 class="title">
-		<a href="analyse-and-vacuum-in-postgres/">postgres sql 调优一例</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2012-03-02T16:00:00.000Z" itemprop="datePublished">Mar 3, 2012</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/postgres/">postgres</a> <a href="../tags/sql/">sql</a>
-</div>
-    </div>
-      
-        <p>前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。
-</p>
-<p>
-所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。
-</p>
-<p>
-能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。
-</p>
-
-
-<pre class="prettyprint lang-text">
- Nested Loop Left Join  (cost=447.90..1003.43 rows=2 width=620)
-   Join Filter: (team.id = team_arrive_city.team_id)
-   ->  Nested Loop  (cost=77.62..85.98 rows=1 width=588)
-         ->  HashAggregate  (cost=77.62..77.68 rows=1 width=71)
-               ->  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..77.60 rows=1 width=71)
-                     Index Cond: ((thedate >= '2012-02-25'::date) AND (thedate <= '2012-02-27'::date))="" filter:="" (((source)::text="" ~~="" '%team%'::text)="" and="" ((source)::text="" !~~="" '%today%'::text)="" '%ongoing%'::text)="" ((s="" ource)::text="" '%special%'::text))="" -="">  Index Scan using team_pkey on team  (cost=0.00..8.28 rows=1 width=32)
-               Index Cond: (team.id = fact_tuan_rank_detail.team_id)
-               Filter: ((to_timestamp((team.end_time)::double precision))::date > '2012-02-27'::date)
-   ->  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
-         ->  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
-(12 rows)
-</=></pre>
-
-<p>
-仔细研究之后，发现了 rows=1 这个信息。这就是为什么查询分析器先对这个表做查询了，因为他认为这个表最小。
-</p>
-<p>
-此后对这个表执行了一下 <a href="http://www.postgresql.org/docs/9.1/static/sql-analyze.html" target="_blank" rel="external">analyse</a> 命令，更新了一些统计信息。然后再看执行计划如下。
-</p>
-
-
-<pre class="prettyprint lang-text">
- Hash Join  (cost=1210761.12..1326052.45 rows=2282704 width=620)
-   Hash Cond: (fact_tuan_rank_detail.team_id = team.id)
-   ->  HashAggregate  (cost=1203912.40..1265555.26 rows=1027381 width=71)
-         ->  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..1075489.81 rows=10273807 width=71)
-               Index Cond: ((thedate >= '2012-02-25'::date) AND (thedate <= '2012-02-27'::date))="" filter:="" (((source)::text="" ~~="" '%team%'::text)="" and="" ((source)::text="" !~~="" '%today%'::text)="" '%ongoing%'::text)="" ((source)="" ::text="" '%special%'::text))="" -="">  Hash  (cost=6666.33..6666.33 rows=14591 width=64)
-         ->  Merge Left Join  (cost=6414.63..6666.33 rows=14591 width=64)
-               Merge Cond: (team.id = b.team_id)
-               ->  Sort  (cost=4670.40..4686.82 rows=6567 width=32)
-                     Sort Key: team.id
-                     ->  Seq Scan on team  (cost=0.00..4254.02 rows=6567 width=32)
-                           Filter: ((to_timestamp((end_time)::double precision))::date > '2012-02-27'::date)
-               ->  Sort  (cost=1744.23..1780.71 rows=14591 width=40)
-                     Sort Key: b.team_id
-                     ->  Subquery Scan on b  (cost=370.29..735.06 rows=14591 width=40)
-                           ->  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
-                                 ->  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
-(18 rows)
-</=></pre>
-
-<p>
-可以看到执行计划已经变了，先做其他表的 join，最后再和大表 join。并且提示的执行时间也大致靠谱。
-</p>
-<p>
-从这里面引申一下，时常会听到有人说 explain 命令执行后得出的执行时间不靠谱，需要使用 explain analyse。可是为什么不靠谱呢，其实 explain analyse 需要的时间和实际执行时间一样，explain 不靠谱的原因是因为数据库对那个表的统计信息不及时导致的。
-</p>
-<p>
-再进一步了解，postgres 里面这个统计信息为什么不靠谱呢？难道还总是需要我维护这些信息啊？
-</p>
-<p>
-其实 postgres 里面有个 autovacuum 进程就是做这个事情的。autovacuum 进程默认是启用的。他会在数据库空闲的时候，对数据库做 vavcuum 和 analyse。具体多久执行一次，<a href="http://www.postgresql.org/docs/9.1/static/routine-vacuuming.html" target="_blank" rel="external">文档</a> 里面都有写，建议多看看这个页面里面的信息。
-</p>
-<p>
-此外，还发现 postgres 还提供了很多 <a href="http://www.postgresql.org/docs/9.1/static/monitoring-stats.html" target="_blank" rel="external">数据库状态查询函数</a> ，使用这里面函数可以查到每个表最后一次 analyse 的时间，vacuum 的时
-间，里面索引被使用的情况等等，好多信息。
-</p>
-
-ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不行了，查看 explain select * from t1 好像没问题，那怎么回事呢？开始没想明白，只好继续 analyse 一下，又好了。可过了两天又不行了。这次得细看了。最后发现是因为真实的 sql 是有 where 条件的，日期条件限定的那部分数据查询分析器认为很少导致了问题。没办法后面只好每次导数都 analyse 一下了。发现 pg_bulkload 导数的方式有点问题。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="analyse-and-vacuum-in-postgres/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
 
   <nav id="pagenavi">
     
@@ -854,17 +1230,9 @@ ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不�
 
 
 
-<script type="text/javascript">
-      var disqus_shortname = 'wdicc';
-      
-        var disqus_script = 'count.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+    
+        <script id="dsq-count-scr" src="//" + wdicc + ".disqus.com/count.js" async></script>
+    
 
 
 

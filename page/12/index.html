@@ -94,6 +94,66 @@
         
   <article class="post">
 	<h2 class="title">
+		<a href="send-mail-with-attachment/">命令行发送有附件的邮件</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-11-30T16:00:00.000Z" itemprop="datePublished">Dec 1, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Mail/">Mail</a> <a href="../tags/sendmail/">sendmail</a>
+</div>
+    </div>
+      
+        命令行下面发送邮件比较简单，恐怕都会使用。
+
+<pre class="prettyprint lang-bash">
+$ echo "hello .. " | mail -s subject xxx@abc.com
+$ cat /path/to/file | mail -s subject xxx@abc.com
+$ mail -s subject xxx@abc.com << EOF
+hi
+the end..
+EOF
+</pre>
+
+上面这些方法都可以发送邮件。还有一种方法。
+
+<pre class="prettyprint lang-bash">
+$ cat a.txt
+Subject: test
+From: xxx@abc.com
+To: xxx@abc.com
+
+hi
+sdfsdfsdf
+the end.
+$ cat a.txt | sendmail -t
+</pre>
+
+这样可以把邮件头信息写到文件里面的，你也可以用 php，perl 来打印类似的信息给 sendmail -t ，让他来发。
+
+那么如果有附件应该怎么办？可以使用 uuencode。
+
+<pre class="prettyprint lang-bash">
+$ uuencode a.txt a.txt | mail -s test xxx@abc.com
+$ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t
+</pre>
+
+应该说的很明白了吧？
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="send-mail-with-attachment/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="lyx-unicode-howto/">lyx 的中文化</a>
 	</h2>
     <div class="entry-content">
@@ -262,6 +322,42 @@ gateway 就是你的 vpn server 的地址，IPSec secret 就是我说的 group p
 
   <article class="post">
 	<h2 class="title">
+		<a href="kill-session-in-oracle/">oracle 里面 kill session</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-10-06T16:00:00.000Z" itemprop="datePublished">Oct 7, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/session/">session</a>
+</div>
+    </div>
+      
+        eygle <a href="http://www.eygle.com/faq/Kill_Session.htm" target="_blank">有篇文章</a>讲了这个，之前也看过。昨天实际操作了一下。
+
+因为如 eygle 所讲，kill 了 session 之后，操作系统里面的进程资源有时候不一定会立即释放，所以最好在 kill 之前就找到系统的进程 id，这样，如果不释放的时候，可以直接kill。省的之后找起来麻烦。
+
+昨天操作的时候有这么几个步骤
+<ol>
+	<li>select * from v$session where username like 'UP' --先找到这个用户的 session。</li>
+	<li>select * from v$sql a, v$session b where b.username = 'UP' and a.sql_id = b.sql_id --找出来这个用户这些 session 对应的 sql 语句，好确认 session 的 id。</li>
+	<li>select * from v$process a, v$session b where a.addr = b.paddr and b.username like 'UP' and b.sid = xxx --找出来他的系统进程id，就是那个 spid。</li>
+	<li>ALTER SYSTEM KILL SESSION 'sid, serial#' --可以实施kill了，可能会提示你marked for kill，有必要的话，在os级别kill前面找出来的 spid。</li>
+</ol>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="kill-session-in-oracle/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="palm-in-linux/">linux 下面同步 palm 手机</a>
 	</h2>
     <div class="entry-content">
@@ -304,42 +400,6 @@ BUS=="usb",SYSFS{serial}=="PalmSN12345678", KNERNEL="ttyUSB*",OWNER="root",GROUP
 <div class="meta">
 	
 		<span class="comments"><a href="palm-in-linux/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="kill-session-in-oracle/">oracle 里面 kill session</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-10-06T16:00:00.000Z" itemprop="datePublished">Oct 7, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/session/">session</a>
-</div>
-    </div>
-      
-        eygle <a href="http://www.eygle.com/faq/Kill_Session.htm" target="_blank">有篇文章</a>讲了这个，之前也看过。昨天实际操作了一下。
-
-因为如 eygle 所讲，kill 了 session 之后，操作系统里面的进程资源有时候不一定会立即释放，所以最好在 kill 之前就找到系统的进程 id，这样，如果不释放的时候，可以直接kill。省的之后找起来麻烦。
-
-昨天操作的时候有这么几个步骤
-<ol>
-	<li>select * from v$session where username like 'UP' --先找到这个用户的 session。</li>
-	<li>select * from v$sql a, v$session b where b.username = 'UP' and a.sql_id = b.sql_id --找出来这个用户这些 session 对应的 sql 语句，好确认 session 的 id。</li>
-	<li>select * from v$process a, v$session b where a.addr = b.paddr and b.username like 'UP' and b.sid = xxx --找出来他的系统进程id，就是那个 spid。</li>
-	<li>ALTER SYSTEM KILL SESSION 'sid, serial#' --可以实施kill了，可能会提示你marked for kill，有必要的话，在os级别kill前面找出来的 spid。</li>
-</ol>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="kill-session-in-oracle/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -1019,39 +1079,6 @@ FOREIGN ARCHIVED LOG                                      0                     
 </div>
 </article>
 
-  <article class="post">
-	<h2 class="title">
-		<a href="apache-keepalive/">Apache优化之KeepAlive</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-09-04T16:00:00.000Z" itemprop="datePublished">Sep 5, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Heart/">Heart</a> <a href="../tags/apache/">apache</a>
-</div>
-    </div>
-      
-        KeepAlive是在HTTP/1.1中定义的，用来保持客户机和服务器的长连接，执子之手与子偕老。通过减少建立TCP Session的次数来提高性能。常用的配置参数有{KeepAlive, KeepAliveTimeout, MaxKeepAliveRequests}。逐个说来：KeepAlive是决定开启KeepAlive支持；KeepAliveTimeout决定一 个KeepAlive的连接能保持多少时间，Timeout就尽快shutdown链接，若还有数据必须再建立新的连接 了；MaxKeepAliveRequests于KeepAliveTimeout相似，意思是服务多少个请求就shutdown连接。看个例子：
-<pre class="prettyprint">
-   KeepAliveTimeout 5</pre>
-意思是说，打开KeepAlive，每个连接只保持5秒就中断。
-
-对于KeepAlive的配置需要慎重，错误的参数可能导致严重的性能问题。一个高负载的Server，如果建立的很多长连接将无法继续服 务新的连接。因此需要根据server的性质调整KeepAliveTimeout或是MaxKeepAliveRequests的值。
-
-例如：你的网页上有三幅图画2个外部javascript，他们都存放在你自己的server上。因此将 MaxKeepAliveRequests设置为7比较合适。3幅图2个js各一个link，网页本身一个link，还有firefox传说中的 favicon.ico。当然还是要有KeepAliveTimeout的。如果客户机用了该死的IE并且设置了某个该死的选项，IE是不会向服务器发送 HEAD请求查看图片（或是其他资源）是否过期的，而是直接使用本地图片。这个时候服务器是不会计算Request的(因为压根就没有Request 嘛)。再如果只有MaxKeepAliveRequests参数，服务器会默认等待5秒才结束KeepAlive连接。通常这5秒可能玩死一个高负载的服 务器(所以说这个社会需要闪婚...)。因此打开Firefox，启动Firebug，看看你的站究竟需要多少次请求，再决定KeepAlive吧。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="apache-keepalive/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
 
   <nav id="pagenavi">
     
@@ -1066,17 +1093,9 @@ FOREIGN ARCHIVED LOG                                      0                     
 
 
 
-<script type="text/javascript">
-      var disqus_shortname = 'wdicc';
-      
-        var disqus_script = 'count.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+    
+        <script id="dsq-count-scr" src="//" + wdicc + ".disqus.com/count.js" async></script>
+    
 
 
 

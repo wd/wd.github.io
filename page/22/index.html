@@ -94,6 +94,93 @@
         
   <article class="post">
 	<h2 class="title">
+		<a href="adjust-of-bus/">第五批 公交线路调整</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-03T16:00:00.000Z" itemprop="datePublished">Apr 4, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a> <a href="../tags/公交/">公交</a>
+</div>
+    </div>
+      
+        虽然调整没几条，但是涉及到我们小区的，倒是有三条。
+
+<blockquote>831 改成 675 ，通州李庄-> 左家庄
+通州李庄 上潞园小区 小潞邑北站 小潞邑 龙旺庄 焦王庄 结研所 北京物资学院 五里桥路口东 东十里堡村 常营路口东 常营路口西 黄渠村黄渠西站 白家楼桥东 亮马厂 黄杉木店 青年路口 十里堡北里 农民日报社 农民日报社北 石佛营东里 豆各庄路口南 豆各庄路口西 朝阳公园桥东朝阳公园桥西 朝阳公园 团结湖 亮马桥 燕莎桥南 燕莎桥西 新源南路西口 新源里 左家庄
+5：30-22：00</blockquote>
+
+
+<blockquote>834 改成 498 ，常营民族家园->燕莎桥南
+常营民族家园 常营西路 常营北路 常营 常营路口西 黄渠村 黄渠西站 白家楼桥东 亮马厂 黄杉木店 青年路口北 姚家园村 万杰医院 姚家园西 姚家园西口 豆各庄路口西 朝阳公园桥东 朝阳公园桥西 朝阳公园 团结湖 亮马桥 燕莎桥南
+常营民族家园5：30-21：15  燕莎桥南6：15-22：00</blockquote>
+
+
+<blockquote>742 改成 506 ，常营民族家园->四惠
+常营民族家园 常营西路 常营北路 常营 科技大学管庄校区 管庄路口北 管庄 周家井 双桥西 茶家坟 梆子井 高碑店桥东 四惠东站 四惠站
+上林苑小区5：30—21：00  北京华侨城6：30—22：00</blockquote>
+
+
+742改的挺好，以前线路太长，四惠等车的时候半天不来。反正我也从来不到南三环，刚好，哈哈。以后四惠等车就爽了，没准还有座，嘿嘿。
+
+831就不爽了，以前往北三环走多舒服，速度很快。834还好，走城里，速度慢，所以也无所谓了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="adjust-of-bus/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="awstats-log/">awstats 如何统计以前的日志？</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-01T16:00:00.000Z" itemprop="datePublished">Apr 2, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a> <a href="../tags/Linux/">Linux</a> <a href="../tags/apache/">apache</a> <a href="../tags/awstats/">awstats</a>
+</div>
+    </div>
+      
+        突然想安装一个awstats了，参考 <a href="http://www.chedong.com/tech/awstats.html" target="_blank" rel="external">车东</a> 的文章，安装了一个。可是发现一个问题，设置了logfile为 access_log.%YYYY-24%MM-24%DD-24.log 之后，发现只能把昨天的日志统计进来，可是我的log下面还有好多呢，想统计以前的，怎么弄呢？幸好，awstats已经考虑到这个问题了。
+
+awstats.pl 脚本支持在命令行指定logfile，这样简单了，改变这个参数就可以了。不过要注意的是，如果你的data里面已经处理新的日志，那么指定logfile也没用了，以前的没办法更新进来了。只能是删掉data里面的内容，然后重新从最早的开始生成一遍。我写了一个脚本来做这个事情。
+
+<pre class="prettyprint lang-bash">
+
+awstats_dir=/opt/tt2/awstats/wwwroot/cgi-bin
+logfile_dir="/usr/local/apache/logs/"
+
+cd $awstats_dir
+
+for file in `find $logfile_dir -name "access_log.2*" | sort`;do
+        #echo "$file"
+        ./awstats.pl －update -config=wd -LogFile=$file
+done</pre>
+
+保存为 awstats.sh ，然后执行就可以了。他会查找 logfile_dir 下面所有的 access_log.2 开头的文件，作为参数来更新记录。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="awstats-log/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="compress-apache/">给apache加了一个compress模块，mod_deflate</a>
 	</h2>
     <div class="entry-content">
@@ -141,48 +228,6 @@ Gecko/20070309 irefox/2.0.0.3"</pre>
 
   <article class="post">
 	<h2 class="title">
-		<a href="awstats-log/">awstats 如何统计以前的日志？</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-04-01T16:00:00.000Z" itemprop="datePublished">Apr 2, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/Other/">Other</a> <a href="../tags/apache/">apache</a> <a href="../tags/awstats/">awstats</a>
-</div>
-    </div>
-      
-        突然想安装一个awstats了，参考 <a href="http://www.chedong.com/tech/awstats.html" target="_blank" rel="external">车东</a> 的文章，安装了一个。可是发现一个问题，设置了logfile为 access_log.%YYYY-24%MM-24%DD-24.log 之后，发现只能把昨天的日志统计进来，可是我的log下面还有好多呢，想统计以前的，怎么弄呢？幸好，awstats已经考虑到这个问题了。
-
-awstats.pl 脚本支持在命令行指定logfile，这样简单了，改变这个参数就可以了。不过要注意的是，如果你的data里面已经处理新的日志，那么指定logfile也没用了，以前的没办法更新进来了。只能是删掉data里面的内容，然后重新从最早的开始生成一遍。我写了一个脚本来做这个事情。
-
-<pre class="prettyprint lang-bash">
-
-awstats_dir=/opt/tt2/awstats/wwwroot/cgi-bin
-logfile_dir="/usr/local/apache/logs/"
-
-cd $awstats_dir
-
-for file in `find $logfile_dir -name "access_log.2*" | sort`;do
-        #echo "$file"
-        ./awstats.pl －update -config=wd -LogFile=$file
-done</pre>
-
-保存为 awstats.sh ，然后执行就可以了。他会查找 logfile_dir 下面所有的 access_log.2 开头的文件，作为参数来更新记录。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="awstats-log/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="sub-network/">对子网的一些理解</a>
 	</h2>
     <div class="entry-content">
@@ -213,32 +258,6 @@ done</pre>
 
   <article class="post">
 	<h2 class="title">
-		<a href="glasses-and-maomao/">戴眼镜的小毛</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-03-27T16:00:00.000Z" itemprop="datePublished">Mar 28, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Heart/">Heart</a> <a href="../tags/小毛/">小毛</a>
-</div>
-    </div>
-      
-        <img src="http://photo1.yupoo.com/20070328/111646_1474112226.jpg"><br><img src="http://photo1.yupoo.com/20070328/111643_180303892.jpg"><br>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="glasses-and-maomao/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="hukouben/">把户口本给领了</a>
 	</h2>
     <div class="entry-content">
@@ -259,6 +278,32 @@ done</pre>
 <div class="meta">
 	
 		<span class="comments"><a href="hukouben/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="glasses-and-maomao/">戴眼镜的小毛</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-03-27T16:00:00.000Z" itemprop="datePublished">Mar 28, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a> <a href="../tags/小毛/">小毛</a>
+</div>
+    </div>
+      
+        <img src="http://photo1.yupoo.com/20070328/111646_1474112226.jpg"><br><img src="http://photo1.yupoo.com/20070328/111643_180303892.jpg"><br>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="glasses-and-maomao/index.html#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -561,7 +606,7 @@ irssi的官方网站上面的 <a href="http://irssi.org/documentation" target="_
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Linux/">Linux</a> <a href="../tags/Other/">Other</a> <a href="../tags/oracle/">oracle</a>
+<a href="../tags/Other/">Other</a> <a href="../tags/Linux/">Linux</a> <a href="../tags/oracle/">oracle</a>
 </div>
     </div>
       
@@ -603,45 +648,6 @@ cpio -idmv < ship.db.cpio</pre>
 </div>
 </article>
 
-  <article class="post">
-	<h2 class="title">
-		<a href="install-oracle-in-rh/">oracle在rh里面的安装流程</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-03-13T16:00:00.000Z" itemprop="datePublished">Mar 14, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/Other/">Other</a> <a href="../tags/oracle/">oracle</a>
-</div>
-    </div>
-      
-        <b>第1部分 安装操作系统</b>
-
-首先需要安装系统....Red Hat Enterprise Linux 2.1，Red Hat Enterprise Linux 3，Novell SUSE Linux Enterprise Server 8 是通过 oracle 10g认证的三个linux发行套件，不知道oracle 10.3有没有对这个修改。默认情况下，oracle 10g只能在rh的这两个版本安装，如果不是上面两个，运行安装程序会直接打印错误。不过也有方法在别的版本安装的，后面有说明。
-
-按照<a href="http://blog.wdicc.com/wordpress/2007/03/14/307/">上一篇文章</a>，安装linux的时候可以不选择图形界面，这样还可以节省不少空间。按照oracle的文档，说需要安装下面的这些软件包。
-
-<pre class="prettyprint lang-bash">
-compat-gcc-c++ compat-libstdc++ compat-libstdc++-devel</pre>
-
-我实际安装过程中，compat-gcc compat-gcc-c++ compat-libstdc++ compat-libstdc++-devel 这几个包我没有安装也可以安装oracle。
-        
-          <p class="more-link">
-            <a href="install-oracle-in-rh/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="install-oracle-in-rh/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
 
   <nav id="pagenavi">
     
@@ -656,17 +662,9 @@ compat-gcc-c++ compat-libstdc++ compat-libstdc++-devel</pre>
 
 
 
-<script type="text/javascript">
-      var disqus_shortname = 'wdicc';
-      
-        var disqus_script = 'count.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+    
+        <script id="dsq-count-scr" src="//" + wdicc + ".disqus.com/count.js" async></script>
+    
 
 
 

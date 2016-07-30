@@ -94,6 +94,101 @@
         
   <article class="post">
 	<h2 class="title">
+		<a href="analyse-and-vacuum-in-postgres/">postgres sql 调优一例</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2012-03-02T16:00:00.000Z" itemprop="datePublished">Mar 3, 2012</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/postgres/">postgres</a> <a href="../tags/sql/">sql</a>
+</div>
+    </div>
+      
+        <p>前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。
+</p>
+<p>
+所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。
+</p>
+<p>
+能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。
+</p>
+
+
+<pre class="prettyprint lang-text">
+ Nested Loop Left Join  (cost=447.90..1003.43 rows=2 width=620)
+   Join Filter: (team.id = team_arrive_city.team_id)
+   ->  Nested Loop  (cost=77.62..85.98 rows=1 width=588)
+         ->  HashAggregate  (cost=77.62..77.68 rows=1 width=71)
+               ->  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..77.60 rows=1 width=71)
+                     Index Cond: ((thedate >= '2012-02-25'::date) AND (thedate <= '2012-02-27'::date))="" filter:="" (((source)::text="" ~~="" '%team%'::text)="" and="" ((source)::text="" !~~="" '%today%'::text)="" '%ongoing%'::text)="" ((s="" ource)::text="" '%special%'::text))="" -="">  Index Scan using team_pkey on team  (cost=0.00..8.28 rows=1 width=32)
+               Index Cond: (team.id = fact_tuan_rank_detail.team_id)
+               Filter: ((to_timestamp((team.end_time)::double precision))::date > '2012-02-27'::date)
+   ->  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
+         ->  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
+(12 rows)
+</=></pre>
+
+<p>
+仔细研究之后，发现了 rows=1 这个信息。这就是为什么查询分析器先对这个表做查询了，因为他认为这个表最小。
+</p>
+<p>
+此后对这个表执行了一下 <a href="http://www.postgresql.org/docs/9.1/static/sql-analyze.html" target="_blank" rel="external">analyse</a> 命令，更新了一些统计信息。然后再看执行计划如下。
+</p>
+
+
+<pre class="prettyprint lang-text">
+ Hash Join  (cost=1210761.12..1326052.45 rows=2282704 width=620)
+   Hash Cond: (fact_tuan_rank_detail.team_id = team.id)
+   ->  HashAggregate  (cost=1203912.40..1265555.26 rows=1027381 width=71)
+         ->  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..1075489.81 rows=10273807 width=71)
+               Index Cond: ((thedate >= '2012-02-25'::date) AND (thedate <= '2012-02-27'::date))="" filter:="" (((source)::text="" ~~="" '%team%'::text)="" and="" ((source)::text="" !~~="" '%today%'::text)="" '%ongoing%'::text)="" ((source)="" ::text="" '%special%'::text))="" -="">  Hash  (cost=6666.33..6666.33 rows=14591 width=64)
+         ->  Merge Left Join  (cost=6414.63..6666.33 rows=14591 width=64)
+               Merge Cond: (team.id = b.team_id)
+               ->  Sort  (cost=4670.40..4686.82 rows=6567 width=32)
+                     Sort Key: team.id
+                     ->  Seq Scan on team  (cost=0.00..4254.02 rows=6567 width=32)
+                           Filter: ((to_timestamp((end_time)::double precision))::date > '2012-02-27'::date)
+               ->  Sort  (cost=1744.23..1780.71 rows=14591 width=40)
+                     Sort Key: b.team_id
+                     ->  Subquery Scan on b  (cost=370.29..735.06 rows=14591 width=40)
+                           ->  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
+                                 ->  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
+(18 rows)
+</=></pre>
+
+<p>
+可以看到执行计划已经变了，先做其他表的 join，最后再和大表 join。并且提示的执行时间也大致靠谱。
+</p>
+<p>
+从这里面引申一下，时常会听到有人说 explain 命令执行后得出的执行时间不靠谱，需要使用 explain analyse。可是为什么不靠谱呢，其实 explain analyse 需要的时间和实际执行时间一样，explain 不靠谱的原因是因为数据库对那个表的统计信息不及时导致的。
+</p>
+<p>
+再进一步了解，postgres 里面这个统计信息为什么不靠谱呢？难道还总是需要我维护这些信息啊？
+</p>
+<p>
+其实 postgres 里面有个 autovacuum 进程就是做这个事情的。autovacuum 进程默认是启用的。他会在数据库空闲的时候，对数据库做 vavcuum 和 analyse。具体多久执行一次，<a href="http://www.postgresql.org/docs/9.1/static/routine-vacuuming.html" target="_blank" rel="external">文档</a> 里面都有写，建议多看看这个页面里面的信息。
+</p>
+<p>
+此外，还发现 postgres 还提供了很多 <a href="http://www.postgresql.org/docs/9.1/static/monitoring-stats.html" target="_blank" rel="external">数据库状态查询函数</a> ，使用这里面函数可以查到每个表最后一次 analyse 的时间，vacuum 的时
+间，里面索引被使用的情况等等，好多信息。
+</p>
+
+ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不行了，查看 explain select * from t1 好像没问题，那怎么回事呢？开始没想明白，只好继续 analyse 一下，又好了。可过了两天又不行了。这次得细看了。最后发现是因为真实的 sql 是有 where 条件的，日期条件限定的那部分数据查询分析器认为很少导致了问题。没办法后面只好每次导数都 analyse 一下了。发现 pg_bulkload 导数的方式有点问题。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="analyse-and-vacuum-in-postgres/index.html#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="emacs-in-mac/">总算是将就同步好了 gentoo 和 mac 的 emacs</a>
 	</h2>
     <div class="entry-content">
@@ -181,7 +276,7 @@ ps: 感觉这片文章好水。。一点含量都没有。。
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Linux/">Linux</a> <a href="../tags/davmail/">davmail</a> <a href="../tags/exchange/">exchange</a> <a href="../tags/outlook/">outlook</a> <a href="../tags/thunderbird/">thunderbird</a>
+<a href="../tags/Linux/">Linux</a> <a href="../tags/thunderbird/">thunderbird</a> <a href="../tags/davmail/">davmail</a> <a href="../tags/exchange/">exchange</a> <a href="../tags/outlook/">outlook</a>
 </div>
     </div>
       
@@ -802,124 +897,6 @@ hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，
 
   <article class="post">
 	<h2 class="title">
-		<a href="alarm-signal-in-perl/">alarm 使用不当遇到的问题</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2011-05-07T16:00:00.000Z" itemprop="datePublished">May 8, 2011</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/perl/">perl</a>
-</div>
-    </div>
-      
-        <p>前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。
-</p>
-<p>
-大概流程是有个 perl 程序 a.pl
-</p>
-
-<pre class="prettyprint">
-.....
-my $pid = fork();
-if ( !$pid ) {
-   my $cmdRet = `b.pl 2>&1`;
-   print FILE $cmdRet;
-   if ( $status ) {
-       warn "task failed";
-   } else {
-      warn "task success";
-   }
-   exit;
-}
-
-waitpid ........
-</pre>
-<p>
-b.pl 里面会执行 rsync 去获取一些文件，他会循环到几个机器上面去 rsync
-<pre class="prettyprint">
-for ( @hosts ) {
-    my $result = `rsync xxxxx 2>&1`;
-    if ( $? ) {
-        log($result);
-        log("failed");
-    } else {
-        log($result);
-        log("success");
-    }
-}
-
-sub log {
-    my $msg = shift;
-    print $msg;
-    # 然后通过 IO::Socket::INET 发送给另外一个 server  a
-}
-</pre>
-
-现象是，时不时的， b.pl 会只 rsync 了某几台(不确定是几台)机器上面的文件，然后就不继续了，从 server a 上面能收到他发日志，最后一条是 success 的信息
-</p>
-<p>
-从 a.pl 记录的日志那里看, FILE 里面记录的内容丢失了 server a 收到的最后一部分的数据，多少数据不一定，不过肯定是没有那个 success 信息。 这个文件里面也没有任何的错误信息。
-</p>
-<p>
-程序代码啥的都不动，rsync 的文件数不是总是一样的，也有文件多的时候没出错的时候,同时也设置了打开文件数为 65536.
-</p>
-<p>
-后来发现问题就在 b.pl 里面的 log 里面。因为要发送到其他机器，怕挂住影响后续程序，所以设置了一个 alarm。
-</p>
-
-<pre class="prettyprint">
-eval {
-    alarm 5;
-    xxxxxxx;
-    alarm 0;
-};
-
-if ( $@ ) {
-    print "error when send";
-}
-</pre>
-
-<p>
-这个 alarm 没有设置 handle 的函数，这样就会导致 alarm 到期的时候，会直接让整个 perl 程序挂掉，并显示 "Alarm clock"，而且这个输出不在标准错误和标准输出里面。
-</p>
-<p>
-修复也简单，alarm 前设置一个 handler 就好了。
-</p>
-<p>
-另外，还有个问题，一个 alarm 会中断前一个 alarm，所以类似 sleep 的使用，可以这样
-</p>
-
-<pre class="prettyprint">
-my $previousAlarm = 0;
-eval {
-    local $SIG{ALRM} = sub { die 'alarm'; };
-    $previousAlarm = alarm 5;
-     xxxx
-     alarm 0;
-};
-alarm 0;
-
-if ( $@ ) {
-    xxxxx;
-}
-
-alarm $previousAlarm;
-</pre>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="alarm-signal-in-perl/index.html#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="about-svn-merge/">svn merge</a>
 	</h2>
     <div class="entry-content">
@@ -975,17 +952,9 @@ svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把�
 
 
 
-<script type="text/javascript">
-      var disqus_shortname = 'wdicc';
-      
-        var disqus_script = 'count.js';
-      
-    (function () {
-      var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
-      dsq.src = '//' + disqus_shortname + '.disqus.com/' + disqus_script;
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
-    }());
-</script>
+    
+        <script id="dsq-count-scr" src="//" + wdicc + ".disqus.com/count.js" async></script>
+    
 
 
 
