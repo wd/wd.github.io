@@ -101,7 +101,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="dynamic-iptables/">动态iptables 防火墙</a>
+		<a href="apache-limit-module/">通过mod_limitipconn模块来限制apache的并发连接数</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -109,22 +109,45 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Other/">Other</a>
+<a href="../tags/Web/">Web</a>
 </div>
     </div>
       
-        http://www-128.ibm.com/developerworks/cn/linux/network/dif/index.html
+        http://bbs.chinaunix.net/viewthread.php?tid=3129
 
-<a href="http://www-128.ibm.com/developerworks/cn/linux/network/dif/index.html#author" target="_blank">Daniel Robbins</a>, 总裁兼 CEO, Gentoo Technologies, Inc.
+<b>下载mod_limitipconn.c</b>
 
-    防火墙非常有趣，但在需要对防火墙规则进行快速且复杂的更改时，您会做些什么？很简单。请使用本文中演示的 Daniel Robbins 的动态防火墙脚本。可以使用这些脚本来增
+http://dominia.org/djao/limitipconn.html
+
+<b>修改httpd.conf</b>
+<pre class="prettyprint lang-txt">
+LoadModule limitipconn_module modules/mod_limitipconn.so
+
+ExtendedStatus On
+
+<ifmodule mod_limitipconn.c="">
+    <location somewhere="">
+	MaxConnPerIP 3
+	# exempting images from the connection limit is often a good
+	# idea if your web page has lots of inline images, since these
+	# pages often generate a flurry of concurrent image requests
+	NoIPLimit image/*
+    </location>
+#需要注意的是，路径应该是相对服务器的路径。
+    <location mp3="">
+	MaxConnPerIP 1
+	# In this case, all MIME types other than audio/mpeg and video*
+	# are exempt from the limit check
+	OnlyIPLimit audio/mpeg video
+    </location>
+</ifmodule></pre>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="dynamic-iptables/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/apache-limit-module/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -162,7 +185,7 @@
 
 <div class="meta">
 	
-		<span class="comments"><a href="a-joke/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/a-joke/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -188,7 +211,7 @@
 
 <div class="meta">
 	
-		<span class="comments"><a href="usefull-command/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/usefull-command/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -215,7 +238,7 @@
 
 <div class="meta">
 	
-		<span class="comments"><a href="something-about-miranda-im/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/something-about-miranda-im/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -245,7 +268,7 @@
 
 <div class="meta">
 	
-		<span class="comments"><a href="the-birthday-of-Jesus-Christ/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/the-birthday-of-Jesus-Christ/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -281,7 +304,7 @@
 
 <div class="meta">
 	
-		<span class="comments"><a href="a-joke-about-a-film/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/a-joke-about-a-film/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -309,7 +332,7 @@
 
 <div class="meta">
 	
-		<span class="comments"><a href="a-poem-by-yuefei/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/a-poem-by-yuefei/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -362,7 +385,7 @@ yy一下，大家不都喜欢yy么？yy无际限...
 
 <div class="meta">
 	
-		<span class="comments"><a href="somethins-on-network/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/somethins-on-network/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -388,7 +411,7 @@ yy一下，大家不都喜欢yy么？yy无际限...
 
 <div class="meta">
 	
-		<span class="comments"><a href="sloooow-network/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/sloooow-network/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -414,7 +437,7 @@ yy一下，大家不都喜欢yy么？yy无际限...
 
 <div class="meta">
 	
-		<span class="comments"><a href="first-pay/index.html#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/first-pay/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
