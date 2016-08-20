@@ -101,6 +101,166 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="use-pdnsd-cache-you-dns-record/">使用 pdnsd 来缓存 dns</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-07-27T16:00:00.000Z" itemprop="datePublished">Jul 28, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/dns/">dns</a> <a href="../tags/pdnsd/">pdnsd</a>
+</div>
+    </div>
+      
+        如果你的网络实在很快，好像也没这个必要。当然我用他还有一个目的就是我的 dns 我做主，省的被劫持。
+
+打开一个网页有时候 dns 查询就占了一些时间，如果想把这个时间也节省下来，那可以试试看这个。类似的软件还有 dnsmasq，我觉得 dnsmasq 没 pdnsd 灵活一点，反正基本的缓存功能肯定是都有的。。。我这还有同事用 bind 做缓存，呵呵，选什么看各自喜好了。
+
+我用的 wicd, 他会修改 /etc/resolv.conf 这个文件，就算在他的设置里面设置了全局 dns 也没用。不过还好他提供了一个 /etc/resolv.conf.head 文件。这个文件里面的东西会被放到 /etc/resolv.conf 的开头。所以我在那里面写上了 nameserver 127.0.0.1。
+
+具体到 pdns 的设置，好像我也没改什么。
+<pre class="prettyprint lang-conf">
+server {
+	label = "opendns";
+	ip = 202.181.224.2, 202.181.202.140;
+	#ip = 208.67.222.222, 208.67.220.220;
+#	reject = 208.69.32.0/24,  # You may need to add additional address ranges
+#	         208.69.34.0/24,  # here if the addresses of their search engines
+#	         208.67.219.0/24; # change.
+	reject_policy = fail;     # If you do not provide any alternative server
+	                          # sections, like the following root-server
+	                          # example, "negate" may be more appropriate here.
+	timeout = 4;
+	uptest = ping;            # Test availability using ICMP echo requests.
+   ping_timeout = 100;       # ping test will time out after 10 seconds.
+	interval = 15m;           # Test every 15 minutes.
+	preset = off;
+	policy=included;
+	exclude=".abc.com";
+}
+
+server {
+	label = "yahoo";
+	ip = 10.62.163.4, 10.62.163.9;
+	timeout = 4;
+	uptest = ping;
+	ping_timeout = 100;
+	interval = 15m;
+}
+</pre>
+
+我设置两个 server。第一个解析除了 .abc.com 之外的，第二个解析 .abc.com 。这个 abc.com 实际上是我们内网的一个地址，只能在内网 dns 解析。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/use-pdnsd-cache-you-dns-record/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="fbsplash-howto/">给系统加上 fbsplash 支持</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-07-24T16:00:00.000Z" itemprop="datePublished">Jul 25, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/fbsplash/">fbsplash</a>
+</div>
+    </div>
+      
+        先贴几个参考文章。
+<li>1 <a href="http://forums.gentoo.org/viewtopic-t-728450-highlight-grub2.html" target="_blank" rel="external">HOWTO: Fancy Grub and fbsplash on a machine with Intel graphic chipsets</a></li>
+<li>2 <a href="http://www.gentoo-wiki.info/Fbsplash" target="_blank" rel="external">Fbsplash</a></li>
+<br>
+这两个文章里面最重要是那些内核选项的支持，弄好了那些才有下面的内容。里面有个要注意的是 General Setup ---> Initial RAM filesystem and RAM disk (initramfs/initrd) support ---> Built-in initramfs compression mode 这个选项，好像是从 2.6.30 出来的。这个压缩模式选的是什么，关系到后面的工作。
+
+安装 splashutils[fbcondecor] 和 media-gfx/splash-themes-gentoo 或 media-gfx/splash-themes-livecd 这两个都是提供一些 theme，在 /etc/splash 目录下面。
+
+我的 kernel 没有 initrd 文件，是编译到内核的，所以这么做。
+<pre class="prettyprint lang-bash">
+cd /usr/src/linux && make && make install # recompile kernel, this is my way
+</pre>
+
+然后就是设置内核参数，下面是我的。那个 quiet 会让 kernel 不显示信息，如果你不想，那就去掉。
+video=uvesafb:1024x768-32,mtrr:3,ywrap quiet splash=silent,theme:natural_gentoo console=tty1 fbcon=scrollback:64K
+
+如果用的是 tuxonice 内核，那还可以给 sys-apps/tuxonice-userui 加上 fbsplash use，装好后会提示你 ln 一个 splash theme 为 tuxonice ，照做就是了。另外还需要在内核里面 Power management and ACPI options ---> Enhanced Hibernation (TuxOnIce) ---> Default userui program location 设置为 /sbin/tuxoniceui_fbsplash ，重编内核。。。
+
+这么弄完之后会发现，休眠后再启动的时候会显示一个没找到 /sbin/tuoniceui_fbsplash 的错误，还有一些百分比，这些实际上不影响正常启动。不过好像有点影响美观。我琢磨了下，觉得那个错误可能是没有把那个文件弄到 initramfs 里面的缘故，弄进去之后果然没了，不过还是有那个百分比出来。
+
+先 cp 一份这个文件 /usr/src/linux/usr/initramfs_data.cpio[看压缩设置] 到临时目录，file 看看属性，我的是 gzip 压缩的，那就解压一下。然后用 cpio 看下里面的文件。
+<pre class="prettyprint lang-bash">
+$ file initramfs_data.cpio 
+initramfs_data.cpio: gzip compressed data, was "initramfs_data.cpio", from Unix, last modified: Sat Jul 25 19:26:29 2009
+$ mv initramfs_data.cpio initramfs_data.cpio.gz
+$ gzip -d initramfs_data.cpio.gz 
+$ file initramfs_data.cpio 
+initramfs_data.cpio: ASCII cpio archive (SVR4 with no CRC)
+$ cpio --list < initramfs_data.cpio
+.
+lib
+lib/splash
+lib/splash/sys
+lib/splash/proc
+sbin
+sbin/v86d
+sbin/fbcondecor_helper
+sbin/splash_helper
+root
+dev
+dev/mem
+dev/tty1
+dev/fb
+dev/tty0
+dev/zero
+dev/misc
+dev/null
+dev/vc
+dev/console
+etc
+etc/splash
+etc/splash/luxisri.ttf
+etc/splash/natural_gentoo
+etc/splash/natural_gentoo/1024x768.cfg
+etc/splash/natural_gentoo/images
+etc/splash/natural_gentoo/images/silent-1024x768.jpg
+etc/splash/natural_gentoo/images/verbose-1024x768.jpg
+xxx blocks
+$ cat f
+sbin/tuxoniceui_fbsplash
+$ ls sbin
+tuxoniceui_fbsplash
+$ cpio -ov --format=newc -A -O initramfs_data.cpio < f
+sbin/tuxoniceui_fbsplash
+xxx blocks
+$ gzip -c initramfs_data.cpio initramfs_data.cpio.gz
+$ mv initramfs_data.cpio.gz /usr/src/linux/usr/initramfs_data.cpio
+</pre>
+
+ok， 这里你可以再看看文件里面的东西。没问题就可以复制过去了，要注意压缩格式。
+
+回头录一个视频放上来玩玩，呵呵。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/fbsplash-howto/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="grub2-fbsplash-in-gentoo/">grub2 fbsplash in gentoo</a>
 	</h2>
     <div class="entry-content">
@@ -307,44 +467,6 @@ function FindProxyForURL(url, host)
 
   <article class="post">
 	<h2 class="title">
-		<a href="clever-cc/">聪明的老婆</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-07-19T16:00:00.000Z" itemprop="datePublished">Jul 20, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Heart/">Heart</a>
-</div>
-    </div>
-      
-        呃，今天好像疯牛病了，怎么一下更新了好几篇呢？。。。
-
-不得不说，老婆聪明没用在正道上。玩游戏那叫一个牛。昨天手机上面装了一个游戏，是一屏幕小球球，要消掉那种。我玩了会，弄出来一次把球全消了，260 多分，乐呵呵的给她看，让她玩玩，她要是玩不到，就可以取笑她了，嘿嘿。
-
-结果一会还给我了，人家弄了一个 600 多记录出来。。。。这还让不让人活了。。
-
-想起来之前用 palm 650 的时候，里面也有一个类似的游戏，排名前五都是他的名字，我都上不去那个榜。。。
-
-还有玩 qq 那个龙珠，其实就是类似 zuma 那个游戏。他居然学会了那个自己布局，然后一次全消掉那个方法。我反正是不会弄那个。。。
-
-好多次都是，我找到一个好玩的游戏，教给她怎么玩，然后过几天我就拍马也赶不上了。唉。。。可没劲了
-
-另外，不得不补充一下，其它地方她怎么总表现的那个猪呢？
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/clever-cc/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="auto-mount-smb-and/">写了一个用来 mount smb 和 u 盘之类的程序</a>
 	</h2>
     <div class="entry-content">
@@ -403,6 +525,44 @@ function FindProxyForURL(url, host)
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/auto-mount-smb-and/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="clever-cc/">聪明的老婆</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-07-19T16:00:00.000Z" itemprop="datePublished">Jul 20, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a>
+</div>
+    </div>
+      
+        呃，今天好像疯牛病了，怎么一下更新了好几篇呢？。。。
+
+不得不说，老婆聪明没用在正道上。玩游戏那叫一个牛。昨天手机上面装了一个游戏，是一屏幕小球球，要消掉那种。我玩了会，弄出来一次把球全消了，260 多分，乐呵呵的给她看，让她玩玩，她要是玩不到，就可以取笑她了，嘿嘿。
+
+结果一会还给我了，人家弄了一个 600 多记录出来。。。。这还让不让人活了。。
+
+想起来之前用 palm 650 的时候，里面也有一个类似的游戏，排名前五都是他的名字，我都上不去那个榜。。。
+
+还有玩 qq 那个龙珠，其实就是类似 zuma 那个游戏。他居然学会了那个自己布局，然后一次全消掉那个方法。我反正是不会弄那个。。。
+
+好多次都是，我找到一个好玩的游戏，教给她怎么玩，然后过几天我就拍马也赶不上了。唉。。。可没劲了
+
+另外，不得不补充一下，其它地方她怎么总表现的那个猪呢？
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/clever-cc/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -506,68 +666,6 @@ sqlite3 places.sqlite "VACUUM;"
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/modified-fetion-py/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="fuck-lvb/">我日 tmd 绿爸</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-06-24T16:00:00.000Z" itemprop="datePublished">Jun 25, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Heart/">Heart</a>
-</div>
-    </div>
-      
-        操，你干掉别的也就好了，妈了个b的，把 google.com 干掉了
-
-操相关部门，日
-
-现在用 opendns 能通
-nameserver 208.67.222.222
-nameserver 208.67.220.220
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/fuck-lvb/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="svn-301-moved-permanently/">&#39;/svn&#39;: 301 Moved Permanently</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-06-21T16:00:00.000Z" itemprop="datePublished">Jun 22, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/svn/">svn</a>
-</div>
-    </div>
-      
-        今天搭了一个svn，遇到了这个问题，这个问题在 subversion 的 <a href="http://subversion.tigris.org/faq.html#301-error" target="_blank" rel="external">FAQ</a> 里面就有。不过看了半天没弄明白怎么回事，呵呵。后来糊里糊涂弄好了，也没明白。刚才突然明白了。。。
-
-比如你的 documentroot 指向了 /www 下面， 而你的 svn 的 path 设置到了 /www/svn 下面，就会出这个问题。因为，用户如果访问的是 /www/svn/proj1 的时候，那应该是按照一个正常的目录处理呢，还是按照 svn 的一个项目处理呢？这可是不同的，因为如果是一个 svn 项目，那就交给 dav-svn 处理的，按照其它svn 项目一样，会显示这个项目的 reversion 什么的。但是如果是按照目录处理，那就交给了 apache 处理，他会在这里面找 directory index 等一些操作。这就会让 apache 很困惑。
-
-解决的办法也比较简单，就是在 /www 下面不要出现你的 svn 的名字，也就是说，把你的 /www/svn 弄到 /www 之外去。这就没问题了。当然，如果哪天某个哥们无心的在 /www 下面建了一个 svn 文件夹，那这个又会出现，呵呵。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/svn-301-moved-permanently/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

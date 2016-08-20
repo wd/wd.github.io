@@ -101,6 +101,58 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="intro-hbase/">了解了下 hbase</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-08-01T16:00:00.000Z" itemprop="datePublished">Aug 2, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/hbase/">hbase</a>
+</div>
+    </div>
+      
+        <p>很早就知道 hbase 了，但是一直没有仔细去了解 hbase 是怎么回事。今天了解了下他的表结构。
+</p>
+<p>
+这篇文章 <a href="http://www.searchtb.com/2011/01/understanding-hbase.html" target="_blank" rel="external">http://www.searchtb.com/2011/01/understanding-hbase.html</a> 其实写的挺清楚，下面这个是个例子
+</p>
+<p>
+<pre class="prettyprint">
+hbase(main):007:0&gt; scan 'test'                         
+ROW                                 COLUMN+CELL                                                                                            
+ row1                               column=cf:a, timestamp=1312258784360, value=value3                                                     
+ row1                               column=cf:b, timestamp=1312258795425, value=value3                                                     
+ row2                               column=cf:b, timestamp=1312257616099, value=value2                                                     
+ row3                               column=cf:c, timestamp=1312257621344, value=value3
+</pre>
+</p>
+<p>
+在 hbase 里面访问数据都是通过 row key + column，其实也就是哪行哪列，不过不是通过数字定位。
+</p>
+<p>
+在 hbase 里面看不到传统数据库的表格形式的数据列表，可以看到上面这种。传统数据库里面，每行的列数是一样的，如果那列没值，那也得填一个 null 之类。
+</p>
+<p>
+hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，而 row2，row3 就只有一列。
+</p>
+<p>
+所以 hbase 作为 key-value 系统的时候，row key + column 就是所谓的 key。
+</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/intro-hbase/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="alarm-signal-in-perl/">alarm 使用不当遇到的问题</a>
 	</h2>
     <div class="entry-content">
@@ -213,6 +265,49 @@ alarm $previousAlarm;
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/alarm-signal-in-perl/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="about-svn-merge/">svn merge</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-05-07T16:00:00.000Z" itemprop="datePublished">May 8, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/svn/">svn</a>
+</div>
+    </div>
+      
+        <p>svn merge 的 help 信息
+<pre class="prettyprint">
+usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
+       2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH]
+       3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH]
+</pre>
+
+svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。
+</p>
+<p>
+所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。
+</p>
+<p>
+一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。
+</p>
+<p>
+最好在 merge 之前加一个 &ndash;dry-run 看看他会修改哪些文件。 
+</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/about-svn-merge/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -634,106 +729,6 @@ linux 下面有个 barry 可以简单管理一下 bb，不过很有限。可以�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/blackberry-8900/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="signal-in-perl/">perl 里面的信号处理</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2010-12-31T16:00:00.000Z" itemprop="datePublished">Jan 1, 2011</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/perl/">perl</a>
-</div>
-    </div>
-      
-        perl 里面的信号处理很简单，就是给 %SIG 这个 hash 赋值就好了。前几天遇到个问题，处理 SIG{CHLD} 的时候，我本来只起一个 child 进程，可是发现这个信号会被触发多次，开始弄不明白，后来偶然想到是不是 system，exec 之类的函数弄出来的，搜了下果然。
-
-perl 里面调用外部命令是会 fork 一个子进程的，所以也会触发那个信号，想避免可以设置局部变量，例如
-<pre class="prettyprint">
-$SIG{CHLD} = sub {
-    print "main\n";
-};
-
-.....
-{
-    local $SIG{CHLD} = undef; # 注意调用外部命令的时候，如果 IGNORE 就捕捉不了结果了
-    `mv xxx yyy`;
-    system(xxxxx);
-}
-
-.....
-</pre>
-
-使用 {} 来构造局部变量的方法有时候会让问题变的非常简单。
-
-另外，信号触发的时候，会把 sleep 中断，这个在 sleep 的 doc 里面说的很明白。如果还是想 sleep 到足够的时间，可以用下面的方法。
-<pre class="prettyprint">
-my $timeLeft = 10;
-while ( 1 ) {
-    last if $timeLeft <= 0;="" my="" $acttime="sleep($timeLeft);" $timeleft="$timeLeft" -="" $acttime;="" }="" <="" pre="">
-
-越来越感觉写 perl 还是很给力的，很多的奇技淫巧，不过我现在也是属于没弄明白多少，瞎写。
-</=></pre>
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/signal-in-perl/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="oracle-install-guide/">又安装了一次 oracle</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2010-11-04T16:00:00.000Z" itemprop="datePublished">Nov 5, 2010</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/oracle/">oracle</a>
-</div>
-    </div>
-      
-        好久没有弄 oracle 了，今天有机会又折腾了一天 oracle 的安装，本来觉得是挺简单的事情，没想到也折腾了挺长时间的，我觉得可能主要是因为使用的系统比较新，而 oracle 是 10g 有比较老的缘故。
-
-1 配置 x11forward
-我这安装了 xauth 和 libXtst，然后使用 ssh -Y user@host 连接的。使用 -X 好像从来没成功过，也不知道怎么回事，懒得研究了。
-
-2 运行安装程序
-解压什么的就没什么好说的了，主要是运行的时候他会检测是不是他支持的发行版，可以使用 -ignoreSysPrereqs，跳过系统检测。
-
-然后其他正常，就是到最后运行 dbca 的时候，会 hung 卡在那，等多久都完成不了。这一步做的操作是会给你 create database，建 init 文件等，没这个的话 oracle 是不可用的。如果你知道手动操作这些后续步骤也可以不理会这个。
-
-dbca 卡住后，可以点那个取消，然后再开一个 term， ps 找到 dbca 然后 kill 掉，前面那个界面应该就会有反应了，就可以继续往下走了。到最后 exit 了事。
-
-然后就是单独启动 dbca 来完成后面的工作。执行 dbca 命令（需要你提前配置好 path），会启动一个窗口，要注意的是，在这时候能看到一个关于字体的错误，据说这个错误就是上面 huang 住的原因，如果看到了这个错误，那么 dbca 的最后一步可能是会执行不了的。。。
-
-我尝试了 n 种方法解决这个问题，发现最简单的是装一个 jdk 1.6 然后把 java 命令链接覆盖 oracle 安装的那个 jdk 1.4 的 $ORACLE_HOME/jdk/jre/bin/java 命令。等于就是说使用 1.6 的 java 来启动 dbca。如果这么做还不行，那可能需要装一些字体相关的东西，比如 xorg-x11-fonts-truetype。如果还不行那就不知道怎么弄了。
-
-dbca 启动后，还遇到了 ora-27102 out of memery 和 ora-01034 oracle not aviliable。后面这个是在遇到前面那个的时候点 ignore 出来的。主要是前面那个。前面那个是因为 kernel 参数关于内存的配置配置的有问题，最大共享内存太大导致的。如果遇到这个问题就去改那些参数吧。
-
-
-dbca 配置好后，oracle 应该就启动了。你可以连上去看看了。
-
-3 导入导出
-导出使用 exp，导入 imp，一般不需要加什么参数。据说加那个 full=y 后，导入的时候会建立用户，不用你操心。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/oracle-install-guide/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

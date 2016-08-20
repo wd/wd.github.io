@@ -101,7 +101,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="portmap/">端口映射</a>
+		<a href="install-mysql/">mysql 安装</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -109,34 +109,139 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Other/">Other</a> <a href="../tags/iptables/">iptables</a>
+<a href="../tags/Other/">Other</a> <a href="../tags/mysql/">mysql</a>
 </div>
     </div>
       
-        ★ 需求
+        下面的内容大部分来自mysql的readme
 
-1 只有一个ip，怎么让多台电脑上网？
+1 download mysql5.0
+2
+shell&gt; groupadd mysql
+shell&gt; useradd -g mysql mysql
+shell&gt; cd /usr/local
+shell&gt; gunzip &lt; /PATH/TO/MYSQL-VERSION-OS.tar.gz | tar xvf -
+shell&gt; ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql
+shell&gt; cd mysql
+shell&gt; scripts/mysql_install_db --user=mysql
 
-只讲一下主机是双网卡的时候怎么解决。windows下面可以使用winroute、wingate或者系统自带的共享网络连接的功能，都可以实现共享上网。linux下面使用iptables一句话就可以实现。
+如下提示信息:
 
-至于主机是单网卡怎么解决，自己研究研究吧。我只在win下面尝试过用wingate，可是及其不稳定。
+Installing all prepared tables
+Fill help tables
 
-2 怎么将某个端口映射给内网？
+To start mysqld at boot time you have to copy support-files/mysql.server
+to the right place for your system
 
-内网某台电脑提供了服务，怎么让外网的用户可以访问呢？某些对外的服务可能会在内网的多台电脑上面提供，这时就需要做端口映射来让这些服务器让外网可以访问。
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+To do so, start the server, then issue the following commands:
+./bin/mysqladmin -u root password 'new-password'
+./bin/mysqladmin -u root -h czhand password 'new-password'
+See the manual for more instructions.
 
-<br>
-        
-          <p class="more-link">
-            <a href="portmap/#more">Read More</a>
-          </p>
-        
+You can start the MySQL daemon with:
+cd . ; ./bin/mysqld_safe &amp;
+
+You can test the MySQL daemon with the benchmarks in the 'sql-bench' directory:
+cd sql-bench ; perl run-all-tests
+
+Please report any problems with the ./bin/mysqlbug script!
+
+The latest information about MySQL is available on the web at
+http://www.mysql.com
+Support MySQL by buying support/licenses at https://order.mysql.com
+
+shell&gt; chown -R root  .
+shell&gt; chown -R mysql data
+shell&gt; chgrp -R mysql .
+
+/home/my.cnf
+
+basedir=/usr/local/mysql
+datadir=/usr/local/mysql/data
+socket=/usr/local/mysql/data/mysql.sock
+#err-log=/var/log/mysqld.log
+pid-file=/usr/local/mysql/data/mysqld.pid
+
+shell&gt; bin/mysqld_safe --user=mysql &amp;
+
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/portmap/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/install-mysql/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="rsync-script/">rsync脚本的一个例子</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a> <a href="../tags/rsync/">rsync</a>
+</div>
+    </div>
+      
+        <pre class="prettyprint lang-bash">
+
+SYNCLOGFILE="/var/log/rsync-201.log"
+SYNCLOCKFILE="/var/lock/rsync-201.lock"
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n ">>> Sync log for " >> $SYNCLOGFILE
+date >> $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
+rm -f $SYNCLOCKFILE
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="del-30-day-old-file/">find命令查找删除30天之前的文件</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a> <a href="../tags/find/">find</a>
+</div>
+    </div>
+      
+        find /data -name "xxx.*" -follow -ctime +30 -exec rm -rf {} \;
+
+删除30天之前的文件。
+-follow表示跟随链接。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/del-30-day-old-file/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -357,82 +462,6 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/manage-route/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="iptables-in-debian/">debian下面的防火墙设置</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-16T16:00:00.000Z" itemprop="datePublished">Apr 17, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Debian/">Debian</a>
-</div>
-    </div>
-      
-        <p>rh下面的防火墙设置是保存在/etc/sysconfig/iptables文件中的，这样每次重启都会恢复防火墙设置。
-
-debian木有这个文件，但是他提供了更加灵活的方式。
-<a href="http://www.debian.org/doc/manuals/securing-debian-howto/ch-sec-services.en.html#s-firewall-setup" target="_blank" rel="external">http://www.debian.org/doc/manuals/securing-debian-howto/ch-sec-services.en.html#s-firewall-setup</a>
-
-看了下，似乎比较简单的就是设置interfaces文件了。
-
-5.14.3.3 Configuring firewall rules through ifup
-You can use also the network configuration in /etc/network/interfaces to setup your firewall rules. For this you will need to: </p><p>Create your firewalling ruleset for when the interface is active. 
-Save your ruleset with iptables-save to a file in /etc, for example /etc/iptables.up.rules 
-Configure etc/network/interfaces to use the configured ruleset: 
- &nbsp; &nbsp; iface eth0 inet static
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; address x.x.x.x
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [.. interface configuration ..]
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; pre-up iptables-restore &lt; /etc/iptables.up.rules
-You can optionally also setup a set of rules to be applied when the network interface is down creating a set of rules, saving it in /etc/iptables.down.rules and adding this directive to the interface configuration: </p><p> &nbsp; &nbsp; &nbsp; &nbsp; post-down iptables-restore &lt; /etc/iptables.down.rules
-For more advanced firewall configuration scripts through ifupdown you can use the hooks available to each interface as in the *.d/ directories called with run-parts (see run-parts(8)). </p><p>可以去<a href="http://easyfwgen.morizot.net/gen/" target="_blank" rel="external">http://easyfwgen.morizot.net/gen/</a> 在线生成一个防火墙脚本，然后pre-up指定一下。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/iptables-in-debian/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="affray-in-subway/">今天坐地铁遇到两起吵架</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-05T16:00:00.000Z" itemprop="datePublished">Apr 6, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Heart/">Heart</a>
-</div>
-    </div>
-      
-        地铁实在是恐怖，人挤人都要被挤死的时候，地铁广播还在说请大家不要拥挤，实在是有点搞笑了。
-
-今天到了五颗松，上来两个人，突然就吵起来了，一个男的一个女的，都得有40多了吧。那个女的说那个男的不是男人，那个男的说我不是又怎么了，那个女的似乎很郁闷，呵呵。起因好像是上车的时候，两个人相互推挤了一下。
-
-到了复兴门，我上车后看见过来一堆人，推推搡搡的，那个年纪大点的一直要扑着过去打那个年纪轻的，有个女的一直拉着，呵呵。
-
-以前地铁可能也就上下班时间人多，现在的地铁是啥时候人都多，没有办法，这是最快捷的交通方式了。不知道新的地铁线开通之后能不能缓解一下，不过可能也难，像一些换其他线比较方便的线路，肯定人会更多。
-
-bless北京的交通。。。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/affray-in-subway/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

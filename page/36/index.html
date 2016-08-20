@@ -101,6 +101,82 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="iptables-in-debian/">debian下面的防火墙设置</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-04-16T16:00:00.000Z" itemprop="datePublished">Apr 17, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Debian/">Debian</a>
+</div>
+    </div>
+      
+        <p>rh下面的防火墙设置是保存在/etc/sysconfig/iptables文件中的，这样每次重启都会恢复防火墙设置。
+
+debian木有这个文件，但是他提供了更加灵活的方式。
+<a href="http://www.debian.org/doc/manuals/securing-debian-howto/ch-sec-services.en.html#s-firewall-setup" target="_blank" rel="external">http://www.debian.org/doc/manuals/securing-debian-howto/ch-sec-services.en.html#s-firewall-setup</a>
+
+看了下，似乎比较简单的就是设置interfaces文件了。
+
+5.14.3.3 Configuring firewall rules through ifup
+You can use also the network configuration in /etc/network/interfaces to setup your firewall rules. For this you will need to: </p><p>Create your firewalling ruleset for when the interface is active. 
+Save your ruleset with iptables-save to a file in /etc, for example /etc/iptables.up.rules 
+Configure etc/network/interfaces to use the configured ruleset: 
+ &nbsp; &nbsp; iface eth0 inet static
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; address x.x.x.x
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [.. interface configuration ..]
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; pre-up iptables-restore &lt; /etc/iptables.up.rules
+You can optionally also setup a set of rules to be applied when the network interface is down creating a set of rules, saving it in /etc/iptables.down.rules and adding this directive to the interface configuration: </p><p> &nbsp; &nbsp; &nbsp; &nbsp; post-down iptables-restore &lt; /etc/iptables.down.rules
+For more advanced firewall configuration scripts through ifupdown you can use the hooks available to each interface as in the *.d/ directories called with run-parts (see run-parts(8)). </p><p>可以去<a href="http://easyfwgen.morizot.net/gen/" target="_blank" rel="external">http://easyfwgen.morizot.net/gen/</a> 在线生成一个防火墙脚本，然后pre-up指定一下。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/iptables-in-debian/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="affray-in-subway/">今天坐地铁遇到两起吵架</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-04-05T16:00:00.000Z" itemprop="datePublished">Apr 6, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a>
+</div>
+    </div>
+      
+        地铁实在是恐怖，人挤人都要被挤死的时候，地铁广播还在说请大家不要拥挤，实在是有点搞笑了。
+
+今天到了五颗松，上来两个人，突然就吵起来了，一个男的一个女的，都得有40多了吧。那个女的说那个男的不是男人，那个男的说我不是又怎么了，那个女的似乎很郁闷，呵呵。起因好像是上车的时候，两个人相互推挤了一下。
+
+到了复兴门，我上车后看见过来一堆人，推推搡搡的，那个年纪大点的一直要扑着过去打那个年纪轻的，有个女的一直拉着，呵呵。
+
+以前地铁可能也就上下班时间人多，现在的地铁是啥时候人都多，没有办法，这是最快捷的交通方式了。不知道新的地铁线开通之后能不能缓解一下，不过可能也难，像一些换其他线比较方便的线路，肯定人会更多。
+
+bless北京的交通。。。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/affray-in-subway/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="about-nagios/">nagios，监控多组服务器的利器</a>
 	</h2>
     <div class="entry-content">
@@ -135,36 +211,6 @@ Splunk是个商业的日志分析软件，运行于Unix环境，可以支持任�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/about-nagios/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="how-mail-from-a-to-b/">邮件如何从A点到达B点zz</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-03-29T16:00:00.000Z" itemprop="datePublished">Mar 30, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Mail/">Mail</a>
-</div>
-    </div>
-      
-        <p>当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. </p>  <p>假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com,     下面是发送接收过程: </p>  <p>1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题,     加上邮件本身的文本部分. 整个邮件看起来是下面这样的: </p><pre>    To: bob@beta
-    Subject: lunch
-
-    How about pizza?
-</pre>  <p>2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. </p>  <p>3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta     替换为"Bob &lt;bob@beta.example.com&gt;") 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入:     MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给     MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA     可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序. </p>  <p>4. 如果注入成功--邮件句法正确, 并且 sendmail 调用适当--那么现在邮件已经在 MTA 的职责内了. 不同的 MTA 细节是完全不同的,     通常MTA首先检查邮件头决定邮件将发往何处. 然后建立一个到主机beta的SMTP连接, 转发邮件给 beta 系统上的MTA. SMTP对话要求邮件被分成两部分发送:     信封, 这个部分确定了接收者的地址(bob@beta.example.com)和返回地址(alice@alpha.example.com), 以及邮件本身,     包括邮件头和邮件主体. </p>  <p>5. 如果beta主机的MTA拒绝这个邮件, 可能原因是在beta系统上没有这个bob用户, 在alpha 上的MTA发送一个反弹邮件给返回地址, 也就是     alice@alpha, 通知她邮件发送出现了问题. </p>  <p>6. 如果 beta主机上的 MTA接收了邮件, 它查看接收者地址, 决定是发送给本地local 还是远程 remote系统的邮件. 这个例子里面,     接收者是本地用户, 然后MTA或者传送邮件给 mail delivery agent (MDA), 比如 /bin/mail或者传送给 procmail.   </p>  <p>7. 如果传输失败了, 可能是Bob的邮箱超过了使用限额, beta 主机上的 MTA 将发送一个反弹信息给信封上的返回地址, 即 alice@alpha.   </p>  <p>8. 如果传输成功, 邮件将在Bob的邮箱中等待, 直到他使用MUA来阅读和显示邮件. </p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/how-mail-from-a-to-b/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -214,6 +260,36 @@ Splunk是个商业的日志分析软件，运行于Unix环境，可以支持任�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/qmail-queue/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="how-mail-from-a-to-b/">邮件如何从A点到达B点zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-29T16:00:00.000Z" itemprop="datePublished">Mar 30, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Mail/">Mail</a>
+</div>
+    </div>
+      
+        <p>当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. </p>  <p>假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com,     下面是发送接收过程: </p>  <p>1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题,     加上邮件本身的文本部分. 整个邮件看起来是下面这样的: </p><pre>    To: bob@beta
+    Subject: lunch
+
+    How about pizza?
+</pre>  <p>2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. </p>  <p>3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta     替换为"Bob &lt;bob@beta.example.com&gt;") 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入:     MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给     MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA     可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序. </p>  <p>4. 如果注入成功--邮件句法正确, 并且 sendmail 调用适当--那么现在邮件已经在 MTA 的职责内了. 不同的 MTA 细节是完全不同的,     通常MTA首先检查邮件头决定邮件将发往何处. 然后建立一个到主机beta的SMTP连接, 转发邮件给 beta 系统上的MTA. SMTP对话要求邮件被分成两部分发送:     信封, 这个部分确定了接收者的地址(bob@beta.example.com)和返回地址(alice@alpha.example.com), 以及邮件本身,     包括邮件头和邮件主体. </p>  <p>5. 如果beta主机的MTA拒绝这个邮件, 可能原因是在beta系统上没有这个bob用户, 在alpha 上的MTA发送一个反弹邮件给返回地址, 也就是     alice@alpha, 通知她邮件发送出现了问题. </p>  <p>6. 如果 beta主机上的 MTA接收了邮件, 它查看接收者地址, 决定是发送给本地local 还是远程 remote系统的邮件. 这个例子里面,     接收者是本地用户, 然后MTA或者传送邮件给 mail delivery agent (MDA), 比如 /bin/mail或者传送给 procmail.   </p>  <p>7. 如果传输失败了, 可能是Bob的邮箱超过了使用限额, beta 主机上的 MTA 将发送一个反弹信息给信封上的返回地址, 即 alice@alpha.   </p>  <p>8. 如果传输成功, 邮件将在Bob的邮箱中等待, 直到他使用MUA来阅读和显示邮件. </p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/how-mail-from-a-to-b/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -370,82 +446,6 @@ Splunk是个商业的日志分析软件，运行于Unix环境，可以支持任�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/about-ip/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="LDAPLightweight-Directory-Access-Protocol/">LDAP,Lightweight Directory Access Protocol</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Other/">Other</a>
-</div>
-    </div>
-      
-        <strong>1 什么是LDAP</strong>
-
-LDAP的英文全称是Lightweight Directory Access Protocol，一般都简称为LDAP。
-
-LDAP目录中可以存储各种类型的数据：电子邮件地址、邮件路由信息、人力资源数据、公用密匙、联系人列表，等等。通过把LDAP目录作为系统集成中的一个重要环节，可以简化员工在企业内部查询信息的步骤，甚至连主要的数据源都可以放在任何地方。
-
-<br>
-        
-          <p class="more-link">
-            <a href="LDAPLightweight-Directory-Access-Protocol/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/LDAPLightweight-Directory-Access-Protocol/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="WSUSMicrosoft-Windows-Server-Update-Services/">WSUS,Microsoft Windows Server Update Services</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Windows/">Windows</a>
-</div>
-    </div>
-      
-        http://www.winsvr.org/info/info.php?sessid=&infoid=12
-
-<strong>1 什么是wsus</strong>
-
-WSUS（Microsoft Windows Server Update Services）是微软推出的免费的Windows更新管理服务，目前最新版本为2.0.0.2472，除了支持Windows系统（Windows 2000全系列、Windows XP全系列和Windows server 2003全系列）的更新管理外，还可以支持SQL Server、Exchange 2000/2003、Office XP/2003等系统的更新管理，并且在以后，WSUS将实现微软全系列产品的更新管理。
-
-<strong>2 为什么要用wsus</strong>
-
-在小规模的企业网络中，客户端计算机通过自动更新连接Microsoft Update来进行系统更新并不会对企业的外部网络带宽造成太大的影响，例如有5台客户端计算机每台下载20M的更新程序，那么总占用的企业外部网络流量只是100M；但是在中大规模的企业网络中，如果每台客户端计算机都通过连接到Microsoft Update来实现更新，则会极大的影响企业的外部网络带宽，例如有500台客户端计算机每台下载20M的更新程序，就会占用10G的流量。更新变成了下面的流程“Microsoft Update->本地企业网络中的WSUS服务器->客户端计算机”。
-
-<br>
-        
-          <p class="more-link">
-            <a href="WSUSMicrosoft-Windows-Server-Update-Services/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/WSUSMicrosoft-Windows-Server-Update-Services/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

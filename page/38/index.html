@@ -101,7 +101,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="igenus/">igenus</a>
+		<a href="qmail-conf-file/">Qmail的主要配置文件</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -113,14 +113,65 @@
 </div>
     </div>
       
-        igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
+        1．Qmail的主要配置文件
+
+    qmail的配置文件是由多个文件组成的，不是集中在一个文件中，每个文件控制相应
+部分的功能和属性，一个可执行程序可能有多个配置文件控制，所有的配置文件共同决
+定了qmail运行的实现和模式。这些配置文件都在qmail的control目录中，本文的配置文
+件位于/var/qmail/control目录中
+
+    1.1、badmailfrom
+
+    这个配置文件是控制邮件系统拒绝接收的邮件地址和邮件域，主要是为了防止垃圾
+邮件。如果一个邮件地址或者邮件域被列入到这个文件中，系统就会拒绝接收这个邮件
+地址发来的邮件，或者拒绝邮件域下所有邮件地址发来的邮件。不过这个配置文件只是
+一般的垃圾邮件防范手段，对于比较全面的垃圾邮件过滤技术还要靠第三方软件来实现
+。该文件的格式如下：
+
+    11@11.com //拒绝这个地址发来的邮件
+    22@2w.com
+    @33.com //拒绝这个邮件域下的所有帐号发来的邮件
+    @44.com
+<br>
+        
+          <p class="more-link">
+            <a href="qmail-conf-file/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/qmail-conf-file/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="proftpd-limit-conf/">proftpd limit段</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a>
+</div>
+    </div>
+      
+        写命令 APPE DELE MKD RMD RNTO STOR XMKD XRMD
+读命令 RETR SITE SIZE STAT
+列表命令 CDUP CWD LIST MDTM NLST PWD RNFR XCUP XCWD XPWD
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/igenus/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/proftpd-limit-conf/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -377,6 +428,32 @@ http://www.euronet.nl/users/erhnam/linux/qmail/qmail.htm.
 
   <article class="post">
 	<h2 class="title">
+		<a href="igenus/">igenus</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Mail/">Mail</a>
+</div>
+    </div>
+      
+        igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/igenus/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="cvs/">cvs</a>
 	</h2>
     <div class="entry-content">
@@ -494,189 +571,6 @@ apache配置完毕
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/caphit-web-conf/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="solve-qmail-error/">qmail中的几个error的产生的原因和解决方法</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Mail/">Mail</a>
-</div>
-    </div>
-      
-        deferral: Unable_to_chdir_to_maildir._(#4.2.1)
-
-   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
-
-如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
-
-deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
-
-   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
-
-454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
-
-  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
-
-[root@caph qmail-smtpd]# telnet localhost 25
-Trying 127.0.0.1...
-Connected to localhost.
-Escape character is &#39;^]&#39;.
-220 xxx.com ESMTP
-ehlo
-250-xxx.com
-250-PIPELINING
-250-8BITMIME
-250-SIZE 104857600
-250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
-auth login
-334 VXNlcm5hbWU6
-awefaq23rasdf
-334 UGFzc3dvcmQ6
-awefwaef
-454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
-quit
-221 xxx.com
-Connection closed by foreign host.
-
-出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
-
-QMAILDUID=`id -u vpopmail`
-QMAILDGID=`id -g vpopmail`
-
-/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
-        -u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
-        /var/qmail/bin/qmail-smtpd
-        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1
-
-不需要修改~vpopmail/bin/vchkpw的属性。
-
-451 qq write error or disk full (#4.3.0)
-
-通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
-
-qq temporary problem (#4.3.0)
-
-看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
--rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
-
-vchkpw-smtp: vpopmail user not found
-
-查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/solve-qmail-error/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="a-joke-3/">历史上最强最强的跨专业的考研人zz</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Joke/">Joke</a>
-</div>
-    </div>
-      
-        　　1、现在跨专业跨学校考研已经是一种趋势。某君学习图书馆学n年，也是觉得发腻。于是决定考个理科的研究生，在广泛的调查和研究之后。他毅然决定考天大的化院来挑战一下自己。看看一个连苯烷都不会写的人是否可以大跨度考研成功。他做了以下几步：
-坐火车到天大，找到自己未来的研究生导师。先恭敬的鞠上一躬，然后对老先生说：我想考您的研究生，随后递上自己的简历。老先生先是一脸鄙夷，想你们XX大学图书馆学虽然是全国第一，但又怎么知道我们数学的博大精深。不过他没有当面拒绝，而是写了十几个问题对小伙子说：不急，先把这些问题搞清楚再来找我。也就是说，先搞清楚才有资格。这个强人并没有生气，把问题清单收了起来。
-
-　　2、回到学校，把问题翻译成英语，然后给哈佛大学化学系某教授发了一封e-mail，信中写道：我想考贵院的研究生，这是我对专业的一点问题，可以帮我解答一下吗？同时加上自己的简历。哈佛教授看后很激动，因为发现了一个东方化学奇人，虽然不是专业人才但是专业问题问得很深。于是他们认认真真解答了问题，并列出一些其他的问题对小伙子做进一步的考核。
-
-　　3、收到哈佛的回信后，某君把问题翻译成汉语，再去找天大的老先生。先把答案给了老先生，老先生一看已经半疯，想小伙子不错，水平比我还高，已经达到国外哈佛的水平了。这时某君又拿出写满问题的那张纸，对老先生说：老师的问题我回答了，这是我对本专业的一些问题，请老师解答一下。老头看了问题，倒吸了一口凉气，傻眼了。这时某君装着要走。老先生急了，说：小伙子，别走！我要定你了，专业课不用考了，我包你过。公共课去回去复习一下，只要过线就行，只要过线。
-
-　　4、 回到学校，没过几天，收到老先生花了几个通宵、查了大量资料写好的哈佛教授所提问题的答案。某君把答案翻译成英语，给哈佛教授又发过去。他们在确认东方奇人后，提出了一年给某君4万美金的奖学金。一边是保研一边是全奖出国，到底选哪边？某君犯难了。
-
-　　5、当然是选保研，因为哈佛是淘汰制。而天大的老先生只会拍拍小伙子的肩膀说：孩子，好好学，谁让我当时瞎了眼把你收来呢。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/a-joke-3/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="a-bug-of-qss/">qss不正常显示的问题</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Mail/">Mail</a>
-</div>
-    </div>
-      
-        1 php3.x版本以上不正常显示
-
-设置php.ini的<font color="#FF0000">register_globals = On</font>
-
-或者
-
-修改getGraph.php添加
-<font color="#FF0000">$data=$_GET[&#39;data&#39;];
-$t=$_GET[&#39;t&#39;];
-修改getGraph1.php添加
-$data=$_GET[&#39;data&#39;];
-$s=$_GET[&#39;s&#39;];</font>
-
-2 还不能正常显示
-
-那可能你的qmail-scanner的版本是1.2以上的，此版本以上的log文件格式有些变化，qss却没有做相应更新，所以会有问题。你可以看看你的log文件的日期是不是下面这种格式
-Mon, 03 Jan 2005 04:01:57 CST
-如果是，那么差不多就是这个问题了。
-
-解决方法是在index.php里面查找
-<font color="#FF0000"># Calc the date timestamp</font>
-把他下面的5行语句用下面的替换
-<font color="#FF0000">   if ( eregi("(^[0-9]+)", $val[0]) )
-   {
-      # Calc the date timestamp
-      $date = explode("/",$val[0]);
-      $dateT = $date[0];
-      $date[0] = $date[1];
-      $date[1] = $dateT;
-      $date = strtotime(implode("/",$date));
-   }
-   else
-   {
-      $date = strtotime ($val[0]);
-   };
-</font>
-
-参考网址
-<a href="http://www.tnpi.biz/internet/mail/toaster/faq.shtml#how_do_i_get_qmailscanner_statistics_to_work" target="_blank">here</a>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/a-bug-of-qss/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -1067,32 +961,148 @@ contrib/test_installation.sh -doit测试
 
   <article class="post">
 	<h2 class="title">
-		<a href="snowing-now/">下雪了</a>
+		<a href="solve-qmail-error/">qmail中的几个error的产生的原因和解决方法</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-11T16:00:00.000Z" itemprop="datePublished">Jan 12, 2006</time>
+      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Heart/">Heart</a>
+<a href="../tags/Mail/">Mail</a>
 </div>
     </div>
       
-        这个冬天的第一场雪可能都不能算是雪，据说是某些地方下了几颗肉眼刚好看到的雪粒粒，而且还是就早晨一会，反正我没看到。
+        deferral: Unable_to_chdir_to_maildir._(#4.2.1)
 
-第二场似乎应该就是元旦那次了吧，是元旦那天，还是元旦前夜，我忘记了，反正据说是下了，看到据说了吧，说明我还是没看到。呵呵。那两天都在家里呆着，没有出门，只是听说下雪之后站在阳台看了一眼，12层楼往下看，似乎没看到白色的积雪，也没看到哗哗的雪片。可能是我看的时候人家早停了吧，北京的雪基本上都是掉下来就化，所以地上没有积雪也正常的。
+   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
 
-这次算是第三次了吧。因为座位不靠窗，所以没有注意到，到隔壁办公室的时候，听他们说起来才注意到，外面的雪片还真大。早上走的时候其实就在下了，不过都是小颗粒，还没想到居然成大气候了，呵呵。
+如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
 
-雪现在还在下，在角落里面已经有了一些积雪了，走人走车的地方的雪基本都化了，地上好多水。北京的天气比较来说不够冷，但是够湿润，所以比较容易看到下雪，但是不容易看到积雪。我们家那里比较干燥，冬天就是干冷，下雪少，偶尔来一次就是大的，这一次之后，可能整个冬天都能到处看到积雪，尤其是村子后面的山头上，都白白的。
+deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
+
+   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
+
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+
+  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
+
+[root@caph qmail-smtpd]# telnet localhost 25
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is &#39;^]&#39;.
+220 xxx.com ESMTP
+ehlo
+250-xxx.com
+250-PIPELINING
+250-8BITMIME
+250-SIZE 104857600
+250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
+auth login
+334 VXNlcm5hbWU6
+awefaq23rasdf
+334 UGFzc3dvcmQ6
+awefwaef
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+quit
+221 xxx.com
+Connection closed by foreign host.
+
+出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
+
+QMAILDUID=`id -u vpopmail`
+QMAILDGID=`id -g vpopmail`
+
+/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
+        -u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
+        /var/qmail/bin/qmail-smtpd
+        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1
+
+不需要修改~vpopmail/bin/vchkpw的属性。
+
+451 qq write error or disk full (#4.3.0)
+
+通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
+
+qq temporary problem (#4.3.0)
+
+看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
+-rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
+
+vchkpw-smtp: vpopmail user not found
+
+查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/snowing-now/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/solve-qmail-error/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="a-bug-of-qss/">qss不正常显示的问题</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Mail/">Mail</a>
+</div>
+    </div>
+      
+        1 php3.x版本以上不正常显示
+
+设置php.ini的<font color="#FF0000">register_globals = On</font>
+
+或者
+
+修改getGraph.php添加
+<font color="#FF0000">$data=$_GET[&#39;data&#39;];
+$t=$_GET[&#39;t&#39;];
+修改getGraph1.php添加
+$data=$_GET[&#39;data&#39;];
+$s=$_GET[&#39;s&#39;];</font>
+
+2 还不能正常显示
+
+那可能你的qmail-scanner的版本是1.2以上的，此版本以上的log文件格式有些变化，qss却没有做相应更新，所以会有问题。你可以看看你的log文件的日期是不是下面这种格式
+Mon, 03 Jan 2005 04:01:57 CST
+如果是，那么差不多就是这个问题了。
+
+解决方法是在index.php里面查找
+<font color="#FF0000"># Calc the date timestamp</font>
+把他下面的5行语句用下面的替换
+<font color="#FF0000">   if ( eregi("(^[0-9]+)", $val[0]) )
+   {
+      # Calc the date timestamp
+      $date = explode("/",$val[0]);
+      $dateT = $date[0];
+      $date[0] = $date[1];
+      $date[1] = $dateT;
+      $date = strtotime(implode("/",$date));
+   }
+   else
+   {
+      $date = strtotime ($val[0]);
+   };
+</font>
+
+参考网址
+<a href="http://www.tnpi.biz/internet/mail/toaster/faq.shtml#how_do_i_get_qmailscanner_statistics_to_work" target="_blank">here</a>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/a-bug-of-qss/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

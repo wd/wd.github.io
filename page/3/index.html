@@ -101,6 +101,74 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="octopress-and-gitcafe/">octopress and gitcafe</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2013-06-12T13:30:00.000Z" itemprop="datePublished">Jun 12, 2013</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a>
+</div>
+    </div>
+      
+        <p>ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line">diff --git a/.gitignore b/.gitignore</div><div class="line">index 85ed25d..5858b25 100644</div><div class="line"><span class="comment">--- a/.gitignore</span></div><div class="line"><span class="comment">+++ b/.gitignore</span></div><div class="line">@@ -12,3 +12,4 @@ source/stylesheets/screen.css</div><div class="line"> vendor</div><div class="line"> node_modules</div><div class="line"> .themes/fabric/</div><div class="line"><span class="addition">+gitcafe</span></div><div class="line">diff --git a/Rakefile b/Rakefile</div><div class="line">index 53072e5..62061e0 100644</div><div class="line"><span class="comment">--- a/Rakefile</span></div><div class="line"><span class="comment">+++ b/Rakefile</span></div><div class="line">@@ -27,6 +27,9 @@ new_post_ext    = "markdown"  # default new post file extension when using the n</div><div class="line"> new_page_ext    = "markdown"  # default new page file extension when using the new_page task</div><div class="line"> server_port     = "4000"      # port for preview server eg. localhost:4000</div><div class="line"></div><div class="line"><span class="addition">+gitcafe_dir      = "gitcafe"</span></div><div class="line"><span class="addition">+gitcafe_branch   = "gitcafe-pages"</span></div><div class="line"><span class="addition">+</span></div><div class="line"></div><div class="line"> desc "Initial setup for Octopress: copies the default theme into the path of Jekyll's generator. Rake install defaults to rake install[classic] to install a different them</div><div class="line"> task :install, :theme do |t, args|</div><div class="line">@@ -219,7 +214,7 @@ end</div><div class="line"> ##############</div><div class="line"></div><div class="line"> desc "Default deploy task"</div><div class="line"><span class="deletion">-task :deploy do</span></div><div class="line"><span class="addition">+task :deploy_old do</span></div><div class="line">   # Check if preview posts exist, which should not be published</div><div class="line">   if File.exists?(".preview-mode")</div><div class="line">     puts "## Found posts in preview mode, regenerating files ..."</div><div class="line">@@ -231,6 +226,31 @@ task :deploy do</div><div class="line">   Rake::Task["#&#123;deploy_default&#125;"].execute</div><div class="line"> end</div><div class="line"></div><div class="line"><span class="addition">+desc "deploy gitcafe"</span></div><div class="line"><span class="addition">+task :deploy do</span></div><div class="line"><span class="addition">+  # Check if preview posts exist, which should not be published</span></div><div class="line"><span class="addition">+  if File.exists?(".preview-mode")</span></div><div class="line"><span class="addition">+    puts "## Found posts in preview mode, regenerating files ..."</span></div><div class="line"><span class="addition">+    File.delete(".preview-mode")</span></div><div class="line"><span class="addition">+    #Rake::Task[:generate].execute # 这个地方每次都会 generate 我一般喜欢先 generate 本地看好没问题之后再 deploy，所以就注释掉了</span></div><div class="line"><span class="addition">+  end</span></div><div class="line"><span class="addition">+</span></div><div class="line"><span class="addition">+  puts "## Deploying branch to Gitcafe Pages "</span></div><div class="line"><span class="addition">+  puts "\n## copying #&#123;public_dir&#125; to #&#123;gitcafe_dir&#125;"</span></div><div class="line"><span class="addition">+  cp_r "#&#123;public_dir&#125;/.", gitcafe_dir</span></div><div class="line"><span class="addition">+  cd "#&#123;gitcafe_dir&#125;" do</span></div><div class="line"><span class="addition">+    system "git add ."</span></div><div class="line"><span class="addition">+    system "git add -u"</span></div><div class="line"><span class="addition">+    puts "\n## Commiting: Site updated at #&#123;Time.now.utc&#125;"</span></div><div class="line"><span class="addition">+    message = "Site updated at #&#123;Time.now.utc&#125;"</span></div><div class="line"><span class="addition">+    system "git commit -m \"#&#123;message&#125;\""</span></div><div class="line"><span class="addition">+    puts "\n## Pushing generated #&#123;gitcafe_dir&#125; website"</span></div><div class="line"><span class="addition">+    system "git push origin #&#123;gitcafe_branch&#125; --force"</span></div><div class="line"><span class="addition">+    puts "\n## Gcafe Pages deploy complete"</span></div><div class="line"><span class="addition">+  end</span></div><div class="line"><span class="addition">+end</span></div><div class="line"><span class="addition">+</span></div><div class="line"><span class="addition">+</span></div><div class="line"> desc "Generate website and deploy"</div><div class="line"> task :gen_deploy =&gt; [:integrate, :generate, :deploy] do</div><div class="line"> end</div></pre></td></tr></table></figure>
+<p>然后需要在 octopus 根目录 clone 一下你的 gitcafe 项目到 gitcafe 目录<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ git <span class="built_in">clone</span> git@gitcafe.com:wd/wd gitcafe</div><div class="line">....</div></pre></td></tr></table></figure></p>
+<p>然后就可以试试看 <code>rake generate</code> , <code>rake preview</code>, <code>rake deploy</code> 了。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/octopress-and-gitcafe/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="broadcom-wireless-card-on-gentoo/">broadcom BCM wireless card on gentoo</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2013-05-24T09:28:00.000Z" itemprop="datePublished">May 24, 2013</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a>
+</div>
+    </div>
+      
+        <p>昨天又折腾了一下我的无线，是 dell 的本子，broadcom 的卡 BCM4313，准备写一下的时候，发现之前居然折腾过 <a href="/bcm4312broadcom-stawpa_supplicantkernel2-6-33/">BCM4312</a>。。感觉真蛋疼。。</p>
+<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">$ lspci -vnn <span class="_">-d</span> 14e4:</div><div class="line">02:00.0 Network controller [0280]: Broadcom Corporation BCM4313 802.11b/g/n Wireless LAN Controller [14e4:4727] (rev 01)</div><div class="line">        Subsystem: Dell Inspiron M5010 / XPS 8300 [1028:0010]</div><div class="line">        Flags: fast devsel, IRQ 17</div><div class="line">        Memory at e5300000 (64-bit, non-prefetchable) [size=16K]</div><div class="line">        Capabilities: &lt;access denied&gt;</div><div class="line">        Kernel modules: bcma</div></pre></td></tr></table></figure>
+<p>根据 <a href="http://wireless.kernel.org/en/users/Drivers/b43#bcm43xx.2C_b43legacy.2C_b43.2C_softmac.2C..._the_full_story" target="_blank" rel="external">这里</a> ， BCM 的网卡有三种可用驱动</p>
+<ul>
+<li>b43，kernel 自带，源自 broadcom linux 驱动的逆向工程</li>
+<li>brcmsmac, kernel 自带，似乎源自 broadcom 某个开源的驱动</li>
+<li>wl, broadcom 发布的 linux 驱动</li>
+</ul>
+<p>另外，kernel 自带的 b43 和 brcmsmac 支持标准的 802.11 栈，可以通过 iw iwconfig 之类的工具来配置，获取状态。wl 就不行了。</p>
+<p>如果想使用 b43 或者 brcmsmac，需要选择下面的 kernel 选项，要注意都选择成 module，因为还需要加载 firmware，如果编译进内核那需要把 firmware 也编译到内核才可以。<br><figure class="highlight xl"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">N<span class="function"><span class="title">etworking</span> support  ---&gt;</span>  W<span class="function"><span class="title">ireless</span>  ---&gt;</span> Generic IEEE <span class="number">802.11</span> Networking Stack (mac80211)</div><div class="line">D<span class="function"><span class="title">evice</span> Drivers  ---&gt;</span> B<span class="function"><span class="title">roadcom</span> specific AMBA  ---&gt;</span>  BCMA support</div></pre></td></tr></table></figure></p>
+<p>针对 b43 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom 43xx wireless support (mac80211 stack)</code>, 还需要安装 <code>sys-firmware/b43-firmware</code>。</p>
+<p>针对 brcmsmac 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom IEEE802.11n PCIe SoftMAC WLAN driver</code>，还需要安装 <code>sys-kernel/linux-firmware</code>。</p>
+<p>对于 wl，需要安装 <code>net-wireless/broadcom-sta</code>，安装的时候会自动检查必要的内核选项，按照提示选择好就可以了。主要是要注意去掉上面的 kernel 的选项，另外可能还需要一个 ipw2100 来提供某一个隐藏的 kernel 选项。此外还有个 PREEMPT_RCU 检查，需要选择下面的内核选项 <code>Processor type and features  ---&gt;  Preemption Model (Voluntary Kernel Preemption (Desktop))  ---&gt;  Voluntary Kernel Preemption (Desktop)</code>。</p>
+<p>如此之后编译安装重启就可以了。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/broadcom-wireless-card-on-gentoo/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="postgresql-explain/">PostgreSQL Explain</a>
 	</h2>
     <div class="entry-content">
@@ -1001,224 +1069,6 @@ org-mode 本身提供了 remember 来创建 todo list。
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/auto-archive-task-for-org-mode/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="about-interview/">关于面试的一点经验</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2012-04-07T16:00:00.000Z" itemprop="datePublished">Apr 8, 2012</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Heart/">Heart</a> <a href="../tags/interview/">interview</a>
-</div>
-    </div>
-      
-        <p>最近面试了不少，也算有点经验了，阶段总结一下。本文也基本是针对刚毕业的或者毕业没两年的，大牛就别看了，浪费时间。
-</p>
-
-<div id="outline-container-1" class="outline-2">
-<h2 id="sec-1">简历</h2>
-<div class="outline-text-2" id="text-1">
-
-
-<p>
-其实写简历的时候，为了能获得更多的面试机会，通常都会有些夸大，尤其是刚毕业没多久，经验不多的，这个情况更严重。把只看过两次的东西，说成熟悉，把用过几次的说成熟练。
-</p>
-<p>
-对于新人来说，这么做似乎会增加面试机会。但实际上，没有目的的面试，只会浪费双方的时间。很多次看到简历觉得似乎这个是我们需要的人，叫来问两句明白水平之后，基本就只能让对方走人了。不管怎么样，这对双方都是一个损失。
-</p>
-<p>
-与其夸大简历寻求面试机会，有时候还不如花点时间上个培训班。我见到过不少上培训班的，可能花 3 个月半年的，来了之后你问问题，答得也还算靠谱。不过上培训班能学到的水平大家也清楚，基本是比较初级的，对于高级职位没有帮助。
-</p>
-<p>
-总之吧，简历不好夸大，提到的东西至少得是你有自己见解的，否则还不如不提。
-</p>
-</div>
-
-</div>
-
-<div id="outline-container-2" class="outline-2">
-<h2 id="sec-2">面试题</h2>
-<div class="outline-text-2" id="text-2">
-
-
-<p>
-对于技术工程师，很多公司都有面试题。有些求职者可能觉得这个东西挺讨厌的，浪费时间。想知道水平直接聊聊不就完了。
-</p>
-<p>
-其实面试通常时间都不会很长，在这么短的时间内要决定时不时要一个人，也不是个简单的事情，要了解各方面。通常找工程师的时候，动手能力也是一项。从面试题能看出来动手能力。
-</p>
-<p>
-看你写 for 循环也能看出来你的基础扎实不扎实。我还真见过不少人使用他熟悉的语言，这些都写错的。
-</p>
-<p>
-当然，面试题不是一切，也不是不允许有笔误，毕竟现在那么多编辑工具都有提示，真没记住还不行么？错是可以错的，可是别人指出错误的时候你一要能看出来错误在哪里，二要虚心接受错误。别牛逼哄哄的还说什么从来不手写，都在编辑器写之类，那种态度要不得，哪个公司哪个领导都不愿意找一个大爷回来养着，伺候不起的。
-</p>
-</div>
-
-</div>
-
-<div id="outline-container-3" class="outline-2">
-<h2 id="sec-3">面试过程</h2>
-<div class="outline-text-2" id="text-3">
-
-
-<p>
-面试聊天期间大可不必紧张，你的主要目的是表达出来你会的东西。大可不必管对方需要什么样子的人，你合适不合适由对方做判断就好了。
-</p>
-<p>
-而同时其实面试官也会努力帮你，让你表达出你会的东西。
-</p>
-<p>
-至于说不会的东西怎么办？如实说就可以了。可以类比，但是千万不要狡辩，你要明白的是对方的水平肯定不会比你差，你的任何狡辩只能让对方觉得你这个人很无知自大。
-</p>
-</div>
-
-</div>
-
-<div id="outline-container-4" class="outline-2">
-<h2 id="sec-4">将来的团队</h2>
-<div class="outline-text-2" id="text-4">
-
-
-<p>
-面试不要只关注工资。一个好的工作环境，一个靠谱的团队，带给你的隐性收入远比眼前的工资来的多。不过说实话，这些收入恐怕1，2年就挖空了，那个时候如果一个公司不能按照行情给一个靠谱的价格，那就比较难能继续留住人了。也是个博弈吧，这些事情不是很懂。
-</p>
-<p>
-同时，找一个自己喜欢的愿意专研的工作也比较重要。
-</p>
-<p>
-当然，如果你就是想涨工资，那就另说。
-</p>
-</div>
-
-</div>
-
-<div id="outline-container-5" class="outline-2">
-<h2 id="sec-5">薪资</h2>
-<div class="outline-text-2" id="text-5">
-
-
-<p>
-不要尝试讨价还价。
-</p>
-<p>
-现在的 IT 公司薪资基本都是不透明的，普通员工通常都只知道自己的工资。
-</p>
-<p>
-如果你不想让自己觉得被坑，那最好在来面试之前就通过各个渠道去获取一下这个公司的薪资水平，并且确定自己能接受的最低工资是多少，可以通过朋友你自己等对你的评价来判断，不要依赖面试官。另外你工作的前一家公司给你的工资也是一个参考，觉得自己屈才的话，大可以往上提。
-</p>
-<p>
-综合考虑自己的能力，公司能给你带来的隐性收入，到时候直接报你能接受的最低工资就好了。如果是对方真的觉得你的水平不到那个工资，那也没办法的事情。重要的是自己能接受的最低限度是多少，就不要和对方讨价了，否则就算入职了回头也会郁闷的。
-</p>
-</div>
-
-</div>
-
-<div id="outline-container-6" class="outline-2">
-<h2 id="sec-6">跳槽</h2>
-<div class="outline-text-2" id="text-6">
-
-
-<p>
-如果是跳槽过来的，一般都会问一下为什么从原单位离职。建议如实交代，就算是因为工资不高等觉得好像放不到台面上面的原因。没关系的，诚信是个基本要求。
-</p>
-<p>
-跳槽也不建议太频繁。虽然现在通过跳槽涨工资是个普遍现象，但是也没有刚那边工作半年就来这边面试，并且要求工资涨 2k 的吧？那你再牛逼也没公司敢要，刚培养到能干活，跑了？
-</p></div>
-</div>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/about-interview/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="emacs-settings-in-mac/">mac 里面的 emacs 的几个设置</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2012-03-05T16:00:00.000Z" itemprop="datePublished">Mar 6, 2012</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/emacs/">emacs</a> <a href="../tags/macos/">macos</a>
-</div>
-    </div>
-      
-        
-<p>刚开始在 mac 里面使用 emacs 简直就是自虐，因为那个反人类的 command 按键。一般 pc 上面的 alt 是在 space 旁边的，macbook 的 space 旁边是 command，对于一个需要经常在 mac 里面按的键，不是一般的郁闷。这个问题有两个方法解决。
-</p>
-
-<div id="outline-container-1" class="outline-2">
-<h2 id="sec-1">mac 自带的解决方法</h2>
-<div class="outline-text-2" id="text-1">
-
-
-<p>
-就是在键盘设置里面，把修饰键里面的 command 和 alt 替换一下。这个方法会很不爽，因为 mac 里面的复制粘贴是 command + c/v，以后要按 alt + c/v 的话，距离有点远。
-</p>
-</div>
-
-</div>
-
-<div id="outline-container-2" class="outline-2">
-<h2 id="sec-2">KeyRemap4MacBook</h2>
-<div class="outline-text-2" id="text-2">
-
-
-<p>
-这个是个 mac 上面的软件，地址在 <a href="http://pqrs.org/macosx/keyremap4macbook/document.html" target="_blank" rel="external">这里</a> 。里面的设置实在太多了，这里要用到的一个就是只在 emacs 里面把 command 和 alt 替换一下，这样就解决了上面提到的问题，还算完美。可是这个时候会发现，在 emacs 界面激活的情况下，command 开头的系统级别的快捷键都不好用了，比如 command + tab，这也很郁闷。
-</p>
-</div>
-
-</div>
-
-<div id="outline-container-3" class="outline-2">
-<h2 id="sec-3">emacs 自带的完美解决方法</h2>
-<div class="outline-text-2" id="text-3">
-
-
-<p>
-只说 emacs23，emacs24。早期的好像有 mac-pass-command-to-system 之类的设置，可我在 emacs24 里面没看到这个变量。
-</p>
-<p>
-具体设置参考<a href="http://www.emacswiki.org/emacs/EmacsForMacOS#toc23" target="_blank" rel="external">这里</a> ，主要是下面这些设置。
-</p>
-
-
-<pre class="prettyprint lang-lisp">
-;; key bindings
-(when (eq system-type 'darwin) ;; mac specific settings
-  (setq mac-option-modifier 'alt)
-  (setq mac-command-modifier 'meta)
-  (global-set-key [kp-delete] 'delete-char) ;; sets fn-delete to be right-delete
-  )
-</pre>
-
-<p>
-现在就很爽了，按 command + x 和 alt + x 效果一样，按 command + tab 也能切换窗口。算是完美了。
-</p></div>
-</div>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/emacs-settings-in-mac/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
