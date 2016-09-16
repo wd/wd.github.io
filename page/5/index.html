@@ -101,6 +101,37 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="generate_series-function-in-postgresql/">postgresql 里面的 generate_series</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-10-13T16:00:00.000Z" itemprop="datePublished">Oct 14, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/postgresql/">postgresql</a>
+</div>
+    </div>
+      
+        
+<p>有个报表需要把几天的记录按照小时 join 起来，最开始的作法是通过 js 来 join 数据。后来遇到了问题，就是某天某个小时可能会没有记录，然后想破头了，在 js 里面循环的时候设置每天循环到的当前的小时。可崩溃的是还会出现有的是这两小时没有，有的是另外的，用 js 搞不定了，就尝试用 sql 搞定。
+</p>
+<p>
+sql 开始的方法是简单的使用 full join。然后发现没法保证主表在所有的小时都有记录。后来就发现了这个 generate_series 函数，发现很有意思。地址在这里 <a href="http://www.postgresql.org/docs/9.0/static/functions-srf.html" target="_blank" rel="external">http://www.postgresql.org/docs/9.0/static/functions-srf.html</a> 。这里还有个 generate_scripts 的函数，可以用来遍历数组产生一个表格的。
+</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/generate_series-function-in-postgresql/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="intro-hbase/">了解了下 hbase</a>
 	</h2>
     <div class="entry-content">
@@ -147,6 +178,49 @@ hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/intro-hbase/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="about-svn-merge/">svn merge</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-05-07T16:00:00.000Z" itemprop="datePublished">May 8, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/svn/">svn</a>
+</div>
+    </div>
+      
+        <p>svn merge 的 help 信息
+<pre class="prettyprint">
+usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
+       2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH]
+       3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH]
+</pre>
+
+svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。
+</p>
+<p>
+所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。
+</p>
+<p>
+一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。
+</p>
+<p>
+最好在 merge 之前加一个 &ndash;dry-run 看看他会修改哪些文件。 
+</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/about-svn-merge/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -265,49 +339,6 @@ alarm $previousAlarm;
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/alarm-signal-in-perl/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="about-svn-merge/">svn merge</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2011-05-07T16:00:00.000Z" itemprop="datePublished">May 8, 2011</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/svn/">svn</a>
-</div>
-    </div>
-      
-        <p>svn merge 的 help 信息
-<pre class="prettyprint">
-usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
-       2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH]
-       3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH]
-</pre>
-
-svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。
-</p>
-<p>
-所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。
-</p>
-<p>
-一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。
-</p>
-<p>
-最好在 merge 之前加一个 &ndash;dry-run 看看他会修改哪些文件。 
-</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/about-svn-merge/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -697,38 +728,6 @@ M-x twittering-switch-to-unread-timeline 切换到未读的 timeline，可以绑
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/days-in-2010/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="blackberry-8900/">入了一个 BlackBerry 8900</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2011-01-26T16:00:00.000Z" itemprop="datePublished">Jan 27, 2011</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/bb/">bb</a> <a href="../tags/blackberry/">blackberry</a>
-</div>
-    </div>
-      
-        前两个一个小姨子让帮忙买一个黑莓9800，也不知道小孩怎么想的，告诉她这个难用，还断网，但就是不听，说要买一个用的人少的。。。
-
-顺道，就弄了一个 8900 自己用。之前那个 g1 现在很不给力，速度慢，费电。用上了 89 还是挺不错的，又有点 650 的感觉了，就是软件少了点。
-
-linux 下面有个 barry 可以简单管理一下 bb，不过很有限。可以用 bjavaloader 装 cod 倒是不错，想加一个 service book 发现不行，很郁闷，不过能装软件就不错了。
-
-尝试过在 virtualbox 里面使用，需要 disable usb 2.0。不过后来给 bb 弄了一个 sd 卡之后，发现 vbox 里面不认了，设置里面禁掉卡也不行，也不知道怎么回事。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/blackberry-8900/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

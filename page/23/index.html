@@ -101,6 +101,114 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="irssi-script-howto/">Irssi script howto</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-03-20T16:00:00.000Z" itemprop="datePublished">Mar 21, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Heart/">Heart</a> <a href="../tags/irssi/">irssi</a>
+</div>
+    </div>
+      
+        为 irssi 写一些简单的脚本其实不是很难。我大概讲解一下如何写作。
+
+<b>== 理解 signal ==</b>
+
+写过 vb 程序的都应该知道，vb 都是按照事件来触发执行程序的。例如你给某个窗体的 单击事件 写了代码，那么当这个窗体被单击的时候，就会执行你写的代码。
+
+在 irssi 也是类似，不过他的不是事件，是 signal 。你所要做的就是针对不同的 signal 写不同代码即可。
+
+irssi 的 signal 在这个 <a href="http://irssi.org/documentation/signals" target="_blank" rel="external">文档</a> 里面都写的很全了，此外安装 irssi 的时候也会安装 irssi 的一些文档，里面也有 signal 的相关文档。
+
+<b>== 一个简单脚本 ==</b>
+
+脚本头部要包含一些脚本的信息，例如下面。
+
+<pre class="prettyprint lang-perl">
+use vars qw($VERSION %IRSSI);
+use Irssi;
+
+$VERSION = '1.00';
+%IRSSI = (
+    authors     => 'wd',
+    contact     => 'wd#wdicc.com',
+    name        => 'My first Script',
+    description => 'This script notify ' .
+                   'you when recive msg.',
+    license     => 'Public Domain',
+);
+
+sub recive_msg{
+    my ($server, $msg, $nick, $address, $target) = @_;
+    #do nothing 
+
+}
+
+Irssi::signal_add_first('message public',  'recive_msg');</pre>
+
+最下面那行就是截获 irssi 的 signal 了。“message public”这个 signal 是在 irssi 接收到 public message 的时候产生，上面的脚本截获这个 signal 之后，执行后面的 revice_msg 函数 。查一下上面的 signal 文档可以找到下面的内容。
+
+ "message public", SERVER_REC, char *msg, char *nick, char *address, char *target
+
+这表示 irssi 在产生 message public 这个 signal 之后，还会同时传递后面的那些信息。上面那个脚本里面，这些信息都传递给了 recive_msg 函数。这样 recive_msg 函数的第一行就是设置一些变量来接收这些信息。
+
+这就是一个简单的 signal 的处理过程，当然，上面的这个脚本在截获 signal 之后其实什么都没有做。那么怎么让脚本和 irssi 交互呢？
+
+<b>== 和 irssi 交互 ==</b>
+
+按照上面的例子，可以用 $server->command() 或者 $server->print() 来和 irssi 交互。
+
+$server->command 可以在 irssi 里面执行一个 irssi 命令。例如
+
+ $server->command("msg wd hi");
+
+这样相当于在 irssi 里面输入 "/msg wd hi" 这个命令。其他命令类推一下。
+
+$server->print 可以在 irssi 里面打印一些信息，这些信息别人是看不到的，这些信息类似于 irssi 给你的消息。例如
+
+ $server->print("$server","a test msg");
+
+这些信息会在1号窗口（这个不一定，看连接了几个server）里面显示。
+
+有了 print 就可以在 irssi 里面测试 recive_msg 函数接收的信息都是什么意义了。试试看下面的命令
+
+ $server->print("$server","$nick send you a msg : $msg");
+
+<b>== 设置一些选项 ==</b>
+
+可以为脚本设置一些选项，这样也可以让脚本适合更多人使用。
+
+ Irssi::settings_add_str("wd","test","just for test");
+ Irssi::settings_add_bool('blah', 'blah_color', 1);;
+
+上面这两行设置了两个变量，一个是字符串 test，初始值为 "just for test"，另一个是布尔变量 blah_color ，初始值是1。第一个参数是设置将变量显示在哪个段，用 /set 命令查看的时候会看到。
+
+使用下面的命令可以获取设置。
+
+ $a = Irssi::settings_get_str("test");
+ $b = Irssi::settings_get_bool('blah_color');
+
+这样按照上面的设置， $a 的值就是 "just for test" ， $b 的值就是 1。当然，用户如果用 /set 命令来设置了这些参数，那么取回的信息就不一定是这些了。
+
+<b>== 参考资料 ==</b>
+
+<a href="http://juerd.nl/site.plp/irssiscripttut" target="_blank" rel="external">Scripting Irssi</a>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/irssi-script-howto/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="irssi-how-to/">Irssi How to</a>
 	</h2>
     <div class="entry-content">
@@ -255,45 +363,6 @@ irssi的官方网站上面的 <a href="http://irssi.org/documentation" target="_
 
   <article class="post">
 	<h2 class="title">
-		<a href="install-oracle-in-rh/">oracle在rh里面的安装流程</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-03-13T16:00:00.000Z" itemprop="datePublished">Mar 14, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Other/">Other</a> <a href="../tags/Linux/">Linux</a> <a href="../tags/oracle/">oracle</a>
-</div>
-    </div>
-      
-        <b>第1部分 安装操作系统</b>
-
-首先需要安装系统....Red Hat Enterprise Linux 2.1，Red Hat Enterprise Linux 3，Novell SUSE Linux Enterprise Server 8 是通过 oracle 10g认证的三个linux发行套件，不知道oracle 10.3有没有对这个修改。默认情况下，oracle 10g只能在rh的这两个版本安装，如果不是上面两个，运行安装程序会直接打印错误。不过也有方法在别的版本安装的，后面有说明。
-
-按照<a href="http://blog.wdicc.com/wordpress/2007/03/14/307/">上一篇文章</a>，安装linux的时候可以不选择图形界面，这样还可以节省不少空间。按照oracle的文档，说需要安装下面的这些软件包。
-
-<pre class="prettyprint lang-bash">
-compat-gcc-c++ compat-libstdc++ compat-libstdc++-devel</pre>
-
-我实际安装过程中，compat-gcc compat-gcc-c++ compat-libstdc++ compat-libstdc++-devel 这几个包我没有安装也可以安装oracle。
-        
-          <p class="more-link">
-            <a href="install-oracle-in-rh/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/install-oracle-in-rh/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="oracle-text-install/">oracle 文本界面的安装</a>
 	</h2>
     <div class="entry-content">
@@ -340,6 +409,45 @@ cpio -idmv < ship.db.cpio</pre>
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/oracle-text-install/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="install-oracle-in-rh/">oracle在rh里面的安装流程</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-03-13T16:00:00.000Z" itemprop="datePublished">Mar 14, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a> <a href="../tags/Linux/">Linux</a> <a href="../tags/oracle/">oracle</a>
+</div>
+    </div>
+      
+        <b>第1部分 安装操作系统</b>
+
+首先需要安装系统....Red Hat Enterprise Linux 2.1，Red Hat Enterprise Linux 3，Novell SUSE Linux Enterprise Server 8 是通过 oracle 10g认证的三个linux发行套件，不知道oracle 10.3有没有对这个修改。默认情况下，oracle 10g只能在rh的这两个版本安装，如果不是上面两个，运行安装程序会直接打印错误。不过也有方法在别的版本安装的，后面有说明。
+
+按照<a href="http://blog.wdicc.com/wordpress/2007/03/14/307/">上一篇文章</a>，安装linux的时候可以不选择图形界面，这样还可以节省不少空间。按照oracle的文档，说需要安装下面的这些软件包。
+
+<pre class="prettyprint lang-bash">
+compat-gcc-c++ compat-libstdc++ compat-libstdc++-devel</pre>
+
+我实际安装过程中，compat-gcc compat-gcc-c++ compat-libstdc++ compat-libstdc++-devel 这几个包我没有安装也可以安装oracle。
+        
+          <p class="more-link">
+            <a href="install-oracle-in-rh/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/install-oracle-in-rh/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -566,32 +674,6 @@ lvm其实就是将一些“物理”分区，比如 /dev/hda1，/dev/hda6 ，或
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/seems-last-snow/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="hard-work/">做客服真不容易</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-03-02T16:00:00.000Z" itemprop="datePublished">Mar 3, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Heart/">Heart</a>
-</div>
-    </div>
-      
-        不投机倒把的话，赚钱都不容易。给电信网通这些做客服赚钱可更不容易了。之前有一个<a href="http://plod.popoever.com/archives/000590.html" title="猫吃卡" target="_blank">动感地带的猫</a>这个事件，现在又有了<a href="http://bbs.e222.com/dispbbs.asp?boardID=113&ID=8453" target="_blank">被股市大跌逼疯的人</a>。前面一个还是恶搞，郁闷归郁闷，至少还没有粗话。后面这个电信mm可就可怜多了，估计一接电话的那段开场白就把mm给吓坏了，那个人骂了好长时间之后，那个mm才回过神来开始说话。客服也应该对这种情况建立一种应急预案了吧。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/hard-work/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

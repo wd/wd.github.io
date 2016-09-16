@@ -101,6 +101,122 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="auto-archive-task-for-org-mode/">org-mode 里面自动归档任务</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2012-04-07T16:00:00.000Z" itemprop="datePublished">Apr 8, 2012</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Linux/">Linux</a> <a href="../tags/emacs/">emacs</a> <a href="../tags/org-mode/">org-mode</a>
+</div>
+    </div>
+      
+        <p>我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
+</p>
+<p>
+org-mode 本身提供了 remember 来创建 todo list。
+</p>
+<p>
+新建一个 org 文件 ~/org/todo.org，包含两行内容如下
+</p>
+
+
+<pre class="prettyprint lang-text">
+* Tasks
+* Done
+</pre>
+
+<p>
+然后设置下面的内容
+</p>
+
+
+<pre class="prettyprint lang-lisp">
+(define-key global-map "\C-ca" 'org-agenda)
+(global-set-key (kbd "C-c m r") 'org-capture)
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks")
+         "* TODO %?\nCREATED: %U")
+        ("j" "Journal" entry (file+datetree "~/org/journal.org")
+         "* %?\nEntered on %U\n  %i\n  %a")))
+(defun wd-move-done-task-to-done-cats ( task-pos )
+  "move done task to *DONE cats"
+  (let* ((entry (org-get-entry))
+        (title (org-get-heading))
+        (task (format "** %s\n%s\n" title entry))
+        )
+    (goto-char (point-min))
+    (when (search-forward-regexp "^* Tasks$latex ")
+      (goto-char (point-min))
+      (when (search-forward-regexp "^* Done$")
+        (goto-char (match-beginning 0))
+        (forward-line)      
+        (insert task)
+        (goto-char task-pos)
+        (delete-region (org-entry-beginning-position) (org-entry-end-position))      
+        )
+      )
+    )
+  )
+
+(defun wd-track-task-status ( changes-plist )
+   "Track task status, and move it to '* Done' cats if it is stats change from to to done
+1 TODO 文件至少需要包含两个标题 * Tasks 和 * Done
+2 * Tasks 里面的 TODO 内容变成 DONE 的时候，会自动把这个条目移动到 * Done
+3 org-todo-keywords 的设置里面不能包含自动增加时间等的设置，否则增加的内容不能正确加到这个条目
+"
+   ;; (interactive)
+   (let ((type (plist-get change-plist :type))
+          (pos (plist-get change-plist :position))
+          (from (plist-get change-plist :from))
+          (to (plist-get change-plist :to))
+          )
+     (when (and (string= from "TODO")
+                (string= to "DONE"))
+       ;; (let ((answer (read-char "Move this entry to *DONE ? Y/N (Y)")))
+       ;;   (when (or (= answer (string-to-char "y"))
+       ;;             (= answer (string-to-char "Y"))
+       ;;             (= answer (string-to-char "
+"))
+       ;;             )
+           (wd-move-done-task-to-done-cats pos)
+         ;; ))
+       )
+     )
+   )
+
+(add-hook 'org-trigger-hook 'wd-track-task-status)
+
+;; (setq org-todo-keywords
+;;       '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "WAIT(w)" "|" "DONE(d)" "CANCELED(c)")))
+</pre>
+
+<p>
+在任何地方按一下 C-c m r，会出来一个 window 让你选择要创建 todo 还是 journal。选 t，然后输入内容就会自动插入到 ~/org/todo.org 的 * Tasks 里面。
+</p>
+<p>
+此后，如果任务完成的时候，打开 todo.org，然后在任务上面 C-c C-t，会提示输入状态。如果是从 TODO 变成了 DONE，那这条任务会被转移到 * Done 里面。
+</p>
+<p>
+因为里面都有时间，所以在 agenda list 里面，可以用 L 看到任务完成时间等。也将就用了。
+</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/auto-archive-task-for-org-mode/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="about-interview/">关于面试的一点经验</a>
 	</h2>
     <div class="entry-content">
@@ -1033,37 +1149,6 @@ openresty 给提供了简单可用的 nginx.conf，所以现在可以先尝试�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/intro-openresty/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="generate_series-function-in-postgresql/">postgresql 里面的 generate_series</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2011-10-13T16:00:00.000Z" itemprop="datePublished">Oct 14, 2011</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Linux/">Linux</a> <a href="../tags/postgresql/">postgresql</a>
-</div>
-    </div>
-      
-        
-<p>有个报表需要把几天的记录按照小时 join 起来，最开始的作法是通过 js 来 join 数据。后来遇到了问题，就是某天某个小时可能会没有记录，然后想破头了，在 js 里面循环的时候设置每天循环到的当前的小时。可崩溃的是还会出现有的是这两小时没有，有的是另外的，用 js 搞不定了，就尝试用 sql 搞定。
-</p>
-<p>
-sql 开始的方法是简单的使用 full join。然后发现没法保证主表在所有的小时都有记录。后来就发现了这个 generate_series 函数，发现很有意思。地址在这里 <a href="http://www.postgresql.org/docs/9.0/static/functions-srf.html" target="_blank" rel="external">http://www.postgresql.org/docs/9.0/static/functions-srf.html</a> 。这里还有个 generate_scripts 的函数，可以用来遍历数组产生一个表格的。
-</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/generate_series-function-in-postgresql/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

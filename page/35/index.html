@@ -177,48 +177,6 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 
   <article class="post">
 	<h2 class="title">
-		<a href="rsync-script/">rsync脚本的一个例子</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Other/">Other</a> <a href="../tags/rsync/">rsync</a>
-</div>
-    </div>
-      
-        <pre class="prettyprint lang-bash">
-
-SYNCLOGFILE="/var/log/rsync-201.log"
-SYNCLOCKFILE="/var/lock/rsync-201.lock"
-
-if [[ -f $SYNCLOCKFILE ]]; then
-  # lock file already present, bail
-  exit 1
-fi
-
-echo -n ">>> Sync log for " >> $SYNCLOGFILE
-date >> $SYNCLOGFILE
-
-touch $SYNCLOCKFILE
-rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
-rm -f $SYNCLOCKFILE
-</pre>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="del-30-day-old-file/">find命令查找删除30天之前的文件</a>
 	</h2>
     <div class="entry-content">
@@ -242,6 +200,74 @@ rm -f $SYNCLOCKFILE
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/del-30-day-old-file/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="stop-and-start-script-for-apache-and-weblogic/">启动停止weblogic和apache的脚本</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a>
+</div>
+    </div>
+      
+        apache和weblogic做桥接之后，启动的时候要先启动weblogic，后启动apache，停止的时候要先停止apache，后停止weblogic，这
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="portmap/">端口映射</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a> <a href="../tags/iptables/">iptables</a>
+</div>
+    </div>
+      
+        ★ 需求
+
+1 只有一个ip，怎么让多台电脑上网？
+
+只讲一下主机是双网卡的时候怎么解决。windows下面可以使用winroute、wingate或者系统自带的共享网络连接的功能，都可以实现共享上网。linux下面使用iptables一句话就可以实现。
+
+至于主机是单网卡怎么解决，自己研究研究吧。我只在win下面尝试过用wingate，可是及其不稳定。
+
+2 怎么将某个端口映射给内网？
+
+内网某台电脑提供了服务，怎么让外网的用户可以访问呢？某些对外的服务可能会在内网的多台电脑上面提供，这时就需要做端口映射来让这些服务器让外网可以访问。
+
+<br>
+        
+          <p class="more-link">
+            <a href="portmap/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/portmap/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -282,40 +308,6 @@ rm -f $SYNCLOCKFILE
 
   <article class="post">
 	<h2 class="title">
-		<a href="limite-ssh-access-ip/">限制ssh访问的ip</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-23T16:00:00.000Z" itemprop="datePublished">Apr 24, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Other/">Other</a> <a href="../tags/ssh/">ssh</a>
-</div>
-    </div>
-      
-        ★ 需求
-
-最近公司服务器上面某个用户的帐号密码被修改了好几次。查看了一下，确实有人用他的帐号从外网ip（国外的ip）登陆过，猜想可能是他自己的电脑中木马或者什么病毒了。用户自己没有安全意识是很头痛的一个问题，其实给他们新建帐号的时候使用的都是简单密码，但是似乎都没有人上服务器自己修改，但是你又不能要求你的用户如何如何（比如给自己电脑装防火墙、杀毒软件etc），因为那是人家自己的事情。那么我就想，有没有一个方法可以限制某个用户只能从某个ip（或者ip列表）登陆呢？下面是一些解决方法。
-
-<br>
-        
-          <p class="more-link">
-            <a href="limite-ssh-access-ip/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/limite-ssh-access-ip/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="use-rsa-and-dsa/">使用ssh的rsa和dsa验证登陆linux</a>
 	</h2>
     <div class="entry-content">
@@ -344,6 +336,40 @@ rm -f $SYNCLOCKFILE
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/use-rsa-and-dsa/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="limite-ssh-access-ip/">限制ssh访问的ip</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-04-23T16:00:00.000Z" itemprop="datePublished">Apr 24, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Other/">Other</a> <a href="../tags/ssh/">ssh</a>
+</div>
+    </div>
+      
+        ★ 需求
+
+最近公司服务器上面某个用户的帐号密码被修改了好几次。查看了一下，确实有人用他的帐号从外网ip（国外的ip）登陆过，猜想可能是他自己的电脑中木马或者什么病毒了。用户自己没有安全意识是很头痛的一个问题，其实给他们新建帐号的时候使用的都是简单密码，但是似乎都没有人上服务器自己修改，但是你又不能要求你的用户如何如何（比如给自己电脑装防火墙、杀毒软件etc），因为那是人家自己的事情。那么我就想，有没有一个方法可以限制某个用户只能从某个ip（或者ip列表）登陆呢？下面是一些解决方法。
+
+<br>
+        
+          <p class="more-link">
+            <a href="limite-ssh-access-ip/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/limite-ssh-access-ip/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -431,37 +457,6 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/man-in-debian/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="manage-route/">添加删除路由</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-16T16:00:00.000Z" itemprop="datePublished">Apr 17, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Other/">Other</a>
-</div>
-    </div>
-      
-        #route add -net 192.168.0.0/24
-#route add -host 192.168.0.23
-#route del -net 192.168.0.0/24
-
-#route add default gw 192.168.0.1
-#route del default gw 192.168.0.1
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/manage-route/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

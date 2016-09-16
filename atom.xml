@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://wdicc.com/"/>
-  <updated>2016-08-20T03:05:04.000Z</updated>
+  <updated>2016-09-16T01:49:16.000Z</updated>
   <id>http://wdicc.com/</id>
   
   <author>
@@ -14,6 +14,49 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>cookie 的一点研究</title>
+    <link href="http://wdicc.com/about-http-cookie/"/>
+    <id>http://wdicc.com/about-http-cookie/</id>
+    <published>2016-09-16T00:59:09.000Z</published>
+    <updated>2016-09-16T01:49:16.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>这几天搞了一下 python 里面 cookie 相关的东西。我的目的是想要尝试用 python 登录某个网站，并且保持登录状态直到过期。因为 http 协议是无状态的，所以一般来讲，网站想要用户保持登录，那么网站在用户登录之后，必须要和用户端协商好怎么来证明这个用户已经登录过了。</p>
+<p>用户端如果使用浏览器，那么网站就可以利用浏览器对 cookie 的支持来让用户在不知情的情况下，让网站在用户登录后发的一个 token 在用户后续的请求里面都包含上。</p>
+<p>用户端如果不是浏览器，比如是个 python 程序，那么网站可以和用户协商每次请求里面都包含某个下发的 token（当然，甚至要求客户端每次请求都带着用户名密码也是可行的）。</p>
+<p>但是如果网站本身只是给浏览器用户准备的，那么通过用程序来「模拟」浏览器行为，把必要的 token 保存并在后续的请求里面都带上，也是可行的。</p>
+<p>python 里面，发送 http 请求可以简单的使用 <code>urllib.request.urlopen(url)</code>，但是如果想要定制一下请求，比如修改一些 header 信息，那么就得使用 <code>urllib.request.Request</code> 这个 class 先构造一个 Request 对象，然后传递给 urlopen 了。</p>
+<p>如果要处理 cookie，那就需要使用 <code>http.cookiejar.CookieJar</code> 了，有了 Cookiejar 对象，就可以把网站下发的 cookie 保存到这个变量里面，然后在必要的时候，可以返回给服务器端了。如果想要保存到文件，那么可以使用 <code>http.cookiejar.LWPCookieJar</code> 或者 <code>http.cookiejar.MozillaCookieJar</code>，也可以基于 <code>http.cookiejar.FileCookieJar</code> 自己实现一个子类，来用自己的办法保存和加载 cookie，比如保存到数据库什么的，这样就可以多台机器之间共享 cookie 了。</p>
+<p><code>urlopen</code> 本身不支持自定义 cookiejar 逻辑，得使用 <code>opener = build_opener(HTTPCookieProcessor(cookiejar=Cookiejar对象))</code> 来先构造一个自定义的 openner, 然后使用 <code>opener(Request对象)</code> 来发送请求。</p>
+<p>如果不定义自己的 cookie policy，那么会使用默认的 <code>http.cookiejar.DefaultCookiePolicy</code>，也可以自己基于 <code>http.cookiejar.CookiePolicy</code> 实现自己的逻辑。只需要 override <code>set_ok</code> 和 <code>return_ok</code> 这两个方法就可以。</p>
+<p>http cookie 其实有很多属性，比如 domain, expire, path 等常见属性，也有 httponly, secure 等几个不常见的。这些属性都是浏览器处理的。就是说，浏览器把 cookie 返回给服务器端的时候，如果 domain 不匹配，或者已经过了 expire 时间等等一些不符合浏览器制定的 cookie 逻辑的时候，浏览器就不会把 cookie 发送给服务器端。就比如，服务器产生 cookie 的时候，声明了 domain=a.com，那么如果是来自于 b.com 的请求，浏览器是根本不会给他发送这个 cookie。再比如，服务器端产生 cookie 的时候，声明了 1 天后过期，那么 1 天之后，浏览器也不会再给服务器端发这个 cookie 了。</p>
+<p>但是如果是我们自己实现客户端模拟浏览器的时候，其实我们是可以耍流氓的，可以制定自己的 cookie 逻辑，也就是上面提到的 cookie policy。比如我可以简单的在 <code>return_ok</code> 这个方法里面 <code>return True</code>，在任何情况下都把所有的 cookie 返回给服务器，这样服务器端如果不提前想明白，它是一点都不知道的。</p>
+<p>所谓提前想明白就是想明白是不是需要针对这种情况做处理。如果本身我们系统也没有那么严格要求，那么不处理也可以。但是如果是某个比如金融系统，那么是必须要考虑的。否则如果完全依赖 cookie 的话，如果我通过某些手段弄到了用户的 cookie，那么我就可以骗过服务器端，让他认为我就是那个用户。</p>
+<p>我想了一下，貌似被盗窃 cookie 这种事情服务器端不太好防范，但是可以做的是防止浏览器耍流氓。比如我们把 cookie 加密，并里面增加一个发送 cookie 的时间。收到客户端发过来的 cookie 之后，我们解密看看时间有没有过期，这样就可以在服务器端让 cookie 失效了。</p>
+<p>另外，也可以考虑使用 session。session 是把一些用户的状态保存在服务器端。但是 session 实际上也是依赖 cookie 的，因为前面说了 http 协议无状态，就算可以把用户状态保存在服务器端，但是总还是得识别用户才可以。那个识别的 cookie 就是所谓的 session cookie，其实就是某个用户的唯一标识。</p>
+<p>对于 session cookie 被窃，好像也没有太好的办法，无非也是想办法比对之前用户的一些状态信息，比如 ip 和现在的信息是不是一致，不一致可以认为有被窃的怀疑，这个时候让用户再次验证用户信息，这都不能 100% 保证，但是至少会增加窃贼的成本。</p>
+<p>上面说到这些，都可以自己测试一下，测试也并不一定需要搭一个服务器端配合，以及使用复杂的抓包专鉴，其实使用 <code>nc</code> 就可以。</p>
+<p>使用 <code>nc -l 9999</code> 就可以启动一个监听在 9999 端口的 socket 服务器。之后使用 python 或者 curl 之类的程序请求，就能立刻看到请求发送过来的 http 信息，这个对于学习 http 协议其实也很方便。</p>
+<figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">$ nc -l <span class="number">9999</span></div><div class="line">GET <span class="regexp">/ HTTP/</span><span class="number">1.1</span></div><div class="line">Accept-<span class="string">Encoding:</span> identity</div><div class="line"><span class="string">Connection:</span> close</div><div class="line"><span class="string">Cookie:</span> QN2=test; QN1=ClbaCVfZF5lfszBALzTIAg==</div><div class="line">User-<span class="string">Agent:</span> Mozilla<span class="regexp">/5.0 (Macintosh; Intel Mac OS X 10_11_6)  AppleWebKit/</span><span class="number">537.36</span> (KHTML, like Gecko) Chrome<span class="regexp">/52.0.2743.116 Safari/</span><span class="number">537.36</span></div><div class="line"><span class="string">Host:</span> <span class="string">localhost:</span><span class="number">9999</span></div></pre></td></tr></table></figure>
+<p>收到的上面这个请求，可以看到发送过来了 2 个 cookie。</p>
+<p>如果还想测试数据返回的情况，那么可以写一个 <code>test.resp</code> 文件，内容如下</p>
+<figure class="highlight dts"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">$ cat test.resp</div><div class="line">HTTP/<span class="number">1.1</span> <span class="number">200</span> OK</div><div class="line"><span class="symbol">Date:</span> Sun, <span class="number">18</span> Oct <span class="number">2009</span> <span class="number">08</span>:<span class="number">56</span>:<span class="number">53</span> GMT</div><div class="line"><span class="symbol">Server:</span> Apache/<span class="number">2.2</span><span class="number">.14</span> (Win32)</div><div class="line">Last-Modified: Sat, <span class="number">20</span> Nov <span class="number">2004</span> <span class="number">07</span>:<span class="number">16</span>:<span class="number">26</span> GMT</div><div class="line"><span class="symbol">ETag:</span> <span class="string">"10000000565a5-2c-3e94b66c2e680"</span></div><div class="line">Set-Cookie: QN1=ClbaCVfZF5lfszBALzTIAg==; expires=Thu, <span class="number">31</span>-Dec<span class="number">-37</span> <span class="number">23</span>:<span class="number">55</span>:<span class="number">55</span> GMT; path=/</div><div class="line">Set-Cookie: QN2=test; expires=Thu, <span class="number">31</span>-Dec<span class="number">-37</span> <span class="number">23</span>:<span class="number">55</span>:<span class="number">55</span> GMT; path=/; secure; httponly</div><div class="line">Accept-Ranges: bytes</div><div class="line">Content-Length: <span class="number">44</span></div><div class="line"><span class="symbol">Connection:</span> close</div><div class="line">Content-Type: text/html</div><div class="line">X-Pad: avoid browser bug</div><div class="line"></div><div class="line"><span class="params">&lt;html&gt;</span><span class="params">&lt;body&gt;</span><span class="params">&lt;h1&gt;</span>It works!<span class="params">&lt;/h1&gt;</span><span class="params">&lt;/body&gt;</span><span class="params">&lt;/html&gt;</span></div></pre></td></tr></table></figure>
+<p>然后使用 <code>nc -l 9999 &lt; test.resp</code> 命令启动服务，客户端来请求的时候，就会返回上面 <code>test.resp</code> 里面的内容。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;这几天搞了一下 python 里面 cookie 相关的东西。我的目的是想要尝试用 python 登录某个网站，并且保持登录状态直到过期。因为 http 协议是无状态的，所以一般来讲，网站想要用户保持登录，那么网站在用户登录之后，必须要和用户端协商好怎么来证明这个用户已经登
+    
+    </summary>
+    
+    
+      <category term="cookie" scheme="http://wdicc.com/tags/cookie/"/>
+    
+      <category term="http" scheme="http://wdicc.com/tags/http/"/>
+    
+  </entry>
   
   <entry>
     <title>从双拼讲输入法</title>
@@ -2885,6 +2928,49 @@ hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，
   </entry>
   
   <entry>
+    <title>svn merge</title>
+    <link href="http://wdicc.com/about-svn-merge/"/>
+    <id>http://wdicc.com/about-svn-merge/</id>
+    <published>2011-05-07T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:36.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>svn merge 的 help 信息
+<pre class="prettyprint">
+usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
+       2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH]
+       3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH]
+</pre>
+
+svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。
+</p>
+<p>
+所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。
+</p>
+<p>
+一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。
+</p>
+<p>
+最好在 merge 之前加一个 &ndash;dry-run 看看他会修改哪些文件。 
+</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;svn merge 的 help 信息
+&lt;pre class=&quot;prettyprint&quot;&gt;
+usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
+       2. merge sourceWCPATH1@N sour
+    
+    </summary>
+    
+    
+      <category term="Linux" scheme="http://wdicc.com/tags/Linux/"/>
+    
+      <category term="svn" scheme="http://wdicc.com/tags/svn/"/>
+    
+  </entry>
+  
+  <entry>
     <title>alarm 使用不当遇到的问题</title>
     <link href="http://wdicc.com/alarm-signal-in-perl/"/>
     <id>http://wdicc.com/alarm-signal-in-perl/</id>
@@ -3004,49 +3090,6 @@ my $pid = fork(
       <category term="Linux" scheme="http://wdicc.com/tags/Linux/"/>
     
       <category term="perl" scheme="http://wdicc.com/tags/perl/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>svn merge</title>
-    <link href="http://wdicc.com/about-svn-merge/"/>
-    <id>http://wdicc.com/about-svn-merge/</id>
-    <published>2011-05-07T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:36.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>svn merge 的 help 信息
-<pre class="prettyprint">
-usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
-       2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH]
-       3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH]
-</pre>
-
-svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。
-</p>
-<p>
-所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。
-</p>
-<p>
-一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。
-</p>
-<p>
-最好在 merge 之前加一个 &ndash;dry-run 看看他会修改哪些文件。 
-</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;svn merge 的 help 信息
-&lt;pre class=&quot;prettyprint&quot;&gt;
-usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
-       2. merge sourceWCPATH1@N sour
-    
-    </summary>
-    
-    
-      <category term="Linux" scheme="http://wdicc.com/tags/Linux/"/>
-    
-      <category term="svn" scheme="http://wdicc.com/tags/svn/"/>
     
   </entry>
   
@@ -8548,72 +8591,35 @@ So, just po
   </entry>
   
   <entry>
-    <title>gnome 里面的 usb automount 终于好了</title>
-    <link href="http://wdicc.com/usb-automount-in-gnome/"/>
-    <id>http://wdicc.com/usb-automount-in-gnome/</id>
+    <title>《见龙卸甲》又一个大烂片诞生了</title>
+    <link href="http://wdicc.com/jianlongxiejia-so-bad-movie/"/>
+    <id>http://wdicc.com/jianlongxiejia-so-bad-movie/</id>
     <published>2008-04-04T16:00:00.000Z</published>
     <updated>2016-07-13T08:22:36.000Z</updated>
     
-    <content type="html"><![CDATA[升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。。
+    <content type="html"><![CDATA[看完《江山美人》觉得像吃了一个烂蛋糕，可没想到今天又吃了一次，nnd。
 
-就连之前 分区不显示在桌面上面 的问题都好了，ft，和scsi有关系？
+《见龙卸甲》讲的是赵云的故事，可是里面tmd和《三国演义》里面的差太多了，简直就是编剧重新写了一本《三国》。那个年代的武将，估计都是“力拔山兮气盖世”的，而一个女的都督还那么牛b，可以和赵云单挑，这女的吃激素长大的阿。实在太烂了。
+<blockquote>《见龙卸甲》虽说是根据《三国演义》改编，但真正的剧情走向早就远离原著十万八千里，长坂坡单骑救主的赵云居然换成凤鸣山救主，就为了帮导演画一 个善始善终的“圆”。生造出的曹操孙女曹婴、赵云同乡罗平安和只会“青龙白虎阵”的诸葛亮更是让读过《三国演义》的观众啼笑皆非。而影片最关键的凤鸣山一 战在电影中完全被颠覆，张苞、关兴刚一露面就被杀，赵云舍生取义，决意战死……这些颠三倒四、似是而非的改编只有一个目的，把赵云塑造成一个人性化的反战 英雄，在乱世之中，他只想要有一个安定的天下，有一个自己的家，其中再夹杂一些男人间的友情和责任感等——这样的想法看起来并不错，但实际上是偷懒的做 法。所谓重新解读历史人物，应该是从人物本身出发，从真实细节中发掘出原先被忽视的部分。但《见龙卸甲》对赵云的重新解读却是主题先行，肆意编造细节和情 节来实现预设的主题。主题先行导致人物概念化，这个主角可以是赵云，也可以是张飞、关羽，甚至可以是武松、鲁智深，任何一个背景下英雄人物都可以套上这样 “人性化”的模板。</blockquote>
+上面引用一段<a href="http://www.news365.com.cn/xwzx/whyyyl/200804/t20080404_1820801.htm" target="_blank">别人</a>的话.
 
-gnome 下面有 gnome-volume-manager &amp; gnome-mount &amp; gnome-vfs 和自动挂载相关。
+贴一个剧照吧。
+
+<img src="http://pic.yupoo.com/wdicc/5840055b04c0/medium.jpg" alt="见龙卸甲" width="351" height="500">
 ]]></content>
     
     <summary type="html">
     
-      升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。
+      看完《江山美人》觉得像吃了一个烂蛋糕，可没想到今天又吃了一次，nnd。
+
+《见龙卸甲》讲的是赵云的故事，可是里面tmd和《三国演义》里面的差太多了，简直就是编剧重新写了一本《三国》。那个年代的武将，估计都是“力拔山兮气盖世”的，而一个女的都督还那么牛b，可以和赵云单挑，这女的吃激
     
     </summary>
     
     
-      <category term="Linux" scheme="http://wdicc.com/tags/Linux/"/>
+      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
     
-      <category term="gnome" scheme="http://wdicc.com/tags/gnome/"/>
-    
-      <category term="usb" scheme="http://wdicc.com/tags/usb/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>在gnome下面使用mplayer</title>
-    <link href="http://wdicc.com/use-mplayer-in-gnome/"/>
-    <id>http://wdicc.com/use-mplayer-in-gnome/</id>
-    <published>2008-04-04T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:36.000Z</updated>
-    
-    <content type="html"><![CDATA[使用mplayer其实没必要用什么前端了，多简洁，不过可能是因为我很少看有字幕的视频的缘故。smplayer是基于qt的，有兴趣可以试试看，我觉得速度有点慢。此外还有gnome-mplayer，有选项可以stop gnome的screensaver。
-
-今天忽然兴起就想看看smplayer的最新版是否能在播放的时候屏蔽gnome screensaver，结果在他们论坛上面找到了方法。其实smplayer本身是没那个功能的，作为前端，他只是负责把 stop-xscreensaver 参数传递给mplayer而已。不过却发现了一个mpalyer的设置：
-<pre class="prettyprint lang-text">heartbeat-cmd="gnome-screensaver-command -p">
-这个设置不知道是从什么时候出现的，可以用来停止gnome的screensaver，放到 .mplayer/config 里面就行了。
-
-这下子gnome-screensaver 也可以干掉了，这玩意不支持mplayer的一些快捷键，例如osd切换。在播放一些有问题的文件的时候，还经常 cpu 100% 死掉。
-
-另外，gnome里面的文件，在nautilus里面双击默认的打开方式是由 /usr/share/applications 里面的那些desktop文件决定的，这些文件里面定义了可以打开什么类型的文件。gnome的菜单也是从这里生成的。当然，在文件上面右键-&gt;属性-&gt;打开方式也可以自定义一个。
-
-此外，~/.local/share/applications 里面也有一些 desktop，这些是你自定义的。比如系统经过判断，rmvb的文件使用 realplayer 来打开，但是你又想用 mplayer 来打开，那么就会在这个目录下面的文件里面记录下来。
-
-mplayer 的那个 desktop 文件里面指定的是 gmplayer 来打开文件的，我可不喜欢这个gmplayer，所以修改一下这个文件就好了。这样比自己添加自定义命令的好处是，有个图标。。。还有可以打开 smb:// 的文件。
-</pre>]]></content>
-    
-    <summary type="html">
-    
-      使用mplayer其实没必要用什么前端了，多简洁，不过可能是因为我很少看有字幕的视频的缘故。smplayer是基于qt的，有兴趣可以试试看，我觉得速度有点慢。此外还有gnome-mplayer，有选项可以stop gnome的screensaver。
-
-今天忽然兴起就想看看smp
-    
-    </summary>
-    
-    
-      <category term="Linux" scheme="http://wdicc.com/tags/Linux/"/>
-    
-      <category term="gnome" scheme="http://wdicc.com/tags/gnome/"/>
-    
-      <category term="mplayer" scheme="http://wdicc.com/tags/mplayer/"/>
-    
-      <category term="screensaver" scheme="http://wdicc.com/tags/screensaver/"/>
+      <category term="movie" scheme="http://wdicc.com/tags/movie/"/>
     
   </entry>
   
@@ -8661,35 +8667,72 @@ To start the server in Emacs, type "M-x server-start".
   </entry>
   
   <entry>
-    <title>《见龙卸甲》又一个大烂片诞生了</title>
-    <link href="http://wdicc.com/jianlongxiejia-so-bad-movie/"/>
-    <id>http://wdicc.com/jianlongxiejia-so-bad-movie/</id>
+    <title>在gnome下面使用mplayer</title>
+    <link href="http://wdicc.com/use-mplayer-in-gnome/"/>
+    <id>http://wdicc.com/use-mplayer-in-gnome/</id>
     <published>2008-04-04T16:00:00.000Z</published>
     <updated>2016-07-13T08:22:36.000Z</updated>
     
-    <content type="html"><![CDATA[看完《江山美人》觉得像吃了一个烂蛋糕，可没想到今天又吃了一次，nnd。
+    <content type="html"><![CDATA[使用mplayer其实没必要用什么前端了，多简洁，不过可能是因为我很少看有字幕的视频的缘故。smplayer是基于qt的，有兴趣可以试试看，我觉得速度有点慢。此外还有gnome-mplayer，有选项可以stop gnome的screensaver。
 
-《见龙卸甲》讲的是赵云的故事，可是里面tmd和《三国演义》里面的差太多了，简直就是编剧重新写了一本《三国》。那个年代的武将，估计都是“力拔山兮气盖世”的，而一个女的都督还那么牛b，可以和赵云单挑，这女的吃激素长大的阿。实在太烂了。
-<blockquote>《见龙卸甲》虽说是根据《三国演义》改编，但真正的剧情走向早就远离原著十万八千里，长坂坡单骑救主的赵云居然换成凤鸣山救主，就为了帮导演画一 个善始善终的“圆”。生造出的曹操孙女曹婴、赵云同乡罗平安和只会“青龙白虎阵”的诸葛亮更是让读过《三国演义》的观众啼笑皆非。而影片最关键的凤鸣山一 战在电影中完全被颠覆，张苞、关兴刚一露面就被杀，赵云舍生取义，决意战死……这些颠三倒四、似是而非的改编只有一个目的，把赵云塑造成一个人性化的反战 英雄，在乱世之中，他只想要有一个安定的天下，有一个自己的家，其中再夹杂一些男人间的友情和责任感等——这样的想法看起来并不错，但实际上是偷懒的做 法。所谓重新解读历史人物，应该是从人物本身出发，从真实细节中发掘出原先被忽视的部分。但《见龙卸甲》对赵云的重新解读却是主题先行，肆意编造细节和情 节来实现预设的主题。主题先行导致人物概念化，这个主角可以是赵云，也可以是张飞、关羽，甚至可以是武松、鲁智深，任何一个背景下英雄人物都可以套上这样 “人性化”的模板。</blockquote>
-上面引用一段<a href="http://www.news365.com.cn/xwzx/whyyyl/200804/t20080404_1820801.htm" target="_blank">别人</a>的话.
+今天忽然兴起就想看看smplayer的最新版是否能在播放的时候屏蔽gnome screensaver，结果在他们论坛上面找到了方法。其实smplayer本身是没那个功能的，作为前端，他只是负责把 stop-xscreensaver 参数传递给mplayer而已。不过却发现了一个mpalyer的设置：
+<pre class="prettyprint lang-text">heartbeat-cmd="gnome-screensaver-command -p">
+这个设置不知道是从什么时候出现的，可以用来停止gnome的screensaver，放到 .mplayer/config 里面就行了。
 
-贴一个剧照吧。
+这下子gnome-screensaver 也可以干掉了，这玩意不支持mplayer的一些快捷键，例如osd切换。在播放一些有问题的文件的时候，还经常 cpu 100% 死掉。
 
-<img src="http://pic.yupoo.com/wdicc/5840055b04c0/medium.jpg" alt="见龙卸甲" width="351" height="500">
-]]></content>
+另外，gnome里面的文件，在nautilus里面双击默认的打开方式是由 /usr/share/applications 里面的那些desktop文件决定的，这些文件里面定义了可以打开什么类型的文件。gnome的菜单也是从这里生成的。当然，在文件上面右键-&gt;属性-&gt;打开方式也可以自定义一个。
+
+此外，~/.local/share/applications 里面也有一些 desktop，这些是你自定义的。比如系统经过判断，rmvb的文件使用 realplayer 来打开，但是你又想用 mplayer 来打开，那么就会在这个目录下面的文件里面记录下来。
+
+mplayer 的那个 desktop 文件里面指定的是 gmplayer 来打开文件的，我可不喜欢这个gmplayer，所以修改一下这个文件就好了。这样比自己添加自定义命令的好处是，有个图标。。。还有可以打开 smb:// 的文件。
+</pre>]]></content>
     
     <summary type="html">
     
-      看完《江山美人》觉得像吃了一个烂蛋糕，可没想到今天又吃了一次，nnd。
+      使用mplayer其实没必要用什么前端了，多简洁，不过可能是因为我很少看有字幕的视频的缘故。smplayer是基于qt的，有兴趣可以试试看，我觉得速度有点慢。此外还有gnome-mplayer，有选项可以stop gnome的screensaver。
 
-《见龙卸甲》讲的是赵云的故事，可是里面tmd和《三国演义》里面的差太多了，简直就是编剧重新写了一本《三国》。那个年代的武将，估计都是“力拔山兮气盖世”的，而一个女的都督还那么牛b，可以和赵云单挑，这女的吃激
+今天忽然兴起就想看看smp
     
     </summary>
     
     
-      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
+      <category term="Linux" scheme="http://wdicc.com/tags/Linux/"/>
     
-      <category term="movie" scheme="http://wdicc.com/tags/movie/"/>
+      <category term="gnome" scheme="http://wdicc.com/tags/gnome/"/>
+    
+      <category term="mplayer" scheme="http://wdicc.com/tags/mplayer/"/>
+    
+      <category term="screensaver" scheme="http://wdicc.com/tags/screensaver/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>gnome 里面的 usb automount 终于好了</title>
+    <link href="http://wdicc.com/usb-automount-in-gnome/"/>
+    <id>http://wdicc.com/usb-automount-in-gnome/</id>
+    <published>2008-04-04T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:36.000Z</updated>
+    
+    <content type="html"><![CDATA[升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。。
+
+就连之前 分区不显示在桌面上面 的问题都好了，ft，和scsi有关系？
+
+gnome 下面有 gnome-volume-manager &amp; gnome-mount &amp; gnome-vfs 和自动挂载相关。
+]]></content>
+    
+    <summary type="html">
+    
+      升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。
+    
+    </summary>
+    
+    
+      <category term="Linux" scheme="http://wdicc.com/tags/Linux/"/>
+    
+      <category term="gnome" scheme="http://wdicc.com/tags/gnome/"/>
+    
+      <category term="usb" scheme="http://wdicc.com/tags/usb/"/>
     
   </entry>
   
@@ -10551,6 +10594,42 @@ zhuaxia用了一段时间，发现他的切换不同的tag速度慢，最郁闷�
   </entry>
   
   <entry>
+    <title>空调的匹数怎么算？zz</title>
+    <link href="http://wdicc.com/about-air-condition/"/>
+    <id>http://wdicc.com/about-air-condition/</id>
+    <published>2007-06-03T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:36.000Z</updated>
+    
+    <content type="html"><![CDATA[<a href="http://www.dapenti.com/blog/more.asp?name=agile&amp;id=4332" target="_blank" rel="external">来自这里</a>
+
+在选购空调时，销售人员通常会在推销空调时提到空调的匹数，匹数指的是电器消耗功率，1匹=1马力=735W，匹并不指制冷量。平时所说的空调是多少匹，是根据空调消耗功率估算出空调的制冷量。一般来说，习惯用1匹等于2500W的制冷量(也就是25机型)，1.5匹约等于.3500的量(也就是35机型)。26机型约为1.1匹，27机型为1.2匹，28机型约为1.3匹，32机型为1.4匹；33机型约为1.5匹，36机型为大1.5匹。
+
+一般，1匹空调适用面积10~15平方米，1.25匹适用10~19平方米，1.5匹适用16~26平方米，1.7匹适用15~30平方米，两匹适用20~37平方米，3匹适用30~58平方米。
+
+买空调的人都知道，根据空调匹数的不同价格也不一样。空调匹数，原指输入功率，包括压机、风扇电机及电控部分，因不同的品牌其具体的系统及电控设计差异，其输出的制冷量不同，故其制冷量以输出功率计算。
+
+一般来说，1匹的制冷量大致力2000大卡，换算成国际单位应乘以1.162，故1匹之制冷量应力2000大卡×1．162＝2324瓦，这里的瓦（w）即表示制冷量，则1．5匹的应为2000大卡×1．5×1．162＝3486（w），以此类推。根据此情况，则大致能判定空调的匹数和制冷量。一般情况下，2200（w）~2600（w）都可称为1匹，4500（w）~5100（w）可称为两匹，3200（w）~3600（w）可称为1．5匹。制冷量确定后，即可根据目己家庭之实际情况估算制冷量，选择合适的空调机。
+
+家用电器要消耗制冷量的较大部分，电视、电灯、冰箱等每瓦（w）功率要消耗制冷量1（w），门窗的方向也要消耗一定的制冷量，东面窗150W／m2，西面窗280W／m2，南面窗180W／m2 ，北面窗100W／m2，如是楼顶及西晒可考虑适当增加制冷量。
+<p class="poweredbyperformancing">Powered by <a href="http://scribefire.com/" target="_blank" rel="external">ScribeFire</a>.</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;a href=&quot;http://www.dapenti.com/blog/more.asp?name=agile&amp;amp;id=4332&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;来自这里&lt;/a&gt;
+
+在选购空调时，销售人员通常会在推销空调时提到空调的匹数，匹
+    
+    </summary>
+    
+    
+      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
+    
+      <category term="空调" scheme="http://wdicc.com/tags/%E7%A9%BA%E8%B0%83/"/>
+    
+  </entry>
+  
+  <entry>
     <title>linux tuning</title>
     <link href="http://wdicc.com/linux-tuning/"/>
     <id>http://wdicc.com/linux-tuning/</id>
@@ -10701,42 +10780,6 @@ fs.file-max = 209708</pre>
       <category term="kernel" scheme="http://wdicc.com/tags/kernel/"/>
     
       <category term="tuning" scheme="http://wdicc.com/tags/tuning/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>空调的匹数怎么算？zz</title>
-    <link href="http://wdicc.com/about-air-condition/"/>
-    <id>http://wdicc.com/about-air-condition/</id>
-    <published>2007-06-03T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:36.000Z</updated>
-    
-    <content type="html"><![CDATA[<a href="http://www.dapenti.com/blog/more.asp?name=agile&amp;id=4332" target="_blank" rel="external">来自这里</a>
-
-在选购空调时，销售人员通常会在推销空调时提到空调的匹数，匹数指的是电器消耗功率，1匹=1马力=735W，匹并不指制冷量。平时所说的空调是多少匹，是根据空调消耗功率估算出空调的制冷量。一般来说，习惯用1匹等于2500W的制冷量(也就是25机型)，1.5匹约等于.3500的量(也就是35机型)。26机型约为1.1匹，27机型为1.2匹，28机型约为1.3匹，32机型为1.4匹；33机型约为1.5匹，36机型为大1.5匹。
-
-一般，1匹空调适用面积10~15平方米，1.25匹适用10~19平方米，1.5匹适用16~26平方米，1.7匹适用15~30平方米，两匹适用20~37平方米，3匹适用30~58平方米。
-
-买空调的人都知道，根据空调匹数的不同价格也不一样。空调匹数，原指输入功率，包括压机、风扇电机及电控部分，因不同的品牌其具体的系统及电控设计差异，其输出的制冷量不同，故其制冷量以输出功率计算。
-
-一般来说，1匹的制冷量大致力2000大卡，换算成国际单位应乘以1.162，故1匹之制冷量应力2000大卡×1．162＝2324瓦，这里的瓦（w）即表示制冷量，则1．5匹的应为2000大卡×1．5×1．162＝3486（w），以此类推。根据此情况，则大致能判定空调的匹数和制冷量。一般情况下，2200（w）~2600（w）都可称为1匹，4500（w）~5100（w）可称为两匹，3200（w）~3600（w）可称为1．5匹。制冷量确定后，即可根据目己家庭之实际情况估算制冷量，选择合适的空调机。
-
-家用电器要消耗制冷量的较大部分，电视、电灯、冰箱等每瓦（w）功率要消耗制冷量1（w），门窗的方向也要消耗一定的制冷量，东面窗150W／m2，西面窗280W／m2，南面窗180W／m2 ，北面窗100W／m2，如是楼顶及西晒可考虑适当增加制冷量。
-<p class="poweredbyperformancing">Powered by <a href="http://scribefire.com/" target="_blank" rel="external">ScribeFire</a>.</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;a href=&quot;http://www.dapenti.com/blog/more.asp?name=agile&amp;amp;id=4332&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;来自这里&lt;/a&gt;
-
-在选购空调时，销售人员通常会在推销空调时提到空调的匹数，匹
-    
-    </summary>
-    
-    
-      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
-    
-      <category term="空调" scheme="http://wdicc.com/tags/%E7%A9%BA%E8%B0%83/"/>
     
   </entry>
   
@@ -11883,6 +11926,59 @@ irssi的官方网站上面的 <a href="http://irssi.org/documentation" target="_
   </entry>
   
   <entry>
+    <title>oracle 文本界面的安装</title>
+    <link href="http://wdicc.com/oracle-text-install/"/>
+    <id>http://wdicc.com/oracle-text-install/</id>
+    <published>2007-03-13T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:36.000Z</updated>
+    
+    <content type="html"><![CDATA[oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是<font color="#3333ff">远程</font>文本界面。这样很有必要看看如何通过文本界面来安装oracle。
+
+oracle本身的安装程序也提供了这个方法，就是使用 responseFile 。这个 responseFile 其实就是在图形界面安装的时候的一些选择，保存到文件之后，直接告诉安装程序从这里读取设置就好了。将oracle的安装文件 ship.db.lnx32.cpio.gz 解压：
+
+<pre class="prettyprint lang-bash">
+cpio -idmv < ship.db.cpio</pre>
+
+这样可以看到有个Disk1的文件夹，里面有个response目录，里面好多response文件，不过我还不知道这些有什么区别，里面设置项也很多，还没弄明白。我使用的不是这里的response文件。是通过下面的方法获取的rsp文件。
+
+可以通过在记录模式中运行软件或通过手动编辑示例响应文件来创建响应文件。以下是一个基本演示：
+
+   1. 用此命令启动 OUI 来创建响应文件：
+
+      ./runInstaller -record -destinationFile /tmp/recorded.rsp
+       
+   2. 选择您需要的所有部分（源目标目录、主目录、主目录名、产品）。
+   3. 当您看到 Summary 屏幕时，不要单击 Install，而是单击 Cancel。
+   4. 仔细查看在 tmp/recorded.rsp 中创建的结果响应文件。如果需要，可以手动编辑该文件，只要您遵守使用规定的格式即可（请参见文档）。
+   5. 现在如下执行静默安装：
+
+      ./runInstaller -silent -responseFile /tmp/recorded.rsp
+
+      在运行脚本时将会报告安装的进度。
+
+如果您由于响应文件中的条目不正确而遇到安装故障，安装将失败并显示一条诊断消息。详细信息可在 oraInventory/logs 目录中找到。在每次使用响应文件运行 OUI 时，会创建具有 installActions-<时间戳>.log 和 silentInstall<时间戳>.log 格式名称的日志。
+
+这样，只需要找台机器在图形界面下面运行一下安装程序，生成一个rsp文件，然后放到真正需要安装的服务器上面，修改一下安装路径，设置一下sys密码，就可以开始安装了。
+</时间戳></时间戳>]]></content>
+    
+    <summary type="html">
+    
+      oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是&lt;font color=&quot;#3333ff&quot;&gt;远程&lt;/font&gt;文本界面。这样很有必要看看如何通过文本界面来安装oracle。
+
+ora
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+      <category term="Linux" scheme="http://wdicc.com/tags/Linux/"/>
+    
+      <category term="oracle" scheme="http://wdicc.com/tags/oracle/"/>
+    
+  </entry>
+  
+  <entry>
     <title>oracle在rh里面的安装流程</title>
     <link href="http://wdicc.com/install-oracle-in-rh/"/>
     <id>http://wdicc.com/install-oracle-in-rh/</id>
@@ -12157,59 +12253,6 @@ Logs are generated in directory
 compat-gcc-c++ compat-libstdc++ compat-libstdc++-devel&lt;/pre&gt;
 
 我实际安装过程中，compat-gcc compat-gcc-c++ compat-libstdc++ compat-libstdc++-devel 这几个包我没有安装也可以安装oracle。
-    
-    </summary>
-    
-    
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-      <category term="Linux" scheme="http://wdicc.com/tags/Linux/"/>
-    
-      <category term="oracle" scheme="http://wdicc.com/tags/oracle/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>oracle 文本界面的安装</title>
-    <link href="http://wdicc.com/oracle-text-install/"/>
-    <id>http://wdicc.com/oracle-text-install/</id>
-    <published>2007-03-13T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:36.000Z</updated>
-    
-    <content type="html"><![CDATA[oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是<font color="#3333ff">远程</font>文本界面。这样很有必要看看如何通过文本界面来安装oracle。
-
-oracle本身的安装程序也提供了这个方法，就是使用 responseFile 。这个 responseFile 其实就是在图形界面安装的时候的一些选择，保存到文件之后，直接告诉安装程序从这里读取设置就好了。将oracle的安装文件 ship.db.lnx32.cpio.gz 解压：
-
-<pre class="prettyprint lang-bash">
-cpio -idmv < ship.db.cpio</pre>
-
-这样可以看到有个Disk1的文件夹，里面有个response目录，里面好多response文件，不过我还不知道这些有什么区别，里面设置项也很多，还没弄明白。我使用的不是这里的response文件。是通过下面的方法获取的rsp文件。
-
-可以通过在记录模式中运行软件或通过手动编辑示例响应文件来创建响应文件。以下是一个基本演示：
-
-   1. 用此命令启动 OUI 来创建响应文件：
-
-      ./runInstaller -record -destinationFile /tmp/recorded.rsp
-       
-   2. 选择您需要的所有部分（源目标目录、主目录、主目录名、产品）。
-   3. 当您看到 Summary 屏幕时，不要单击 Install，而是单击 Cancel。
-   4. 仔细查看在 tmp/recorded.rsp 中创建的结果响应文件。如果需要，可以手动编辑该文件，只要您遵守使用规定的格式即可（请参见文档）。
-   5. 现在如下执行静默安装：
-
-      ./runInstaller -silent -responseFile /tmp/recorded.rsp
-
-      在运行脚本时将会报告安装的进度。
-
-如果您由于响应文件中的条目不正确而遇到安装故障，安装将失败并显示一条诊断消息。详细信息可在 oraInventory/logs 目录中找到。在每次使用响应文件运行 OUI 时，会创建具有 installActions-<时间戳>.log 和 silentInstall<时间戳>.log 格式名称的日志。
-
-这样，只需要找台机器在图形界面下面运行一下安装程序，生成一个rsp文件，然后放到真正需要安装的服务器上面，修改一下安装路径，设置一下sys密码，就可以开始安装了。
-</时间戳></时间戳>]]></content>
-    
-    <summary type="html">
-    
-      oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是&lt;font color=&quot;#3333ff&quot;&gt;远程&lt;/font&gt;文本界面。这样很有必要看看如何通过文本界面来安装oracle。
-
-ora
     
     </summary>
     
@@ -13439,35 +13482,6 @@ return "#$r$g$b";
   </entry>
   
   <entry>
-    <title>元旦之后就是春节</title>
-    <link href="http://wdicc.com/Spring-Festival/"/>
-    <id>http://wdicc.com/Spring-Festival/</id>
-    <published>2007-01-03T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:36.000Z</updated>
-    
-    <content type="html"><![CDATA[元旦三天转眼就过完了，好像除了多睡了会觉没啥特别的感觉。元旦之后大节日就是春节了，查了一下是2月18号，也很快了。
-
-元旦几个同学一起来聚了聚，吃了一顿火锅。不过那火锅好像没有期待中那么好吃了， 老大总提起以前在宿舍吃火锅的时候。那会一个小铝锅，几个固体酒精，买点肉，买点菜，一个宿舍就围着这个锅吃上了。竞争很激烈，往往锅刚开，动作慢的就没得吃了。那会好像一人能吃一斤肉……挺恐怖的一个事情。现在再也吃不出来那会的味道了，呵呵。
-
-过两天一个很要好的同学就结婚了。其实已经在家里办了婚礼了，这次是请北京的同学吃个饭，去了估计能见到不少以前的同学和老乡了。98年到北京上学，到明年08年，就是整十年了，日子过的真是很快。
-
-准备好怎么过春节了么？呵呵。
-]]></content>
-    
-    <summary type="html">
-    
-      元旦三天转眼就过完了，好像除了多睡了会觉没啥特别的感觉。元旦之后大节日就是春节了，查了一下是2月18号，也很快了。
-
-元旦几个同学一起来聚了聚，吃了一顿火锅。不过那火锅好像没有期待中那么好吃了， 老大总提起以前在宿舍吃火锅的时候。那会一个小铝锅，几个固体酒精，买点肉，买点菜，一个
-    
-    </summary>
-    
-    
-      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
-    
-  </entry>
-  
-  <entry>
     <title>使用perl操作mysql数据库</title>
     <link href="http://wdicc.com/perl-and-mysql/"/>
     <id>http://wdicc.com/perl-and-mysql/</id>
@@ -13520,26 +13534,26 @@ $dbh->disconnect();</pre>
   </entry>
   
   <entry>
-    <title>下雪了</title>
-    <link href="http://wdicc.com/snowing-again/"/>
-    <id>http://wdicc.com/snowing-again/</id>
-    <published>2006-12-29T16:00:00.000Z</published>
+    <title>元旦之后就是春节</title>
+    <link href="http://wdicc.com/Spring-Festival/"/>
+    <id>http://wdicc.com/Spring-Festival/</id>
+    <published>2007-01-03T16:00:00.000Z</published>
     <updated>2016-07-13T08:22:36.000Z</updated>
     
-    <content type="html"><![CDATA[早上6点多醒来，看到外面变白了，意识今年冬天的第一场雪来了。
+    <content type="html"><![CDATA[元旦三天转眼就过完了，好像除了多睡了会觉没啥特别的感觉。元旦之后大节日就是春节了，查了一下是2月18号，也很快了。
 
-<img align="middle" src="http://photo4.yupoo.com/20061230/114634_642705975.jpg">
+元旦几个同学一起来聚了聚，吃了一顿火锅。不过那火锅好像没有期待中那么好吃了， 老大总提起以前在宿舍吃火锅的时候。那会一个小铝锅，几个固体酒精，买点肉，买点菜，一个宿舍就围着这个锅吃上了。竞争很激烈，往往锅刚开，动作慢的就没得吃了。那会好像一人能吃一斤肉……挺恐怖的一个事情。现在再也吃不出来那会的味道了，呵呵。
 
-<img align="middle" src="http://photo4.yupoo.com/20061230/114545_688044251.jpg">
+过两天一个很要好的同学就结婚了。其实已经在家里办了婚礼了，这次是请北京的同学吃个饭，去了估计能见到不少以前的同学和老乡了。98年到北京上学，到明年08年，就是整十年了，日子过的真是很快。
+
+准备好怎么过春节了么？呵呵。
 ]]></content>
     
     <summary type="html">
     
-      早上6点多醒来，看到外面变白了，意识今年冬天的第一场雪来了。
+      元旦三天转眼就过完了，好像除了多睡了会觉没啥特别的感觉。元旦之后大节日就是春节了，查了一下是2月18号，也很快了。
 
-&lt;img align=&quot;middle&quot; src=&quot;http://photo4.yupoo.com/20061230/114634_642705975.jpg&quot;&gt;
-
-&lt;img align=&quot;middle&quot; src=&quot;h
+元旦几个同学一起来聚了聚，吃了一顿火锅。不过那火锅好像没有期待中那么好吃了， 老大总提起以前在宿舍吃火锅的时候。那会一个小铝锅，几个固体酒精，买点肉，买点菜，一个
     
     </summary>
     
@@ -13585,6 +13599,35 @@ grub> setup (hd0)</pre>
       <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
     
       <category term="grub" scheme="http://wdicc.com/tags/grub/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>下雪了</title>
+    <link href="http://wdicc.com/snowing-again/"/>
+    <id>http://wdicc.com/snowing-again/</id>
+    <published>2006-12-29T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:36.000Z</updated>
+    
+    <content type="html"><![CDATA[早上6点多醒来，看到外面变白了，意识今年冬天的第一场雪来了。
+
+<img align="middle" src="http://photo4.yupoo.com/20061230/114634_642705975.jpg">
+
+<img align="middle" src="http://photo4.yupoo.com/20061230/114545_688044251.jpg">
+]]></content>
+    
+    <summary type="html">
+    
+      早上6点多醒来，看到外面变白了，意识今年冬天的第一场雪来了。
+
+&lt;img align=&quot;middle&quot; src=&quot;http://photo4.yupoo.com/20061230/114634_642705975.jpg&quot;&gt;
+
+&lt;img align=&quot;middle&quot; src=&quot;h
+    
+    </summary>
+    
+    
+      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
     
   </entry>
   
@@ -13941,61 +13984,6 @@ apt-get -b source gnokii</pre>
   </entry>
   
   <entry>
-    <title>看到一篇有意思的文章-[上帝与Google，玉帝与Baidu]</title>
-    <link href="http://wdicc.com/a-joke-10/"/>
-    <id>http://wdicc.com/a-joke-10/</id>
-    <published>2006-12-04T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:36.000Z</updated>
-    
-    <content type="html"><![CDATA[<a href="http://www.newsmth.net/bbscon.php?bid=951&id=28755" target="_blank" rel="external">http://www.newsmth.net/bbscon.php?bid=951&id=28755</a>
-
-最早的时候,上帝很无聊,平时只能看看电视听听广播,偶尔玩玩超级玛丽,再就是和圣母玛丽亚通通电话.时间长了,这种生活越发枯燥.上帝觉得这样的生活太乏味,于是他说:“要有网”.然后就有了互联网,计算机都可以连在一起,这是第一天.
-
-光是有互联网也不行，起码得有点东西看吧。上帝说：“要有网站”。然后就有了全世界各种各样的大小网站，上帝在网站上看新闻、看图片，顺便还到论坛上发发贴，觉得互联网有些意思，这是第二天。
-
-圣母玛丽亚看上帝这两天没怎么打电话，比较生气，威胁上帝说要把互联网毁了，上帝觉得这样不好，于是上帝说：“要有即时通讯”。然后就有了即时通讯软件，上帝和圣母玛丽亚在互联网上视频语音聊天，圣母玛丽亚也觉得互联网很好玩，这是第三天。
-
-网站的数量太多了，也不知道那个网站更好看，上帝觉得这样太杂乱，于是上帝说：“要有导航网站”，然后就有了导航网站，上帝觉得分类目录挺好的，这是第四天。
-
-没想到，网站越来越多，网页也越来越多，找分类目录都找不过来了，上帝觉得比较郁闷，心想找个东西怎么这么难呢？但这难不倒上帝，上帝说：“要有搜 索引擎”，然后就有了搜索引擎，上帝使用搜索引擎，很快的就可以找到自己想要的东西，上帝觉得非常有成就感，这是第五天。<a id="more"></a>
-
-在第一天上帝搞互联网的时候，远在天界东边的玉皇大帝就从千里眼和顺风耳那里得到了线报。玉帝有点迷惑，“这哥们搞什么东东呢？”问了所有神仙，大 家都不知道，玉帝觉得这样不行，我们得与时俱进，向西方学习。玉帝说：“要有中国互联网”。于是中国也有了互联网。
-
-第二天，玉帝上互联网，全是英文网站，除了图片以外，什么都看不懂，玉帝很头大。玉帝说：“要有中文网站”。于是中文网站雨后春笋般的出现了。
-
-第三天，玉帝不爽了，为什么？联系不方便啊，还是要叫千里眼和顺风耳，丫的，太麻烦了，可是ICQ、MSN都是英文的啊？玉帝说：“要有中文的及时通讯。”于是有了QQ。玉帝玩上了QQ，跟王母娘娘聊的很开心。
-
-第四天，中文网站也太多了，看的玉帝眼花缭乱，心情也比较烦乱，就问太白金星怎么办。太白金星这个老家伙说：“好，一得给他们分类，二得推荐些好网 站，三得经常有新东西……”玉帝觉得他很罗嗦。玉帝说，你说什么“好一二三”？然后，hao123就解决了玉帝和中国大众上网导航的问题。
-
-第五天，面对几亿的中文网页，虽然有hao123，但要找某些具体的信息实在太难了。玉帝发脾气了：“要找我去年在天庭的新闻发言稿怎么那么难呢？”太白 金星凑过来说，上帝那有个Google，挺不错的，推荐你用用。于是玉帝上Google，一眼看过去，全是英文的，玉帝直接爆炸了，回头把太白金星骂了个 狗血喷头：“你这什么馊主意？让我用他们搞的东西？没听过国货当自强吗？这个玩意我们得自己搞！”玉帝转过身问文曲星该怎么办，文曲星慢条斯里的吟开场 白：“众里寻她千百度，那人却在……”，玉帝说：“千你个头啊，百度！”这一瞬间，百度中文搜索引擎诞生了！
-
-玉帝很 满意百度。在百度，不但可以便捷的找到想要的信息，还可以在百度mp3搜索上找些小曲听听，更可以躲开王母偷偷的在百度图片搜索弄几张嫦娥的写真照片看 看，更绝的，是玉帝在百度贴吧开了个“玉皇大帝”吧来了解天下百姓对自己的歌功颂德——而这些是Google所没有的。时间长了，甚至在众神仙为某个事上 吵个不停的时候，玉帝就会说：“有问题，百度一下！”然后就没问题了。
-
-然而众神仙不明白，为什么玉帝不喜欢同样有中文版的Google，仅仅因为百度更符合中国大众使用习惯吗？后来，玉帝终于自揭谜底：这些洋网站总说用户是上帝，用户是上帝，用户真的是上帝？在中国，用户是玉帝！”大家恍然大悟。
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;a href=&quot;http://www.newsmth.net/bbscon.php?bid=951&amp;id=28755&quot;&gt;http://www.newsmth.net/bbscon.php?bid=951&amp;id=28755&lt;/a&gt;
-
-最早的时候,上帝很无聊,平时只能看看电视听听广播,偶尔玩玩超级玛丽,再就是和圣母玛丽亚通通电话.时间长了,这种生活越发枯燥.上帝觉得这样的生活太乏味,于是他说:“要有网”.然后就有了互联网,计算机都可以连在一起,这是第一天.
-
-光是有互联网也不行，起码得有点东西看吧。上帝说：“要有网站”。然后就有了全世界各种各样的大小网站，上帝在网站上看新闻、看图片，顺便还到论坛上发发贴，觉得互联网有些意思，这是第二天。
-
-圣母玛丽亚看上帝这两天没怎么打电话，比较生气，威胁上帝说要把互联网毁了，上帝觉得这样不好，于是上帝说：“要有即时通讯”。然后就有了即时通讯软件，上帝和圣母玛丽亚在互联网上视频语音聊天，圣母玛丽亚也觉得互联网很好玩，这是第三天。
-
-网站的数量太多了，也不知道那个网站更好看，上帝觉得这样太杂乱，于是上帝说：“要有导航网站”，然后就有了导航网站，上帝觉得分类目录挺好的，这是第四天。
-
-没想到，网站越来越多，网页也越来越多，找分类目录都找不过来了，上帝觉得比较郁闷，心想找个东西怎么这么难呢？但这难不倒上帝，上帝说：“要有搜 索引擎”，然后就有了搜索引擎，上帝使用搜索引擎，很快的就可以找到自己想要的东西，上帝觉得非常有成就感，这是第五天。
-    
-    </summary>
-    
-    
-      <category term="Joke" scheme="http://wdicc.com/tags/Joke/"/>
-    
-  </entry>
-  
-  <entry>
     <title>给nagios添加故障时短信通知</title>
     <link href="http://wdicc.com/nagios-sms-alert/"/>
     <id>http://wdicc.com/nagios-sms-alert/</id>
@@ -14052,6 +14040,61 @@ command_line    /bin/echo -e "$HOSTADDRESS$($NOTIFICATIONNUMBER$)n$SERVICEDESC$-
     
     
       <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>看到一篇有意思的文章-[上帝与Google，玉帝与Baidu]</title>
+    <link href="http://wdicc.com/a-joke-10/"/>
+    <id>http://wdicc.com/a-joke-10/</id>
+    <published>2006-12-04T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:36.000Z</updated>
+    
+    <content type="html"><![CDATA[<a href="http://www.newsmth.net/bbscon.php?bid=951&id=28755" target="_blank" rel="external">http://www.newsmth.net/bbscon.php?bid=951&id=28755</a>
+
+最早的时候,上帝很无聊,平时只能看看电视听听广播,偶尔玩玩超级玛丽,再就是和圣母玛丽亚通通电话.时间长了,这种生活越发枯燥.上帝觉得这样的生活太乏味,于是他说:“要有网”.然后就有了互联网,计算机都可以连在一起,这是第一天.
+
+光是有互联网也不行，起码得有点东西看吧。上帝说：“要有网站”。然后就有了全世界各种各样的大小网站，上帝在网站上看新闻、看图片，顺便还到论坛上发发贴，觉得互联网有些意思，这是第二天。
+
+圣母玛丽亚看上帝这两天没怎么打电话，比较生气，威胁上帝说要把互联网毁了，上帝觉得这样不好，于是上帝说：“要有即时通讯”。然后就有了即时通讯软件，上帝和圣母玛丽亚在互联网上视频语音聊天，圣母玛丽亚也觉得互联网很好玩，这是第三天。
+
+网站的数量太多了，也不知道那个网站更好看，上帝觉得这样太杂乱，于是上帝说：“要有导航网站”，然后就有了导航网站，上帝觉得分类目录挺好的，这是第四天。
+
+没想到，网站越来越多，网页也越来越多，找分类目录都找不过来了，上帝觉得比较郁闷，心想找个东西怎么这么难呢？但这难不倒上帝，上帝说：“要有搜 索引擎”，然后就有了搜索引擎，上帝使用搜索引擎，很快的就可以找到自己想要的东西，上帝觉得非常有成就感，这是第五天。<a id="more"></a>
+
+在第一天上帝搞互联网的时候，远在天界东边的玉皇大帝就从千里眼和顺风耳那里得到了线报。玉帝有点迷惑，“这哥们搞什么东东呢？”问了所有神仙，大 家都不知道，玉帝觉得这样不行，我们得与时俱进，向西方学习。玉帝说：“要有中国互联网”。于是中国也有了互联网。
+
+第二天，玉帝上互联网，全是英文网站，除了图片以外，什么都看不懂，玉帝很头大。玉帝说：“要有中文网站”。于是中文网站雨后春笋般的出现了。
+
+第三天，玉帝不爽了，为什么？联系不方便啊，还是要叫千里眼和顺风耳，丫的，太麻烦了，可是ICQ、MSN都是英文的啊？玉帝说：“要有中文的及时通讯。”于是有了QQ。玉帝玩上了QQ，跟王母娘娘聊的很开心。
+
+第四天，中文网站也太多了，看的玉帝眼花缭乱，心情也比较烦乱，就问太白金星怎么办。太白金星这个老家伙说：“好，一得给他们分类，二得推荐些好网 站，三得经常有新东西……”玉帝觉得他很罗嗦。玉帝说，你说什么“好一二三”？然后，hao123就解决了玉帝和中国大众上网导航的问题。
+
+第五天，面对几亿的中文网页，虽然有hao123，但要找某些具体的信息实在太难了。玉帝发脾气了：“要找我去年在天庭的新闻发言稿怎么那么难呢？”太白 金星凑过来说，上帝那有个Google，挺不错的，推荐你用用。于是玉帝上Google，一眼看过去，全是英文的，玉帝直接爆炸了，回头把太白金星骂了个 狗血喷头：“你这什么馊主意？让我用他们搞的东西？没听过国货当自强吗？这个玩意我们得自己搞！”玉帝转过身问文曲星该怎么办，文曲星慢条斯里的吟开场 白：“众里寻她千百度，那人却在……”，玉帝说：“千你个头啊，百度！”这一瞬间，百度中文搜索引擎诞生了！
+
+玉帝很 满意百度。在百度，不但可以便捷的找到想要的信息，还可以在百度mp3搜索上找些小曲听听，更可以躲开王母偷偷的在百度图片搜索弄几张嫦娥的写真照片看 看，更绝的，是玉帝在百度贴吧开了个“玉皇大帝”吧来了解天下百姓对自己的歌功颂德——而这些是Google所没有的。时间长了，甚至在众神仙为某个事上 吵个不停的时候，玉帝就会说：“有问题，百度一下！”然后就没问题了。
+
+然而众神仙不明白，为什么玉帝不喜欢同样有中文版的Google，仅仅因为百度更符合中国大众使用习惯吗？后来，玉帝终于自揭谜底：这些洋网站总说用户是上帝，用户是上帝，用户真的是上帝？在中国，用户是玉帝！”大家恍然大悟。
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;a href=&quot;http://www.newsmth.net/bbscon.php?bid=951&amp;id=28755&quot;&gt;http://www.newsmth.net/bbscon.php?bid=951&amp;id=28755&lt;/a&gt;
+
+最早的时候,上帝很无聊,平时只能看看电视听听广播,偶尔玩玩超级玛丽,再就是和圣母玛丽亚通通电话.时间长了,这种生活越发枯燥.上帝觉得这样的生活太乏味,于是他说:“要有网”.然后就有了互联网,计算机都可以连在一起,这是第一天.
+
+光是有互联网也不行，起码得有点东西看吧。上帝说：“要有网站”。然后就有了全世界各种各样的大小网站，上帝在网站上看新闻、看图片，顺便还到论坛上发发贴，觉得互联网有些意思，这是第二天。
+
+圣母玛丽亚看上帝这两天没怎么打电话，比较生气，威胁上帝说要把互联网毁了，上帝觉得这样不好，于是上帝说：“要有即时通讯”。然后就有了即时通讯软件，上帝和圣母玛丽亚在互联网上视频语音聊天，圣母玛丽亚也觉得互联网很好玩，这是第三天。
+
+网站的数量太多了，也不知道那个网站更好看，上帝觉得这样太杂乱，于是上帝说：“要有导航网站”，然后就有了导航网站，上帝觉得分类目录挺好的，这是第四天。
+
+没想到，网站越来越多，网页也越来越多，找分类目录都找不过来了，上帝觉得比较郁闷，心想找个东西怎么这么难呢？但这难不倒上帝，上帝说：“要有搜 索引擎”，然后就有了搜索引擎，上帝使用搜索引擎，很快的就可以找到自己想要的东西，上帝觉得非常有成就感，这是第五天。
+    
+    </summary>
+    
+    
+      <category term="Joke" scheme="http://wdicc.com/tags/Joke/"/>
     
   </entry>
   
@@ -14261,6 +14304,36 @@ Using the “table” and “fullscreen” from this file is all that’s needed
     
     
       <category term="Web" scheme="http://wdicc.com/tags/Web/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>申请了google adsense</title>
+    <link href="http://wdicc.com/google-adsense/"/>
+    <id>http://wdicc.com/google-adsense/</id>
+    <published>2006-11-19T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:36.000Z</updated>
+    
+    <content type="html"><![CDATA[以前好像申请过，不过没有通过。这次试试看又申请了一次，通过了，呵呵。尝试在网页上面添加了一下东东，不知道管用不管用，试试看了。google的那个公益广告其实有点意思，“你知道xxx吗？”我觉得挺吸引人的，我也选择了没关键字的时候显示公益广告了，可是看了半天好像也没显示公益广告。
+
+前几天maillist看到有人说通过adsense一个月可以收入450$，这个吓了一跳，真不少呢。不过我只希望他能给我把域名的钱赚回来就好了，如果还有富余，就去买块国外的空间，呵呵。
+
+adsense让一些小网站有了希望，至少，开一个网站不赔钱，或许应该没问题吧。现在域名加一小块空间，好像也不是很贵，所以指望adsense还是可以的。
+
+adsense同时也鼓励这些小网站能作出内容来，有内容，才会有人来访问，才有可能赚点钱。其实这样挺好的。
+]]></content>
+    
+    <summary type="html">
+    
+      以前好像申请过，不过没有通过。这次试试看又申请了一次，通过了，呵呵。尝试在网页上面添加了一下东东，不知道管用不管用，试试看了。google的那个公益广告其实有点意思，“你知道xxx吗？”我觉得挺吸引人的，我也选择了没关键字的时候显示公益广告了，可是看了半天好像也没显示公益广告。
+
+    
+    </summary>
+    
+    
+      <category term="Web" scheme="http://wdicc.com/tags/Web/"/>
+    
+      <category term="adsense" scheme="http://wdicc.com/tags/adsense/"/>
     
   </entry>
   
@@ -14596,36 +14669,6 @@ Piszcz（2006)进行了21项测试，在一台有768M内存，400G EIDE133硬盘
     
     
       <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>申请了google adsense</title>
-    <link href="http://wdicc.com/google-adsense/"/>
-    <id>http://wdicc.com/google-adsense/</id>
-    <published>2006-11-19T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:36.000Z</updated>
-    
-    <content type="html"><![CDATA[以前好像申请过，不过没有通过。这次试试看又申请了一次，通过了，呵呵。尝试在网页上面添加了一下东东，不知道管用不管用，试试看了。google的那个公益广告其实有点意思，“你知道xxx吗？”我觉得挺吸引人的，我也选择了没关键字的时候显示公益广告了，可是看了半天好像也没显示公益广告。
-
-前几天maillist看到有人说通过adsense一个月可以收入450$，这个吓了一跳，真不少呢。不过我只希望他能给我把域名的钱赚回来就好了，如果还有富余，就去买块国外的空间，呵呵。
-
-adsense让一些小网站有了希望，至少，开一个网站不赔钱，或许应该没问题吧。现在域名加一小块空间，好像也不是很贵，所以指望adsense还是可以的。
-
-adsense同时也鼓励这些小网站能作出内容来，有内容，才会有人来访问，才有可能赚点钱。其实这样挺好的。
-]]></content>
-    
-    <summary type="html">
-    
-      以前好像申请过，不过没有通过。这次试试看又申请了一次，通过了，呵呵。尝试在网页上面添加了一下东东，不知道管用不管用，试试看了。google的那个公益广告其实有点意思，“你知道xxx吗？”我觉得挺吸引人的，我也选择了没关键字的时候显示公益广告了，可是看了半天好像也没显示公益广告。
-
-    
-    </summary>
-    
-    
-      <category term="Web" scheme="http://wdicc.com/tags/Web/"/>
-    
-      <category term="adsense" scheme="http://wdicc.com/tags/adsense/"/>
     
   </entry>
   
@@ -15856,29 +15899,6 @@ nagios tray icon得设置界面如下，出问题得时候他不会弹出窗口�
   </entry>
   
   <entry>
-    <title>毛毛旧照</title>
-    <link href="http://wdicc.com/maomao-photo/"/>
-    <id>http://wdicc.com/maomao-photo/</id>
-    <published>2006-08-07T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/210049529/IMG_0027.html" target="_blank" rel="external"><img height="375" alt="IMG_0027" src="http://static.flickr.com/76/210049529_0c706d393e.jpg" width="500" border="0"></a> <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/210049445/IMG_0022.html" target="_blank" rel="external"><img height="375" alt="IMG_0022" src="http://static.flickr.com/62/210049445_fdb84f0ae6.jpg" width="500" border="0"></a>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;a class=&quot;tt-flickr&quot; href=&quot;http://blog.wdicc.com/wordpress/Photos/photo/210049529/IMG_0027.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;&lt;img height=
-    
-    </summary>
-    
-    
-      <category term="Cats" scheme="http://wdicc.com/tags/Cats/"/>
-    
-      <category term="毛毛" scheme="http://wdicc.com/tags/%E6%AF%9B%E6%AF%9B/"/>
-    
-  </entry>
-  
-  <entry>
     <title>美国, 香港, 中国大陆三地警察</title>
     <link href="http://wdicc.com/caps-in-usa-hk-and-china/"/>
     <id>http://wdicc.com/caps-in-usa-hk-and-china/</id>
@@ -15910,225 +15930,93 @@ nagios tray icon得设置界面如下，出问题得时候他不会弹出窗口�
   </entry>
   
   <entry>
-    <title>Oracle维护常用SQL语句</title>
-    <link href="http://wdicc.com/usefull-sql/"/>
-    <id>http://wdicc.com/usefull-sql/</id>
-    <published>2006-08-04T16:00:00.000Z</published>
+    <title>毛毛旧照</title>
+    <link href="http://wdicc.com/maomao-photo/"/>
+    <id>http://wdicc.com/maomao-photo/</id>
+    <published>2006-08-07T16:00:00.000Z</published>
     <updated>2016-07-13T08:22:35.000Z</updated>
     
-    <content type="html"><![CDATA[查看所有用户
-<pre class="prettyprint lang-sql">
-select username,password from dba_users;
-</pre>
-1、查看表空间的名称及大小
-<pre class="prettyprint lang-sql">
-select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
-from dba_tablespaces t, dba_data_files d
-where t.tablespace_name = d.tablespace_name
-group by t.tablespace_name;
-</pre>
-2、查看表空间物理文件的名称及大小
-<pre class="prettyprint lang-sql">
-select tablespace_name, file_id, file_name,
-round(bytes/(1024*1024),0) total_space
-from dba_data_files
-order by tablespace_name;
-</pre>
-<a id="more"></a>
-3、查看回滚段名称及大小
-<pre class="prettyprint lang-sql">
-select segment_name, tablespace_name, r.status,
-(initial_extent/1024) InitialExtent,(next_extent/1024) NextExtent,
-max_extents, v.curext CurExtent
-From dba_rollback_segs r, v$rollstat v
-Where r.segment_id = v.usn(+)
-order by segment_name ;
-</pre>
-4、查看控制文件
-<pre class="prettyprint lang-sql">
-select name from v$controlfile;
-</pre>
-5、查看日志文件
-<pre class="prettyprint lang-sql">
-select member from v$logfile;
-</pre>
-6、查看表空间的使用情况
-<pre class="prettyprint lang-sql">
-select sum(bytes)/(1024*1024) as free_space,tablespace_name
-from dba_free_space
-group by tablespace_name;
-
-SELECT A.TABLESPACE_NAME,A.BYTES TOTAL,B.BYTES USED, C.BYTES FREE,
-(B.BYTES*100)/A.BYTES "% USED",(C.BYTES*100)/A.BYTES "% FREE"
-FROM SYS.SM$TS_AVAIL A,SYS.SM$TS_USED B,SYS.SM$TS_FREE C
-WHERE A.TABLESPACE_NAME=B.TABLESPACE_NAME AND A.TABLESPACE_NAME=C.TABLESPACE_NAME;
-</pre>
-7、查看数据库库对象
-select owner, object_type, status, count(*) count# from all_objects group by owner, object_type, status;
-
-8、查看数据库的版本
-Select version FROM Product_component_version
-Where SUBSTR(PRODUCT,1,6)='Oracle';
-
-9、查看数据库的创建日期和归档方式
-Select Created, Log_Mode, Log_Mode From V$Database;
-
-10、捕捉运行很久的SQL
-column username format a12
-column opname format a16
-column progress format a8
-select username,sid,opname,
-round(sofar*100 / totalwork,0) || '%' as progress,
-time_remaining,sql_text
-from v$session_longops , v$sql
-where time_remaining <> 0
-and sql_address = address
-and sql_hash_value = hash_value
-/
-
-11、查看数据表的参数信息
-SELECT partition_name, high_value, high_value_length, tablespace_name,
-pct_free, pct_used, ini_trans, max_trans, initial_extent,
-next_extent, min_extent, max_extent, pct_increase, FREELISTS,
-freelist_groups, LOGGING, BUFFER_POOL, num_rows, blocks,
-empty_blocks, avg_space, chain_cnt, avg_row_len, sample_size,
-last_analyzed
-FROM dba_tab_partitions
---WHERE table_name = :tname AND table_owner = :towner
-ORDER BY partition_position
-
-12、查看还没提交的事务
-select * from v$locked_object;
-select * from v$transaction;
-
-13、查找object为哪些进程所用
-select
-p.spid,
-s.sid,
-s.serial# serial_num,
-s.username user_name,
-a.type object_type,
-s.osuser os_user_name,
-a.owner,
-a.object object_name,
-decode(sign(48 - command),
-1,
-to_char(command), 'Action Code #' || to_char(command) ) action,
-p.program oracle_process,
-s.terminal terminal,
-s.program program,
-s.status session_status
-from v$session s, v$access a, v$process p
-where s.paddr = p.addr and
-s.type = 'USER' and
-a.sid = s.sid and
-a.object='SUBSCRIBER_ATTR'
-order by s.username, s.osuser
-
-14、回滚段查看
-select rownum, sys.dba_rollback_segs.segment_name Name, v$rollstat.extents
-Extents, v$rollstat.rssize Size_in_Bytes, v$rollstat.xacts XActs,
-v$rollstat.gets Gets, v$rollstat.waits Waits, v$rollstat.writes Writes,
-sys.dba_rollback_segs.status status from v$rollstat, sys.dba_rollback_segs,
-v$rollname where v$rollname.name(+) = sys.dba_rollback_segs.segment_name and
-v$rollstat.usn (+) = v$rollname.usn order by rownum
-
-15、耗资源的进程(top session)
-select s.schemaname schema_name, decode(sign(48 - command), 1,
-to_char(command), 'Action Code #' || to_char(command) ) action, status
-session_status, s.osuser os_user_name, s.sid, p.spid , s.serial# serial_num,
-nvl(s.username, '[Oracle process]') user_name, s.terminal terminal,
-s.program program, st.value criteria_value from v$sesstat st, v$session s , v$process p
-where st.sid = s.sid and st.statistic# = to_number('38') and ('ALL' = 'ALL'
-or s.status = 'ALL') and p.addr = s.paddr order by st.value desc, p.spid asc, s.username asc, s.osuser asc
-
-16、查看锁(lock)情况
-select /*+ RULE */ ls.osuser os_user_name, ls.username user_name,
-decode(ls.type, 'RW', 'Row wait enqueue lock', 'TM', 'DML enqueue lock', 'TX',
-'Transaction enqueue lock', 'UL', 'User supplied lock') lock_type,
-o.object_name object, decode(ls.lmode, 1, null, 2, 'Row Share', 3,
-'Row Exclusive', 4, 'Share', 5, 'Share Row Exclusive', 6, 'Exclusive', null)
-lock_mode, o.owner, ls.sid, ls.serial# serial_num, ls.id1, ls.id2
-from sys.dba_objects o, ( select s.osuser, s.username, l.type,
-l.lmode, s.sid, s.serial#, l.id1, l.id2 from v$session s,
-v$lock l where s.sid = l.sid ) ls where o.object_id = ls.id1 and o.owner
-<> 'SYS' order by o.owner, o.object_name
-
-17、查看等待(wait)情况
-SELECT v$waitstat.class, v$waitstat.count count, SUM(v$sysstat.value) sum_value
-FROM v$waitstat, v$sysstat WHERE v$sysstat.name IN ('db block gets',
-'consistent gets') group by v$waitstat.class, v$waitstat.count
-
-18、查看sga情况
-SELECT NAME, BYTES FROM SYS.V_$SGASTAT ORDER BY NAME ASC
-
-19、查看catched object
-SELECT owner, name, db_link, namespace,
-type, sharable_mem, loads, executions,
-locks, pins, kept FROM v$db_object_cache
-
-20、查看V$SQLAREA
-SELECT SQL_TEXT, SHARABLE_MEM, PERSISTENT_MEM, RUNTIME_MEM, SORTS,
-VERSION_COUNT, LOADED_VERSIONS, OPEN_VERSIONS, USERS_OPENING, EXECUTIONS,
-USERS_EXECUTING, LOADS, FIRST_LOAD_TIME, INVALIDATIONS, PARSE_CALLS, DISK_READS,
-BUFFER_GETS, ROWS_PROCESSED FROM V$SQLAREA
-
-21、查看object分类数量
-select decode (o.type#,1,'INDEX' , 2,'TABLE' , 3 , 'CLUSTER' , 4, 'VIEW' , 5 ,
-'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) object_type , count(*) quantity from
-sys.obj$ o where o.type# > 1 group by decode (o.type#,1,'INDEX' , 2,'TABLE' , 3
-, 'CLUSTER' , 4, 'VIEW' , 5 , 'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) union select
-'COLUMN' , count(*) from sys.col$ union select 'DB LINK' , count(*) from
-
-22、按用户查看object种类
-select u.name schema, sum(decode(o.type#, 1, 1, NULL)) indexes,
-sum(decode(o.type#, 2, 1, NULL)) tables, sum(decode(o.type#, 3, 1, NULL))
-clusters, sum(decode(o.type#, 4, 1, NULL)) views, sum(decode(o.type#, 5, 1,
-NULL)) synonyms, sum(decode(o.type#, 6, 1, NULL)) sequences,
-sum(decode(o.type#, 1, NULL, 2, NULL, 3, NULL, 4, NULL, 5, NULL, 6, NULL, 1))
-others from sys.obj$ o, sys.user$ u where o.type# >= 1 and u.user# =
-o.owner# and u.name <> 'PUBLIC' group by u.name order by
-sys.link$ union select 'CONSTRAINT' , count(*) from sys.con$
-
-23、有关connection的相关信息
-
-1)查看有哪些用户连接
-select s.osuser os_user_name, decode(sign(48 - command), 1, to_char(command),
-'Action Code #' || to_char(command) ) action, p.program oracle_process,
-status session_status, s.terminal terminal, s.program program,
-s.username user_name, s.fixed_table_sequence activity_meter, '' query,
-0 memory, 0 max_memory, 0 cpu_usage, s.sid, s.serial# serial_num
-from v$session s, v$process p where s.paddr=p.addr and s.type = 'USER'
-order by s.username, s.osuser
-
-2)
+    <content type="html"><![CDATA[<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/210049529/IMG_0027.html" target="_blank" rel="external"><img height="375" alt="IMG_0027" src="http://static.flickr.com/76/210049529_0c706d393e.jpg" width="500" border="0"></a> <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/210049445/IMG_0022.html" target="_blank" rel="external"><img height="375" alt="IMG_0022" src="http://static.flickr.com/62/210049445_fdb84f0ae6.jpg" width="500" border="0"></a>
 ]]></content>
     
     <summary type="html">
     
-      查看所有用户
-&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
-select username,password from dba_users;
-&lt;/pre&gt;
-1、查看表空间的名称及大小
-&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
-select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
-from dba_tablespaces t, dba_data_files d
-where t.tablespace_name = d.tablespace_name
-group by t.tablespace_name;
-&lt;/pre&gt;
-2、查看表空间物理文件的名称及大小
-&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
-select tablespace_name, file_id, file_name,
-round(bytes/(1024*1024),0) total_space
-from dba_data_files
-order by tablespace_name;
-&lt;/pre&gt;
+      &lt;a class=&quot;tt-flickr&quot; href=&quot;http://blog.wdicc.com/wordpress/Photos/photo/210049529/IMG_0027.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;&lt;img height=
+    
+    </summary>
+    
+    
+      <category term="Cats" scheme="http://wdicc.com/tags/Cats/"/>
+    
+      <category term="毛毛" scheme="http://wdicc.com/tags/%E6%AF%9B%E6%AF%9B/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>weblogic乱码问题</title>
+    <link href="http://wdicc.com/weblogic-encoding/"/>
+    <id>http://wdicc.com/weblogic-encoding/</id>
+    <published>2006-08-04T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[1 先看这里：WebLogic8.1的中文问题解决方法
+
+http://dev2dev.bea.com.cn/techdoc/200311546.html
+
+
+2 看看系统locale的设置，可以使用locale命令查看当前的locale设置，可以使用如下命令设置locale。
+
+#LANG=en_US
+
+没有在weblogic的手册中找到关于这部分的信息，可以测试一下系统locale对应用是否有影响。
+<a id="more"></a>
+3 下面是手册中关于国际化的一段说法，按照下面的说法，应该是不管有没有设置weblogic的字符集，他都会正确处理多字节字符，默认使用的是utf－8。
+
+Often the default character sets used by WebLogic Server are adequate and you do not need to explicitly specify a character set for a Web Service. For example, if a client application specifies its preferred character set, and there is no character set specified for a Web Service, then WebLogic Server responds by using the client's preferred character set. Also, non-internationalized WebLogic Server instances use the US-ASCII character set by default, and internationalized WebLogic Server instances use the UTF-8 character set by default, and both of these character sets are compatible when one WebLogic Server instance is communicating with the other. This also means that a Web Service running on a non-internationalized WebLogic Server instance can handle multi-byte characters correctly.
+
+具体修改的方法可以参看这里：http://e-docs.bea.com/wls/docs81/webserv/i18n.html。
+生效的顺序如下：
+
+Order of Precedence of Character Set Configuration Used By WebLogic Server
+
+The following list shows the order by which WebLogic Server determines the character set of a WebLogic Web Service when it is creating the SOAP response to an invoke of one of its operations:
+
+1. The value of the charset attribute in the corresponding <web-service> element of the web-services.xml deployment descriptor.
+
+If this is not set, then WebLogic Server looks at the following:
+
+2. The character set preferred by the client application that invoked the Web Service operation. If your client application uses the WebLogic Web Services client APIS, the character set is specified using the weblogic.webservice.binding.BindingInfo.setAcceptCharset() method.
+
+If this is not set, then WebLogic Server looks at the following:
+
+3. The value of the WebLogic Server system property weblogic.webservice.i18n.charset.
+
+If this is not set, then WebLogic Server looks at the following:
+
+4. The character set specified for the JVM. Specifically, if the JVM property user.language is set to en, then WebLogic Web Services use the US-ASCII character set. If the user.language property is set to anything else, WebLogic Web Services use the UTF-8 character set.
+</web-service>]]></content>
+    
+    <summary type="html">
+    
+      1 先看这里：WebLogic8.1的中文问题解决方法
+
+http://dev2dev.bea.com.cn/techdoc/200311546.html
+
+
+2 看看系统locale的设置，可以使用locale命令查看当前的locale设置，可以使用如下命令设置locale。
+
+#LANG=en_US
+
+没有在weblogic的手册中找到关于这部分的信息，可以测试一下系统locale对应用是否有影响。
     
     </summary>
     
     
       <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+      <category term="乱码" scheme="http://wdicc.com/tags/%E4%B9%B1%E7%A0%81/"/>
+    
+      <category term="weblogc" scheme="http://wdicc.com/tags/weblogc/"/>
     
   </entry>
   
@@ -16296,127 +16184,6 @@ c) 保存，重启即可。
   </entry>
   
   <entry>
-    <title>weblogic乱码问题</title>
-    <link href="http://wdicc.com/weblogic-encoding/"/>
-    <id>http://wdicc.com/weblogic-encoding/</id>
-    <published>2006-08-04T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[1 先看这里：WebLogic8.1的中文问题解决方法
-
-http://dev2dev.bea.com.cn/techdoc/200311546.html
-
-
-2 看看系统locale的设置，可以使用locale命令查看当前的locale设置，可以使用如下命令设置locale。
-
-#LANG=en_US
-
-没有在weblogic的手册中找到关于这部分的信息，可以测试一下系统locale对应用是否有影响。
-<a id="more"></a>
-3 下面是手册中关于国际化的一段说法，按照下面的说法，应该是不管有没有设置weblogic的字符集，他都会正确处理多字节字符，默认使用的是utf－8。
-
-Often the default character sets used by WebLogic Server are adequate and you do not need to explicitly specify a character set for a Web Service. For example, if a client application specifies its preferred character set, and there is no character set specified for a Web Service, then WebLogic Server responds by using the client's preferred character set. Also, non-internationalized WebLogic Server instances use the US-ASCII character set by default, and internationalized WebLogic Server instances use the UTF-8 character set by default, and both of these character sets are compatible when one WebLogic Server instance is communicating with the other. This also means that a Web Service running on a non-internationalized WebLogic Server instance can handle multi-byte characters correctly.
-
-具体修改的方法可以参看这里：http://e-docs.bea.com/wls/docs81/webserv/i18n.html。
-生效的顺序如下：
-
-Order of Precedence of Character Set Configuration Used By WebLogic Server
-
-The following list shows the order by which WebLogic Server determines the character set of a WebLogic Web Service when it is creating the SOAP response to an invoke of one of its operations:
-
-1. The value of the charset attribute in the corresponding <web-service> element of the web-services.xml deployment descriptor.
-
-If this is not set, then WebLogic Server looks at the following:
-
-2. The character set preferred by the client application that invoked the Web Service operation. If your client application uses the WebLogic Web Services client APIS, the character set is specified using the weblogic.webservice.binding.BindingInfo.setAcceptCharset() method.
-
-If this is not set, then WebLogic Server looks at the following:
-
-3. The value of the WebLogic Server system property weblogic.webservice.i18n.charset.
-
-If this is not set, then WebLogic Server looks at the following:
-
-4. The character set specified for the JVM. Specifically, if the JVM property user.language is set to en, then WebLogic Web Services use the US-ASCII character set. If the user.language property is set to anything else, WebLogic Web Services use the UTF-8 character set.
-</web-service>]]></content>
-    
-    <summary type="html">
-    
-      1 先看这里：WebLogic8.1的中文问题解决方法
-
-http://dev2dev.bea.com.cn/techdoc/200311546.html
-
-
-2 看看系统locale的设置，可以使用locale命令查看当前的locale设置，可以使用如下命令设置locale。
-
-#LANG=en_US
-
-没有在weblogic的手册中找到关于这部分的信息，可以测试一下系统locale对应用是否有影响。
-    
-    </summary>
-    
-    
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-      <category term="weblogc" scheme="http://wdicc.com/tags/weblogc/"/>
-    
-      <category term="乱码" scheme="http://wdicc.com/tags/%E4%B9%B1%E7%A0%81/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>可以关闭的linux系统服务</title>
-    <link href="http://wdicc.com/service-can-stop/"/>
-    <id>http://wdicc.com/service-can-stop/</id>
-    <published>2006-08-04T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[转自车东的blog
-
-sudo /sbin/chkconfig --list| grep 3:on | awk '{print "/sbin/chkconfig "$1" off"}'
-/sbin/chkconfig acpid off
-/sbin/chkconfig anacron off
-/sbin/chkconfig apmd off
-/sbin/chkconfig auditd off
-/sbin/chkconfig autofs off
-/sbin/chkconfig bluetooth off
-/sbin/chkconfig cpuspeed off
-/sbin/chkconfig cups off
-/sbin/chkconfig gpm off
-/sbin/chkconfig haldaemon off
-/sbin/chkconfig iptables off
-/sbin/chkconfig isdn off
-/sbin/chkconfig kudzu off
-/sbin/chkconfig mDNSResponder off
-/sbin/chkconfig mdmonitor off
-/sbin/chkconfig messagebus off
-/sbin/chkconfig netfs off
-/sbin/chkconfig nfslock off
-/sbin/chkconfig nifd off
-/sbin/chkconfig pcmcia off
-/sbin/chkconfig portmap off
-/sbin/chkconfig rhnsd off
-/sbin/chkconfig rpcgssd off
-/sbin/chkconfig rpcidmapd off
-/sbin/chkconfig sendmail off
-/sbin/chkconfig xfs off
-]]></content>
-    
-    <summary type="html">
-    
-      转自车东的blog
-
-sudo /sbin/chkconfig --list| grep 3:on | awk &#39;{print &quot;/sbin/chkconfig &quot;$1&quot; off&quot;}&#39;
-/sbin/chkconfig acpid off
-/sbin/chkconfig anacr
-    
-    </summary>
-    
-    
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-  </entry>
-  
-  <entry>
     <title>Oracle数据库日常维护手册</title>
     <link href="http://wdicc.com/oracle-handbook/"/>
     <id>http://wdicc.com/oracle-handbook/</id>
@@ -16580,6 +16347,59 @@ sudo /sbin/chkconfig --list| grep 3:on | awk &#39;{print &quot;/sbin/chkconfig &
   </entry>
   
   <entry>
+    <title>可以关闭的linux系统服务</title>
+    <link href="http://wdicc.com/service-can-stop/"/>
+    <id>http://wdicc.com/service-can-stop/</id>
+    <published>2006-08-04T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[转自车东的blog
+
+sudo /sbin/chkconfig --list| grep 3:on | awk '{print "/sbin/chkconfig "$1" off"}'
+/sbin/chkconfig acpid off
+/sbin/chkconfig anacron off
+/sbin/chkconfig apmd off
+/sbin/chkconfig auditd off
+/sbin/chkconfig autofs off
+/sbin/chkconfig bluetooth off
+/sbin/chkconfig cpuspeed off
+/sbin/chkconfig cups off
+/sbin/chkconfig gpm off
+/sbin/chkconfig haldaemon off
+/sbin/chkconfig iptables off
+/sbin/chkconfig isdn off
+/sbin/chkconfig kudzu off
+/sbin/chkconfig mDNSResponder off
+/sbin/chkconfig mdmonitor off
+/sbin/chkconfig messagebus off
+/sbin/chkconfig netfs off
+/sbin/chkconfig nfslock off
+/sbin/chkconfig nifd off
+/sbin/chkconfig pcmcia off
+/sbin/chkconfig portmap off
+/sbin/chkconfig rhnsd off
+/sbin/chkconfig rpcgssd off
+/sbin/chkconfig rpcidmapd off
+/sbin/chkconfig sendmail off
+/sbin/chkconfig xfs off
+]]></content>
+    
+    <summary type="html">
+    
+      转自车东的blog
+
+sudo /sbin/chkconfig --list| grep 3:on | awk &#39;{print &quot;/sbin/chkconfig &quot;$1&quot; off&quot;}&#39;
+/sbin/chkconfig acpid off
+/sbin/chkconfig anacr
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+  </entry>
+  
+  <entry>
     <title>数据恢复步骤</title>
     <link href="http://wdicc.com/recover-date/"/>
     <id>http://wdicc.com/recover-date/</id>
@@ -16617,6 +16437,84 @@ create user &lt;user&gt; identified by &lt;password
       <category term="oracle" scheme="http://wdicc.com/tags/oracle/"/>
     
       <category term="恢复" scheme="http://wdicc.com/tags/%E6%81%A2%E5%A4%8D/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Oracle10g EM乱码之快速解决</title>
+    <link href="http://wdicc.com/oracle-em-encoding/"/>
+    <id>http://wdicc.com/oracle-em-encoding/</id>
+    <published>2006-08-04T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[来源 <a target="_blank" href="http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html">这里</a>
+
+一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.
+
+如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.
+
+在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:
+<a id="more"></a>
+[oracle@danaly ~]$ cd $ORACLE_HOME/jdk/jre/lib
+[oracle@danaly lib]$ ls font*zh_CN*
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
+
+[oracle@danaly lib]$ cd $ORACLE_HOME/jre/1.4.2/lib/
+[oracle@danaly lib]$ ls font*zh_CN*
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
+
+我们只要用合适的中文字符集文件替换缺省文件即可,我选择使用font.properties.zh_CN.Redhat来替换缺省字体定义文件:
+
+[oracle@danaly lib]$ cp font.properties.zh_CN.Redhat font.properties
+
+替换之后需要清理一下Cache,重启EM即可.
+
+Cache路径通常位于:
+
+$ORACLE_HOME/oc4j/j2ee/oc4j_applications/applications/em/em/cabo/images/cache/zhs
+
+清除所有gif文件即可.然后重新启动EM:
+
+[oracle@danaly zhs]$ emctl stop dbconsole
+TZ set to PRC
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
+Stopping Oracle Enterprise Manager 10g Database Control ...
+...  Stopped.
+[oracle@danaly zhs]$ emctl start dbconsole
+TZ set to PRC
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
+Starting Oracle Enterprise Manager 10g Database Control .............. started.
+------------------------------------------------------------------
+Logs are generated in directory
+/opt/oracle/product/10.2.0/danaly.hurrray.com.cn_danaly/sysman/log
+
+现在登陆Web页面,EM显示就可以正常显示中文了.
+]]></content>
+    
+    <summary type="html">
+    
+      来源 &lt;a target=&quot;_blank&quot; href=&quot;http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html&quot;&gt;这里&lt;/a&gt;
+
+一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.
+
+如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.
+
+在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:
+    
+    </summary>
+    
+    
+      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
+    
+      <category term="oracle" scheme="http://wdicc.com/tags/oracle/"/>
+    
+      <category term="乱码" scheme="http://wdicc.com/tags/%E4%B9%B1%E7%A0%81/"/>
     
   </entry>
   
@@ -17365,6 +17263,229 @@ $ORACLE_SID:$ORACLE_HOME:Y
   </entry>
   
   <entry>
+    <title>Oracle维护常用SQL语句</title>
+    <link href="http://wdicc.com/usefull-sql/"/>
+    <id>http://wdicc.com/usefull-sql/</id>
+    <published>2006-08-04T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[查看所有用户
+<pre class="prettyprint lang-sql">
+select username,password from dba_users;
+</pre>
+1、查看表空间的名称及大小
+<pre class="prettyprint lang-sql">
+select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
+from dba_tablespaces t, dba_data_files d
+where t.tablespace_name = d.tablespace_name
+group by t.tablespace_name;
+</pre>
+2、查看表空间物理文件的名称及大小
+<pre class="prettyprint lang-sql">
+select tablespace_name, file_id, file_name,
+round(bytes/(1024*1024),0) total_space
+from dba_data_files
+order by tablespace_name;
+</pre>
+<a id="more"></a>
+3、查看回滚段名称及大小
+<pre class="prettyprint lang-sql">
+select segment_name, tablespace_name, r.status,
+(initial_extent/1024) InitialExtent,(next_extent/1024) NextExtent,
+max_extents, v.curext CurExtent
+From dba_rollback_segs r, v$rollstat v
+Where r.segment_id = v.usn(+)
+order by segment_name ;
+</pre>
+4、查看控制文件
+<pre class="prettyprint lang-sql">
+select name from v$controlfile;
+</pre>
+5、查看日志文件
+<pre class="prettyprint lang-sql">
+select member from v$logfile;
+</pre>
+6、查看表空间的使用情况
+<pre class="prettyprint lang-sql">
+select sum(bytes)/(1024*1024) as free_space,tablespace_name
+from dba_free_space
+group by tablespace_name;
+
+SELECT A.TABLESPACE_NAME,A.BYTES TOTAL,B.BYTES USED, C.BYTES FREE,
+(B.BYTES*100)/A.BYTES "% USED",(C.BYTES*100)/A.BYTES "% FREE"
+FROM SYS.SM$TS_AVAIL A,SYS.SM$TS_USED B,SYS.SM$TS_FREE C
+WHERE A.TABLESPACE_NAME=B.TABLESPACE_NAME AND A.TABLESPACE_NAME=C.TABLESPACE_NAME;
+</pre>
+7、查看数据库库对象
+select owner, object_type, status, count(*) count# from all_objects group by owner, object_type, status;
+
+8、查看数据库的版本
+Select version FROM Product_component_version
+Where SUBSTR(PRODUCT,1,6)='Oracle';
+
+9、查看数据库的创建日期和归档方式
+Select Created, Log_Mode, Log_Mode From V$Database;
+
+10、捕捉运行很久的SQL
+column username format a12
+column opname format a16
+column progress format a8
+select username,sid,opname,
+round(sofar*100 / totalwork,0) || '%' as progress,
+time_remaining,sql_text
+from v$session_longops , v$sql
+where time_remaining <> 0
+and sql_address = address
+and sql_hash_value = hash_value
+/
+
+11、查看数据表的参数信息
+SELECT partition_name, high_value, high_value_length, tablespace_name,
+pct_free, pct_used, ini_trans, max_trans, initial_extent,
+next_extent, min_extent, max_extent, pct_increase, FREELISTS,
+freelist_groups, LOGGING, BUFFER_POOL, num_rows, blocks,
+empty_blocks, avg_space, chain_cnt, avg_row_len, sample_size,
+last_analyzed
+FROM dba_tab_partitions
+--WHERE table_name = :tname AND table_owner = :towner
+ORDER BY partition_position
+
+12、查看还没提交的事务
+select * from v$locked_object;
+select * from v$transaction;
+
+13、查找object为哪些进程所用
+select
+p.spid,
+s.sid,
+s.serial# serial_num,
+s.username user_name,
+a.type object_type,
+s.osuser os_user_name,
+a.owner,
+a.object object_name,
+decode(sign(48 - command),
+1,
+to_char(command), 'Action Code #' || to_char(command) ) action,
+p.program oracle_process,
+s.terminal terminal,
+s.program program,
+s.status session_status
+from v$session s, v$access a, v$process p
+where s.paddr = p.addr and
+s.type = 'USER' and
+a.sid = s.sid and
+a.object='SUBSCRIBER_ATTR'
+order by s.username, s.osuser
+
+14、回滚段查看
+select rownum, sys.dba_rollback_segs.segment_name Name, v$rollstat.extents
+Extents, v$rollstat.rssize Size_in_Bytes, v$rollstat.xacts XActs,
+v$rollstat.gets Gets, v$rollstat.waits Waits, v$rollstat.writes Writes,
+sys.dba_rollback_segs.status status from v$rollstat, sys.dba_rollback_segs,
+v$rollname where v$rollname.name(+) = sys.dba_rollback_segs.segment_name and
+v$rollstat.usn (+) = v$rollname.usn order by rownum
+
+15、耗资源的进程(top session)
+select s.schemaname schema_name, decode(sign(48 - command), 1,
+to_char(command), 'Action Code #' || to_char(command) ) action, status
+session_status, s.osuser os_user_name, s.sid, p.spid , s.serial# serial_num,
+nvl(s.username, '[Oracle process]') user_name, s.terminal terminal,
+s.program program, st.value criteria_value from v$sesstat st, v$session s , v$process p
+where st.sid = s.sid and st.statistic# = to_number('38') and ('ALL' = 'ALL'
+or s.status = 'ALL') and p.addr = s.paddr order by st.value desc, p.spid asc, s.username asc, s.osuser asc
+
+16、查看锁(lock)情况
+select /*+ RULE */ ls.osuser os_user_name, ls.username user_name,
+decode(ls.type, 'RW', 'Row wait enqueue lock', 'TM', 'DML enqueue lock', 'TX',
+'Transaction enqueue lock', 'UL', 'User supplied lock') lock_type,
+o.object_name object, decode(ls.lmode, 1, null, 2, 'Row Share', 3,
+'Row Exclusive', 4, 'Share', 5, 'Share Row Exclusive', 6, 'Exclusive', null)
+lock_mode, o.owner, ls.sid, ls.serial# serial_num, ls.id1, ls.id2
+from sys.dba_objects o, ( select s.osuser, s.username, l.type,
+l.lmode, s.sid, s.serial#, l.id1, l.id2 from v$session s,
+v$lock l where s.sid = l.sid ) ls where o.object_id = ls.id1 and o.owner
+<> 'SYS' order by o.owner, o.object_name
+
+17、查看等待(wait)情况
+SELECT v$waitstat.class, v$waitstat.count count, SUM(v$sysstat.value) sum_value
+FROM v$waitstat, v$sysstat WHERE v$sysstat.name IN ('db block gets',
+'consistent gets') group by v$waitstat.class, v$waitstat.count
+
+18、查看sga情况
+SELECT NAME, BYTES FROM SYS.V_$SGASTAT ORDER BY NAME ASC
+
+19、查看catched object
+SELECT owner, name, db_link, namespace,
+type, sharable_mem, loads, executions,
+locks, pins, kept FROM v$db_object_cache
+
+20、查看V$SQLAREA
+SELECT SQL_TEXT, SHARABLE_MEM, PERSISTENT_MEM, RUNTIME_MEM, SORTS,
+VERSION_COUNT, LOADED_VERSIONS, OPEN_VERSIONS, USERS_OPENING, EXECUTIONS,
+USERS_EXECUTING, LOADS, FIRST_LOAD_TIME, INVALIDATIONS, PARSE_CALLS, DISK_READS,
+BUFFER_GETS, ROWS_PROCESSED FROM V$SQLAREA
+
+21、查看object分类数量
+select decode (o.type#,1,'INDEX' , 2,'TABLE' , 3 , 'CLUSTER' , 4, 'VIEW' , 5 ,
+'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) object_type , count(*) quantity from
+sys.obj$ o where o.type# > 1 group by decode (o.type#,1,'INDEX' , 2,'TABLE' , 3
+, 'CLUSTER' , 4, 'VIEW' , 5 , 'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) union select
+'COLUMN' , count(*) from sys.col$ union select 'DB LINK' , count(*) from
+
+22、按用户查看object种类
+select u.name schema, sum(decode(o.type#, 1, 1, NULL)) indexes,
+sum(decode(o.type#, 2, 1, NULL)) tables, sum(decode(o.type#, 3, 1, NULL))
+clusters, sum(decode(o.type#, 4, 1, NULL)) views, sum(decode(o.type#, 5, 1,
+NULL)) synonyms, sum(decode(o.type#, 6, 1, NULL)) sequences,
+sum(decode(o.type#, 1, NULL, 2, NULL, 3, NULL, 4, NULL, 5, NULL, 6, NULL, 1))
+others from sys.obj$ o, sys.user$ u where o.type# >= 1 and u.user# =
+o.owner# and u.name <> 'PUBLIC' group by u.name order by
+sys.link$ union select 'CONSTRAINT' , count(*) from sys.con$
+
+23、有关connection的相关信息
+
+1)查看有哪些用户连接
+select s.osuser os_user_name, decode(sign(48 - command), 1, to_char(command),
+'Action Code #' || to_char(command) ) action, p.program oracle_process,
+status session_status, s.terminal terminal, s.program program,
+s.username user_name, s.fixed_table_sequence activity_meter, '' query,
+0 memory, 0 max_memory, 0 cpu_usage, s.sid, s.serial# serial_num
+from v$session s, v$process p where s.paddr=p.addr and s.type = 'USER'
+order by s.username, s.osuser
+
+2)
+]]></content>
+    
+    <summary type="html">
+    
+      查看所有用户
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select username,password from dba_users;
+&lt;/pre&gt;
+1、查看表空间的名称及大小
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
+from dba_tablespaces t, dba_data_files d
+where t.tablespace_name = d.tablespace_name
+group by t.tablespace_name;
+&lt;/pre&gt;
+2、查看表空间物理文件的名称及大小
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select tablespace_name, file_id, file_name,
+round(bytes/(1024*1024),0) total_space
+from dba_data_files
+order by tablespace_name;
+&lt;/pre&gt;
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+  </entry>
+  
+  <entry>
     <title>PAM入门介绍</title>
     <link href="http://wdicc.com/about-pam/"/>
     <id>http://wdicc.com/about-pam/</id>
@@ -17555,84 +17676,6 @@ rvice module）的开发者则利用PAM SPI（Service Module API）来编写认�
       <category term="公交" scheme="http://wdicc.com/tags/%E5%85%AC%E4%BA%A4/"/>
     
       <category term="小偷" scheme="http://wdicc.com/tags/%E5%B0%8F%E5%81%B7/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Oracle10g EM乱码之快速解决</title>
-    <link href="http://wdicc.com/oracle-em-encoding/"/>
-    <id>http://wdicc.com/oracle-em-encoding/</id>
-    <published>2006-08-04T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[来源 <a target="_blank" href="http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html">这里</a>
-
-一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.
-
-如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.
-
-在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:
-<a id="more"></a>
-[oracle@danaly ~]$ cd $ORACLE_HOME/jdk/jre/lib
-[oracle@danaly lib]$ ls font*zh_CN*
-font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
-font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
-
-[oracle@danaly lib]$ cd $ORACLE_HOME/jre/1.4.2/lib/
-[oracle@danaly lib]$ ls font*zh_CN*
-font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
-font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
-
-我们只要用合适的中文字符集文件替换缺省文件即可,我选择使用font.properties.zh_CN.Redhat来替换缺省字体定义文件:
-
-[oracle@danaly lib]$ cp font.properties.zh_CN.Redhat font.properties
-
-替换之后需要清理一下Cache,重启EM即可.
-
-Cache路径通常位于:
-
-$ORACLE_HOME/oc4j/j2ee/oc4j_applications/applications/em/em/cabo/images/cache/zhs
-
-清除所有gif文件即可.然后重新启动EM:
-
-[oracle@danaly zhs]$ emctl stop dbconsole
-TZ set to PRC
-Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
-Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
-http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
-Stopping Oracle Enterprise Manager 10g Database Control ...
-...  Stopped.
-[oracle@danaly zhs]$ emctl start dbconsole
-TZ set to PRC
-Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
-Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
-http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
-Starting Oracle Enterprise Manager 10g Database Control .............. started.
-------------------------------------------------------------------
-Logs are generated in directory
-/opt/oracle/product/10.2.0/danaly.hurrray.com.cn_danaly/sysman/log
-
-现在登陆Web页面,EM显示就可以正常显示中文了.
-]]></content>
-    
-    <summary type="html">
-    
-      来源 &lt;a target=&quot;_blank&quot; href=&quot;http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html&quot;&gt;这里&lt;/a&gt;
-
-一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.
-
-如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.
-
-在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:
-    
-    </summary>
-    
-    
-      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
-    
-      <category term="oracle" scheme="http://wdicc.com/tags/oracle/"/>
-    
-      <category term="乱码" scheme="http://wdicc.com/tags/%E4%B9%B1%E7%A0%81/"/>
     
   </entry>
   
@@ -18300,53 +18343,6 @@ grub选择系统的画面出来之后，找到需要恢复密码的系统，按e
   </entry>
   
   <entry>
-    <title>bash中的数组变量zz</title>
-    <link href="http://wdicc.com/var-in-bash/"/>
-    <id>http://wdicc.com/var-in-bash/</id>
-    <published>2006-06-13T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[<h3 class="title">http://xiaowang.net/bgb-cn/ch10s02.html
-</h3><h3 class="title">10.2.1. 建立数组                     </h3>                                                         <p>数组是一个包含多个值的变量。任何变量都可以在数组中使用。数组的尺寸没有最大限制，也不要求成员变量连续索引或者赋值。数组是基于0的：第一个元素的下标以0开始。</p>            <p>间接的声明使用以下的语法来声明一个变量：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAY[INDEXNR]</code>=value</code>                </p>            </div>            <p> <span class="emphasis"><em>INDEXNR</em></span> 需要使用一个值为正数的数学表达式。            </p>            <p>一个数组的外部声明使用内建命令 <span><strong class="command">declare</strong></span> 来完成：            </p>            <div class="cmdsynopsis">               <p><code class="command">declare <code class="option">-a</code> <code class="varname">ARRAYNAME</code></code>                </p>            </div>            <p>一个带有索引值的声明也是可以接受的，但是索引值将被忽略。对数组的指定属性可以通过使用内建命令 <span><strong class="command">declare</strong></span> 和 <span><strong class="command">readonly</strong></span>。属性对数组中的所有变量起作用；你不能使用混合数组。            </p>            <p>数组变量也可以使用这种格式的复合赋值来建立：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAY</code>=(value1 value2 ... valueN)</code>                </p>            </div>            <p>每个值将以这种形式 <span class="emphasis"><em>[indexnumber=]string</em></span> 排列。索引号是可选的。如果提供，索引号就赋给它；otherwise the index of the element assigned is the number of the last index that was assigned, plus               one.  这样的格式 <span><strong class="command">declare</strong></span> 也可以接受。如果不提供索引值，那索引自动从零开始。            </p>            <p>在数组中加入缺少或者额外的成员使用以下语法：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAYNAME[indexnumber]</code>=value</code>                </p>            </div>            <p>记住 <span><strong class="command">read</strong></span> 内建命令提供 <code class="option">-a</code> 选项，来允许对一个数组的成员变量进行读取和赋值。            </p>                  <div class="sect2" lang="zh-cn">            <div class="titlepage">               <div>                  <div>                     <h3 class="title"><a name="sect_10_02_02"></a>10.2.2. 对数组的变量解引用                     </h3>                  </div>               </div>            </div>            <p>为了指明在一个数组中的项目的内容，为了指向一个数组中的一个项目的内容，使用{}。这样是必须的，正如你可以从下面的例子看出，来绕过扩展操作符的shell解释。如果索引的数字是 <span class="emphasis"><em>@</em></span> 或者 <span class="emphasis"><em>*</em></span>，一个数组的所有的成员都将被引用。            </p><pre class="screen"><code class="prompt">[bob in ~]</code> <span><strong class="command"><code class="varname">ARRAY</code>=<em class="parameter"><code>(one two three)</code></em></strong></span>
-
-<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
-one two three
-
-<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">$ARRAY[*]</code></strong></span>
-one[*]
-
-<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[2]}</code></strong></span>
-three
-
-<code class="prompt">[bob in ~]</code> <span><strong class="command"><code class="varname">ARRAY[3]</code>=<em class="parameter"><code>four</code></em></strong></span>
-
-<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
-one two three four
-</pre><p>不提供索引号码来指向某个数组的一个数字变量的内容和指向第一个元素的内容是一样的。</p>         </div>         <div class="sect2" lang="zh-cn">            <div class="titlepage">               <div>                  <div>                     <h3 class="title"><a name="sect_10_02_03"></a>10.2.3. 删除数组变量                     </h3>                  </div>               </div>            </div>            <p> <span><strong class="command">unset</strong></span> 内建命令用来删除数组或者数组成员：            </p><pre class="screen"><code class="prompt">[bob in ~]</code> <span><strong class="command">unset <code class="varname">ARRAY[1]</code></strong></span>
-
-<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
-one three four
-
-<code class="prompt">[bob in ~]</code> <span><strong class="command">unset <code class="varname">ARRAY</code></strong></span>
-
-<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
-&lt;--no output--&gt;
-</pre></div>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;h3 class=&quot;title&quot;&gt;http://xiaowang.net/bgb-cn/ch10s02.html
-&lt;/h3&gt;&lt;h3 class=&quot;title&quot;&gt;10.2.1. 建立数组                     &lt;/h3&gt;                     
-    
-    </summary>
-    
-    
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-  </entry>
-  
-  <entry>
     <title>apache的rewrite一点配置心得</title>
     <link href="http://wdicc.com/apache-rewrite/"/>
     <id>http://wdicc.com/apache-rewrite/</id>
@@ -18402,6 +18398,53 @@ one three four
       <category term="weblogic" scheme="http://wdicc.com/tags/weblogic/"/>
     
       <category term="apache" scheme="http://wdicc.com/tags/apache/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>bash中的数组变量zz</title>
+    <link href="http://wdicc.com/var-in-bash/"/>
+    <id>http://wdicc.com/var-in-bash/</id>
+    <published>2006-06-13T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[<h3 class="title">http://xiaowang.net/bgb-cn/ch10s02.html
+</h3><h3 class="title">10.2.1. 建立数组                     </h3>                                                         <p>数组是一个包含多个值的变量。任何变量都可以在数组中使用。数组的尺寸没有最大限制，也不要求成员变量连续索引或者赋值。数组是基于0的：第一个元素的下标以0开始。</p>            <p>间接的声明使用以下的语法来声明一个变量：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAY[INDEXNR]</code>=value</code>                </p>            </div>            <p> <span class="emphasis"><em>INDEXNR</em></span> 需要使用一个值为正数的数学表达式。            </p>            <p>一个数组的外部声明使用内建命令 <span><strong class="command">declare</strong></span> 来完成：            </p>            <div class="cmdsynopsis">               <p><code class="command">declare <code class="option">-a</code> <code class="varname">ARRAYNAME</code></code>                </p>            </div>            <p>一个带有索引值的声明也是可以接受的，但是索引值将被忽略。对数组的指定属性可以通过使用内建命令 <span><strong class="command">declare</strong></span> 和 <span><strong class="command">readonly</strong></span>。属性对数组中的所有变量起作用；你不能使用混合数组。            </p>            <p>数组变量也可以使用这种格式的复合赋值来建立：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAY</code>=(value1 value2 ... valueN)</code>                </p>            </div>            <p>每个值将以这种形式 <span class="emphasis"><em>[indexnumber=]string</em></span> 排列。索引号是可选的。如果提供，索引号就赋给它；otherwise the index of the element assigned is the number of the last index that was assigned, plus               one.  这样的格式 <span><strong class="command">declare</strong></span> 也可以接受。如果不提供索引值，那索引自动从零开始。            </p>            <p>在数组中加入缺少或者额外的成员使用以下语法：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAYNAME[indexnumber]</code>=value</code>                </p>            </div>            <p>记住 <span><strong class="command">read</strong></span> 内建命令提供 <code class="option">-a</code> 选项，来允许对一个数组的成员变量进行读取和赋值。            </p>                  <div class="sect2" lang="zh-cn">            <div class="titlepage">               <div>                  <div>                     <h3 class="title"><a name="sect_10_02_02"></a>10.2.2. 对数组的变量解引用                     </h3>                  </div>               </div>            </div>            <p>为了指明在一个数组中的项目的内容，为了指向一个数组中的一个项目的内容，使用{}。这样是必须的，正如你可以从下面的例子看出，来绕过扩展操作符的shell解释。如果索引的数字是 <span class="emphasis"><em>@</em></span> 或者 <span class="emphasis"><em>*</em></span>，一个数组的所有的成员都将被引用。            </p><pre class="screen"><code class="prompt">[bob in ~]</code> <span><strong class="command"><code class="varname">ARRAY</code>=<em class="parameter"><code>(one two three)</code></em></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one two three
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">$ARRAY[*]</code></strong></span>
+one[*]
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[2]}</code></strong></span>
+three
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command"><code class="varname">ARRAY[3]</code>=<em class="parameter"><code>four</code></em></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one two three four
+</pre><p>不提供索引号码来指向某个数组的一个数字变量的内容和指向第一个元素的内容是一样的。</p>         </div>         <div class="sect2" lang="zh-cn">            <div class="titlepage">               <div>                  <div>                     <h3 class="title"><a name="sect_10_02_03"></a>10.2.3. 删除数组变量                     </h3>                  </div>               </div>            </div>            <p> <span><strong class="command">unset</strong></span> 内建命令用来删除数组或者数组成员：            </p><pre class="screen"><code class="prompt">[bob in ~]</code> <span><strong class="command">unset <code class="varname">ARRAY[1]</code></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one three four
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">unset <code class="varname">ARRAY</code></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+&lt;--no output--&gt;
+</pre></div>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;h3 class=&quot;title&quot;&gt;http://xiaowang.net/bgb-cn/ch10s02.html
+&lt;/h3&gt;&lt;h3 class=&quot;title&quot;&gt;10.2.1. 建立数组                     &lt;/h3&gt;                     
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
     
   </entry>
   
@@ -18690,6 +18733,34 @@ http://www.bea.com.cn/support_pattern/Too_Many_Open_Files_Pattern.html
   </entry>
   
   <entry>
+    <title>Apache + weblogic 桥接的Connection_Refused错误</title>
+    <link href="http://wdicc.com/apache-weblogic-error/"/>
+    <id>http://wdicc.com/apache-weblogic-error/</id>
+    <published>2006-05-21T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
+
+主要是调整<code style="font-family: courier">weblogic的AcceptBackLog参数。</code>
+]]></content>
+    
+    <summary type="html">
+    
+      http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
+
+主要是调整&lt;code style=&quot;font-family: courier&quot;&gt;weblogic的AcceptBackLog参数。&lt;/code&gt;
+
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+      <category term="weblogic" scheme="http://wdicc.com/tags/weblogic/"/>
+    
+  </entry>
+  
+  <entry>
     <title>weblogic apache 桥接指南</title>
     <link href="http://wdicc.com/weblogic-apache-bridge/"/>
     <id>http://wdicc.com/weblogic-apache-bridge/</id>
@@ -18781,34 +18852,6 @@ P
     
     
       <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Apache + weblogic 桥接的Connection_Refused错误</title>
-    <link href="http://wdicc.com/apache-weblogic-error/"/>
-    <id>http://wdicc.com/apache-weblogic-error/</id>
-    <published>2006-05-21T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
-
-主要是调整<code style="font-family: courier">weblogic的AcceptBackLog参数。</code>
-]]></content>
-    
-    <summary type="html">
-    
-      http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
-
-主要是调整&lt;code style=&quot;font-family: courier&quot;&gt;weblogic的AcceptBackLog参数。&lt;/code&gt;
-
-    
-    </summary>
-    
-    
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-      <category term="weblogic" scheme="http://wdicc.com/tags/weblogic/"/>
     
   </entry>
   
@@ -19337,6 +19380,160 @@ logon script = logon.bat
   </entry>
   
   <entry>
+    <title>rsync脚本的一个例子</title>
+    <link href="http://wdicc.com/rsync-script/"/>
+    <id>http://wdicc.com/rsync-script/</id>
+    <published>2006-05-08T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[<pre class="prettyprint lang-bash">
+
+SYNCLOGFILE="/var/log/rsync-201.log"
+SYNCLOCKFILE="/var/lock/rsync-201.lock"
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n ">>> Sync log for " >> $SYNCLOGFILE
+date >> $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
+rm -f $SYNCLOCKFILE
+</pre>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
+
+SYNCLOGFILE=&quot;/var/log/rsync-201.log&quot;
+SYNCLOCKFILE=&quot;/var/lock/rsync-201.lock&quot;
+
+if [[ -f $SYNCLOCKFILE ]]
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+      <category term="rsync" scheme="http://wdicc.com/tags/rsync/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>mysql 安装</title>
+    <link href="http://wdicc.com/install-mysql/"/>
+    <id>http://wdicc.com/install-mysql/</id>
+    <published>2006-05-08T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[下面的内容大部分来自mysql的readme
+
+1 download mysql5.0
+2
+shell&gt; groupadd mysql
+shell&gt; useradd -g mysql mysql
+shell&gt; cd /usr/local
+shell&gt; gunzip &lt; /PATH/TO/MYSQL-VERSION-OS.tar.gz | tar xvf -
+shell&gt; ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql
+shell&gt; cd mysql
+shell&gt; scripts/mysql_install_db --user=mysql
+
+如下提示信息:
+
+Installing all prepared tables
+Fill help tables
+
+To start mysqld at boot time you have to copy support-files/mysql.server
+to the right place for your system
+
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+To do so, start the server, then issue the following commands:
+./bin/mysqladmin -u root password 'new-password'
+./bin/mysqladmin -u root -h czhand password 'new-password'
+See the manual for more instructions.
+
+You can start the MySQL daemon with:
+cd . ; ./bin/mysqld_safe &amp;
+
+You can test the MySQL daemon with the benchmarks in the 'sql-bench' directory:
+cd sql-bench ; perl run-all-tests
+
+Please report any problems with the ./bin/mysqlbug script!
+
+The latest information about MySQL is available on the web at
+http://www.mysql.com
+Support MySQL by buying support/licenses at https://order.mysql.com
+
+shell&gt; chown -R root  .
+shell&gt; chown -R mysql data
+shell&gt; chgrp -R mysql .
+
+/home/my.cnf
+
+basedir=/usr/local/mysql
+datadir=/usr/local/mysql/data
+socket=/usr/local/mysql/data/mysql.sock
+#err-log=/var/log/mysqld.log
+pid-file=/usr/local/mysql/data/mysqld.pid
+
+shell&gt; bin/mysqld_safe --user=mysql &amp;
+]]></content>
+    
+    <summary type="html">
+    
+      下面的内容大部分来自mysql的readme
+
+1 download mysql5.0
+2
+shell&amp;gt; groupadd mysql
+shell&amp;gt; useradd -g mysql mysql
+shell&amp;gt; cd /usr/local
+shell&amp;gt; gu
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+      <category term="mysql" scheme="http://wdicc.com/tags/mysql/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>find命令查找删除30天之前的文件</title>
+    <link href="http://wdicc.com/del-30-day-old-file/"/>
+    <id>http://wdicc.com/del-30-day-old-file/</id>
+    <published>2006-05-08T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[find /data -name "xxx.*" -follow -ctime +30 -exec rm -rf {} \;
+
+删除30天之前的文件。
+-follow表示跟随链接。
+]]></content>
+    
+    <summary type="html">
+    
+      find /data -name &quot;xxx.*&quot; -follow -ctime +30 -exec rm -rf {} \;
+
+删除30天之前的文件。
+-follow表示跟随链接。
+
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+      <category term="find" scheme="http://wdicc.com/tags/find/"/>
+    
+  </entry>
+  
+  <entry>
     <title>启动停止weblogic和apache的脚本</title>
     <link href="http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/"/>
     <id>http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/</id>
@@ -19498,160 +19695,6 @@ $IPT -t nat -A POSTROUTING -o $LOCAL_IFACE \
   </entry>
   
   <entry>
-    <title>mysql 安装</title>
-    <link href="http://wdicc.com/install-mysql/"/>
-    <id>http://wdicc.com/install-mysql/</id>
-    <published>2006-05-08T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[下面的内容大部分来自mysql的readme
-
-1 download mysql5.0
-2
-shell&gt; groupadd mysql
-shell&gt; useradd -g mysql mysql
-shell&gt; cd /usr/local
-shell&gt; gunzip &lt; /PATH/TO/MYSQL-VERSION-OS.tar.gz | tar xvf -
-shell&gt; ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql
-shell&gt; cd mysql
-shell&gt; scripts/mysql_install_db --user=mysql
-
-如下提示信息:
-
-Installing all prepared tables
-Fill help tables
-
-To start mysqld at boot time you have to copy support-files/mysql.server
-to the right place for your system
-
-PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
-To do so, start the server, then issue the following commands:
-./bin/mysqladmin -u root password 'new-password'
-./bin/mysqladmin -u root -h czhand password 'new-password'
-See the manual for more instructions.
-
-You can start the MySQL daemon with:
-cd . ; ./bin/mysqld_safe &amp;
-
-You can test the MySQL daemon with the benchmarks in the 'sql-bench' directory:
-cd sql-bench ; perl run-all-tests
-
-Please report any problems with the ./bin/mysqlbug script!
-
-The latest information about MySQL is available on the web at
-http://www.mysql.com
-Support MySQL by buying support/licenses at https://order.mysql.com
-
-shell&gt; chown -R root  .
-shell&gt; chown -R mysql data
-shell&gt; chgrp -R mysql .
-
-/home/my.cnf
-
-basedir=/usr/local/mysql
-datadir=/usr/local/mysql/data
-socket=/usr/local/mysql/data/mysql.sock
-#err-log=/var/log/mysqld.log
-pid-file=/usr/local/mysql/data/mysqld.pid
-
-shell&gt; bin/mysqld_safe --user=mysql &amp;
-]]></content>
-    
-    <summary type="html">
-    
-      下面的内容大部分来自mysql的readme
-
-1 download mysql5.0
-2
-shell&amp;gt; groupadd mysql
-shell&amp;gt; useradd -g mysql mysql
-shell&amp;gt; cd /usr/local
-shell&amp;gt; gu
-    
-    </summary>
-    
-    
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-      <category term="mysql" scheme="http://wdicc.com/tags/mysql/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>rsync脚本的一个例子</title>
-    <link href="http://wdicc.com/rsync-script/"/>
-    <id>http://wdicc.com/rsync-script/</id>
-    <published>2006-05-08T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[<pre class="prettyprint lang-bash">
-
-SYNCLOGFILE="/var/log/rsync-201.log"
-SYNCLOCKFILE="/var/lock/rsync-201.lock"
-
-if [[ -f $SYNCLOCKFILE ]]; then
-  # lock file already present, bail
-  exit 1
-fi
-
-echo -n ">>> Sync log for " >> $SYNCLOGFILE
-date >> $SYNCLOGFILE
-
-touch $SYNCLOCKFILE
-rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
-rm -f $SYNCLOCKFILE
-</pre>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
-
-SYNCLOGFILE=&quot;/var/log/rsync-201.log&quot;
-SYNCLOCKFILE=&quot;/var/lock/rsync-201.lock&quot;
-
-if [[ -f $SYNCLOCKFILE ]]
-    
-    </summary>
-    
-    
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-      <category term="rsync" scheme="http://wdicc.com/tags/rsync/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>find命令查找删除30天之前的文件</title>
-    <link href="http://wdicc.com/del-30-day-old-file/"/>
-    <id>http://wdicc.com/del-30-day-old-file/</id>
-    <published>2006-05-08T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[find /data -name "xxx.*" -follow -ctime +30 -exec rm -rf {} \;
-
-删除30天之前的文件。
--follow表示跟随链接。
-]]></content>
-    
-    <summary type="html">
-    
-      find /data -name &quot;xxx.*&quot; -follow -ctime +30 -exec rm -rf {} \;
-
-删除30天之前的文件。
--follow表示跟随链接。
-
-    
-    </summary>
-    
-    
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-      <category term="find" scheme="http://wdicc.com/tags/find/"/>
-    
-  </entry>
-  
-  <entry>
     <title>178事故</title>
     <link href="http://wdicc.com/178-accident/"/>
     <id>http://wdicc.com/178-accident/</id>
@@ -19728,6 +19771,45 @@ if [[ -f $SYNCLOCKFILE ]]
       <category term="route" scheme="http://wdicc.com/tags/route/"/>
     
       <category term="路由" scheme="http://wdicc.com/tags/%E8%B7%AF%E7%94%B1/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>使用ssh的rsa和dsa验证登陆linux</title>
+    <link href="http://wdicc.com/use-rsa-and-dsa/"/>
+    <id>http://wdicc.com/use-rsa-and-dsa/</id>
+    <published>2006-04-23T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[参考地址：http://www.5ilinux.com/ssh01.html
+
+按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。
+
+用putty使用这个密匙的时候就出问题了，验证不了。
+
+然后用putty生成公匙密匙，上传公匙，验证不了。
+
+后来用openssh自带的ssh-keygen生成了公匙密匙，然后用putty的keygen转换了一下，用putty登陆就可以了。
+]]></content>
+    
+    <summary type="html">
+    
+      参考地址：http://www.5ilinux.com/ssh01.html
+
+按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。
+
+用putty使用这个密匙的时候就出问题了，验证不了。
+
+然后用putty生成公匙密匙，上传公匙，验证不了。
+
+后来用op
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+      <category term="ssh" scheme="http://wdicc.com/tags/ssh/"/>
     
   </entry>
   
@@ -19848,45 +19930,6 @@ account&nbsp; required &nbsp; &nbsp; &nbsp; pam_access.so
 最近公司服务器上面某个用户的帐号密码被修改了好几次。查看了一下，确实有人用他的帐号从外网ip（国外的ip）登陆过，猜想可能是他自己的电脑中木马或者什么病毒了。用户自己没有安全意识是很头痛的一个问题，其实给他们新建帐号的时候使用的都是简单密码，但是似乎都没有人上服务器自己修改，但是你又不能要求你的用户如何如何（比如给自己电脑装防火墙、杀毒软件etc），因为那是人家自己的事情。那么我就想，有没有一个方法可以限制某个用户只能从某个ip（或者ip列表）登陆呢？下面是一些解决方法。
 
 &lt;br&gt;
-    
-    </summary>
-    
-    
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-      <category term="ssh" scheme="http://wdicc.com/tags/ssh/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>使用ssh的rsa和dsa验证登陆linux</title>
-    <link href="http://wdicc.com/use-rsa-and-dsa/"/>
-    <id>http://wdicc.com/use-rsa-and-dsa/</id>
-    <published>2006-04-23T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[参考地址：http://www.5ilinux.com/ssh01.html
-
-按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。
-
-用putty使用这个密匙的时候就出问题了，验证不了。
-
-然后用putty生成公匙密匙，上传公匙，验证不了。
-
-后来用openssh自带的ssh-keygen生成了公匙密匙，然后用putty的keygen转换了一下，用putty登陆就可以了。
-]]></content>
-    
-    <summary type="html">
-    
-      参考地址：http://www.5ilinux.com/ssh01.html
-
-按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。
-
-用putty使用这个密匙的时候就出问题了，验证不了。
-
-然后用putty生成公匙密匙，上传公匙，验证不了。
-
-后来用op
     
     </summary>
     
@@ -20128,6 +20171,31 @@ Splunk是个商业的日志分析软件，运行于Unix环境，可以支持任�
   </entry>
   
   <entry>
+    <title>邮件如何从A点到达B点zz</title>
+    <link href="http://wdicc.com/how-mail-from-a-to-b/"/>
+    <id>http://wdicc.com/how-mail-from-a-to-b/</id>
+    <published>2006-03-29T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. </p>  <p>假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com,     下面是发送接收过程: </p>  <p>1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题,     加上邮件本身的文本部分. 整个邮件看起来是下面这样的: </p><pre>    To: bob@beta
+    Subject: lunch
+
+    How about pizza?
+</pre>  <p>2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. </p>  <p>3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta     替换为"Bob &lt;bob@beta.example.com&gt;") 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入:     MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给     MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA     可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序. </p>  <p>4. 如果注入成功--邮件句法正确, 并且 sendmail 调用适当--那么现在邮件已经在 MTA 的职责内了. 不同的 MTA 细节是完全不同的,     通常MTA首先检查邮件头决定邮件将发往何处. 然后建立一个到主机beta的SMTP连接, 转发邮件给 beta 系统上的MTA. SMTP对话要求邮件被分成两部分发送:     信封, 这个部分确定了接收者的地址(bob@beta.example.com)和返回地址(alice@alpha.example.com), 以及邮件本身,     包括邮件头和邮件主体. </p>  <p>5. 如果beta主机的MTA拒绝这个邮件, 可能原因是在beta系统上没有这个bob用户, 在alpha 上的MTA发送一个反弹邮件给返回地址, 也就是     alice@alpha, 通知她邮件发送出现了问题. </p>  <p>6. 如果 beta主机上的 MTA接收了邮件, 它查看接收者地址, 决定是发送给本地local 还是远程 remote系统的邮件. 这个例子里面,     接收者是本地用户, 然后MTA或者传送邮件给 mail delivery agent (MDA), 比如 /bin/mail或者传送给 procmail.   </p>  <p>7. 如果传输失败了, 可能是Bob的邮箱超过了使用限额, beta 主机上的 MTA 将发送一个反弹信息给信封上的返回地址, 即 alice@alpha.   </p>  <p>8. 如果传输成功, 邮件将在Bob的邮箱中等待, 直到他使用MUA来阅读和显示邮件. </p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. &lt;/p&gt;  &lt;p&gt;假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.ex
+    
+    </summary>
+    
+    
+      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Qmail邮件队列工作原理zz</title>
     <link href="http://wdicc.com/qmail-queue/"/>
     <id>http://wdicc.com/qmail-queue/</id>
@@ -20167,31 +20235,6 @@ Splunk是个商业的日志分析软件，运行于Unix环境，可以支持任�
 以下是qmail的数据流简图
 
  qmail-smtpd --- &amp;gt;&amp;gt;qmail-queue ---&amp;gt;&amp;gt; qmail-sen
-    
-    </summary>
-    
-    
-      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>邮件如何从A点到达B点zz</title>
-    <link href="http://wdicc.com/how-mail-from-a-to-b/"/>
-    <id>http://wdicc.com/how-mail-from-a-to-b/</id>
-    <published>2006-03-29T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. </p>  <p>假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com,     下面是发送接收过程: </p>  <p>1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题,     加上邮件本身的文本部分. 整个邮件看起来是下面这样的: </p><pre>    To: bob@beta
-    Subject: lunch
-
-    How about pizza?
-</pre>  <p>2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. </p>  <p>3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta     替换为"Bob &lt;bob@beta.example.com&gt;") 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入:     MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给     MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA     可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序. </p>  <p>4. 如果注入成功--邮件句法正确, 并且 sendmail 调用适当--那么现在邮件已经在 MTA 的职责内了. 不同的 MTA 细节是完全不同的,     通常MTA首先检查邮件头决定邮件将发往何处. 然后建立一个到主机beta的SMTP连接, 转发邮件给 beta 系统上的MTA. SMTP对话要求邮件被分成两部分发送:     信封, 这个部分确定了接收者的地址(bob@beta.example.com)和返回地址(alice@alpha.example.com), 以及邮件本身,     包括邮件头和邮件主体. </p>  <p>5. 如果beta主机的MTA拒绝这个邮件, 可能原因是在beta系统上没有这个bob用户, 在alpha 上的MTA发送一个反弹邮件给返回地址, 也就是     alice@alpha, 通知她邮件发送出现了问题. </p>  <p>6. 如果 beta主机上的 MTA接收了邮件, 它查看接收者地址, 决定是发送给本地local 还是远程 remote系统的邮件. 这个例子里面,     接收者是本地用户, 然后MTA或者传送邮件给 mail delivery agent (MDA), 比如 /bin/mail或者传送给 procmail.   </p>  <p>7. 如果传输失败了, 可能是Bob的邮箱超过了使用限额, beta 主机上的 MTA 将发送一个反弹信息给信封上的返回地址, 即 alice@alpha.   </p>  <p>8. 如果传输成功, 邮件将在Bob的邮箱中等待, 直到他使用MUA来阅读和显示邮件. </p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. &lt;/p&gt;  &lt;p&gt;假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.ex
     
     </summary>
     
@@ -21066,43 +21109,24 @@ A.邮件客户端软件。则在前面所说的端口里只打开110和25端口�
   </entry>
   
   <entry>
-    <title>tt 1.0.1中CODE</title>
-    <link href="http://wdicc.com/code-in-tt/"/>
-    <id>http://wdicc.com/code-in-tt/</id>
+    <title>flickr,免费相册</title>
+    <link href="http://wdicc.com/flickr-free-photo-album/"/>
+    <id>http://wdicc.com/flickr-free-photo-album/</id>
     <published>2006-03-22T16:00:00.000Z</published>
     <updated>2016-07-13T08:22:35.000Z</updated>
     
-    <content type="html"><![CDATA[借鉴的是tt 0.9.6中的方法。
+    <content type="html"><![CDATA[其实很早就知道flickr了，不过是发现那上面的图片似乎只能看小图，不能看大图，那多郁闷。刚才又去看了一下，发现可以看大图了，哇哇。。。这个真不错，推荐大家使用。
 
-修改blog目录下的
-
-category/index.php
-archive/index.php,item.php
-entry/index.php
-search/index.php
-tag/index.php
-keylog/index.php
-notice/index.php,item.php
-index.php
-item.php
-
-文件，找到function bindTags($id,$content)这个函数，其实所有包含这个函数的都需要做如下修改，不知道为啥不单独将这个函数写到一个文件，修改起来好麻烦。
-
-在这个函数的第一行前面添
+比较详细的使用说明
+<a href="http://www.mugou.com/user3/13903/archives/2006/8374.shtml" target="_blank" rel="external">http://www.mugou.com/user3/13903/archives/2006/8374.shtml</a>
 ]]></content>
     
     <summary type="html">
     
-      借鉴的是tt 0.9.6中的方法。
+      其实很早就知道flickr了，不过是发现那上面的图片似乎只能看小图，不能看大图，那多郁闷。刚才又去看了一下，发现可以看大图了，哇哇。。。这个真不错，推荐大家使用。
 
-修改blog目录下的
-
-category/index.php
-archive/index.php,item.php
-entry/index.php
-search/index.php
-tag/index.php
-keylog/index.php
+比较详细的使用说明
+&lt;a href=&quot;http://www.mugou.com/user3/13903/archi
     
     </summary>
     
@@ -21264,24 +21288,43 @@ http://140.111.152.100/archives/2004_09.html
   </entry>
   
   <entry>
-    <title>flickr,免费相册</title>
-    <link href="http://wdicc.com/flickr-free-photo-album/"/>
-    <id>http://wdicc.com/flickr-free-photo-album/</id>
+    <title>tt 1.0.1中CODE</title>
+    <link href="http://wdicc.com/code-in-tt/"/>
+    <id>http://wdicc.com/code-in-tt/</id>
     <published>2006-03-22T16:00:00.000Z</published>
     <updated>2016-07-13T08:22:35.000Z</updated>
     
-    <content type="html"><![CDATA[其实很早就知道flickr了，不过是发现那上面的图片似乎只能看小图，不能看大图，那多郁闷。刚才又去看了一下，发现可以看大图了，哇哇。。。这个真不错，推荐大家使用。
+    <content type="html"><![CDATA[借鉴的是tt 0.9.6中的方法。
 
-比较详细的使用说明
-<a href="http://www.mugou.com/user3/13903/archives/2006/8374.shtml" target="_blank" rel="external">http://www.mugou.com/user3/13903/archives/2006/8374.shtml</a>
+修改blog目录下的
+
+category/index.php
+archive/index.php,item.php
+entry/index.php
+search/index.php
+tag/index.php
+keylog/index.php
+notice/index.php,item.php
+index.php
+item.php
+
+文件，找到function bindTags($id,$content)这个函数，其实所有包含这个函数的都需要做如下修改，不知道为啥不单独将这个函数写到一个文件，修改起来好麻烦。
+
+在这个函数的第一行前面添
 ]]></content>
     
     <summary type="html">
     
-      其实很早就知道flickr了，不过是发现那上面的图片似乎只能看小图，不能看大图，那多郁闷。刚才又去看了一下，发现可以看大图了，哇哇。。。这个真不错，推荐大家使用。
+      借鉴的是tt 0.9.6中的方法。
 
-比较详细的使用说明
-&lt;a href=&quot;http://www.mugou.com/user3/13903/archi
+修改blog目录下的
+
+category/index.php
+archive/index.php,item.php
+entry/index.php
+search/index.php
+tag/index.php
+keylog/index.php
     
     </summary>
     
@@ -21794,6 +21837,28 @@ DefaultServer
   </entry>
   
   <entry>
+    <title>igenus</title>
+    <link href="http://wdicc.com/igenus/"/>
+    <id>http://wdicc.com/igenus/</id>
+    <published>2006-01-15T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
+]]></content>
+    
+    <summary type="html">
+    
+      igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
+
+    
+    </summary>
+    
+    
+      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Howto Qmail with spamassassin</title>
     <link href="http://wdicc.com/howto-qmail-with-spamassassin/"/>
     <id>http://wdicc.com/howto-qmail-with-spamassassin/</id>
@@ -21971,28 +22036,6 @@ Return to the linux page
   </entry>
   
   <entry>
-    <title>igenus</title>
-    <link href="http://wdicc.com/igenus/"/>
-    <id>http://wdicc.com/igenus/</id>
-    <published>2006-01-15T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
-]]></content>
-    
-    <summary type="html">
-    
-      igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
-
-    
-    </summary>
-    
-    
-      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
-    
-  </entry>
-  
-  <entry>
     <title>cvs</title>
     <link href="http://wdicc.com/cvs/"/>
     <id>http://wdicc.com/cvs/</id>
@@ -22040,83 +22083,83 @@ cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftp
   </entry>
   
   <entry>
-    <title>caphit web 配置</title>
-    <link href="http://wdicc.com/caphit-web-conf/"/>
-    <id>http://wdicc.com/caphit-web-conf/</id>
+    <title>qmail中的几个error的产生的原因和解决方法</title>
+    <link href="http://wdicc.com/solve-qmail-error/"/>
+    <id>http://wdicc.com/solve-qmail-error/</id>
     <published>2006-01-15T16:00:00.000Z</published>
     <updated>2016-07-13T08:22:35.000Z</updated>
     
-    <content type="html"><![CDATA[httpd.conf
-ServerName caph
-AddDefaultCharset GB2312
-NameVirtualHost *
+    <content type="html"><![CDATA[deferral: Unable_to_chdir_to_maildir._(#4.2.1)
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www
-ServerName 210.72.203.226
+   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
 
-AllowOverride None
-Options +ExecCGI
-AddHandler cgi-script .cgi .pl
-Order allow,deny
-Allow from all
+如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www/caphbook
-ServerName www.caphbook.com
-ServerAlias caphbook.com caphbook.com.cn www.caphbook.com.cn
-ErrorLog logs/caphbook.com-error_log
-CustomLog logs/caphbook.com-access_log common
+deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
 
-#
-# ServerAdmin webmaster@aphit.com.cn
-# DocumentRoot /www/caphit
-# ServerName www.aphit.com.cn
-# ServerAlias aphit.com.cn
-#
-# Options Indexes
-#
-#
-#mail
+   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www/igenus
-ServerName mail.caphbook.com
-ServerAlias mail.caphbook.com.cn mail.aphit.com.cn
-ErrorLog logs/mail-error_log
-CustomLog logs/mail-access_log common
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
 
-ssl.conf
+  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
 
-此后
-service httpd restart
-chkconfig --level 345 httpd on
+[root@caph qmail-smtpd]# telnet localhost 25
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is &#39;^]&#39;.
+220 xxx.com ESMTP
+ehlo
+250-xxx.com
+250-PIPELINING
+250-8BITMIME
+250-SIZE 104857600
+250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
+auth login
+334 VXNlcm5hbWU6
+awefaq23rasdf
+334 UGFzc3dvcmQ6
+awefwaef
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+quit
+221 xxx.com
+Connection closed by foreign host.
 
-php.ini
-register_globals = On
-max_execution_time = 60 ; Maximum execution time of each script, in seconds
-max_input_time = 120 ; Maximum amount of time each script may spend parsing request data
-memory_limit = 20M
-php.ini
-LimitRequestBody 52428800
-apache配置完毕
+出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
+
+QMAILDUID=`id -u vpopmail`
+QMAILDGID=`id -g vpopmail`
+
+/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
+        -u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
+        /var/qmail/bin/qmail-smtpd
+        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1
+
+不需要修改~vpopmail/bin/vchkpw的属性。
+
+451 qq write error or disk full (#4.3.0)
+
+通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
+
+qq temporary problem (#4.3.0)
+
+看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
+-rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
+
+vchkpw-smtp: vpopmail user not found
+
+查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。
 ]]></content>
     
     <summary type="html">
     
-      httpd.conf
-ServerName caph
-AddDefaultCharset GB2312
-NameVirtualHost *
+      deferral: Unable_to_chdir_to_maildir._(#4.2.1)
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www
-ServerName 210.7
+   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域
     
     </summary>
     
     
-      <category term="Web" scheme="http://wdicc.com/tags/Web/"/>
+      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
     
   </entry>
   
@@ -22505,83 +22548,33 @@ http://www.fehcom.d
   </entry>
   
   <entry>
-    <title>qmail中的几个error的产生的原因和解决方法</title>
-    <link href="http://wdicc.com/solve-qmail-error/"/>
-    <id>http://wdicc.com/solve-qmail-error/</id>
+    <title>历史上最强最强的跨专业的考研人zz</title>
+    <link href="http://wdicc.com/a-joke-3/"/>
+    <id>http://wdicc.com/a-joke-3/</id>
     <published>2006-01-15T16:00:00.000Z</published>
     <updated>2016-07-13T08:22:35.000Z</updated>
     
-    <content type="html"><![CDATA[deferral: Unable_to_chdir_to_maildir._(#4.2.1)
+    <content type="html"><![CDATA[　　1、现在跨专业跨学校考研已经是一种趋势。某君学习图书馆学n年，也是觉得发腻。于是决定考个理科的研究生，在广泛的调查和研究之后。他毅然决定考天大的化院来挑战一下自己。看看一个连苯烷都不会写的人是否可以大跨度考研成功。他做了以下几步：
+坐火车到天大，找到自己未来的研究生导师。先恭敬的鞠上一躬，然后对老先生说：我想考您的研究生，随后递上自己的简历。老先生先是一脸鄙夷，想你们XX大学图书馆学虽然是全国第一，但又怎么知道我们数学的博大精深。不过他没有当面拒绝，而是写了十几个问题对小伙子说：不急，先把这些问题搞清楚再来找我。也就是说，先搞清楚才有资格。这个强人并没有生气，把问题清单收了起来。
 
-   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
+　　2、回到学校，把问题翻译成英语，然后给哈佛大学化学系某教授发了一封e-mail，信中写道：我想考贵院的研究生，这是我对专业的一点问题，可以帮我解答一下吗？同时加上自己的简历。哈佛教授看后很激动，因为发现了一个东方化学奇人，虽然不是专业人才但是专业问题问得很深。于是他们认认真真解答了问题，并列出一些其他的问题对小伙子做进一步的考核。
 
-如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
+　　3、收到哈佛的回信后，某君把问题翻译成汉语，再去找天大的老先生。先把答案给了老先生，老先生一看已经半疯，想小伙子不错，水平比我还高，已经达到国外哈佛的水平了。这时某君又拿出写满问题的那张纸，对老先生说：老师的问题我回答了，这是我对本专业的一些问题，请老师解答一下。老头看了问题，倒吸了一口凉气，傻眼了。这时某君装着要走。老先生急了，说：小伙子，别走！我要定你了，专业课不用考了，我包你过。公共课去回去复习一下，只要过线就行，只要过线。
 
-deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
+　　4、 回到学校，没过几天，收到老先生花了几个通宵、查了大量资料写好的哈佛教授所提问题的答案。某君把答案翻译成英语，给哈佛教授又发过去。他们在确认东方奇人后，提出了一年给某君4万美金的奖学金。一边是保研一边是全奖出国，到底选哪边？某君犯难了。
 
-   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
-
-454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
-
-  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
-
-[root@caph qmail-smtpd]# telnet localhost 25
-Trying 127.0.0.1...
-Connected to localhost.
-Escape character is &#39;^]&#39;.
-220 xxx.com ESMTP
-ehlo
-250-xxx.com
-250-PIPELINING
-250-8BITMIME
-250-SIZE 104857600
-250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
-auth login
-334 VXNlcm5hbWU6
-awefaq23rasdf
-334 UGFzc3dvcmQ6
-awefwaef
-454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
-quit
-221 xxx.com
-Connection closed by foreign host.
-
-出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
-
-QMAILDUID=`id -u vpopmail`
-QMAILDGID=`id -g vpopmail`
-
-/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
-        -u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
-        /var/qmail/bin/qmail-smtpd
-        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1
-
-不需要修改~vpopmail/bin/vchkpw的属性。
-
-451 qq write error or disk full (#4.3.0)
-
-通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
-
-qq temporary problem (#4.3.0)
-
-看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
--rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
-
-vchkpw-smtp: vpopmail user not found
-
-查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。
+　　5、当然是选保研，因为哈佛是淘汰制。而天大的老先生只会拍拍小伙子的肩膀说：孩子，好好学，谁让我当时瞎了眼把你收来呢。
 ]]></content>
     
     <summary type="html">
     
-      deferral: Unable_to_chdir_to_maildir._(#4.2.1)
-
-   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域
+      　　1、现在跨专业跨学校考研已经是一种趋势。某君学习图书馆学n年，也是觉得发腻。于是决定考个理科的研究生，在广泛的调查和研究之后。他毅然决定考天大的化院来挑战一下自己。看看一个连苯烷都不会写的人是否可以大跨度考研成功。他做了以下几步：
+坐火车到天大，找到自己未来的研究生导师。先恭
     
     </summary>
     
     
-      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
+      <category term="Joke" scheme="http://wdicc.com/tags/Joke/"/>
     
   </entry>
   
@@ -22652,62 +22645,83 @@ Mon, 03 Jan 2005 04:01:57 CST
   </entry>
   
   <entry>
-    <title>历史上最强最强的跨专业的考研人zz</title>
-    <link href="http://wdicc.com/a-joke-3/"/>
-    <id>http://wdicc.com/a-joke-3/</id>
+    <title>caphit web 配置</title>
+    <link href="http://wdicc.com/caphit-web-conf/"/>
+    <id>http://wdicc.com/caphit-web-conf/</id>
     <published>2006-01-15T16:00:00.000Z</published>
     <updated>2016-07-13T08:22:35.000Z</updated>
     
-    <content type="html"><![CDATA[　　1、现在跨专业跨学校考研已经是一种趋势。某君学习图书馆学n年，也是觉得发腻。于是决定考个理科的研究生，在广泛的调查和研究之后。他毅然决定考天大的化院来挑战一下自己。看看一个连苯烷都不会写的人是否可以大跨度考研成功。他做了以下几步：
-坐火车到天大，找到自己未来的研究生导师。先恭敬的鞠上一躬，然后对老先生说：我想考您的研究生，随后递上自己的简历。老先生先是一脸鄙夷，想你们XX大学图书馆学虽然是全国第一，但又怎么知道我们数学的博大精深。不过他没有当面拒绝，而是写了十几个问题对小伙子说：不急，先把这些问题搞清楚再来找我。也就是说，先搞清楚才有资格。这个强人并没有生气，把问题清单收了起来。
+    <content type="html"><![CDATA[httpd.conf
+ServerName caph
+AddDefaultCharset GB2312
+NameVirtualHost *
 
-　　2、回到学校，把问题翻译成英语，然后给哈佛大学化学系某教授发了一封e-mail，信中写道：我想考贵院的研究生，这是我对专业的一点问题，可以帮我解答一下吗？同时加上自己的简历。哈佛教授看后很激动，因为发现了一个东方化学奇人，虽然不是专业人才但是专业问题问得很深。于是他们认认真真解答了问题，并列出一些其他的问题对小伙子做进一步的考核。
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www
+ServerName 210.72.203.226
 
-　　3、收到哈佛的回信后，某君把问题翻译成汉语，再去找天大的老先生。先把答案给了老先生，老先生一看已经半疯，想小伙子不错，水平比我还高，已经达到国外哈佛的水平了。这时某君又拿出写满问题的那张纸，对老先生说：老师的问题我回答了，这是我对本专业的一些问题，请老师解答一下。老头看了问题，倒吸了一口凉气，傻眼了。这时某君装着要走。老先生急了，说：小伙子，别走！我要定你了，专业课不用考了，我包你过。公共课去回去复习一下，只要过线就行，只要过线。
+AllowOverride None
+Options +ExecCGI
+AddHandler cgi-script .cgi .pl
+Order allow,deny
+Allow from all
 
-　　4、 回到学校，没过几天，收到老先生花了几个通宵、查了大量资料写好的哈佛教授所提问题的答案。某君把答案翻译成英语，给哈佛教授又发过去。他们在确认东方奇人后，提出了一年给某君4万美金的奖学金。一边是保研一边是全奖出国，到底选哪边？某君犯难了。
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www/caphbook
+ServerName www.caphbook.com
+ServerAlias caphbook.com caphbook.com.cn www.caphbook.com.cn
+ErrorLog logs/caphbook.com-error_log
+CustomLog logs/caphbook.com-access_log common
 
-　　5、当然是选保研，因为哈佛是淘汰制。而天大的老先生只会拍拍小伙子的肩膀说：孩子，好好学，谁让我当时瞎了眼把你收来呢。
+#
+# ServerAdmin webmaster@aphit.com.cn
+# DocumentRoot /www/caphit
+# ServerName www.aphit.com.cn
+# ServerAlias aphit.com.cn
+#
+# Options Indexes
+#
+#
+#mail
+
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www/igenus
+ServerName mail.caphbook.com
+ServerAlias mail.caphbook.com.cn mail.aphit.com.cn
+ErrorLog logs/mail-error_log
+CustomLog logs/mail-access_log common
+
+ssl.conf
+
+此后
+service httpd restart
+chkconfig --level 345 httpd on
+
+php.ini
+register_globals = On
+max_execution_time = 60 ; Maximum execution time of each script, in seconds
+max_input_time = 120 ; Maximum amount of time each script may spend parsing request data
+memory_limit = 20M
+php.ini
+LimitRequestBody 52428800
+apache配置完毕
 ]]></content>
     
     <summary type="html">
     
-      　　1、现在跨专业跨学校考研已经是一种趋势。某君学习图书馆学n年，也是觉得发腻。于是决定考个理科的研究生，在广泛的调查和研究之后。他毅然决定考天大的化院来挑战一下自己。看看一个连苯烷都不会写的人是否可以大跨度考研成功。他做了以下几步：
-坐火车到天大，找到自己未来的研究生导师。先恭
+      httpd.conf
+ServerName caph
+AddDefaultCharset GB2312
+NameVirtualHost *
+
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www
+ServerName 210.7
     
     </summary>
     
     
-      <category term="Joke" scheme="http://wdicc.com/tags/Joke/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>下雪了</title>
-    <link href="http://wdicc.com/snowing-now/"/>
-    <id>http://wdicc.com/snowing-now/</id>
-    <published>2006-01-11T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[这个冬天的第一场雪可能都不能算是雪，据说是某些地方下了几颗肉眼刚好看到的雪粒粒，而且还是就早晨一会，反正我没看到。
-
-第二场似乎应该就是元旦那次了吧，是元旦那天，还是元旦前夜，我忘记了，反正据说是下了，看到据说了吧，说明我还是没看到。呵呵。那两天都在家里呆着，没有出门，只是听说下雪之后站在阳台看了一眼，12层楼往下看，似乎没看到白色的积雪，也没看到哗哗的雪片。可能是我看的时候人家早停了吧，北京的雪基本上都是掉下来就化，所以地上没有积雪也正常的。
-
-这次算是第三次了吧。因为座位不靠窗，所以没有注意到，到隔壁办公室的时候，听他们说起来才注意到，外面的雪片还真大。早上走的时候其实就在下了，不过都是小颗粒，还没想到居然成大气候了，呵呵。
-
-雪现在还在下，在角落里面已经有了一些积雪了，走人走车的地方的雪基本都化了，地上好多水。北京的天气比较来说不够冷，但是够湿润，所以比较容易看到下雪，但是不容易看到积雪。我们家那里比较干燥，冬天就是干冷，下雪少，偶尔来一次就是大的，这一次之后，可能整个冬天都能到处看到积雪，尤其是村子后面的山头上，都白白的。
-]]></content>
-    
-    <summary type="html">
-    
-      这个冬天的第一场雪可能都不能算是雪，据说是某些地方下了几颗肉眼刚好看到的雪粒粒，而且还是就早晨一会，反正我没看到。
-
-第二场似乎应该就是元旦那次了吧，是元旦那天，还是元旦前夜，我忘记了，反正据说是下了，看到据说了吧，说明我还是没看到。呵呵。那两天都在家里呆着，没有出门，只是听说下
-    
-    </summary>
-    
-    
-      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
+      <category term="Web" scheme="http://wdicc.com/tags/Web/"/>
     
   </entry>
   
@@ -22764,6 +22778,35 @@ Mon, 03 Jan 2005 04:01:57 CST
     
     
       <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>下雪了</title>
+    <link href="http://wdicc.com/snowing-now/"/>
+    <id>http://wdicc.com/snowing-now/</id>
+    <published>2006-01-11T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[这个冬天的第一场雪可能都不能算是雪，据说是某些地方下了几颗肉眼刚好看到的雪粒粒，而且还是就早晨一会，反正我没看到。
+
+第二场似乎应该就是元旦那次了吧，是元旦那天，还是元旦前夜，我忘记了，反正据说是下了，看到据说了吧，说明我还是没看到。呵呵。那两天都在家里呆着，没有出门，只是听说下雪之后站在阳台看了一眼，12层楼往下看，似乎没看到白色的积雪，也没看到哗哗的雪片。可能是我看的时候人家早停了吧，北京的雪基本上都是掉下来就化，所以地上没有积雪也正常的。
+
+这次算是第三次了吧。因为座位不靠窗，所以没有注意到，到隔壁办公室的时候，听他们说起来才注意到，外面的雪片还真大。早上走的时候其实就在下了，不过都是小颗粒，还没想到居然成大气候了，呵呵。
+
+雪现在还在下，在角落里面已经有了一些积雪了，走人走车的地方的雪基本都化了，地上好多水。北京的天气比较来说不够冷，但是够湿润，所以比较容易看到下雪，但是不容易看到积雪。我们家那里比较干燥，冬天就是干冷，下雪少，偶尔来一次就是大的，这一次之后，可能整个冬天都能到处看到积雪，尤其是村子后面的山头上，都白白的。
+]]></content>
+    
+    <summary type="html">
+    
+      这个冬天的第一场雪可能都不能算是雪，据说是某些地方下了几颗肉眼刚好看到的雪粒粒，而且还是就早晨一会，反正我没看到。
+
+第二场似乎应该就是元旦那次了吧，是元旦那天，还是元旦前夜，我忘记了，反正据说是下了，看到据说了吧，说明我还是没看到。呵呵。那两天都在家里呆着，没有出门，只是听说下
+    
+    </summary>
+    
+    
+      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
     
   </entry>
   
@@ -23609,6 +23652,42 @@ yy一下，大家不都喜欢yy么？yy无际限...
   </entry>
   
   <entry>
+    <title>为Archlinux做镜像</title>
+    <link href="http://wdicc.com/mirror-for-arch/"/>
+    <id>http://wdicc.com/mirror-for-arch/</id>
+    <published>2005-12-13T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[<pre class="prettyprint lang-bash">
+MIRROR_PATH=/data/archlinux
+rsync -avz rsync.archlinux.org::current $MIRROR_PATH/current/
+rsync -avz rsync.archlinux.org::extra $MIRROR_PATH/extra/
+rsync -avz rsync.archlinux.org::ftp/testing $MIRROR_PATH/testing/
+rsync -avz rsync.archlinux.org::ftp/unstable $MIRROR_PATH/unstable/
+
+#LOCAL_PATH=/data/archlinux
+#rsync -avz download.ourlinux.net::archlinux-current $LOCAL_PATH/current
+#rsync -avz download.ourlinux.net::archlinux-extra $LOCAL_PATH/extra
+#rsync -avz download.ourlinux.net::archlinux-unstable $LOCAL_PATH/unstable
+#rsync -avz download.ourlinux.net::archlinux-testing $LOCAL_PATH/testing
+#rsync -avz download.ourlinux.net::archlinux-alcle $LOCAL_PATH/alcle</pre>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
+MIRROR_PATH=/data/archlinux
+rsync -avz rsync.archlinux.org::current $MIRROR_PATH/current/
+rsync -avz rsy
+    
+    </summary>
+    
+    
+      <category term="Archlinux" scheme="http://wdicc.com/tags/Archlinux/"/>
+    
+  </entry>
+  
+  <entry>
     <title>为debian unstable做镜像</title>
     <link href="http://wdicc.com/mirror-for-debian/"/>
     <id>http://wdicc.com/mirror-for-debian/</id>
@@ -23682,42 +23761,6 @@ HOST_NONUS=debian.nctu.e
     
     
       <category term="Web" scheme="http://wdicc.com/tags/Web/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>为Archlinux做镜像</title>
-    <link href="http://wdicc.com/mirror-for-arch/"/>
-    <id>http://wdicc.com/mirror-for-arch/</id>
-    <published>2005-12-13T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[<pre class="prettyprint lang-bash">
-MIRROR_PATH=/data/archlinux
-rsync -avz rsync.archlinux.org::current $MIRROR_PATH/current/
-rsync -avz rsync.archlinux.org::extra $MIRROR_PATH/extra/
-rsync -avz rsync.archlinux.org::ftp/testing $MIRROR_PATH/testing/
-rsync -avz rsync.archlinux.org::ftp/unstable $MIRROR_PATH/unstable/
-
-#LOCAL_PATH=/data/archlinux
-#rsync -avz download.ourlinux.net::archlinux-current $LOCAL_PATH/current
-#rsync -avz download.ourlinux.net::archlinux-extra $LOCAL_PATH/extra
-#rsync -avz download.ourlinux.net::archlinux-unstable $LOCAL_PATH/unstable
-#rsync -avz download.ourlinux.net::archlinux-testing $LOCAL_PATH/testing
-#rsync -avz download.ourlinux.net::archlinux-alcle $LOCAL_PATH/alcle</pre>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
-MIRROR_PATH=/data/archlinux
-rsync -avz rsync.archlinux.org::current $MIRROR_PATH/current/
-rsync -avz rsy
-    
-    </summary>
-    
-    
-      <category term="Archlinux" scheme="http://wdicc.com/tags/Archlinux/"/>
     
   </entry>
   
@@ -24096,6 +24139,145 @@ tt
   </entry>
   
   <entry>
+    <title>wget 使用</title>
+    <link href="http://wdicc.com/use-wget/"/>
+    <id>http://wdicc.com/use-wget/</id>
+    <published>2005-12-01T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[http://www.linuxfans.org/nuke/modules.php?name=Forums&file=viewtopic&t=88813
+
+$ wget --help
+GNU Wget 1.9.1，非交互式的网络文件下载工具。
+用法： wget [选项]... [URL]...
+
+长选项必须用的参数在使用短选项时也是必须的。
+
+启动：
+  -V,  --version           显示 Wget 的版本并且退出。
+  -h,  --help              打印此帮助。
+  -b,  -background         启动后进入后台操作。
+  -e,  -execute=COMMAND    运行‘.wgetrc’形式的命令。
+
+日志记录及输入文件：
+  -o,  --output-file=文件     将日志消息写入到指定文件中。
+  -a,  --append-output=文件   将日志消息追加到指定文件的末端。
+  -d,  --debug                打印调试输出。
+  -q,  --quiet                安静模式(不输出信息)。
+  -v,  --verbose               详细输出模式(默认)。
+  -nv, --non-verbose          关闭详细输出模式，但不进入安静模式。
+  -i,  --input-file=文件      下载从指定文件中找到的 URL。
+  -F,  --force-html           以 HTML 方式处理输入文件。
+  -B,  --base=URL             使用 -F -i 文件选项时，在相对链接前添加指定的 URL。
+
+下载：
+  -t,  --tries=次数             配置重试次数（0 表示无限）。
+       --retry-connrefused      即使拒绝连接也重试。
+  -O   --output-document=文件   将数据写入此文件中。
+  -nc, --no-clobber             不更改已经存在的文件，也不使用在文件名后
+                                添加 .#（# 为数字）的方法写入新的文件。
+  -c,  --continue               继续接收已下载了一部分的文件。
+       --progress=方式          选择下载进度的表示方式。
+  -N,  --timestamping           除非远程文件较新，否则不再取回。
+  -S,  --server-response        显示服务器回应消息。
+       --spider                 不下载任何数据。
+  -T,  --timeout=秒数           配置读取数据的超时时间 (秒数)。
+  -w,  --wait=秒数              接收不同文件之间等待的秒数。
+       --waitretry=秒数         在每次重试之间稍等一段时间 (由 1 秒至指定的 秒数不等)。
+       --random-wait            接收不同文件之间稍等一段时间(由 0 秒至  2*WAIT 秒不等)。
+  -Y,  --proxy=on/off           打开或关闭代理服务器。
+  -Q,  --quota=大小             配置接收数据的限额大小。
+       --bind-address=地址      使用本机的指定地址 (主机名称或 IP) 进行连接。
+       --limit-rate=速率        限制下载的速率。
+       --dns-cache=off          禁止查找存于高速缓存中的 DNS。
+       --restrict-file-names=OS 限制文件名中的字符为指定的 OS (操作系统) 所允许的字符。
+
+目录：
+  -nd  --no-directories            不创建目录。
+  -x,  --force-directories         强制创建目录。
+  -nH, --no-host-directories       不创建含有远程主机名称的目录。
+  -P,  --directory-prefix=名称     保存文件前先创建指定名称的目录。
+       --cut-dirs=数目             忽略远程目录中指定数目的目录层。
+
+HTTP 选项：
+       --http-user=用户    配置 http 用户名。
+       --http-passwd=密码    配置 http 用户密码。
+  -C,  --cache=on/off        (不)使用服务器中的高速缓存中的数据 (默认是使用的)。
+  -E,  --html-extension      将所有 MIME 类型为 text/html 的文件都加上 .html 扩展文件名。
+       --ignore-length       忽略“Content-Length”文件头字段。
+       --header=字符串         在文件头中添加指定字符串。
+       --proxy-user=用户   配置代理服务器用户名。
+       --proxy-passwd=密码   配置代理服务器用户密码。
+       --referer=URL         在 HTTP 请求中包含“Referer：URL”头。
+  -s,  --save-headers        将 HTTP 头存入文件。
+  -U,  --user-agent=AGENT    标志为 AGENT 而不是 Wget/VERSION。
+       --no-http-keep-alive  禁用 HTTP keep-alive（持久性连接）。
+       --cookies=off         禁用 cookie。
+       --load-cookies=文件   会话开始前由指定文件载入 cookie。
+       --save-cookies=文件   会话结束后将 cookie 保存至指定文件。
+       --post-data=字符串    使用 POST 方法，发送指定字符串。
+       --post-file=文件      使用 POST 方法，发送指定文件中的内容。
+
+HTTPS (SSL) 选项：
+       --sslcertfile=文件     可选的客户段端证书。
+       --sslcertkey=密钥文件  对此证书可选的“密钥文件”。
+       --egd-file=文件        EGD socket 文件名。
+       --sslcadir=目录         CA 散列表所在的目录。
+       --sslcafile=文件      包含 CA 的文件。
+       --sslcerttype=0/1      Client-Cert 类型 0=PEM (默认) / 1=ASN1 (DER)
+       --sslcheckcert=0/1     根据提供的 CA 检查服务器的证书
+       --sslprotocol=0-3      选择 SSL 协议；0=自动选择，
+                              1=SSLv2 2=SSLv3 3=TLSv1
+
+FTP 选项：
+  -nr, --dont-remove-listing   不删除“.listing”文件。
+  -g,  --glob=on/off           设置是否展开有通配符的文件名。
+       --passive-ftp           使用“被动”传输模式。
+       --retr-symlinks         在递归模式中，下载链接所指示的文件(连至目录
+                               则例外）。
+递归下载：
+  -r,  --recursive          递归下载。
+  -l,  --level=数字         最大递归深度(inf 或 0 表示无限)。
+       --delete-after       删除下载后的文件。
+  -k,  --convert-links      将绝对链接转换为相对链接。
+  -K,  --backup-converted   转换文件 X 前先将其备份为 X.orig。
+  -m,  --mirror             等效于 -r -N -l inf -nr 的选项。
+  -p,  --page-requisites    下载所有显示完整网页所需的文件，例如图像。
+       --strict-comments    打开对 HTML 备注的严格(SGML)处理选项。
+
+递归下载时有关接受/拒绝的选项：
+  -A,  --accept=列表                接受的文件样式列表，以逗号分隔。
+  -R,  --reject=列表                排除的文件样式列表，以逗号分隔。
+  -D,  --domains=列表               接受的域列表，以逗号分隔。
+       --exclude-domains=列表       排除的域列表，以逗号分隔。
+       --follow-ftp                 跟随 HTML 文件中的 FTP 链接。
+       --follow-tags=列表           要跟随的 HTML 标记，以逗号分隔。
+  -G,  --ignore-tags=列表           要忽略的 HTML 标记，以逗号分隔。
+  -H,  --span-hosts                 递归时可进入其它主机。
+  -L,  --relative                   只跟随相对链接。
+  -I,  --include-directories=列表   要下载的目录列表。
+  -X,  --exclude-directories=列表   要排除的目录列表。
+  -np, --no-parent                  不搜索上层目录。
+
+请将错误报告或建议寄给 <bug-wget@gnu.org>。
+</bug-wget@gnu.org>]]></content>
+    
+    <summary type="html">
+    
+      http://www.linuxfans.org/nuke/modules.php?name=Forums&amp;file=viewtopic&amp;t=88813
+
+$ wget --help
+GNU Wget 1.9.1，非交互式的网络文件下载工具。
+用法： wget [选项]... [
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+  </entry>
+  
+  <entry>
     <title>一页纸多一点的博士论文</title>
     <link href="http://wdicc.com/1-page-paper/"/>
     <id>http://wdicc.com/1-page-paper/</id>
@@ -24331,145 +24513,6 @@ tt
     
     
       <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>wget 使用</title>
-    <link href="http://wdicc.com/use-wget/"/>
-    <id>http://wdicc.com/use-wget/</id>
-    <published>2005-12-01T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[http://www.linuxfans.org/nuke/modules.php?name=Forums&file=viewtopic&t=88813
-
-$ wget --help
-GNU Wget 1.9.1，非交互式的网络文件下载工具。
-用法： wget [选项]... [URL]...
-
-长选项必须用的参数在使用短选项时也是必须的。
-
-启动：
-  -V,  --version           显示 Wget 的版本并且退出。
-  -h,  --help              打印此帮助。
-  -b,  -background         启动后进入后台操作。
-  -e,  -execute=COMMAND    运行‘.wgetrc’形式的命令。
-
-日志记录及输入文件：
-  -o,  --output-file=文件     将日志消息写入到指定文件中。
-  -a,  --append-output=文件   将日志消息追加到指定文件的末端。
-  -d,  --debug                打印调试输出。
-  -q,  --quiet                安静模式(不输出信息)。
-  -v,  --verbose               详细输出模式(默认)。
-  -nv, --non-verbose          关闭详细输出模式，但不进入安静模式。
-  -i,  --input-file=文件      下载从指定文件中找到的 URL。
-  -F,  --force-html           以 HTML 方式处理输入文件。
-  -B,  --base=URL             使用 -F -i 文件选项时，在相对链接前添加指定的 URL。
-
-下载：
-  -t,  --tries=次数             配置重试次数（0 表示无限）。
-       --retry-connrefused      即使拒绝连接也重试。
-  -O   --output-document=文件   将数据写入此文件中。
-  -nc, --no-clobber             不更改已经存在的文件，也不使用在文件名后
-                                添加 .#（# 为数字）的方法写入新的文件。
-  -c,  --continue               继续接收已下载了一部分的文件。
-       --progress=方式          选择下载进度的表示方式。
-  -N,  --timestamping           除非远程文件较新，否则不再取回。
-  -S,  --server-response        显示服务器回应消息。
-       --spider                 不下载任何数据。
-  -T,  --timeout=秒数           配置读取数据的超时时间 (秒数)。
-  -w,  --wait=秒数              接收不同文件之间等待的秒数。
-       --waitretry=秒数         在每次重试之间稍等一段时间 (由 1 秒至指定的 秒数不等)。
-       --random-wait            接收不同文件之间稍等一段时间(由 0 秒至  2*WAIT 秒不等)。
-  -Y,  --proxy=on/off           打开或关闭代理服务器。
-  -Q,  --quota=大小             配置接收数据的限额大小。
-       --bind-address=地址      使用本机的指定地址 (主机名称或 IP) 进行连接。
-       --limit-rate=速率        限制下载的速率。
-       --dns-cache=off          禁止查找存于高速缓存中的 DNS。
-       --restrict-file-names=OS 限制文件名中的字符为指定的 OS (操作系统) 所允许的字符。
-
-目录：
-  -nd  --no-directories            不创建目录。
-  -x,  --force-directories         强制创建目录。
-  -nH, --no-host-directories       不创建含有远程主机名称的目录。
-  -P,  --directory-prefix=名称     保存文件前先创建指定名称的目录。
-       --cut-dirs=数目             忽略远程目录中指定数目的目录层。
-
-HTTP 选项：
-       --http-user=用户    配置 http 用户名。
-       --http-passwd=密码    配置 http 用户密码。
-  -C,  --cache=on/off        (不)使用服务器中的高速缓存中的数据 (默认是使用的)。
-  -E,  --html-extension      将所有 MIME 类型为 text/html 的文件都加上 .html 扩展文件名。
-       --ignore-length       忽略“Content-Length”文件头字段。
-       --header=字符串         在文件头中添加指定字符串。
-       --proxy-user=用户   配置代理服务器用户名。
-       --proxy-passwd=密码   配置代理服务器用户密码。
-       --referer=URL         在 HTTP 请求中包含“Referer：URL”头。
-  -s,  --save-headers        将 HTTP 头存入文件。
-  -U,  --user-agent=AGENT    标志为 AGENT 而不是 Wget/VERSION。
-       --no-http-keep-alive  禁用 HTTP keep-alive（持久性连接）。
-       --cookies=off         禁用 cookie。
-       --load-cookies=文件   会话开始前由指定文件载入 cookie。
-       --save-cookies=文件   会话结束后将 cookie 保存至指定文件。
-       --post-data=字符串    使用 POST 方法，发送指定字符串。
-       --post-file=文件      使用 POST 方法，发送指定文件中的内容。
-
-HTTPS (SSL) 选项：
-       --sslcertfile=文件     可选的客户段端证书。
-       --sslcertkey=密钥文件  对此证书可选的“密钥文件”。
-       --egd-file=文件        EGD socket 文件名。
-       --sslcadir=目录         CA 散列表所在的目录。
-       --sslcafile=文件      包含 CA 的文件。
-       --sslcerttype=0/1      Client-Cert 类型 0=PEM (默认) / 1=ASN1 (DER)
-       --sslcheckcert=0/1     根据提供的 CA 检查服务器的证书
-       --sslprotocol=0-3      选择 SSL 协议；0=自动选择，
-                              1=SSLv2 2=SSLv3 3=TLSv1
-
-FTP 选项：
-  -nr, --dont-remove-listing   不删除“.listing”文件。
-  -g,  --glob=on/off           设置是否展开有通配符的文件名。
-       --passive-ftp           使用“被动”传输模式。
-       --retr-symlinks         在递归模式中，下载链接所指示的文件(连至目录
-                               则例外）。
-递归下载：
-  -r,  --recursive          递归下载。
-  -l,  --level=数字         最大递归深度(inf 或 0 表示无限)。
-       --delete-after       删除下载后的文件。
-  -k,  --convert-links      将绝对链接转换为相对链接。
-  -K,  --backup-converted   转换文件 X 前先将其备份为 X.orig。
-  -m,  --mirror             等效于 -r -N -l inf -nr 的选项。
-  -p,  --page-requisites    下载所有显示完整网页所需的文件，例如图像。
-       --strict-comments    打开对 HTML 备注的严格(SGML)处理选项。
-
-递归下载时有关接受/拒绝的选项：
-  -A,  --accept=列表                接受的文件样式列表，以逗号分隔。
-  -R,  --reject=列表                排除的文件样式列表，以逗号分隔。
-  -D,  --domains=列表               接受的域列表，以逗号分隔。
-       --exclude-domains=列表       排除的域列表，以逗号分隔。
-       --follow-ftp                 跟随 HTML 文件中的 FTP 链接。
-       --follow-tags=列表           要跟随的 HTML 标记，以逗号分隔。
-  -G,  --ignore-tags=列表           要忽略的 HTML 标记，以逗号分隔。
-  -H,  --span-hosts                 递归时可进入其它主机。
-  -L,  --relative                   只跟随相对链接。
-  -I,  --include-directories=列表   要下载的目录列表。
-  -X,  --exclude-directories=列表   要排除的目录列表。
-  -np, --no-parent                  不搜索上层目录。
-
-请将错误报告或建议寄给 <bug-wget@gnu.org>。
-</bug-wget@gnu.org>]]></content>
-    
-    <summary type="html">
-    
-      http://www.linuxfans.org/nuke/modules.php?name=Forums&amp;file=viewtopic&amp;t=88813
-
-$ wget --help
-GNU Wget 1.9.1，非交互式的网络文件下载工具。
-用法： wget [选项]... [
-    
-    </summary>
-    
-    
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
     
   </entry>
   
@@ -24860,6 +24903,99 @@ skin用的是LaPrata。
   </entry>
   
   <entry>
+    <title>自动贴星运的脚本</title>
+    <link href="http://wdicc.com/auto-script/"/>
+    <id>http://wdicc.com/auto-script/</id>
+    <published>2005-10-25T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[贴星运的脚本，根据别人的修改的。
+<br><a id="more"></a>#!/bin/bash 
+
+#星座的名字,抓网页的时候要用的 
+Signs="aries taurus gemini cancer leo virgo libra scorpio sagittarius capricorn aquarius pisces"
+
+#日期,每篇文章标题要用的 
+head=`date --date='1 days' +%Y-%m-%d`
+
+#要贴的BBS站点,都是水木代码的 
+Sites='bbs.buaa.edu.cn'
+
+#用户名密码
+user=horoscope
+pass=*****
+
+#生成每个星座的星运文件 
+i=1;
+for sign in $Signs
+do
+    wget http://mindcity.sina.com.tw/west/MC-12stars/${sign}2.html -O $i.htm
+    sed -n '/<!--START:HORO_TOMORROW-->/,/<!--END:HORO_TOMORROW-->/p' $i.htm | sed -e 's/
+/\n/g' -e 's/&lt;[^&gt;]*&gt;//g'  -e 's/\t//'| sed -n '4,$p' | sed -e '2,4d' -e '15d'|iconv -f BIG5 -t GB2312 &gt; $i.ast
+    rm $i.htm
+    let i=$i+1
+done
+
+
+#out 用户名 密码 文件 
+out(){
+sleep 1
+echo "$1" 
+sleep 1
+echo "$2" 
+echo
+sleep 1
+echo -n "qqqqqqqqqq" 
+sleep 1
+echo "S" 
+echo "horoscope" 
+echo 
+
+sleep 3
+
+j=1 
+while [ $j -lt 13 ] 
+do      
+        echo -n $'\cp'
+        ((echo -n $head) &amp;&amp; (head -1 $j.ast))
+        echo
+        echo $head
+        echo
+        cat $j.ast
+        echo
+        echo -n $'\cx'
+        echo
+        let j=$j+1
+    sleep 3
+done
+
+sleep 3
+
+echo "qqqqg" 
+echo 
+echo 
+echo 
+}
+
+for site in $Sites
+do  
+    out $user $pass | telnet -8 $site
+done
+]]></content>
+    
+    <summary type="html">
+    
+      贴星运的脚本，根据别人的修改的。
+&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+    
+  </entry>
+  
+  <entry>
     <title>wd love cc</title>
     <link href="http://wdicc.com/wd-love-cc/"/>
     <id>http://wdicc.com/wd-love-cc/</id>
@@ -24882,127 +25018,6 @@ skin用的是LaPrata。
       <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
     
       <category term="老婆" scheme="http://wdicc.com/tags/%E8%80%81%E5%A9%86/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>vim的一些有用的咚咚</title>
-    <link href="http://wdicc.com/some-usefull-about-vim/"/>
-    <id>http://wdicc.com/some-usefull-about-vim/</id>
-    <published>2005-10-25T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[<pre class="prettyprint lang-bash">
-# cat .bashrc.vim
-# .bashrc
-# Source default definitions
-if [ -f ~/.bashrc ]; then
-    . ~/.bashrc
-fi
-export PS1="[VIM]$PS1"
-</pre>
-<br><a id="more"></a><pre lang="bash"># cat .vimrc
-" multi-encoding setting
-if has("multi_byte")
-  "set bomb
-  set fileencodings=ucs-bom,utf-8,cp936,big5,euc-jp,euc-kr,latin1
-  " CJK environment detection and corresponding setting
-  if v:lang =~ "^zh_CN"
-    " Use cp936 to support GBK, euc-cn == gb2312
-    set encoding=cp936
-    set termencoding=cp936
-    set fileencoding=cp936
-  elseif v:lang =~ "^zh_TW"
-    " cp950, big5 or euc-tw
-    " Are they equal to each other?
-    set encoding=big5
-    set termencoding=big5
-    set fileencoding=big5
-  elseif v:lang =~ "^ko"
-    " Copied from someone&#39;s dotfile, untested
-    set encoding=euc-kr
-    set termencoding=euc-kr
-    set fileencoding=euc-kr
-  elseif v:lang =~ "^ja_JP"
-    " Copied from someone&#39;s dotfile, untested
-    set encoding=euc-jp
-    set termencoding=euc-jp
-    set fileencoding=euc-jp
-  endif
-  " Detect UTF-8 locale, and replace CJK setting if needed
-  if v:lang =~ "utf8$" || v:lang =~ "UTF-8$"
-    set encoding=utf-8
-    set termencoding=utf-8
-    set fileencoding=utf-8
-  endif
-else
-  echoerr "Sorry, this version of (g)vim was not compiled with multi_byte"
-endif
-set shell=bash\ --rcfile\ ~/.bashrc.vim
-nnoremap j gj
-nnoremap k gk
-vnoremap j gj
-vnoremap k gk
-nnoremap <down> gj
-nnoremap <up> gk
-vnoremap <down> gj
-vnoremap <up> gk
-inoremap <down> <c-o>gj
-inoremap <up> <c-o>gk
-</c-o></up></c-o></down></up></down></up></down></pre>
-<pre class="prettyprint lang-bash">
-set tabstop=4
-set shiftwidth=4</pre>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
-# cat .bashrc.vim
-# .bashrc
-# Source default definitions
-if [ -f ~/.bashrc ]; then
-    . ~/.bashrc
-fi
-export PS1=&quot;[VIM]$PS1&quot;
-&lt;/pre&gt;
-&lt;br&gt;
-    
-    </summary>
-    
-    
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>远程安装ArchLinux(翻译)</title>
-    <link href="http://wdicc.com/remote-install-arch/"/>
-    <id>http://wdicc.com/remote-install-arch/</id>
-    <published>2005-10-25T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[[color=green]原文地址：[url]http://wiki2.archlinux.org/index.php/Remote%20ArchLinux%20Install[/url][/color]
-远程安装ArchLinux
-
-基于Tobias Kieslich的工作。他的原始版请看这里[url]http://www.justdreams.de/archlinux/docs/00_rootserver.html。[/url]
-
-[b]概述[/b]
-
-这是一个建立Archlinux基本服务器的指南。Archlinux是一个很好的服务器系统，但是它通常不会被选择作为一个预装的发行版。在本机替换预装的系统非常容易。但是替换一个
-]]></content>
-    
-    <summary type="html">
-    
-      [color=green]原文地址：[url]http://wiki2.archlinux.org/index.php/Remote%20ArchLinux%20Install[/url][/color]
-远程安装ArchLinux
-
-基于Tobias Kieslich的工作。他
-    
-    </summary>
-    
-    
-      <category term="Archlinux" scheme="http://wdicc.com/tags/Archlinux/"/>
     
   </entry>
   
@@ -25172,95 +25187,33 @@ set fileencodings=utf-8,gb18030,utf-16,big5
   </entry>
   
   <entry>
-    <title>自动贴星运的脚本</title>
-    <link href="http://wdicc.com/auto-script/"/>
-    <id>http://wdicc.com/auto-script/</id>
+    <title>远程安装ArchLinux(翻译)</title>
+    <link href="http://wdicc.com/remote-install-arch/"/>
+    <id>http://wdicc.com/remote-install-arch/</id>
     <published>2005-10-25T16:00:00.000Z</published>
     <updated>2016-07-13T08:22:35.000Z</updated>
     
-    <content type="html"><![CDATA[贴星运的脚本，根据别人的修改的。
-<br><a id="more"></a>#!/bin/bash 
+    <content type="html"><![CDATA[[color=green]原文地址：[url]http://wiki2.archlinux.org/index.php/Remote%20ArchLinux%20Install[/url][/color]
+远程安装ArchLinux
 
-#星座的名字,抓网页的时候要用的 
-Signs="aries taurus gemini cancer leo virgo libra scorpio sagittarius capricorn aquarius pisces"
+基于Tobias Kieslich的工作。他的原始版请看这里[url]http://www.justdreams.de/archlinux/docs/00_rootserver.html。[/url]
 
-#日期,每篇文章标题要用的 
-head=`date --date='1 days' +%Y-%m-%d`
+[b]概述[/b]
 
-#要贴的BBS站点,都是水木代码的 
-Sites='bbs.buaa.edu.cn'
-
-#用户名密码
-user=horoscope
-pass=*****
-
-#生成每个星座的星运文件 
-i=1;
-for sign in $Signs
-do
-    wget http://mindcity.sina.com.tw/west/MC-12stars/${sign}2.html -O $i.htm
-    sed -n '/<!--START:HORO_TOMORROW-->/,/<!--END:HORO_TOMORROW-->/p' $i.htm | sed -e 's/
-/\n/g' -e 's/&lt;[^&gt;]*&gt;//g'  -e 's/\t//'| sed -n '4,$p' | sed -e '2,4d' -e '15d'|iconv -f BIG5 -t GB2312 &gt; $i.ast
-    rm $i.htm
-    let i=$i+1
-done
-
-
-#out 用户名 密码 文件 
-out(){
-sleep 1
-echo "$1" 
-sleep 1
-echo "$2" 
-echo
-sleep 1
-echo -n "qqqqqqqqqq" 
-sleep 1
-echo "S" 
-echo "horoscope" 
-echo 
-
-sleep 3
-
-j=1 
-while [ $j -lt 13 ] 
-do      
-        echo -n $'\cp'
-        ((echo -n $head) &amp;&amp; (head -1 $j.ast))
-        echo
-        echo $head
-        echo
-        cat $j.ast
-        echo
-        echo -n $'\cx'
-        echo
-        let j=$j+1
-    sleep 3
-done
-
-sleep 3
-
-echo "qqqqg" 
-echo 
-echo 
-echo 
-}
-
-for site in $Sites
-do  
-    out $user $pass | telnet -8 $site
-done
+这是一个建立Archlinux基本服务器的指南。Archlinux是一个很好的服务器系统，但是它通常不会被选择作为一个预装的发行版。在本机替换预装的系统非常容易。但是替换一个
 ]]></content>
     
     <summary type="html">
     
-      贴星运的脚本，根据别人的修改的。
-&lt;br&gt;
+      [color=green]原文地址：[url]http://wiki2.archlinux.org/index.php/Remote%20ArchLinux%20Install[/url][/color]
+远程安装ArchLinux
+
+基于Tobias Kieslich的工作。他
     
     </summary>
     
     
-      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
+      <category term="Archlinux" scheme="http://wdicc.com/tags/Archlinux/"/>
     
   </entry>
   
@@ -25329,6 +25282,96 @@ Th
     
     
       <category term="Archlinux" scheme="http://wdicc.com/tags/Archlinux/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>vim的一些有用的咚咚</title>
+    <link href="http://wdicc.com/some-usefull-about-vim/"/>
+    <id>http://wdicc.com/some-usefull-about-vim/</id>
+    <published>2005-10-25T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[<pre class="prettyprint lang-bash">
+# cat .bashrc.vim
+# .bashrc
+# Source default definitions
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+export PS1="[VIM]$PS1"
+</pre>
+<br><a id="more"></a><pre lang="bash"># cat .vimrc
+" multi-encoding setting
+if has("multi_byte")
+  "set bomb
+  set fileencodings=ucs-bom,utf-8,cp936,big5,euc-jp,euc-kr,latin1
+  " CJK environment detection and corresponding setting
+  if v:lang =~ "^zh_CN"
+    " Use cp936 to support GBK, euc-cn == gb2312
+    set encoding=cp936
+    set termencoding=cp936
+    set fileencoding=cp936
+  elseif v:lang =~ "^zh_TW"
+    " cp950, big5 or euc-tw
+    " Are they equal to each other?
+    set encoding=big5
+    set termencoding=big5
+    set fileencoding=big5
+  elseif v:lang =~ "^ko"
+    " Copied from someone&#39;s dotfile, untested
+    set encoding=euc-kr
+    set termencoding=euc-kr
+    set fileencoding=euc-kr
+  elseif v:lang =~ "^ja_JP"
+    " Copied from someone&#39;s dotfile, untested
+    set encoding=euc-jp
+    set termencoding=euc-jp
+    set fileencoding=euc-jp
+  endif
+  " Detect UTF-8 locale, and replace CJK setting if needed
+  if v:lang =~ "utf8$" || v:lang =~ "UTF-8$"
+    set encoding=utf-8
+    set termencoding=utf-8
+    set fileencoding=utf-8
+  endif
+else
+  echoerr "Sorry, this version of (g)vim was not compiled with multi_byte"
+endif
+set shell=bash\ --rcfile\ ~/.bashrc.vim
+nnoremap j gj
+nnoremap k gk
+vnoremap j gj
+vnoremap k gk
+nnoremap <down> gj
+nnoremap <up> gk
+vnoremap <down> gj
+vnoremap <up> gk
+inoremap <down> <c-o>gj
+inoremap <up> <c-o>gk
+</c-o></up></c-o></down></up></down></up></down></pre>
+<pre class="prettyprint lang-bash">
+set tabstop=4
+set shiftwidth=4</pre>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
+# cat .bashrc.vim
+# .bashrc
+# Source default definitions
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+export PS1=&quot;[VIM]$PS1&quot;
+&lt;/pre&gt;
+&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
     
   </entry>
   
@@ -25434,6 +25477,28 @@ Th
   </entry>
   
   <entry>
+    <title>越来越想去南方呆着了</title>
+    <link href="http://wdicc.com/sick-for-south-of-china/"/>
+    <id>http://wdicc.com/sick-for-south-of-china/</id>
+    <published>2005-05-10T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[宜人的空气，舒适的节奏，舒适的阳光，pp的美女。。。。sigh
+]]></content>
+    
+    <summary type="html">
+    
+      宜人的空气，舒适的节奏，舒适的阳光，pp的美女。。。。sigh
+
+    
+    </summary>
+    
+    
+      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
+    
+  </entry>
+  
+  <entry>
     <title>遭遇3721</title>
     <link href="http://wdicc.com/3721-is-a-shit/"/>
     <id>http://wdicc.com/3721-is-a-shit/</id>
@@ -25465,28 +25530,6 @@ Th
 先看进程，没有相关咚咚，3721目录又删不掉。后来好容易找到了方法：
 
 先复制一个system32/drivers文件出来，然后删掉复制出来的那个里面的cn*。
-
-    
-    </summary>
-    
-    
-      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>越来越想去南方呆着了</title>
-    <link href="http://wdicc.com/sick-for-south-of-china/"/>
-    <id>http://wdicc.com/sick-for-south-of-china/</id>
-    <published>2005-05-10T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[宜人的空气，舒适的节奏，舒适的阳光，pp的美女。。。。sigh
-]]></content>
-    
-    <summary type="html">
-    
-      宜人的空气，舒适的节奏，舒适的阳光，pp的美女。。。。sigh
 
     
     </summary>
@@ -25665,36 +25708,6 @@ coder：(XXX公司CEO办公室里，看着www.xxx.com上的新闻)
   </entry>
   
   <entry>
-    <title>服务器ip是一天一改啊</title>
-    <link href="http://wdicc.com/ip-change-everyday/"/>
-    <id>http://wdicc.com/ip-change-everyday/</id>
-    <published>2005-04-25T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[nnd
-
-现在混饭吃的人太多了，打了8个电话都没人明白路由不通是怎么回事。而最后终级解决方法居然是把ip改回去了。
-
-服了，航天
-]]></content>
-    
-    <summary type="html">
-    
-      nnd
-
-现在混饭吃的人太多了，打了8个电话都没人明白路由不通是怎么回事。而最后终级解决方法居然是把ip改回去了。
-
-服了，航天
-
-    
-    </summary>
-    
-    
-      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
-    
-  </entry>
-  
-  <entry>
     <title>今天是搬家后正常工作第一天</title>
     <link href="http://wdicc.com/first-day-after-move/"/>
     <id>http://wdicc.com/first-day-after-move/</id>
@@ -25723,6 +25736,36 @@ coder：(XXX公司CEO办公室里，看着www.xxx.com上的新闻)
       <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
     
       <category term="老婆" scheme="http://wdicc.com/tags/%E8%80%81%E5%A9%86/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>服务器ip是一天一改啊</title>
+    <link href="http://wdicc.com/ip-change-everyday/"/>
+    <id>http://wdicc.com/ip-change-everyday/</id>
+    <published>2005-04-25T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[nnd
+
+现在混饭吃的人太多了，打了8个电话都没人明白路由不通是怎么回事。而最后终级解决方法居然是把ip改回去了。
+
+服了，航天
+]]></content>
+    
+    <summary type="html">
+    
+      nnd
+
+现在混饭吃的人太多了，打了8个电话都没人明白路由不通是怎么回事。而最后终级解决方法居然是把ip改回去了。
+
+服了，航天
+
+    
+    </summary>
+    
+    
+      <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
     
   </entry>
   
@@ -25782,30 +25825,6 @@ coder：(XXX公司CEO办公室里，看着www.xxx.com上的新闻)
   </entry>
   
   <entry>
-    <title>Grisword给tt写的一个图片counter</title>
-    <link href="http://wdicc.com/counter-for-tt/"/>
-    <id>http://wdicc.com/counter-for-tt/</id>
-    <published>2005-04-19T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[保存为tools/counter.php
-代
-]]></content>
-    
-    <summary type="html">
-    
-      保存为tools/counter.php
-代
-
-    
-    </summary>
-    
-    
-      <category term="Web" scheme="http://wdicc.com/tags/Web/"/>
-    
-  </entry>
-  
-  <entry>
     <title>今天上班很郁闷</title>
     <link href="http://wdicc.com/on-duty/"/>
     <id>http://wdicc.com/on-duty/</id>
@@ -25829,6 +25848,30 @@ coder：(XXX公司CEO办公室里，看着www.xxx.com上的新闻)
     
     
       <category term="Heart" scheme="http://wdicc.com/tags/Heart/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Grisword给tt写的一个图片counter</title>
+    <link href="http://wdicc.com/counter-for-tt/"/>
+    <id>http://wdicc.com/counter-for-tt/</id>
+    <published>2005-04-19T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[保存为tools/counter.php
+代
+]]></content>
+    
+    <summary type="html">
+    
+      保存为tools/counter.php
+代
+
+    
+    </summary>
+    
+    
+      <category term="Web" scheme="http://wdicc.com/tags/Web/"/>
     
   </entry>
   
@@ -26336,6 +26379,31 @@ debian的系统菜单在/usr/share/applications下面，他会自动添加条目
   </entry>
   
   <entry>
+    <title>mysql修改数据库权限</title>
+    <link href="http://wdicc.com/mysql-grant/"/>
+    <id>http://wdicc.com/mysql-grant/</id>
+    <published>2005-04-18T16:00:00.000Z</published>
+    <updated>2016-07-13T08:22:35.000Z</updated>
+    
+    <content type="html"><![CDATA[<pre class="prettyprint lang-sql">
+GRANT select,insert,update,delete,create,drop ON xxxdb.* TO xxxuser@localhost IDENTIFIED BY "xxxpwd";
+</pre>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+GRANT select,insert,update,delete,create,drop ON xxxdb.* TO xxxuser@localhost IDENTIFIED BY &quot;xxxpwd&quot;;
+&lt;/p
+    
+    </summary>
+    
+    
+      <category term="Web" scheme="http://wdicc.com/tags/Web/"/>
+    
+  </entry>
+  
+  <entry>
     <title>Linux远程GUI访问的应用</title>
     <link href="http://wdicc.com/linux-remote-gui/"/>
     <id>http://wdicc.com/linux-remote-gui/</id>
@@ -26449,31 +26517,6 @@ debian的系统菜单在/usr/share/applications下面，他会自动添加条目
     
     
       <category term="Other" scheme="http://wdicc.com/tags/Other/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>mysql修改数据库权限</title>
-    <link href="http://wdicc.com/mysql-grant/"/>
-    <id>http://wdicc.com/mysql-grant/</id>
-    <published>2005-04-18T16:00:00.000Z</published>
-    <updated>2016-07-13T08:22:35.000Z</updated>
-    
-    <content type="html"><![CDATA[<pre class="prettyprint lang-sql">
-GRANT select,insert,update,delete,create,drop ON xxxdb.* TO xxxuser@localhost IDENTIFIED BY "xxxpwd";
-</pre>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
-GRANT select,insert,update,delete,create,drop ON xxxdb.* TO xxxuser@localhost IDENTIFIED BY &quot;xxxpwd&quot;;
-&lt;/p
-    
-    </summary>
-    
-    
-      <category term="Web" scheme="http://wdicc.com/tags/Web/"/>
     
   </entry>
   
