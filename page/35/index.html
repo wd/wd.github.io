@@ -101,6 +101,90 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="rsync-script/">rsync脚本的一个例子</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/rsync/">rsync</a> <a href="../tags/other/">other</a>
+</div>
+    </div>
+      
+        <pre class="prettyprint lang-bash">
+
+SYNCLOGFILE="/var/log/rsync-201.log"
+SYNCLOCKFILE="/var/lock/rsync-201.lock"
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n ">>> Sync log for " >> $SYNCLOGFILE
+date >> $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
+rm -f $SYNCLOCKFILE
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="portmap/">端口映射</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/iptables/">iptables</a> <a href="../tags/other/">other</a>
+</div>
+    </div>
+      
+        ★ 需求
+
+1 只有一个ip，怎么让多台电脑上网？
+
+只讲一下主机是双网卡的时候怎么解决。windows下面可以使用winroute、wingate或者系统自带的共享网络连接的功能，都可以实现共享上网。linux下面使用iptables一句话就可以实现。
+
+至于主机是单网卡怎么解决，自己研究研究吧。我只在win下面尝试过用wingate，可是及其不稳定。
+
+2 怎么将某个端口映射给内网？
+
+内网某台电脑提供了服务，怎么让外网的用户可以访问呢？某些对外的服务可能会在内网的多台电脑上面提供，这时就需要做端口映射来让这些服务器让外网可以访问。
+
+<br>
+        
+          <p class="more-link">
+            <a href="portmap/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/portmap/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="install-mysql/">mysql 安装</a>
 	</h2>
     <div class="entry-content">
@@ -109,7 +193,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Other/">Other</a> <a href="../tags/mysql/">mysql</a>
+<a href="../tags/mysql/">mysql</a> <a href="../tags/other/">other</a>
 </div>
     </div>
       
@@ -185,7 +269,7 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Other/">Other</a> <a href="../tags/find/">find</a>
+<a href="../tags/find/">find</a> <a href="../tags/other/">other</a>
 </div>
     </div>
       
@@ -206,74 +290,6 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 
   <article class="post">
 	<h2 class="title">
-		<a href="stop-and-start-script-for-apache-and-weblogic/">启动停止weblogic和apache的脚本</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Other/">Other</a>
-</div>
-    </div>
-      
-        apache和weblogic做桥接之后，启动的时候要先启动weblogic，后启动apache，停止的时候要先停止apache，后停止weblogic，这
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="portmap/">端口映射</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Other/">Other</a> <a href="../tags/iptables/">iptables</a>
-</div>
-    </div>
-      
-        ★ 需求
-
-1 只有一个ip，怎么让多台电脑上网？
-
-只讲一下主机是双网卡的时候怎么解决。windows下面可以使用winroute、wingate或者系统自带的共享网络连接的功能，都可以实现共享上网。linux下面使用iptables一句话就可以实现。
-
-至于主机是单网卡怎么解决，自己研究研究吧。我只在win下面尝试过用wingate，可是及其不稳定。
-
-2 怎么将某个端口映射给内网？
-
-内网某台电脑提供了服务，怎么让外网的用户可以访问呢？某些对外的服务可能会在内网的多台电脑上面提供，这时就需要做端口映射来让这些服务器让外网可以访问。
-
-<br>
-        
-          <p class="more-link">
-            <a href="portmap/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/portmap/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="178-accident/">178事故</a>
 	</h2>
     <div class="entry-content">
@@ -282,7 +298,7 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Other/">Other</a> <a href="../tags/route/">route</a> <a href="../tags/路由/">路由</a>
+<a href="../tags/route/">route</a> <a href="../tags/路由/">路由</a> <a href="../tags/other/">other</a>
 </div>
     </div>
       
@@ -316,7 +332,7 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Other/">Other</a> <a href="../tags/ssh/">ssh</a>
+<a href="../tags/ssh/">ssh</a> <a href="../tags/other/">other</a>
 </div>
     </div>
       
@@ -350,7 +366,7 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Other/">Other</a> <a href="../tags/ssh/">ssh</a>
+<a href="../tags/ssh/">ssh</a> <a href="../tags/other/">other</a>
 </div>
     </div>
       
@@ -384,7 +400,7 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Other/">Other</a> <a href="../tags/iptables/">iptables</a>
+<a href="../tags/iptables/">iptables</a> <a href="../tags/other/">other</a>
 </div>
     </div>
       
@@ -402,6 +418,35 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 
   <article class="post">
 	<h2 class="title">
+		<a href="man-in-debian/">debian中man不能翻页的解决方法</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-04-17T16:00:00.000Z" itemprop="datePublished">Apr 18, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/debian/">debian</a>
+</div>
+    </div>
+      
+        安装debian基本系统之后会发现man的时候往下翻页可以用ctrl＋F，可是怎么都翻不上去。包括方向键也都不起作用。
+
+解决方法其实非常简单，只要安装less就可以了。呵呵。
+#apt-get install less
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/man-in-debian/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="search-in-vim/">VIM查找替换归纳总结zz</a>
 	</h2>
     <div class="entry-content">
@@ -410,7 +455,7 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Other/">Other</a> <a href="../tags/vim/">vim</a>
+<a href="../tags/vim/">vim</a> <a href="../tags/other/">other</a>
 </div>
     </div>
       
@@ -428,35 +473,6 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/search-in-vim/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="man-in-debian/">debian中man不能翻页的解决方法</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-17T16:00:00.000Z" itemprop="datePublished">Apr 18, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Debian/">Debian</a>
-</div>
-    </div>
-      
-        安装debian基本系统之后会发现man的时候往下翻页可以用ctrl＋F，可是怎么都翻不上去。包括方向键也都不起作用。
-
-解决方法其实非常简单，只要安装less就可以了。呵呵。
-#apt-get install less
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/man-in-debian/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
