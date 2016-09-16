@@ -2,7 +2,7 @@
 layout: post
 title: Join 后面跟两个表
 tags:
-- Linux
+- linux
 - mysql
 - sql
 status: publish
