@@ -101,6 +101,44 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="convert-reiserfs-t-ext4/">把硬盘的分区都换成了 ext4</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-01-02T16:00:00.000Z" itemprop="datePublished">Jan 3, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/ext4/">ext4</a> <a href="../tags/reiserfs/">reiserfs</a>
+</div>
+    </div>
+      
+        我的分区都是 reiserfs 的。这次 ext4 吵的这么火爆，实在忍不住了，就换过去了。
+
+我的磁盘比较小，转换还费了点功夫。先找一个和 / 分区差不多的分区，用来放 / 的数据。我找的是 /home ，然后把 / /home 之外的分区转换了。方法就是先把其中一个的数据弄到其它的上面，然后重新格式化，然后再把数据弄回来。
+
+可以用 cp -p /source /dest 的方式，也可以用 tar cpf - --exclude=/home | tar xpf - 的方式，后面这个方法可以支持过滤掉某个目录不考。
+
+这些都弄好之后就可以弄 / /home 了。先把 /home 的东西备分一下， tar cpf /data/home.tar ，/data 最好是一个单独的分区。
+
+rc-update del xdm ，然后重启 root 登录。格式化 /home，再 mount 上他，用来复制 / 的内容过来。复制的时候需要注意下，先把 / /home 之外的那些分区都 umount，省得复制的时候不小心一起复制了过来。
+
+cd /home; tar cpf - --exclude=/home --exclude=/proc --exclude=/sys | tar xpf -
+
+复制完之后，在 /home 下建立 /home/proc /home/sys 目录。修改 /home/boot/grub/menu.lst 文件（如果是独立的 boot 分区，需要挂上再修改），kernel 参数为新的 root，建议新加一行，保留原来的，免得有问题还能方便回去。然后修改 /etc/fstab。就可以重启了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/convert-reiserfs-t-ext4/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="change-wm-in-gnome/">在 gnome 中替换 wm</a>
 	</h2>
     <div class="entry-content">
@@ -109,7 +147,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/gnome/">gnome</a> <a href="../tags/openbox/">openbox</a> <a href="../tags/linux/">linux</a>
+<a href="../tags/linux/">linux</a> <a href="../tags/gnome/">gnome</a> <a href="../tags/openbox/">openbox</a>
 </div>
     </div>
       
@@ -147,7 +185,7 @@ gdm 启动的时候，会运行 /etc/X11/gdm/Xsession 这个程序。可以试�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/kernel/">kernel</a> <a href="../tags/hibernate/">hibernate</a> <a href="../tags/tuxonice/">tuxonice</a> <a href="../tags/休眠/">休眠</a> <a href="../tags/linux/">linux</a>
+<a href="../tags/linux/">linux</a> <a href="../tags/kernel/">kernel</a> <a href="../tags/hibernate/">hibernate</a> <a href="../tags/tuxonice/">tuxonice</a> <a href="../tags/休眠/">休眠</a>
 </div>
     </div>
       
@@ -281,7 +319,7 @@ $ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/latex/">latex</a> <a href="../tags/lyx/">lyx</a> <a href="../tags/pdf/">pdf</a> <a href="../tags/linux/">linux</a>
+<a href="../tags/linux/">linux</a> <a href="../tags/latex/">latex</a> <a href="../tags/lyx/">lyx</a> <a href="../tags/pdf/">pdf</a>
 </div>
     </div>
       
@@ -395,7 +433,7 @@ lyx 可以认为是一个 latex 的所见即所得的编辑工具。
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/cisco/">cisco</a> <a href="../tags/vpn/">vpn</a> <a href="../tags/vpnc/">vpnc</a> <a href="../tags/linux/">linux</a>
+<a href="../tags/linux/">linux</a> <a href="../tags/cisco/">cisco</a> <a href="../tags/vpn/">vpn</a> <a href="../tags/vpnc/">vpnc</a>
 </div>
     </div>
       
@@ -449,7 +487,7 @@ gateway 就是你的 vpn server 的地址，IPSec secret 就是我说的 group p
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/handspring/">handspring</a> <a href="../tags/hotsync/">hotsync</a> <a href="../tags/jpilot/">jpilot</a> <a href="../tags/plam/">plam</a> <a href="../tags/visor/">visor</a> <a href="../tags/linux/">linux</a>
+<a href="../tags/linux/">linux</a> <a href="../tags/handspring/">handspring</a> <a href="../tags/hotsync/">hotsync</a> <a href="../tags/jpilot/">jpilot</a> <a href="../tags/plam/">plam</a> <a href="../tags/visor/">visor</a>
 </div>
     </div>
       
@@ -497,7 +535,7 @@ BUS=="usb",SYSFS{serial}=="PalmSN12345678", KNERNEL="ttyUSB*",OWNER="root",GROUP
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/oracle/">oracle</a> <a href="../tags/session/">session</a> <a href="../tags/linux/">linux</a>
+<a href="../tags/linux/">linux</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/session/">session</a>
 </div>
     </div>
       
@@ -545,50 +583,6 @@ BUS=="usb",SYSFS{serial}=="PalmSN12345678", KNERNEL="ttyUSB*",OWNER="root",GROUP
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/wdicc-com-is-return/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="compare-search-engines/">搜索引擎比较</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-09-18T16:00:00.000Z" itemprop="datePublished">Sep 19, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/搜索引擎/">搜索引擎</a> <a href="../tags/heart/">heart</a>
-</div>
-    </div>
-      
-        前两天wii的放电视上面那个红外发射器的线断了，就搜索了一下看能不能修好。结果在 google.cn 搜到一条相关结果。今天看到 youdao.com 上线的消息，就兴起把各个搜索引擎都测试了一下。抓图如下。
-
-百度的结果似乎和“断了”没有关系，这也敢号称最懂中文？三个关键字就sb了，垃圾一个。
-
-<a href="http://pic.yupoo.com/wdicc/321736367295/8lb7ro0u.jpg" target="_blank" rel="external"><img class="alignnone" title="百度的结果" src="http://pic.yupoo.com/wdicc/321736367295/8lb7ro0u.jpg" alt="" width="1009" height="1551"></a>
-
-yahoo.cn 的结果也不是我想要的，不过至少“断了”这个关键字出来了。。。
-
-<a href="http://pic.yupoo.com/wdicc/297556367294/9roy8wm3.jpg" target="_blank" rel="external"><img class="alignnone" title="yahoo.cn的结果" src="http://pic.yupoo.com/wdicc/297556367294/9roy8wm3.jpg" alt="" width="548" height="1024"></a>
-
-youdao 的结果比较来说好像是最好的了，里面我需要的不少。
-
-<a href="http://pic.yupoo.com/wdicc/115486367294/eadyj9iz.jpg" target="_blank" rel="external"><img class="alignnone" title="有道搜索的结果" src="http://pic.yupoo.com/wdicc/115486367294/eadyj9iz.jpg" alt="" width="1009" height="1663"></a>
-
-google.cn 的结果第一条很符合我的要求，不过后面的。。怎么还出来psp了？。。。
-
-<a href="http://pic.yupoo.com/wdicc/477506367294/slrxdfz8.jpg" target="_blank" rel="external"><img class="alignnone" title="google.cn 的结果" src="http://pic.yupoo.com/wdicc/477506367294/slrxdfz8.jpg" alt="" width="1009" height="1259"></a>
-
-不完全测试，仅作为消遣用，呵呵。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/compare-search-engines/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

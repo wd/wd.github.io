@@ -101,6 +101,52 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="rep-of-oracle/">oracle 的高级复制出了点问题，记录下解决办法</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-05-17T16:00:00.000Z" itemprop="datePublished">May 18, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/oracle/">oracle</a>
+</div>
+    </div>
+      
+        早上来了同事就来找我，有两台同步的服务器数据库没有同步成功，查查咋回事。
+
+一台A，从B处同步。蒙了一下，果然有个dba_jobs表，呵呵。
+
+<pre class="prettyprint lang-sql">
+
+在A处执行上面的命令，好像repadmin的job都在正常执行。
+在B处执行上面的命令，能查到类似下面的信息
+
+<pre class="prettyprint lang-text">
+---------- ------------------------------ -------------------
+NEXT_DATE             FAILURES B
+------------------- ---------- -
+47 repadmin                           2006-05-16 19:37:29
+4001-01-01 00:00:00         16 Y</pre>
+
+显然是job挂了。查看了一下挂的时间，原来是联通机房机柜断电那天，A机器在联通机房，那天断电了6个小时。B机器上面的同步尝试了16次之后就挂起了。解决方法也不难，用repadmin用户登录，然后执行下面的语句，<strong>谁的job只能由谁来执行</strong>：
+
+<pre class="prettyprint lang-sql">
+
+47是job id，sysdate表示当前时间。等会再看吧，执行成功之后会把 failures 重新计数，B变成N。
+</pre></pre>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/rep-of-oracle/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="bug-of-coding-plugin/">又找到一个wp的coding插件的问题</a>
 	</h2>
     <div class="entry-content">
@@ -109,7 +155,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/coding/">coding</a> <a href="../tags/web/">web</a>
+<a href="../tags/web/">web</a> <a href="../tags/coding/">coding</a>
 </div>
     </div>
       
@@ -146,7 +192,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/awk/">awk</a> <a href="../tags/bash/">bash</a> <a href="../tags/linux/">linux</a> <a href="../tags/other/">other</a>
+<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/awk/">awk</a> <a href="../tags/bash/">bash</a>
 </div>
     </div>
       
@@ -188,7 +234,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/五一/">五一</a> <a href="../tags/heart/">heart</a>
+<a href="../tags/heart/">heart</a> <a href="../tags/五一/">五一</a>
 </div>
     </div>
       
@@ -228,7 +274,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/other/">other</a>
+<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a>
 </div>
     </div>
       
@@ -262,7 +308,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/tcp-ip/">tcp/ip</a> <a href="../tags/linux/">linux</a> <a href="../tags/other/">other</a>
+<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/tcp-ip/">tcp/ip</a>
 </div>
     </div>
       
@@ -302,7 +348,7 @@ P->Physical 物理层      /  网络访问层
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/nagios/">nagios</a> <a href="../tags/linux/">linux</a> <a href="../tags/other/">other</a>
+<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/nagios/">nagios</a>
 </div>
     </div>
       
@@ -347,7 +393,7 @@ escalations 的意思就是扩大。整个这个的意思应该就是扩大通�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/twitter/">twitter</a> <a href="../tags/web/">web</a>
+<a href="../tags/web/">web</a> <a href="../tags/twitter/">twitter</a>
 </div>
     </div>
       
@@ -361,39 +407,6 @@ escalations 的意思就是扩大。整个这个的意思应该就是扩大通�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/twitter-what-are-u-doing/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="a-bug-of-magpie/">发现了一个magpie的bug</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-04-12T16:00:00.000Z" itemprop="datePublished">Apr 13, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/web/">web</a>
-</div>
-    </div>
-      
-        在 rss_parse.inc 里面，创建xml parser的时候，针对php5，用的是xml_parser_create('')，就那个''，导致了问题的出现。但是问题不是总有的，有的source可以，有的就会卡住。例如下面这个html就会卡住。
-
-<pre class="prettyprint lang-text"><html xmlns="http://www.w3.org/1999/xhtml ">
-                <head><title>Connect Error</title></head>
-                <body>
-                        <h1>Connect Error</h1>
-                        <p>Could not connect to MySQL database.</p>             </body>
-        </html></pre>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/a-bug-of-magpie/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -427,30 +440,33 @@ escalations 的意思就是扩大。整个这个的意思应该就是扩大通�
 
   <article class="post">
 	<h2 class="title">
-		<a href="study-lilina/">今天仔细研究了一下lilina</a>
+		<a href="a-bug-of-magpie/">发现了一个magpie的bug</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2007-04-11T16:00:00.000Z" itemprop="datePublished">Apr 12, 2007</time>
+      <div class="date">Published on: <time datetime="2007-04-12T16:00:00.000Z" itemprop="datePublished">Apr 13, 2007</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a>
+<a href="../tags/web/">web</a>
 </div>
     </div>
       
-        lilina 最近总是出问题，又用不惯别的，今天花了点时间看了看。
+        在 rss_parse.inc 里面，创建xml parser的时候，针对php5，用的是xml_parser_create('')，就那个''，导致了问题的出现。但是问题不是总有的，有的source可以，有的就会卡住。例如下面这个html就会卡住。
 
-lilina 的rss解析用的是 magpie ，feed文件下载用的是 Snoopy 。下载之后 magpie 用 xml_parse 来做处理。lilina 使用 magpie 的 fetch_rss() 函数来处理rss。而在 inc/magpie/rss_fetch.php 里面又用 _fetch_remote_file() 函数来获取rss文件，文件的获取用的是 Snoopy 类。获取文件内容之后，又用 magpie 的 MagpieRSS 类的 MagpieRSS 函数来处理文件，里面用到了 xml_parse() 函数。再后面就没有仔细看了。
-
-我遇到的问题是 Snoopy 获取文件是没问题的，出问题的是 xml_parse ,如果获取的source不是有效的xml文件，xml_parse 会死掉，所以我就在 xml_parse 前面检查了一下 source 是不是一个正常的feed。有人推荐 tidy 来验证，那太麻烦了，我就直接match了一下feed这个关键字。。。目前看好像每问题。。
+<pre class="prettyprint lang-text"><html xmlns="http://www.w3.org/1999/xhtml ">
+                <head><title>Connect Error</title></head>
+                <body>
+                        <h1>Connect Error</h1>
+                        <p>Could not connect to MySQL database.</p>             </body>
+        </html></pre>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/study-lilina/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/a-bug-of-magpie/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
