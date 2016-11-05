@@ -1818,124 +1818,6 @@ Host *
   </entry>
   
   <entry>
-    <title>org-mode 里面自动归档任务</title>
-    <link href="http://wdicc.com/auto-archive-task-for-org-mode/"/>
-    <id>http://wdicc.com/auto-archive-task-for-org-mode/</id>
-    <published>2012-04-07T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
-</p>
-<p>
-org-mode 本身提供了 remember 来创建 todo list。
-</p>
-<p>
-新建一个 org 文件 ~/org/todo.org，包含两行内容如下
-</p>
-
-
-<pre class="prettyprint lang-text">
-* Tasks
-* Done
-</pre>
-
-<p>
-然后设置下面的内容
-</p>
-
-
-<pre class="prettyprint lang-lisp">
-(define-key global-map "\C-ca" 'org-agenda)
-(global-set-key (kbd "C-c m r") 'org-capture)
-(setq org-capture-templates
-      '(("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks")
-         "* TODO %?\nCREATED: %U")
-        ("j" "Journal" entry (file+datetree "~/org/journal.org")
-         "* %?\nEntered on %U\n  %i\n  %a")))
-(defun wd-move-done-task-to-done-cats ( task-pos )
-  "move done task to *DONE cats"
-  (let* ((entry (org-get-entry))
-        (title (org-get-heading))
-        (task (format "** %s\n%s\n" title entry))
-        )
-    (goto-char (point-min))
-    (when (search-forward-regexp "^* Tasks$latex ")
-      (goto-char (point-min))
-      (when (search-forward-regexp "^* Done$")
-        (goto-char (match-beginning 0))
-        (forward-line)      
-        (insert task)
-        (goto-char task-pos)
-        (delete-region (org-entry-beginning-position) (org-entry-end-position))      
-        )
-      )
-    )
-  )
-
-(defun wd-track-task-status ( changes-plist )
-   "Track task status, and move it to '* Done' cats if it is stats change from to to done
-1 TODO 文件至少需要包含两个标题 * Tasks 和 * Done
-2 * Tasks 里面的 TODO 内容变成 DONE 的时候，会自动把这个条目移动到 * Done
-3 org-todo-keywords 的设置里面不能包含自动增加时间等的设置，否则增加的内容不能正确加到这个条目
-"
-   ;; (interactive)
-   (let ((type (plist-get change-plist :type))
-          (pos (plist-get change-plist :position))
-          (from (plist-get change-plist :from))
-          (to (plist-get change-plist :to))
-          )
-     (when (and (string= from "TODO")
-                (string= to "DONE"))
-       ;; (let ((answer (read-char "Move this entry to *DONE ? Y/N (Y)")))
-       ;;   (when (or (= answer (string-to-char "y"))
-       ;;             (= answer (string-to-char "Y"))
-       ;;             (= answer (string-to-char "
-"))
-       ;;             )
-           (wd-move-done-task-to-done-cats pos)
-         ;; ))
-       )
-     )
-   )
-
-(add-hook 'org-trigger-hook 'wd-track-task-status)
-
-;; (setq org-todo-keywords
-;;       '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))
-(setq org-todo-keywords
-      '((sequence "TODO(t)" "WAIT(w)" "|" "DONE(d)" "CANCELED(c)")))
-</pre>
-
-<p>
-在任何地方按一下 C-c m r，会出来一个 window 让你选择要创建 todo 还是 journal。选 t，然后输入内容就会自动插入到 ~/org/todo.org 的 * Tasks 里面。
-</p>
-<p>
-此后，如果任务完成的时候，打开 todo.org，然后在任务上面 C-c C-t，会提示输入状态。如果是从 TODO 变成了 DONE，那这条任务会被转移到 * Done 里面。
-</p>
-<p>
-因为里面都有时间，所以在 agenda list 里面，可以用 L 看到任务完成时间等。也将就用了。
-</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
-&lt;/p&gt;
-&lt;p&gt;
-org-mode 本身提供了 remember 来创建 tod
-    
-    </summary>
-    
-    
-      <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
-    
-      <category term="emacs" scheme="http://wdicc.com/tags/emacs/"/>
-    
-      <category term="org-mode" scheme="http://wdicc.com/tags/org-mode/"/>
-    
-  </entry>
-  
-  <entry>
     <title>关于面试的一点经验</title>
     <link href="http://wdicc.com/about-interview/"/>
     <id>http://wdicc.com/about-interview/</id>
@@ -2073,6 +1955,124 @@ org-mode 本身提供了 remember 来创建 tod
       <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
     
       <category term="interview" scheme="http://wdicc.com/tags/interview/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>org-mode 里面自动归档任务</title>
+    <link href="http://wdicc.com/auto-archive-task-for-org-mode/"/>
+    <id>http://wdicc.com/auto-archive-task-for-org-mode/</id>
+    <published>2012-04-07T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
+</p>
+<p>
+org-mode 本身提供了 remember 来创建 todo list。
+</p>
+<p>
+新建一个 org 文件 ~/org/todo.org，包含两行内容如下
+</p>
+
+
+<pre class="prettyprint lang-text">
+* Tasks
+* Done
+</pre>
+
+<p>
+然后设置下面的内容
+</p>
+
+
+<pre class="prettyprint lang-lisp">
+(define-key global-map "\C-ca" 'org-agenda)
+(global-set-key (kbd "C-c m r") 'org-capture)
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks")
+         "* TODO %?\nCREATED: %U")
+        ("j" "Journal" entry (file+datetree "~/org/journal.org")
+         "* %?\nEntered on %U\n  %i\n  %a")))
+(defun wd-move-done-task-to-done-cats ( task-pos )
+  "move done task to *DONE cats"
+  (let* ((entry (org-get-entry))
+        (title (org-get-heading))
+        (task (format "** %s\n%s\n" title entry))
+        )
+    (goto-char (point-min))
+    (when (search-forward-regexp "^* Tasks$latex ")
+      (goto-char (point-min))
+      (when (search-forward-regexp "^* Done$")
+        (goto-char (match-beginning 0))
+        (forward-line)      
+        (insert task)
+        (goto-char task-pos)
+        (delete-region (org-entry-beginning-position) (org-entry-end-position))      
+        )
+      )
+    )
+  )
+
+(defun wd-track-task-status ( changes-plist )
+   "Track task status, and move it to '* Done' cats if it is stats change from to to done
+1 TODO 文件至少需要包含两个标题 * Tasks 和 * Done
+2 * Tasks 里面的 TODO 内容变成 DONE 的时候，会自动把这个条目移动到 * Done
+3 org-todo-keywords 的设置里面不能包含自动增加时间等的设置，否则增加的内容不能正确加到这个条目
+"
+   ;; (interactive)
+   (let ((type (plist-get change-plist :type))
+          (pos (plist-get change-plist :position))
+          (from (plist-get change-plist :from))
+          (to (plist-get change-plist :to))
+          )
+     (when (and (string= from "TODO")
+                (string= to "DONE"))
+       ;; (let ((answer (read-char "Move this entry to *DONE ? Y/N (Y)")))
+       ;;   (when (or (= answer (string-to-char "y"))
+       ;;             (= answer (string-to-char "Y"))
+       ;;             (= answer (string-to-char "
+"))
+       ;;             )
+           (wd-move-done-task-to-done-cats pos)
+         ;; ))
+       )
+     )
+   )
+
+(add-hook 'org-trigger-hook 'wd-track-task-status)
+
+;; (setq org-todo-keywords
+;;       '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "WAIT(w)" "|" "DONE(d)" "CANCELED(c)")))
+</pre>
+
+<p>
+在任何地方按一下 C-c m r，会出来一个 window 让你选择要创建 todo 还是 journal。选 t，然后输入内容就会自动插入到 ~/org/todo.org 的 * Tasks 里面。
+</p>
+<p>
+此后，如果任务完成的时候，打开 todo.org，然后在任务上面 C-c C-t，会提示输入状态。如果是从 TODO 变成了 DONE，那这条任务会被转移到 * Done 里面。
+</p>
+<p>
+因为里面都有时间，所以在 agenda list 里面，可以用 L 看到任务完成时间等。也将就用了。
+</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
+&lt;/p&gt;
+&lt;p&gt;
+org-mode 本身提供了 remember 来创建 tod
+    
+    </summary>
+    
+    
+      <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
+    
+      <category term="emacs" scheme="http://wdicc.com/tags/emacs/"/>
+    
+      <category term="org-mode" scheme="http://wdicc.com/tags/org-mode/"/>
     
   </entry>
   
@@ -8627,35 +8627,31 @@ So, just po
   </entry>
   
   <entry>
-    <title>《见龙卸甲》又一个大烂片诞生了</title>
-    <link href="http://wdicc.com/jianlongxiejia-so-bad-movie/"/>
-    <id>http://wdicc.com/jianlongxiejia-so-bad-movie/</id>
+    <title>gnome 里面的 usb automount 终于好了</title>
+    <link href="http://wdicc.com/usb-automount-in-gnome/"/>
+    <id>http://wdicc.com/usb-automount-in-gnome/</id>
     <published>2008-04-04T16:00:00.000Z</published>
     <updated>2016-10-22T04:19:18.000Z</updated>
     
-    <content type="html"><![CDATA[看完《江山美人》觉得像吃了一个烂蛋糕，可没想到今天又吃了一次，nnd。
+    <content type="html"><![CDATA[升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。。
 
-《见龙卸甲》讲的是赵云的故事，可是里面tmd和《三国演义》里面的差太多了，简直就是编剧重新写了一本《三国》。那个年代的武将，估计都是“力拔山兮气盖世”的，而一个女的都督还那么牛b，可以和赵云单挑，这女的吃激素长大的阿。实在太烂了。
-<blockquote>《见龙卸甲》虽说是根据《三国演义》改编，但真正的剧情走向早就远离原著十万八千里，长坂坡单骑救主的赵云居然换成凤鸣山救主，就为了帮导演画一 个善始善终的“圆”。生造出的曹操孙女曹婴、赵云同乡罗平安和只会“青龙白虎阵”的诸葛亮更是让读过《三国演义》的观众啼笑皆非。而影片最关键的凤鸣山一 战在电影中完全被颠覆，张苞、关兴刚一露面就被杀，赵云舍生取义，决意战死……这些颠三倒四、似是而非的改编只有一个目的，把赵云塑造成一个人性化的反战 英雄，在乱世之中，他只想要有一个安定的天下，有一个自己的家，其中再夹杂一些男人间的友情和责任感等——这样的想法看起来并不错，但实际上是偷懒的做 法。所谓重新解读历史人物，应该是从人物本身出发，从真实细节中发掘出原先被忽视的部分。但《见龙卸甲》对赵云的重新解读却是主题先行，肆意编造细节和情 节来实现预设的主题。主题先行导致人物概念化，这个主角可以是赵云，也可以是张飞、关羽，甚至可以是武松、鲁智深，任何一个背景下英雄人物都可以套上这样 “人性化”的模板。</blockquote>
-上面引用一段<a href="http://www.news365.com.cn/xwzx/whyyyl/200804/t20080404_1820801.htm" target="_blank">别人</a>的话.
+就连之前 分区不显示在桌面上面 的问题都好了，ft，和scsi有关系？
 
-贴一个剧照吧。
-
-<img src="http://pic.yupoo.com/wdicc/5840055b04c0/medium.jpg" alt="见龙卸甲" width="351" height="500">
+gnome 下面有 gnome-volume-manager &amp; gnome-mount &amp; gnome-vfs 和自动挂载相关。
 ]]></content>
     
     <summary type="html">
     
-      看完《江山美人》觉得像吃了一个烂蛋糕，可没想到今天又吃了一次，nnd。
-
-《见龙卸甲》讲的是赵云的故事，可是里面tmd和《三国演义》里面的差太多了，简直就是编剧重新写了一本《三国》。那个年代的武将，估计都是“力拔山兮气盖世”的，而一个女的都督还那么牛b，可以和赵云单挑，这女的吃激
+      升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。
     
     </summary>
     
     
-      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
+      <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
     
-      <category term="movie" scheme="http://wdicc.com/tags/movie/"/>
+      <category term="gnome" scheme="http://wdicc.com/tags/gnome/"/>
+    
+      <category term="usb" scheme="http://wdicc.com/tags/usb/"/>
     
   </entry>
   
@@ -8744,31 +8740,35 @@ mplayer 的那个 desktop 文件里面指定的是 gmplayer 来打开文件的�
   </entry>
   
   <entry>
-    <title>gnome 里面的 usb automount 终于好了</title>
-    <link href="http://wdicc.com/usb-automount-in-gnome/"/>
-    <id>http://wdicc.com/usb-automount-in-gnome/</id>
+    <title>《见龙卸甲》又一个大烂片诞生了</title>
+    <link href="http://wdicc.com/jianlongxiejia-so-bad-movie/"/>
+    <id>http://wdicc.com/jianlongxiejia-so-bad-movie/</id>
     <published>2008-04-04T16:00:00.000Z</published>
     <updated>2016-10-22T04:19:18.000Z</updated>
     
-    <content type="html"><![CDATA[升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。。
+    <content type="html"><![CDATA[看完《江山美人》觉得像吃了一个烂蛋糕，可没想到今天又吃了一次，nnd。
 
-就连之前 分区不显示在桌面上面 的问题都好了，ft，和scsi有关系？
+《见龙卸甲》讲的是赵云的故事，可是里面tmd和《三国演义》里面的差太多了，简直就是编剧重新写了一本《三国》。那个年代的武将，估计都是“力拔山兮气盖世”的，而一个女的都督还那么牛b，可以和赵云单挑，这女的吃激素长大的阿。实在太烂了。
+<blockquote>《见龙卸甲》虽说是根据《三国演义》改编，但真正的剧情走向早就远离原著十万八千里，长坂坡单骑救主的赵云居然换成凤鸣山救主，就为了帮导演画一 个善始善终的“圆”。生造出的曹操孙女曹婴、赵云同乡罗平安和只会“青龙白虎阵”的诸葛亮更是让读过《三国演义》的观众啼笑皆非。而影片最关键的凤鸣山一 战在电影中完全被颠覆，张苞、关兴刚一露面就被杀，赵云舍生取义，决意战死……这些颠三倒四、似是而非的改编只有一个目的，把赵云塑造成一个人性化的反战 英雄，在乱世之中，他只想要有一个安定的天下，有一个自己的家，其中再夹杂一些男人间的友情和责任感等——这样的想法看起来并不错，但实际上是偷懒的做 法。所谓重新解读历史人物，应该是从人物本身出发，从真实细节中发掘出原先被忽视的部分。但《见龙卸甲》对赵云的重新解读却是主题先行，肆意编造细节和情 节来实现预设的主题。主题先行导致人物概念化，这个主角可以是赵云，也可以是张飞、关羽，甚至可以是武松、鲁智深，任何一个背景下英雄人物都可以套上这样 “人性化”的模板。</blockquote>
+上面引用一段<a href="http://www.news365.com.cn/xwzx/whyyyl/200804/t20080404_1820801.htm" target="_blank">别人</a>的话.
 
-gnome 下面有 gnome-volume-manager &amp; gnome-mount &amp; gnome-vfs 和自动挂载相关。
+贴一个剧照吧。
+
+<img src="http://pic.yupoo.com/wdicc/5840055b04c0/medium.jpg" alt="见龙卸甲" width="351" height="500">
 ]]></content>
     
     <summary type="html">
     
-      升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。
+      看完《江山美人》觉得像吃了一个烂蛋糕，可没想到今天又吃了一次，nnd。
+
+《见龙卸甲》讲的是赵云的故事，可是里面tmd和《三国演义》里面的差太多了，简直就是编剧重新写了一本《三国》。那个年代的武将，估计都是“力拔山兮气盖世”的，而一个女的都督还那么牛b，可以和赵云单挑，这女的吃激
     
     </summary>
     
     
-      <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
+      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
     
-      <category term="gnome" scheme="http://wdicc.com/tags/gnome/"/>
-    
-      <category term="usb" scheme="http://wdicc.com/tags/usb/"/>
+      <category term="movie" scheme="http://wdicc.com/tags/movie/"/>
     
   </entry>
   
@@ -8963,34 +8963,6 @@ gentoo 真不错呀，嗯，软件全，还可以自己定制。真是太爽了�
   </entry>
   
   <entry>
-    <title>盘古的空间还能再慢么？！</title>
-    <link href="http://wdicc.com/pangu-tooooo-slow/"/>
-    <id>http://wdicc.com/pangu-tooooo-slow/</id>
-    <published>2008-03-14T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[靠阿靠，去年7，8月份买的，那会速度好像也没现在这么慢阿。现在不论在哪里访问，速度都慢的要死，只能靠了！还花了我100多呢。
-
-看到淘宝上面有人卖 dreamhost 的空间，最低才30块钱，汗，不知道多少人用的一个主机，不过还真是便宜阿。。。回头再研究研究，打算弄一个。嗯。
-]]></content>
-    
-    <summary type="html">
-    
-      靠阿靠，去年7，8月份买的，那会速度好像也没现在这么慢阿。现在不论在哪里访问，速度都慢的要死，只能靠了！还花了我100多呢。
-
-看到淘宝上面有人卖 dreamhost 的空间，最低才30块钱，汗，不知道多少人用的一个主机，不过还真是便宜阿。。。回头再研究研究，打算弄一个。嗯。
-
-    
-    </summary>
-    
-    
-      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
-    
-      <category term="空间" scheme="http://wdicc.com/tags/%E7%A9%BA%E9%97%B4/"/>
-    
-  </entry>
-  
-  <entry>
     <title>用650半个多月的感受</title>
     <link href="http://wdicc.com/about-treo-650/"/>
     <id>http://wdicc.com/about-treo-650/</id>
@@ -9051,6 +9023,34 @@ sugarmemo, accessorizer, crash, rescoexplorer,, gizmo keygtime ptunes tcpmp 这�
       <category term="palm" scheme="http://wdicc.com/tags/palm/"/>
     
       <category term="treo" scheme="http://wdicc.com/tags/treo/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>盘古的空间还能再慢么？！</title>
+    <link href="http://wdicc.com/pangu-tooooo-slow/"/>
+    <id>http://wdicc.com/pangu-tooooo-slow/</id>
+    <published>2008-03-14T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[靠阿靠，去年7，8月份买的，那会速度好像也没现在这么慢阿。现在不论在哪里访问，速度都慢的要死，只能靠了！还花了我100多呢。
+
+看到淘宝上面有人卖 dreamhost 的空间，最低才30块钱，汗，不知道多少人用的一个主机，不过还真是便宜阿。。。回头再研究研究，打算弄一个。嗯。
+]]></content>
+    
+    <summary type="html">
+    
+      靠阿靠，去年7，8月份买的，那会速度好像也没现在这么慢阿。现在不论在哪里访问，速度都慢的要死，只能靠了！还花了我100多呢。
+
+看到淘宝上面有人卖 dreamhost 的空间，最低才30块钱，汗，不知道多少人用的一个主机，不过还真是便宜阿。。。回头再研究研究，打算弄一个。嗯。
+
+    
+    </summary>
+    
+    
+      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
+    
+      <category term="空间" scheme="http://wdicc.com/tags/%E7%A9%BA%E9%97%B4/"/>
     
   </entry>
   
@@ -10192,33 +10192,6 @@ NEXT_DATE
   </entry>
   
   <entry>
-    <title>不得不说yupoo越来越慢了。。</title>
-    <link href="http://wdicc.com/slow-yupoo/"/>
-    <id>http://wdicc.com/slow-yupoo/</id>
-    <published>2007-06-25T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>刚从 <a href="http://flickr.com" target="_blank" rel="external">flickr</a> 迁移到 <a href="http://wdicc.yupoo.com" target="_blank" rel="external">yupoo</a> 的时候，速度还挺快的，当时就担心越来越慢。现在的情况是，我blog上面引用的图片好多时候都显示不了，真郁闷啊。现在flickr被盾了，难道又得找新的地方了么？</p> <p>yupoo 还是不错的，又有桌面的上传工具，又有 fx 的扩展。还是国内的，也不用担心被盾。可是。。速度为啥就不能快点呢。。。</p> <p>似乎可以考虑下 <a href="http://beta.zooomr.com/" target="_blank" rel="external">zooomr</a> ，不过是国外的，难说哪天又被盾了。真郁闷。</p> <p>我来看，<a href="http://yutube.com" target="_blank" rel="external">yutube</a> 被盾是迟早的。</p> <p>zooomr 申请了一个帐号，贴个图看看先。这是kfc的优惠券，打印了就可以用，呵呵。</p><a title="Photo Sharing" href="http://www.zooomr.com/photos/wd/2552707/" target="_blank" rel="external"><img height="500" alt="kfc" src="http://static.zooomr.com/images/2552707_f4edee8491.jpg" width="381"></a>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;刚从 &lt;a href=&quot;http://flickr.com&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;flickr&lt;/a&gt; 迁移到 &lt;a href=&quot;http://wdicc.yupoo.com&quot; target=&quot;_blank&quot; rel=&quot;extern
-    
-    </summary>
-    
-    
-      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
-    
-      <category term="flickr" scheme="http://wdicc.com/tags/flickr/"/>
-    
-      <category term="yupoo" scheme="http://wdicc.com/tags/yupoo/"/>
-    
-      <category term="zooomr" scheme="http://wdicc.com/tags/zooomr/"/>
-    
-  </entry>
-  
-  <entry>
     <title>sendmail 中自动抄送某个用户的邮件给别人</title>
     <link href="http://wdicc.com/howto-cc-an-email-to-others-in-sendmail/"/>
     <id>http://wdicc.com/howto-cc-an-email-to-others-in-sendmail/</id>
@@ -10273,6 +10246,58 @@ other2</pre>
   </entry>
   
   <entry>
+    <title>不得不说yupoo越来越慢了。。</title>
+    <link href="http://wdicc.com/slow-yupoo/"/>
+    <id>http://wdicc.com/slow-yupoo/</id>
+    <published>2007-06-25T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>刚从 <a href="http://flickr.com" target="_blank" rel="external">flickr</a> 迁移到 <a href="http://wdicc.yupoo.com" target="_blank" rel="external">yupoo</a> 的时候，速度还挺快的，当时就担心越来越慢。现在的情况是，我blog上面引用的图片好多时候都显示不了，真郁闷啊。现在flickr被盾了，难道又得找新的地方了么？</p> <p>yupoo 还是不错的，又有桌面的上传工具，又有 fx 的扩展。还是国内的，也不用担心被盾。可是。。速度为啥就不能快点呢。。。</p> <p>似乎可以考虑下 <a href="http://beta.zooomr.com/" target="_blank" rel="external">zooomr</a> ，不过是国外的，难说哪天又被盾了。真郁闷。</p> <p>我来看，<a href="http://yutube.com" target="_blank" rel="external">yutube</a> 被盾是迟早的。</p> <p>zooomr 申请了一个帐号，贴个图看看先。这是kfc的优惠券，打印了就可以用，呵呵。</p><a title="Photo Sharing" href="http://www.zooomr.com/photos/wd/2552707/" target="_blank" rel="external"><img height="500" alt="kfc" src="http://static.zooomr.com/images/2552707_f4edee8491.jpg" width="381"></a>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;刚从 &lt;a href=&quot;http://flickr.com&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;flickr&lt;/a&gt; 迁移到 &lt;a href=&quot;http://wdicc.yupoo.com&quot; target=&quot;_blank&quot; rel=&quot;extern
+    
+    </summary>
+    
+    
+      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
+    
+      <category term="flickr" scheme="http://wdicc.com/tags/flickr/"/>
+    
+      <category term="yupoo" scheme="http://wdicc.com/tags/yupoo/"/>
+    
+      <category term="zooomr" scheme="http://wdicc.com/tags/zooomr/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>老婆送的momo熊</title>
+    <link href="http://wdicc.com/momo-bear/"/>
+    <id>http://wdicc.com/momo-bear/</id>
+    <published>2007-06-20T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>昨天老婆和一个邻居出去逛街，很晚才回来。回来的时候我都睡的迷迷糊糊的了，不知道咋回事，整天困的不行，最近晚上睡的都比较早。今天早上走的时候发现手机上面多了一个吊饰，就是下图右边那个了。</p> <p><img src="http://photo6.yupoo.com/20070621/144312_797301615.jpg"> </p> <p>我觉得，这个不就是狗么？。。。老婆一定说是熊。。汗。。</p> <p>那个胳膊是可以动的，买了一对，左边的是老婆的，右边的是我的，哈哈。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;昨天老婆和一个邻居出去逛街，很晚才回来。回来的时候我都睡的迷迷糊糊的了，不知道咋回事，整天困的不行，最近晚上睡的都比较早。今天早上走的时候发现手机上面多了一个吊饰，就是下图右边那个了。&lt;/p&gt; &lt;p&gt;&lt;img src=&quot;http://photo6.yupoo.com/200
+    
+    </summary>
+    
+    
+      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
+    
+      <category term="momo熊" scheme="http://wdicc.com/tags/momo%E7%86%8A/"/>
+    
+      <category term="吊饰" scheme="http://wdicc.com/tags/%E5%90%8A%E9%A5%B0/"/>
+    
+  </entry>
+  
+  <entry>
     <title>resin 的安装步骤</title>
     <link href="http://wdicc.com/install-resin/"/>
     <id>http://wdicc.com/install-resin/</id>
@@ -10313,31 +10338,6 @@ chmod +x /root/jdk-6u1-linux-i586.bin
       <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
     
       <category term="resin" scheme="http://wdicc.com/tags/resin/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>老婆送的momo熊</title>
-    <link href="http://wdicc.com/momo-bear/"/>
-    <id>http://wdicc.com/momo-bear/</id>
-    <published>2007-06-20T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>昨天老婆和一个邻居出去逛街，很晚才回来。回来的时候我都睡的迷迷糊糊的了，不知道咋回事，整天困的不行，最近晚上睡的都比较早。今天早上走的时候发现手机上面多了一个吊饰，就是下图右边那个了。</p> <p><img src="http://photo6.yupoo.com/20070621/144312_797301615.jpg"> </p> <p>我觉得，这个不就是狗么？。。。老婆一定说是熊。。汗。。</p> <p>那个胳膊是可以动的，买了一对，左边的是老婆的，右边的是我的，哈哈。</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;昨天老婆和一个邻居出去逛街，很晚才回来。回来的时候我都睡的迷迷糊糊的了，不知道咋回事，整天困的不行，最近晚上睡的都比较早。今天早上走的时候发现手机上面多了一个吊饰，就是下图右边那个了。&lt;/p&gt; &lt;p&gt;&lt;img src=&quot;http://photo6.yupoo.com/200
-    
-    </summary>
-    
-    
-      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
-    
-      <category term="momo熊" scheme="http://wdicc.com/tags/momo%E7%86%8A/"/>
-    
-      <category term="吊饰" scheme="http://wdicc.com/tags/%E5%90%8A%E9%A5%B0/"/>
     
   </entry>
   
@@ -11513,6 +11513,49 @@ main(){
   </entry>
   
   <entry>
+    <title>awstats 如何统计以前的日志？</title>
+    <link href="http://wdicc.com/awstats-log/"/>
+    <id>http://wdicc.com/awstats-log/</id>
+    <published>2007-04-01T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[突然想安装一个awstats了，参考 <a href="http://www.chedong.com/tech/awstats.html" target="_blank" rel="external">车东</a> 的文章，安装了一个。可是发现一个问题，设置了logfile为 access_log.%YYYY-24%MM-24%DD-24.log 之后，发现只能把昨天的日志统计进来，可是我的log下面还有好多呢，想统计以前的，怎么弄呢？幸好，awstats已经考虑到这个问题了。
+
+awstats.pl 脚本支持在命令行指定logfile，这样简单了，改变这个参数就可以了。不过要注意的是，如果你的data里面已经处理新的日志，那么指定logfile也没用了，以前的没办法更新进来了。只能是删掉data里面的内容，然后重新从最早的开始生成一遍。我写了一个脚本来做这个事情。
+
+<pre class="prettyprint lang-bash">
+
+awstats_dir=/opt/tt2/awstats/wwwroot/cgi-bin
+logfile_dir="/usr/local/apache/logs/"
+
+cd $awstats_dir
+
+for file in `find $logfile_dir -name "access_log.2*" | sort`;do
+        #echo "$file"
+        ./awstats.pl －update -config=wd -LogFile=$file
+done</pre>
+
+保存为 awstats.sh ，然后执行就可以了。他会查找 logfile_dir 下面所有的 access_log.2 开头的文件，作为参数来更新记录。
+]]></content>
+    
+    <summary type="html">
+    
+      突然想安装一个awstats了，参考 &lt;a href=&quot;http://www.chedong.com/tech/awstats.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;车东&lt;/a&gt; 的文章，安装了一个。可是发现一个问题，设置了logfile为 a
+    
+    </summary>
+    
+    
+      <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+      <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
+    
+      <category term="apache" scheme="http://wdicc.com/tags/apache/"/>
+    
+      <category term="awstats" scheme="http://wdicc.com/tags/awstats/"/>
+    
+  </entry>
+  
+  <entry>
     <title>给apache加了一个compress模块，mod_deflate</title>
     <link href="http://wdicc.com/compress-apache/"/>
     <id>http://wdicc.com/compress-apache/</id>
@@ -11553,49 +11596,6 @@ Gecko/20070309 irefox/2.0.0.3"</pre>
       <category term="web" scheme="http://wdicc.com/tags/web/"/>
     
       <category term="apache" scheme="http://wdicc.com/tags/apache/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>awstats 如何统计以前的日志？</title>
-    <link href="http://wdicc.com/awstats-log/"/>
-    <id>http://wdicc.com/awstats-log/</id>
-    <published>2007-04-01T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[突然想安装一个awstats了，参考 <a href="http://www.chedong.com/tech/awstats.html" target="_blank" rel="external">车东</a> 的文章，安装了一个。可是发现一个问题，设置了logfile为 access_log.%YYYY-24%MM-24%DD-24.log 之后，发现只能把昨天的日志统计进来，可是我的log下面还有好多呢，想统计以前的，怎么弄呢？幸好，awstats已经考虑到这个问题了。
-
-awstats.pl 脚本支持在命令行指定logfile，这样简单了，改变这个参数就可以了。不过要注意的是，如果你的data里面已经处理新的日志，那么指定logfile也没用了，以前的没办法更新进来了。只能是删掉data里面的内容，然后重新从最早的开始生成一遍。我写了一个脚本来做这个事情。
-
-<pre class="prettyprint lang-bash">
-
-awstats_dir=/opt/tt2/awstats/wwwroot/cgi-bin
-logfile_dir="/usr/local/apache/logs/"
-
-cd $awstats_dir
-
-for file in `find $logfile_dir -name "access_log.2*" | sort`;do
-        #echo "$file"
-        ./awstats.pl －update -config=wd -LogFile=$file
-done</pre>
-
-保存为 awstats.sh ，然后执行就可以了。他会查找 logfile_dir 下面所有的 access_log.2 开头的文件，作为参数来更新记录。
-]]></content>
-    
-    <summary type="html">
-    
-      突然想安装一个awstats了，参考 &lt;a href=&quot;http://www.chedong.com/tech/awstats.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;车东&lt;/a&gt; 的文章，安装了一个。可是发现一个问题，设置了logfile为 a
-    
-    </summary>
-    
-    
-      <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-      <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
-    
-      <category term="apache" scheme="http://wdicc.com/tags/apache/"/>
-    
-      <category term="awstats" scheme="http://wdicc.com/tags/awstats/"/>
     
   </entry>
   
@@ -11962,59 +11962,6 @@ irssi的官方网站上面的 <a href="http://irssi.org/documentation" target="_
   </entry>
   
   <entry>
-    <title>oracle 文本界面的安装</title>
-    <link href="http://wdicc.com/oracle-text-install/"/>
-    <id>http://wdicc.com/oracle-text-install/</id>
-    <published>2007-03-13T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是<font color="#3333ff">远程</font>文本界面。这样很有必要看看如何通过文本界面来安装oracle。
-
-oracle本身的安装程序也提供了这个方法，就是使用 responseFile 。这个 responseFile 其实就是在图形界面安装的时候的一些选择，保存到文件之后，直接告诉安装程序从这里读取设置就好了。将oracle的安装文件 ship.db.lnx32.cpio.gz 解压：
-
-<pre class="prettyprint lang-bash">
-cpio -idmv < ship.db.cpio</pre>
-
-这样可以看到有个Disk1的文件夹，里面有个response目录，里面好多response文件，不过我还不知道这些有什么区别，里面设置项也很多，还没弄明白。我使用的不是这里的response文件。是通过下面的方法获取的rsp文件。
-
-可以通过在记录模式中运行软件或通过手动编辑示例响应文件来创建响应文件。以下是一个基本演示：
-
-   1. 用此命令启动 OUI 来创建响应文件：
-
-      ./runInstaller -record -destinationFile /tmp/recorded.rsp
-       
-   2. 选择您需要的所有部分（源目标目录、主目录、主目录名、产品）。
-   3. 当您看到 Summary 屏幕时，不要单击 Install，而是单击 Cancel。
-   4. 仔细查看在 tmp/recorded.rsp 中创建的结果响应文件。如果需要，可以手动编辑该文件，只要您遵守使用规定的格式即可（请参见文档）。
-   5. 现在如下执行静默安装：
-
-      ./runInstaller -silent -responseFile /tmp/recorded.rsp
-
-      在运行脚本时将会报告安装的进度。
-
-如果您由于响应文件中的条目不正确而遇到安装故障，安装将失败并显示一条诊断消息。详细信息可在 oraInventory/logs 目录中找到。在每次使用响应文件运行 OUI 时，会创建具有 installActions-<时间戳>.log 和 silentInstall<时间戳>.log 格式名称的日志。
-
-这样，只需要找台机器在图形界面下面运行一下安装程序，生成一个rsp文件，然后放到真正需要安装的服务器上面，修改一下安装路径，设置一下sys密码，就可以开始安装了。
-</时间戳></时间戳>]]></content>
-    
-    <summary type="html">
-    
-      oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是&lt;font color=&quot;#3333ff&quot;&gt;远程&lt;/font&gt;文本界面。这样很有必要看看如何通过文本界面来安装oracle。
-
-ora
-    
-    </summary>
-    
-    
-      <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-      <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
-    
-      <category term="oracle" scheme="http://wdicc.com/tags/oracle/"/>
-    
-  </entry>
-  
-  <entry>
     <title>oracle在rh里面的安装流程</title>
     <link href="http://wdicc.com/install-oracle-in-rh/"/>
     <id>http://wdicc.com/install-oracle-in-rh/</id>
@@ -12302,6 +12249,59 @@ compat-gcc-c++ compat-libstdc++ compat-libstdc++-devel&lt;/pre&gt;
   </entry>
   
   <entry>
+    <title>oracle 文本界面的安装</title>
+    <link href="http://wdicc.com/oracle-text-install/"/>
+    <id>http://wdicc.com/oracle-text-install/</id>
+    <published>2007-03-13T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是<font color="#3333ff">远程</font>文本界面。这样很有必要看看如何通过文本界面来安装oracle。
+
+oracle本身的安装程序也提供了这个方法，就是使用 responseFile 。这个 responseFile 其实就是在图形界面安装的时候的一些选择，保存到文件之后，直接告诉安装程序从这里读取设置就好了。将oracle的安装文件 ship.db.lnx32.cpio.gz 解压：
+
+<pre class="prettyprint lang-bash">
+cpio -idmv < ship.db.cpio</pre>
+
+这样可以看到有个Disk1的文件夹，里面有个response目录，里面好多response文件，不过我还不知道这些有什么区别，里面设置项也很多，还没弄明白。我使用的不是这里的response文件。是通过下面的方法获取的rsp文件。
+
+可以通过在记录模式中运行软件或通过手动编辑示例响应文件来创建响应文件。以下是一个基本演示：
+
+   1. 用此命令启动 OUI 来创建响应文件：
+
+      ./runInstaller -record -destinationFile /tmp/recorded.rsp
+       
+   2. 选择您需要的所有部分（源目标目录、主目录、主目录名、产品）。
+   3. 当您看到 Summary 屏幕时，不要单击 Install，而是单击 Cancel。
+   4. 仔细查看在 tmp/recorded.rsp 中创建的结果响应文件。如果需要，可以手动编辑该文件，只要您遵守使用规定的格式即可（请参见文档）。
+   5. 现在如下执行静默安装：
+
+      ./runInstaller -silent -responseFile /tmp/recorded.rsp
+
+      在运行脚本时将会报告安装的进度。
+
+如果您由于响应文件中的条目不正确而遇到安装故障，安装将失败并显示一条诊断消息。详细信息可在 oraInventory/logs 目录中找到。在每次使用响应文件运行 OUI 时，会创建具有 installActions-<时间戳>.log 和 silentInstall<时间戳>.log 格式名称的日志。
+
+这样，只需要找台机器在图形界面下面运行一下安装程序，生成一个rsp文件，然后放到真正需要安装的服务器上面，修改一下安装路径，设置一下sys密码，就可以开始安装了。
+</时间戳></时间戳>]]></content>
+    
+    <summary type="html">
+    
+      oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是&lt;font color=&quot;#3333ff&quot;&gt;远程&lt;/font&gt;文本界面。这样很有必要看看如何通过文本界面来安装oracle。
+
+ora
+    
+    </summary>
+    
+    
+      <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+      <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
+    
+      <category term="oracle" scheme="http://wdicc.com/tags/oracle/"/>
+    
+  </entry>
+  
+  <entry>
     <title>我手机上面使用的软件</title>
     <link href="http://wdicc.com/software-in-my-phone/"/>
     <id>http://wdicc.com/software-in-my-phone/</id>
@@ -12357,6 +12357,35 @@ compat-gcc-c++ compat-libstdc++ compat-libstdc++-devel&lt;/pre&gt;
   </entry>
   
   <entry>
+    <title>升级了一下cacti</title>
+    <link href="http://wdicc.com/upgrade-cacti/"/>
+    <id>http://wdicc.com/upgrade-cacti/</id>
+    <published>2007-03-07T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[cacti几个月前就提示我<a href="http://cactiusers.org/" target="_blank" rel="external">Architecture</a>插件有升级了，一直懒得弄。今天发现cacti也升级了，就去看了看，顺便升级了一下。记录一下升级需要注意点的东西。
+
+debian 里面的cacti设置的比较好，log、rra、resource目录都是分开放的，不在cacti目录下面，做了一个链接过去。其他系统升级的时候注意要先备份这三个目录先。建议使用debian的这种方法，这样下次升级省事了。
+
+然后就是很简单的，下载cacti，覆盖，修改config文件，浏览器连接，提示升级，按照步骤来就行了。然后再打上Architecture补丁，再修改config文件就行了。
+]]></content>
+    
+    <summary type="html">
+    
+      cacti几个月前就提示我&lt;a href=&quot;http://cactiusers.org/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Architecture&lt;/a&gt;插件有升级了，一直懒得弄。今天发现cacti也升级了，就去看了看，顺便升级了一下。记录一下升级
+    
+    </summary>
+    
+    
+      <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+      <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
+    
+      <category term="cacti" scheme="http://wdicc.com/tags/cacti/"/>
+    
+  </entry>
+  
+  <entry>
     <title>测试一下performancing看看</title>
     <link href="http://wdicc.com/test-performancing/"/>
     <id>http://wdicc.com/test-performancing/</id>
@@ -12391,35 +12420,6 @@ APACHE=/us
       <category term="web" scheme="http://wdicc.com/tags/web/"/>
     
       <category term="performancing" scheme="http://wdicc.com/tags/performancing/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>升级了一下cacti</title>
-    <link href="http://wdicc.com/upgrade-cacti/"/>
-    <id>http://wdicc.com/upgrade-cacti/</id>
-    <published>2007-03-07T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[cacti几个月前就提示我<a href="http://cactiusers.org/" target="_blank" rel="external">Architecture</a>插件有升级了，一直懒得弄。今天发现cacti也升级了，就去看了看，顺便升级了一下。记录一下升级需要注意点的东西。
-
-debian 里面的cacti设置的比较好，log、rra、resource目录都是分开放的，不在cacti目录下面，做了一个链接过去。其他系统升级的时候注意要先备份这三个目录先。建议使用debian的这种方法，这样下次升级省事了。
-
-然后就是很简单的，下载cacti，覆盖，修改config文件，浏览器连接，提示升级，按照步骤来就行了。然后再打上Architecture补丁，再修改config文件就行了。
-]]></content>
-    
-    <summary type="html">
-    
-      cacti几个月前就提示我&lt;a href=&quot;http://cactiusers.org/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;Architecture&lt;/a&gt;插件有升级了，一直懒得弄。今天发现cacti也升级了，就去看了看，顺便升级了一下。记录一下升级
-    
-    </summary>
-    
-    
-      <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-      <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
-    
-      <category term="cacti" scheme="http://wdicc.com/tags/cacti/"/>
     
   </entry>
   
@@ -13463,6 +13463,35 @@ wordpress 也更新了，到 2.1 了。好像增加了一些新功能，等会�
   </entry>
   
   <entry>
+    <title>元旦之后就是春节</title>
+    <link href="http://wdicc.com/Spring-Festival/"/>
+    <id>http://wdicc.com/Spring-Festival/</id>
+    <published>2007-01-03T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[元旦三天转眼就过完了，好像除了多睡了会觉没啥特别的感觉。元旦之后大节日就是春节了，查了一下是2月18号，也很快了。
+
+元旦几个同学一起来聚了聚，吃了一顿火锅。不过那火锅好像没有期待中那么好吃了， 老大总提起以前在宿舍吃火锅的时候。那会一个小铝锅，几个固体酒精，买点肉，买点菜，一个宿舍就围着这个锅吃上了。竞争很激烈，往往锅刚开，动作慢的就没得吃了。那会好像一人能吃一斤肉……挺恐怖的一个事情。现在再也吃不出来那会的味道了，呵呵。
+
+过两天一个很要好的同学就结婚了。其实已经在家里办了婚礼了，这次是请北京的同学吃个饭，去了估计能见到不少以前的同学和老乡了。98年到北京上学，到明年08年，就是整十年了，日子过的真是很快。
+
+准备好怎么过春节了么？呵呵。
+]]></content>
+    
+    <summary type="html">
+    
+      元旦三天转眼就过完了，好像除了多睡了会觉没啥特别的感觉。元旦之后大节日就是春节了，查了一下是2月18号，也很快了。
+
+元旦几个同学一起来聚了聚，吃了一顿火锅。不过那火锅好像没有期待中那么好吃了， 老大总提起以前在宿舍吃火锅的时候。那会一个小铝锅，几个固体酒精，买点肉，买点菜，一个
+    
+    </summary>
+    
+    
+      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
+    
+  </entry>
+  
+  <entry>
     <title>让wp的tag可以显示彩色效果</title>
     <link href="http://wdicc.com/colorful-tag/"/>
     <id>http://wdicc.com/colorful-tag/</id>
@@ -13514,35 +13543,6 @@ return "#$r$g$b";
     
     
       <category term="web" scheme="http://wdicc.com/tags/web/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>元旦之后就是春节</title>
-    <link href="http://wdicc.com/Spring-Festival/"/>
-    <id>http://wdicc.com/Spring-Festival/</id>
-    <published>2007-01-03T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[元旦三天转眼就过完了，好像除了多睡了会觉没啥特别的感觉。元旦之后大节日就是春节了，查了一下是2月18号，也很快了。
-
-元旦几个同学一起来聚了聚，吃了一顿火锅。不过那火锅好像没有期待中那么好吃了， 老大总提起以前在宿舍吃火锅的时候。那会一个小铝锅，几个固体酒精，买点肉，买点菜，一个宿舍就围着这个锅吃上了。竞争很激烈，往往锅刚开，动作慢的就没得吃了。那会好像一人能吃一斤肉……挺恐怖的一个事情。现在再也吃不出来那会的味道了，呵呵。
-
-过两天一个很要好的同学就结婚了。其实已经在家里办了婚礼了，这次是请北京的同学吃个饭，去了估计能见到不少以前的同学和老乡了。98年到北京上学，到明年08年，就是整十年了，日子过的真是很快。
-
-准备好怎么过春节了么？呵呵。
-]]></content>
-    
-    <summary type="html">
-    
-      元旦三天转眼就过完了，好像除了多睡了会觉没啥特别的感觉。元旦之后大节日就是春节了，查了一下是2月18号，也很快了。
-
-元旦几个同学一起来聚了聚，吃了一顿火锅。不过那火锅好像没有期待中那么好吃了， 老大总提起以前在宿舍吃火锅的时候。那会一个小铝锅，几个固体酒精，买点肉，买点菜，一个
-    
-    </summary>
-    
-    
-      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
     
   </entry>
   
@@ -13599,35 +13599,6 @@ $dbh->disconnect();</pre>
   </entry>
   
   <entry>
-    <title>下雪了</title>
-    <link href="http://wdicc.com/snowing-again/"/>
-    <id>http://wdicc.com/snowing-again/</id>
-    <published>2006-12-29T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[早上6点多醒来，看到外面变白了，意识今年冬天的第一场雪来了。
-
-<img align="middle" src="http://photo4.yupoo.com/20061230/114634_642705975.jpg">
-
-<img align="middle" src="http://photo4.yupoo.com/20061230/114545_688044251.jpg">
-]]></content>
-    
-    <summary type="html">
-    
-      早上6点多醒来，看到外面变白了，意识今年冬天的第一场雪来了。
-
-&lt;img align=&quot;middle&quot; src=&quot;http://photo4.yupoo.com/20061230/114634_642705975.jpg&quot;&gt;
-
-&lt;img align=&quot;middle&quot; src=&quot;h
-    
-    </summary>
-    
-    
-      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
-    
-  </entry>
-  
-  <entry>
     <title>恢复grub</title>
     <link href="http://wdicc.com/recover-grub/"/>
     <id>http://wdicc.com/recover-grub/</id>
@@ -13664,6 +13635,35 @@ grub> setup (hd0)</pre>
       <category term="other" scheme="http://wdicc.com/tags/other/"/>
     
       <category term="grub" scheme="http://wdicc.com/tags/grub/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>下雪了</title>
+    <link href="http://wdicc.com/snowing-again/"/>
+    <id>http://wdicc.com/snowing-again/</id>
+    <published>2006-12-29T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[早上6点多醒来，看到外面变白了，意识今年冬天的第一场雪来了。
+
+<img align="middle" src="http://photo4.yupoo.com/20061230/114634_642705975.jpg">
+
+<img align="middle" src="http://photo4.yupoo.com/20061230/114545_688044251.jpg">
+]]></content>
+    
+    <summary type="html">
+    
+      早上6点多醒来，看到外面变白了，意识今年冬天的第一场雪来了。
+
+&lt;img align=&quot;middle&quot; src=&quot;http://photo4.yupoo.com/20061230/114634_642705975.jpg&quot;&gt;
+
+&lt;img align=&quot;middle&quot; src=&quot;h
+    
+    </summary>
+    
+    
+      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
     
   </entry>
   
@@ -15935,6 +15935,29 @@ nagios tray icon得设置界面如下，出问题得时候他不会弹出窗口�
   </entry>
   
   <entry>
+    <title>毛毛旧照</title>
+    <link href="http://wdicc.com/maomao-photo/"/>
+    <id>http://wdicc.com/maomao-photo/</id>
+    <published>2006-08-07T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/210049529/IMG_0027.html" target="_blank" rel="external"><img height="375" alt="IMG_0027" src="http://static.flickr.com/76/210049529_0c706d393e.jpg" width="500" border="0"></a> <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/210049445/IMG_0022.html" target="_blank" rel="external"><img height="375" alt="IMG_0022" src="http://static.flickr.com/62/210049445_fdb84f0ae6.jpg" width="500" border="0"></a>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;a class=&quot;tt-flickr&quot; href=&quot;http://blog.wdicc.com/wordpress/Photos/photo/210049529/IMG_0027.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;&lt;img height=
+    
+    </summary>
+    
+    
+      <category term="cats" scheme="http://wdicc.com/tags/cats/"/>
+    
+      <category term="毛毛" scheme="http://wdicc.com/tags/%E6%AF%9B%E6%AF%9B/"/>
+    
+  </entry>
+  
+  <entry>
     <title>美国, 香港, 中国大陆三地警察</title>
     <link href="http://wdicc.com/caps-in-usa-hk-and-china/"/>
     <id>http://wdicc.com/caps-in-usa-hk-and-china/</id>
@@ -15966,256 +15989,248 @@ nagios tray icon得设置界面如下，出问题得时候他不会弹出窗口�
   </entry>
   
   <entry>
-    <title>毛毛旧照</title>
-    <link href="http://wdicc.com/maomao-photo/"/>
-    <id>http://wdicc.com/maomao-photo/</id>
-    <published>2006-08-07T16:00:00.000Z</published>
+    <title>几道有趣的数学题</title>
+    <link href="http://wdicc.com/funny-math/"/>
+    <id>http://wdicc.com/funny-math/</id>
+    <published>2006-08-04T16:00:00.000Z</published>
     <updated>2016-10-22T04:19:18.000Z</updated>
     
-    <content type="html"><![CDATA[<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/210049529/IMG_0027.html" target="_blank" rel="external"><img height="375" alt="IMG_0027" src="http://static.flickr.com/76/210049529_0c706d393e.jpg" width="500" border="0"></a> <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/210049445/IMG_0022.html" target="_blank" rel="external"><img height="375" alt="IMG_0022" src="http://static.flickr.com/62/210049445_fdb84f0ae6.jpg" width="500" border="0"></a>
-]]></content>
+    <content type="html"><![CDATA[<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144582/%EF%BF%BD%EF%BF%BD%EF%BF%BD_2.html" target="_blank" rel="external"><img width="240" height="172" border="0" alt="æ�°å­¦é¢�_2" src="http://static.flickr.com/73/207144582_bfa3cf060e_m.jpg"></a> <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144580/%EF%BF%BD%EF%BF%BD%EF%BF%BD_1.html" target="_blank" rel="external"><img width="240" height="220" border="0" alt="æ�°å­¦é¢�_1" src="http://static.flickr.com/60/207144580_12b95f5196_m.jpg"></a> <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144582/%EF%BF%BD%EF%BF%BD%EF%BF%BD_2.html" target="_blank" rel="external"><a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144583/%EF%BF%BD%EF%BF%BD%EF%BF%BD_3.html" target="_blank" rel="external"><a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144583/%EF%BF%BD%EF%BF%BD%EF%BF%BD_3.html" target="_blank" rel="external"><img width="194" height="240" border="0" alt="æ�°å­¦é¢�_3" src="http://static.flickr.com/97/207144583_f46da70ce6_m.jpg"></a>   <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144584/%EF%BF%BD%EF%BF%BD%EF%BF%BD_4.html" target="_blank" rel="external"><img width="240" height="176" border="0" alt="æ�°å­¦é¢�_4" src="http://static.flickr.com/88/207144584_2d591c805e_m.jpg"></a> <img id="image225" alt="6465.gif" src="http://blog.wdicc.com/wordpress/wp-content/uploads/2006/08/6465.gif">
+</a></a>]]></content>
     
     <summary type="html">
     
-      &lt;a class=&quot;tt-flickr&quot; href=&quot;http://blog.wdicc.com/wordpress/Photos/photo/210049529/IMG_0027.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;&lt;img height=
+      &lt;a class=&quot;tt-flickr&quot; href=&quot;http://blog.wdicc.com/wordpress/Photos/photo/207144582/%EF%BF%BD%EF%BF%BD%EF%BF%BD_2.html&quot; target=&quot;_blank&quot; rel=&quot;e
     
     </summary>
     
     
-      <category term="cats" scheme="http://wdicc.com/tags/cats/"/>
+      <category term="Joke" scheme="http://wdicc.com/tags/Joke/"/>
     
-      <category term="毛毛" scheme="http://wdicc.com/tags/%E6%AF%9B%E6%AF%9B/"/>
+      <category term="funny" scheme="http://wdicc.com/tags/funny/"/>
     
   </entry>
   
   <entry>
-    <title>Weblogic服务器性能调优</title>
-    <link href="http://wdicc.com/weblogic-turning/"/>
-    <id>http://wdicc.com/weblogic-turning/</id>
+    <title>Oracle维护常用SQL语句</title>
+    <link href="http://wdicc.com/usefull-sql/"/>
+    <id>http://wdicc.com/usefull-sql/</id>
     <published>2006-08-04T16:00:00.000Z</published>
     <updated>2016-10-22T04:19:18.000Z</updated>
     
-    <content type="html"><![CDATA[来源 <a target="_blank" href="http://www.mikecat.net/BlogView.asp?logID=1489">这里</a>
-
-注：在下面做的介绍都是以Weblogic8.1为例的，其它版本的Weblogic可能会有些许不同。
-
-1) 设置JAVA参数；
-
-a) 编辑Weblogic Server启动脚本文件；
-
-BEA_HOME\user_projects\domains\domain-name\startWebLogic.cmd(startWebLogic.sh on Unix)
-
-BEA_HOME\user_projects\domains\domain-name\startManagedWebLogic.cmd(startManagedWebLogic.sh on Unix)
-
-b) 编辑set JAVA_OPTIONS命令，如：set JAVA_OPTIONS=-Xms256m –Xmx256m；
-
-c) 保存，重启即可。
-
-注：在WebLogic中，为了获得更好的性能，BEA公司推荐最小Java堆等于最大Java堆。
+    <content type="html"><![CDATA[查看所有用户
+<pre class="prettyprint lang-sql">
+select username,password from dba_users;
+</pre>
+1、查看表空间的名称及大小
+<pre class="prettyprint lang-sql">
+select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
+from dba_tablespaces t, dba_data_files d
+where t.tablespace_name = d.tablespace_name
+group by t.tablespace_name;
+</pre>
+2、查看表空间物理文件的名称及大小
+<pre class="prettyprint lang-sql">
+select tablespace_name, file_id, file_name,
+round(bytes/(1024*1024),0) total_space
+from dba_data_files
+order by tablespace_name;
+</pre>
 <a id="more"></a>
-2) 开发模式 vs. 产品模式；
+3、查看回滚段名称及大小
+<pre class="prettyprint lang-sql">
+select segment_name, tablespace_name, r.status,
+(initial_extent/1024) InitialExtent,(next_extent/1024) NextExtent,
+max_extents, v.curext CurExtent
+From dba_rollback_segs r, v$rollstat v
+Where r.segment_id = v.usn(+)
+order by segment_name ;
+</pre>
+4、查看控制文件
+<pre class="prettyprint lang-sql">
+select name from v$controlfile;
+</pre>
+5、查看日志文件
+<pre class="prettyprint lang-sql">
+select member from v$logfile;
+</pre>
+6、查看表空间的使用情况
+<pre class="prettyprint lang-sql">
+select sum(bytes)/(1024*1024) as free_space,tablespace_name
+from dba_free_space
+group by tablespace_name;
 
-开发模式和产品模式的一些参数的默认值不同，可能会对性能造成影响，下面是对性能有影响的参数列表：
+SELECT A.TABLESPACE_NAME,A.BYTES TOTAL,B.BYTES USED, C.BYTES FREE,
+(B.BYTES*100)/A.BYTES "% USED",(C.BYTES*100)/A.BYTES "% FREE"
+FROM SYS.SM$TS_AVAIL A,SYS.SM$TS_USED B,SYS.SM$TS_FREE C
+WHERE A.TABLESPACE_NAME=B.TABLESPACE_NAME AND A.TABLESPACE_NAME=C.TABLESPACE_NAME;
+</pre>
+7、查看数据库库对象
+select owner, object_type, status, count(*) count# from all_objects group by owner, object_type, status;
 
-参数
+8、查看数据库的版本
+Select version FROM Product_component_version
+Where SUBSTR(PRODUCT,1,6)='Oracle';
 
-开发模式默认值
+9、查看数据库的创建日期和归档方式
+Select Created, Log_Mode, Log_Mode From V$Database;
 
-产品模式默认值
+10、捕捉运行很久的SQL
+column username format a12
+column opname format a16
+column progress format a8
+select username,sid,opname,
+round(sofar*100 / totalwork,0) || '%' as progress,
+time_remaining,sql_text
+from v$session_longops , v$sql
+where time_remaining <> 0
+and sql_address = address
+and sql_hash_value = hash_value
+/
 
-Execute Queue: Thread Count
+11、查看数据表的参数信息
+SELECT partition_name, high_value, high_value_length, tablespace_name,
+pct_free, pct_used, ini_trans, max_trans, initial_extent,
+next_extent, min_extent, max_extent, pct_increase, FREELISTS,
+freelist_groups, LOGGING, BUFFER_POOL, num_rows, blocks,
+empty_blocks, avg_space, chain_cnt, avg_row_len, sample_size,
+last_analyzed
+FROM dba_tab_partitions
+--WHERE table_name = :tname AND table_owner = :towner
+ORDER BY partition_position
 
-15 threads
+12、查看还没提交的事务
+select * from v$locked_object;
+select * from v$transaction;
 
-25 threads
+13、查找object为哪些进程所用
+select
+p.spid,
+s.sid,
+s.serial# serial_num,
+s.username user_name,
+a.type object_type,
+s.osuser os_user_name,
+a.owner,
+a.object object_name,
+decode(sign(48 - command),
+1,
+to_char(command), 'Action Code #' || to_char(command) ) action,
+p.program oracle_process,
+s.terminal terminal,
+s.program program,
+s.status session_status
+from v$session s, v$access a, v$process p
+where s.paddr = p.addr and
+s.type = 'USER' and
+a.sid = s.sid and
+a.object='SUBSCRIBER_ATTR'
+order by s.username, s.osuser
 
-JDBC Connection Pool: MaxCapacity
+14、回滚段查看
+select rownum, sys.dba_rollback_segs.segment_name Name, v$rollstat.extents
+Extents, v$rollstat.rssize Size_in_Bytes, v$rollstat.xacts XActs,
+v$rollstat.gets Gets, v$rollstat.waits Waits, v$rollstat.writes Writes,
+sys.dba_rollback_segs.status status from v$rollstat, sys.dba_rollback_segs,
+v$rollname where v$rollname.name(+) = sys.dba_rollback_segs.segment_name and
+v$rollstat.usn (+) = v$rollname.usn order by rownum
 
-15 connnections
+15、耗资源的进程(top session)
+select s.schemaname schema_name, decode(sign(48 - command), 1,
+to_char(command), 'Action Code #' || to_char(command) ) action, status
+session_status, s.osuser os_user_name, s.sid, p.spid , s.serial# serial_num,
+nvl(s.username, '[Oracle process]') user_name, s.terminal terminal,
+s.program program, st.value criteria_value from v$sesstat st, v$session s , v$process p
+where st.sid = s.sid and st.statistic# = to_number('38') and ('ALL' = 'ALL'
+or s.status = 'ALL') and p.addr = s.paddr order by st.value desc, p.spid asc, s.username asc, s.osuser asc
 
-25 connections
+16、查看锁(lock)情况
+select /*+ RULE */ ls.osuser os_user_name, ls.username user_name,
+decode(ls.type, 'RW', 'Row wait enqueue lock', 'TM', 'DML enqueue lock', 'TX',
+'Transaction enqueue lock', 'UL', 'User supplied lock') lock_type,
+o.object_name object, decode(ls.lmode, 1, null, 2, 'Row Share', 3,
+'Row Exclusive', 4, 'Share', 5, 'Share Row Exclusive', 6, 'Exclusive', null)
+lock_mode, o.owner, ls.sid, ls.serial# serial_num, ls.id1, ls.id2
+from sys.dba_objects o, ( select s.osuser, s.username, l.type,
+l.lmode, s.sid, s.serial#, l.id1, l.id2 from v$session s,
+v$lock l where s.sid = l.sid ) ls where o.object_id = ls.id1 and o.owner
+<> 'SYS' order by o.owner, o.object_name
 
-通过启动管理控制台，在域（如：mydomain）> 配置 > 常规选择产品模式。
+17、查看等待(wait)情况
+SELECT v$waitstat.class, v$waitstat.count count, SUM(v$sysstat.value) sum_value
+FROM v$waitstat, v$sysstat WHERE v$sysstat.name IN ('db block gets',
+'consistent gets') group by v$waitstat.class, v$waitstat.count
 
-3) 尽量开启本地I/O；
+18、查看sga情况
+SELECT NAME, BYTES FROM SYS.V_$SGASTAT ORDER BY NAME ASC
 
-通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）> 配置 > 调整选择启用本地I/O。
+19、查看catched object
+SELECT owner, name, db_link, namespace,
+type, sharable_mem, loads, executions,
+locks, pins, kept FROM v$db_object_cache
 
-注：此值也可通过手动的修改config.xml配置文件。
+20、查看V$SQLAREA
+SELECT SQL_TEXT, SHARABLE_MEM, PERSISTENT_MEM, RUNTIME_MEM, SORTS,
+VERSION_COUNT, LOADED_VERSIONS, OPEN_VERSIONS, USERS_OPENING, EXECUTIONS,
+USERS_EXECUTING, LOADS, FIRST_LOAD_TIME, INVALIDATIONS, PARSE_CALLS, DISK_READS,
+BUFFER_GETS, ROWS_PROCESSED FROM V$SQLAREA
 
-4) 调优执行队列线程；
+21、查看object分类数量
+select decode (o.type#,1,'INDEX' , 2,'TABLE' , 3 , 'CLUSTER' , 4, 'VIEW' , 5 ,
+'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) object_type , count(*) quantity from
+sys.obj$ o where o.type# > 1 group by decode (o.type#,1,'INDEX' , 2,'TABLE' , 3
+, 'CLUSTER' , 4, 'VIEW' , 5 , 'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) union select
+'COLUMN' , count(*) from sys.col$ union select 'DB LINK' , count(*) from
 
-a) 修改默认执行线程数
+22、按用户查看object种类
+select u.name schema, sum(decode(o.type#, 1, 1, NULL)) indexes,
+sum(decode(o.type#, 2, 1, NULL)) tables, sum(decode(o.type#, 3, 1, NULL))
+clusters, sum(decode(o.type#, 4, 1, NULL)) views, sum(decode(o.type#, 5, 1,
+NULL)) synonyms, sum(decode(o.type#, 6, 1, NULL)) sequences,
+sum(decode(o.type#, 1, NULL, 2, NULL, 3, NULL, 4, NULL, 5, NULL, 6, NULL, 1))
+others from sys.obj$ o, sys.user$ u where o.type# >= 1 and u.user# =
+o.owner# and u.name <> 'PUBLIC' group by u.name order by
+sys.link$ union select 'CONSTRAINT' , count(*) from sys.con$
 
-在这里，执行队列的线程数表示执行队列能够同时执行的操作的数量。但此值不是设的越大越好，应该恰到好处的去设置它，太小了，执行队列中将会积累很多待处理的任务，太大了，则会消耗大量的系统资源从而影响整体的性能。在产品模式下默认为25个执行线程。
+23、有关connection的相关信息
 
-为了设置理想的执行队列的线程数，我们可以启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）> 监视 > 性能中监控最大负载时执行队列的吞吐量和队列中的等待请求数，据此确定理想的数值。
+1)查看有哪些用户连接
+select s.osuser os_user_name, decode(sign(48 - command), 1, to_char(command),
+'Action Code #' || to_char(command) ) action, p.program oracle_process,
+status session_status, s.terminal terminal, s.program program,
+s.username user_name, s.fixed_table_sequence activity_meter, '' query,
+0 memory, 0 max_memory, 0 cpu_usage, s.sid, s.serial# serial_num
+from v$session s, v$process p where s.paddr=p.addr and s.type = 'USER'
+order by s.username, s.osuser
 
-理想的默认执行线程数是由多方面的因素决定的，比如机器CPU性能、总体体系架构、I/O、操作系统的进程调度机制、JVM的线程调度机制。随着CPU个数的增加，WebLogic可以近乎线性地提高线程数。线程数越多，花费在线程切换的时间也就越多；线程数越小，CPU可能无法得到充分的利用。为获取一个理想的线程数，需要经过反复的测试。在测试中，可以以25*CPU个数为基准进行调整。当空闲线程较少，CPU利用率较低时，可以适当增加线程数的大小（每五个递增）。对于PC Server和Windows 2000，则最好每个CPU小于50个线程，以CPU利用率为90%左右为最佳。
-
-通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）> Execute Queue > weblogic.kernel.Defalt > 配置中修改线程计数。
-
-b) 设定执行队列的溢出条件；
-
-Weblogic Server提供给默认的执行队列或用户自定义的执行队列自定义溢出条件的功能，当满足此溢出条件时，服务器改变其状态为“警告”状态，并且额外的再分配一些线程去处理在队列中的请求，而达到降低队列长度的目的。
-
-通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）> Execute Queue > weblogic.kernel.Defalt > 配置下面几项：
-
-l         队列长度：此值表示执行队列中可容纳的最大请求数，默认值是65536，最后不要手动改变此值。
-
-l         队列长度阈值百分比：此值表示溢出条件，在此服务器指出队列溢出之前可以达到的队列长度大小的百分比。
-
-l         线程数增加：当检测到溢出条件时，将增加到执行队列中的线程数量。如果CPU和内存不是足够的高，尽量不要改变默认值“0”。因为Weblogic一旦增加后不会自动缩减，虽然最终可能确实起到了降低请求的作用，但在将来的运行中将影响程序的性能。
-
-l         最大线程数：为了防止创建过多的线程数量，可以通过设定最大的线程数进行控制。
-
-在实际的应用场景中，应根据具体情况适当的调整以上参数。
-
-c) 设定执行队列监测行为
-
-Weblogic Server 能够自动监测到当一个执行线程变为“阻塞”。变为“阻塞”状态的执行线程将无法完成当前的工作，也无法再执行新请求。如果执行队列中的所有执行线程都变为 “阻塞”状态，Weblogic server可能改变状态为“警告”或“严重”状态。如果Weblogic server变为“严重”状态，可以通过 Node Manager来自动关闭此服务器并重新启动它。具体请参考：Node Manager Capabilities文档。
-
-通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）>配置 > 调整下可配置下面几项：
-
-l         阻塞线程最长时间：在此服务器将线程诊断为阻塞线程之前，线程必须连续工作的时间长度(秒)。默认情况下，WebLogic Server 认为线程在连续工作 600 秒后成为阻塞线程。
-
-l         阻塞线程计时器间隔：WebLogic Server 定期扫描线程以查看它们是否已经连续工作了 "阻塞线程最长时间" 字段中指定的时间长度的间隔时间(秒)。默认情况下，WebLogic Server 将此时间间隔设置为 600 秒。
-
-5) 调优TCP连接缓存数；
-
-WebLogic Server 用Accept Backlog参数规定服务器向操作系统请求的队列大小，默认值为50。当系统重载负荷时,这个值可能过小,日志中报 Connection Refused,导致有效连接请求遭到拒绝,此时可以提高Accept Backlog 25%直到连接拒绝错误消失。对于 Portal类型的应用,默认值往往是不够的。Login Timeout和SSL Login Timeout参数表示普通连接和SSL连接的超时时间,如果客户连接被服务器中断或者SSL容量大,可以尝试增加该值。
-
-通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）>配置 > 调整下可配置“接受预备连接”。
-
-6) 改变Java编译器；
-
-标准的Java编译器是javac，但编译JSP servlets速度太慢，为了提高编译速度，可以使用sj或jikes编译器取代javac编译器。下面说说更改Java编译器：
-
-通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）>配置 > 常规下改变Java 编译器，默认为javac。输入完整路径，如：c:\visualcafe31\bin\sj.exe。然后打开高级选项，在预规划到类路径填写编译 Java 代码时为 Java 编译器类路径预规划的选项，如：BEA_HOME\jdk141_02\jre\lib\rt.jar。
-
-7) 使用Webogic Server集群提高性能；
-
-具体关于如何配置Weblogic集群，我就不细说了。详情可参考：Introduction to WebLogic Server Clustering。
-
-8) Weblogic EJB调优
-
-由于EJB2.0已经很少项目在用了，EJB3.0再成熟一点，我再补充这一部分吧！
-
-9) JDBC应用调优
-
-JDBC Connection Pool 的调优受制于WebLogic Server线程数的设置和数据库进程数,游标的大小。通常我们在一个线程中使用一个连接,所以连接数并不是越多越好,为避免两边的资源消耗，建议设置连接池的最大值等于或者略小于线程数。同时为了减少新建连接的开销,将最小值和最大值设为一致。
-
-增加 Statement Cache Size对于大量使用PreparedStatement对象的应用程序很有帮助,WebLogic能够为每一个连接缓存这些对象,此值默认为10。在保证数据库游标大小足够的前提下,可以根据需要提高Statement Cache Size。比如当你设置连接数为 25,Cache Size为10时,数据库可能需要打开25*10=250个游标。不幸的是,当遇到与PreparedStatement Cache 有关的应用程序错误时,你需要将Cache Size设置为0。
-
-尽管JDBC Connection Pool提供了很多高级参数,在开发模式下比较有用,但大部分在生产环境下不需调整。这里建议最好不要设置测试表, 同时Test Reserved Connections和 Test Released Connections也无需勾上。 当然如果你的数据库不稳定,时断时续,你就可能需要上述的参数打开。
-
-最后提一下驱动程序类型的选择,以Oracle为例,Oracle提供thin驱动和oci驱动,从性能上来讲,oci驱动强于thin驱动,特别是大数据量的操作。但在简单的数据库操作中,性能相差不大,随着thin驱动的不断改进,这一弱势将得到弥补。而thin驱动的移植性明显强于oci驱动。所以在通常情况下建议使用thin驱动。而最新驱动器由于WebLogic server/bin目录下的类包可能不是最新的,请以Oracle网站为准: http://www.oracle.com/technology/software ... jdbc/htdocs/jdbc9201.html。
-
-10) JSP调优
-
-设置jsp-param pageCheckSeconds=-1；
-
-设置serlet-reload-check=-1或ServletReloadCheckSecs=-1；
-
-设置jsp-param precompile=true，关闭JSP预编译选项。
+2)
 ]]></content>
     
     <summary type="html">
     
-      来源 &lt;a target=&quot;_blank&quot; href=&quot;http://www.mikecat.net/BlogView.asp?logID=1489&quot;&gt;这里&lt;/a&gt;
-
-注：在下面做的介绍都是以Weblogic8.1为例的，其它版本的Weblogic可能会有些许不同。
-
-1) 设置JAVA参数；
-
-a) 编辑Weblogic Server启动脚本文件；
-
-BEA_HOME\user_projects\domains\domain-name\startWebLogic.cmd(startWebLogic.sh on Unix)
-
-BEA_HOME\user_projects\domains\domain-name\startManagedWebLogic.cmd(startManagedWebLogic.sh on Unix)
-
-b) 编辑set JAVA_OPTIONS命令，如：set JAVA_OPTIONS=-Xms256m –Xmx256m；
-
-c) 保存，重启即可。
-
-注：在WebLogic中，为了获得更好的性能，BEA公司推荐最小Java堆等于最大Java堆。
+      查看所有用户
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select username,password from dba_users;
+&lt;/pre&gt;
+1、查看表空间的名称及大小
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
+from dba_tablespaces t, dba_data_files d
+where t.tablespace_name = d.tablespace_name
+group by t.tablespace_name;
+&lt;/pre&gt;
+2、查看表空间物理文件的名称及大小
+&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+select tablespace_name, file_id, file_name,
+round(bytes/(1024*1024),0) total_space
+from dba_data_files
+order by tablespace_name;
+&lt;/pre&gt;
     
     </summary>
     
     
       <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-      <category term="weblogic" scheme="http://wdicc.com/tags/weblogic/"/>
-    
-      <category term="性能" scheme="http://wdicc.com/tags/%E6%80%A7%E8%83%BD/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>weblogic乱码问题</title>
-    <link href="http://wdicc.com/weblogic-encoding/"/>
-    <id>http://wdicc.com/weblogic-encoding/</id>
-    <published>2006-08-04T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[1 先看这里：WebLogic8.1的中文问题解决方法
-
-http://dev2dev.bea.com.cn/techdoc/200311546.html
-
-
-2 看看系统locale的设置，可以使用locale命令查看当前的locale设置，可以使用如下命令设置locale。
-
-#LANG=en_US
-
-没有在weblogic的手册中找到关于这部分的信息，可以测试一下系统locale对应用是否有影响。
-<a id="more"></a>
-3 下面是手册中关于国际化的一段说法，按照下面的说法，应该是不管有没有设置weblogic的字符集，他都会正确处理多字节字符，默认使用的是utf－8。
-
-Often the default character sets used by WebLogic Server are adequate and you do not need to explicitly specify a character set for a Web Service. For example, if a client application specifies its preferred character set, and there is no character set specified for a Web Service, then WebLogic Server responds by using the client's preferred character set. Also, non-internationalized WebLogic Server instances use the US-ASCII character set by default, and internationalized WebLogic Server instances use the UTF-8 character set by default, and both of these character sets are compatible when one WebLogic Server instance is communicating with the other. This also means that a Web Service running on a non-internationalized WebLogic Server instance can handle multi-byte characters correctly.
-
-具体修改的方法可以参看这里：http://e-docs.bea.com/wls/docs81/webserv/i18n.html。
-生效的顺序如下：
-
-Order of Precedence of Character Set Configuration Used By WebLogic Server
-
-The following list shows the order by which WebLogic Server determines the character set of a WebLogic Web Service when it is creating the SOAP response to an invoke of one of its operations:
-
-1. The value of the charset attribute in the corresponding <web-service> element of the web-services.xml deployment descriptor.
-
-If this is not set, then WebLogic Server looks at the following:
-
-2. The character set preferred by the client application that invoked the Web Service operation. If your client application uses the WebLogic Web Services client APIS, the character set is specified using the weblogic.webservice.binding.BindingInfo.setAcceptCharset() method.
-
-If this is not set, then WebLogic Server looks at the following:
-
-3. The value of the WebLogic Server system property weblogic.webservice.i18n.charset.
-
-If this is not set, then WebLogic Server looks at the following:
-
-4. The character set specified for the JVM. Specifically, if the JVM property user.language is set to en, then WebLogic Web Services use the US-ASCII character set. If the user.language property is set to anything else, WebLogic Web Services use the UTF-8 character set.
-</web-service>]]></content>
-    
-    <summary type="html">
-    
-      1 先看这里：WebLogic8.1的中文问题解决方法
-
-http://dev2dev.bea.com.cn/techdoc/200311546.html
-
-
-2 看看系统locale的设置，可以使用locale命令查看当前的locale设置，可以使用如下命令设置locale。
-
-#LANG=en_US
-
-没有在weblogic的手册中找到关于这部分的信息，可以测试一下系统locale对应用是否有影响。
-    
-    </summary>
-    
-    
-      <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-      <category term="乱码" scheme="http://wdicc.com/tags/%E4%B9%B1%E7%A0%81/"/>
-    
-      <category term="weblogc" scheme="http://wdicc.com/tags/weblogc/"/>
     
   </entry>
   
@@ -16249,55 +16264,121 @@ http://dev2dev.bea.com.cn/techdoc/200311546.html
   </entry>
   
   <entry>
-    <title>可以关闭的linux系统服务</title>
-    <link href="http://wdicc.com/service-can-stop/"/>
-    <id>http://wdicc.com/service-can-stop/</id>
+    <title>数据恢复步骤</title>
+    <link href="http://wdicc.com/recover-date/"/>
+    <id>http://wdicc.com/recover-date/</id>
     <published>2006-08-04T16:00:00.000Z</published>
     <updated>2016-10-22T04:19:18.000Z</updated>
     
-    <content type="html"><![CDATA[转自车东的blog
+    <content type="html"><![CDATA[<pre class="prettyprint lang-sql">
+切换到oracle用户
+sqlplus
+conn / as sysdba
+drop user <user> cascade;
+create user <user> identified by <password> default tablespace <tablespace>;
+exit
+imp <user>/<password> file=<file_name> fromuser=<user> touser=<user>
+</user></user></file_name></password></user></tablespace></password></user></user></pre>
 
-sudo /sbin/chkconfig --list| grep 3:on | awk '{print "/sbin/chkconfig "$1" off"}'
-/sbin/chkconfig acpid off
-/sbin/chkconfig anacron off
-/sbin/chkconfig apmd off
-/sbin/chkconfig auditd off
-/sbin/chkconfig autofs off
-/sbin/chkconfig bluetooth off
-/sbin/chkconfig cpuspeed off
-/sbin/chkconfig cups off
-/sbin/chkconfig gpm off
-/sbin/chkconfig haldaemon off
-/sbin/chkconfig iptables off
-/sbin/chkconfig isdn off
-/sbin/chkconfig kudzu off
-/sbin/chkconfig mDNSResponder off
-/sbin/chkconfig mdmonitor off
-/sbin/chkconfig messagebus off
-/sbin/chkconfig netfs off
-/sbin/chkconfig nfslock off
-/sbin/chkconfig nifd off
-/sbin/chkconfig pcmcia off
-/sbin/chkconfig portmap off
-/sbin/chkconfig rhnsd off
-/sbin/chkconfig rpcgssd off
-/sbin/chkconfig rpcidmapd off
-/sbin/chkconfig sendmail off
-/sbin/chkconfig xfs off
-]]></content>
+<pre class="prettyprint lang-txt">
+*<user>为要恢复的用户，<password>为其密
+</password></user></pre>]]></content>
     
     <summary type="html">
     
-      转自车东的blog
-
-sudo /sbin/chkconfig --list| grep 3:on | awk &#39;{print &quot;/sbin/chkconfig &quot;$1&quot; off&quot;}&#39;
-/sbin/chkconfig acpid off
-/sbin/chkconfig anacr
+      &lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
+切换到oracle用户
+sqlplus
+conn / as sysdba
+drop user &lt;user&gt; cascade;
+create user &lt;user&gt; identified by &lt;password
     
     </summary>
     
     
       <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+      <category term="oracle" scheme="http://wdicc.com/tags/oracle/"/>
+    
+      <category term="恢复" scheme="http://wdicc.com/tags/%E6%81%A2%E5%A4%8D/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Oracle10g EM乱码之快速解决</title>
+    <link href="http://wdicc.com/oracle-em-encoding/"/>
+    <id>http://wdicc.com/oracle-em-encoding/</id>
+    <published>2006-08-04T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[来源 <a target="_blank" href="http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html">这里</a>
+
+一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.
+
+如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.
+
+在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:
+<a id="more"></a>
+[oracle@danaly ~]$ cd $ORACLE_HOME/jdk/jre/lib
+[oracle@danaly lib]$ ls font*zh_CN*
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
+
+[oracle@danaly lib]$ cd $ORACLE_HOME/jre/1.4.2/lib/
+[oracle@danaly lib]$ ls font*zh_CN*
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
+
+我们只要用合适的中文字符集文件替换缺省文件即可,我选择使用font.properties.zh_CN.Redhat来替换缺省字体定义文件:
+
+[oracle@danaly lib]$ cp font.properties.zh_CN.Redhat font.properties
+
+替换之后需要清理一下Cache,重启EM即可.
+
+Cache路径通常位于:
+
+$ORACLE_HOME/oc4j/j2ee/oc4j_applications/applications/em/em/cabo/images/cache/zhs
+
+清除所有gif文件即可.然后重新启动EM:
+
+[oracle@danaly zhs]$ emctl stop dbconsole
+TZ set to PRC
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
+Stopping Oracle Enterprise Manager 10g Database Control ...
+...  Stopped.
+[oracle@danaly zhs]$ emctl start dbconsole
+TZ set to PRC
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
+Starting Oracle Enterprise Manager 10g Database Control .............. started.
+------------------------------------------------------------------
+Logs are generated in directory
+/opt/oracle/product/10.2.0/danaly.hurrray.com.cn_danaly/sysman/log
+
+现在登陆Web页面,EM显示就可以正常显示中文了.
+]]></content>
+    
+    <summary type="html">
+    
+      来源 &lt;a target=&quot;_blank&quot; href=&quot;http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html&quot;&gt;这里&lt;/a&gt;
+
+一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.
+
+如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.
+
+在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:
+    
+    </summary>
+    
+    
+      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
+    
+      <category term="oracle" scheme="http://wdicc.com/tags/oracle/"/>
+    
+      <category term="乱码" scheme="http://wdicc.com/tags/%E4%B9%B1%E7%A0%81/"/>
     
   </entry>
   
@@ -16664,47 +16745,6 @@ ln -s /usr/local/wls813/anymusic /usr/local/wls
   </entry>
   
   <entry>
-    <title>数据恢复步骤</title>
-    <link href="http://wdicc.com/recover-date/"/>
-    <id>http://wdicc.com/recover-date/</id>
-    <published>2006-08-04T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[<pre class="prettyprint lang-sql">
-切换到oracle用户
-sqlplus
-conn / as sysdba
-drop user <user> cascade;
-create user <user> identified by <password> default tablespace <tablespace>;
-exit
-imp <user>/<password> file=<file_name> fromuser=<user> touser=<user>
-</user></user></file_name></password></user></tablespace></password></user></user></pre>
-
-<pre class="prettyprint lang-txt">
-*<user>为要恢复的用户，<password>为其密
-</password></user></pre>]]></content>
-    
-    <summary type="html">
-    
-      &lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
-切换到oracle用户
-sqlplus
-conn / as sysdba
-drop user &lt;user&gt; cascade;
-create user &lt;user&gt; identified by &lt;password
-    
-    </summary>
-    
-    
-      <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-      <category term="oracle" scheme="http://wdicc.com/tags/oracle/"/>
-    
-      <category term="恢复" scheme="http://wdicc.com/tags/%E6%81%A2%E5%A4%8D/"/>
-    
-  </entry>
-  
-  <entry>
     <title>mysql安装</title>
     <link href="http://wdicc.com/install-mysql-2/"/>
     <id>http://wdicc.com/install-mysql-2/</id>
@@ -16786,103 +16826,55 @@ shell&gt; scripts/mysql_install_db --user=mysql
   </entry>
   
   <entry>
-    <title>Oracle10g EM乱码之快速解决</title>
-    <link href="http://wdicc.com/oracle-em-encoding/"/>
-    <id>http://wdicc.com/oracle-em-encoding/</id>
+    <title>可以关闭的linux系统服务</title>
+    <link href="http://wdicc.com/service-can-stop/"/>
+    <id>http://wdicc.com/service-can-stop/</id>
     <published>2006-08-04T16:00:00.000Z</published>
     <updated>2016-10-22T04:19:18.000Z</updated>
     
-    <content type="html"><![CDATA[来源 <a target="_blank" href="http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html">这里</a>
+    <content type="html"><![CDATA[转自车东的blog
 
-一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.
-
-如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.
-
-在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:
-<a id="more"></a>
-[oracle@danaly ~]$ cd $ORACLE_HOME/jdk/jre/lib
-[oracle@danaly lib]$ ls font*zh_CN*
-font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
-font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
-
-[oracle@danaly lib]$ cd $ORACLE_HOME/jre/1.4.2/lib/
-[oracle@danaly lib]$ ls font*zh_CN*
-font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1
-font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun
-
-我们只要用合适的中文字符集文件替换缺省文件即可,我选择使用font.properties.zh_CN.Redhat来替换缺省字体定义文件:
-
-[oracle@danaly lib]$ cp font.properties.zh_CN.Redhat font.properties
-
-替换之后需要清理一下Cache,重启EM即可.
-
-Cache路径通常位于:
-
-$ORACLE_HOME/oc4j/j2ee/oc4j_applications/applications/em/em/cabo/images/cache/zhs
-
-清除所有gif文件即可.然后重新启动EM:
-
-[oracle@danaly zhs]$ emctl stop dbconsole
-TZ set to PRC
-Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
-Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
-http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
-Stopping Oracle Enterprise Manager 10g Database Control ...
-...  Stopped.
-[oracle@danaly zhs]$ emctl start dbconsole
-TZ set to PRC
-Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0
-Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.
-http://danaly.hurrray.com.cn:1158/em/console/aboutApplication
-Starting Oracle Enterprise Manager 10g Database Control .............. started.
-------------------------------------------------------------------
-Logs are generated in directory
-/opt/oracle/product/10.2.0/danaly.hurrray.com.cn_danaly/sysman/log
-
-现在登陆Web页面,EM显示就可以正常显示中文了.
+sudo /sbin/chkconfig --list| grep 3:on | awk '{print "/sbin/chkconfig "$1" off"}'
+/sbin/chkconfig acpid off
+/sbin/chkconfig anacron off
+/sbin/chkconfig apmd off
+/sbin/chkconfig auditd off
+/sbin/chkconfig autofs off
+/sbin/chkconfig bluetooth off
+/sbin/chkconfig cpuspeed off
+/sbin/chkconfig cups off
+/sbin/chkconfig gpm off
+/sbin/chkconfig haldaemon off
+/sbin/chkconfig iptables off
+/sbin/chkconfig isdn off
+/sbin/chkconfig kudzu off
+/sbin/chkconfig mDNSResponder off
+/sbin/chkconfig mdmonitor off
+/sbin/chkconfig messagebus off
+/sbin/chkconfig netfs off
+/sbin/chkconfig nfslock off
+/sbin/chkconfig nifd off
+/sbin/chkconfig pcmcia off
+/sbin/chkconfig portmap off
+/sbin/chkconfig rhnsd off
+/sbin/chkconfig rpcgssd off
+/sbin/chkconfig rpcidmapd off
+/sbin/chkconfig sendmail off
+/sbin/chkconfig xfs off
 ]]></content>
     
     <summary type="html">
     
-      来源 &lt;a target=&quot;_blank&quot; href=&quot;http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html&quot;&gt;这里&lt;/a&gt;
+      转自车东的blog
 
-一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.
-
-如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.
-
-在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:
+sudo /sbin/chkconfig --list| grep 3:on | awk &#39;{print &quot;/sbin/chkconfig &quot;$1&quot; off&quot;}&#39;
+/sbin/chkconfig acpid off
+/sbin/chkconfig anacr
     
     </summary>
     
     
-      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
-    
-      <category term="oracle" scheme="http://wdicc.com/tags/oracle/"/>
-    
-      <category term="乱码" scheme="http://wdicc.com/tags/%E4%B9%B1%E7%A0%81/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>几道有趣的数学题</title>
-    <link href="http://wdicc.com/funny-math/"/>
-    <id>http://wdicc.com/funny-math/</id>
-    <published>2006-08-04T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144582/%EF%BF%BD%EF%BF%BD%EF%BF%BD_2.html" target="_blank" rel="external"><img width="240" height="172" border="0" alt="æ�°å­¦é¢�_2" src="http://static.flickr.com/73/207144582_bfa3cf060e_m.jpg"></a> <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144580/%EF%BF%BD%EF%BF%BD%EF%BF%BD_1.html" target="_blank" rel="external"><img width="240" height="220" border="0" alt="æ�°å­¦é¢�_1" src="http://static.flickr.com/60/207144580_12b95f5196_m.jpg"></a> <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144582/%EF%BF%BD%EF%BF%BD%EF%BF%BD_2.html" target="_blank" rel="external"><a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144583/%EF%BF%BD%EF%BF%BD%EF%BF%BD_3.html" target="_blank" rel="external"><a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144583/%EF%BF%BD%EF%BF%BD%EF%BF%BD_3.html" target="_blank" rel="external"><img width="194" height="240" border="0" alt="æ�°å­¦é¢�_3" src="http://static.flickr.com/97/207144583_f46da70ce6_m.jpg"></a>   <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144584/%EF%BF%BD%EF%BF%BD%EF%BF%BD_4.html" target="_blank" rel="external"><img width="240" height="176" border="0" alt="æ�°å­¦é¢�_4" src="http://static.flickr.com/88/207144584_2d591c805e_m.jpg"></a> <img id="image225" alt="6465.gif" src="http://blog.wdicc.com/wordpress/wp-content/uploads/2006/08/6465.gif">
-</a></a>]]></content>
-    
-    <summary type="html">
-    
-      &lt;a class=&quot;tt-flickr&quot; href=&quot;http://blog.wdicc.com/wordpress/Photos/photo/207144582/%EF%BF%BD%EF%BF%BD%EF%BF%BD_2.html&quot; target=&quot;_blank&quot; rel=&quot;e
-    
-    </summary>
-    
-    
-      <category term="Joke" scheme="http://wdicc.com/tags/Joke/"/>
-    
-      <category term="funny" scheme="http://wdicc.com/tags/funny/"/>
+      <category term="other" scheme="http://wdicc.com/tags/other/"/>
     
   </entry>
   
@@ -17330,225 +17322,70 @@ rvice module）的开发者则利用PAM SPI（Service Module API）来编写认�
   </entry>
   
   <entry>
-    <title>Oracle维护常用SQL语句</title>
-    <link href="http://wdicc.com/usefull-sql/"/>
-    <id>http://wdicc.com/usefull-sql/</id>
+    <title>weblogic乱码问题</title>
+    <link href="http://wdicc.com/weblogic-encoding/"/>
+    <id>http://wdicc.com/weblogic-encoding/</id>
     <published>2006-08-04T16:00:00.000Z</published>
     <updated>2016-10-22T04:19:18.000Z</updated>
     
-    <content type="html"><![CDATA[查看所有用户
-<pre class="prettyprint lang-sql">
-select username,password from dba_users;
-</pre>
-1、查看表空间的名称及大小
-<pre class="prettyprint lang-sql">
-select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
-from dba_tablespaces t, dba_data_files d
-where t.tablespace_name = d.tablespace_name
-group by t.tablespace_name;
-</pre>
-2、查看表空间物理文件的名称及大小
-<pre class="prettyprint lang-sql">
-select tablespace_name, file_id, file_name,
-round(bytes/(1024*1024),0) total_space
-from dba_data_files
-order by tablespace_name;
-</pre>
+    <content type="html"><![CDATA[1 先看这里：WebLogic8.1的中文问题解决方法
+
+http://dev2dev.bea.com.cn/techdoc/200311546.html
+
+
+2 看看系统locale的设置，可以使用locale命令查看当前的locale设置，可以使用如下命令设置locale。
+
+#LANG=en_US
+
+没有在weblogic的手册中找到关于这部分的信息，可以测试一下系统locale对应用是否有影响。
 <a id="more"></a>
-3、查看回滚段名称及大小
-<pre class="prettyprint lang-sql">
-select segment_name, tablespace_name, r.status,
-(initial_extent/1024) InitialExtent,(next_extent/1024) NextExtent,
-max_extents, v.curext CurExtent
-From dba_rollback_segs r, v$rollstat v
-Where r.segment_id = v.usn(+)
-order by segment_name ;
-</pre>
-4、查看控制文件
-<pre class="prettyprint lang-sql">
-select name from v$controlfile;
-</pre>
-5、查看日志文件
-<pre class="prettyprint lang-sql">
-select member from v$logfile;
-</pre>
-6、查看表空间的使用情况
-<pre class="prettyprint lang-sql">
-select sum(bytes)/(1024*1024) as free_space,tablespace_name
-from dba_free_space
-group by tablespace_name;
+3 下面是手册中关于国际化的一段说法，按照下面的说法，应该是不管有没有设置weblogic的字符集，他都会正确处理多字节字符，默认使用的是utf－8。
 
-SELECT A.TABLESPACE_NAME,A.BYTES TOTAL,B.BYTES USED, C.BYTES FREE,
-(B.BYTES*100)/A.BYTES "% USED",(C.BYTES*100)/A.BYTES "% FREE"
-FROM SYS.SM$TS_AVAIL A,SYS.SM$TS_USED B,SYS.SM$TS_FREE C
-WHERE A.TABLESPACE_NAME=B.TABLESPACE_NAME AND A.TABLESPACE_NAME=C.TABLESPACE_NAME;
-</pre>
-7、查看数据库库对象
-select owner, object_type, status, count(*) count# from all_objects group by owner, object_type, status;
+Often the default character sets used by WebLogic Server are adequate and you do not need to explicitly specify a character set for a Web Service. For example, if a client application specifies its preferred character set, and there is no character set specified for a Web Service, then WebLogic Server responds by using the client's preferred character set. Also, non-internationalized WebLogic Server instances use the US-ASCII character set by default, and internationalized WebLogic Server instances use the UTF-8 character set by default, and both of these character sets are compatible when one WebLogic Server instance is communicating with the other. This also means that a Web Service running on a non-internationalized WebLogic Server instance can handle multi-byte characters correctly.
 
-8、查看数据库的版本
-Select version FROM Product_component_version
-Where SUBSTR(PRODUCT,1,6)='Oracle';
+具体修改的方法可以参看这里：http://e-docs.bea.com/wls/docs81/webserv/i18n.html。
+生效的顺序如下：
 
-9、查看数据库的创建日期和归档方式
-Select Created, Log_Mode, Log_Mode From V$Database;
+Order of Precedence of Character Set Configuration Used By WebLogic Server
 
-10、捕捉运行很久的SQL
-column username format a12
-column opname format a16
-column progress format a8
-select username,sid,opname,
-round(sofar*100 / totalwork,0) || '%' as progress,
-time_remaining,sql_text
-from v$session_longops , v$sql
-where time_remaining <> 0
-and sql_address = address
-and sql_hash_value = hash_value
-/
+The following list shows the order by which WebLogic Server determines the character set of a WebLogic Web Service when it is creating the SOAP response to an invoke of one of its operations:
 
-11、查看数据表的参数信息
-SELECT partition_name, high_value, high_value_length, tablespace_name,
-pct_free, pct_used, ini_trans, max_trans, initial_extent,
-next_extent, min_extent, max_extent, pct_increase, FREELISTS,
-freelist_groups, LOGGING, BUFFER_POOL, num_rows, blocks,
-empty_blocks, avg_space, chain_cnt, avg_row_len, sample_size,
-last_analyzed
-FROM dba_tab_partitions
---WHERE table_name = :tname AND table_owner = :towner
-ORDER BY partition_position
+1. The value of the charset attribute in the corresponding <web-service> element of the web-services.xml deployment descriptor.
 
-12、查看还没提交的事务
-select * from v$locked_object;
-select * from v$transaction;
+If this is not set, then WebLogic Server looks at the following:
 
-13、查找object为哪些进程所用
-select
-p.spid,
-s.sid,
-s.serial# serial_num,
-s.username user_name,
-a.type object_type,
-s.osuser os_user_name,
-a.owner,
-a.object object_name,
-decode(sign(48 - command),
-1,
-to_char(command), 'Action Code #' || to_char(command) ) action,
-p.program oracle_process,
-s.terminal terminal,
-s.program program,
-s.status session_status
-from v$session s, v$access a, v$process p
-where s.paddr = p.addr and
-s.type = 'USER' and
-a.sid = s.sid and
-a.object='SUBSCRIBER_ATTR'
-order by s.username, s.osuser
+2. The character set preferred by the client application that invoked the Web Service operation. If your client application uses the WebLogic Web Services client APIS, the character set is specified using the weblogic.webservice.binding.BindingInfo.setAcceptCharset() method.
 
-14、回滚段查看
-select rownum, sys.dba_rollback_segs.segment_name Name, v$rollstat.extents
-Extents, v$rollstat.rssize Size_in_Bytes, v$rollstat.xacts XActs,
-v$rollstat.gets Gets, v$rollstat.waits Waits, v$rollstat.writes Writes,
-sys.dba_rollback_segs.status status from v$rollstat, sys.dba_rollback_segs,
-v$rollname where v$rollname.name(+) = sys.dba_rollback_segs.segment_name and
-v$rollstat.usn (+) = v$rollname.usn order by rownum
+If this is not set, then WebLogic Server looks at the following:
 
-15、耗资源的进程(top session)
-select s.schemaname schema_name, decode(sign(48 - command), 1,
-to_char(command), 'Action Code #' || to_char(command) ) action, status
-session_status, s.osuser os_user_name, s.sid, p.spid , s.serial# serial_num,
-nvl(s.username, '[Oracle process]') user_name, s.terminal terminal,
-s.program program, st.value criteria_value from v$sesstat st, v$session s , v$process p
-where st.sid = s.sid and st.statistic# = to_number('38') and ('ALL' = 'ALL'
-or s.status = 'ALL') and p.addr = s.paddr order by st.value desc, p.spid asc, s.username asc, s.osuser asc
+3. The value of the WebLogic Server system property weblogic.webservice.i18n.charset.
 
-16、查看锁(lock)情况
-select /*+ RULE */ ls.osuser os_user_name, ls.username user_name,
-decode(ls.type, 'RW', 'Row wait enqueue lock', 'TM', 'DML enqueue lock', 'TX',
-'Transaction enqueue lock', 'UL', 'User supplied lock') lock_type,
-o.object_name object, decode(ls.lmode, 1, null, 2, 'Row Share', 3,
-'Row Exclusive', 4, 'Share', 5, 'Share Row Exclusive', 6, 'Exclusive', null)
-lock_mode, o.owner, ls.sid, ls.serial# serial_num, ls.id1, ls.id2
-from sys.dba_objects o, ( select s.osuser, s.username, l.type,
-l.lmode, s.sid, s.serial#, l.id1, l.id2 from v$session s,
-v$lock l where s.sid = l.sid ) ls where o.object_id = ls.id1 and o.owner
-<> 'SYS' order by o.owner, o.object_name
+If this is not set, then WebLogic Server looks at the following:
 
-17、查看等待(wait)情况
-SELECT v$waitstat.class, v$waitstat.count count, SUM(v$sysstat.value) sum_value
-FROM v$waitstat, v$sysstat WHERE v$sysstat.name IN ('db block gets',
-'consistent gets') group by v$waitstat.class, v$waitstat.count
-
-18、查看sga情况
-SELECT NAME, BYTES FROM SYS.V_$SGASTAT ORDER BY NAME ASC
-
-19、查看catched object
-SELECT owner, name, db_link, namespace,
-type, sharable_mem, loads, executions,
-locks, pins, kept FROM v$db_object_cache
-
-20、查看V$SQLAREA
-SELECT SQL_TEXT, SHARABLE_MEM, PERSISTENT_MEM, RUNTIME_MEM, SORTS,
-VERSION_COUNT, LOADED_VERSIONS, OPEN_VERSIONS, USERS_OPENING, EXECUTIONS,
-USERS_EXECUTING, LOADS, FIRST_LOAD_TIME, INVALIDATIONS, PARSE_CALLS, DISK_READS,
-BUFFER_GETS, ROWS_PROCESSED FROM V$SQLAREA
-
-21、查看object分类数量
-select decode (o.type#,1,'INDEX' , 2,'TABLE' , 3 , 'CLUSTER' , 4, 'VIEW' , 5 ,
-'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) object_type , count(*) quantity from
-sys.obj$ o where o.type# > 1 group by decode (o.type#,1,'INDEX' , 2,'TABLE' , 3
-, 'CLUSTER' , 4, 'VIEW' , 5 , 'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) union select
-'COLUMN' , count(*) from sys.col$ union select 'DB LINK' , count(*) from
-
-22、按用户查看object种类
-select u.name schema, sum(decode(o.type#, 1, 1, NULL)) indexes,
-sum(decode(o.type#, 2, 1, NULL)) tables, sum(decode(o.type#, 3, 1, NULL))
-clusters, sum(decode(o.type#, 4, 1, NULL)) views, sum(decode(o.type#, 5, 1,
-NULL)) synonyms, sum(decode(o.type#, 6, 1, NULL)) sequences,
-sum(decode(o.type#, 1, NULL, 2, NULL, 3, NULL, 4, NULL, 5, NULL, 6, NULL, 1))
-others from sys.obj$ o, sys.user$ u where o.type# >= 1 and u.user# =
-o.owner# and u.name <> 'PUBLIC' group by u.name order by
-sys.link$ union select 'CONSTRAINT' , count(*) from sys.con$
-
-23、有关connection的相关信息
-
-1)查看有哪些用户连接
-select s.osuser os_user_name, decode(sign(48 - command), 1, to_char(command),
-'Action Code #' || to_char(command) ) action, p.program oracle_process,
-status session_status, s.terminal terminal, s.program program,
-s.username user_name, s.fixed_table_sequence activity_meter, '' query,
-0 memory, 0 max_memory, 0 cpu_usage, s.sid, s.serial# serial_num
-from v$session s, v$process p where s.paddr=p.addr and s.type = 'USER'
-order by s.username, s.osuser
-
-2)
-]]></content>
+4. The character set specified for the JVM. Specifically, if the JVM property user.language is set to en, then WebLogic Web Services use the US-ASCII character set. If the user.language property is set to anything else, WebLogic Web Services use the UTF-8 character set.
+</web-service>]]></content>
     
     <summary type="html">
     
-      查看所有用户
-&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
-select username,password from dba_users;
-&lt;/pre&gt;
-1、查看表空间的名称及大小
-&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
-select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
-from dba_tablespaces t, dba_data_files d
-where t.tablespace_name = d.tablespace_name
-group by t.tablespace_name;
-&lt;/pre&gt;
-2、查看表空间物理文件的名称及大小
-&lt;pre class=&quot;prettyprint lang-sql&quot;&gt;
-select tablespace_name, file_id, file_name,
-round(bytes/(1024*1024),0) total_space
-from dba_data_files
-order by tablespace_name;
-&lt;/pre&gt;
+      1 先看这里：WebLogic8.1的中文问题解决方法
+
+http://dev2dev.bea.com.cn/techdoc/200311546.html
+
+
+2 看看系统locale的设置，可以使用locale命令查看当前的locale设置，可以使用如下命令设置locale。
+
+#LANG=en_US
+
+没有在weblogic的手册中找到关于这部分的信息，可以测试一下系统locale对应用是否有影响。
     
     </summary>
     
     
       <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+      <category term="乱码" scheme="http://wdicc.com/tags/%E4%B9%B1%E7%A0%81/"/>
+    
+      <category term="weblogc" scheme="http://wdicc.com/tags/weblogc/"/>
     
   </entry>
   
@@ -17716,6 +17553,169 @@ order by tablespace_name;
   </entry>
   
   <entry>
+    <title>Weblogic服务器性能调优</title>
+    <link href="http://wdicc.com/weblogic-turning/"/>
+    <id>http://wdicc.com/weblogic-turning/</id>
+    <published>2006-08-04T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[来源 <a target="_blank" href="http://www.mikecat.net/BlogView.asp?logID=1489">这里</a>
+
+注：在下面做的介绍都是以Weblogic8.1为例的，其它版本的Weblogic可能会有些许不同。
+
+1) 设置JAVA参数；
+
+a) 编辑Weblogic Server启动脚本文件；
+
+BEA_HOME\user_projects\domains\domain-name\startWebLogic.cmd(startWebLogic.sh on Unix)
+
+BEA_HOME\user_projects\domains\domain-name\startManagedWebLogic.cmd(startManagedWebLogic.sh on Unix)
+
+b) 编辑set JAVA_OPTIONS命令，如：set JAVA_OPTIONS=-Xms256m –Xmx256m；
+
+c) 保存，重启即可。
+
+注：在WebLogic中，为了获得更好的性能，BEA公司推荐最小Java堆等于最大Java堆。
+<a id="more"></a>
+2) 开发模式 vs. 产品模式；
+
+开发模式和产品模式的一些参数的默认值不同，可能会对性能造成影响，下面是对性能有影响的参数列表：
+
+参数
+
+开发模式默认值
+
+产品模式默认值
+
+Execute Queue: Thread Count
+
+15 threads
+
+25 threads
+
+JDBC Connection Pool: MaxCapacity
+
+15 connnections
+
+25 connections
+
+通过启动管理控制台，在域（如：mydomain）> 配置 > 常规选择产品模式。
+
+3) 尽量开启本地I/O；
+
+通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）> 配置 > 调整选择启用本地I/O。
+
+注：此值也可通过手动的修改config.xml配置文件。
+
+4) 调优执行队列线程；
+
+a) 修改默认执行线程数
+
+在这里，执行队列的线程数表示执行队列能够同时执行的操作的数量。但此值不是设的越大越好，应该恰到好处的去设置它，太小了，执行队列中将会积累很多待处理的任务，太大了，则会消耗大量的系统资源从而影响整体的性能。在产品模式下默认为25个执行线程。
+
+为了设置理想的执行队列的线程数，我们可以启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）> 监视 > 性能中监控最大负载时执行队列的吞吐量和队列中的等待请求数，据此确定理想的数值。
+
+理想的默认执行线程数是由多方面的因素决定的，比如机器CPU性能、总体体系架构、I/O、操作系统的进程调度机制、JVM的线程调度机制。随着CPU个数的增加，WebLogic可以近乎线性地提高线程数。线程数越多，花费在线程切换的时间也就越多；线程数越小，CPU可能无法得到充分的利用。为获取一个理想的线程数，需要经过反复的测试。在测试中，可以以25*CPU个数为基准进行调整。当空闲线程较少，CPU利用率较低时，可以适当增加线程数的大小（每五个递增）。对于PC Server和Windows 2000，则最好每个CPU小于50个线程，以CPU利用率为90%左右为最佳。
+
+通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）> Execute Queue > weblogic.kernel.Defalt > 配置中修改线程计数。
+
+b) 设定执行队列的溢出条件；
+
+Weblogic Server提供给默认的执行队列或用户自定义的执行队列自定义溢出条件的功能，当满足此溢出条件时，服务器改变其状态为“警告”状态，并且额外的再分配一些线程去处理在队列中的请求，而达到降低队列长度的目的。
+
+通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）> Execute Queue > weblogic.kernel.Defalt > 配置下面几项：
+
+l         队列长度：此值表示执行队列中可容纳的最大请求数，默认值是65536，最后不要手动改变此值。
+
+l         队列长度阈值百分比：此值表示溢出条件，在此服务器指出队列溢出之前可以达到的队列长度大小的百分比。
+
+l         线程数增加：当检测到溢出条件时，将增加到执行队列中的线程数量。如果CPU和内存不是足够的高，尽量不要改变默认值“0”。因为Weblogic一旦增加后不会自动缩减，虽然最终可能确实起到了降低请求的作用，但在将来的运行中将影响程序的性能。
+
+l         最大线程数：为了防止创建过多的线程数量，可以通过设定最大的线程数进行控制。
+
+在实际的应用场景中，应根据具体情况适当的调整以上参数。
+
+c) 设定执行队列监测行为
+
+Weblogic Server 能够自动监测到当一个执行线程变为“阻塞”。变为“阻塞”状态的执行线程将无法完成当前的工作，也无法再执行新请求。如果执行队列中的所有执行线程都变为 “阻塞”状态，Weblogic server可能改变状态为“警告”或“严重”状态。如果Weblogic server变为“严重”状态，可以通过 Node Manager来自动关闭此服务器并重新启动它。具体请参考：Node Manager Capabilities文档。
+
+通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）>配置 > 调整下可配置下面几项：
+
+l         阻塞线程最长时间：在此服务器将线程诊断为阻塞线程之前，线程必须连续工作的时间长度(秒)。默认情况下，WebLogic Server 认为线程在连续工作 600 秒后成为阻塞线程。
+
+l         阻塞线程计时器间隔：WebLogic Server 定期扫描线程以查看它们是否已经连续工作了 "阻塞线程最长时间" 字段中指定的时间长度的间隔时间(秒)。默认情况下，WebLogic Server 将此时间间隔设置为 600 秒。
+
+5) 调优TCP连接缓存数；
+
+WebLogic Server 用Accept Backlog参数规定服务器向操作系统请求的队列大小，默认值为50。当系统重载负荷时,这个值可能过小,日志中报 Connection Refused,导致有效连接请求遭到拒绝,此时可以提高Accept Backlog 25%直到连接拒绝错误消失。对于 Portal类型的应用,默认值往往是不够的。Login Timeout和SSL Login Timeout参数表示普通连接和SSL连接的超时时间,如果客户连接被服务器中断或者SSL容量大,可以尝试增加该值。
+
+通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）>配置 > 调整下可配置“接受预备连接”。
+
+6) 改变Java编译器；
+
+标准的Java编译器是javac，但编译JSP servlets速度太慢，为了提高编译速度，可以使用sj或jikes编译器取代javac编译器。下面说说更改Java编译器：
+
+通过启动管理控制台，在域（如：mydomain）> 服务器 > server实例（如：myserver）>配置 > 常规下改变Java 编译器，默认为javac。输入完整路径，如：c:\visualcafe31\bin\sj.exe。然后打开高级选项，在预规划到类路径填写编译 Java 代码时为 Java 编译器类路径预规划的选项，如：BEA_HOME\jdk141_02\jre\lib\rt.jar。
+
+7) 使用Webogic Server集群提高性能；
+
+具体关于如何配置Weblogic集群，我就不细说了。详情可参考：Introduction to WebLogic Server Clustering。
+
+8) Weblogic EJB调优
+
+由于EJB2.0已经很少项目在用了，EJB3.0再成熟一点，我再补充这一部分吧！
+
+9) JDBC应用调优
+
+JDBC Connection Pool 的调优受制于WebLogic Server线程数的设置和数据库进程数,游标的大小。通常我们在一个线程中使用一个连接,所以连接数并不是越多越好,为避免两边的资源消耗，建议设置连接池的最大值等于或者略小于线程数。同时为了减少新建连接的开销,将最小值和最大值设为一致。
+
+增加 Statement Cache Size对于大量使用PreparedStatement对象的应用程序很有帮助,WebLogic能够为每一个连接缓存这些对象,此值默认为10。在保证数据库游标大小足够的前提下,可以根据需要提高Statement Cache Size。比如当你设置连接数为 25,Cache Size为10时,数据库可能需要打开25*10=250个游标。不幸的是,当遇到与PreparedStatement Cache 有关的应用程序错误时,你需要将Cache Size设置为0。
+
+尽管JDBC Connection Pool提供了很多高级参数,在开发模式下比较有用,但大部分在生产环境下不需调整。这里建议最好不要设置测试表, 同时Test Reserved Connections和 Test Released Connections也无需勾上。 当然如果你的数据库不稳定,时断时续,你就可能需要上述的参数打开。
+
+最后提一下驱动程序类型的选择,以Oracle为例,Oracle提供thin驱动和oci驱动,从性能上来讲,oci驱动强于thin驱动,特别是大数据量的操作。但在简单的数据库操作中,性能相差不大,随着thin驱动的不断改进,这一弱势将得到弥补。而thin驱动的移植性明显强于oci驱动。所以在通常情况下建议使用thin驱动。而最新驱动器由于WebLogic server/bin目录下的类包可能不是最新的,请以Oracle网站为准: http://www.oracle.com/technology/software ... jdbc/htdocs/jdbc9201.html。
+
+10) JSP调优
+
+设置jsp-param pageCheckSeconds=-1；
+
+设置serlet-reload-check=-1或ServletReloadCheckSecs=-1；
+
+设置jsp-param precompile=true，关闭JSP预编译选项。
+]]></content>
+    
+    <summary type="html">
+    
+      来源 &lt;a target=&quot;_blank&quot; href=&quot;http://www.mikecat.net/BlogView.asp?logID=1489&quot;&gt;这里&lt;/a&gt;
+
+注：在下面做的介绍都是以Weblogic8.1为例的，其它版本的Weblogic可能会有些许不同。
+
+1) 设置JAVA参数；
+
+a) 编辑Weblogic Server启动脚本文件；
+
+BEA_HOME\user_projects\domains\domain-name\startWebLogic.cmd(startWebLogic.sh on Unix)
+
+BEA_HOME\user_projects\domains\domain-name\startManagedWebLogic.cmd(startManagedWebLogic.sh on Unix)
+
+b) 编辑set JAVA_OPTIONS命令，如：set JAVA_OPTIONS=-Xms256m –Xmx256m；
+
+c) 保存，重启即可。
+
+注：在WebLogic中，为了获得更好的性能，BEA公司推荐最小Java堆等于最大Java堆。
+    
+    </summary>
+    
+    
+      <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+      <category term="weblogic" scheme="http://wdicc.com/tags/weblogic/"/>
+    
+      <category term="性能" scheme="http://wdicc.com/tags/%E6%80%A7%E8%83%BD/"/>
+    
+  </entry>
+  
+  <entry>
     <title>老婆去山西了</title>
     <link href="http://wdicc.com/cc-goto-shanxi/"/>
     <id>http://wdicc.com/cc-goto-shanxi/</id>
@@ -17739,6 +17739,37 @@ order by tablespace_name;
       <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
     
       <category term="老婆" scheme="http://wdicc.com/tags/%E8%80%81%E5%A9%86/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>我家的毛毛和妞妞的大头照</title>
+    <link href="http://wdicc.com/my-cats-photos/"/>
+    <id>http://wdicc.com/my-cats-photos/</id>
+    <published>2006-08-02T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[<a class="tt-flickr" href="http://www.flickr.com/photos/wd_afei/193982060" target="_blank" rel="external"><img width="75" height="75" alt="20060717080" class="tt-flickr" src="http://static.flickr.com/72/193982060_4b3c019a68_s.jpg"></a> <a class="tt-flickr" href="http://www.flickr.com/photos/wd_afei/193982096" target="_blank" rel="external"><img width="75" height="75" alt="20060717076" class="tt-flickr" src="http://static.flickr.com/77/193982096_bf2b870d82_s.jpg"></a> <a class="tt-flickr" href="http://www.flickr.com/photos/wd_afei/193982119" target="_blank" rel="external"><img width="75" height="75" alt="20060717077" class="tt-flickr" src="http://static.flickr.com/64/193982119_332814b358_s.jpg"></a> <a class="tt-flickr" href="http://www.flickr.com/photos/wd_afei/193982148" target="_blank" rel="external"><img width="75" height="75" alt="20060717078" class="tt-flickr" src="http://static.flickr.com/53/193982148_6072c07b7f_s.jpg"></a> <a class="tt-flickr" href="http://www.flickr.com/photos/wd_afei/193982205" target="_blank" rel="external"><img width="75" height="75" alt="20060717079" class="tt-flickr" src="http://static.flickr.com/46/193982205_a2872f7544_s.jpg"></a>
+
+用n70前面的摄像头拍的。
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;a class=&quot;tt-flickr&quot; href=&quot;http://www.flickr.com/photos/wd_afei/193982060&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;&lt;img width=&quot;75&quot; height=&quot;75&quot; alt=&quot;2
+    
+    </summary>
+    
+    
+      <category term="cats" scheme="http://wdicc.com/tags/cats/"/>
+    
+      <category term="N70" scheme="http://wdicc.com/tags/N70/"/>
+    
+      <category term="妞妞" scheme="http://wdicc.com/tags/%E5%A6%9E%E5%A6%9E/"/>
+    
+      <category term="毛毛" scheme="http://wdicc.com/tags/%E6%AF%9B%E6%AF%9B/"/>
+    
+      <category term="猫猫" scheme="http://wdicc.com/tags/%E7%8C%AB%E7%8C%AB/"/>
     
   </entry>
   
@@ -17772,37 +17803,6 @@ UPDATE wp_posts SET post_content = replace( post_content, "[/CODE]", "[/ coolcod
       <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
     
       <category term="wordpress" scheme="http://wdicc.com/tags/wordpress/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>我家的毛毛和妞妞的大头照</title>
-    <link href="http://wdicc.com/my-cats-photos/"/>
-    <id>http://wdicc.com/my-cats-photos/</id>
-    <published>2006-08-02T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[<a class="tt-flickr" href="http://www.flickr.com/photos/wd_afei/193982060" target="_blank" rel="external"><img width="75" height="75" alt="20060717080" class="tt-flickr" src="http://static.flickr.com/72/193982060_4b3c019a68_s.jpg"></a> <a class="tt-flickr" href="http://www.flickr.com/photos/wd_afei/193982096" target="_blank" rel="external"><img width="75" height="75" alt="20060717076" class="tt-flickr" src="http://static.flickr.com/77/193982096_bf2b870d82_s.jpg"></a> <a class="tt-flickr" href="http://www.flickr.com/photos/wd_afei/193982119" target="_blank" rel="external"><img width="75" height="75" alt="20060717077" class="tt-flickr" src="http://static.flickr.com/64/193982119_332814b358_s.jpg"></a> <a class="tt-flickr" href="http://www.flickr.com/photos/wd_afei/193982148" target="_blank" rel="external"><img width="75" height="75" alt="20060717078" class="tt-flickr" src="http://static.flickr.com/53/193982148_6072c07b7f_s.jpg"></a> <a class="tt-flickr" href="http://www.flickr.com/photos/wd_afei/193982205" target="_blank" rel="external"><img width="75" height="75" alt="20060717079" class="tt-flickr" src="http://static.flickr.com/46/193982205_a2872f7544_s.jpg"></a>
-
-用n70前面的摄像头拍的。
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;a class=&quot;tt-flickr&quot; href=&quot;http://www.flickr.com/photos/wd_afei/193982060&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;&lt;img width=&quot;75&quot; height=&quot;75&quot; alt=&quot;2
-    
-    </summary>
-    
-    
-      <category term="cats" scheme="http://wdicc.com/tags/cats/"/>
-    
-      <category term="N70" scheme="http://wdicc.com/tags/N70/"/>
-    
-      <category term="妞妞" scheme="http://wdicc.com/tags/%E5%A6%9E%E5%A6%9E/"/>
-    
-      <category term="毛毛" scheme="http://wdicc.com/tags/%E6%AF%9B%E6%AF%9B/"/>
-    
-      <category term="猫猫" scheme="http://wdicc.com/tags/%E7%8C%AB%E7%8C%AB/"/>
     
   </entry>
   
@@ -18185,6 +18185,34 @@ weblogic得密码忘记了怎么办呢？总算让我找到除了重建域之外
   </entry>
   
   <entry>
+    <title>关于css布局的一片文章</title>
+    <link href="http://wdicc.com/an-article-about-css/"/>
+    <id>http://wdicc.com/an-article-about-css/</id>
+    <published>2006-06-19T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[http://www.barelyfitz.com/screencast/html-training/css/positioning/
+
+具体内容就不转了，有示范的，转过来就不好看了
+]]></content>
+    
+    <summary type="html">
+    
+      http://www.barelyfitz.com/screencast/html-training/css/positioning/
+
+具体内容就不转了，有示范的，转过来就不好看了
+
+    
+    </summary>
+    
+    
+      <category term="web" scheme="http://wdicc.com/tags/web/"/>
+    
+      <category term="css" scheme="http://wdicc.com/tags/css/"/>
+    
+  </entry>
+  
+  <entry>
     <title>linux系统密码忘记的几种恢复方法</title>
     <link href="http://wdicc.com/recover-password-in-linux/"/>
     <id>http://wdicc.com/recover-password-in-linux/</id>
@@ -18230,30 +18258,42 @@ grub选择系统的画面出来之后，找到需要恢复密码的系统，按e
   </entry>
   
   <entry>
-    <title>关于css布局的一片文章</title>
-    <link href="http://wdicc.com/an-article-about-css/"/>
-    <id>http://wdicc.com/an-article-about-css/</id>
-    <published>2006-06-19T16:00:00.000Z</published>
+    <title>给blog加了一个验证图片</title>
+    <link href="http://wdicc.com/spam-for-blog/"/>
+    <id>http://wdicc.com/spam-for-blog/</id>
+    <published>2006-06-17T16:00:00.000Z</published>
     <updated>2016-10-22T04:19:18.000Z</updated>
     
-    <content type="html"><![CDATA[http://www.barelyfitz.com/screencast/html-training/css/positioning/
+    <content type="html"><![CDATA[插件地址在 <a href="http://www.tattertools.com/bbs/view.php?id=plugin&amp;page=1&amp;sn1=&amp;divpage=1&amp;sn=off&amp;ss=on&amp;sc=on&amp;select_arrange=headnum&amp;desc=asc&amp;no=203" target="_blank" rel="external">这里</a>
 
-具体内容就不转了，有示范的，转过来就不好看了
+下载插件后，把插件解压放到plugins目录中，然后往plugins/comment-validator这里传一个字体，英文的就好，比如我传的是comic.ttf，然后修改这个文件夹里面的index.php，把第6行的 $font = 指向刚才传的font地址。比如我的
+
+<span style="color: rgb(155, 24, 193)">$font = "/data/web/tt2/plugins/comment-validator/comic.ttf";</span>
+
+然后修改这个文件第32行的return地址，默认的那个似乎是针对单用户模式的，我这里多用户模式不好用，我把它修改成了下面的
+
+<span style="color: rgb(255, 118, 53)">return "http://blog.wdicc.com/attach/temp.png";</span>
+
+修改你的skin的skin.html，找到comment相关部分的password输入段，修改成类似下面的
+<br style="color: rgb(153, 204, 102)"><span style="color: rgb(153, 204, 102)">&lt;div class="comment_item"&gt;&lt;label for="[##_rp_input_password_##]"&gt;&amp;nbsp;&amp;nbsp;Validate Code : &amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/label&gt;&lt;input type="text" maxlength="8" id="[##_rp_input_password_##]" value="[##_rp_admin_check_##]" class="comment_box" size="30" maxlength="20" /&gt;&lt;img src="[##_comment_validater_##]" border="0" /&gt;&lt;/div&gt;</span>
+
+将其中的input的type修改为text，这样用户输入验证码的时候能看见输入的是啥。在后面加上关于验证码图片的显示部分。然后就可以了。
+
+这样原来的password功能就没有了。谁有功夫自己研究研究怎么避免这个问题把。我是觉得那个功能实在没用。
+
+此外还可以给验证输入那里加上有没有输入验证码的部分。
 ]]></content>
     
     <summary type="html">
     
-      http://www.barelyfitz.com/screencast/html-training/css/positioning/
-
-具体内容就不转了，有示范的，转过来就不好看了
-
+      插件地址在 &lt;a href=&quot;http://www.tattertools.com/bbs/view.php?id=plugin&amp;amp;page=1&amp;amp;sn1=&amp;amp;divpage=1&amp;amp;sn=off&amp;amp;ss=on&amp;amp;sc=on&amp;amp;select
     
     </summary>
     
     
       <category term="web" scheme="http://wdicc.com/tags/web/"/>
     
-      <category term="css" scheme="http://wdicc.com/tags/css/"/>
+      <category term="blog" scheme="http://wdicc.com/tags/blog/"/>
     
   </entry>
   
@@ -18335,46 +18375,6 @@ grub选择系统的画面出来之后，找到需要恢复密码的系统，按e
       <category term="linux" scheme="http://wdicc.com/tags/linux/"/>
     
       <category term="星座" scheme="http://wdicc.com/tags/%E6%98%9F%E5%BA%A7/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>给blog加了一个验证图片</title>
-    <link href="http://wdicc.com/spam-for-blog/"/>
-    <id>http://wdicc.com/spam-for-blog/</id>
-    <published>2006-06-17T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[插件地址在 <a href="http://www.tattertools.com/bbs/view.php?id=plugin&amp;page=1&amp;sn1=&amp;divpage=1&amp;sn=off&amp;ss=on&amp;sc=on&amp;select_arrange=headnum&amp;desc=asc&amp;no=203" target="_blank" rel="external">这里</a>
-
-下载插件后，把插件解压放到plugins目录中，然后往plugins/comment-validator这里传一个字体，英文的就好，比如我传的是comic.ttf，然后修改这个文件夹里面的index.php，把第6行的 $font = 指向刚才传的font地址。比如我的
-
-<span style="color: rgb(155, 24, 193)">$font = "/data/web/tt2/plugins/comment-validator/comic.ttf";</span>
-
-然后修改这个文件第32行的return地址，默认的那个似乎是针对单用户模式的，我这里多用户模式不好用，我把它修改成了下面的
-
-<span style="color: rgb(255, 118, 53)">return "http://blog.wdicc.com/attach/temp.png";</span>
-
-修改你的skin的skin.html，找到comment相关部分的password输入段，修改成类似下面的
-<br style="color: rgb(153, 204, 102)"><span style="color: rgb(153, 204, 102)">&lt;div class="comment_item"&gt;&lt;label for="[##_rp_input_password_##]"&gt;&amp;nbsp;&amp;nbsp;Validate Code : &amp;nbsp;&amp;nbsp;&amp;nbsp;&lt;/label&gt;&lt;input type="text" maxlength="8" id="[##_rp_input_password_##]" value="[##_rp_admin_check_##]" class="comment_box" size="30" maxlength="20" /&gt;&lt;img src="[##_comment_validater_##]" border="0" /&gt;&lt;/div&gt;</span>
-
-将其中的input的type修改为text，这样用户输入验证码的时候能看见输入的是啥。在后面加上关于验证码图片的显示部分。然后就可以了。
-
-这样原来的password功能就没有了。谁有功夫自己研究研究怎么避免这个问题把。我是觉得那个功能实在没用。
-
-此外还可以给验证输入那里加上有没有输入验证码的部分。
-]]></content>
-    
-    <summary type="html">
-    
-      插件地址在 &lt;a href=&quot;http://www.tattertools.com/bbs/view.php?id=plugin&amp;amp;page=1&amp;amp;sn1=&amp;amp;divpage=1&amp;amp;sn=off&amp;amp;ss=on&amp;amp;sc=on&amp;amp;select
-    
-    </summary>
-    
-    
-      <category term="web" scheme="http://wdicc.com/tags/web/"/>
-    
-      <category term="blog" scheme="http://wdicc.com/tags/blog/"/>
     
   </entry>
   
@@ -18769,34 +18769,6 @@ http://www.bea.com.cn/support_pattern/Too_Many_Open_Files_Pattern.html
   </entry>
   
   <entry>
-    <title>Apache + weblogic 桥接的Connection_Refused错误</title>
-    <link href="http://wdicc.com/apache-weblogic-error/"/>
-    <id>http://wdicc.com/apache-weblogic-error/</id>
-    <published>2006-05-21T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
-
-主要是调整<code style="font-family: courier">weblogic的AcceptBackLog参数。</code>
-]]></content>
-    
-    <summary type="html">
-    
-      http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
-
-主要是调整&lt;code style=&quot;font-family: courier&quot;&gt;weblogic的AcceptBackLog参数。&lt;/code&gt;
-
-    
-    </summary>
-    
-    
-      <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-      <category term="weblogic" scheme="http://wdicc.com/tags/weblogic/"/>
-    
-  </entry>
-  
-  <entry>
     <title>weblogic apache 桥接指南</title>
     <link href="http://wdicc.com/weblogic-apache-bridge/"/>
     <id>http://wdicc.com/weblogic-apache-bridge/</id>
@@ -18888,6 +18860,34 @@ P
     
     
       <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Apache + weblogic 桥接的Connection_Refused错误</title>
+    <link href="http://wdicc.com/apache-weblogic-error/"/>
+    <id>http://wdicc.com/apache-weblogic-error/</id>
+    <published>2006-05-21T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
+
+主要是调整<code style="font-family: courier">weblogic的AcceptBackLog参数。</code>
+]]></content>
+    
+    <summary type="html">
+    
+      http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
+
+主要是调整&lt;code style=&quot;font-family: courier&quot;&gt;weblogic的AcceptBackLog参数。&lt;/code&gt;
+
+    
+    </summary>
+    
+    
+      <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+      <category term="weblogic" scheme="http://wdicc.com/tags/weblogic/"/>
     
   </entry>
   
@@ -19416,160 +19416,6 @@ logon script = logon.bat
   </entry>
   
   <entry>
-    <title>rsync脚本的一个例子</title>
-    <link href="http://wdicc.com/rsync-script/"/>
-    <id>http://wdicc.com/rsync-script/</id>
-    <published>2006-05-08T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[<pre class="prettyprint lang-bash">
-
-SYNCLOGFILE="/var/log/rsync-201.log"
-SYNCLOCKFILE="/var/lock/rsync-201.lock"
-
-if [[ -f $SYNCLOCKFILE ]]; then
-  # lock file already present, bail
-  exit 1
-fi
-
-echo -n ">>> Sync log for " >> $SYNCLOGFILE
-date >> $SYNCLOGFILE
-
-touch $SYNCLOCKFILE
-rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
-rm -f $SYNCLOCKFILE
-</pre>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
-
-SYNCLOGFILE=&quot;/var/log/rsync-201.log&quot;
-SYNCLOCKFILE=&quot;/var/lock/rsync-201.lock&quot;
-
-if [[ -f $SYNCLOCKFILE ]]
-    
-    </summary>
-    
-    
-      <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-      <category term="rsync" scheme="http://wdicc.com/tags/rsync/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>mysql 安装</title>
-    <link href="http://wdicc.com/install-mysql/"/>
-    <id>http://wdicc.com/install-mysql/</id>
-    <published>2006-05-08T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[下面的内容大部分来自mysql的readme
-
-1 download mysql5.0
-2
-shell&gt; groupadd mysql
-shell&gt; useradd -g mysql mysql
-shell&gt; cd /usr/local
-shell&gt; gunzip &lt; /PATH/TO/MYSQL-VERSION-OS.tar.gz | tar xvf -
-shell&gt; ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql
-shell&gt; cd mysql
-shell&gt; scripts/mysql_install_db --user=mysql
-
-如下提示信息:
-
-Installing all prepared tables
-Fill help tables
-
-To start mysqld at boot time you have to copy support-files/mysql.server
-to the right place for your system
-
-PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
-To do so, start the server, then issue the following commands:
-./bin/mysqladmin -u root password 'new-password'
-./bin/mysqladmin -u root -h czhand password 'new-password'
-See the manual for more instructions.
-
-You can start the MySQL daemon with:
-cd . ; ./bin/mysqld_safe &amp;
-
-You can test the MySQL daemon with the benchmarks in the 'sql-bench' directory:
-cd sql-bench ; perl run-all-tests
-
-Please report any problems with the ./bin/mysqlbug script!
-
-The latest information about MySQL is available on the web at
-http://www.mysql.com
-Support MySQL by buying support/licenses at https://order.mysql.com
-
-shell&gt; chown -R root  .
-shell&gt; chown -R mysql data
-shell&gt; chgrp -R mysql .
-
-/home/my.cnf
-
-basedir=/usr/local/mysql
-datadir=/usr/local/mysql/data
-socket=/usr/local/mysql/data/mysql.sock
-#err-log=/var/log/mysqld.log
-pid-file=/usr/local/mysql/data/mysqld.pid
-
-shell&gt; bin/mysqld_safe --user=mysql &amp;
-]]></content>
-    
-    <summary type="html">
-    
-      下面的内容大部分来自mysql的readme
-
-1 download mysql5.0
-2
-shell&amp;gt; groupadd mysql
-shell&amp;gt; useradd -g mysql mysql
-shell&amp;gt; cd /usr/local
-shell&amp;gt; gu
-    
-    </summary>
-    
-    
-      <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-      <category term="mysql" scheme="http://wdicc.com/tags/mysql/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>find命令查找删除30天之前的文件</title>
-    <link href="http://wdicc.com/del-30-day-old-file/"/>
-    <id>http://wdicc.com/del-30-day-old-file/</id>
-    <published>2006-05-08T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[find /data -name "xxx.*" -follow -ctime +30 -exec rm -rf {} \;
-
-删除30天之前的文件。
--follow表示跟随链接。
-]]></content>
-    
-    <summary type="html">
-    
-      find /data -name &quot;xxx.*&quot; -follow -ctime +30 -exec rm -rf {} \;
-
-删除30天之前的文件。
--follow表示跟随链接。
-
-    
-    </summary>
-    
-    
-      <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-      <category term="find" scheme="http://wdicc.com/tags/find/"/>
-    
-  </entry>
-  
-  <entry>
     <title>启动停止weblogic和apache的脚本</title>
     <link href="http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/"/>
     <id>http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/</id>
@@ -19727,6 +19573,160 @@ $IPT -t nat -A POSTROUTING -o $LOCAL_IFACE \
       <category term="other" scheme="http://wdicc.com/tags/other/"/>
     
       <category term="iptables" scheme="http://wdicc.com/tags/iptables/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>mysql 安装</title>
+    <link href="http://wdicc.com/install-mysql/"/>
+    <id>http://wdicc.com/install-mysql/</id>
+    <published>2006-05-08T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[下面的内容大部分来自mysql的readme
+
+1 download mysql5.0
+2
+shell&gt; groupadd mysql
+shell&gt; useradd -g mysql mysql
+shell&gt; cd /usr/local
+shell&gt; gunzip &lt; /PATH/TO/MYSQL-VERSION-OS.tar.gz | tar xvf -
+shell&gt; ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql
+shell&gt; cd mysql
+shell&gt; scripts/mysql_install_db --user=mysql
+
+如下提示信息:
+
+Installing all prepared tables
+Fill help tables
+
+To start mysqld at boot time you have to copy support-files/mysql.server
+to the right place for your system
+
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+To do so, start the server, then issue the following commands:
+./bin/mysqladmin -u root password 'new-password'
+./bin/mysqladmin -u root -h czhand password 'new-password'
+See the manual for more instructions.
+
+You can start the MySQL daemon with:
+cd . ; ./bin/mysqld_safe &amp;
+
+You can test the MySQL daemon with the benchmarks in the 'sql-bench' directory:
+cd sql-bench ; perl run-all-tests
+
+Please report any problems with the ./bin/mysqlbug script!
+
+The latest information about MySQL is available on the web at
+http://www.mysql.com
+Support MySQL by buying support/licenses at https://order.mysql.com
+
+shell&gt; chown -R root  .
+shell&gt; chown -R mysql data
+shell&gt; chgrp -R mysql .
+
+/home/my.cnf
+
+basedir=/usr/local/mysql
+datadir=/usr/local/mysql/data
+socket=/usr/local/mysql/data/mysql.sock
+#err-log=/var/log/mysqld.log
+pid-file=/usr/local/mysql/data/mysqld.pid
+
+shell&gt; bin/mysqld_safe --user=mysql &amp;
+]]></content>
+    
+    <summary type="html">
+    
+      下面的内容大部分来自mysql的readme
+
+1 download mysql5.0
+2
+shell&amp;gt; groupadd mysql
+shell&amp;gt; useradd -g mysql mysql
+shell&amp;gt; cd /usr/local
+shell&amp;gt; gu
+    
+    </summary>
+    
+    
+      <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+      <category term="mysql" scheme="http://wdicc.com/tags/mysql/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>find命令查找删除30天之前的文件</title>
+    <link href="http://wdicc.com/del-30-day-old-file/"/>
+    <id>http://wdicc.com/del-30-day-old-file/</id>
+    <published>2006-05-08T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[find /data -name "xxx.*" -follow -ctime +30 -exec rm -rf {} \;
+
+删除30天之前的文件。
+-follow表示跟随链接。
+]]></content>
+    
+    <summary type="html">
+    
+      find /data -name &quot;xxx.*&quot; -follow -ctime +30 -exec rm -rf {} \;
+
+删除30天之前的文件。
+-follow表示跟随链接。
+
+    
+    </summary>
+    
+    
+      <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+      <category term="find" scheme="http://wdicc.com/tags/find/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>rsync脚本的一个例子</title>
+    <link href="http://wdicc.com/rsync-script/"/>
+    <id>http://wdicc.com/rsync-script/</id>
+    <published>2006-05-08T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[<pre class="prettyprint lang-bash">
+
+SYNCLOGFILE="/var/log/rsync-201.log"
+SYNCLOCKFILE="/var/lock/rsync-201.lock"
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n ">>> Sync log for " >> $SYNCLOGFILE
+date >> $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
+rm -f $SYNCLOCKFILE
+</pre>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;pre class=&quot;prettyprint lang-bash&quot;&gt;
+
+SYNCLOGFILE=&quot;/var/log/rsync-201.log&quot;
+SYNCLOCKFILE=&quot;/var/lock/rsync-201.lock&quot;
+
+if [[ -f $SYNCLOCKFILE ]]
+    
+    </summary>
+    
+    
+      <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+      <category term="rsync" scheme="http://wdicc.com/tags/rsync/"/>
     
   </entry>
   
@@ -21796,105 +21796,6 @@ vpopmail的虚拟域管理功能可以定义多个虚拟邮件域。
   </entry>
   
   <entry>
-    <title>proftpd 配置</title>
-    <link href="http://wdicc.com/proftpd-conf/"/>
-    <id>http://wdicc.com/proftpd-conf/</id>
-    <published>2006-01-15T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[www.proftpd.org
-
-ServerName                      "Caph ftp server..."
-ServerType                      standalone
-DefaultServer                   on
-Port                            21
-Umask                           002
-MaxInstances                    30
-User                            ftp
-Group                           ftp
-
-DisplayLogin .welcome.msg
-DeferWelcome on
-ServerIdent Off
-UseReverseDNS off
-IdentLookups off
-MaxLoginAttempts 3
-MaxClientsPerHost 2
-MaxClients 20
-MaxInstances 100
-ListOptions ""
-
-DirFakeUser On ftp
-DirFakeGroup On ftp
-DeferWelcome On
-LogFormat awstats "%t   %h  %u  %m  %f  %s  %b"
-ExtendedLog /var/log/xferlog read,write awstats
-TransferLog none
-SystemLog /var/log/proftpd.log
-ServerIdent off
-WtmpLog off
-
-DefaultRoot ~ ftp
-<limit> Order allow,deny
-DenyGroup !ftp </limit><directory>
-AllowOverwrite                on
-AllowStoreRestart             on
-#  AllowForeignAddress             on
-<limit>
-DenyUser ftp
-</limit>
-<limit>
-AllowUser it
-</limit>
-</directory>
-
-<directory>
-<limit>
-AllowUser ftp
-</limit>
-</directory>
-]]></content>
-    
-    <summary type="html">
-    
-      www.proftpd.org
-
-ServerName                      &quot;Caph ftp server...&quot;
-ServerType                      standalone
-DefaultServer              
-    
-    </summary>
-    
-    
-      <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-      <category term="proftpd" scheme="http://wdicc.com/tags/proftpd/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>igenus</title>
-    <link href="http://wdicc.com/igenus/"/>
-    <id>http://wdicc.com/igenus/</id>
-    <published>2006-01-15T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
-]]></content>
-    
-    <summary type="html">
-    
-      igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
-
-    
-    </summary>
-    
-    
-      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
-    
-  </entry>
-  
-  <entry>
     <title>Howto Qmail with spamassassin</title>
     <link href="http://wdicc.com/howto-qmail-with-spamassassin/"/>
     <id>http://wdicc.com/howto-qmail-with-spamassassin/</id>
@@ -22072,49 +21973,101 @@ Return to the linux page
   </entry>
   
   <entry>
-    <title>cvs</title>
-    <link href="http://wdicc.com/cvs/"/>
-    <id>http://wdicc.com/cvs/</id>
+    <title>proftpd 配置</title>
+    <link href="http://wdicc.com/proftpd-conf/"/>
+    <id>http://wdicc.com/proftpd-conf/</id>
     <published>2006-01-15T16:00:00.000Z</published>
     <updated>2016-10-22T04:19:18.000Z</updated>
     
-    <content type="html"><![CDATA[客户端配置最重要的是CVSROOT环境变量的配置。
+    <content type="html"><![CDATA[www.proftpd.org
 
-其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
+ServerName                      "Caph ftp server..."
+ServerType                      standalone
+DefaultServer                   on
+Port                            21
+Umask                           002
+MaxInstances                    30
+User                            ftp
+Group                           ftp
 
-例如，我在使用我们实验室的CVS服务器时的配置为：
+DisplayLogin .welcome.msg
+DeferWelcome on
+ServerIdent Off
+UseReverseDNS off
+IdentLookups off
+MaxLoginAttempts 3
+MaxClientsPerHost 2
+MaxClients 20
+MaxInstances 100
+ListOptions ""
 
-:pserver:car@192.168.2.2:/had/src
+DirFakeUser On ftp
+DirFakeGroup On ftp
+DeferWelcome On
+LogFormat awstats "%t   %h  %u  %m  %f  %s  %b"
+ExtendedLog /var/log/xferlog read,write awstats
+TransferLog none
+SystemLog /var/log/proftpd.log
+ServerIdent off
+WtmpLog off
 
-每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。
+DefaultRoot ~ ftp
+<limit> Order allow,deny
+DenyGroup !ftp </limit><directory>
+AllowOverwrite                on
+AllowStoreRestart             on
+#  AllowForeignAddress             on
+<limit>
+DenyUser ftp
+</limit>
+<limit>
+AllowUser it
+</limit>
+</directory>
 
-上面是摘抄的一段，用cvs需要先
-
-cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 
-
-登陆，或者设置$CVSROOT环境变量，之后用
-
-cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd
-
-就可以checkout更新了。
+<directory>
+<limit>
+AllowUser ftp
+</limit>
+</directory>
 ]]></content>
     
     <summary type="html">
     
-      客户端配置最重要的是CVSROOT环境变量的配置。
+      www.proftpd.org
 
-其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
-
-例如，我在使用我们实验室的CVS服务器时的配置为：
-
-:pserver:car@192.168.2.2:/had/src
-
-每
+ServerName                      &quot;Caph ftp server...&quot;
+ServerType                      standalone
+DefaultServer              
     
     </summary>
     
     
       <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+      <category term="proftpd" scheme="http://wdicc.com/tags/proftpd/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>igenus</title>
+    <link href="http://wdicc.com/igenus/"/>
+    <id>http://wdicc.com/igenus/</id>
+    <published>2006-01-15T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
+]]></content>
+    
+    <summary type="html">
+    
+      igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
+
+    
+    </summary>
+    
+    
+      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
     
   </entry>
   
@@ -22196,184 +22149,6 @@ ServerName 210.7
     
     
       <category term="web" scheme="http://wdicc.com/tags/web/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>qmail中的几个error的产生的原因和解决方法</title>
-    <link href="http://wdicc.com/solve-qmail-error/"/>
-    <id>http://wdicc.com/solve-qmail-error/</id>
-    <published>2006-01-15T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[deferral: Unable_to_chdir_to_maildir._(#4.2.1)
-
-   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
-
-如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
-
-deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
-
-   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
-
-454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
-
-  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
-
-[root@caph qmail-smtpd]# telnet localhost 25
-Trying 127.0.0.1...
-Connected to localhost.
-Escape character is &#39;^]&#39;.
-220 xxx.com ESMTP
-ehlo
-250-xxx.com
-250-PIPELINING
-250-8BITMIME
-250-SIZE 104857600
-250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
-auth login
-334 VXNlcm5hbWU6
-awefaq23rasdf
-334 UGFzc3dvcmQ6
-awefwaef
-454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
-quit
-221 xxx.com
-Connection closed by foreign host.
-
-出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
-
-QMAILDUID=`id -u vpopmail`
-QMAILDGID=`id -g vpopmail`
-
-/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
-        -u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
-        /var/qmail/bin/qmail-smtpd
-        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1
-
-不需要修改~vpopmail/bin/vchkpw的属性。
-
-451 qq write error or disk full (#4.3.0)
-
-通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
-
-qq temporary problem (#4.3.0)
-
-看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
--rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
-
-vchkpw-smtp: vpopmail user not found
-
-查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。
-]]></content>
-    
-    <summary type="html">
-    
-      deferral: Unable_to_chdir_to_maildir._(#4.2.1)
-
-   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域
-    
-    </summary>
-    
-    
-      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>历史上最强最强的跨专业的考研人zz</title>
-    <link href="http://wdicc.com/a-joke-3/"/>
-    <id>http://wdicc.com/a-joke-3/</id>
-    <published>2006-01-15T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[　　1、现在跨专业跨学校考研已经是一种趋势。某君学习图书馆学n年，也是觉得发腻。于是决定考个理科的研究生，在广泛的调查和研究之后。他毅然决定考天大的化院来挑战一下自己。看看一个连苯烷都不会写的人是否可以大跨度考研成功。他做了以下几步：
-坐火车到天大，找到自己未来的研究生导师。先恭敬的鞠上一躬，然后对老先生说：我想考您的研究生，随后递上自己的简历。老先生先是一脸鄙夷，想你们XX大学图书馆学虽然是全国第一，但又怎么知道我们数学的博大精深。不过他没有当面拒绝，而是写了十几个问题对小伙子说：不急，先把这些问题搞清楚再来找我。也就是说，先搞清楚才有资格。这个强人并没有生气，把问题清单收了起来。
-
-　　2、回到学校，把问题翻译成英语，然后给哈佛大学化学系某教授发了一封e-mail，信中写道：我想考贵院的研究生，这是我对专业的一点问题，可以帮我解答一下吗？同时加上自己的简历。哈佛教授看后很激动，因为发现了一个东方化学奇人，虽然不是专业人才但是专业问题问得很深。于是他们认认真真解答了问题，并列出一些其他的问题对小伙子做进一步的考核。
-
-　　3、收到哈佛的回信后，某君把问题翻译成汉语，再去找天大的老先生。先把答案给了老先生，老先生一看已经半疯，想小伙子不错，水平比我还高，已经达到国外哈佛的水平了。这时某君又拿出写满问题的那张纸，对老先生说：老师的问题我回答了，这是我对本专业的一些问题，请老师解答一下。老头看了问题，倒吸了一口凉气，傻眼了。这时某君装着要走。老先生急了，说：小伙子，别走！我要定你了，专业课不用考了，我包你过。公共课去回去复习一下，只要过线就行，只要过线。
-
-　　4、 回到学校，没过几天，收到老先生花了几个通宵、查了大量资料写好的哈佛教授所提问题的答案。某君把答案翻译成英语，给哈佛教授又发过去。他们在确认东方奇人后，提出了一年给某君4万美金的奖学金。一边是保研一边是全奖出国，到底选哪边？某君犯难了。
-
-　　5、当然是选保研，因为哈佛是淘汰制。而天大的老先生只会拍拍小伙子的肩膀说：孩子，好好学，谁让我当时瞎了眼把你收来呢。
-]]></content>
-    
-    <summary type="html">
-    
-      　　1、现在跨专业跨学校考研已经是一种趋势。某君学习图书馆学n年，也是觉得发腻。于是决定考个理科的研究生，在广泛的调查和研究之后。他毅然决定考天大的化院来挑战一下自己。看看一个连苯烷都不会写的人是否可以大跨度考研成功。他做了以下几步：
-坐火车到天大，找到自己未来的研究生导师。先恭
-    
-    </summary>
-    
-    
-      <category term="Joke" scheme="http://wdicc.com/tags/Joke/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>qss不正常显示的问题</title>
-    <link href="http://wdicc.com/a-bug-of-qss/"/>
-    <id>http://wdicc.com/a-bug-of-qss/</id>
-    <published>2006-01-15T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[1 php3.x版本以上不正常显示
-
-设置php.ini的<font color="#FF0000">register_globals = On</font>
-
-或者
-
-修改getGraph.php添加
-<font color="#FF0000">$data=$_GET[&#39;data&#39;];
-$t=$_GET[&#39;t&#39;];
-修改getGraph1.php添加
-$data=$_GET[&#39;data&#39;];
-$s=$_GET[&#39;s&#39;];</font>
-
-2 还不能正常显示
-
-那可能你的qmail-scanner的版本是1.2以上的，此版本以上的log文件格式有些变化，qss却没有做相应更新，所以会有问题。你可以看看你的log文件的日期是不是下面这种格式
-Mon, 03 Jan 2005 04:01:57 CST
-如果是，那么差不多就是这个问题了。
-
-解决方法是在index.php里面查找
-<font color="#FF0000"># Calc the date timestamp</font>
-把他下面的5行语句用下面的替换
-<font color="#FF0000">   if ( eregi("(^[0-9]+)", $val[0]) )
-   {
-      # Calc the date timestamp
-      $date = explode("/",$val[0]);
-      $dateT = $date[0];
-      $date[0] = $date[1];
-      $date[1] = $dateT;
-      $date = strtotime(implode("/",$date));
-   }
-   else
-   {
-      $date = strtotime ($val[0]);
-   };
-</font>
-
-参考网址
-<a href="http://www.tnpi.biz/internet/mail/toaster/faq.shtml#how_do_i_get_qmailscanner_statistics_to_work" target="_blank">here</a>
-]]></content>
-    
-    <summary type="html">
-    
-      1 php3.x版本以上不正常显示
-
-设置php.ini的&lt;font color=&quot;#FF0000&quot;&gt;register_globals = On&lt;/font&gt;
-
-或者
-
-修改getGraph.php添加
-&lt;font color=&quot;#FF0000&quot;&gt;$data=$_GET[&amp;#39
-    
-    </summary>
-    
-    
-      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
     
   </entry>
   
@@ -22758,6 +22533,231 @@ http://www.fehcom.d
       <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
     
       <category term="qmail" scheme="http://wdicc.com/tags/qmail/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>qmail中的几个error的产生的原因和解决方法</title>
+    <link href="http://wdicc.com/solve-qmail-error/"/>
+    <id>http://wdicc.com/solve-qmail-error/</id>
+    <published>2006-01-15T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[deferral: Unable_to_chdir_to_maildir._(#4.2.1)
+
+   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
+
+如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
+
+deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
+
+   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
+
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+
+  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
+
+[root@caph qmail-smtpd]# telnet localhost 25
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is &#39;^]&#39;.
+220 xxx.com ESMTP
+ehlo
+250-xxx.com
+250-PIPELINING
+250-8BITMIME
+250-SIZE 104857600
+250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
+auth login
+334 VXNlcm5hbWU6
+awefaq23rasdf
+334 UGFzc3dvcmQ6
+awefwaef
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+quit
+221 xxx.com
+Connection closed by foreign host.
+
+出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
+
+QMAILDUID=`id -u vpopmail`
+QMAILDGID=`id -g vpopmail`
+
+/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
+        -u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
+        /var/qmail/bin/qmail-smtpd
+        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1
+
+不需要修改~vpopmail/bin/vchkpw的属性。
+
+451 qq write error or disk full (#4.3.0)
+
+通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
+
+qq temporary problem (#4.3.0)
+
+看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
+-rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
+
+vchkpw-smtp: vpopmail user not found
+
+查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。
+]]></content>
+    
+    <summary type="html">
+    
+      deferral: Unable_to_chdir_to_maildir._(#4.2.1)
+
+   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域
+    
+    </summary>
+    
+    
+      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>历史上最强最强的跨专业的考研人zz</title>
+    <link href="http://wdicc.com/a-joke-3/"/>
+    <id>http://wdicc.com/a-joke-3/</id>
+    <published>2006-01-15T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[　　1、现在跨专业跨学校考研已经是一种趋势。某君学习图书馆学n年，也是觉得发腻。于是决定考个理科的研究生，在广泛的调查和研究之后。他毅然决定考天大的化院来挑战一下自己。看看一个连苯烷都不会写的人是否可以大跨度考研成功。他做了以下几步：
+坐火车到天大，找到自己未来的研究生导师。先恭敬的鞠上一躬，然后对老先生说：我想考您的研究生，随后递上自己的简历。老先生先是一脸鄙夷，想你们XX大学图书馆学虽然是全国第一，但又怎么知道我们数学的博大精深。不过他没有当面拒绝，而是写了十几个问题对小伙子说：不急，先把这些问题搞清楚再来找我。也就是说，先搞清楚才有资格。这个强人并没有生气，把问题清单收了起来。
+
+　　2、回到学校，把问题翻译成英语，然后给哈佛大学化学系某教授发了一封e-mail，信中写道：我想考贵院的研究生，这是我对专业的一点问题，可以帮我解答一下吗？同时加上自己的简历。哈佛教授看后很激动，因为发现了一个东方化学奇人，虽然不是专业人才但是专业问题问得很深。于是他们认认真真解答了问题，并列出一些其他的问题对小伙子做进一步的考核。
+
+　　3、收到哈佛的回信后，某君把问题翻译成汉语，再去找天大的老先生。先把答案给了老先生，老先生一看已经半疯，想小伙子不错，水平比我还高，已经达到国外哈佛的水平了。这时某君又拿出写满问题的那张纸，对老先生说：老师的问题我回答了，这是我对本专业的一些问题，请老师解答一下。老头看了问题，倒吸了一口凉气，傻眼了。这时某君装着要走。老先生急了，说：小伙子，别走！我要定你了，专业课不用考了，我包你过。公共课去回去复习一下，只要过线就行，只要过线。
+
+　　4、 回到学校，没过几天，收到老先生花了几个通宵、查了大量资料写好的哈佛教授所提问题的答案。某君把答案翻译成英语，给哈佛教授又发过去。他们在确认东方奇人后，提出了一年给某君4万美金的奖学金。一边是保研一边是全奖出国，到底选哪边？某君犯难了。
+
+　　5、当然是选保研，因为哈佛是淘汰制。而天大的老先生只会拍拍小伙子的肩膀说：孩子，好好学，谁让我当时瞎了眼把你收来呢。
+]]></content>
+    
+    <summary type="html">
+    
+      　　1、现在跨专业跨学校考研已经是一种趋势。某君学习图书馆学n年，也是觉得发腻。于是决定考个理科的研究生，在广泛的调查和研究之后。他毅然决定考天大的化院来挑战一下自己。看看一个连苯烷都不会写的人是否可以大跨度考研成功。他做了以下几步：
+坐火车到天大，找到自己未来的研究生导师。先恭
+    
+    </summary>
+    
+    
+      <category term="Joke" scheme="http://wdicc.com/tags/Joke/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>qss不正常显示的问题</title>
+    <link href="http://wdicc.com/a-bug-of-qss/"/>
+    <id>http://wdicc.com/a-bug-of-qss/</id>
+    <published>2006-01-15T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[1 php3.x版本以上不正常显示
+
+设置php.ini的<font color="#FF0000">register_globals = On</font>
+
+或者
+
+修改getGraph.php添加
+<font color="#FF0000">$data=$_GET[&#39;data&#39;];
+$t=$_GET[&#39;t&#39;];
+修改getGraph1.php添加
+$data=$_GET[&#39;data&#39;];
+$s=$_GET[&#39;s&#39;];</font>
+
+2 还不能正常显示
+
+那可能你的qmail-scanner的版本是1.2以上的，此版本以上的log文件格式有些变化，qss却没有做相应更新，所以会有问题。你可以看看你的log文件的日期是不是下面这种格式
+Mon, 03 Jan 2005 04:01:57 CST
+如果是，那么差不多就是这个问题了。
+
+解决方法是在index.php里面查找
+<font color="#FF0000"># Calc the date timestamp</font>
+把他下面的5行语句用下面的替换
+<font color="#FF0000">   if ( eregi("(^[0-9]+)", $val[0]) )
+   {
+      # Calc the date timestamp
+      $date = explode("/",$val[0]);
+      $dateT = $date[0];
+      $date[0] = $date[1];
+      $date[1] = $dateT;
+      $date = strtotime(implode("/",$date));
+   }
+   else
+   {
+      $date = strtotime ($val[0]);
+   };
+</font>
+
+参考网址
+<a href="http://www.tnpi.biz/internet/mail/toaster/faq.shtml#how_do_i_get_qmailscanner_statistics_to_work" target="_blank">here</a>
+]]></content>
+    
+    <summary type="html">
+    
+      1 php3.x版本以上不正常显示
+
+设置php.ini的&lt;font color=&quot;#FF0000&quot;&gt;register_globals = On&lt;/font&gt;
+
+或者
+
+修改getGraph.php添加
+&lt;font color=&quot;#FF0000&quot;&gt;$data=$_GET[&amp;#39
+    
+    </summary>
+    
+    
+      <category term="Mail" scheme="http://wdicc.com/tags/Mail/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>cvs</title>
+    <link href="http://wdicc.com/cvs/"/>
+    <id>http://wdicc.com/cvs/</id>
+    <published>2006-01-15T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[客户端配置最重要的是CVSROOT环境变量的配置。
+
+其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
+
+例如，我在使用我们实验室的CVS服务器时的配置为：
+
+:pserver:car@192.168.2.2:/had/src
+
+每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。
+
+上面是摘抄的一段，用cvs需要先
+
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 
+
+登陆，或者设置$CVSROOT环境变量，之后用
+
+cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd
+
+就可以checkout更新了。
+]]></content>
+    
+    <summary type="html">
+    
+      客户端配置最重要的是CVSROOT环境变量的配置。
+
+其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
+
+例如，我在使用我们实验室的CVS服务器时的配置为：
+
+:pserver:car@192.168.2.2:/had/src
+
+每
+    
+    </summary>
+    
+    
+      <category term="other" scheme="http://wdicc.com/tags/other/"/>
     
   </entry>
   
@@ -24939,6 +24939,63 @@ skin用的是LaPrata。
   </entry>
   
   <entry>
+    <title>wd love cc</title>
+    <link href="http://wdicc.com/wd-love-cc/"/>
+    <id>http://wdicc.com/wd-love-cc/</id>
+    <published>2005-10-25T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[和cc在故宫的相片 :)
+<center><img src="/wordpress/wp-content/uploads/1353548855.jpg" width="320" height="240"></center>
+]]></content>
+    
+    <summary type="html">
+    
+      和cc在故宫的相片 :)
+&lt;center&gt;&lt;img src=&quot;/wordpress/wp-content/uploads/1353548855.jpg&quot; width=&quot;320&quot; height=&quot;240&quot;&gt;&lt;/center&gt;
+
+    
+    </summary>
+    
+    
+      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
+    
+      <category term="老婆" scheme="http://wdicc.com/tags/%E8%80%81%E5%A9%86/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>远程安装ArchLinux(翻译)</title>
+    <link href="http://wdicc.com/remote-install-arch/"/>
+    <id>http://wdicc.com/remote-install-arch/</id>
+    <published>2005-10-25T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[[color=green]原文地址：[url]http://wiki2.archlinux.org/index.php/Remote%20ArchLinux%20Install[/url][/color]
+远程安装ArchLinux
+
+基于Tobias Kieslich的工作。他的原始版请看这里[url]http://www.justdreams.de/archlinux/docs/00_rootserver.html。[/url]
+
+[b]概述[/b]
+
+这是一个建立Archlinux基本服务器的指南。Archlinux是一个很好的服务器系统，但是它通常不会被选择作为一个预装的发行版。在本机替换预装的系统非常容易。但是替换一个
+]]></content>
+    
+    <summary type="html">
+    
+      [color=green]原文地址：[url]http://wiki2.archlinux.org/index.php/Remote%20ArchLinux%20Install[/url][/color]
+远程安装ArchLinux
+
+基于Tobias Kieslich的工作。他
+    
+    </summary>
+    
+    
+      <category term="Archlinux" scheme="http://wdicc.com/tags/Archlinux/"/>
+    
+  </entry>
+  
+  <entry>
     <title>vim的一些有用的咚咚</title>
     <link href="http://wdicc.com/some-usefull-about-vim/"/>
     <id>http://wdicc.com/some-usefull-about-vim/</id>
@@ -25025,63 +25082,6 @@ export PS1=&quot;[VIM]$PS1&quot;
     
     
       <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>wd love cc</title>
-    <link href="http://wdicc.com/wd-love-cc/"/>
-    <id>http://wdicc.com/wd-love-cc/</id>
-    <published>2005-10-25T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[和cc在故宫的相片 :)
-<center><img src="/wordpress/wp-content/uploads/1353548855.jpg" width="320" height="240"></center>
-]]></content>
-    
-    <summary type="html">
-    
-      和cc在故宫的相片 :)
-&lt;center&gt;&lt;img src=&quot;/wordpress/wp-content/uploads/1353548855.jpg&quot; width=&quot;320&quot; height=&quot;240&quot;&gt;&lt;/center&gt;
-
-    
-    </summary>
-    
-    
-      <category term="heart" scheme="http://wdicc.com/tags/heart/"/>
-    
-      <category term="老婆" scheme="http://wdicc.com/tags/%E8%80%81%E5%A9%86/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>远程安装ArchLinux(翻译)</title>
-    <link href="http://wdicc.com/remote-install-arch/"/>
-    <id>http://wdicc.com/remote-install-arch/</id>
-    <published>2005-10-25T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[[color=green]原文地址：[url]http://wiki2.archlinux.org/index.php/Remote%20ArchLinux%20Install[/url][/color]
-远程安装ArchLinux
-
-基于Tobias Kieslich的工作。他的原始版请看这里[url]http://www.justdreams.de/archlinux/docs/00_rootserver.html。[/url]
-
-[b]概述[/b]
-
-这是一个建立Archlinux基本服务器的指南。Archlinux是一个很好的服务器系统，但是它通常不会被选择作为一个预装的发行版。在本机替换预装的系统非常容易。但是替换一个
-]]></content>
-    
-    <summary type="html">
-    
-      [color=green]原文地址：[url]http://wiki2.archlinux.org/index.php/Remote%20ArchLinux%20Install[/url][/color]
-远程安装ArchLinux
-
-基于Tobias Kieslich的工作。他
-    
-    </summary>
-    
-    
-      <category term="Archlinux" scheme="http://wdicc.com/tags/Archlinux/"/>
     
   </entry>
   
@@ -25912,6 +25912,70 @@ coder：(XXX公司CEO办公室里，看着www.xxx.com上的新闻)
   </entry>
   
   <entry>
+    <title>apache版本号显示的问题</title>
+    <link href="http://wdicc.com/apache-ver/"/>
+    <id>http://wdicc.com/apache-ver/</id>
+    <published>2005-04-18T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[ServerTokens 指令 
+说明: 配置服务器HTTP回应头 
+语法: ServerTokens Major|Minor|Minimal|ProductOnly|OS|Full 
+默认值: ServerTokens Full 
+上下文: 服务器配置 
+状态: 核心 
+模块: core 
+
+<br><a id="more"></a>此指令控制了Server回送给客户端的回应头域是否包含关于服务器OS类型和编译进的模块描述信息。 
+
+ServerTokens Prod[uctOnly] 
+服务器会发送（比如说）：Server:Apache 
+ServerTokens Major 
+服务器会发送（比如说）：Server:Apache/2 
+ServerTokens Minor 
+服务器会发送（比如说）：Server:Apache/2.0 
+ServerTokens Min[imal] 
+服务器会发送（比如说）：Server:Apache/2.0.41 
+ServerTokens OS 
+服务器会发送（比如说）：Server: Apache/2.0.41 (Unix) 
+ServerTokens Full (or not specified) 
+服务器会发送（比如说）：Server: Apache/2.0.41 (Unix) PHP/4.2.2 MyMod/1.2 
+此设置将施用与整个服务器，而且不能在虚拟主机的管理层次上予以启用或禁用。 
+
+
+ServerSignature 指令 
+说明: 配置服务器生成页面的页脚 
+语法: ServerSignature On|Off|EMail 
+默认值: ServerSignature Off 
+上下文: 服务器配置, 虚拟主机, 目录, .htaccess 
+覆盖项: All 
+状态: 核心 
+模块: core 
+
+ServerSignature指令允许您配置服务器端生 成文档的页脚（错误信息、mod_proxy的ftp目录列表、mod_info的输出）。您启用这个页脚的原因主要在于处于一个代理服务器链中的时候，用户基本无法辨识出究竟是链中的哪个服务器真正产生了返回的错误信息。 
+默认的Off设定没有错误行（这样便与Apache 1.2及更旧版本兼容）。采用On会简单的增加一行关于服务器版本和正在伺服的虚拟主机的ServerName，而EMail设置会如文档中说明的那样额外创建一个指向ServerAdmin的"mailto:"部分。
+]]></content>
+    
+    <summary type="html">
+    
+      ServerTokens 指令 
+说明: 配置服务器HTTP回应头 
+语法: ServerTokens Major|Minor|Minimal|ProductOnly|OS|Full 
+默认值: ServerTokens Full 
+上下文: 服务器配置 
+状态: 核心 
+模块: core 
+
+&lt;br&gt;
+    
+    </summary>
+    
+    
+      <category term="web" scheme="http://wdicc.com/tags/web/"/>
+    
+  </entry>
+  
+  <entry>
     <title>在mdk安装xsim输入法</title>
     <link href="http://wdicc.com/xsim-on-mdk/"/>
     <id>http://wdicc.com/xsim-on-mdk/</id>
@@ -25999,107 +26063,6 @@ That&#39;s all
   </entry>
   
   <entry>
-    <title>apache版本号显示的问题</title>
-    <link href="http://wdicc.com/apache-ver/"/>
-    <id>http://wdicc.com/apache-ver/</id>
-    <published>2005-04-18T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[ServerTokens 指令 
-说明: 配置服务器HTTP回应头 
-语法: ServerTokens Major|Minor|Minimal|ProductOnly|OS|Full 
-默认值: ServerTokens Full 
-上下文: 服务器配置 
-状态: 核心 
-模块: core 
-
-<br><a id="more"></a>此指令控制了Server回送给客户端的回应头域是否包含关于服务器OS类型和编译进的模块描述信息。 
-
-ServerTokens Prod[uctOnly] 
-服务器会发送（比如说）：Server:Apache 
-ServerTokens Major 
-服务器会发送（比如说）：Server:Apache/2 
-ServerTokens Minor 
-服务器会发送（比如说）：Server:Apache/2.0 
-ServerTokens Min[imal] 
-服务器会发送（比如说）：Server:Apache/2.0.41 
-ServerTokens OS 
-服务器会发送（比如说）：Server: Apache/2.0.41 (Unix) 
-ServerTokens Full (or not specified) 
-服务器会发送（比如说）：Server: Apache/2.0.41 (Unix) PHP/4.2.2 MyMod/1.2 
-此设置将施用与整个服务器，而且不能在虚拟主机的管理层次上予以启用或禁用。 
-
-
-ServerSignature 指令 
-说明: 配置服务器生成页面的页脚 
-语法: ServerSignature On|Off|EMail 
-默认值: ServerSignature Off 
-上下文: 服务器配置, 虚拟主机, 目录, .htaccess 
-覆盖项: All 
-状态: 核心 
-模块: core 
-
-ServerSignature指令允许您配置服务器端生 成文档的页脚（错误信息、mod_proxy的ftp目录列表、mod_info的输出）。您启用这个页脚的原因主要在于处于一个代理服务器链中的时候，用户基本无法辨识出究竟是链中的哪个服务器真正产生了返回的错误信息。 
-默认的Off设定没有错误行（这样便与Apache 1.2及更旧版本兼容）。采用On会简单的增加一行关于服务器版本和正在伺服的虚拟主机的ServerName，而EMail设置会如文档中说明的那样额外创建一个指向ServerAdmin的"mailto:"部分。
-]]></content>
-    
-    <summary type="html">
-    
-      ServerTokens 指令 
-说明: 配置服务器HTTP回应头 
-语法: ServerTokens Major|Minor|Minimal|ProductOnly|OS|Full 
-默认值: ServerTokens Full 
-上下文: 服务器配置 
-状态: 核心 
-模块: core 
-
-&lt;br&gt;
-    
-    </summary>
-    
-    
-      <category term="web" scheme="http://wdicc.com/tags/web/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>第一次用cvs</title>
-    <link href="http://wdicc.com/use-cvs/"/>
-    <id>http://wdicc.com/use-cvs/</id>
-    <published>2005-04-18T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[客户端配置最重要的是CVSROOT环境变量的配置。
-
-其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径 
-
-例如，我在使用我们实验室的CVS服务器时的配置为： 
-
-:pserver:car@192.168.2.2:/had/src 
-
-每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。 
-
-上面是摘抄的一段，用cvs需要先cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 登陆，或者设置$CVSROOT环境变量，之后用cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd就可以checkout更新了。
-]]></content>
-    
-    <summary type="html">
-    
-      客户端配置最重要的是CVSROOT环境变量的配置。
-
-其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径 
-
-例如，我在使用我们实验室的CVS服务器时的配置为： 
-
-:pserver:car@192.168.2.2:/had/src 
-    
-    </summary>
-    
-    
-      <category term="other" scheme="http://wdicc.com/tags/other/"/>
-    
-  </entry>
-  
-  <entry>
     <title>一段自动设置文件编</title>
     <link href="http://wdicc.com/usefull-vimrc/"/>
     <id>http://wdicc.com/usefull-vimrc/</id>
@@ -26155,6 +26118,43 @@ endif
 if has(&quot;multi_byte&quot;)
   &quot;set bomb
   set fileencodi
+    
+    </summary>
+    
+    
+      <category term="other" scheme="http://wdicc.com/tags/other/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>第一次用cvs</title>
+    <link href="http://wdicc.com/use-cvs/"/>
+    <id>http://wdicc.com/use-cvs/</id>
+    <published>2005-04-18T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[客户端配置最重要的是CVSROOT环境变量的配置。
+
+其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径 
+
+例如，我在使用我们实验室的CVS服务器时的配置为： 
+
+:pserver:car@192.168.2.2:/had/src 
+
+每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。 
+
+上面是摘抄的一段，用cvs需要先cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 登陆，或者设置$CVSROOT环境变量，之后用cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd就可以checkout更新了。
+]]></content>
+    
+    <summary type="html">
+    
+      客户端配置最重要的是CVSROOT环境变量的配置。
+
+其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径 
+
+例如，我在使用我们实验室的CVS服务器时的配置为： 
+
+:pserver:car@192.168.2.2:/had/src 
     
     </summary>
     
@@ -26557,36 +26557,6 @@ GRANT select,insert,update,delete,create,drop ON xxxdb.* TO xxxuser@localhost ID
   </entry>
   
   <entry>
-    <title>archlinux安装</title>
-    <link href="http://wdicc.com/install-archlinux/"/>
-    <id>http://wdicc.com/install-archlinux/</id>
-    <published>2005-04-18T16:00:00.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[1 准备工作
-1.1 下载arch0.7的base iso，或者完整iso
-  arch的iso可以从官方网站下载，http://www.archlinux.org/download.php ，
-  也可以从我的mirror下载，http://210.72.203.226/current/iso/i686/arch-0.7-base.iso ，我这里的是base iso。本文以完整iso为例，其实是没有区别的，都是安装一个基本系统。
-
-1.2 安排安装分区
-  把arch的iso放到硬盘的一个ext2、ext3或者resierfs分区上面，注意不要放到fat分区上面，
-]]></content>
-    
-    <summary type="html">
-    
-      1 准备工作
-1.1 下载arch0.7的base iso，或者完整iso
-  arch的iso可以从官方网站下载，http://www.archlinux.org/download.php ，
-  也可以从我的mirror下载，http://210.72.203.226/cur
-    
-    </summary>
-    
-    
-      <category term="Archlinux" scheme="http://wdicc.com/tags/Archlinux/"/>
-    
-  </entry>
-  
-  <entry>
     <title>今天装了个freebsd</title>
     <link href="http://wdicc.com/install-freebsd/"/>
     <id>http://wdicc.com/install-freebsd/</id>
@@ -26625,6 +26595,36 @@ FreeBSD不像linux那样可以完全脱离光驱软驱来安装，鼓捣了半�
     
     
       <category term="FreeBSD" scheme="http://wdicc.com/tags/FreeBSD/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>archlinux安装</title>
+    <link href="http://wdicc.com/install-archlinux/"/>
+    <id>http://wdicc.com/install-archlinux/</id>
+    <published>2005-04-18T16:00:00.000Z</published>
+    <updated>2016-10-22T04:19:18.000Z</updated>
+    
+    <content type="html"><![CDATA[1 准备工作
+1.1 下载arch0.7的base iso，或者完整iso
+  arch的iso可以从官方网站下载，http://www.archlinux.org/download.php ，
+  也可以从我的mirror下载，http://210.72.203.226/current/iso/i686/arch-0.7-base.iso ，我这里的是base iso。本文以完整iso为例，其实是没有区别的，都是安装一个基本系统。
+
+1.2 安排安装分区
+  把arch的iso放到硬盘的一个ext2、ext3或者resierfs分区上面，注意不要放到fat分区上面，
+]]></content>
+    
+    <summary type="html">
+    
+      1 准备工作
+1.1 下载arch0.7的base iso，或者完整iso
+  arch的iso可以从官方网站下载，http://www.archlinux.org/download.php ，
+  也可以从我的mirror下载，http://210.72.203.226/cur
+    
+    </summary>
+    
+    
+      <category term="Archlinux" scheme="http://wdicc.com/tags/Archlinux/"/>
     
   </entry>
   
