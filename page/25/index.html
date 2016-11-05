@@ -159,6 +159,64 @@ wordpress 也更新了，到 2.1 了。好像增加了一些新功能，等会�
 
   <article class="post">
 	<h2 class="title">
+		<a href="colorful-tag/">让wp的tag可以显示彩色效果</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-01-03T16:00:00.000Z" itemprop="datePublished">Jan 4, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/web/">web</a>
+</div>
+    </div>
+      
+        wp的tag列表可以让他用彩色形式显示，不过效果不喜欢。不满意的地方不好形容，用过就知道了。我看了源代码，他是让rgb三色一起递减或者递加的，我喜欢让所有颜色都出现。
+
+最后的效果看我的blog就知道了。 实现的方法是修改 ultimate-tag-warrior-core.php 文件里面的 GetColorForWeight 函数，修改如下。
+<pre class="prettyprint lang-php">
+global $maxtagcolour, $mintagcolour;
+if ($weight) {
+$weight = $weight/100;
+
+$new_color_min = hexdec($mintagcolour);
+$new_color_max = hexdec($maxtagcolour);
+$new_color = dechex(intval(($new_color_max - $new_color_min) * $weight + $new_color_min));
+return "#$new_color";
+/*                      $minr = hexdec(substr($mintagcolour, 1, 2));
+$ming = hexdec(substr($mintagcolour, 3, 2));
+$minb = hexdec(substr($mintagcolour, 5, 2));
+
+$maxr = hexdec(substr($maxtagcolour, 1, 2));
+$maxg = hexdec(substr($maxtagcolour, 3, 2));
+$maxb = hexdec(substr($maxtagcolour, 5, 2));
+
+$r = dechex(intval((($maxr - $minr) * $weight) + $minr));
+$g = dechex(intval((($maxg - $ming) * $weight) + $ming));
+$b = dechex(intval((($maxb - $minb) * $weight) + $minb));
+
+if (strlen($r) == 1) $r = "0" . $r;
+if (strlen($g) == 1) $g = "0" . $g;
+if (strlen($b) == 1) $b = "0" . $b;
+
+return "#$r$g$b";
+*/
+}
+}</pre>
+很简单的一个修改，再去后台设置一下tag的颜色渐变的起始值就可以了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/colorful-tag/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="Spring-Festival/">元旦之后就是春节</a>
 	</h2>
     <div class="entry-content">
@@ -241,64 +299,6 @@ $dbh->disconnect();</pre>
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/perl-and-mysql/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="colorful-tag/">让wp的tag可以显示彩色效果</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-01-03T16:00:00.000Z" itemprop="datePublished">Jan 4, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/web/">web</a>
-</div>
-    </div>
-      
-        wp的tag列表可以让他用彩色形式显示，不过效果不喜欢。不满意的地方不好形容，用过就知道了。我看了源代码，他是让rgb三色一起递减或者递加的，我喜欢让所有颜色都出现。
-
-最后的效果看我的blog就知道了。 实现的方法是修改 ultimate-tag-warrior-core.php 文件里面的 GetColorForWeight 函数，修改如下。
-<pre class="prettyprint lang-php">
-global $maxtagcolour, $mintagcolour;
-if ($weight) {
-$weight = $weight/100;
-
-$new_color_min = hexdec($mintagcolour);
-$new_color_max = hexdec($maxtagcolour);
-$new_color = dechex(intval(($new_color_max - $new_color_min) * $weight + $new_color_min));
-return "#$new_color";
-/*                      $minr = hexdec(substr($mintagcolour, 1, 2));
-$ming = hexdec(substr($mintagcolour, 3, 2));
-$minb = hexdec(substr($mintagcolour, 5, 2));
-
-$maxr = hexdec(substr($maxtagcolour, 1, 2));
-$maxg = hexdec(substr($maxtagcolour, 3, 2));
-$maxb = hexdec(substr($maxtagcolour, 5, 2));
-
-$r = dechex(intval((($maxr - $minr) * $weight) + $minr));
-$g = dechex(intval((($maxg - $ming) * $weight) + $ming));
-$b = dechex(intval((($maxb - $minb) * $weight) + $minb));
-
-if (strlen($r) == 1) $r = "0" . $r;
-if (strlen($g) == 1) $g = "0" . $g;
-if (strlen($b) == 1) $b = "0" . $b;
-
-return "#$r$g$b";
-*/
-}
-}</pre>
-很简单的一个修改，再去后台设置一下tag的颜色渐变的起始值就可以了。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/colorful-tag/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
