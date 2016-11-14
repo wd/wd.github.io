@@ -101,6 +101,107 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="kde-openbox-works-perfect/">KDE+openbox 实在太赞了</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-10-12T16:00:00.000Z" itemprop="datePublished">Oct 13, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/openbox/">openbox</a> <a href="../tags/kde/">kde</a> <a href="../tags/desktop/">desktop</a>
+</div>
+    </div>
+      
+        好像我一闲了就总喜欢换de玩。。可能因为这个最花时间。。汗。。
+
+第一次用 kde 还是过年的时候，那会是 kde 4.1? 好像是，那会还装了一个 kde live , 就是 svn 版的 kde，花了 n 多的时间。。。结果最后实在受不了 kde 的一些 bug，就换回 gnome 了。下面列几个我觉得不能忍的 bug（有些 bug 是在 dualhead 里面才有的）。
+1 kconsole 的 tab title 截断居然是从前面开始的？emerge 的时候只能看到最后的几个字符。kconsole 里面居然还不能用 shift 增加选区，如果要选几个屏幕的东西，只能慢慢拖。
+2 部分 gtk 程序(比如 roxterm)在 kde 里面最大化的时候居然下面还留一条？
+3 我想在最上面加一条监控信息，开始试着用 conky, 发现不能控制不让别的程序不复盖他，让他一直显示。那就加了一条 panel，写了一个 applet 来监控。结果发现经常出现正常重启之后，上面的 panel 没了，下面的 panel 做的调整也没了。回复到了最初的状态。日啊。
+4 pidgin 什么的，有时候一些程序不能用快捷键弄到前台。好像有最大化窗口的时候容易出现。
+5 还没想起来，不过上面那几个已经让我不能忍了。
+
+kde 换了 gnome 之后用了一段时候，又换用了一下 kde 4.2 好像还是不习惯，直接就换用 openbox+tint2 了。一直到前几天又闲了。。
+
+openbox + tint2 其实也挺好用的，自定义性很强。可有点郁闷的是，他倒底不是 DE，我就懒的去弄那个 ivman ... 
+
+还好有 kde+openbox.用了 openbox 后，上面说的 1,2,3,4 都没问题了。term 用 roxterm , 监控用 conky， 不是一般的爽。
+
+之前 openbox 有个 bug，http://bugzilla.icculus.org/show_bug.cgi?id=3792 和 
+http://bugzilla.icculus.org/show_bug.cgi?id=3773 ，那个 patch 可以用。所以现在 kde+openbox 不是一般的爽啊。哈哈。
+
+openbox 那么多的自定义功能，还有 kde 强大的 DE 功能。现在我的桌面如下
+<img src="http://paste.ubuntu.org.cn/i45608" alt="dekstop">
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/kde-openbox-works-perfect/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="radeon-kms-in-kernel-2-6-31/">kernel 2.6.31 给 radeon 用上 kms</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-09-12T16:00:00.000Z" itemprop="datePublished">Sep 13, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/kms/">kms</a> <a href="../tags/radeon/">radeon</a>
+</div>
+    </div>
+      
+        intel 显卡用户享受 gem 已经很久了，kernel 2.6.31 总算给 ati 卡的用户带来了福音。
+
+首先得在 kernel 里面打开相关的选项
+Generic Driver Options --> Graphics support --> 这下面 dri 相关的和几个 fb 相关的，看着选吧。
+Staging drivers --> 取消Exclude Staging drivers from being built --> Enable modesetting on radeon by default
+
+编好后重启下，然后看看 dmesg |grep -i drm 看看，有下面这行就好了。
+[drm] Initialized radeon 2.0.0 20080528 for 0000:01:00.0 on minor 0
+
+然后再看看 /var/log/Xorg.0.log ，有没有这个，这个应该表示相关的 x 软件还没有支持。
+(EE) RADEON(0): [dri] RADEONDRIGetVersion failed because of a version mismatch.
+[dri] radeon kernel module version is 2.0.0 but version 1.17.0 or newer is needed.
+[dri] Disabling DRI.
+
+$ glxinfo |grep -i render
+direct rendering: Yes
+OpenGL renderer string: Software Rasterizer
+
+接下来就升级几个包的 9999 版本，这几个 ebuild 在 x11 overlay 里面有
+# x11-drivers/xf86-video-ati-9999
+# media-libs/mesa-9999
+# x11-libs/libdrm-9999 
+
+装好后，重启下 x ，看看上面那几个信息。/var/log/Xorg.0.log 里面应该有 KMS 相关的信息了，glxinfo 如下
+$ glxinfo |grep -i render
+direct rendering: Yes
+OpenGL renderer string: Mesa DRI R300 (RV380 5460) 20090101 x86/MMX/SSE2 TCL DRI2
+
+
+好，o 了。不过我怎么觉得窗口切换好像没那么流畅了？。。。等会看看，不行还得换回去。。。汗。。。
+update:  找到一个 bug url , 不知道是不是一样的 http://bugs.freedesktop.org/show_bug.cgi?id=23085 不过里面说应该已经解决了才对。。xf86-video-ati 我用的也是最新版的呀
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/radeon-kms-in-kernel-2-6-31/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="fonts-in-gentoo/">gentoo 里面字体</a>
 	</h2>
     <div class="entry-content">
@@ -479,44 +580,6 @@ menuentry "测试JPEG背景图片" {
 
   <article class="post">
 	<h2 class="title">
-		<a href="clever-cc/">聪明的老婆</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-07-19T16:00:00.000Z" itemprop="datePublished">Jul 20, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a>
-</div>
-    </div>
-      
-        呃，今天好像疯牛病了，怎么一下更新了好几篇呢？。。。
-
-不得不说，老婆聪明没用在正道上。玩游戏那叫一个牛。昨天手机上面装了一个游戏，是一屏幕小球球，要消掉那种。我玩了会，弄出来一次把球全消了，260 多分，乐呵呵的给她看，让她玩玩，她要是玩不到，就可以取笑她了，嘿嘿。
-
-结果一会还给我了，人家弄了一个 600 多记录出来。。。。这还让不让人活了。。
-
-想起来之前用 palm 650 的时候，里面也有一个类似的游戏，排名前五都是他的名字，我都上不去那个榜。。。
-
-还有玩 qq 那个龙珠，其实就是类似 zuma 那个游戏。他居然学会了那个自己布局，然后一次全消掉那个方法。我反正是不会弄那个。。。
-
-好多次都是，我找到一个好玩的游戏，教给她怎么玩，然后过几天我就拍马也赶不上了。唉。。。可没劲了
-
-另外，不得不补充一下，其它地方她怎么总表现的那个猪呢？
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/clever-cc/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="best-way-to-fuck-gfw/">你在用什么方式翻墙？</a>
 	</h2>
     <div class="entry-content">
@@ -592,7 +655,7 @@ function FindProxyForURL(url, host)
 
   <article class="post">
 	<h2 class="title">
-		<a href="auto-mount-smb-and/">写了一个用来 mount smb 和 u 盘之类的程序</a>
+		<a href="clever-cc/">聪明的老婆</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -600,95 +663,30 @@ function FindProxyForURL(url, host)
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/autumount/">autumount</a> <a href="../tags/smb/">smb</a>
+<a href="../tags/heart/">heart</a>
 </div>
     </div>
       
-        主要是不用 gnome 了，访问 smb 和 mount u盘有点不爽，无聊就写了一个。
+        呃，今天好像疯牛病了，怎么一下更新了好几篇呢？。。。
 
-程序不是全自动的，是基于配置文件的。写好配置文件，然后执行这个程序。
+不得不说，老婆聪明没用在正道上。玩游戏那叫一个牛。昨天手机上面装了一个游戏，是一屏幕小球球，要消掉那种。我玩了会，弄出来一次把球全消了，260 多分，乐呵呵的给她看，让她玩玩，她要是玩不到，就可以取笑她了，嘿嘿。
 
-配置文件类似下面的
-<pre class="prettyprint lang-conf">
-# type: u  | smb | cifs
-#
-#
--
- name: 匿名smb
- type: cifs
--
- name: cc
- type: cifs
- ip: 192.168.1.125
- opt: iocharset=utf8,codepage=cp936
--
- name: fileserver
- type: cifs
- ip: fileserver
- user: wd
- pwd: 1111
- opt: iocharset=utf8,codepage=cp936
--
- name: g1
- type: u
- partitions: /dev/sda1, /dev/sda2
--
- name: u 盘
- type: u
- partitions: /dev/sda1
-</pre>
+结果一会还给我了，人家弄了一个 600 多记录出来。。。。这还让不让人活了。。
 
-配置文件按 - 分段，这个文件是 yaml 格式的。这个程序得用到 dev-perl/yaml 。
+想起来之前用 palm 650 的时候，里面也有一个类似的游戏，排名前五都是他的名字，我都上不去那个榜。。。
 
-程序在<a href="http://github.com/wd/work/tree/91aa2432660a175ae486493e3a6f6edfb8ef787e/automount" target="_blank" rel="external">这里</a>。
+还有玩 qq 那个龙珠，其实就是类似 zuma 那个游戏。他居然学会了那个自己布局，然后一次全消掉那个方法。我反正是不会弄那个。。。
 
-本来之前在程序里面是有 umount 的，结果因为 umount 没成功，把我手机卡上面的东西都干掉了。。。所以还是保险一点，不加 umount 了，手动来吧。。。
+好多次都是，我找到一个好玩的游戏，教给她怎么玩，然后过几天我就拍马也赶不上了。唉。。。可没劲了
+
+另外，不得不补充一下，其它地方她怎么总表现的那个猪呢？
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/auto-mount-smb-and/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="clean-places-sqlite/">清理 firefox places.sqlite 来提速</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-07-17T16:00:00.000Z" itemprop="datePublished">Jul 18, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/firefox/">firefox</a>
-</div>
-    </div>
-      
-        来自这里 http://forum.moztw.org/viewtopic.php?t=26802
-
-使用前先备份，后悔了还能弄回去。
-
-<pre class="prettyprint lang-sql">
-sqlite3 places.sqlite "DELETE FROM moz_historyvisits WHERE place_id IN (SELECT id FROM moz_places WHERE visit_count <=2 );"="" sqlite3="" places.sqlite="" "delete="" from="" moz_places="" where="" (visit_count="" <="2" and="" hidden> 1 AND id NOT IN (SELECT place_id FROM moz_annos UNION SELECT fk FROM moz_bookmarks));"
-
-sqlite3 places.sqlite "DELETE FROM moz_inputhistory WHERE place_id NOT IN (SELECT id FROM moz_places);"
-
-sqlite3 places.sqlite "DELETE FROM moz_favicons WHERE id NOT IN (SELECT
-favicon_id FROM moz_places);"
-
-sqlite3 places.sqlite "VACUUM;"
-</=2></pre>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/clean-places-sqlite/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/clever-cc/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

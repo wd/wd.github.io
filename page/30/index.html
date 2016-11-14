@@ -101,6 +101,86 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="ttl-in-ping/">PING命令中TTL的具体含义zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-08-29T16:00:00.000Z" itemprop="datePublished">Aug 30, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/ping/">ping</a>
+</div>
+    </div>
+      
+        有台服务器ping的时候老出现 Time to live exceeded 这个错误，这样就会误报服务器挂掉，很烦人。找了半天似乎找到了解决方法了。
+
+ping的时候返回的包的ttl值是根据对方系统的设置来的，默认情况下，win是128,linux是64,返回的时候，每经过一个节点，就减1,这样，根据返回包的ttl值就可以判断经过了几个路由节点。而节点要是比较多的话，会导致这个ttl值为0,这样就出现上面提到的问题了。当然，要是遇到包进了环路，也会产生这样的问题，详细的内容可以看下面的转载文章。
+
+这样，解决这个问题的方法就是修改对方系统的默认ttl 值，比如修改为255，这样如果还产生上面的错误的话，那就没准是哪里的问题了。呵呵。
+
+<font color="#333333" style="line-height: 18px"> Linux下修改方法:
+
+方法1(重启后有效)：
+#sysctl -w net.ipv4.ip_default_ttl=N
+(N=0~255),若N>255,则ttl=0
+方法2(重启后无效)：
+#echo N(N为0～255) > /proc/sys/net/ipv4/ip_default_ttl</font>
+
+原文地址：<a href="http://blog.zol.com.cn/blog/wjf_top/35836.html">这里</a>
+<div align="left" style="width: 98%"><span class="neirong1_12u" style="overflow: hidden; width: 100%"> 								PING命令中TTL的具体含义
+提供者 vitty简单来说，TTL全程Time to Live，意思就是生存周期。
+首先要说明ping命令是使用的网络层协议ICMP，所以TTL指的是一个网络层的网络数据包（package）的生存周期，这句话不懂的先回去复习OSI7层协议去。
+
+第一个问题，为什么要有生存周期这个概念。
+
+很 显然，一个package从一台机器到另一台机器中间需要经过很长的路径，显然这个路径不是单一的，是很复杂的，并且很可能存在环路。如果一个数据包在传 输过程中进入了环路，如果不终止它的话，它会一直循环下去，如果很多个数据包都这样循环的话，那对于网络来说这就是灾难了。所以需要在包中设置这样一个 值，包在每经过一个节点，将这个值减1，反复这样操作，最终可能造成2个结果：包在这个值还为正数的时候到达了目的地，或者是在经过一定数量的节点后，这 个值减为了0。前者代表完成了一次正常的传输，后者代表包可能选择了一条非常长的路径甚至是进入了环路，这显然不是我们期望的，所以在这个值为0的时候， 网络设备将不会再传递这个包而是直接将他抛弃，并发送一个通知给包的源地址，说这个包已死。
+其实TTL值这个东西本身并代表不了什么，对于使用者来说，关心的问题应该是包是否到达了目的地而不是经过了几个节点后到达。但是TTL值还是可以得到有意思的信息的。
+
+每 个操作系统对TTL值得定义都不同，这个值甚至可以通过修改某些系统的网络参数来修改，例如Win2000默认为128，通过注册表也可以修改。而 Linux大多定义为64。不过一般来说，很少有人会去修改自己机器的这个值的，这就给了我们机会可以通过ping的回显TTL来大体判断一台机器是什么 操作系统。
+        
+          <p class="more-link">
+            <a href="ttl-in-ping/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/ttl-in-ping/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="test-for-live-write/">测试一下微软的livewrite</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-08-28T16:00:00.000Z" itemprop="datePublished">Aug 29, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/heart/">heart</a>
+</div>
+    </div>
+      
+        感觉好像还不错，呵呵。不过似乎没有写tag的地方。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/test-for-live-write/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="tomcat-apache-bridge/">tomcat和apache桥接</a>
 	</h2>
     <div class="entry-content">
@@ -313,7 +393,7 @@ nagios tray icon得设置界面如下，出问题得时候他不会弹出窗口�
 
   <article class="post">
 	<h2 class="title">
-		<a href="funny-math/">几道有趣的数学题</a>
+		<a href="oracle-handbook/">Oracle数据库日常维护手册</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -321,57 +401,31 @@ nagios tray icon得设置界面如下，出问题得时候他不会弹出窗口�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Joke/">Joke</a> <a href="../tags/funny/">funny</a>
+<a href="../tags/other/">other</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/监控/">监控</a>
 </div>
     </div>
       
-        <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144582/%EF%BF%BD%EF%BF%BD%EF%BF%BD_2.html" target="_blank" rel="external"><img width="240" height="172" border="0" alt="æ�°å­¦é¢�_2" src="http://static.flickr.com/73/207144582_bfa3cf060e_m.jpg"></a> <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144580/%EF%BF%BD%EF%BF%BD%EF%BF%BD_1.html" target="_blank" rel="external"><img width="240" height="220" border="0" alt="æ�°å­¦é¢�_1" src="http://static.flickr.com/60/207144580_12b95f5196_m.jpg"></a> <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144582/%EF%BF%BD%EF%BF%BD%EF%BF%BD_2.html" target="_blank" rel="external"><a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144583/%EF%BF%BD%EF%BF%BD%EF%BF%BD_3.html" target="_blank" rel="external"><a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144583/%EF%BF%BD%EF%BF%BD%EF%BF%BD_3.html" target="_blank" rel="external"><img width="194" height="240" border="0" alt="æ�°å­¦é¢�_3" src="http://static.flickr.com/97/207144583_f46da70ce6_m.jpg"></a>   <a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/207144584/%EF%BF%BD%EF%BF%BD%EF%BF%BD_4.html" target="_blank" rel="external"><img width="240" height="176" border="0" alt="æ�°å­¦é¢�_4" src="http://static.flickr.com/88/207144584_2d591c805e_m.jpg"></a> <img id="image225" alt="6465.gif" src="http://blog.wdicc.com/wordpress/wp-content/uploads/2006/08/6465.gif">
-</a></a>
-      
-	</div>
+        <h4 align="center" style="text-align: center; line-height: 13.5pt"><span lang="EN-US" style="color: black">Oracle</span><span style="color: black">数据库日常维护手册<span lang="EN-US"></span></span></h4>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">在<span lang="EN-US">Oracle</span>数据库运行期间，<span lang="EN-US">DBA</span>应该对数据库的运行日志及表空间的使用情况进行监控，及早发现数据库中存在的问题。<span lang="EN-US"> </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><strong><span style="font-size: 9pt; font-family: 宋体; color: black">一、<span lang="EN-US">Oracle</span>警告日志文件监控 </span></strong><span lang="EN-US" style="font-size: 9pt; color: black"></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">Oracle</span><span style="font-size: 9pt; color: black">在运行过程中，会在警告日志文件<span lang="EN-US">(alert_SID.log)</span>中记录数据库的一些运行情况<span lang="EN-US">: </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●数据库的启动、关闭，启动时的非缺省参数<span lang="EN-US">; </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●数据库的重做日志切换情况，记录每次切换的时间，及如果因为检查点<span lang="EN-US">(checkpoint)</span>操作没有执行完成造成不能切换，会记录不能切换的原因<span lang="EN-US">; </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●对数据库进行的某些操作，如创建或删除表空间、增加数据文件<span lang="EN-US">; </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●数据库发生的错误，如表空间不够、出现坏块、数据库内部错误<span lang="EN-US">(ORA-600) </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">DBA</span><span style="font-size: 9pt; color: black">应该定期检查日志文件，根据日志中发现的问题及时进行处理<span lang="EN-US"> </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">问题处理<span lang="EN-US"> </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">启动参数不对检查初始化参数文件<span lang="EN-US"> </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">因为检查点操作或归档操作没有完成造成重做日志不能切换如果经常发生这样的情况，可以考虑增加重做日志文件组<span lang="EN-US">;</span>想办法提高检查点或归档操作的效率<span lang="EN-US">; </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">有人未经授权删除了表空间检查数据库的安全问题，是否密码太简单<span lang="EN-US">;</span>如有必要，撤消某些用户的系统权限<span lang="EN-US"> </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">出现坏块检查是否是硬件问题<span lang="EN-US">(</span>如磁盘本生有坏块<span lang="EN-US">)</span>，如果不是，检查是那个数据库对象出现了坏块，对这个对象进行重建<span lang="EN-US"> </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">表空间不够增加数据文件到相应的表空间<span lang="EN-US"> </span></span></p>
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">出现<span lang="EN-US">ORA-600</span>根据日志文件的内容查看相应的<span lang="EN-US">TRC</span>文件，如果是<span lang="EN-US">Oracle</span>的<span lang="EN-US">bug</span>，要及时打上相应的补丁</span></p>
 
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/funny-math/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="usefull-sql/">Oracle维护常用SQL语句</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-08-04T16:00:00.000Z" itemprop="datePublished">Aug 5, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a>
-</div>
-    </div>
-      
-        查看所有用户
-<pre class="prettyprint lang-sql">
-select username,password from dba_users;
-</pre>
-1、查看表空间的名称及大小
-<pre class="prettyprint lang-sql">
-select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
-from dba_tablespaces t, dba_data_files d
-where t.tablespace_name = d.tablespace_name
-group by t.tablespace_name;
-</pre>
-2、查看表空间物理文件的名称及大小
-<pre class="prettyprint lang-sql">
-select tablespace_name, file_id, file_name,
-round(bytes/(1024*1024),0) total_space
-from dba_data_files
-order by tablespace_name;
-</pre>
+<p style="text-indent: 24pt; line-height: 13.5pt">
         
           <p class="more-link">
-            <a href="usefull-sql/#more">Read More</a>
+            <a href="oracle-handbook/#more">Read More</a>
           </p>
         
       
@@ -379,14 +433,14 @@ order by tablespace_name;
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/usefull-sql/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/oracle-handbook/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
 
   <article class="post">
 	<h2 class="title">
-		<a href="thief-in-711/">711也不保了，出现小偷</a>
+		<a href="change-username-in-oracle/">oracle修改用户密码</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -394,59 +448,24 @@ order by tablespace_name;
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a> <a href="../tags/公交/">公交</a> <a href="../tags/小偷/">小偷</a>
+<a href="../tags/other/">other</a> <a href="../tags/oracle/">oracle</a>
 </div>
     </div>
       
-        之前坐小九的时候，遇到过一次小偷。那家伙一上车就坐到了最后面一个坐。我站在他旁边，有两次这家伙往起一站都碰到头了。当时我没有想到是这家伙太注意目标了，所以才碰头，有人说丢手机的时候才想起来。丢手机的是个将手机跨在腰间的哥们，所以啊，一定不要用那种手机套了，太危险了，不过现在似乎很少有人用了。
+        如果用户是在服务器端使用数据库，那么可以用Oracle提供的SQLPlus进行数据库操作，假设要更改用户口令，可以这样做：
 
-今天坐711的时候，又有人丢东西了。开始是一个mm冲着一个男的问他干吗呢，那个男的小声的和那个mm说了句什么，后来那个mm也没说什么了，好像给110打电话了，说有个男的怎么怎么样。那个哥们也就在打电话的时候挤着下车跑了。然后就听见一个兄弟说手机丢了，他的手机似乎是放在上衣的口袋里面的。然后大家就开始议论那个小偷，之前那个mm也说了一下为什么要冲那个小偷问话，原来是小偷掏她钱包被发现了，钱包掉地上了。大家就说那你怎么不说啊，你说了那个小偷铁定不能让他下车啊，你不说大家都不知道怎么回事呢。
+sqlplus user/password
 
-很挤的公交车上面很容易滋生小偷的，大家坐车的时候千万要注意。地铁上面似乎还没有遇到过小偷，可能对于小偷来说地铁逃起来太难吧。
+sql>alter user sys identified by new_password;
+
+sql>exit
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/thief-in-711/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="recover-date/">数据恢复步骤</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-08-04T16:00:00.000Z" itemprop="datePublished">Aug 5, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/恢复/">恢复</a>
-</div>
-    </div>
-      
-        <pre class="prettyprint lang-sql">
-切换到oracle用户
-sqlplus
-conn / as sysdba
-drop user <user> cascade;
-create user <user> identified by <password> default tablespace <tablespace>;
-exit
-imp <user>/<password> file=<file_name> fromuser=<user> touser=<user>
-</user></user></file_name></password></user></tablespace></password></user></user></pre>
-
-<pre class="prettyprint lang-txt">
-*<user>为要恢复的用户，<password>为其密
-</password></user></pre>
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/recover-date/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/change-username-in-oracle/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

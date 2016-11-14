@@ -101,6 +101,171 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="writing-a-kde-plasma-applet/">写了一个 kde plasma applet</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-01-22T16:00:00.000Z" itemprop="datePublished">Jan 23, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/plasma/">plasma</a> <a href="../tags/pyqt4/">pyqt4</a> <a href="../tags/python/">python</a>
+</div>
+    </div>
+      
+        用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。
+
+第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。
+
+这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。
+
+昨天花了一个下午，总算弄好了。参考的文档 <a href="http://www.qtopia.org.cn/doc/qiliang.net/qt/classes.html" target="_blank" rel="external">qt的类</a>, <a href="http://www.zetcode.com/tutorials/pyqt4/" target="_blank" rel="external">pyqt4 turtorial</a>,<a href="http://techbase.kde.org/Development/Tutorials/Plasma/Python/GettingStarted" target="_blank" rel="external">plasma python</a> .
+
+效果就这样。电池旁边那个就是。
+
+<a href="http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png" target="_blank"><img src="http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png" alt="" width="300"></a>
+
+代码
+<pre class="prettyprint lang-python">
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+from PyKDE4.plasma import Plasma
+from PyKDE4 import plasmascript
+import time                                      
+
+class Cpuinfo(plasmascript.Applet):
+        def __init__(self,parent,args=None):
+                plasmascript.Applet.__init__(self,parent)
+
+        def init(self):
+                self.freqnow = ''
+                self.freqmax = ''
+                self.temp = ''
+                self.text = ''   
+
+                self.getCurrentFreq()
+                self.getMaxFreq()
+                self.getTemp()       
+
+                self.setHasConfigurationInterface(False)
+                self.setMinimumWidth(100)
+                self.setAspectRatioMode(Plasma.Square)
+                self.startTimer(1000)
+
+        def getCurrentFreq (self):
+                line = open ('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqnow = line
+
+        def getMaxFreq (self):
+                line = file('/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqmax = line
+
+        def getTemp (self):
+                line = file('/proc/acpi/thermal_zone/TZ1/temperature', 'r').read().rstrip('\n')
+                line = " ".join(line.split()[1:])
+                self.temp = line
+
+        def timerEvent(self, event):
+                self.getCurrentFreq()
+                self.getTemp()
+                self.text = "%s\n%.2f %d%%" % (self.temp, self.freqnow, self.freqnow / self.freqmax * 100)
+                self.update() 
+
+        def paintInterface(self, painter, option, rect):
+                painter.save()
+                painter.setPen(Qt.white)
+                #painter.setFont(QFont('Consolas',11))
+                painter.drawText(rect, Qt.AlignVCenter | Qt.AlignHCenter, self.text)
+                painter.restore()
+
+def CreateApplet(parent):
+                return Cpuinfo(parent)
+
+if __name__ == '__main__':
+        a = Cpuinfo(None)
+        a.init()
+        print a.freqnow</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/writing-a-kde-plasma-applet/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="perl-cookie/">使用 perl 来登录网页</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-01-05T16:00:00.000Z" itemprop="datePublished">Jan 6, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/cookie/">cookie</a> <a href="../tags/perl/">perl</a>
+</div>
+    </div>
+      
+        应该不能用。。。只是为了记录
+
+使用 LWP::UserAgent 可以简单的去访问网页，获取页面内容。例如
+
+<pre class="prettyprint lang-perl">
+use LWP::UserAgent;
+
+my $ua = LWP::UserAgent->new();
+$ua->timeout(10);
+$ua->agent('mozilla');
+
+my $r = $ua->get('http::/www.google.com');
+print $r->content; # or $r->decoded->content
+</pre>
+
+$r 的其它属性可以去 cpan 看看。这样就获取到了内容。但是，如果一个网页是需要登录的怎么办？可以用保存 cookie 的方式。
+
+<pre class="prettyprint lang-perl">
+use LWP::UserAgent;
+use HTTP::Cookies;
+use Digest::MD5 qw(md5 md5_hex); # 用来生成 md5 的
+use JSON; # 用来在 json 串和 perl 的 hash 串之间转换
+use Data::Dumper;
+
+my $cookie_jar = HTTP::Cookies->new(
+	file => "lw.dat",
+	autosave => 1
+);
+
+my $ua = LWP::UserAgent->new();
+$ua->timeout(10);
+$ua->agent('mozilla');
+
+my(@rest) = ("/", ".yahoo.com", undef, 0, 0, 60*60, 0);
+$cookie_jar->set_cookie(0, 'session', $session, @rest);
+
+$ua->cookie_jar($cookie_jar);
+
+$o = $ua->get($url);
+........
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/perl-cookie/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="convert-reiserfs-t-ext4/">把硬盘的分区都换成了 ext4</a>
 	</h2>
     <div class="entry-content">
@@ -521,68 +686,6 @@ BUS=="usb",SYSFS{serial}=="PalmSN12345678", KNERNEL="ttyUSB*",OWNER="root",GROUP
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/palm-in-linux/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="kill-session-in-oracle/">oracle 里面 kill session</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-10-06T16:00:00.000Z" itemprop="datePublished">Oct 7, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/session/">session</a>
-</div>
-    </div>
-      
-        eygle <a href="http://www.eygle.com/faq/Kill_Session.htm" target="_blank">有篇文章</a>讲了这个，之前也看过。昨天实际操作了一下。
-
-因为如 eygle 所讲，kill 了 session 之后，操作系统里面的进程资源有时候不一定会立即释放，所以最好在 kill 之前就找到系统的进程 id，这样，如果不释放的时候，可以直接kill。省的之后找起来麻烦。
-
-昨天操作的时候有这么几个步骤
-<ol>
-	<li>select * from v$session where username like 'UP' --先找到这个用户的 session。</li>
-	<li>select * from v$sql a, v$session b where b.username = 'UP' and a.sql_id = b.sql_id --找出来这个用户这些 session 对应的 sql 语句，好确认 session 的 id。</li>
-	<li>select * from v$process a, v$session b where a.addr = b.paddr and b.username like 'UP' and b.sid = xxx --找出来他的系统进程id，就是那个 spid。</li>
-	<li>ALTER SYSTEM KILL SESSION 'sid, serial#' --可以实施kill了，可能会提示你marked for kill，有必要的话，在os级别kill前面找出来的 spid。</li>
-</ol>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/kill-session-in-oracle/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="wdicc-com-is-return/">域名终于搞回来了</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-09-21T16:00:00.000Z" itemprop="datePublished">Sep 22, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a>
-</div>
-    </div>
-      
-        历经周折，总算把域名弄回来了。我还是喜欢 wdicc.com 多过 wdicc.cn。呵呵。顺便鄙视一下 xh 这头猪，差点把我的域名弄丢。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/wdicc-com-is-return/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

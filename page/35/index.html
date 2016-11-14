@@ -101,11 +101,11 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="stop-and-start-script-for-apache-and-weblogic/">启动停止weblogic和apache的脚本</a>
+		<a href="a-file-root-cant-modify/">root用户无法修改的一个文件</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+      <div class="date">Published on: <time datetime="2006-05-14T16:00:00.000Z" itemprop="datePublished">May 15, 2006</time>
 </div>
       <div class="tags">Tags: 
 
@@ -113,14 +113,78 @@
 </div>
     </div>
       
-        apache和weblogic做桥接之后，启动的时候要先启动weblogic，后启动apache，停止的时候要先停止apache，后停止weblogic，这
+        # ls -al xx
+-rwxr-xr-x &nbsp; &nbsp;1 root &nbsp; &nbsp; root &nbsp; &nbsp; &nbsp; &nbsp; 2647 Dec &nbsp;8 16:47 xx
+
+# stat -c %a startWebLogic.sh
+755
+
+# mv xx xx.ss
+mv: cannot move `xx' to `xx.ss': Operation not permitted
+
+这是怎么回事呢？上bbs问了一下才知道。
+
+# lsattr xx
+----i-------- xx
+
+只需要执行如下命令即可
+#chattr -i xx
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/a-file-root-cant-modify/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="ldap-samba/">ldap samba实现windows域管理</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-13T16:00:00.000Z" itemprop="datePublished">May 14, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a>
+</div>
+    </div>
+      
+        0 准备工作
+
+1) 一个全新安装的debian sarge。1台或者多台Win 2k/xp测试电脑。
+2) 至少懂一些LDAP和Samba。
+3) 假设服务器的域名是abc.com，服务器的名称为test-server。
+
+1 安装web服务器
+
+# apt-get install apache2 php4 libapache2-mod-php4
+
+等待安装完毕之后，用浏览器连接服务器的域名或者ip试试看。能显示web页就说明apache2没问题了。apache2的web的根目录在/var/www，配置文件在/etc/apache2。
+
+此后需要验证php4是否安装妥当。在/var/www目录新建一个index.php文件，内容如下。
+
+&lt;?
+ &nbsp; &nbsp;phpinfo();
+?&gt;
+
+保存之后，再次连接服务器的 http://abc.com/index.php ，会看到一个php信息的网页，表示php安装成功。
+<br>
+        
+          <p class="more-link">
+            <a href="ldap-samba/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/ldap-samba/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -163,6 +227,103 @@
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/portmap/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="rsync-script/">rsync脚本的一个例子</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a> <a href="../tags/rsync/">rsync</a>
+</div>
+    </div>
+      
+        <pre class="prettyprint lang-bash">
+
+SYNCLOGFILE="/var/log/rsync-201.log"
+SYNCLOCKFILE="/var/lock/rsync-201.lock"
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n ">>> Sync log for " >> $SYNCLOGFILE
+date >> $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
+rm -f $SYNCLOCKFILE
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="stop-and-start-script-for-apache-and-weblogic/">启动停止weblogic和apache的脚本</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a>
+</div>
+    </div>
+      
+        apache和weblogic做桥接之后，启动的时候要先启动weblogic，后启动apache，停止的时候要先停止apache，后停止weblogic，这
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="del-30-day-old-file/">find命令查找删除30天之前的文件</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a> <a href="../tags/find/">find</a>
+</div>
+    </div>
+      
+        find /data -name "xxx.*" -follow -ctime +30 -exec rm -rf {} \;
+
+删除30天之前的文件。
+-follow表示跟随链接。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/del-30-day-old-file/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -245,77 +406,6 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 
   <article class="post">
 	<h2 class="title">
-		<a href="del-30-day-old-file/">find命令查找删除30天之前的文件</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a> <a href="../tags/find/">find</a>
-</div>
-    </div>
-      
-        find /data -name "xxx.*" -follow -ctime +30 -exec rm -rf {} \;
-
-删除30天之前的文件。
--follow表示跟随链接。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/del-30-day-old-file/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="rsync-script/">rsync脚本的一个例子</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a> <a href="../tags/rsync/">rsync</a>
-</div>
-    </div>
-      
-        <pre class="prettyprint lang-bash">
-
-SYNCLOGFILE="/var/log/rsync-201.log"
-SYNCLOCKFILE="/var/lock/rsync-201.lock"
-
-if [[ -f $SYNCLOCKFILE ]]; then
-  # lock file already present, bail
-  exit 1
-fi
-
-echo -n ">>> Sync log for " >> $SYNCLOGFILE
-date >> $SYNCLOGFILE
-
-touch $SYNCLOCKFILE
-rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
-rm -f $SYNCLOCKFILE
-</pre>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="178-accident/">178事故</a>
 	</h2>
     <div class="entry-content">
@@ -344,40 +434,6 @@ rm -f $SYNCLOCKFILE
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/178-accident/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="use-rsa-and-dsa/">使用ssh的rsa和dsa验证登陆linux</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-23T16:00:00.000Z" itemprop="datePublished">Apr 24, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a> <a href="../tags/ssh/">ssh</a>
-</div>
-    </div>
-      
-        参考地址：http://www.5ilinux.com/ssh01.html
-
-按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。
-
-用putty使用这个密匙的时候就出问题了，验证不了。
-
-然后用putty生成公匙密匙，上传公匙，验证不了。
-
-后来用openssh自带的ssh-keygen生成了公匙密匙，然后用putty的keygen转换了一下，用putty登陆就可以了。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/use-rsa-and-dsa/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -418,58 +474,34 @@ rm -f $SYNCLOCKFILE
 
   <article class="post">
 	<h2 class="title">
-		<a href="iptables-on-remote-server/">为远程服务器设置防火墙</a>
+		<a href="use-rsa-and-dsa/">使用ssh的rsa和dsa验证登陆linux</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-19T16:00:00.000Z" itemprop="datePublished">Apr 20, 2006</time>
+      <div class="date">Published on: <time datetime="2006-04-23T16:00:00.000Z" itemprop="datePublished">Apr 24, 2006</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a> <a href="../tags/iptables/">iptables</a>
+<a href="../tags/other/">other</a> <a href="../tags/ssh/">ssh</a>
 </div>
     </div>
       
-        如果服务器不在本地，又需要对防火墙做设置的时候，操作一定要注意，
+        参考地址：http://www.5ilinux.com/ssh01.html
+
+按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。
+
+用putty使用这个密匙的时候就出问题了，验证不了。
+
+然后用putty生成公匙密匙，上传公匙，验证不了。
+
+后来用openssh自带的ssh-keygen生成了公匙密匙，然后用putty的keygen转换了一下，用putty登陆就可以了。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/iptables-on-remote-server/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="search-in-vim/">VIM查找替换归纳总结zz</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-17T16:00:00.000Z" itemprop="datePublished">Apr 18, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a> <a href="../tags/vim/">vim</a>
-</div>
-    </div>
-      
-        <p><a href="http://spaces.msn.com/dingy/blog/cns!2F24B9E66A542581!327.entry">http://spaces.msn.com/dingy/blog/cns!2F24B9E66A542581!327.entry</a>
-
-VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替换命令可以在全文中用一个单词替换另一个单词：</p><p>:%s/four/4/g</p><br>
-        
-          <p class="more-link">
-            <a href="search-in-vim/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/search-in-vim/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/use-rsa-and-dsa/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

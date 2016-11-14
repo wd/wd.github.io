@@ -101,6 +101,78 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="twittering-mode/">emacs 上推神器 twittering-mode</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-04-02T16:00:00.000Z" itemprop="datePublished">Apr 3, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/emacs/">emacs</a>
+</div>
+    </div>
+      
+        emacs 里面可以干很多事情，包括上 twitter。 在 @xwl 的努力下，还能上 sina 微博。。。
+
+emacswiki 地址在这里 http://www.emacswiki.org/emacs/TwitteringMode， xwl 的 fork 在这里 https://github.com/xwl/twittering-mode/，增加了 sina 微博的支持，好像最近还增加了 douban 的支持。
+
+我的配置在这里 https://github.com/wd/emacs.d/blob/master/site-lisp/config/wd-twitter.el，里面 twitter 使用的是代理。
+
+我用到的 twmod 的按键设置:
+推上面 <ret> 回复
+j/k/h/l 类似 vim 里面
+h 到第一条
+C-c C-s 发推
+C-u M-x twittering-update-status-interactive 可以选择同时更新两个
+M-x twittering-switch-to-unread-timeline 切换到未读的 timeline，可以绑定到一个按键上面
+
+其他的看 C-h m 里面的说明吧，效果在这里 http://flic.kr/p/9vy96G
+</ret>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/twittering-mode/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="parse-qqwry-dat/">解析纯真 ip 库</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-03-09T16:00:00.000Z" itemprop="datePublished">Mar 10, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/perl/">perl</a>
+</div>
+    </div>
+      
+        纯真的 ip 库应用比较广泛，就那个 qqwry.dat。以前尝试过解析，死活弄不明白那写地址和 pack/unpack 啥的，晕的不行。这两天需要解析下，就尝试用 perl 写一个。
+
+开始用 sysread/sysseek 很多都读不出来，看了n遍程序，没觉得有啥问题。后来全部改成了 read/seek 就好了，也不知道怎么回事。画了一个图说明下，参考了 http://lumaqq.linuxsir.org/article/qqwry_format_detail.html 。
+
+<table style="width:auto;"><tr><td><a href="https://picasaweb.google.com/lh/photo/f83_NZhjf6QchgG9gGRueg?feat=embedwebsite" target="_blank" rel="external"><img src="https://lh6.googleusercontent.com/_7OB6ilikjVs/TXie-yreH2I/AAAAAAAAAKY/fTPMq-pkuqU/s640/qqwry.png" height="640" width="269"></a></td></tr><tr><td style="font-family:arial,sans-serif; font-size:11px; text-align:right">发件人 <a href="https://picasaweb.google.com/wdicc0/2011310?feat=embedwebsite" target="_blank" rel="external">2011-3-10</a></td></tr></table>
+
+读来的3字节地址需要加 "\0" 才能 unpack，不知道怎么回事，对这些问题弄不明白。对了，网上还有个 perl 版的，也能用，需要的话可以搜一下。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/parse-qqwry-dat/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="days-in-2010/">总结 2010</a>
 	</h2>
     <div class="entry-content">
@@ -520,235 +592,6 @@ Sunday     25 July 2010
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/use-org-mode-as-a-job-tracker/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="lang-settings-when-use-grep-or-sort/">使用 grep sort 等工具的时候要注意 LANG 的设置</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2010-07-11T16:00:00.000Z" itemprop="datePublished">Jul 12, 2010</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/grep/">grep</a> <a href="../tags/sort/">sort</a>
-</div>
-    </div>
-      
-        发现在使用 sort 或 grep 等工具的时候，LANG 会影响到速度。
-
-1.5G 的文件，grep -Ei 'keyword' file, LANG=C 的时候执行时间是 22 秒，LANG=en_US.UTF-8 的时候，执行时间是 3分53秒，最后结果是一样的。
-
-这还不是最恐怖的，恐怖的是下面的
-<pre class="prettyprint lang-text">
-$ cat a
-a
-b
-C
-d
-E
-
-$ LANG=en_US.UTF-8 egrep '[a-z]' a
-a
-b
-C
-d
-E
-
-$ LANG=C egrep '[a-z]' a
-a
-b
-d
-</pre>
-
-以后用这些工具还是小心一点吧。。。。。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/lang-settings-when-use-grep-or-sort/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="sendmail-pm/">无聊又写一个用来发邮件的 pm..</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2010-07-08T16:00:00.000Z" itemprop="datePublished">Jul 9, 2010</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/sendmail/">sendmail</a> <a href="../tags/perl/">perl</a>
-</div>
-    </div>
-      
-        
-继使用 perl 发<a href="http://wdicc.com/sendmail-use-perl/">中文标题邮件</a>，和<a href="http://wdicc.com/sned-mail-with-attachment/">中文附件邮件</a>后，又把他们整合了一下写了一个 pm 干这个事。
-
-其实发带附件的邮件应该是有现成的 pm 干这个事的，比如 MIME::Lite 之类，没特殊需求还是用那个吧，这个纯属无聊写的。
-
-文件前面有使用方法。。
-
-<pre class="prettyprint">
-package SendMail;
-
-use strict;
-use warnings;
-use Data::Dumper;
-use Encode;
-use MIME::Base64;
-
-=head1 Examples
-use SendMail;
-
-my $sm = SendMail->new( {
-    To => 'you@foo.com, other@bar.com',
-    Subject => 'just a test 中文',
-    });
-
--- or --
-
-my $sm = SendMail->new( {
-    From => 'me@abc.com',
-    To => 'you@foo.com, other@bar.com',
-    Subject => 'just a test 中文',
-    } );
-
--- or --
-
-my $sm = SendMail->new( {
-    From => 'me@abc.com',
-    To => 'you@foo.com, other@bar.com',
-    Cc => 'cc@foobar.com',
-    Subject => 'just a test 中文',
-    } );
-
-
-$sm->attach( {
-    Type => "text/plain",
-    Data => "只是一个测试..a test"
-    });
-
-$sm->attach( {
-    Type => 'application/octet-stream',
-    Filename => 'test 中文.txt',
-    Data => "只是一个 test ..."
-    });
-
-$sm->test;
-
--- or --
-
-$sm->send;
-
-=cut
-
-
-
-use vars qw($VERSION);
-$VERSION = '0.01';
-
-our $boundary = "FFFFFFFFKKKKKK";
-our $from = 'no-reply@abc.com';
-our $subject = "No subject";
-
-our $to;
-our $cc;
-our @body;
-
-
-sub new {
-    my $package = shift;
-    my $info = shift;
-
-    $subject = $info->{Subject} || $subject;
-    $subject = encode('MIME-B', decode('utf8', $subject));
-    $from = $info->{From} || $from;
-    $to = $info->{To} || die "Need to set MailTo 'To'!";
-    $cc = $info->{Cc} || "";
-
-    push @body, "MIME-Version: 1.0";
-    push @body, "Content-Type: multipart/mixed; boundary=\"$boundary\"";
-    push @body, "";
-
-    return bless( {}, $package);
-}
-
-sub attach {
-    my $self = shift;
-    my $f_hash = shift;
-
-    die "Need data when attach!" if ( not defined $f_hash->{Data} );
-
-    my $type = "text/plain";
-    $type = $f_hash->{Type} if defined $f_hash->{Type};
-
-    my @t;
-    push @t, "--$boundary";
-    if ( $type eq "text/plain" ) {
-        push @t, "Content-Type: $type; charset=utf-8";
-    } else {
-        my $filename = "file1.txt";
-        $filename = encode('MIME-B', decode('utf8', $f_hash->{Filename})) if defined $f_hash->{Filename};
-        push @t, "Content-Type: $type";
-        push @t, "Content-Disposition: attachment; filename=$filename";
-    }
-    push @t, "Content-Transfer-Encoding: base64";
-    push @t, "";
-    push @t, encode_base64($f_hash->{Data});
-
-    push @body, @t;
-}
-
-sub send {
-    my $self = shift;
-
-    open(my $fh, '|/usr/sbin/sendmail -t');
-    $self->print_to($fh);
-    close($fh);
-}
-
-sub print_to {
-    my $self = shift;
-    my $fh = shift;
-
-    push @body, "--$boundary--";
-
-    print $fh "From: $from\r\n";
-    print $fh "To: $to\r\n";
-    print $fh "Cc: $cc\r\n" if $cc;
-    print $fh "Subject: $subject\r\n";
-
-    for ( @body ) {
-        print $fh "$_\r\n";
-    }
-}
-
-sub test {
-    my $self = shift;
-
-    open ( my $fh, '>-');
-    $self->print_to($fh);
-    close($fh);
-}
-
-1;
-</pre>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/sendmail-pm/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

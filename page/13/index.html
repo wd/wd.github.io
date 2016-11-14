@@ -101,6 +101,68 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="kill-session-in-oracle/">oracle 里面 kill session</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-10-06T16:00:00.000Z" itemprop="datePublished">Oct 7, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/session/">session</a>
+</div>
+    </div>
+      
+        eygle <a href="http://www.eygle.com/faq/Kill_Session.htm" target="_blank">有篇文章</a>讲了这个，之前也看过。昨天实际操作了一下。
+
+因为如 eygle 所讲，kill 了 session 之后，操作系统里面的进程资源有时候不一定会立即释放，所以最好在 kill 之前就找到系统的进程 id，这样，如果不释放的时候，可以直接kill。省的之后找起来麻烦。
+
+昨天操作的时候有这么几个步骤
+<ol>
+	<li>select * from v$session where username like 'UP' --先找到这个用户的 session。</li>
+	<li>select * from v$sql a, v$session b where b.username = 'UP' and a.sql_id = b.sql_id --找出来这个用户这些 session 对应的 sql 语句，好确认 session 的 id。</li>
+	<li>select * from v$process a, v$session b where a.addr = b.paddr and b.username like 'UP' and b.sid = xxx --找出来他的系统进程id，就是那个 spid。</li>
+	<li>ALTER SYSTEM KILL SESSION 'sid, serial#' --可以实施kill了，可能会提示你marked for kill，有必要的话，在os级别kill前面找出来的 spid。</li>
+</ol>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/kill-session-in-oracle/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="wdicc-com-is-return/">域名终于搞回来了</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-09-21T16:00:00.000Z" itemprop="datePublished">Sep 22, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/heart/">heart</a>
+</div>
+    </div>
+      
+        历经周折，总算把域名弄回来了。我还是喜欢 wdicc.com 多过 wdicc.cn。呵呵。顺便鄙视一下 xh 这头猪，差点把我的域名弄丢。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/wdicc-com-is-return/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="compare-search-engines/">搜索引擎比较</a>
 	</h2>
     <div class="entry-content">
@@ -982,74 +1044,6 @@ gnome-ppp 使用很简单了，自己琢磨吧。
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/cmda-1x-in-gentoo-linux/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="kong-fu-panda/">昨天去看了《功夫熊猫》</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-07-05T16:00:00.000Z" itemprop="datePublished">Jul 6, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a> <a href="../tags/movie/">movie</a> <a href="../tags/panda/">panda</a>
-</div>
-    </div>
-      
-        浦发的电影票好久没定上了，所以熊猫出来好久了也没去看。
-
-<img src="http://pic.yupoo.com/wdicc/655915d3eac1/aafljbo3.jpg" alt="功夫熊猫" width="500" height="500">
-
-片子还是不错的，“Mr 乌龟”的这种叫法不知道是怎么搞出来的，呵呵。
-
-这里有不少预告片，可以去看看。 http://www.mtime.com/movie/44740/trailer.html
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/kong-fu-panda/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="howto-reset-ati-fglrx-settings/">万恶的 ATI fglrx 驱动</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-07-03T16:00:00.000Z" itemprop="datePublished">Jul 4, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/ati/">ati</a> <a href="../tags/fglrx/">fglrx</a>
-</div>
-    </div>
-      
-        ATI 官方驱动带了一个 amdcccle 命令，可以显示图形界面对显示器作一些设置，例如修改分辨率，twinview, dual head, bigdesktop 这些设置。其实 nvidia 的官方驱动也是带了这么一个工具的。
-
-但是呢，有时候就会发现，通过这个命令修改显示之后，你的xorg.conf 里面的设置就不起作用了！无论你之后如何去修改你的 xorg.conf ，他根本不会去理会。
-
-我遇到的问题就是，某次通过 amdcccle 设置了一下 bigdesktop，结果导致接上我的另外一个LCD之后，那个LCD的分辨率死活就卡在 1024x768 上了。要知道，那个LCD是支持 1280x1024的，可是无论如何设置，就是不能提高分辨率了。查看 xorg 的log，能看到读取的 /etc/X11/xorg.conf 文件，可是就是没效果。
-
-开始怀疑是显示器出于保护，把分辨率设置底了，结果接到别人的笔记本上面是没问题的。后来研究来研究去，发现还是 ATI 驱动的问题。
-
-/etc/ati 下面有不少文件，也不知道这些文件是什么用途，但是 amdpcsdb 这个文件就是罪魁祸首了。删掉后LCD的分辨率就正常了。
-
-很奇怪，我执行 amdcccle 的时候，用的可不是 sudo ，他是怎么写到这个文件里面的？
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/howto-reset-ati-fglrx-settings/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

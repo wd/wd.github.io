@@ -101,6 +101,109 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="auto-mount-smb-and/">写了一个用来 mount smb 和 u 盘之类的程序</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-07-19T16:00:00.000Z" itemprop="datePublished">Jul 20, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/autumount/">autumount</a> <a href="../tags/smb/">smb</a>
+</div>
+    </div>
+      
+        主要是不用 gnome 了，访问 smb 和 mount u盘有点不爽，无聊就写了一个。
+
+程序不是全自动的，是基于配置文件的。写好配置文件，然后执行这个程序。
+
+配置文件类似下面的
+<pre class="prettyprint lang-conf">
+# type: u  | smb | cifs
+#
+#
+-
+ name: 匿名smb
+ type: cifs
+-
+ name: cc
+ type: cifs
+ ip: 192.168.1.125
+ opt: iocharset=utf8,codepage=cp936
+-
+ name: fileserver
+ type: cifs
+ ip: fileserver
+ user: wd
+ pwd: 1111
+ opt: iocharset=utf8,codepage=cp936
+-
+ name: g1
+ type: u
+ partitions: /dev/sda1, /dev/sda2
+-
+ name: u 盘
+ type: u
+ partitions: /dev/sda1
+</pre>
+
+配置文件按 - 分段，这个文件是 yaml 格式的。这个程序得用到 dev-perl/yaml 。
+
+程序在<a href="http://github.com/wd/work/tree/91aa2432660a175ae486493e3a6f6edfb8ef787e/automount" target="_blank" rel="external">这里</a>。
+
+本来之前在程序里面是有 umount 的，结果因为 umount 没成功，把我手机卡上面的东西都干掉了。。。所以还是保险一点，不加 umount 了，手动来吧。。。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/auto-mount-smb-and/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="clean-places-sqlite/">清理 firefox places.sqlite 来提速</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-07-17T16:00:00.000Z" itemprop="datePublished">Jul 18, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/firefox/">firefox</a>
+</div>
+    </div>
+      
+        来自这里 http://forum.moztw.org/viewtopic.php?t=26802
+
+使用前先备份，后悔了还能弄回去。
+
+<pre class="prettyprint lang-sql">
+sqlite3 places.sqlite "DELETE FROM moz_historyvisits WHERE place_id IN (SELECT id FROM moz_places WHERE visit_count <=2 );"="" sqlite3="" places.sqlite="" "delete="" from="" moz_places="" where="" (visit_count="" <="2" and="" hidden> 1 AND id NOT IN (SELECT place_id FROM moz_annos UNION SELECT fk FROM moz_bookmarks));"
+
+sqlite3 places.sqlite "DELETE FROM moz_inputhistory WHERE place_id NOT IN (SELECT id FROM moz_places);"
+
+sqlite3 places.sqlite "DELETE FROM moz_favicons WHERE id NOT IN (SELECT
+favicon_id FROM moz_places);"
+
+sqlite3 places.sqlite "VACUUM;"
+</=2></pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/clean-places-sqlite/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="use-emacs-as-python-ide/">把 emacs 做为 python ide</a>
 	</h2>
     <div class="entry-content">
@@ -460,80 +563,6 @@ xset r rate 180  # keyboard repeat delay
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/twitter-updates-for-2009-05-23/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="twitter-updates-for-2009-05-22/">Twitter Updates for 2009-05-22</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-05-21T16:00:00.000Z" itemprop="datePublished">May 22, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a>
-</div>
-    </div>
-      
-        <ul class="aktt_tweet_digest">
-	<li><a href="http://bit.ly/w3f7J" rel="external" target="_blank">http://bit.ly/w3f7J</a>
- 猫咪的睡功 <a href="http://twitter.com/wd/statuses/1878069706" target="_blank" rel="external">#</a></li>
-	<li>名因打劫荷兰商船而被捕的索马里海盗近日表示愿意留在当地，即便是在监狱里服役也比回去过那种吃了上顿没下顿的好。荷兰法律专家同时提醒各国：警惕索马里海盗大面积自动投降，来欧洲监狱里吃闲饭 <a href="http://twitter.com/wd/statuses/1878065052" target="_blank" rel="external">#</a></li>
-	<li>@<a href="http://twitter.com/yegle" target="_blank" rel="external">yegle</a> twitter 有点贵，google 不想买 <a href="http://twitter.com/yegle/statuses/1878028103" target="_blank" rel="external">in reply to yegle</a> <a href="http://twitter.com/wd/statuses/1878049797" target="_blank" rel="external">#</a></li>
-	<li><a href="http://www.cnbeta.com/articles/84831.htm" rel="external" target="_blank">http://www.cnbeta.com/articles/84831.htm</a> 暴风长老, 请收了神通吧! <a href="http://twitter.com/wd/statuses/1877453735" target="_blank" rel="external">#</a></li>
-</ul>
-<p class="aktt_credit">Powered by <a href="http://alexking.org/projects/wordpress" target="_blank" rel="external">Twitter Tools</a>.</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/twitter-updates-for-2009-05-22/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="eclipse-depends-on-jdk-14/">eclipse 对 jdk 1.4 的依赖</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-05-15T16:00:00.000Z" itemprop="datePublished">May 16, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/ebuild/">ebuild</a>
-</div>
-    </div>
-      
-        首先日一下 bilbo，不小心按了一下 ctrl+z，内容居然都丢了，nnd，刚才都写完了。
-
-言归正传。之前想安装 eclipse 的时候，发现他依赖 jdk 1.4，就没装。这次又想装了，就试着找找看哪个依赖 jdk 1.4.下面就是找的过程。
-<pre class="prettyprint lang-txt">
-:%s/\(\d\)\s\+.*$/\1/g #去掉结尾的没用的东西
-:%s#/\(.*\)\(-\d\)#/\1/\1\2#   #把路径弄好</pre>
-<pre class="prettyprint lang-bash">for l in $(cat ~/b);do echo "######$l">
-下面是结果中的部分。第一个 ebuild 里面这种是不会有问题的。就是第二个造成的依赖 jdk 1.4，给他加一个 java5 的 use 的就好了。
-<pre class="prettyprint lang-txt">
-DEPEND=">=virtual/jdk-1.4
-RDEPEND=">=virtual/jre-1.4"
-######dev-java/tomcat-servlet-api/tomcat-servlet-api-5.5.27.ebuild
-DEPEND="java5? ( >=virtual/jdk-1.5 )
-!java5? ( =virtual/jdk-1.4* )
-RDEPEND="java5? ( >=virtual/jdk-1.5 )
-!java5? ( =virtual/jdk-1.4* )"</pre>
-</pre>
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/eclipse-depends-on-jdk-14/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
