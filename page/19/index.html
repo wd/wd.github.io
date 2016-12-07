@@ -101,27 +101,99 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="change-trigger-setting-for-thold/">稍微深入了解了一下cacti的thold插件的邮件通知</a>
+		<a href="oracle-jobs/">oracle 的 job 又遇到问题了</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2007-06-27T16:00:00.000Z" itemprop="datePublished">Jun 28, 2007</time>
+      <div class="date">Published on: <time datetime="2007-06-28T16:00:00.000Z" itemprop="datePublished">Jun 29, 2007</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/cacti/">cacti</a> <a href="../tags/thold/">thold</a> <a href="../tags/trigger/">trigger</a>
+<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/job/">job</a> <a href="../tags/高级复制/">高级复制</a>
 </div>
     </div>
       
-        <p>通过cacti的thold插件，可以做到snmp抓取到的数值低于你规定的值的时候进行邮件通知，例如我用他来监控磁盘空间，当磁盘空间低于某个数的时候就会给指定的email发邮件。但是有一点郁闷的是，有时候，可能是由于网络原因，抓取会超时，这样就会导致触发trigger，给你发送邮件。5分钟抓取一次，我这里的情况是几乎每个小时总会有2，3封这种邮件，很烦人，而且根本没意义。早就想屏蔽掉这种情况了，看了代码挺复杂就懒得弄，今天实在受不了了，深入了解了一下。</p> <p>其实thold本身已经考虑到了这种情况，在 thold 的设置里面，就有一项 Default Trigger Count （Number of consecutive times the data source must be in breach of the threshold for an alert to be raised），就是连续触发几次才认为他真的低于 thold 了，才发送邮件。我尝试过修改这个设置，发现不管用。看了代码才了解，每个 <strong>Thresholds</strong>&nbsp;都有自己的 trigger 值，那个 default trigger count 只对新建的 thresholds 才有用。所以针对现有的，需要逐个去修改才行。如果不设置这个选项，那么使用的就是上面设置的那个默认的，所以没特殊需要，还是不要针对每个 thresholds 设置自己的 trigger 值比较好，这样方便修改。我通过修改数据库的方法，直接把这些都修改了。</p> <p><pre lang="sql">update thold_data set thold_fail_trigger = NULL;</pre>
-</p><p>修改了之后还没有收到，这下应该清净了吧？</p>
+        <p>还是高级复制的问题，这次可能是因为job执行过程中，对方机器刚好重启导致的。反正job是卡在那里了，都10多天了。</p> <p>查看 dba_jobs_running 表，可以看到卡住的job的 job_id 和 sid 。查看 dba_jobs 表，可以看到相应 job 的信息，this_date 如果有数据的话，表示的是 job 开始执行的时间，next_date 是下次执行 job 的时间，如果 job 正常执行完毕，那么 this_date 应该是空的。根据 sid 还可以查看 v$session_wait 和 v$session 里面的这个 job 的一些状态。</p> <p>尝试了下面的方法来重新运行job，当时好像不好用，不过今天来看的时候，job是执行了。现在也不清楚是不是我这个操作起作用了，真晕。</p> <p><pre lang="txt">SQL&gt; exec dbms_job.broken(109,true);
+
+PL/SQL procedure successfully completed.
+
+SQL&gt; commit;
+
+Commit complete.
+
+SQL&gt; select job,sid from dba_jobs_running;
+
+       JOB        SID
+---------- ----------
+       109        656
+
+SQL&gt; select saddr,sid,serial#,paddr,username,status from v$session where username = 'REPADMIN';
+
+SADDR           SID    SERIAL# PADDR    USERNAME                       STATUS
+-------- ---------- ---------- -------- ------------------------------ --------
+973CF8C4        626         27 98F96BB8 REPADMIN                       ACTIVE
+973D2E7C        629         10 98F88670 REPADMIN                       ACTIVE
+973F11F4        656         10 98F88174 REPADMIN                       ACTIVE
+
+SQL&gt; alter system kill session '656,10';
+
+System altered.
+
+SQL&gt; select saddr,sid,serial#,paddr,username,status from v$session where username = 'REPADMIN';
+
+no rows selected
+
+SQL&gt; select job,sid from dba_jobs_running;
+
+no rows selected
+
+SQL&gt; select job,log_user,last_date,next_date from dba_jobs where log_user='REPADMIN';
+
+       JOB LOG_USER                       LAST_DATE
+---------- ------------------------------ -------------------
+NEXT_DATE
+-------------------
+       106 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+
+       109 REPADMIN                       2007-06-28 16:07:38
+4000-01-01 00:00:00
+
+       110 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+
+
+SQL&gt; exec dbms_job.broken(109,false,sysdate);
+
+PL/SQL procedure successfully completed.
+
+SQL&gt; commit;
+
+Commit complete.
+
+SQL&gt; select job,log_user,last_date,next_date from dba_jobs where log_user='REPADMIN';
+
+       JOB LOG_USER                       LAST_DATE
+---------- ------------------------------ -------------------
+NEXT_DATE
+-------------------
+       106 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+
+       109 REPADMIN                       2007-06-28 16:07:38
+2007-06-28 16:28:40
+
+       110 REPADMIN                       2007-06-28 16:25:43
+2007-06-28 16:35:43
+</pre>
+</p><p>此后就我所知道的，就只能等着了。dbms_job.run(job_id) 也可以让 job 立即执行。关键是看 this_date ，他的值就是开始执行 job 的时间，job 如果执行时间太长，而下次执行又太快的话，可能也会导致问题。所以还可以尝试手动执行 job 看看。 dba_jobs 的 waht 字段就是对于的语句。</p>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/change-trigger-setting-for-thold/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/oracle-jobs/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -158,26 +230,27 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="such-hot-weather/">天气太热了</a>
+		<a href="change-trigger-setting-for-thold/">稍微深入了解了一下cacti的thold插件的邮件通知</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2007-06-26T16:00:00.000Z" itemprop="datePublished">Jun 27, 2007</time>
+      <div class="date">Published on: <time datetime="2007-06-27T16:00:00.000Z" itemprop="datePublished">Jun 28, 2007</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a> <a href="../tags/weather/">weather</a>
+<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/cacti/">cacti</a> <a href="../tags/thold/">thold</a> <a href="../tags/trigger/">trigger</a>
 </div>
     </div>
       
-        <p>最近两天天气有点变态了，闷热，北京的桑拿天又开始了。空调还没买上，晚上得整晚开风扇了。还好偶们家的风扇很强悍，风够大。早就说要把凉席弄上了，一直没时间，今天晚上回去看看。不知道周末天气如何，希望那两天能是个好天气。</p> <p>北京的交通是越来越让人郁闷了。前天早上有个超高的车在一个天桥那里卡住了，结果导致后面的车堵了得有几公里。平时十几分钟的路程走了1个小时。现在走在路上最怕的就是有事故。本来就2个车道（一个汽车道，一个自行车道，基本上自行车道都会被汽车占用，骑自行车的人都是在汽车中间穿梭），一旦发生事故，通常这条路就废了，这种路上也不时常安排几个交警，出现情况了，基本上就只能自己郁闷了，没几个小时解决不了问题。</p> <p>今天早上在车上还想，以前军训站排的时候，好像也没现在一早上站的时间长吧。从7点起来，洗脸刷牙穿衣服到车站，等车来了继续车上站着，换地铁还是站着，这一路下来也不少时间呢，现在站功也不得了了，呵呵。</p> <p>昨天和一个哥们一起喝酒，还在郁闷北京这种生活，但是郁闷归郁闷，生活还是得继续不是。</p>
+        <p>通过cacti的thold插件，可以做到snmp抓取到的数值低于你规定的值的时候进行邮件通知，例如我用他来监控磁盘空间，当磁盘空间低于某个数的时候就会给指定的email发邮件。但是有一点郁闷的是，有时候，可能是由于网络原因，抓取会超时，这样就会导致触发trigger，给你发送邮件。5分钟抓取一次，我这里的情况是几乎每个小时总会有2，3封这种邮件，很烦人，而且根本没意义。早就想屏蔽掉这种情况了，看了代码挺复杂就懒得弄，今天实在受不了了，深入了解了一下。</p> <p>其实thold本身已经考虑到了这种情况，在 thold 的设置里面，就有一项 Default Trigger Count （Number of consecutive times the data source must be in breach of the threshold for an alert to be raised），就是连续触发几次才认为他真的低于 thold 了，才发送邮件。我尝试过修改这个设置，发现不管用。看了代码才了解，每个 <strong>Thresholds</strong>&nbsp;都有自己的 trigger 值，那个 default trigger count 只对新建的 thresholds 才有用。所以针对现有的，需要逐个去修改才行。如果不设置这个选项，那么使用的就是上面设置的那个默认的，所以没特殊需要，还是不要针对每个 thresholds 设置自己的 trigger 值比较好，这样方便修改。我通过修改数据库的方法，直接把这些都修改了。</p> <p><pre lang="sql">update thold_data set thold_fail_trigger = NULL;</pre>
+</p><p>修改了之后还没有收到，这下应该清净了吧？</p>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/such-hot-weather/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/change-trigger-setting-for-thold/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -217,6 +290,32 @@
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/resin-and-oracle/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="such-hot-weather/">天气太热了</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-06-26T16:00:00.000Z" itemprop="datePublished">Jun 27, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/heart/">heart</a> <a href="../tags/weather/">weather</a>
+</div>
+    </div>
+      
+        <p>最近两天天气有点变态了，闷热，北京的桑拿天又开始了。空调还没买上，晚上得整晚开风扇了。还好偶们家的风扇很强悍，风够大。早就说要把凉席弄上了，一直没时间，今天晚上回去看看。不知道周末天气如何，希望那两天能是个好天气。</p> <p>北京的交通是越来越让人郁闷了。前天早上有个超高的车在一个天桥那里卡住了，结果导致后面的车堵了得有几公里。平时十几分钟的路程走了1个小时。现在走在路上最怕的就是有事故。本来就2个车道（一个汽车道，一个自行车道，基本上自行车道都会被汽车占用，骑自行车的人都是在汽车中间穿梭），一旦发生事故，通常这条路就废了，这种路上也不时常安排几个交警，出现情况了，基本上就只能自己郁闷了，没几个小时解决不了问题。</p> <p>今天早上在车上还想，以前军训站排的时候，好像也没现在一早上站的时间长吧。从7点起来，洗脸刷牙穿衣服到车站，等车来了继续车上站着，换地铁还是站着，这一路下来也不少时间呢，现在站功也不得了了，呵呵。</p> <p>昨天和一个哥们一起喝酒，还在郁闷北京这种生活，但是郁闷归郁闷，生活还是得继续不是。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/such-hot-weather/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -302,32 +401,6 @@ other2</pre>
 
   <article class="post">
 	<h2 class="title">
-		<a href="momo-bear/">老婆送的momo熊</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-06-20T16:00:00.000Z" itemprop="datePublished">Jun 21, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a> <a href="../tags/momo熊/">momo熊</a> <a href="../tags/吊饰/">吊饰</a>
-</div>
-    </div>
-      
-        <p>昨天老婆和一个邻居出去逛街，很晚才回来。回来的时候我都睡的迷迷糊糊的了，不知道咋回事，整天困的不行，最近晚上睡的都比较早。今天早上走的时候发现手机上面多了一个吊饰，就是下图右边那个了。</p> <p><img src="http://photo6.yupoo.com/20070621/144312_797301615.jpg"> </p> <p>我觉得，这个不就是狗么？。。。老婆一定说是熊。。汗。。</p> <p>那个胳膊是可以动的，买了一对，左边的是老婆的，右边的是我的，哈哈。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/momo-bear/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="install-resin/">resin 的安装步骤</a>
 	</h2>
     <div class="entry-content">
@@ -373,26 +446,26 @@ chmod +x /root/jdk-6u1-linux-i586.bin
 
   <article class="post">
 	<h2 class="title">
-		<a href="read-rss/">每天早上打开电脑的第一件事情</a>
+		<a href="momo-bear/">老婆送的momo熊</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2007-06-19T16:00:00.000Z" itemprop="datePublished">Jun 20, 2007</time>
+      <div class="date">Published on: <time datetime="2007-06-20T16:00:00.000Z" itemprop="datePublished">Jun 21, 2007</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a> <a href="../tags/rss/">rss</a>
+<a href="../tags/heart/">heart</a> <a href="../tags/momo熊/">momo熊</a> <a href="../tags/吊饰/">吊饰</a>
 </div>
     </div>
       
-        <p>不管是在上班，还是在家，每天早上打开电脑的第一件事情恐怕就是打开水木去十大看看了，呵呵。第一件事情没什么好说的，说第二件事情。第二件事情就是打开google reader看订阅的blog和新闻。</p> <p>自从rss流行起来后，就一直在换rss阅读器。最早的时候用过greatnews，feeddaemon，还有水木上面某个兄弟开发的一个软件，不过好像后来没消息了。那会不知道看什么好，不过还好greatnews里面内置了一些新闻rss，比如sina的。不过后来发现那些新闻都没啥意思就没有怎么用了。</p> <p>再之后呢，用上了fx后，频繁看到对于sarge的推荐，就又开始看了几天rss。此后看别人推荐就去了bloglines，之后就喜欢上这个了。不需要客户端，能上网的电脑就能看，而且能记住你上次看过的信息。不过后来发现了一个郁闷的地方（写到这里有个插曲需要先插播一下）</p> <p>突然不能输入中文了，考，破玩意。开始还以为是输入法的问题，换了一个输入法折腾了半天也不行，重装了live wrtier也不行，搜了一下找到一个<a href="http://crody.blogspot.com/2006/10/live-writer.html" target="_blank" rel="external">解决办法</a>。需要注意的是这个blog是blogspot上面的，被盾了，引用下里面的解决方法吧。</p> <p> <blockquote> <p>如果用live writer写文章时频繁切换中英文输入法，有可能使得中文输入法失效。</p> <p>具体表现就是可以切换到中文输入法，但输入仍然是英文。</p> <p>昨天遇到几次之后终于找到了一个解决方法:将光标移到标题栏，在这里切换到中文输入法的。</p> <p>然后再跳回到正文部分，看看，是不是已经可以输入中文了？</p> <p>估计是由于用快捷键切换输入法时与writer的key hook冲突，导致正文部分失去输入焦点。已经向作者报告BUG了，有遇到同样问题的可以试试这个土办法 ;)</p></blockquote> </p><p></p> <p>这个方法确实好用。</p> <p>再继续上面的话题，。。不说别的了，bloglines的问题以及后面的事情，都在<a href="http://blog.wdicc.com/wordpress/google-reader-and-zhuaxia/" target="_blank" rel="external">这个帖子</a>里面说清楚了，嗯，就不多说了。</p>
+        <p>昨天老婆和一个邻居出去逛街，很晚才回来。回来的时候我都睡的迷迷糊糊的了，不知道咋回事，整天困的不行，最近晚上睡的都比较早。今天早上走的时候发现手机上面多了一个吊饰，就是下图右边那个了。</p> <p><img src="http://photo6.yupoo.com/20070621/144312_797301615.jpg"> </p> <p>我觉得，这个不就是狗么？。。。老婆一定说是熊。。汗。。</p> <p>那个胳膊是可以动的，买了一对，左边的是老婆的，右边的是我的，哈哈。</p>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/read-rss/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/momo-bear/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

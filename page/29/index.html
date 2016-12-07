@@ -101,6 +101,50 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="public-key-in-ssh/">使用公匙密匙来登录ssh</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-09-25T16:00:00.000Z" itemprop="datePublished">Sep 26, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a> <a href="../tags/ssh/">ssh</a> <a href="../tags/urxvt/">urxvt</a> <a href="../tags/公匙/">公匙</a> <a href="../tags/密匙/">密匙</a>
+</div>
+    </div>
+      
+        ssh一种更加安全的登录方式是使用rsa/dsa方式来做验证。密码口令很可能被猜出来，但是用dsa方式验证的ssh，除非他弄到你的私匙，否则肯定是安全的。
+
+ssh-keygen命令可以用来生成rsa/dsa方式的公匙密匙。
+ssh-keygen或者ssh-keygen -t rsa生成rsa方式的密匙。ssh-keygen -d 或者 ssh-keygen -t dsa生成dsa方式的密匙。具体rsa和dsa的区别看 <a href="http://www-128.ibm.com/developerworks/cn/linux/security/openssh/part1/index.html" target="_blank" rel="external">这里</a> 。
+
+上面的命令会在~/.ssh文件夹中生成公匙（id_*sa.pub）和密匙（id_*sa），将pub文件中的内容copy到远程服务器你的home目录下面的.ssh目录中的authorized_keys[2]这个文件中，有没有最后的那个2要看你用的是ssh1还是ssh2方式，通常都有2。
+
+然后就是远程服务器的这些文件需要有正确的权限，.ssh目录是700，authorized_keys2文件是644。
+
+此后再登录服务器的时候应该就不需要输入密码了。
+
+有一个小tip，就是给服务器的ip设置一个好记的形式，那么多的ip记住不容易阿，而且每次还得一个一个输入。具体方法就是修改hosts文件，添加类似下面的内容就可以了，相当于自己做了一个dns，呵呵。
+#销售server
+218.x.2.128 s128 xs xiaoshou
+#db server
+218.x.23.189 s189 db oracle
+这样，以后访问s128或者s189就可以了，当然后面的xs、xiaoshou、db、oracle也都是别名，都可以用来访问。
+
+还有一个tip，是关于term的。如果用的是urxvt，访问的远程服务器的时候可能会遇到“unknow terminal : rxvt-unicode” 类似的错误，如果出现了类似错误，会导致在服务器端vim和ls都没有颜色。解决方法是在.Xdefaults文件中添加URxvt.termName: xterm，或者.bash_profile里面自己设置一下TERM类型。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/public-key-in-ssh/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="live-in-new-house/">入住新房</a>
 	</h2>
     <div class="entry-content">
@@ -375,46 +419,6 @@ Ctrl-a c
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/screen-hotkey/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="3-sitcom/">最近在追的三部美剧</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-08-30T16:00:00.000Z" itemprop="datePublished">Aug 31, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a> <a href="../tags/4400/">4400</a> <a href="../tags/lost/">lost</a> <a href="../tags/movie/">movie</a> <a href="../tags/越狱/">越狱</a>
-</div>
-    </div>
-      
-        韩剧看的更多的是喜剧效果，和东方美女。美剧呢，更加引人入胜一点，往往不知不觉就看完了好几集，然后就在期待下面的。韩剧一集1个多小时，看的时候往往会让人生闷，忍不住拖着看。美剧就不会了，看的时候巴不得每个镜头都不要错过，每个镜头都那么吸引人。
-
-韩剧自从看了<a href="http://lib.verycd.com/2005/01/10/0000034551.html" target="_blank" rel="external">《豪杰春香》</a>之后，就再没有看过了，因为那之后看了<a href="http://lib.verycd.com/2005/08/31/0000063290.html" target="_blank" rel="external">《越狱》</a>，看了美剧之后，实在对韩剧提不起兴趣了，所以后来下载的<a href="http://lib.verycd.com/2005/12/15/0000079877.html" target="_blank" rel="external">《my girl》</a>没看就直接删掉了。
-
-说说最近看的三部美剧。第一部就要首推<a href="http://lib.verycd.com/2005/08/31/0000063290.html" target="_blank" rel="external">《越狱》</a>了。第一季已经播完，总共22集。第二季正在播，今天应该可以看到第二集了。
-
-<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/229701964/123_100_6fdbafa5ace0926.html" target="_blank" rel="external"><img width="361" height="500" border="0" alt="123_100_6fdbafa5ace0926" src="http://static.flickr.com/69/229701964_52c4e18dd6.jpg"></a>
-
-第二部就是 <a href="http://lib.verycd.com/2006/06/27/0000108444.html" target="_blank" rel="external">《4400》</a>了。已经播到第三季了，第一季是5集，第二季是12集，第三季目前播到了13集。
-
-<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/229705692/4400.html" target="_blank" rel="external"><img width="500" height="375" border="0" alt="4400" src="http://static.flickr.com/75/229705692_ef0e5772c0.jpg"></a>
-
-第三部就是<a href="http://lib.verycd.com/2006/02/24/0000091563.html" target="_blank" rel="external">《Lost》</a>了。这个刚开始看，我第一季还没有看完，不过也不用急了，美剧总是播的很慢的。已经播完第一季，共25集。第二季也播完了好像，24集。
-
-<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/229708920/lost.html" target="_blank" rel="external"><img width="500" height="400" border="0" alt="lost" src="http://static.flickr.com/57/229708920_ea4154021e.jpg"></a>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/3-sitcom/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

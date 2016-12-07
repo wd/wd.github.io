@@ -101,6 +101,91 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="use-davmail-to-access-exchange-server-better-in-thunderbird/">thunderbird 和 davmail 配合连接 exchange</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2012-01-31T16:00:00.000Z" itemprop="datePublished">Feb 1, 2012</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/thunderbird/">thunderbird</a> <a href="../tags/davmail/">davmail</a> <a href="../tags/exchange/">exchange</a> <a href="../tags/outlook/">outlook</a>
+</div>
+    </div>
+      
+        
+<p>exchange 是个恶心玩意，虽然提供了 imap 接口，但是速度巨慢，发送接收都慢。davmail 可以解决这个问题。
+</p>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1">davmail 能干啥</h2>
+<div class="outline-text-2" id="text-1">
+
+
+<p>
+<a href="http://davmail.sourceforge.net/" target="_blank" rel="external">davmail</a> 可以理解为就是一个 proxy，他负责和 exchange 通讯，其他邮件客户端连接 davmail 来获取邮件什么的。网站上面有图，看
+着更加直观一点。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2">安装配置 davmail</h2>
+<div class="outline-text-2" id="text-2">
+
+
+<p>
+ubuntu 里面好像直接就有，apt-get 安装就可以了。gentoo 里面没有，我在 overlay 里面找到一个 ebuild，自己修了一下，放到我的
+<a href="https://github.com/wd/overlay" target="_blank" rel="external">overlay</a> 了，在 net-mail/davmail-bin 下面。启用 server 这个 use。
+</p>
+<p>
+安装后会创建一个 davmail 用户，需要建立一个 /var/log/davmail 的目录，给 davmail 写权限。
+</p>
+<p>
+然后手动运行 <i>opt/davmail/davmail.sh，有界面，配置好 exchange owa 的地址，保存，会生成 ~</i>.davmail.properties 文件。
+</p>
+<p>
+这里有个问题，如果 owa 地址是 http 的，那直接继续下面的就可以了，如果是 https 的，那还需要配置对应的 ssl 相关参数。我是
+直接在 thunderbird 里面配置好之后，收了一下邮件，然后会提示一个什么证书的东西，这之后再继续下面的事情就可以了，这个时候
+他会给你配置好里面 ssl 相关的东西。
+</p>
+<p>
+复制到 /etc/davmail.properties，把里面的 davmail.server=fales 改成 true，设置好 log 为 /var/log/davmail/davmail.log，级
+别先使用 debug，测试好了之后改成 warn。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3">配置 thunderbird</h2>
+<div class="outline-text-2" id="text-3">
+
+
+<p>
+参考 davmail 网站上面关于 thunderbird 的配置就好了。
+</p>
+<p>
+可配置的有接收，发送，地址簿，日历。
+</p>
+<p>
+排错就看看 /var/log/davmail/davmail.log 把，信息很详细。  
+</p></div>
+</div>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/use-davmail-to-access-exchange-server-better-in-thunderbird/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="about-mao/">老文一篇，关于小毛</a>
 	</h2>
     <div class="entry-content">
@@ -645,6 +730,49 @@ hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，
 
   <article class="post">
 	<h2 class="title">
+		<a href="about-svn-merge/">svn merge</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-05-07T16:00:00.000Z" itemprop="datePublished">May 8, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/svn/">svn</a>
+</div>
+    </div>
+      
+        <p>svn merge 的 help 信息
+<pre class="prettyprint">
+usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
+       2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH]
+       3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH]
+</pre>
+
+svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。
+</p>
+<p>
+所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。
+</p>
+<p>
+一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。
+</p>
+<p>
+最好在 merge 之前加一个 &ndash;dry-run 看看他会修改哪些文件。 
+</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/about-svn-merge/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="alarm-signal-in-perl/">alarm 使用不当遇到的问题</a>
 	</h2>
     <div class="entry-content">
@@ -757,49 +885,6 @@ alarm $previousAlarm;
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/alarm-signal-in-perl/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="about-svn-merge/">svn merge</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2011-05-07T16:00:00.000Z" itemprop="datePublished">May 8, 2011</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/svn/">svn</a>
-</div>
-    </div>
-      
-        <p>svn merge 的 help 信息
-<pre class="prettyprint">
-usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
-       2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH]
-       3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH]
-</pre>
-
-svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。
-</p>
-<p>
-所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。
-</p>
-<p>
-一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。
-</p>
-<p>
-最好在 merge 之前加一个 &ndash;dry-run 看看他会修改哪些文件。 
-</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/about-svn-merge/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -1007,75 +1092,6 @@ public class explodeWithPos extends GenericUDTF {
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/udf-in-hive/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="rsync-files-from-option/">rsync files-from 参数</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2011-04-15T16:00:00.000Z" itemprop="datePublished">Apr 16, 2011</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/rsync/">rsync</a> <a href="../tags/org2blog/">org2blog</a>
-</div>
-    </div>
-      
-        <div id="outline-container-1" class="outline-2">
-<h2 id="sec-1">rsync</h2>
-<div id="outline-container-1_1" class="outline-3">
-<h3 id="sec-1_1">include/exclude</h3>
-<div id="text-1_1" class="outline-text-3">
-
-rsync 支持使用 include/exclude 来过滤要同步的文件，使用这两个参数的时候，需要注意下面的这个问题
-<pre class="prettyprint">
-Note that, when using the –recursive (-r) option (which is implied by -a), every subcomponent of every path  is  vis‐
-        ited  from the top down, so include/exclude patterns get applied recursively to each subcomponent’s full name (e.g. to
-        include "/foo/bar/baz" the subcomponents "/foo" and "/foo/bar" must not be excluded).  The exclude  patterns  actually
-        short-circuit  the  directory  traversal stage when rsync finds the files to send.  If a pattern excludes a particular
-        parent directory, it can render a deeper include pattern ineffectual  because  rsync  did  not  descend  through  that
-        excluded section of the hierarchy.  This is particularly important when using a trailing ’*’ rule.  For instance, this
-        won’t work: 
-
-/some/path/this-file-will-not-be-found
-/file-is-included 
-*</pre>
-rsync 使用 -r 来遍历子目录的时候，如果还想用 exclude include 来过滤文件，那么要注意 一个目录如果满足了 exclude，而且还没有对应的 include，那这个目录下面的子目录也会被 exclude，就算你对这个子目录写了 include 。
-
-虽然能解决问题，可实在很费劲，直到无意中发现了 files-from 参数。
-
-</div>
-</div>
-<div id="outline-container-1_2" class="outline-3">
-<h3 id="sec-1_2">files-from</h3>
-<div id="text-1_2" class="outline-text-3">
-
-files-from 是通过指定一个本地/远程的文件来定义需要同步的文件。这个文件生成方法可就多了，你可以用 find/sed/awk/xxxxx 等搭配来得到你这个文件，一行命令不够还可以多行，是不是爽多了？
-<pre class="prettyprint">
-如果是远程文件，那就 –files-from=:/path/to/files。
-
-</pre></div>
-</div>
-<div id="outline-container-2" class="outline-2">
-<h2 id="sec-2">写在后面</h2>
-<div id="text-2" class="outline-text-2">
-
-顺便测试一下 org2blog，这帖子是用 org2blog 写的，给作者提了个建议，加上 permlink 的支持，没几天居然给加上了，刚好测试一下，呵呵。
-
-</div>
-</div>
-</div>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/rsync-files-from-option/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

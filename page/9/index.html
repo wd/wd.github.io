@@ -101,6 +101,44 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="solved-ktorrent-dht-problem/">ktorrent dht 不能用的问题</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-10-30T16:00:00.000Z" itemprop="datePublished">Oct 31, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/dht/">dht</a> <a href="../tags/ktorrent/">ktorrent</a>
+</div>
+    </div>
+      
+        在国内，没有 dht 的 bt 客户端是混不下去的。
+
+我一直就怀疑国内的 tracker 和那些国内的 bt 客户端是一个利益共同体，那些 tracker 根本就不让别的 client 连的。比如从 ydy 下的 heroes，里面三个 tracker 都是 btfans.3322.org 的，可全部都是 connection refused，虽然从 web 能看到这个这个 torrent 的种子很多，可是我这就是下不了。
+
+这也是国内用户总抱怨 linux 下面的 bt 客户端下载速度慢，或者根本下不了的原因。因为他根本就不能从 tracker 获得信息。要不可以试试看从 mininova 下国外的 torrent，不过好像 thepiratebay 被 gfw 后，这些种子也不好下了。mininova 好多 torrent 的 tracker 是这个。不过好像可以找替代的 tracker 来替换。
+
+一直以来就发现 ktorrent 的 dht 显示的 DHT: 0 nodes, 0 tasks。搜了后发现用户说的都是 ktorrent 2 的，都是 06 年的事情了。之前搜了好几次，都没有结果。
+
+今天为了下 heroes，就又看了下。找到问题在哪里了。
+
+可以去看看 ~/.kde4/share/apps/ktorrent/log 文件，我这里有个 dht bind faild 的错误。原因是设置里面的 network interface 选的是 all，改选一下实际使用的 eth0 就好了。再看看 log 是不是就没错误了？
+
+然后找一个火热的种子下一个，dht 那应该有数了吧？
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/solved-ktorrent-dht-problem/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="kde-openbox-works-perfect/">KDE+openbox 实在太赞了</a>
 	</h2>
     <div class="entry-content">
@@ -574,81 +612,6 @@ menuentry "测试JPEG背景图片" {
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/how-to-use-grub2/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="best-way-to-fuck-gfw/">你在用什么方式翻墙？</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-07-19T16:00:00.000Z" itemprop="datePublished">Jul 20, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/gfw/">gfw</a> <a href="../tags/firefox/">firefox</a> <a href="../tags/fuckgfw/">fuckgfw</a>
-</div>
-    </div>
-      
-        翻墙估计应该是上网的必修课了，当然那些 90 后就别说了，他们大概只上 *qq.com 就好了。
-
-翻墙有不少方法，比如通过找公共的 vpn，用 tor，找一些 phpproxy 网站等。我这推荐一个比较好的方法，通过 <a href="http://www.sshgfw.com/" target="_blank" rel="external">fuckgfw</a> 提供的 ssh proxy，速度比 tor 快的不是一点半点。
-
-我用的 linux，写了一个 expect 脚本来起代理服务，如下。里面的 USER 和  PWD 换成你申请到的用户名和密码。我把这个脚本命名叫 p, 放到了 ~/bin 下面，当然我的 ~/bin 是在 path 里面的，这样，执行一个 p 命令代理就自动起来了。用完的时候可以按 Ctrl-c 退出。
-
-<pre class="prettyprint lang-bash">
-#!/bin/bash
-
-expect -c '
-spawn ssh -D 7070 -N USER@SERVER
-expect {
-	password { 
-		send "PWD\r";
-	}
-}
-
-interact {
-	\001 exit;
-}'
-</pre>
-
-当然，我用到的不只这个脚本了，要不也没什么好写的了。(本来觉得自己写了挺好的一个文章，最后还是就 expect 脚本 + autoproxy，唉，丢人。)<del datetime="2009-07-20T02:13:48+00:00">还用到了一个 proxy.pac ，自动使用代理的配置。如下，把这个文件存成 proxy.pac, 然后在 firefox 的 编辑->首选项->高级->网络->设置->自动代理配置URL 这个里面输入 "file:///home/wd/bin/proxy.pac" ，这样，你连接某个网站的时候，他会自动的去判断是不是要用代理。这个文件是 linuxsir 的 狱卒 给我的。:)
-
-<pre class="prettyprint lang-javascript">
-function FindProxyForURL(url, host)
-{
-    url = url.toLowerCase();
-    host = host.toLowerCase();
-    if (dnsDomainIs(host,"twitter.com")
-        || dnsDomainIs(host,"my.opera.com")
-        || dnsDomainIs(host,"hk.yahoo.com")
-        || dnsDomainIs(host,"tw.yahoo.com")
-        || dnsDomainIs(host,"livejournal.com")
-        || dnsDomainIs(host,"mitbbs.com")
-        || dnsDomainIs(host,"friendfeed.com")
-        || dnsDomainIs(host,"youtube.com")
-        || dnsDomainIs(host,"sshgfw.com")
-        )
-        return "SOCKS 127.0.0.1:7070";
-    else 
-		return "DIRECT";
-}
-</pre>
-
-这么做一个问题就是，如果你要新加某个网站进去，必须得重启 fx 才能生效。实际上 foxproxy 也可以配置使用 自动代理的，而且可以设置让他多长时间自动重载一下这个文件，算是智能一点了吧。不过我用 foxproxy 的时候发现，如果同时打开两个需要用到代理的网站，他会是一个一个打开的，不能同时，不知道是怎么回事。
-
-我现在用的是 multiproxy swith ，这个可以设置 pac 文件，不过是不会自动重载。当然，重启这个事情也不是什么大问题，装一个 quickrestart ext，然后在 toolbar 上面加一个，点一下就重启了，再加上 fx 会 restore session ，也就是等几秒，就生效了。</del>
-
-再当然一个。如果觉得这个 pac 弄起来还是麻烦，那可以装一个 autoproxy，里面内置了一些列表，你只要设置一个 127.0.0.1:7070 的 socks 代理让他用就好了。哪个用 proxy 哪个不用是全自动的，不用你管。自己添加的列表也能即时生效。目前我用的这个，推荐一下哦。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/best-way-to-fuck-gfw/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

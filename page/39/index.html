@@ -101,7 +101,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="cvs/">cvs</a>
+		<a href="solve-qmail-error/">qmail中的几个error的产生的原因和解决方法</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -109,36 +109,155 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="../tags/Mail/">Mail</a>
 </div>
     </div>
       
-        客户端配置最重要的是CVSROOT环境变量的配置。
+        deferral: Unable_to_chdir_to_maildir._(#4.2.1)
 
-其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
+   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
 
-例如，我在使用我们实验室的CVS服务器时的配置为：
+如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
 
-:pserver:car@192.168.2.2:/had/src
+deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
 
-每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。
+   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
 
-上面是摘抄的一段，用cvs需要先
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
 
-cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 
+  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
 
-登陆，或者设置$CVSROOT环境变量，之后用
+[root@caph qmail-smtpd]# telnet localhost 25
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is &#39;^]&#39;.
+220 xxx.com ESMTP
+ehlo
+250-xxx.com
+250-PIPELINING
+250-8BITMIME
+250-SIZE 104857600
+250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
+auth login
+334 VXNlcm5hbWU6
+awefaq23rasdf
+334 UGFzc3dvcmQ6
+awefwaef
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+quit
+221 xxx.com
+Connection closed by foreign host.
 
-cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd
+出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
 
-就可以checkout更新了。
+QMAILDUID=`id -u vpopmail`
+QMAILDGID=`id -g vpopmail`
+
+/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
+        -u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
+        /var/qmail/bin/qmail-smtpd
+        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1
+
+不需要修改~vpopmail/bin/vchkpw的属性。
+
+451 qq write error or disk full (#4.3.0)
+
+通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
+
+qq temporary problem (#4.3.0)
+
+看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
+-rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
+
+vchkpw-smtp: vpopmail user not found
+
+查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/cvs/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/solve-qmail-error/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="caphit-web-conf/">caphit web 配置</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/web/">web</a>
+</div>
+    </div>
+      
+        httpd.conf
+ServerName caph
+AddDefaultCharset GB2312
+NameVirtualHost *
+
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www
+ServerName 210.72.203.226
+
+AllowOverride None
+Options +ExecCGI
+AddHandler cgi-script .cgi .pl
+Order allow,deny
+Allow from all
+
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www/caphbook
+ServerName www.caphbook.com
+ServerAlias caphbook.com caphbook.com.cn www.caphbook.com.cn
+ErrorLog logs/caphbook.com-error_log
+CustomLog logs/caphbook.com-access_log common
+
+#
+# ServerAdmin webmaster@aphit.com.cn
+# DocumentRoot /www/caphit
+# ServerName www.aphit.com.cn
+# ServerAlias aphit.com.cn
+#
+# Options Indexes
+#
+#
+#mail
+
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www/igenus
+ServerName mail.caphbook.com
+ServerAlias mail.caphbook.com.cn mail.aphit.com.cn
+ErrorLog logs/mail-error_log
+CustomLog logs/mail-access_log common
+
+ssl.conf
+
+此后
+service httpd restart
+chkconfig --level 345 httpd on
+
+php.ini
+register_globals = On
+max_execution_time = 60 ; Maximum execution time of each script, in seconds
+max_input_time = 120 ; Maximum amount of time each script may spend parsing request data
+memory_limit = 20M
+php.ini
+LimitRequestBody 52428800
+apache配置完毕
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/caphit-web-conf/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -628,7 +747,7 @@ Mon, 03 Jan 2005 04:01:57 CST
 
   <article class="post">
 	<h2 class="title">
-		<a href="caphit-web-conf/">caphit web 配置</a>
+		<a href="cvs/">cvs</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -636,71 +755,36 @@ Mon, 03 Jan 2005 04:01:57 CST
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/web/">web</a>
+<a href="../tags/other/">other</a>
 </div>
     </div>
       
-        httpd.conf
-ServerName caph
-AddDefaultCharset GB2312
-NameVirtualHost *
+        客户端配置最重要的是CVSROOT环境变量的配置。
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www
-ServerName 210.72.203.226
+其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
 
-AllowOverride None
-Options +ExecCGI
-AddHandler cgi-script .cgi .pl
-Order allow,deny
-Allow from all
+例如，我在使用我们实验室的CVS服务器时的配置为：
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www/caphbook
-ServerName www.caphbook.com
-ServerAlias caphbook.com caphbook.com.cn www.caphbook.com.cn
-ErrorLog logs/caphbook.com-error_log
-CustomLog logs/caphbook.com-access_log common
+:pserver:car@192.168.2.2:/had/src
 
-#
-# ServerAdmin webmaster@aphit.com.cn
-# DocumentRoot /www/caphit
-# ServerName www.aphit.com.cn
-# ServerAlias aphit.com.cn
-#
-# Options Indexes
-#
-#
-#mail
+每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www/igenus
-ServerName mail.caphbook.com
-ServerAlias mail.caphbook.com.cn mail.aphit.com.cn
-ErrorLog logs/mail-error_log
-CustomLog logs/mail-access_log common
+上面是摘抄的一段，用cvs需要先
 
-ssl.conf
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 
 
-此后
-service httpd restart
-chkconfig --level 345 httpd on
+登陆，或者设置$CVSROOT环境变量，之后用
 
-php.ini
-register_globals = On
-max_execution_time = 60 ; Maximum execution time of each script, in seconds
-max_input_time = 120 ; Maximum amount of time each script may spend parsing request data
-memory_limit = 20M
-php.ini
-LimitRequestBody 52428800
-apache配置完毕
+cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd
+
+就可以checkout更新了。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/caphit-web-conf/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/cvs/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -795,100 +879,6 @@ apache配置完毕
 
   <article class="post">
 	<h2 class="title">
-		<a href="isoqlog/">isoqlog</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-10T16:00:00.000Z" itemprop="datePublished">Jan 11, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a>
-</div>
-    </div>
-      
-        isoqlog是用来统计域里面的邮件的。通过查看qmail的log文件，来统计进出的邮件。
-
-配置文件在/usr/local/etc下面，isoqlog.conf
-<pre class="prettyprint lang-txt">
-#isoqlog Configuration file 
-
-logtype     = "qmail-multilog"                          # log type qmai-multilog, qmail-syslog, sendmail, postfix
-logstore    = "/var/log/qmail"                          #
-domainsfile = "/usr/local/etc/isoqlog.domains"          #
-outputdir   = "/www/isoqlog/log"                        # html output directory
-htmldir     = "/usr/local/share/isoqlog/htmltemp"
-langfile    = "/usr/local/share/isoqlog/lang/english"
-hostname    = "xxx.com"
-
-maxsender   = 100
-maxreceiver = 100
-maxtotal    = 100  
-
-maxbyte     = 100</pre>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/isoqlog/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="clamav/">clamav</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-10T16:00:00.000Z" itemprop="datePublished">Jan 11, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a>
-</div>
-    </div>
-      
-        网址：http://www.clamav.net
-
-安装命令
-<pre class="prettyprint lang-bash">
-#./configure --sysconfdir=/etc/clamav
-#make;make check;make install</pre>
-安装之后需要多关注升级log，新版本出来就会有提示
-<pre class="prettyprint lang-txt">
-Received signal: wake up
-ClamAV update process started at Wed Jan 11 04:02:26 2006
-WARNING: Your ClamAV installation is OUTDATED!
-WARNING: Local version: 0.86.1 Recommended version: 0.88
-DON'T PANIC! Read http://www.clamav.net/faq.html
-main.cvd is up to date (version: 35, sigs: 41649, f-level: 6, builder: tkojm)
-WARNING: Your ClamAV installation is OUTDATED!
-WARNING: Current functionality level = 5, recommended = 6
-DON'T PANIC! Read http://www.clamav.net/faq.html
-daily.cvd updated (version: 1237, sigs: 470, f-level: 7, builder: diego)
-WARNING: Your ClamAV installation is OUTDATED!
-WARNING: Current functionality level = 5, recommended = 7
-DON'T PANIC! Read http://www.clamav.net/faq.html
-Database updated (42119 signatures) from db.cn.clamav.net (IP: 221.6.197.162)</pre>
-看到之后只需要去下载最新版本，然后重新安装即可。
-
-启动系统时运行/usr/local/bin/freshclam -d定时更新程序。配置文件在/etc/clamav
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/clamav/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="last-of-a-year/">到年底了</a>
 	</h2>
     <div class="entry-content">
@@ -913,6 +903,54 @@ Database updated (42119 signatures) from db.cn.clamav.net (IP: 221.6.197.162)</p
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/last-of-a-year/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="a-joke-2/">看强人怎么砍价的zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-10T16:00:00.000Z" itemprop="datePublished">Jan 11, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Joke/">Joke</a>
+</div>
+    </div>
+      
+        事迹一，去利客隆买彩电，液晶国产海信，原价4000多。  
+
+死砍，砍到三千七。 然后问赠品。说有，500块的耳机。  
+
+然后我很过分地说，…耳机我不要了，你再便宜给我500块吧……  
+
+他说便宜五十。  
+
+我说敢骗老娘，明明是50块的耳机，敢对老娘说值500。  
+
+他们说，其实耳机值一百多块……  
+
+我说，那好，耳机一百块卖给你了，你一百多块钱再转手给别人吧  
+
+他们……  
+
+我就走啦，苏宁去了。砍啊砍……最后营业员不行了，说我去请示一下店长请示完，告诉我，最低3550。  
+
+<br>
+        
+          <p class="more-link">
+            <a href="a-joke-2/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/a-joke-2/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

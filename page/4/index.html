@@ -101,6 +101,33 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="hello-world/">Hello world</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2012-11-28T10:38:00.000Z" itemprop="datePublished">Nov 28, 2012</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/heart/">heart</a>
+</div>
+    </div>
+      
+        <p>Just a test.</p>
+<p>Hello world from github :D</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/hello-world/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="two-table-after-join/">Join 后面跟两个表</a>
 	</h2>
     <div class="entry-content">
@@ -303,122 +330,6 @@ Host *
 
   <article class="post">
 	<h2 class="title">
-		<a href="auto-archive-task-for-org-mode/">org-mode 里面自动归档任务</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2012-04-07T16:00:00.000Z" itemprop="datePublished">Apr 8, 2012</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/emacs/">emacs</a> <a href="../tags/org-mode/">org-mode</a>
-</div>
-    </div>
-      
-        <p>我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
-</p>
-<p>
-org-mode 本身提供了 remember 来创建 todo list。
-</p>
-<p>
-新建一个 org 文件 ~/org/todo.org，包含两行内容如下
-</p>
-
-
-<pre class="prettyprint lang-text">
-* Tasks
-* Done
-</pre>
-
-<p>
-然后设置下面的内容
-</p>
-
-
-<pre class="prettyprint lang-lisp">
-(define-key global-map "\C-ca" 'org-agenda)
-(global-set-key (kbd "C-c m r") 'org-capture)
-(setq org-capture-templates
-      '(("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks")
-         "* TODO %?\nCREATED: %U")
-        ("j" "Journal" entry (file+datetree "~/org/journal.org")
-         "* %?\nEntered on %U\n  %i\n  %a")))
-(defun wd-move-done-task-to-done-cats ( task-pos )
-  "move done task to *DONE cats"
-  (let* ((entry (org-get-entry))
-        (title (org-get-heading))
-        (task (format "** %s\n%s\n" title entry))
-        )
-    (goto-char (point-min))
-    (when (search-forward-regexp "^* Tasks$latex ")
-      (goto-char (point-min))
-      (when (search-forward-regexp "^* Done$")
-        (goto-char (match-beginning 0))
-        (forward-line)      
-        (insert task)
-        (goto-char task-pos)
-        (delete-region (org-entry-beginning-position) (org-entry-end-position))      
-        )
-      )
-    )
-  )
-
-(defun wd-track-task-status ( changes-plist )
-   "Track task status, and move it to '* Done' cats if it is stats change from to to done
-1 TODO 文件至少需要包含两个标题 * Tasks 和 * Done
-2 * Tasks 里面的 TODO 内容变成 DONE 的时候，会自动把这个条目移动到 * Done
-3 org-todo-keywords 的设置里面不能包含自动增加时间等的设置，否则增加的内容不能正确加到这个条目
-"
-   ;; (interactive)
-   (let ((type (plist-get change-plist :type))
-          (pos (plist-get change-plist :position))
-          (from (plist-get change-plist :from))
-          (to (plist-get change-plist :to))
-          )
-     (when (and (string= from "TODO")
-                (string= to "DONE"))
-       ;; (let ((answer (read-char "Move this entry to *DONE ? Y/N (Y)")))
-       ;;   (when (or (= answer (string-to-char "y"))
-       ;;             (= answer (string-to-char "Y"))
-       ;;             (= answer (string-to-char "
-"))
-       ;;             )
-           (wd-move-done-task-to-done-cats pos)
-         ;; ))
-       )
-     )
-   )
-
-(add-hook 'org-trigger-hook 'wd-track-task-status)
-
-;; (setq org-todo-keywords
-;;       '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))
-(setq org-todo-keywords
-      '((sequence "TODO(t)" "WAIT(w)" "|" "DONE(d)" "CANCELED(c)")))
-</pre>
-
-<p>
-在任何地方按一下 C-c m r，会出来一个 window 让你选择要创建 todo 还是 journal。选 t，然后输入内容就会自动插入到 ~/org/todo.org 的 * Tasks 里面。
-</p>
-<p>
-此后，如果任务完成的时候，打开 todo.org，然后在任务上面 C-c C-t，会提示输入状态。如果是从 TODO 变成了 DONE，那这条任务会被转移到 * Done 里面。
-</p>
-<p>
-因为里面都有时间，所以在 agenda list 里面，可以用 L 看到任务完成时间等。也将就用了。
-</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/auto-archive-task-for-org-mode/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="about-interview/">关于面试的一点经验</a>
 	</h2>
     <div class="entry-content">
@@ -552,6 +463,122 @@ org-mode 本身提供了 remember 来创建 todo list。
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/about-interview/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="auto-archive-task-for-org-mode/">org-mode 里面自动归档任务</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2012-04-07T16:00:00.000Z" itemprop="datePublished">Apr 8, 2012</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/emacs/">emacs</a> <a href="../tags/org-mode/">org-mode</a>
+</div>
+    </div>
+      
+        <p>我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
+</p>
+<p>
+org-mode 本身提供了 remember 来创建 todo list。
+</p>
+<p>
+新建一个 org 文件 ~/org/todo.org，包含两行内容如下
+</p>
+
+
+<pre class="prettyprint lang-text">
+* Tasks
+* Done
+</pre>
+
+<p>
+然后设置下面的内容
+</p>
+
+
+<pre class="prettyprint lang-lisp">
+(define-key global-map "\C-ca" 'org-agenda)
+(global-set-key (kbd "C-c m r") 'org-capture)
+(setq org-capture-templates
+      '(("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks")
+         "* TODO %?\nCREATED: %U")
+        ("j" "Journal" entry (file+datetree "~/org/journal.org")
+         "* %?\nEntered on %U\n  %i\n  %a")))
+(defun wd-move-done-task-to-done-cats ( task-pos )
+  "move done task to *DONE cats"
+  (let* ((entry (org-get-entry))
+        (title (org-get-heading))
+        (task (format "** %s\n%s\n" title entry))
+        )
+    (goto-char (point-min))
+    (when (search-forward-regexp "^* Tasks$latex ")
+      (goto-char (point-min))
+      (when (search-forward-regexp "^* Done$")
+        (goto-char (match-beginning 0))
+        (forward-line)      
+        (insert task)
+        (goto-char task-pos)
+        (delete-region (org-entry-beginning-position) (org-entry-end-position))      
+        )
+      )
+    )
+  )
+
+(defun wd-track-task-status ( changes-plist )
+   "Track task status, and move it to '* Done' cats if it is stats change from to to done
+1 TODO 文件至少需要包含两个标题 * Tasks 和 * Done
+2 * Tasks 里面的 TODO 内容变成 DONE 的时候，会自动把这个条目移动到 * Done
+3 org-todo-keywords 的设置里面不能包含自动增加时间等的设置，否则增加的内容不能正确加到这个条目
+"
+   ;; (interactive)
+   (let ((type (plist-get change-plist :type))
+          (pos (plist-get change-plist :position))
+          (from (plist-get change-plist :from))
+          (to (plist-get change-plist :to))
+          )
+     (when (and (string= from "TODO")
+                (string= to "DONE"))
+       ;; (let ((answer (read-char "Move this entry to *DONE ? Y/N (Y)")))
+       ;;   (when (or (= answer (string-to-char "y"))
+       ;;             (= answer (string-to-char "Y"))
+       ;;             (= answer (string-to-char "
+"))
+       ;;             )
+           (wd-move-done-task-to-done-cats pos)
+         ;; ))
+       )
+     )
+   )
+
+(add-hook 'org-trigger-hook 'wd-track-task-status)
+
+;; (setq org-todo-keywords
+;;       '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))
+(setq org-todo-keywords
+      '((sequence "TODO(t)" "WAIT(w)" "|" "DONE(d)" "CANCELED(c)")))
+</pre>
+
+<p>
+在任何地方按一下 C-c m r，会出来一个 window 让你选择要创建 todo 还是 journal。选 t，然后输入内容就会自动插入到 ~/org/todo.org 的 * Tasks 里面。
+</p>
+<p>
+此后，如果任务完成的时候，打开 todo.org，然后在任务上面 C-c C-t，会提示输入状态。如果是从 TODO 变成了 DONE，那这条任务会被转移到 * Done 里面。
+</p>
+<p>
+因为里面都有时间，所以在 agenda list 里面，可以用 L 看到任务完成时间等。也将就用了。
+</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/auto-archive-task-for-org-mode/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -805,91 +832,6 @@ ps: 感觉这片文章好水。。一点含量都没有。。
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/wine-in-mac/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="use-davmail-to-access-exchange-server-better-in-thunderbird/">thunderbird 和 davmail 配合连接 exchange</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2012-01-31T16:00:00.000Z" itemprop="datePublished">Feb 1, 2012</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/thunderbird/">thunderbird</a> <a href="../tags/davmail/">davmail</a> <a href="../tags/exchange/">exchange</a> <a href="../tags/outlook/">outlook</a>
-</div>
-    </div>
-      
-        
-<p>exchange 是个恶心玩意，虽然提供了 imap 接口，但是速度巨慢，发送接收都慢。davmail 可以解决这个问题。
-</p>
-
-<div id="outline-container-1" class="outline-2">
-<h2 id="sec-1">davmail 能干啥</h2>
-<div class="outline-text-2" id="text-1">
-
-
-<p>
-<a href="http://davmail.sourceforge.net/" target="_blank" rel="external">davmail</a> 可以理解为就是一个 proxy，他负责和 exchange 通讯，其他邮件客户端连接 davmail 来获取邮件什么的。网站上面有图，看
-着更加直观一点。
-</p>
-</div>
-
-</div>
-
-<div id="outline-container-2" class="outline-2">
-<h2 id="sec-2">安装配置 davmail</h2>
-<div class="outline-text-2" id="text-2">
-
-
-<p>
-ubuntu 里面好像直接就有，apt-get 安装就可以了。gentoo 里面没有，我在 overlay 里面找到一个 ebuild，自己修了一下，放到我的
-<a href="https://github.com/wd/overlay" target="_blank" rel="external">overlay</a> 了，在 net-mail/davmail-bin 下面。启用 server 这个 use。
-</p>
-<p>
-安装后会创建一个 davmail 用户，需要建立一个 /var/log/davmail 的目录，给 davmail 写权限。
-</p>
-<p>
-然后手动运行 <i>opt/davmail/davmail.sh，有界面，配置好 exchange owa 的地址，保存，会生成 ~</i>.davmail.properties 文件。
-</p>
-<p>
-这里有个问题，如果 owa 地址是 http 的，那直接继续下面的就可以了，如果是 https 的，那还需要配置对应的 ssl 相关参数。我是
-直接在 thunderbird 里面配置好之后，收了一下邮件，然后会提示一个什么证书的东西，这之后再继续下面的事情就可以了，这个时候
-他会给你配置好里面 ssl 相关的东西。
-</p>
-<p>
-复制到 /etc/davmail.properties，把里面的 davmail.server=fales 改成 true，设置好 log 为 /var/log/davmail/davmail.log，级
-别先使用 debug，测试好了之后改成 warn。
-</p>
-</div>
-
-</div>
-
-<div id="outline-container-3" class="outline-2">
-<h2 id="sec-3">配置 thunderbird</h2>
-<div class="outline-text-2" id="text-3">
-
-
-<p>
-参考 davmail 网站上面关于 thunderbird 的配置就好了。
-</p>
-<p>
-可配置的有接收，发送，地址簿，日历。
-</p>
-<p>
-排错就看看 /var/log/davmail/davmail.log 把，信息很详细。  
-</p></div>
-</div>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/use-davmail-to-access-exchange-server-better-in-thunderbird/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
