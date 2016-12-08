@@ -101,6 +101,48 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="use-uvesafb/">使用 uvesafb</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-04-12T16:00:00.000Z" itemprop="datePublished">Apr 13, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/kernel/">kernel</a> <a href="../tags/uvesafb/">uvesafb</a>
+</div>
+    </div>
+      
+        FB 就是 Frambuffer 了。直观一点说，使用之后，可以给 console 设置分辨率，可以在console下面看电影，看图？
+
+在 Kernel 里面，ATI 显卡有个 Readonfb，使用后不需要修改 grub 就可以直接出现高分辨率的 console，但是他和 ATI 的 fglrx 驱动冲突，会导致死机，所以，基本没法子用，除非你不打算进 x。
+
+<a href="http://dev.gentoo.org/~spock/projects/uvesafb/" target="_blank"> uvesafb</a> 以前叫做 vesafb-tng，似乎是从 kernel 2.6.23 开始改名的。使用这个也很简单了，参考作者的 <a href="http://dev.gentoo.org/~spock/projects/uvesafb/" target="_blank">web</a> 页面。
+
+有几个内核参数：
+<pre class="prettyprint lang-text">
+Graphics support ---&gt; Userspace VESA VGA graphics support
+General Setup ---&gt;  Initial RAM filesystem and RAM disk (initramfs/initrd) support 设置为 /usr/share/v86d/initramfs
+上面几个设置分别是
+CONFIG_CONNECTOR=y
+CONFIG_FB_UVESA=y
+CONFIG_INITRAMFS_SOURCE="/usr/share/v86d/initramfs"</pre>
+安装 klibc 和 v86d 。修改 grub，添加 video=uvesafb:1024x768-32,mtrr:3,ywrap
+
+如果遇到 'uvesafb: failed to execute /sbin/v86d' 的错误，可能是最后一个内核参数没有设置好的缘故。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/use-uvesafb/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="new-blog-space/">庆祝一下把blog迁移到了新的空间</a>
 	</h2>
     <div class="entry-content">
@@ -201,6 +243,36 @@ my $test;
 
   <article class="post">
 	<h2 class="title">
+		<a href="usb-automount-in-gnome/">gnome 里面的 usb automount 终于好了</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-04-04T16:00:00.000Z" itemprop="datePublished">Apr 5, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/gnome/">gnome</a> <a href="../tags/usb/">usb</a>
+</div>
+    </div>
+      
+        升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。。
+
+就连之前 分区不显示在桌面上面 的问题都好了，ft，和scsi有关系？
+
+gnome 下面有 gnome-volume-manager &amp; gnome-mount &amp; gnome-vfs 和自动挂载相关。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/usb-automount-in-gnome/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="emacsclient-conflict-with-pidgin/">搞定安装emacs之后pidgin打开邮箱的功能失效</a>
 	</h2>
     <div class="entry-content">
@@ -239,36 +311,6 @@ To start the server in Emacs, type "M-x server-start".
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/emacsclient-conflict-with-pidgin/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="usb-automount-in-gnome/">gnome 里面的 usb automount 终于好了</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-04-04T16:00:00.000Z" itemprop="datePublished">Apr 5, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/gnome/">gnome</a> <a href="../tags/usb/">usb</a>
-</div>
-    </div>
-      
-        升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。。
-
-就连之前 分区不显示在桌面上面 的问题都好了，ft，和scsi有关系？
-
-gnome 下面有 gnome-volume-manager &amp; gnome-mount &amp; gnome-vfs 和自动挂载相关。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/usb-automount-in-gnome/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -339,32 +381,6 @@ mplayer 的那个 desktop 文件里面指定的是 gmplayer 来打开文件的�
 
   <article class="post">
 	<h2 class="title">
-		<a href="heheokle/">赫赫，哦k了</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-04-01T16:00:00.000Z" itemprop="datePublished">Apr 2, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a>
-</div>
-    </div>
-      
-        哈哈 终于能在老公的网站上发帖子啦，噢也~
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/heheokle/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="gnome-222-bad-or-good/">让人又爱又恨的 gnome 2.22</a>
 	</h2>
     <div class="entry-content">
@@ -397,26 +413,26 @@ scribefire 好像没办法设置 post slug？那怎么用？不设置的话，�
 
   <article class="post">
 	<h2 class="title">
-		<a href="domin-will-die/">domin will die...</a>
+		<a href="heheokle/">赫赫，哦k了</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2008-03-30T16:00:00.000Z" itemprop="datePublished">Mar 31, 2008</time>
+      <div class="date">Published on: <time datetime="2008-04-01T16:00:00.000Z" itemprop="datePublished">Apr 2, 2008</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a> <a href="../tags/domain/">domain</a>
+<a href="../tags/heart/">heart</a>
 </div>
     </div>
       
-        05年12月份购买的，参加yahoo的smallbusiness服务，5年100多点。那会没有信用卡，让xh代买的。结果那头猪忘记了自己的帐号，我只能改改域名指向了，靠。气死我了。<br><br>给yahoo发了一个mail，不知道能不能有反馈。<br>
+        哈哈 终于能在老公的网站上发帖子啦，噢也~
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/domin-will-die/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/heheokle/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

@@ -101,6 +101,46 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="Full-page-write-in-PostgreSQL/">Full page write in PostgreSQL</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2016-12-08T10:02:14.000Z" itemprop="datePublished">Dec 8, 2016</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/postgresql/">postgresql</a>
+</div>
+    </div>
+      
+        <p>读了一篇<a href="http://blog.2ndquadrant.com/on-the-impact-of-full-page-writes/" target="_blank" rel="external">文章</a>，简单翻译总结下。</p>
+<h2 id="Partial-Writes-Torn-Pages"><a href="#Partial-Writes-Torn-Pages" class="headerlink" title="Partial Writes / Torn Pages"></a>Partial Writes / Torn Pages</h2><p>pg 默认是 8kB 一个 page。linux 文件系统一般是 4kB（x86 里面最大是 4kB)，老设备驱动一般是 512B 一个扇区，新的设备有些支持 4kB 或者 8kB。</p>
+<p>当 pg 写入一个 page 8kB 的时候，系统的底层会拆分小一点块，这里涉及到写入的原子性。8kB 的 pg page，会被文件系统拆分成 4kB 的块，然后拆分成 512B 扇区大小。这个时候如果系统崩溃（比如停电，内核 bug）会发生什么？</p>
+<p>即使系统的存储有针对这种情况的设计（比如 SSD 自带电容器，RAID 控制器自带电池），内核那块也是会拆分成 4kB 的 page，所以还是有一定可能性，pg 写了 8kB，但是只有部分写入成功。</p>
+<p>这个时候你可能意识到这就是为啥我们要有事务日志（WAL）。所以当系统崩溃重启之后，数据库会读取 WAL（从最后一次 checkpoint），然后重新写入一遍，以保证数据文件是完整的。</p>
+<p>恢复的时候，在修改一个 page 之前，还是会读取一下。</p>
+<p>在 checkpoint 之后第一次修改一个 page 的时候，会把整个 page 写入 WAL。这是为了保证在恢复的时候，能保证这些被修改的 page 能完全恢复到他原有的样子。</p>
+<h2 id="写放大"><a href="#写放大" class="headerlink" title="写放大"></a>写放大</h2><p>如果打开 Full page write，很显然会导致 WAL 文件增加，因为就算修改一个字节，也会导致 8kB page 的写入。因为 Full page write 只发生在 checkpoint 之后的第一次写入，所以减少 checkpoint 的发生频率是可以减少写入的。</p>
+<h2 id="UUID-vs-BIGSERIAL-主键"><a href="#UUID-vs-BIGSERIAL-主键" class="headerlink" title="UUID vs BIGSERIAL 主键"></a>UUID vs BIGSERIAL 主键</h2><p>比较了一下使用 UUID 或者 bigserial 做主键对写入的影响。可以看原链接的图，会发现在 INSERT 语句的情况下 UUID 产生的 WAL 文件量比较多。主要原因是 Btree 索引的情况下，bigserial 是顺序的维护这个索引，UUID 是无顺序的，会导致维护索引产生的数据量不同。</p>
+<p>如果是使用 UPDATE 随机修改，那么会发现产生的 WAL 数量就差不多了。</p>
+<h2 id="8kB-and-4kB-pages"><a href="#8kB-and-4kB-pages" class="headerlink" title="8kB and 4kB pages"></a>8kB and 4kB pages</h2><p>如果减小 pg 的 page 的大小，可以减小 WAL 数量。从 8kB 减小到 4kB，上面 UUID 那个例子，可以减少大概 35% 的量。</p>
+<h2 id="需要-full-page-write-吗？"><a href="#需要-full-page-write-吗？" class="headerlink" title="需要 full-page write 吗？"></a>需要 full-page write 吗？</h2><p>首先，这个参数是 2005 年 pg 8.1 引入的，那么现代的文件系统是不是已经不用操心部分写入的情况了？作者尝试了一些测试没有测试出来部分写入的情况，当然这不表示不会存在。但是就算是存在，数据的一致性校验也会是有效的保护（虽然并不能修复这个问题，但是至少能让你知道有坏的 page）</p>
+<p>其次，现在很多系统都依赖于流式同步，并不会等着有问题的服务器在有硬件问题的时候重启，并且花费很多时间恢复，一般都直接切换到热备服务器上面了。这个时候部分写就不是什么问题了。但是如果我们都推荐这么做，那么「我也不知道为啥数据损坏了，我只是设置了 full_page_writes=off」这种会是 DBA 死前最常见的言论了。(类似于「这种蛇我之前在 reddit 看见过，无毒的」)</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>对于 full-page write 你没法直接优化。大部分情况下，full-page write 都是发生在 checkpoint 之后，直到下一次 checkpoint。所以调整 checkpoint 的发生频率不要太频繁很重要。</p>
+<p>有些应用层的操作，可能会导致对表或者索引的随机写入的增加，例如上面的 UUID 的值就是随机的，会让简单的 INSERT 也会导致索引的随机 update。使用 Bigserial 做主键(让 UUID 做替代键)可以减少写放大。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/Full-page-write-in-PostgreSQL/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="use-pgrepup-to-upgrade-your-postgres/">使用 pgrepup 跨版本升级 pg</a>
 	</h2>
     <div class="entry-content">
@@ -572,60 +612,6 @@
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/LLD-in-zabbix/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="all-about-lazy/">能不能成功取决于什么</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2016-07-09T06:21:10.000Z" itemprop="datePublished">Jul 9, 2016</time>
-</div>
-      <div class="tags">Tags: 
-
-
-</div>
-    </div>
-      
-        <p>随着年龄的增长，自己对一些事情的认识在改变，一直想总结一个给年轻同学的帖子，但是总是不能总结太好怎么讲，大概从想讲到现在，已经几个月了，我感觉不讲的话可能就讲不出来了，所以乱谈一下。</p>
-<h2 id="从全栈讲起"><a href="#从全栈讲起" class="headerlink" title="从全栈讲起"></a>从全栈讲起</h2><p>什么是全栈？我感觉肯定不是普通人，我觉得全栈至少得是绝顶聪明的人才可以做到，对于他们来讲，有很扎实的 CS 功底，并且知识面非常广泛，还有很多产出，并且这些产出是各个方面的。</p>
-<p><img src="https://pic2.zhimg.com/3c8fbae345f5a480ee55174852f392a1_b.png" alt="某种观点"></p>
-<p>上面是李笑来老师对于全栈的看法，<a href="https://www.zhihu.com/question/47359997" target="_blank" rel="external">这里</a> 有知乎用户对这个的讨论。</p>
-<p>我只是关注到了他那句话里面的「不太笨」，如果他的意思是很聪明的意思，那观点就和我一致了，呵呵。</p>
-<p>不得不承认，智商和你能掌握的内容是有关系的，智商不够再怎么努力也很难达到某种顶峰。当然这并不是说，智商不够的就没戏了，换句话说，如果智商不够还不努力，你还是就想想老婆孩子热炕头就算了。</p>
-<h2 id="学习别人"><a href="#学习别人" class="headerlink" title="学习别人"></a>学习别人</h2><p>学习别人的成功经验，似乎是一种很好的办法，至少人家那条路是走通了。</p>
-<p>这几年流行健身，是吧。看着别人一个一个健身房也好，路边跑步也好，还有奥森跑步的，是不是看着眼红但是又觉得自己周边不具备环境？健身房贵，路边有觉得没有好环境，奥森还有点远，所以我得找一个满足条件的才能去进行这个事情。</p>
-<p>还有比如看到有人拿 kindle 看书，是不是觉得我要是有个 kindle 带着方便，肯定可以看好多书，比如一直想学习的 iOS 开发，还有 Java 编程思想，哎呀呀，编程能力大幅增长啊。所以一定要买个 kindle。</p>
-<p>等等类似的事情吧，别的不多讲了。就是我想要干什么事情，但是呢最好满足个什么条件，会让我干的更好更有动力。</p>
-<p>最后通常的结果呢？步顶多跑几次就会觉得没意思了，kindle 在家里吃灰，然后开始有其他的想法，比如看着人家的 iphone 不错唉，我要是有个，看个 pdf 什么的，比 kindle 方便啊，手机可是一直带着的，所以。。。。</p>
-<h2 id="听别人讲"><a href="#听别人讲" class="headerlink" title="听别人讲"></a>听别人讲</h2><p>欧洲人在放难民进来的时候，想的可是我们可怜你们让你们进来，你们应该很满足，不要闹事老实呆着。所以实际上呢？</p>
-<p>父母亲戚常见的「我都是为了你好」这种说法，大家估计都听腻了吧。有用么？</p>
-<p>微信朋友圈网上各种鸡汤文，比尔盖兹为什么成功，雷军马云的奋斗，这些文章看的时候让人激动人心，看完了貌似就忘记了，是不是？。。</p>
-<h2 id="关键在哪里？"><a href="#关键在哪里？" class="headerlink" title="关键在哪里？"></a>关键在哪里？</h2><p>我感觉关键就是一个字「懒」。</p>
-<p><img src="http://ww1.sinaimg.cn/mw690/69a2b902jw1f1nn2v6ld1j20go0aswgl.jpg" alt="懒"></p>
-<p>2004 年左右在 irc 玩的时候，就有一个网站 <a href="http://lmgtfy.com/?q=%E6%87%92" target="_blank" rel="external">let me google that for you</a>。这个网站就是鄙视那些连 google 都懒得用的，稍微有点问题就问别人。知识都是别人的，把别人当 google 用。</p>
-<p>很多人都有类似习惯。我们学习的时候，别人都是引进大门，如果自己不能养成自己知识持续更新的习惯，等到自己连年轻人都跟不上的时候，就很悲哀了。</p>
-<p>这个都无关智商，所谓活到老学到老，别人都给你总结好了，懒字一上来，就混吃等死吧。</p>
-<p>想要客服懒字，得自己给自己洗脑，让自己能坚持的下去。<a href="http://v.youku.com/v_show/id_XMTY5NTc2MzMy.html" target="_blank" rel="external">老罗的奋斗</a> 里面，老罗讲自己决定要去新东方当老师之前，学习英语的时候，隔段时间就会学不下去，学不下去的时候，看看成功学的书，给自己打打鸡血，就又活蹦乱跳了。</p>
-<p>我大概总结几项提升的方向，遇事情想想，应该有好处</p>
-<ul>
-<li>主动思考解决问题的最佳思路</li>
-<li>主动发现问题，改进承担</li>
-<li>主动推进事情进展</li>
-<li>不要限定自己的范围，不停挑战难点</li>
-<li>积极参与到别人的有激情的项目里面</li>
-<li>对技术保持强烈的好奇心</li>
-</ul>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/all-about-lazy/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

@@ -101,6 +101,103 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="how-to-use-grub2/">使用 grub2</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-07-23T16:00:00.000Z" itemprop="datePublished">Jul 24, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/grub/">grub</a>
+</div>
+    </div>
+      
+        看到 ub 要默认用 grub2 了，看来这个东西够稳定了，就折腾了下。过程还有点头大，呵呵。这个东西最大的问题就是文档怎么那么少？。。。
+
+国内的大都是抄的 <a href="http://linuxtoy.org/archives/grub-2-installation-and-configuration.html" target="_blank" rel="external">这个</a> ，里面不知道为什么没有排版，那个样例用的是 debian，我用的 gentoo，有点小区别。
+
+gentoo 里面先 keyword unmask grub 1.96，然后安装他。
+<pre class="prettyprint lang-bash">echo "=sys-boot/grub-1.96 **">
+
+安装之后，先重新生成 device.map。然后执行 update-grub 生成 grub 的一些配置文件，这个生成是根据的 /etc/grub.d 下面的文件，如果有兴趣可以去配置，我反正没配置，我手动修改的配置文件。
+<pre class="prettyprint lang-bash">
+sudo update-grub # 不是必须，可以手动生成配置文件</pre>
+
+现在去看看 /boot/grub/grub.cfg 文件，里面应该会根据你的系统生成了一些东西。再改巴改巴，下面是我的。对了这个文件是只读的，改一下属性就好了。
+<pre class="prettyprint lang-conf">
+set default=0
+set timeout=5
+set root=(hd0,1)
+
+insmod terminal
+insmod gfxterm
+insmod vbe
+insmod font
+insmod png
+
+font /boot/grub/unifont.pff
+set gfxmode=1024x768
+terminal gfxterm
+
+set menu_color_normal=white/black
+set menu_color_highlight=white/dark-gray
+
+#background_image /boot/grub/bg.tga
+background_image /boot/grub/dev2.png
+
+
+### END /etc/grub.d/00_header ###
+
+### BEGIN /etc/grub.d/10_hurd ###
+### END /etc/grub.d/10_hurd ###
+
+### BEGIN /etc/grub.d/10_linux ###
+menuentry "无敌Gentoo" {
+	linux	/vmlinuz root=/dev/hda5 ro video=uvesafb:1024x768-32,mtrr:3,ywrap
+}
+
+menuentry "Gentoo (old kernel)" {
+	linux /vmlinuz-old root=/dev/hda5 ro video=uvesafb:1024x768-32,mtrr:3,ywrap
+}
+
+menuentry "测试JPEG背景图片" {
+  background_image /boot/grub/dev.tga
+}
+
+
+#title		Gentoo bootchartd
+#root		(hd0,0)
+#kernel		/vmlinuz root=/dev/hda5 video=uvesafb:1024x768-32,mtrr:3,ywrap init=/sbin/bootchartd
+#savedefault
+#
+#
+#title		Gentoo (rescue)
+#root		(hd0,0)
+#kernel		/vmlinuz root=/dev/hda5 init=/bin/bb
+#savedefault
+</pre>
+
+注意后面两个注释，其实就是老的 grub 用的，对照一下就应该知道怎么改了。原来的 hd0,0 变成了 hd0,1 ，这个是需要注意的。
+
+那个背景图片是有要求的，我的用 file 查看是这样的 "dev.png: PNG image, 800 x 600, 8-bit/color RGBA, non-interlaced"，具体对 png jpg tga 的要求，还是去看 <a href="http://grub.enbug.org/FranklinPiat/grub.cfg.manpage" target="_blank" rel="external">man</a> 吧。我试了 tga 文件，好像有点慢，我那个 png 速度还行。
+
+那个 font 是从 <a href="http://grub4dos.sourceforge.net/grub2/unifont.pff" target="_blank" rel="external">这里</a> 下的，支持中文。
+
+配置好之后执行 sudo grub-install /dev/hda 就安装好了，没什么错误的话就可以重启看效果了。
+</pre>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/how-to-use-grub2/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="clever-cc/">聪明的老婆</a>
 	</h2>
     <div class="entry-content">
@@ -133,6 +230,70 @@
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/clever-cc/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="auto-mount-smb-and/">写了一个用来 mount smb 和 u 盘之类的程序</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-07-19T16:00:00.000Z" itemprop="datePublished">Jul 20, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/autumount/">autumount</a> <a href="../tags/smb/">smb</a>
+</div>
+    </div>
+      
+        主要是不用 gnome 了，访问 smb 和 mount u盘有点不爽，无聊就写了一个。
+
+程序不是全自动的，是基于配置文件的。写好配置文件，然后执行这个程序。
+
+配置文件类似下面的
+<pre class="prettyprint lang-conf">
+# type: u  | smb | cifs
+#
+#
+-
+ name: 匿名smb
+ type: cifs
+-
+ name: cc
+ type: cifs
+ ip: 192.168.1.125
+ opt: iocharset=utf8,codepage=cp936
+-
+ name: fileserver
+ type: cifs
+ ip: fileserver
+ user: wd
+ pwd: 1111
+ opt: iocharset=utf8,codepage=cp936
+-
+ name: g1
+ type: u
+ partitions: /dev/sda1, /dev/sda2
+-
+ name: u 盘
+ type: u
+ partitions: /dev/sda1
+</pre>
+
+配置文件按 - 分段，这个文件是 yaml 格式的。这个程序得用到 dev-perl/yaml 。
+
+程序在<a href="http://github.com/wd/work/tree/91aa2432660a175ae486493e3a6f6edfb8ef787e/automount" target="_blank" rel="external">这里</a>。
+
+本来之前在程序里面是有 umount 的，结果因为 umount 没成功，把我手机卡上面的东西都干掉了。。。所以还是保险一点，不加 umount 了，手动来吧。。。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/auto-mount-smb-and/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -208,70 +369,6 @@ function FindProxyForURL(url, host)
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/best-way-to-fuck-gfw/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="auto-mount-smb-and/">写了一个用来 mount smb 和 u 盘之类的程序</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-07-19T16:00:00.000Z" itemprop="datePublished">Jul 20, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/autumount/">autumount</a> <a href="../tags/smb/">smb</a>
-</div>
-    </div>
-      
-        主要是不用 gnome 了，访问 smb 和 mount u盘有点不爽，无聊就写了一个。
-
-程序不是全自动的，是基于配置文件的。写好配置文件，然后执行这个程序。
-
-配置文件类似下面的
-<pre class="prettyprint lang-conf">
-# type: u  | smb | cifs
-#
-#
--
- name: 匿名smb
- type: cifs
--
- name: cc
- type: cifs
- ip: 192.168.1.125
- opt: iocharset=utf8,codepage=cp936
--
- name: fileserver
- type: cifs
- ip: fileserver
- user: wd
- pwd: 1111
- opt: iocharset=utf8,codepage=cp936
--
- name: g1
- type: u
- partitions: /dev/sda1, /dev/sda2
--
- name: u 盘
- type: u
- partitions: /dev/sda1
-</pre>
-
-配置文件按 - 分段，这个文件是 yaml 格式的。这个程序得用到 dev-perl/yaml 。
-
-程序在<a href="http://github.com/wd/work/tree/91aa2432660a175ae486493e3a6f6edfb8ef787e/automount" target="_blank" rel="external">这里</a>。
-
-本来之前在程序里面是有 umount 的，结果因为 umount 没成功，把我手机卡上面的东西都干掉了。。。所以还是保险一点，不加 umount 了，手动来吧。。。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/auto-mount-smb-and/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -496,38 +593,6 @@ xset r rate 180  # keyboard repeat delay
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/upgrade-system-and-something-else/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="move-blog-to-an-other-isp/">把 blog 迁移了一下</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-06-18T16:00:00.000Z" itemprop="datePublished">Jun 19, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a> <a href="../tags/blog/">blog</a>
-</div>
-    </div>
-      
-        最早的时候是在自己管的服务器上面，离职后，就买了一个盘古的空间，那会好像是几十块钱买的，着实的便宜，不过便宜没好货啊，呵呵。后来慢的实在不行，刚好和一个朋友<a href="http://bulaoge.com/?qiqiao" target="_blank" rel="external">七巧仔</a>聊天，他和别人合买了一块空间，我就搬过去蹭到了前几天，好像也有一年多了，呵呵。
-
-这几天他的空间也要到期了，这就犯愁挪哪里去。说不弄 blog 吧，有点想记的东西还不怎么方便，弄把还得花钱找这个，唉。
-
-后来想起来我之前买的那个盘古空间那个哥们了。他后来不弄盘古了，变成了从国外买空间，然后回来再卖的策略。现在经营的也挺不错的。地址在这里 <a href="http://wpchina.org/hosting/" target="_blank" rel="external">http://wpchina.org/hosting/</a>，这里也提供 wordpress 的中文版。这两天用的感觉，速度还不错。希望后面不要变慢，呵呵。
-
-如果谁有兴趣可以联系下，现在好像有个9折的优惠。最便宜的也就 60 一年。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/move-blog-to-an-other-isp/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

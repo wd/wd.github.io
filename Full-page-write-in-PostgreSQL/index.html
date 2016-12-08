@@ -1,0 +1,208 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>Full page write in PostgreSQL - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;读了一篇&lt;a href=&quot;http://blog.2ndquadrant.com/on-the-impact-of-full-page-writes/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;文章&lt;/a&gt;，简单翻译总结下。&lt;/p&gt;
+&lt;h2 id=&quot;Partial-Writes-Torn-Pages&quot;&gt;&lt;a href=&quot;#Partial-Writes-Torn-Pages&quot; class=&quot;headerlink&quot; title=&quot;Partial Writes / Torn Pages&quot;&gt;&lt;/a&gt;Partial Writes / Torn Pages&lt;/h2&gt;&lt;p&gt;pg 默认是 8kB 一个 page。linux 文件系统一般是 4kB（x86 里面最大是 4kB)，老设备驱动一般是 512B 一个扇区，新的设备有些支持 4kB 或者 8kB。&lt;/p&gt;
+&lt;p&gt;当 pg 写入一个 page 8kB 的时候，系统的底层会拆分小一点块，这里涉及到写入的原子性。8kB 的 pg page，会被文件系统拆分成 4kB 的块，然后拆分成 512B 扇区大小。这个时候如果系统崩溃（比如停电，内核 bug）会发生什么？&lt;/p&gt;
+&lt;p&gt;即使系统的存储有针对这种情况的设计（比如 SSD 自带电容器，RAID 控制器自带电池），内核那块也是会拆分成 4kB 的 page，所以还是有一定可能性，pg 写了 8kB，但是只有部分写入成功。&lt;/p&gt;
+&lt;p&gt;这个时候你可能意识到这就是为啥我们要有事务日志（WAL）。所以当系统崩溃重启之后，数据库会读取 WAL（从最后一次 checkpoint），然后重新写入一遍，以保证数据文件是完整的。&lt;/p&gt;
+&lt;p&gt;恢复的时候，在修改一个 page 之前，还是会读取一下。&lt;/p&gt;
+&lt;p&gt;在 checkpoint 之后第一次修改一个 page 的时候，会把整个 page 写入 WAL。这是为了保证在恢复的时候，能保证这些被修改的 page 能完全恢复到他原有的样子。&lt;/p&gt;
+&lt;h2 id=&quot;写放大&quot;&gt;&lt;a href=&quot;#写放大&quot; class=&quot;headerlink&quot; title=&quot;写放大&quot;&gt;&lt;/a&gt;写放大&lt;/h2&gt;&lt;p&gt;如果打开 Full page write，很显然会导致 WAL 文件增加，因为就算修改一个字节，也会导致 8kB page 的写入。因为 Full page write 只发生在 checkpoint 之后的第一次写入，所以减少 checkpoint 的发生频率是可以减少写入的。&lt;/p&gt;
+&lt;h2 id=&quot;UUID-vs-BIGSERIAL-主键&quot;&gt;&lt;a href=&quot;#UUID-vs-BIGSERIAL-主键&quot; class=&quot;headerlink&quot; title=&quot;UUID vs BIGSERIAL 主键&quot;&gt;&lt;/a&gt;UUID vs BIGSERIAL 主键&lt;/h2&gt;&lt;p&gt;比较了一下使用 UUID 或者 bigserial 做主键对写入的影响。可以看原链接的图，会发现在 INSERT 语句的情况下 UUID 产生的 WAL 文件量比较多。主要原因是 Btree 索引的情况下，bigserial 是顺序的维护这个索引，UUID 是无顺序的，会导致维护索引产生的数据量不同。&lt;/p&gt;
+&lt;p&gt;如果是使用 UPDATE 随机修改，那么会发现产生的 WAL 数量就差不多了。&lt;/p&gt;
+&lt;h2 id=&quot;8kB-and-4kB-pages&quot;&gt;&lt;a href=&quot;#8kB-and-4kB-pages&quot; class=&quot;headerlink&quot; title=&quot;8kB and 4kB pages&quot;&gt;&lt;/a&gt;8kB and 4kB pages&lt;/h2&gt;&lt;p&gt;如果减小 pg 的 page 的大小，可以减小 WAL 数量。从 8kB 减小到 4kB，上面 UUID 那个例子，可以减少大概 35% 的量。&lt;/p&gt;
+&lt;h2 id=&quot;需要-full-page-write-吗？&quot;&gt;&lt;a href=&quot;#需要-full-page-write-吗？&quot; class=&quot;headerlink&quot; title=&quot;需要 full-page write 吗？&quot;&gt;&lt;/a&gt;需要 full-page write 吗？&lt;/h2&gt;&lt;p&gt;首先，这个参数是 2005 年 pg 8.1 引入的，那么现代的文件系统是不是已经不用操心部分写入的情况了？作者尝试了一些测试没有测试出来部分写入的情况，当然这不表示不会存在。但是就算是存在，数据的一致性校验也会是有效的保护（虽然并不能修复这个问题，但是至少能让你知道有坏的 page）&lt;/p&gt;
+&lt;p&gt;其次，现在很多系统都依赖于流式同步，并不会等着有问题的服务器在有硬件问题的时候重启，并且花费很多时间恢复，一般都直接切换到热备服务器上面了。这个时候部分写就不是什么问题了。但是如果我们都推荐这么做，那么「我也不知道为啥数据损坏了，我只是设置了 full_page_writes=off」这种会是 DBA 死前最常见的言论了。(类似于「这种蛇我之前在 reddit 看见过，无毒的」)&lt;/p&gt;
+&lt;h2 id=&quot;总结&quot;&gt;&lt;a href=&quot;#总结&quot; class=&quot;headerlink&quot; title=&quot;总结&quot;&gt;&lt;/a&gt;总结&lt;/h2&gt;&lt;p&gt;对于 full-page write 你没法直接优化。大部分情况下，full-page write 都是发生在 checkpoint 之后，直到下一次 checkpoint。所以调整 checkpoint 的发生频率不要太频繁很重要。&lt;/p&gt;
+&lt;p&gt;有些应用层的操作，可能会导致对表或者索引的随机写入的增加，例如上面的 UUID 的值就是随机的，会让简单的 INSERT 也会导致索引的随机 update。使用 Bigserial 做主键(让 UUID 做替代键)可以减少写放大。&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form method="get" action="/search.html" id="search">
+            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Full page write in PostgreSQL</h2>
+	<div class="entry-content"><p>读了一篇<a href="http://blog.2ndquadrant.com/on-the-impact-of-full-page-writes/" target="_blank" rel="external">文章</a>，简单翻译总结下。</p>
+<h2 id="Partial-Writes-Torn-Pages"><a href="#Partial-Writes-Torn-Pages" class="headerlink" title="Partial Writes / Torn Pages"></a>Partial Writes / Torn Pages</h2><p>pg 默认是 8kB 一个 page。linux 文件系统一般是 4kB（x86 里面最大是 4kB)，老设备驱动一般是 512B 一个扇区，新的设备有些支持 4kB 或者 8kB。</p>
+<p>当 pg 写入一个 page 8kB 的时候，系统的底层会拆分小一点块，这里涉及到写入的原子性。8kB 的 pg page，会被文件系统拆分成 4kB 的块，然后拆分成 512B 扇区大小。这个时候如果系统崩溃（比如停电，内核 bug）会发生什么？</p>
+<p>即使系统的存储有针对这种情况的设计（比如 SSD 自带电容器，RAID 控制器自带电池），内核那块也是会拆分成 4kB 的 page，所以还是有一定可能性，pg 写了 8kB，但是只有部分写入成功。</p>
+<p>这个时候你可能意识到这就是为啥我们要有事务日志（WAL）。所以当系统崩溃重启之后，数据库会读取 WAL（从最后一次 checkpoint），然后重新写入一遍，以保证数据文件是完整的。</p>
+<p>恢复的时候，在修改一个 page 之前，还是会读取一下。</p>
+<p>在 checkpoint 之后第一次修改一个 page 的时候，会把整个 page 写入 WAL。这是为了保证在恢复的时候，能保证这些被修改的 page 能完全恢复到他原有的样子。</p>
+<h2 id="写放大"><a href="#写放大" class="headerlink" title="写放大"></a>写放大</h2><p>如果打开 Full page write，很显然会导致 WAL 文件增加，因为就算修改一个字节，也会导致 8kB page 的写入。因为 Full page write 只发生在 checkpoint 之后的第一次写入，所以减少 checkpoint 的发生频率是可以减少写入的。</p>
+<h2 id="UUID-vs-BIGSERIAL-主键"><a href="#UUID-vs-BIGSERIAL-主键" class="headerlink" title="UUID vs BIGSERIAL 主键"></a>UUID vs BIGSERIAL 主键</h2><p>比较了一下使用 UUID 或者 bigserial 做主键对写入的影响。可以看原链接的图，会发现在 INSERT 语句的情况下 UUID 产生的 WAL 文件量比较多。主要原因是 Btree 索引的情况下，bigserial 是顺序的维护这个索引，UUID 是无顺序的，会导致维护索引产生的数据量不同。</p>
+<p>如果是使用 UPDATE 随机修改，那么会发现产生的 WAL 数量就差不多了。</p>
+<h2 id="8kB-and-4kB-pages"><a href="#8kB-and-4kB-pages" class="headerlink" title="8kB and 4kB pages"></a>8kB and 4kB pages</h2><p>如果减小 pg 的 page 的大小，可以减小 WAL 数量。从 8kB 减小到 4kB，上面 UUID 那个例子，可以减少大概 35% 的量。</p>
+<h2 id="需要-full-page-write-吗？"><a href="#需要-full-page-write-吗？" class="headerlink" title="需要 full-page write 吗？"></a>需要 full-page write 吗？</h2><p>首先，这个参数是 2005 年 pg 8.1 引入的，那么现代的文件系统是不是已经不用操心部分写入的情况了？作者尝试了一些测试没有测试出来部分写入的情况，当然这不表示不会存在。但是就算是存在，数据的一致性校验也会是有效的保护（虽然并不能修复这个问题，但是至少能让你知道有坏的 page）</p>
+<p>其次，现在很多系统都依赖于流式同步，并不会等着有问题的服务器在有硬件问题的时候重启，并且花费很多时间恢复，一般都直接切换到热备服务器上面了。这个时候部分写就不是什么问题了。但是如果我们都推荐这么做，那么「我也不知道为啥数据损坏了，我只是设置了 full_page_writes=off」这种会是 DBA 死前最常见的言论了。(类似于「这种蛇我之前在 reddit 看见过，无毒的」)</p>
+<h2 id="总结"><a href="#总结" class="headerlink" title="总结"></a>总结</h2><p>对于 full-page write 你没法直接优化。大部分情况下，full-page write 都是发生在 checkpoint 之后，直到下一次 checkpoint。所以调整 checkpoint 的发生频率不要太频繁很重要。</p>
+<p>有些应用层的操作，可能会导致对表或者索引的随机写入的增加，例如上面的 UUID 的值就是随机的，会让简单的 INSERT 也会导致索引的随机 update。使用 Bigserial 做主键(让 UUID 做替代键)可以减少写放大。</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/Full-page-write-in-PostgreSQL/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = 'http://wdicc.com/Full-page-write-in-PostgreSQL/';
+            this.page.identifier = 'http://wdicc.com/Full-page-write-in-PostgreSQL/';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2016
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

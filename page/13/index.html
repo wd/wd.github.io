@@ -101,6 +101,120 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="lyx-unicode-howto/">lyx 的中文化</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-11-26T16:00:00.000Z" itemprop="datePublished">Nov 27, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/latex/">latex</a> <a href="../tags/lyx/">lyx</a> <a href="../tags/pdf/">pdf</a>
+</div>
+    </div>
+      
+        lyx 可以认为是一个 latex 的所见即所得的编辑工具。
+
+先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。
+
+首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。
+
+此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。
+<pre class="prettyprint lang-latex">
+\usepackage{fontspec}
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing
+\begin{document}
+中Eng文混排，“标点压缩”，间 距 调 整 ……
+\end{document}</pre>
+里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。
+
+接下来配置 lyx。我参考了<a href="http://blog.bs2.to/post/EdwardLee/8545" target="_blank" rel="external">这个</a>文章，新建一个文档，设置几个地方。
+
+文档-&gt; 首选项-&gt; 语言 使用 utf8。
+
+文档-&gt; 首选项-&gt; latex序 添加下面的内容。
+<pre class="prettyprint lang-latex">
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing</pre>
+我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。
+
+还需要设置
+
+lyx 可以认为是一个 latex 的所见即所得的编辑工具。
+
+先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。
+
+首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。
+
+此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。
+<pre class="prettyprint lang-latex">
+\usepackage{fontspec}
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing
+\begin{document}
+中Eng文混排，“标点压缩”，间 距 调 整 ……
+\end{document}</pre>
+里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。
+
+接下来配置 lyx。我参考了<a href="http://blog.bs2.to/post/EdwardLee/8545" target="_blank" rel="external">这个</a>文章，新建一个文档，设置几个地方。
+
+文档-&gt; 首选项-&gt; 语言 使用 utf8。
+
+文档-&gt; 首选项-&gt; latex序 添加下面的内容。
+<pre class="prettyprint lang-latex">
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing</pre>
+我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。
+
+还需要设置 工具-&gt;首选项-&gt;file handling-&gt;转换器 这里的 latex(pdflatex)-&gt;PDF(pdflatex) 这项，然后设置 转换器 为 xelatex $$i 。点击那个修改按钮，保存，应用。
+
+这样，以后写好文件，点那个 pdf 的图标就可以直接预览到 pdf 文件啦。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/lyx-unicode-howto/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="vpnc-howto/">说说 vpn</a>
 	</h2>
     <div class="entry-content">
@@ -155,42 +269,6 @@ gateway 就是你的 vpn server 的地址，IPSec secret 就是我说的 group p
 
   <article class="post">
 	<h2 class="title">
-		<a href="kill-session-in-oracle/">oracle 里面 kill session</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-10-06T16:00:00.000Z" itemprop="datePublished">Oct 7, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/session/">session</a>
-</div>
-    </div>
-      
-        eygle <a href="http://www.eygle.com/faq/Kill_Session.htm" target="_blank">有篇文章</a>讲了这个，之前也看过。昨天实际操作了一下。
-
-因为如 eygle 所讲，kill 了 session 之后，操作系统里面的进程资源有时候不一定会立即释放，所以最好在 kill 之前就找到系统的进程 id，这样，如果不释放的时候，可以直接kill。省的之后找起来麻烦。
-
-昨天操作的时候有这么几个步骤
-<ol>
-	<li>select * from v$session where username like 'UP' --先找到这个用户的 session。</li>
-	<li>select * from v$sql a, v$session b where b.username = 'UP' and a.sql_id = b.sql_id --找出来这个用户这些 session 对应的 sql 语句，好确认 session 的 id。</li>
-	<li>select * from v$process a, v$session b where a.addr = b.paddr and b.username like 'UP' and b.sid = xxx --找出来他的系统进程id，就是那个 spid。</li>
-	<li>ALTER SYSTEM KILL SESSION 'sid, serial#' --可以实施kill了，可能会提示你marked for kill，有必要的话，在os级别kill前面找出来的 spid。</li>
-</ol>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/kill-session-in-oracle/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="palm-in-linux/">linux 下面同步 palm 手机</a>
 	</h2>
     <div class="entry-content">
@@ -233,6 +311,42 @@ BUS=="usb",SYSFS{serial}=="PalmSN12345678", KNERNEL="ttyUSB*",OWNER="root",GROUP
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/palm-in-linux/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="kill-session-in-oracle/">oracle 里面 kill session</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-10-06T16:00:00.000Z" itemprop="datePublished">Oct 7, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/linux/">linux</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/session/">session</a>
+</div>
+    </div>
+      
+        eygle <a href="http://www.eygle.com/faq/Kill_Session.htm" target="_blank">有篇文章</a>讲了这个，之前也看过。昨天实际操作了一下。
+
+因为如 eygle 所讲，kill 了 session 之后，操作系统里面的进程资源有时候不一定会立即释放，所以最好在 kill 之前就找到系统的进程 id，这样，如果不释放的时候，可以直接kill。省的之后找起来麻烦。
+
+昨天操作的时候有这么几个步骤
+<ol>
+	<li>select * from v$session where username like 'UP' --先找到这个用户的 session。</li>
+	<li>select * from v$sql a, v$session b where b.username = 'UP' and a.sql_id = b.sql_id --找出来这个用户这些 session 对应的 sql 语句，好确认 session 的 id。</li>
+	<li>select * from v$process a, v$session b where a.addr = b.paddr and b.username like 'UP' and b.sid = xxx --找出来他的系统进程id，就是那个 spid。</li>
+	<li>ALTER SYSTEM KILL SESSION 'sid, serial#' --可以实施kill了，可能会提示你marked for kill，有必要的话，在os级别kill前面找出来的 spid。</li>
+</ol>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/kill-session-in-oracle/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -941,44 +1055,6 @@ FOREIGN ARCHIVED LOG                                      0                     
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/apache-keepalive/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="cqeb-mb/">给超强二笔作的几个码表文件</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-09-03T16:00:00.000Z" itemprop="datePublished">Sep 4, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a> <a href="../tags/二笔/">二笔</a>
-</div>
-    </div>
-      
-        最近被忽悠玩上了二笔输入法，弄了几个码表。
-
-一个是给 palm treo 650 的掌易用的，下载地址在 <a href="http://www.box.net/shared/22s9qp8s77" target="_blank">这里</a>。
-
-treo 650 上面少几个键，所以做了下面的合并。
-
-;与k键合并
-,与m键合并
-.与v键合并
-/与q键合并
-另外一个是 scim 用的，下载地址在 <a href="http://www.box.net/shared/0a2pn45rpt" target="_blank">这里</a>。
-
-需要先安装 scim-tables ，直接复制到 /usr/share/scim/tables/ 下面就行。图标用了 scim-tables 里面的二笔的，名字叫 二笔*超强。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/cqeb-mb/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
