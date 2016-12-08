@@ -320,6 +320,22 @@ Replication status
 * seq 序列。执行 stop 命令的时候，会在目标 db 的 seq 上面加 1000。
 * 有大量的 db。执行 start 命令之后，pglogical 会每个 db 启动一个 worker 来同步数据，要是 db 比较多会导致比较高的负载。
 
+因为这个是基于 pglogical 的，所以还需要关注 pglogical 列出来的一些[限制](https://2ndquadrant.com/it/resources/pglogical/pglogical-docs/) 第 4 部分 Limitations and Restrictions。
+* 4.1 Superuser is required
+* 4.2 UNLOGGED and TEMPORARY not replicated
+* 4.3 One database at a time
+* 4.4 PRIMARY KEY or REPLICA IDENTITY required
+* 4.5 Only one unique index/constraint/PK
+* 4.6 DDL
+* 4.7 No replication queue flush
+* 4.8 FOREIGN KEYS
+* 4.9 TRUNCATE
+* 4.10 Sequences
+* 4.11 Triggers
+* 4.12 PostgreSQL Version differences
+* 4.13 Doesn't replicate DDL
+
+
 ### pgrepup uninstall
 
 uninstall 会清理 pgrepup 创建的一些信息，比如安装的 pglogical 扩展，创建用来同步的用户，和通过 fix 命令添加的 seq。
