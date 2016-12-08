@@ -101,7 +101,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="igenus/">igenus</a>
+		<a href="proftpd-conf/">proftpd 配置</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -109,18 +109,286 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Mail/">Mail</a>
+<a href="../tags/other/">other</a> <a href="../tags/proftpd/">proftpd</a>
 </div>
     </div>
       
-        igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
+        www.proftpd.org
+
+ServerName                      "Caph ftp server..."
+ServerType                      standalone
+DefaultServer                   on
+Port                            21
+Umask                           002
+MaxInstances                    30
+User                            ftp
+Group                           ftp
+
+DisplayLogin .welcome.msg
+DeferWelcome on
+ServerIdent Off
+UseReverseDNS off
+IdentLookups off
+MaxLoginAttempts 3
+MaxClientsPerHost 2
+MaxClients 20
+MaxInstances 100
+ListOptions ""
+
+DirFakeUser On ftp
+DirFakeGroup On ftp
+DeferWelcome On
+LogFormat awstats "%t   %h  %u  %m  %f  %s  %b"
+ExtendedLog /var/log/xferlog read,write awstats
+TransferLog none
+SystemLog /var/log/proftpd.log
+ServerIdent off
+WtmpLog off
+
+DefaultRoot ~ ftp
+<limit> Order allow,deny
+DenyGroup !ftp </limit><directory>
+AllowOverwrite                on
+AllowStoreRestart             on
+#  AllowForeignAddress             on
+<limit>
+DenyUser ftp
+</limit>
+<limit>
+AllowUser it
+</limit>
+</directory>
+
+<directory>
+<limit>
+AllowUser ftp
+</limit>
+</directory>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/igenus/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/proftpd-conf/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="howto-qmail-with-spamassassin/">Howto Qmail with spamassassin</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Mail/">Mail</a> <a href="../tags/qmail/">qmail</a>
+</div>
+    </div>
+      
+        http://sylvestre.ledru.info/howto/howto_qmail_spamassassin.php
+
+By Sylvestre Ledru June 2003
+Version francaise
+Return to the linux page
+
+(02/04/2002), Bug fix :
+I just add a little bug fix for some OS which remove the +x on qmail-queue (the qmail-scanner is not concerned)
+(01/11/2003), Qmail-scanner :
+I had a new way of calling spamassassin client using qmail-scanner.
+(23/07/2003), Preferences :
+Matthew Francis sent me a quite good howto explaining how to get user preferences for spamassassin. It is available here.
+(08/06/2003), Localisation :
+If you want to change the language of the spam report (ie why the email has been tagged as a spam), just change the locales to your language (dpkg-reconfigure locales under debian) and install gettext (apt-get install gettext) and you will have the appropriate version (french for example)...
+(11/03/2005), Update :
+After almost two years without updates, my other howto about qmail is much more complet and uptodate, I clean this one :
+- first method deprecated
+- new version of spamassassin 3.0.X
+- use of netqmail instead of qmail
+- new version of qmail-scanner with the q-s-st patch (activation of Spamassassin just for a domain)
+
+If you like this howto and you want to thank me for my work : here is my wishlist on Amazon - France or my Amazon US wishlist :)
+If you are a corporation and you make some business thanks to my howto, we'll love to have a present from you (or just tell me who is using my howto).
+Thank to Scott Kinkade for his cash donation. I really do appreciate.
+
+If you want more informations about the intallation of qmail, I wrote a long howto about.
+I wrote this howto because there is a lack of documentation about qmail with spamassassin.
+
+This howto has been designed for qmail with vpopmail but it should work without a lot of modifications with something else than vpopmail.
+
+Spamassassin is a very powerfull program which checks if the receveid email is a spam or not. The analys is based on a list of mark. If the sum of all the mark exceed a specified amount (for example 5), the email will be tagged (****SPAM**** in the topic).
+With this, it is very easy to create a rule which will move all emails into a specific directory (i.e. trash:)
+
+If you want to link Qmail with spamassassin, it is quite easy.
+First, install spamassassin and install razor and pyzor if you want to use it.
+Under debian :
+apt-get install spamassassin You should use the "debian unstable or testing" version of spamassassin which, most of the time, will find more spam.
+
+Under other system (Redhat, Suse, Solaris ...) : The latest version of spamassassin today is the version 3.0.2. The installation is almost the same, only a few directives changed.
+wget http://useast.spamassassin.org/released/Mail-SpamAssassin-2.55.tar.gz
+tar -zxvf Mail-SpamAssassin-2.55.tar.gz
+cd Mail-SpamAssassin-2.55
+perl Makefile.PL
+make
+make install
+cp spamd/debian-rc-script.sh /etc/init.d/spamassassin You can replace debian by redhat, solaris, netbsd, suse ...
+chmod +x /etc/init.d/spamassassin
+
+Then, edit /etc/spamassassin/local.cf
+Version 2.5X :
+required_hits 6.0
+rewrite_subject 1
+report_header 1
+use_terse_report 1
+defang_mime 1
+dns_available yes
+dcc_add_header 1
+use_pyzor 1 (Only if you have installed pyzor)
+use_razor2 (Only if you have installed razor2)
+use_dcc 1
+Version 3 :
+#Number of points to tag the spam required_hits 5.0 # Add the result in the header always_add_headers 1 # change the subject rewrite_subject 1 report_safe 1 use_terse_report 1 # dns checks (warning : increase the process length) dns_available yes dcc_add_header 0 # Don't skip the relay black list skip_rbl_checks 0 use_dcc 1 dcc_timeout 10 # Remote verification use_pyzor 1 pyzor_timeout 10 pyzor_add_header 1 # Never from the previous results auto_learn 1 # use the bayes filter use_bayes 1 # Where spamassassin must store these informations : bayes_path /var/qmail/spamassassin/ # Where he stores the auto white list results : auto_whitelist_path /var/qmail/spamassassin/auto_whitelist
+If you want to have detailled information about spamassassin processing, add the line in the local.cf file : timelog_path /var/log/spamassassin, run the daemon with the -D option (so, specify it in the /etc/default/spamassassin file under debian), create the directory with appropriate rights (should be vpopmail). In the directory, you will have for each email a file which sum up the spamassassin process (it is a debug option !).
+
+I use these rules. Feel free to change ! Documentation about this is available here : perldoc Mail::SpamAssassin::Conf
+
+In /etc/default/spamassassin (if this file does not exist, create it)
+Change ENABLED to 1, then add these options : - "-m 10 -v --auto-whitelist" for the version 2.5X.
+- "-v -m 10 -u vpopmail --nouser-config" for the version 3
+With that stuff, you can launch spamd which is bascilly a spamassassin deamon (provide great performances).
+-m 10 =&gt; 10 childs
+-v =&gt; vpopmail config
+--auto-whitelist =&gt; Use auto whitelist (friend list)
+Instead of spamassassin, you have to use spamc in order to test email.
+There are some options "-c -u vpopmail" which enabled the creation of preferences for a domain or a user but it does not work very well for me.
+/etc/init.d/spamassassin start
+
+Next, the modification of qmail in order to check emails.
+Basically, there are two kind of configuration for qmail :
+- the fastest/easiest way is to change the qmail-queue in order to "introduce" the spamasssin check.Deprecated
+- the cleanest way is to use qmail-scanner.
+Changing the qmail-queue program
+cp /var/qmail/bin/qmail-queue /var/qmail/bin/qmail-queue.orig
+chown qmailq:qmail qmail-queue
+chown qmailq:qmail qmail-queue.orig
+chmod u+s qmail-queue.orig
+chmod o+r,+x qmail-queue.orig qmail-queue Not fundamental but sometime it is necessary (depends the system)
+
+mkdir /home/vpopmail/.spamassassin
+cd /home/vpopmail
+chmod 777 /home/vpopmail/.spamassassin
+
+chown -R qmailq:qmail .spamassassin
+chmod u=rwx,g=rx,o= /home/vpopmail/.spamassassin
+Now, delete the content of the executable which manage the queue.
+echo -n &gt; /var/qmail/bin/qmail-queue
+Then, edit the qmail-queue file and add this inside :
+#!/bin/sh
+/usr/bin/spamc | /var/qmail/bin/qmail-queue.orig
+I agree that it is a quick/dirty method. It causes some issues with the injection of a bounce in the queue. (qmail-queue is not planned to work this way).
+With qmail-scanner - Visit http://sylvestre.ledru.info/howto/howto_qmail_vpopmail.php for more informations
+First, you have to patch qmail with the qmailqueue-patch or install netqmail which has already this plugin.
+Qmail with the patch :
+wget http://qmail.agarik.com/qmail-1.03.tar.gz
+tar -zxvf qmail-1.03.tar.gz
+cd qmail-1.03
+wget http://qmail.mirrored.ca/moni.csi.hu/pub/glibc-2.3.1/qmail-1.03.errno.patch
+wget http://sylvestre.ledru.info/howto/qmail/qmailqueue-patch
+patch -p1 &lt; qmail-1.03.errno.patch
+patch -p1 &lt; qmailqueue-patch
+With netqmail :
+wget http://qmail.agarik.com/netqmail-1.05.tar.gz
+tar -zxvf netqmail-1.05.tar.gz
+cd netqmail-1.05/
+./collate.sh
+cd netqmail-1.05
+Add the QMAILQUEUE parameter to the /etc/tcp.smtp file :
+127.0.0.1:allow,RELAYCLIENT="",QMAILQUEUE="/var/qmail/bin/qmail-scanner-queue.pl"
+198.168.1.:allow,RELAYCLIENT="",QMAILQUEUE="/var/qmail/bin/qmail-scanner-queue.pl"
+:allow,QMAILQUEUE="/var/qmail/bin/qmail-scanner-queue.pl"
+Rehash tcpserver :
+/usr/local/bin/tcprules /etc/tcp.smtp.cdb /etc/tcp.smtp.tmp &lt; /etc/tcp.smtp
+chmod 644 /etc/tcp.smtp.cdb
+And then, install qmail-scanner with qmail-scanner-st
+. qmail-scanner-st is a patched version a qmail-scanner which enabled great features like auto delete/reject/quarantine spam over a specified score but also to select which scanners will be used for a domain and even for a user, then, it is possible to configure the spamassassin / antivirus just for one domain/user.
+wget http://unc.dl.sourceforge.net/sourceforge/qmail-scanner/qmail-scanner-1.25.tgz wget http://xoomer.virgilio.it/j.toribio/qmail-scanner/download/q-s-1.25st-20050207.patch.gz
+gunzip q-s-1.25st-20050207.patch.gz
+tar -zxvf qmail-scanner-1.25.tgz
+cd qmail-scanner-1.25/
+patch -p1 &lt; ../q-s-1.25st-20050207.patch
+groupadd qscand
+useradd -c "Qmail-Scanner Account" -g qscand -s /bin/false qscand
+./configure --qs-user qscand --qs-group qscand --spooldir /var/spool/qmailscan --qmaildir /var/qmail --bindir /var/qmail/bin --qmail-queue-binary /var/qmail/bin/qmail-queue --admin-fromname "Mail admin" --admin postmaster --domain vladimir.avence.info --notify sender,admin,recips --local-domains `cat /var/qmail/control/rcpthosts | tr "\n" " "` --silent-viruses auto --unzip 1 --add-dscr-hdrs 1 --archive 0 --redundant yes --log-crypto 0 --scanners "fast_spamassassin" --scanners-per-domain yes --sa-subject "*****SPAM*****" --sa-delete 5 --install 1
+After the installation, if you want to change your preferences, you have to edit the /var/qmail/bin/qmail-scanner-queue.pl file. In this file, you can also add option for the spamassassin client.
+If you want to enable/disable some scanners, edit the /var/spool/qmailscan/scanners_per_domain.txt
+To rehash the scanner per domain file : /var/qmail/bin/qmail-scanner-queue.pl -p
+To rehash the quarantine attachement file : /var/qmail/bin/qmail-scanner-queue.pl -g
+trunks.ecranbleu.org:sa,ps,clamdscan_scanner
+
+# sa = spamassassin
+# ps = perl scanner
+
+This should be enough to use SpamAssassin on the whole system.
+I have to try to find how it can be linked with vpopmail in order to create preference for a specific domain or a specific user. (if someone knows : sylvestre@ecranbleu.org)
+
+Problems :
+- link with vpopmail
+This howto is inspired and corrected from :
+http://www.euronet.nl/users/erhnam/linux/qmail/qmail.htm.
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/howto-qmail-with-spamassassin/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="cvs/">cvs</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a>
+</div>
+    </div>
+      
+        客户端配置最重要的是CVSROOT环境变量的配置。
+
+其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
+
+例如，我在使用我们实验室的CVS服务器时的配置为：
+
+:pserver:car@192.168.2.2:/had/src
+
+每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。
+
+上面是摘抄的一段，用cvs需要先
+
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 
+
+登陆，或者设置$CVSROOT环境变量，之后用
+
+cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd
+
+就可以checkout更新了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/cvs/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -511,134 +779,6 @@ contrib/test_installation.sh -doit测试
 
   <article class="post">
 	<h2 class="title">
-		<a href="cvs/">cvs</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a>
-</div>
-    </div>
-      
-        客户端配置最重要的是CVSROOT环境变量的配置。
-
-其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
-
-例如，我在使用我们实验室的CVS服务器时的配置为：
-
-:pserver:car@192.168.2.2:/had/src
-
-每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。
-
-上面是摘抄的一段，用cvs需要先
-
-cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 
-
-登陆，或者设置$CVSROOT环境变量，之后用
-
-cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd
-
-就可以checkout更新了。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/cvs/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="qmail-conf-file/">Qmail的主要配置文件</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Mail/">Mail</a>
-</div>
-    </div>
-      
-        1．Qmail的主要配置文件
-
-    qmail的配置文件是由多个文件组成的，不是集中在一个文件中，每个文件控制相应
-部分的功能和属性，一个可执行程序可能有多个配置文件控制，所有的配置文件共同决
-定了qmail运行的实现和模式。这些配置文件都在qmail的control目录中，本文的配置文
-件位于/var/qmail/control目录中
-
-    1.1、badmailfrom
-
-    这个配置文件是控制邮件系统拒绝接收的邮件地址和邮件域，主要是为了防止垃圾
-邮件。如果一个邮件地址或者邮件域被列入到这个文件中，系统就会拒绝接收这个邮件
-地址发来的邮件，或者拒绝邮件域下所有邮件地址发来的邮件。不过这个配置文件只是
-一般的垃圾邮件防范手段，对于比较全面的垃圾邮件过滤技术还要靠第三方软件来实现
-。该文件的格式如下：
-
-    11@11.com //拒绝这个地址发来的邮件
-    22@2w.com
-    @33.com //拒绝这个邮件域下的所有帐号发来的邮件
-    @44.com
-<br>
-        
-          <p class="more-link">
-            <a href="qmail-conf-file/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/qmail-conf-file/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="a-joke-3/">历史上最强最强的跨专业的考研人zz</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Joke/">Joke</a>
-</div>
-    </div>
-      
-        　　1、现在跨专业跨学校考研已经是一种趋势。某君学习图书馆学n年，也是觉得发腻。于是决定考个理科的研究生，在广泛的调查和研究之后。他毅然决定考天大的化院来挑战一下自己。看看一个连苯烷都不会写的人是否可以大跨度考研成功。他做了以下几步：
-坐火车到天大，找到自己未来的研究生导师。先恭敬的鞠上一躬，然后对老先生说：我想考您的研究生，随后递上自己的简历。老先生先是一脸鄙夷，想你们XX大学图书馆学虽然是全国第一，但又怎么知道我们数学的博大精深。不过他没有当面拒绝，而是写了十几个问题对小伙子说：不急，先把这些问题搞清楚再来找我。也就是说，先搞清楚才有资格。这个强人并没有生气，把问题清单收了起来。
-
-　　2、回到学校，把问题翻译成英语，然后给哈佛大学化学系某教授发了一封e-mail，信中写道：我想考贵院的研究生，这是我对专业的一点问题，可以帮我解答一下吗？同时加上自己的简历。哈佛教授看后很激动，因为发现了一个东方化学奇人，虽然不是专业人才但是专业问题问得很深。于是他们认认真真解答了问题，并列出一些其他的问题对小伙子做进一步的考核。
-
-　　3、收到哈佛的回信后，某君把问题翻译成汉语，再去找天大的老先生。先把答案给了老先生，老先生一看已经半疯，想小伙子不错，水平比我还高，已经达到国外哈佛的水平了。这时某君又拿出写满问题的那张纸，对老先生说：老师的问题我回答了，这是我对本专业的一些问题，请老师解答一下。老头看了问题，倒吸了一口凉气，傻眼了。这时某君装着要走。老先生急了，说：小伙子，别走！我要定你了，专业课不用考了，我包你过。公共课去回去复习一下，只要过线就行，只要过线。
-
-　　4、 回到学校，没过几天，收到老先生花了几个通宵、查了大量资料写好的哈佛教授所提问题的答案。某君把答案翻译成英语，给哈佛教授又发过去。他们在确认东方奇人后，提出了一年给某君4万美金的奖学金。一边是保研一边是全奖出国，到底选哪边？某君犯难了。
-
-　　5、当然是选保研，因为哈佛是淘汰制。而天大的老先生只会拍拍小伙子的肩膀说：孩子，好好学，谁让我当时瞎了眼把你收来呢。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/a-joke-3/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="caphit-web-conf/">caphit web 配置</a>
 	</h2>
     <div class="entry-content">
@@ -718,6 +858,41 @@ apache配置完毕
 
   <article class="post">
 	<h2 class="title">
+		<a href="a-joke-3/">历史上最强最强的跨专业的考研人zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Joke/">Joke</a>
+</div>
+    </div>
+      
+        　　1、现在跨专业跨学校考研已经是一种趋势。某君学习图书馆学n年，也是觉得发腻。于是决定考个理科的研究生，在广泛的调查和研究之后。他毅然决定考天大的化院来挑战一下自己。看看一个连苯烷都不会写的人是否可以大跨度考研成功。他做了以下几步：
+坐火车到天大，找到自己未来的研究生导师。先恭敬的鞠上一躬，然后对老先生说：我想考您的研究生，随后递上自己的简历。老先生先是一脸鄙夷，想你们XX大学图书馆学虽然是全国第一，但又怎么知道我们数学的博大精深。不过他没有当面拒绝，而是写了十几个问题对小伙子说：不急，先把这些问题搞清楚再来找我。也就是说，先搞清楚才有资格。这个强人并没有生气，把问题清单收了起来。
+
+　　2、回到学校，把问题翻译成英语，然后给哈佛大学化学系某教授发了一封e-mail，信中写道：我想考贵院的研究生，这是我对专业的一点问题，可以帮我解答一下吗？同时加上自己的简历。哈佛教授看后很激动，因为发现了一个东方化学奇人，虽然不是专业人才但是专业问题问得很深。于是他们认认真真解答了问题，并列出一些其他的问题对小伙子做进一步的考核。
+
+　　3、收到哈佛的回信后，某君把问题翻译成汉语，再去找天大的老先生。先把答案给了老先生，老先生一看已经半疯，想小伙子不错，水平比我还高，已经达到国外哈佛的水平了。这时某君又拿出写满问题的那张纸，对老先生说：老师的问题我回答了，这是我对本专业的一些问题，请老师解答一下。老头看了问题，倒吸了一口凉气，傻眼了。这时某君装着要走。老先生急了，说：小伙子，别走！我要定你了，专业课不用考了，我包你过。公共课去回去复习一下，只要过线就行，只要过线。
+
+　　4、 回到学校，没过几天，收到老先生花了几个通宵、查了大量资料写好的哈佛教授所提问题的答案。某君把答案翻译成英语，给哈佛教授又发过去。他们在确认东方奇人后，提出了一年给某君4万美金的奖学金。一边是保研一边是全奖出国，到底选哪边？某君犯难了。
+
+　　5、当然是选保研，因为哈佛是淘汰制。而天大的老先生只会拍拍小伙子的肩膀说：孩子，好好学，谁让我当时瞎了眼把你收来呢。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/a-joke-3/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="a-bug-of-qss/">qss不正常显示的问题</a>
 	</h2>
     <div class="entry-content">
@@ -782,6 +957,38 @@ Mon, 03 Jan 2005 04:01:57 CST
 
   <article class="post">
 	<h2 class="title">
+		<a href="snowing-now/">下雪了</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-11T16:00:00.000Z" itemprop="datePublished">Jan 12, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/heart/">heart</a>
+</div>
+    </div>
+      
+        这个冬天的第一场雪可能都不能算是雪，据说是某些地方下了几颗肉眼刚好看到的雪粒粒，而且还是就早晨一会，反正我没看到。
+
+第二场似乎应该就是元旦那次了吧，是元旦那天，还是元旦前夜，我忘记了，反正据说是下了，看到据说了吧，说明我还是没看到。呵呵。那两天都在家里呆着，没有出门，只是听说下雪之后站在阳台看了一眼，12层楼往下看，似乎没看到白色的积雪，也没看到哗哗的雪片。可能是我看的时候人家早停了吧，北京的雪基本上都是掉下来就化，所以地上没有积雪也正常的。
+
+这次算是第三次了吧。因为座位不靠窗，所以没有注意到，到隔壁办公室的时候，听他们说起来才注意到，外面的雪片还真大。早上走的时候其实就在下了，不过都是小颗粒，还没想到居然成大气候了，呵呵。
+
+雪现在还在下，在角落里面已经有了一些积雪了，走人走车的地方的雪基本都化了，地上好多水。北京的天气比较来说不够冷，但是够湿润，所以比较容易看到下雪，但是不容易看到积雪。我们家那里比较干燥，冬天就是干冷，下雪少，偶尔来一次就是大的，这一次之后，可能整个冬天都能到处看到积雪，尤其是村子后面的山头上，都白白的。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/snowing-now/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="linux-bridge-script/">Linux下双网接入高级路由配置脚本zz</a>
 	</h2>
     <div class="entry-content">
@@ -838,39 +1045,7 @@ Mon, 03 Jan 2005 04:01:57 CST
 
   <article class="post">
 	<h2 class="title">
-		<a href="snowing-now/">下雪了</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-11T16:00:00.000Z" itemprop="datePublished">Jan 12, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a>
-</div>
-    </div>
-      
-        这个冬天的第一场雪可能都不能算是雪，据说是某些地方下了几颗肉眼刚好看到的雪粒粒，而且还是就早晨一会，反正我没看到。
-
-第二场似乎应该就是元旦那次了吧，是元旦那天，还是元旦前夜，我忘记了，反正据说是下了，看到据说了吧，说明我还是没看到。呵呵。那两天都在家里呆着，没有出门，只是听说下雪之后站在阳台看了一眼，12层楼往下看，似乎没看到白色的积雪，也没看到哗哗的雪片。可能是我看的时候人家早停了吧，北京的雪基本上都是掉下来就化，所以地上没有积雪也正常的。
-
-这次算是第三次了吧。因为座位不靠窗，所以没有注意到，到隔壁办公室的时候，听他们说起来才注意到，外面的雪片还真大。早上走的时候其实就在下了，不过都是小颗粒，还没想到居然成大气候了，呵呵。
-
-雪现在还在下，在角落里面已经有了一些积雪了，走人走车的地方的雪基本都化了，地上好多水。北京的天气比较来说不够冷，但是够湿润，所以比较容易看到下雪，但是不容易看到积雪。我们家那里比较干燥，冬天就是干冷，下雪少，偶尔来一次就是大的，这一次之后，可能整个冬天都能到处看到积雪，尤其是村子后面的山头上，都白白的。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/snowing-now/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="isoqlog/">isoqlog</a>
+		<a href="last-of-a-year/">到年底了</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -878,36 +1053,22 @@ Mon, 03 Jan 2005 04:01:57 CST
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="../tags/heart/">heart</a>
 </div>
     </div>
       
-        isoqlog是用来统计域里面的邮件的。通过查看qmail的log文件，来统计进出的邮件。
+        年底比较期待的一件事情就是tatter tools 1.0，功能更加强大了。希望能无缝升级。
 
-配置文件在/usr/local/etc下面，isoqlog.conf
-<pre class="prettyprint lang-txt">
-#isoqlog Configuration file 
+现在不得不承认和老婆两个人都太懒了。该我洗的碗非要推到第二天做饭前，该老婆打扫的地板一拖就是好几天，猫沙本来应该一天一清理，可非要等到看着似乎都没地方的才动手。得改改这些烂习惯了。
 
-logtype     = "qmail-multilog"                          # log type qmai-multilog, qmail-syslog, sendmail, postfix
-logstore    = "/var/log/qmail"                          #
-domainsfile = "/usr/local/etc/isoqlog.domains"          #
-outputdir   = "/www/isoqlog/log"                        # html output directory
-htmldir     = "/usr/local/share/isoqlog/htmltemp"
-langfile    = "/usr/local/share/isoqlog/lang/english"
-hostname    = "xxx.com"
-
-maxsender   = 100
-maxreceiver = 100
-maxtotal    = 100  
-
-maxbyte     = 100</pre>
+得考虑年底给家里带点什么东西了。cc家里的话，回头再商量商量给买什么好。还是带点东西好。嗯。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/isoqlog/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/last-of-a-year/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

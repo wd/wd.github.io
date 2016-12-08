@@ -101,7 +101,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="about-air-condition/">空调的匹数怎么算？zz</a>
+		<a href="linux-tuning/">linux tuning</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -109,21 +109,133 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a> <a href="../tags/空调/">空调</a>
+<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/bash/">bash</a> <a href="../tags/kernel/">kernel</a> <a href="../tags/tuning/">tuning</a>
 </div>
     </div>
       
-        <a href="http://www.dapenti.com/blog/more.asp?name=agile&amp;id=4332" target="_blank" rel="external">来自这里</a>
+        地址 <a href="http://www.enigma.id.au/linux_tuning.txt" target="_blank" rel="external">http://www.enigma.id.au/linux_tuning.txt</a>
 
-在选购空调时，销售人员通常会在推销空调时提到空调的匹数，匹数指的是电器消耗功率，1匹=1马力=735W，匹并不指制冷量。平时所说的空调是多少匹，是根据空调消耗功率估算出空调的制冷量。一般来说，习惯用1匹等于2500W的制冷量(也就是25机型)，1.5匹约等于.3500的量(也就是35机型)。26机型约为1.1匹，27机型为1.2匹，28机型约为1.3匹，32机型为1.4匹；33机型约为1.5匹，36机型为大1.5匹。
+<pre class="prettyprint lang-bash">
+# server with a decent amount of memory.
+#
+# This file should be saved as /etc/sysctl.conf
+# You can source it manually if your system has booted by using:
+# sysctl -e -p /etc/sysctl.conf
+#
+# Paul Day, paul (at) bur.st
+#
+# Last updated 02/03/05 and tested on 2.6.9
+#
 
-一般，1匹空调适用面积10~15平方米，1.25匹适用10~19平方米，1.5匹适用16~26平方米，1.7匹适用15~30平方米，两匹适用20~37平方米，3匹适用30~58平方米。
+# Increase RPC slots
+sunrpc.tcp_slot_table_entries = 32
+sunrpc.udp_slot_table_entries = 32
+# Increase size of RPC datagram queue length
+net.unix.max_dgram_qlen = 50
+# Log spoofed, source routed and redirects
+net.ipv4.conf.default.log_martians = 1
+# Don't accept source routes
+net.ipv4.conf.default.accept_source_route = 0
+# Don't send redirects
+net.ipv4.conf.default.send_redirects = 0
+# Source route verification on - incoming packets must match outgoing routing
+net.ipv4.conf.default.rp_filter = 1
+# Don't accept redirects
+net.ipv4.conf.default.accept_redirects = 0
+# Don't forward source routes
+net.ipv4.conf.default.mc_forwarding = 0
+# Disable forwarding 
+net.ipv4.conf.default.forwarding = 0
+# Log spoofed, source routed and redirects
+net.ipv4.conf.all.log_martians = 1
+# Don't relay bootp
+net.ipv4.conf.all.bootp_relay = 0
+# Don't proxy arp for anyone
+net.ipv4.conf.all.proxy_arp = 0
+# Don't accept source route packets
+net.ipv4.conf.all.accept_source_route = 0
+# Don't send redirects
+net.ipv4.conf.all.send_redirects = 0
+# Source route verification on - incoming packets must match outgoing routing
+net.ipv4.conf.all.rp_filter = 1
+# Don't accept redirects
+net.ipv4.conf.all.accept_redirects = 0
+# Don't forward source routes
+net.ipv4.conf.all.mc_forwarding = 0
+# Don't enable forwarding
+net.ipv4.conf.all.forwarding = 0
+# Don't allow the arp table to become bigger than this
+net.ipv4.neigh.default.gc_thresh3 = 2048
+# Tell the gc when to become aggressive with arp table cleaning.
+# Adjust this based on size of the LAN. 256 is suitable for most
+net.ipv4.neigh.default.gc_thresh2 = 1024
+# Adjust where the gc will leave arp table alone - set to 32.
+net.ipv4.neigh.default.gc_thresh1 = 32
+# Adjust to arp table gc to clean-up more often
+net.ipv4.neigh.default.gc_interval = 30
+# Increase TCP
+net.ipv4.neigh.default.proxy_qlen = 96
+net.ipv4.neigh.default.unres_qlen = 6
+# Increase size of socket buffers
+net.ipv4.tcp_rmem = 4096	98304	349520
+net.ipv4.tcp_wmem = 4096	65535	262142
+net.ipv4.tcp_mem = 98304	262142	393216
+# Turn off sack
+net.ipv4.tcp_dsack = 0
+# Don't use ECN because too many sites have wacky routers that can't handle it`
+net.ipv4.tcp_ecn = 0
+net.ipv4.tcp_reordering = 3
+# Turn off sack/fack
+net.ipv4.tcp_fack = 0
+# Enable bad error message Protection
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+# Ignore broadcasts pings, could become part of a Smurf
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+# But don't ignore directed pings
+net.ipv4.icmp_echo_ignore_all = 0
+# Widen local port range
+net.ipv4.ip_local_port_range = 33000	60000
+# Bump up TCP socket queuer to help with syn floods
+net.ipv4.tcp_max_syn_backlog = 2048
+# Turn syn-cookie protection on
+net.ipv4.tcp_syncookies = 1
+# Drop it so lack of FIN times out quicker
+net.ipv4.tcp_fin_timeout = 30
+# How many times to retry killing an alive TCP connection
+net.ipv4.tcp_retries2 = 15
+net.ipv4.tcp_retries1 = 3
+# Enable a fix for RFC1337 - time-wait assassination hazards in TCP
+net.ipv4.tcp_rfc1337 = 1
+# Drop keep-alive time
+net.ipv4.tcp_keepalive_time = 3600
+# Set number of times to retry a SYN-ACK in a half-open new connections
+net.ipv4.tcp_synack_retries = 5
+# Set number of times to retry SYN in a new connection
+net.ipv4.tcp_syn_retries = 5
+# Turn off sack
+net.ipv4.tcp_sack = 0
+# Enable really big (>65kB) TCP window scaling if we want it.
+net.ipv4.tcp_window_scaling = 1
+# Turn off timestamps
+# Turn this back on if you're on a gigabit or very busy network
+# Having it off is one less thing the IP stack needs to work on
+net.ipv4.tcp_timestamps = 0
+# Increase number of incoming connections backlog
+net.core.somaxconn = 512
+# Bump optmem_max up
+net.core.optmem_max = 20480
+# Increase number of incoming connections backlog
+net.core.netdev_max_backlog = 1024
+net.core.dev_weight = 64
+# Bump up default r/wmem to max
+net.core.rmem_default = 262141
+net.core.wmem_default = 262141
+# Bump up max r/wmem
+net.core.rmem_max = 262141
+net.core.wmem_max = 262141
+# Increase size of file handles and inode cache
+fs.file-max = 209708</pre>
 
-买空调的人都知道，根据空调匹数的不同价格也不一样。空调匹数，原指输入功率，包括压机、风扇电机及电控部分，因不同的品牌其具体的系统及电控设计差异，其输出的制冷量不同，故其制冷量以输出功率计算。
-
-一般来说，1匹的制冷量大致力2000大卡，换算成国际单位应乘以1.162，故1匹之制冷量应力2000大卡×1．162＝2324瓦，这里的瓦（w）即表示制冷量，则1．5匹的应为2000大卡×1．5×1．162＝3486（w），以此类推。根据此情况，则大致能判定空调的匹数和制冷量。一般情况下，2200（w）~2600（w）都可称为1匹，4500（w）~5100（w）可称为两匹，3200（w）~3600（w）可称为1．5匹。制冷量确定后，即可根据目己家庭之实际情况估算制冷量，选择合适的空调机。
-
-家用电器要消耗制冷量的较大部分，电视、电灯、冰箱等每瓦（w）功率要消耗制冷量1（w），门窗的方向也要消耗一定的制冷量，东面窗150W／m2，西面窗280W／m2，南面窗180W／m2 ，北面窗100W／m2，如是楼顶及西晒可考虑适当增加制冷量。
 <p class="poweredbyperformancing">Powered by <a href="http://scribefire.com/" target="_blank" rel="external">ScribeFire</a>.</p>
 
       
@@ -131,7 +243,7 @@
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/about-air-condition/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/linux-tuning/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

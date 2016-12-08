@@ -101,7 +101,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="weblogic-apache-bridge/">weblogic apache 桥接指南</a>
+		<a href="split-and-cat/">用split分割备份文件，和用cat恢复备份</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -109,20 +109,60 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a> <a href="../tags/weblogic/">weblogic</a>
+<a href="../tags/other/">other</a>
 </div>
     </div>
       
-        Using Web Server Plug-Ins with WebLogic Server
+        split命令的使用格式如下：
+$split --help
+Usage: split [OPTION] [INPUT [PREFIX]]
+Output fixed-size pieces of INPUT to PREFIXaa, PREFIXab, ...; default
+PREFIX is `x'.&nbsp; With no INPUT, or when INPUT is -, read standard input.
 
-http://edocs.bea.com/wls/docs90/plugins/apache.html
+Mandatory arguments to long options are mandatory for short options too.
+&nbsp; -a, --suffix-length=N &nbsp; use suffixes of length N (default 2)
+&nbsp; -b, --bytes=SIZE &nbsp; &nbsp; &nbsp;&nbsp; put SIZE bytes per output file
+&nbsp; -C, --line-bytes=SIZE &nbsp; put at most SIZE bytes of lines per output file
+&nbsp; -d, --numeric-suffixes&nbsp; use numeric suffixes instead of alphabetic
+&nbsp; -l, --lines=NUMBER &nbsp; &nbsp;&nbsp; put NUMBER lines per output file
+ &nbsp; &nbsp;&nbsp; --verbose &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; print a diagnostic to standard error just
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; before each output file is opened
+ &nbsp; &nbsp;&nbsp; --help &nbsp; &nbsp; display this help and exit
+ &nbsp; &nbsp;&nbsp; --version&nbsp; output version information and exit
+
+SIZE may have a multiplier suffix: b for 512, k for 1K, m for 1 Meg.
+
+
+通常使用的都是-b参数指定分割之后的文件的大小。
+
+我们先建立一个测试文件。
+#dd if=/dev/zero of=./test bs=1M count=512
+就是以1M为单位，重复512次，也就是建立一个512M的文件。
+
+$split -b 200m test test_back
+执行这个命令之后，等执行完毕会看到目录下面多了几个文件
+$ls
+test test_backaa test_backab test_backac
+
+这样就完成了文件的分割。如果对于文本文件，还可以使用split的-l参数针对行数进行分割。
+
+这样分割传输之后，还需要重新合并才能使用，可以使用cat命令来完成。
+$cat test_backa* &gt; test_back
+
+执行完毕之后，可以看一下恢复的test_back文件和test文件的md5。
+$md5sum test test_back
+返回值应该是一样的。
+
+使用tar备份的时候有时也需要对大的备份文件进行分割。
+$tar czvf - /data | split -b 1024m - data
+
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/weblogic-apache-bridge/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/split-and-cat/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -253,32 +293,6 @@ mv: cannot move `xx' to `xx.ss': Operation not permitted
 
   <article class="post">
 	<h2 class="title">
-		<a href="stop-and-start-script-for-apache-and-weblogic/">启动停止weblogic和apache的脚本</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a>
-</div>
-    </div>
-      
-        apache和weblogic做桥接之后，启动的时候要先启动weblogic，后启动apache，停止的时候要先停止apache，后停止weblogic，这
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="portmap/">端口映射</a>
 	</h2>
     <div class="entry-content">
@@ -315,6 +329,74 @@ mv: cannot move `xx' to `xx.ss': Operation not permitted
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/portmap/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="rsync-script/">rsync脚本的一个例子</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a> <a href="../tags/rsync/">rsync</a>
+</div>
+    </div>
+      
+        <pre class="prettyprint lang-bash">
+
+SYNCLOGFILE="/var/log/rsync-201.log"
+SYNCLOCKFILE="/var/lock/rsync-201.lock"
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n ">>> Sync log for " >> $SYNCLOGFILE
+date >> $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
+rm -f $SYNCLOCKFILE
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="stop-and-start-script-for-apache-and-weblogic/">启动停止weblogic和apache的脚本</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a>
+</div>
+    </div>
+      
+        apache和weblogic做桥接之后，启动的时候要先启动weblogic，后启动apache，停止的时候要先停止apache，后停止weblogic，这
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -391,48 +473,6 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/install-mysql/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="rsync-script/">rsync脚本的一个例子</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a> <a href="../tags/rsync/">rsync</a>
-</div>
-    </div>
-      
-        <pre class="prettyprint lang-bash">
-
-SYNCLOGFILE="/var/log/rsync-201.log"
-SYNCLOCKFILE="/var/lock/rsync-201.lock"
-
-if [[ -f $SYNCLOCKFILE ]]; then
-  # lock file already present, bail
-  exit 1
-fi
-
-echo -n ">>> Sync log for " >> $SYNCLOGFILE
-date >> $SYNCLOGFILE
-
-touch $SYNCLOCKFILE
-rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
-rm -f $SYNCLOCKFILE
-</pre>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
