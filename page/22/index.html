@@ -101,6 +101,51 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="nagios-conf/">今天又理解了nagios的两个配置</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-15T16:00:00.000Z" itemprop="datePublished">Apr 16, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/nagios/">nagios</a>
+</div>
+    </div>
+      
+        <b>Host and Service Dependencies</b>
+
+当监控的host或者service之间有依赖关系的时候，可以通过定义dependence来让nagios知道应该通知什么。
+
+比如我这里的服务器都在idc托管，而我的nagios却是运行在公司的一台服务器上面。这样，有时候可能就需要考虑依赖关系了。比如当公司的网络出问题的时候（事实上经常出现），比如断网，总不能让他也认为是idc托管的服务器出问题了而给你发通知吧。host dependence正好可以解决这个问题。
+
+比如 A 是idc的，B 是公司的网关（或者某个应该一直在线的服务器，比如sina.com.cn）。当nagios检测到A连不上的时候，他会根据dependence来检测B，如果B也连不上了，那么就只通知你B连不上了。
+
+大概的配置如下
+<pre class="prettyprint lang-text">
+        host_name                       B
+        dependent_host_name             A
+        notification_failure_criteria   d,u
+        }</pre>
+
+<b>Notification Escalations</b>
+
+escalations 的意思就是扩大。整个这个的意思应该就是扩大通知范围。之前一直没理解是什么意思，今天看了才明白。其实就是定义出问题的时候，什么时候扩大通知。
+
+比如A服务器挂了，他对应的contactgroup就会立刻得到通知。但是，如果这个组里面的人在睡觉或者在做什么事情忽略了这个通知，怎么办呢？当然nagios会通知多次，但是如果这些都忽略掉了或者没有收到怎么办？这样这个escalations就有作用了，他可以定义几次通知contatgroup之后就开始通知别的人。还有一些别的功能，就不多说了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/nagios-conf/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="twitter-what-are-u-doing/">twitter ? 我知道你在干什么</a>
 	</h2>
     <div class="entry-content">
@@ -219,40 +264,6 @@ lilina 的rss解析用的是 magpie ，feed文件下载用的是 Snoopy 。下�
 
   <article class="post">
 	<h2 class="title">
-		<a href="off-phone/">后挂电话的人</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-04-10T16:00:00.000Z" itemprop="datePublished">Apr 11, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a> <a href="../tags/挂电话/">挂电话</a>
-</div>
-    </div>
-      
-        这是第二次写了。唉，真郁闷。昨天写了一拖丢了。
-
-前天晚上值班回家的时候老婆打电话过了问我到哪里了，聊了几句就互相挂了电话。之后就想起来这个了。
-
-打电话的时候，通常都会想像对方是在面前的，会想像对方的样子。高兴、生气、撒娇，都像对着对方一样，所以说电话是一个很伟大的发明。挂电话的死后总会有先后了，不过你要说还有一起挂的那就算了，哼，不争这个。后挂电话的人在对方电话“咔嗒”一声挂上的时候是会有失落感的，就像晚上看电视突然停电一样，对方的形象突然就没了。就像风筝断了线一样，开始还能抓住对方，能知道对方的表情，可接下来一瞬间就断了。
-
-如果谁有一个愿意后挂电话的人，那么这个人无疑肯定是幸福的。你有没有？
-
-之前老婆还不是老婆的时候，每次电话我都会尽量做到后挂电话，现在变成老婆了，反到少了，说完事情就挂了，可能是双方太熟悉的缘故，也不需要相互表达的很清楚，对方就知道。但是这些显然都是借口了，借口的意思就是说，这个理由说出来的比不说出效果还好 :( ，以后我要改了。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/off-phone/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="unix-process/">unix 进程</a>
 	</h2>
     <div class="entry-content">
@@ -344,6 +355,40 @@ main(){
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/unix-process/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="off-phone/">后挂电话的人</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-10T16:00:00.000Z" itemprop="datePublished">Apr 11, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/heart/">heart</a> <a href="../tags/挂电话/">挂电话</a>
+</div>
+    </div>
+      
+        这是第二次写了。唉，真郁闷。昨天写了一拖丢了。
+
+前天晚上值班回家的时候老婆打电话过了问我到哪里了，聊了几句就互相挂了电话。之后就想起来这个了。
+
+打电话的时候，通常都会想像对方是在面前的，会想像对方的样子。高兴、生气、撒娇，都像对着对方一样，所以说电话是一个很伟大的发明。挂电话的死后总会有先后了，不过你要说还有一起挂的那就算了，哼，不争这个。后挂电话的人在对方电话“咔嗒”一声挂上的时候是会有失落感的，就像晚上看电视突然停电一样，对方的形象突然就没了。就像风筝断了线一样，开始还能抓住对方，能知道对方的表情，可接下来一瞬间就断了。
+
+如果谁有一个愿意后挂电话的人，那么这个人无疑肯定是幸福的。你有没有？
+
+之前老婆还不是老婆的时候，每次电话我都会尽量做到后挂电话，现在变成老婆了，反到少了，说完事情就挂了，可能是双方太熟悉的缘故，也不需要相互表达的很清楚，对方就知道。但是这些显然都是借口了，借口的意思就是说，这个理由说出来的比不说出效果还好 :( ，以后我要改了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/off-phone/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -462,48 +507,6 @@ Gecko/20070309 irefox/2.0.0.3"</pre>
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/compress-apache/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="awstats-log/">awstats 如何统计以前的日志？</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-04-01T16:00:00.000Z" itemprop="datePublished">Apr 2, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/apache/">apache</a> <a href="../tags/awstats/">awstats</a>
-</div>
-    </div>
-      
-        突然想安装一个awstats了，参考 <a href="http://www.chedong.com/tech/awstats.html" target="_blank" rel="external">车东</a> 的文章，安装了一个。可是发现一个问题，设置了logfile为 access_log.%YYYY-24%MM-24%DD-24.log 之后，发现只能把昨天的日志统计进来，可是我的log下面还有好多呢，想统计以前的，怎么弄呢？幸好，awstats已经考虑到这个问题了。
-
-awstats.pl 脚本支持在命令行指定logfile，这样简单了，改变这个参数就可以了。不过要注意的是，如果你的data里面已经处理新的日志，那么指定logfile也没用了，以前的没办法更新进来了。只能是删掉data里面的内容，然后重新从最早的开始生成一遍。我写了一个脚本来做这个事情。
-
-<pre class="prettyprint lang-bash">
-
-awstats_dir=/opt/tt2/awstats/wwwroot/cgi-bin
-logfile_dir="/usr/local/apache/logs/"
-
-cd $awstats_dir
-
-for file in `find $logfile_dir -name "access_log.2*" | sort`;do
-        #echo "$file"
-        ./awstats.pl －update -config=wd -LogFile=$file
-done</pre>
-
-保存为 awstats.sh ，然后执行就可以了。他会查找 logfile_dir 下面所有的 access_log.2 开头的文件，作为参数来更新记录。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/awstats-log/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

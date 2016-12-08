@@ -101,33 +101,30 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="about-awk/">AWK：Linux 管理员的智能工具包zz</a>
+		<a href="how-mail-from-a-to-b/">邮件如何从A点到达B点zz</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2006-03-26T16:00:00.000Z" itemprop="datePublished">Mar 27, 2006</time>
+      <div class="date">Published on: <time datetime="2006-03-29T16:00:00.000Z" itemprop="datePublished">Mar 30, 2006</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="../tags/Mail/">Mail</a>
 </div>
     </div>
       
-        引用地址：http://www.oracle.com/technology/global/cn/pub/articles/dulaney_awk.html
-还可以参考：http://www.example.net.cn/archives/2005/01/awknieec.html
+        <p>当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. </p>  <p>假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com,     下面是发送接收过程: </p>  <p>1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题,     加上邮件本身的文本部分. 整个邮件看起来是下面这样的: </p><pre>    To: bob@beta
+    Subject: lunch
 
-<p><span class="boldbodycopy">您正在学习 Linux 吗？本文对于非常有用的 AWK 文本操作工具进行了介绍，非常有价值。</span></p><p>&lt;!--use&gt; <span class="bodycopy">AWK实用工具带有其自己的自包含语言，它不仅是 Linux中也是任何环境中现有的功能最强大的数据处理引擎之一。这种编程及数据操作语言（其名称得自于它的创始人 Alfred Aho、PeterWeinberger 和 Brian Kernighan姓氏的首个字母）的最大功能取决于一个人所拥有的知识。它允许您创建简短的程序，这些程序读取输入文件、为数据排序、处理数据、对输入执行计算以及生成报表，还有无数其他的功能。</span></p><p><span class="parahead1"><br>
-        
-          <p class="more-link">
-            <a href="about-awk/#more">Read More</a>
-          </p>
-        
+    How about pizza?
+</pre>  <p>2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. </p>  <p>3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta     替换为"Bob &lt;bob@beta.example.com&gt;") 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入:     MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给     MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA     可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序. </p>  <p>4. 如果注入成功--邮件句法正确, 并且 sendmail 调用适当--那么现在邮件已经在 MTA 的职责内了. 不同的 MTA 细节是完全不同的,     通常MTA首先检查邮件头决定邮件将发往何处. 然后建立一个到主机beta的SMTP连接, 转发邮件给 beta 系统上的MTA. SMTP对话要求邮件被分成两部分发送:     信封, 这个部分确定了接收者的地址(bob@beta.example.com)和返回地址(alice@alpha.example.com), 以及邮件本身,     包括邮件头和邮件主体. </p>  <p>5. 如果beta主机的MTA拒绝这个邮件, 可能原因是在beta系统上没有这个bob用户, 在alpha 上的MTA发送一个反弹邮件给返回地址, 也就是     alice@alpha, 通知她邮件发送出现了问题. </p>  <p>6. 如果 beta主机上的 MTA接收了邮件, 它查看接收者地址, 决定是发送给本地local 还是远程 remote系统的邮件. 这个例子里面,     接收者是本地用户, 然后MTA或者传送邮件给 mail delivery agent (MDA), 比如 /bin/mail或者传送给 procmail.   </p>  <p>7. 如果传输失败了, 可能是Bob的邮箱超过了使用限额, beta 主机上的 MTA 将发送一个反弹信息给信封上的返回地址, 即 alice@alpha.   </p>  <p>8. 如果传输成功, 邮件将在Bob的邮箱中等待, 直到他使用MUA来阅读和显示邮件. </p>
+
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/about-awk/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/how-mail-from-a-to-b/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -161,6 +158,39 @@
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/about-tcp-ip/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="about-awk/">AWK：Linux 管理员的智能工具包zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-26T16:00:00.000Z" itemprop="datePublished">Mar 27, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a>
+</div>
+    </div>
+      
+        引用地址：http://www.oracle.com/technology/global/cn/pub/articles/dulaney_awk.html
+还可以参考：http://www.example.net.cn/archives/2005/01/awknieec.html
+
+<p><span class="boldbodycopy">您正在学习 Linux 吗？本文对于非常有用的 AWK 文本操作工具进行了介绍，非常有价值。</span></p><p>&lt;!--use&gt; <span class="bodycopy">AWK实用工具带有其自己的自包含语言，它不仅是 Linux中也是任何环境中现有的功能最强大的数据处理引擎之一。这种编程及数据操作语言（其名称得自于它的创始人 Alfred Aho、PeterWeinberger 和 Brian Kernighan姓氏的首个字母）的最大功能取决于一个人所拥有的知识。它允许您创建简短的程序，这些程序读取输入文件、为数据排序、处理数据、对输入执行计算以及生成报表，还有无数其他的功能。</span></p><p><span class="parahead1"><br>
+        
+          <p class="more-link">
+            <a href="about-awk/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/about-awk/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -257,108 +287,6 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="a-test/">测试一下</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a>
-</div>
-    </div>
-      
-        在xh这里蹭了一块地方，哈哈哈，不知道能蹭多久。先测试一下有没有问题。yahoo的dns修改了2天才生效，这个郁闷啊。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/a-test/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="WSUSMicrosoft-Windows-Server-Update-Services/">WSUS,Microsoft Windows Server Update Services</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Windows/">Windows</a>
-</div>
-    </div>
-      
-        http://www.winsvr.org/info/info.php?sessid=&infoid=12
-
-<strong>1 什么是wsus</strong>
-
-WSUS（Microsoft Windows Server Update Services）是微软推出的免费的Windows更新管理服务，目前最新版本为2.0.0.2472，除了支持Windows系统（Windows 2000全系列、Windows XP全系列和Windows server 2003全系列）的更新管理外，还可以支持SQL Server、Exchange 2000/2003、Office XP/2003等系统的更新管理，并且在以后，WSUS将实现微软全系列产品的更新管理。
-
-<strong>2 为什么要用wsus</strong>
-
-在小规模的企业网络中，客户端计算机通过自动更新连接Microsoft Update来进行系统更新并不会对企业的外部网络带宽造成太大的影响，例如有5台客户端计算机每台下载20M的更新程序，那么总占用的企业外部网络流量只是100M；但是在中大规模的企业网络中，如果每台客户端计算机都通过连接到Microsoft Update来实现更新，则会极大的影响企业的外部网络带宽，例如有500台客户端计算机每台下载20M的更新程序，就会占用10G的流量。更新变成了下面的流程“Microsoft Update->本地企业网络中的WSUS服务器->客户端计算机”。
-
-<br>
-        
-          <p class="more-link">
-            <a href="WSUSMicrosoft-Windows-Server-Update-Services/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/WSUSMicrosoft-Windows-Server-Update-Services/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="LDAPLightweight-Directory-Access-Protocol/">LDAP,Lightweight Directory Access Protocol</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a>
-</div>
-    </div>
-      
-        <strong>1 什么是LDAP</strong>
-
-LDAP的英文全称是Lightweight Directory Access Protocol，一般都简称为LDAP。
-
-LDAP目录中可以存储各种类型的数据：电子邮件地址、邮件路由信息、人力资源数据、公用密匙、联系人列表，等等。通过把LDAP目录作为系统集成中的一个重要环节，可以简化员工在企业内部查询信息的步骤，甚至连主要的数据源都可以放在任何地方。
-
-<br>
-        
-          <p class="more-link">
-            <a href="LDAPLightweight-Directory-Access-Protocol/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/LDAPLightweight-Directory-Access-Protocol/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="flickr-free-photo-album/">flickr,免费相册</a>
 	</h2>
     <div class="entry-content">
@@ -430,6 +358,42 @@ item.php
 
   <article class="post">
 	<h2 class="title">
+		<a href="LDAPLightweight-Directory-Access-Protocol/">LDAP,Lightweight Directory Access Protocol</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/other/">other</a>
+</div>
+    </div>
+      
+        <strong>1 什么是LDAP</strong>
+
+LDAP的英文全称是Lightweight Directory Access Protocol，一般都简称为LDAP。
+
+LDAP目录中可以存储各种类型的数据：电子邮件地址、邮件路由信息、人力资源数据、公用密匙、联系人列表，等等。通过把LDAP目录作为系统集成中的一个重要环节，可以简化员工在企业内部查询信息的步骤，甚至连主要的数据源都可以放在任何地方。
+
+<br>
+        
+          <p class="more-link">
+            <a href="LDAPLightweight-Directory-Access-Protocol/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/LDAPLightweight-Directory-Access-Protocol/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="L3-switch/">L3 switch</a>
 	</h2>
     <div class="entry-content">
@@ -455,6 +419,46 @@ http://140.111.152.100/archives/2004_09.html
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/L3-switch/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="WSUSMicrosoft-Windows-Server-Update-Services/">WSUS,Microsoft Windows Server Update Services</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/Windows/">Windows</a>
+</div>
+    </div>
+      
+        http://www.winsvr.org/info/info.php?sessid=&infoid=12
+
+<strong>1 什么是wsus</strong>
+
+WSUS（Microsoft Windows Server Update Services）是微软推出的免费的Windows更新管理服务，目前最新版本为2.0.0.2472，除了支持Windows系统（Windows 2000全系列、Windows XP全系列和Windows server 2003全系列）的更新管理外，还可以支持SQL Server、Exchange 2000/2003、Office XP/2003等系统的更新管理，并且在以后，WSUS将实现微软全系列产品的更新管理。
+
+<strong>2 为什么要用wsus</strong>
+
+在小规模的企业网络中，客户端计算机通过自动更新连接Microsoft Update来进行系统更新并不会对企业的外部网络带宽造成太大的影响，例如有5台客户端计算机每台下载20M的更新程序，那么总占用的企业外部网络流量只是100M；但是在中大规模的企业网络中，如果每台客户端计算机都通过连接到Microsoft Update来实现更新，则会极大的影响企业的外部网络带宽，例如有500台客户端计算机每台下载20M的更新程序，就会占用10G的流量。更新变成了下面的流程“Microsoft Update->本地企业网络中的WSUS服务器->客户端计算机”。
+
+<br>
+        
+          <p class="more-link">
+            <a href="WSUSMicrosoft-Windows-Server-Update-Services/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/WSUSMicrosoft-Windows-Server-Update-Services/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

@@ -101,6 +101,174 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="udf-in-hive/">hive 里面的 UDTF</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-04-23T16:00:00.000Z" itemprop="datePublished">Apr 24, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="../tags/hive/">hive</a>
+</div>
+    </div>
+      
+        hive 支持 UDF， UDAF， UDTF，这几个让你使用 hive 更加便捷。
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1">UDF</h2>
+<div id="text-1" class="outline-text-2">
+
+udf 就是一个自定义的 function，输入一个或多个参数，返回一个返回值，类似 substr/trim 之类。写起来比较简单，重构 UDF 类的 evaluate 方法就可以了。可以参考 <a href="http://richiehu.blog.51cto.com/2093113/386112" target="_blank" rel="external">http://richiehu.blog.51cto.com/2093113/386112</a> 。
+
+这是一个 urldecode 函数。
+<pre class="prettyprint lang-java">
+
+import org.apache.hadoop.hive.ql.exec.UDF;
+import java.net.URLDecoder;
+
+public final class urldecode extends UDF {
+
+    public String evaluate(final String s) {
+        if (s == null) { return null; }
+        return getString(s);
+    }
+
+    public static String getString(String s) {
+        String a;
+        try {
+            a = URLDecoder.decode(s);
+        } catch ( Exception e) {
+            a = "";
+        }
+        return a;
+    }
+
+    public static void main(String args[]) {
+        String t = "%E5%A4%AA%E5%8E%9F-%E4%B8%89%E4%BA%9A";
+        System.out.println( getString(t) );
+    }
+}</pre>
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2">UDAF</h2>
+<div id="text-2" class="outline-text-2">
+
+udaf 就是自定义的聚合函数，类似 sum/avg 这类，输入多行的一个或多个参数，返回一个返回值。这个还没写过，可以参考 <a href="http://richiehu.blog.51cto.com/2093113/386113" target="_blank" rel="external">http://richiehu.blog.51cto.com/2093113/386113</a> 。
+
+&nbsp;
+
+</div>
+&nbsp;
+
+</div>
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3">UDTF</h2>
+<div id="text-3" class="outline-text-2">
+
+udtf 是针对输入一行，输出多行的需求来的，类似 explode 函数。可以参考 <a href="http://www.linezing.com/blog/?p=323" target="_blank" rel="external">http://www.linezing.com/blog/?p=323</a> 。
+
+这个是输入数组字段，输出两列，一列是数组元素的位置，一列是数组元素。比 explode 多了一列位置，不过数组元素只能是 String 类型的。
+<pre class="prettyprint lang-java">
+
+import java.util.ArrayList;
+import java.util.List;
+
+//import org.apache.hadoop.io.Text;
+
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDTF;
+
+import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
+import org.apache.hadoop.hive.ql.exec.description;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
+import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
+
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+
+@description(
+        name = "explodeWithPos",
+        value = "_FUNC_(a) - separates the elements of array a into multiple rows with pos as first col "
+        )
+
+public class explodeWithPos extends GenericUDTF {
+
+    ListObjectInspector listOI = null;
+
+    @Override
+        public void close() throws HiveException{
+        }
+
+    @Override
+        public StructObjectInspector initialize(ObjectInspector [] args) throws UDFArgumentException {
+
+            if (args.length != 1) {
+                throw new UDFArgumentException("explodeWithPos() takes only one argument");
+            }
+
+            if (args[0].getCategory() != ObjectInspector.Category.LIST) {
+                throw new UDFArgumentException("explodeWithPos() takes an array as a parameter");
+            }
+
+            listOI = (ListObjectInspector)args[0];
+
+            ArrayList fieldNames = new ArrayList();
+            ArrayList fieldOIs = new ArrayList();
+
+            fieldNames.add("col1");
+            //fieldOIs.add(listOI.getListElementObjectInspector());
+            fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+
+            fieldNames.add("col2");
+            //fieldOIs.add(listOI.getListElementObjectInspector());
+            fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+
+            return ObjectInspectorFactory.getStandardStructObjectInspector(fieldNames, fieldOIs);
+        }
+
+        //Object forwardObj[] = new Object[2];
+        Object forwardObj[] = new String[2];
+
+    @Override
+        public void process(Object [] o) throws HiveException {
+
+            List list = listOI.getList(o[0]);
+
+            if ( list == null ) {
+                return;
+            }
+
+            int i =0;
+            for (Object r : list) {
+                forwardObj[0] = String.valueOf(i);
+                forwardObj[1] = r.toString();
+                this.forward(forwardObj);
+                i++;
+            }
+        }
+
+    @Override
+        public String toString() {
+            return "explodeWithPos";
+        }
+}</pre>
+</div>
+</div>
+</div>
+</div>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/udf-in-hive/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="rsync-files-from-option/">rsync files-from 参数</a>
 	</h2>
     <div class="entry-content">
@@ -524,36 +692,6 @@ chrome 本身自己有个字体设置的地方，在 tools -> options -> Under t
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/some-font-configuration-for-chrome/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="rectangles-in-emacs/">emacs 的列编辑</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2010-08-28T16:00:00.000Z" itemprop="datePublished">Aug 29, 2010</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/emacs/">emacs</a>
-</div>
-    </div>
-      
-        列编辑我觉得是一个编辑器不能缺少的东西。在 vim 里面使用 C-v 就能进入列编辑，然后我通常用到的，也就是 d (删除) 和 I (插入)。在 emacs 里面一直没怎么用上这个，总感觉是操作很麻烦。最近操作了几次，发现也没那么难，呵呵。
-
-emacs manual 里面关于列编辑的<a href="http://www.gnu.org/software/emacs/manual/html_node/emacs/Rectangles.html" target="_blank" rel="external">页面</a>。emacs 里面那个默认的列编辑不会出来像 vim 里面那样的矩形选区（不过有别的方法好像可以做到），所以当你选择的时候，还是按行来选择的，你只需要关心选择的起始点和结束点之间的那个矩形就好了，你的操作只会在里面起作用。
-
-对应到 vim 的 d，emacs 里面的应该是 C-x r d 或 C-x r k 了吧，对应到 I，应该是 C-x r t string <ret> 了吧，不过 emacs 里面这个是替换选择的东西为 string，你要是选个空的，应该就算是插入了吧。还有个 C-x r y 复制，我觉得会这几个应该就基本可以了吧。。
-</ret>
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/rectangles-in-emacs/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
