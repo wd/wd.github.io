@@ -71,6 +71,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -101,6 +102,48 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="rsync-script/">rsync脚本的一个例子</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/rsync/">rsync</a>
+</div>
+    </div>
+      
+        <pre class="prettyprint lang-bash">
+
+SYNCLOGFILE="/var/log/rsync-201.log"
+SYNCLOCKFILE="/var/lock/rsync-201.lock"
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n ">>> Sync log for " >> $SYNCLOGFILE
+date >> $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
+rm -f $SYNCLOCKFILE
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="178-accident/">178事故</a>
 	</h2>
     <div class="entry-content">
@@ -109,7 +152,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a> <a href="../tags/route/">route</a> <a href="../tags/路由/">路由</a>
+<a href="/tags/other/">other</a> <a href="/tags/route/">route</a> <a href="/tags/路由/">路由</a>
 </div>
     </div>
       
@@ -135,40 +178,6 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="limite-ssh-access-ip/">限制ssh访问的ip</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-23T16:00:00.000Z" itemprop="datePublished">Apr 24, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a> <a href="../tags/ssh/">ssh</a>
-</div>
-    </div>
-      
-        ★ 需求
-
-最近公司服务器上面某个用户的帐号密码被修改了好几次。查看了一下，确实有人用他的帐号从外网ip（国外的ip）登陆过，猜想可能是他自己的电脑中木马或者什么病毒了。用户自己没有安全意识是很头痛的一个问题，其实给他们新建帐号的时候使用的都是简单密码，但是似乎都没有人上服务器自己修改，但是你又不能要求你的用户如何如何（比如给自己电脑装防火墙、杀毒软件etc），因为那是人家自己的事情。那么我就想，有没有一个方法可以限制某个用户只能从某个ip（或者ip列表）登陆呢？下面是一些解决方法。
-
-<br>
-        
-          <p class="more-link">
-            <a href="limite-ssh-access-ip/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/limite-ssh-access-ip/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="use-rsa-and-dsa/">使用ssh的rsa和dsa验证登陆linux</a>
 	</h2>
     <div class="entry-content">
@@ -177,7 +186,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a> <a href="../tags/ssh/">ssh</a>
+<a href="/tags/other/">other</a> <a href="/tags/ssh/">ssh</a>
 </div>
     </div>
       
@@ -203,6 +212,40 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="limite-ssh-access-ip/">限制ssh访问的ip</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-04-23T16:00:00.000Z" itemprop="datePublished">Apr 24, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/ssh/">ssh</a>
+</div>
+    </div>
+      
+        ★ 需求
+
+最近公司服务器上面某个用户的帐号密码被修改了好几次。查看了一下，确实有人用他的帐号从外网ip（国外的ip）登陆过，猜想可能是他自己的电脑中木马或者什么病毒了。用户自己没有安全意识是很头痛的一个问题，其实给他们新建帐号的时候使用的都是简单密码，但是似乎都没有人上服务器自己修改，但是你又不能要求你的用户如何如何（比如给自己电脑装防火墙、杀毒软件etc），因为那是人家自己的事情。那么我就想，有没有一个方法可以限制某个用户只能从某个ip（或者ip列表）登陆呢？下面是一些解决方法。
+
+<br>
+        
+          <p class="more-link">
+            <a href="limite-ssh-access-ip/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/limite-ssh-access-ip/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="iptables-on-remote-server/">为远程服务器设置防火墙</a>
 	</h2>
     <div class="entry-content">
@@ -211,7 +254,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a> <a href="../tags/iptables/">iptables</a>
+<a href="/tags/other/">other</a> <a href="/tags/iptables/">iptables</a>
 </div>
     </div>
       
@@ -237,7 +280,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a> <a href="../tags/vim/">vim</a>
+<a href="/tags/other/">other</a> <a href="/tags/vim/">vim</a>
 </div>
     </div>
       
@@ -269,7 +312,7 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/debian/">debian</a>
+<a href="/tags/debian/">debian</a>
 </div>
     </div>
       
@@ -290,37 +333,6 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
 
   <article class="post">
 	<h2 class="title">
-		<a href="manage-route/">添加删除路由</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-16T16:00:00.000Z" itemprop="datePublished">Apr 17, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a>
-</div>
-    </div>
-      
-        #route add -net 192.168.0.0/24
-#route add -host 192.168.0.23
-#route del -net 192.168.0.0/24
-
-#route add default gw 192.168.0.1
-#route del default gw 192.168.0.1
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/manage-route/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="iptables-in-debian/">debian下面的防火墙设置</a>
 	</h2>
     <div class="entry-content">
@@ -329,7 +341,7 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/debian/">debian</a>
+<a href="/tags/debian/">debian</a>
 </div>
     </div>
       
@@ -363,6 +375,37 @@ For more advanced firewall configuration scripts through ifupdown you can use th
 
   <article class="post">
 	<h2 class="title">
+		<a href="manage-route/">添加删除路由</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-04-16T16:00:00.000Z" itemprop="datePublished">Apr 17, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a>
+</div>
+    </div>
+      
+        #route add -net 192.168.0.0/24
+#route add -host 192.168.0.23
+#route del -net 192.168.0.0/24
+
+#route add default gw 192.168.0.1
+#route del default gw 192.168.0.1
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/manage-route/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="affray-in-subway/">今天坐地铁遇到两起吵架</a>
 	</h2>
     <div class="entry-content">
@@ -371,7 +414,7 @@ For more advanced firewall configuration scripts through ifupdown you can use th
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a>
+<a href="/tags/heart/">heart</a>
 </div>
     </div>
       
@@ -391,46 +434,6 @@ bless北京的交通。。。
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/affray-in-subway/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="about-nagios/">nagios，监控多组服务器的利器</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-02T16:00:00.000Z" itemprop="datePublished">Apr 3, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a>
-</div>
-    </div>
-      
-        面试的时候被有时会被问道的问题就是，如果让你去管理100台服务器，你打算怎么做？
-
-老实说偶只弄过1台服务器，没事上去看看，还是可以的，100台，一台看一眼那就是多长时间啊。1台的时候可以用logwatch每天生成一份日志，每天看一眼日志。或者每天看看awstatus分析后的web日志。可是100台的时候基本不适用了，每天早上看100封mail会疯掉的，况且这个还不实时。。。
-
-听xh介绍之后，看了一下nagios，才知道有人早就想到这些问题了。其实我之前遇到第一个人问我的时候就应该去了解一下的。
-
-nagios是通过nagios进程管理下，定时运行某些检测程序，然后通过web方式来显示检测结果的，比如说ping、pop3、smtp、http，还有switch、router等等，甚至本机登陆用户、运行进程、磁盘空间等，还可以设置服务器的主从关系，比如哪个http服务器是位于某个router下面等，这样提示的时候会一并告诉你（这个还没有测试，不过是看到配置文件有这项设置）。
-
-nagios的安装和配置 <a href="http://www.totkat.org/pages/nagios.shtml" target="_blank" rel="external">http://www.totkat.org/pages/nagios.shtml</a>
-
-类似nagios的还有cacti，这个似乎是用来检测本机的，本机的磁盘空间、流量、负载等，还没有弄太清楚。
-
-Splunk是个商业的日志分析软件，运行于Unix环境，可以支持任何服务器产生的日志，并对日志进行高效索引，以便管理员可以对日志中的各种情况进行搜索，并可以通过图形化方式表现，虽然是商业软件，但是它提供了可以自由使用的splunk server，只是如果需要更多的LiveSplunks，Splunk Sync等功能才需要购买授权。
-
-下面这个地址是Nagios和Splunk的联合使用介绍<p> <a href="http://www.nagios.org/products/enterprisesolutions/splunk/" target="_blank" class="liexternal">http://www.nagios.org/products/enterprisesolutions/splunk/</a></p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/about-nagios/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

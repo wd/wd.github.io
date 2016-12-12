@@ -71,6 +71,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -101,6 +102,57 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="var-in-bash/">bash中的数组变量zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-06-13T16:00:00.000Z" itemprop="datePublished">Jun 14, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a>
+</div>
+    </div>
+      
+        <h3 class="title">http://xiaowang.net/bgb-cn/ch10s02.html
+</h3><h3 class="title">10.2.1. 建立数组                     </h3>                                                         <p>数组是一个包含多个值的变量。任何变量都可以在数组中使用。数组的尺寸没有最大限制，也不要求成员变量连续索引或者赋值。数组是基于0的：第一个元素的下标以0开始。</p>            <p>间接的声明使用以下的语法来声明一个变量：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAY[INDEXNR]</code>=value</code>                </p>            </div>            <p> <span class="emphasis"><em>INDEXNR</em></span> 需要使用一个值为正数的数学表达式。            </p>            <p>一个数组的外部声明使用内建命令 <span><strong class="command">declare</strong></span> 来完成：            </p>            <div class="cmdsynopsis">               <p><code class="command">declare <code class="option">-a</code> <code class="varname">ARRAYNAME</code></code>                </p>            </div>            <p>一个带有索引值的声明也是可以接受的，但是索引值将被忽略。对数组的指定属性可以通过使用内建命令 <span><strong class="command">declare</strong></span> 和 <span><strong class="command">readonly</strong></span>。属性对数组中的所有变量起作用；你不能使用混合数组。            </p>            <p>数组变量也可以使用这种格式的复合赋值来建立：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAY</code>=(value1 value2 ... valueN)</code>                </p>            </div>            <p>每个值将以这种形式 <span class="emphasis"><em>[indexnumber=]string</em></span> 排列。索引号是可选的。如果提供，索引号就赋给它；otherwise the index of the element assigned is the number of the last index that was assigned, plus               one.  这样的格式 <span><strong class="command">declare</strong></span> 也可以接受。如果不提供索引值，那索引自动从零开始。            </p>            <p>在数组中加入缺少或者额外的成员使用以下语法：</p>            <div class="cmdsynopsis">               <p><code class="command"><code class="varname">ARRAYNAME[indexnumber]</code>=value</code>                </p>            </div>            <p>记住 <span><strong class="command">read</strong></span> 内建命令提供 <code class="option">-a</code> 选项，来允许对一个数组的成员变量进行读取和赋值。            </p>                  <div class="sect2" lang="zh-cn">            <div class="titlepage">               <div>                  <div>                     <h3 class="title"><a name="sect_10_02_02"></a>10.2.2. 对数组的变量解引用                     </h3>                  </div>               </div>            </div>            <p>为了指明在一个数组中的项目的内容，为了指向一个数组中的一个项目的内容，使用{}。这样是必须的，正如你可以从下面的例子看出，来绕过扩展操作符的shell解释。如果索引的数字是 <span class="emphasis"><em>@</em></span> 或者 <span class="emphasis"><em>*</em></span>，一个数组的所有的成员都将被引用。            </p><pre class="screen"><code class="prompt">[bob in ~]</code> <span><strong class="command"><code class="varname">ARRAY</code>=<em class="parameter"><code>(one two three)</code></em></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one two three
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">$ARRAY[*]</code></strong></span>
+one[*]
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[2]}</code></strong></span>
+three
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command"><code class="varname">ARRAY[3]</code>=<em class="parameter"><code>four</code></em></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one two three four
+</pre><p>不提供索引号码来指向某个数组的一个数字变量的内容和指向第一个元素的内容是一样的。</p>         </div>         <div class="sect2" lang="zh-cn">            <div class="titlepage">               <div>                  <div>                     <h3 class="title"><a name="sect_10_02_03"></a>10.2.3. 删除数组变量                     </h3>                  </div>               </div>            </div>            <p> <span><strong class="command">unset</strong></span> 内建命令用来删除数组或者数组成员：            </p><pre class="screen"><code class="prompt">[bob in ~]</code> <span><strong class="command">unset <code class="varname">ARRAY[1]</code></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+one three four
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">unset <code class="varname">ARRAY</code></strong></span>
+
+<code class="prompt">[bob in ~]</code> <span><strong class="command">echo <code class="varname">${ARRAY[*]}</code></strong></span>
+&lt;--no output--&gt;
+</pre></div>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/var-in-bash/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="ip-blance/">IP负载均衡技术zz</a>
 	</h2>
     <div class="entry-content">
@@ -109,7 +161,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
@@ -139,7 +191,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Food/">Food</a>
+<a href="/tags/Food/">Food</a>
 </div>
     </div>
       
@@ -176,7 +228,7 @@ tip: 比较不好掌握的是闷的这十分钟里，汤汁多的话会把面条
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Windows/">Windows</a>
+<a href="/tags/Windows/">Windows</a>
 </div>
     </div>
       
@@ -206,7 +258,7 @@ http://resource.intel.com/telecom/support/releases/winnt/sr511/docs/htmlfiles/us
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Joke/">Joke</a>
+<a href="/tags/Joke/">Joke</a>
 </div>
     </div>
       
@@ -236,7 +288,7 @@ http://resource.intel.com/telecom/support/releases/winnt/sr511/docs/htmlfiles/us
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a> <a href="../tags/weblogic/">weblogic</a> <a href="../tags/apache/">apache</a>
+<a href="/tags/other/">other</a> <a href="/tags/weblogic/">weblogic</a> <a href="/tags/apache/">apache</a>
 </div>
     </div>
       
@@ -273,7 +325,7 @@ weblogic产生这个错误以后，就会拒绝服务，这时通过IE已经访�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Joke/">Joke</a>
+<a href="/tags/Joke/">Joke</a>
 </div>
     </div>
       
@@ -303,7 +355,7 @@ weblogic产生这个错误以后，就会拒绝服务，这时通过IE已经访�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Miranda-IM/">Miranda IM</a> <a href="../tags/Miranda/">Miranda</a>
+<a href="/tags/Miranda-IM/">Miranda IM</a> <a href="/tags/Miranda/">Miranda</a>
 </div>
     </div>
       
@@ -323,36 +375,6 @@ weblogic产生这个错误以后，就会拒绝服务，这时通过IE已经访�
 
   <article class="post">
 	<h2 class="title">
-		<a href="tips-for-ps/">ps 命令的小tip</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-22T16:00:00.000Z" itemprop="datePublished">May 23, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a> <a href="../tags/ps/">ps</a>
-</div>
-    </div>
-      
-        显示httpd进程的pid
-#ps -C httpd -o pid=
-
-杀死所有httpd进程
-#for pid in $(ps -C httpd -o pid=);do kill -9 $pid;done
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/tips-for-ps/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="Tuning-Hardware-Operating-System-and-Network-Performance/">Tuning Hardware, Operating System, and Network Performance</a>
 	</h2>
     <div class="entry-content">
@@ -361,7 +383,7 @@ weblogic产生这个错误以后，就会拒绝服务，这时通过IE已经访�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
@@ -383,68 +405,30 @@ http://www.bea.com.cn/support_pattern/Too_Many_Open_Files_Pattern.html
 
   <article class="post">
 	<h2 class="title">
-		<a href="split-and-cat/">用split分割备份文件，和用cat恢复备份</a>
+		<a href="tips-for-ps/">ps 命令的小tip</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-21T16:00:00.000Z" itemprop="datePublished">May 22, 2006</time>
+      <div class="date">Published on: <time datetime="2006-05-22T16:00:00.000Z" itemprop="datePublished">May 23, 2006</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/other/">other</a> <a href="/tags/ps/">ps</a>
 </div>
     </div>
       
-        split命令的使用格式如下：
-$split --help
-Usage: split [OPTION] [INPUT [PREFIX]]
-Output fixed-size pieces of INPUT to PREFIXaa, PREFIXab, ...; default
-PREFIX is `x'.&nbsp; With no INPUT, or when INPUT is -, read standard input.
+        显示httpd进程的pid
+#ps -C httpd -o pid=
 
-Mandatory arguments to long options are mandatory for short options too.
-&nbsp; -a, --suffix-length=N &nbsp; use suffixes of length N (default 2)
-&nbsp; -b, --bytes=SIZE &nbsp; &nbsp; &nbsp;&nbsp; put SIZE bytes per output file
-&nbsp; -C, --line-bytes=SIZE &nbsp; put at most SIZE bytes of lines per output file
-&nbsp; -d, --numeric-suffixes&nbsp; use numeric suffixes instead of alphabetic
-&nbsp; -l, --lines=NUMBER &nbsp; &nbsp;&nbsp; put NUMBER lines per output file
- &nbsp; &nbsp;&nbsp; --verbose &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; print a diagnostic to standard error just
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; before each output file is opened
- &nbsp; &nbsp;&nbsp; --help &nbsp; &nbsp; display this help and exit
- &nbsp; &nbsp;&nbsp; --version&nbsp; output version information and exit
-
-SIZE may have a multiplier suffix: b for 512, k for 1K, m for 1 Meg.
-
-
-通常使用的都是-b参数指定分割之后的文件的大小。
-
-我们先建立一个测试文件。
-#dd if=/dev/zero of=./test bs=1M count=512
-就是以1M为单位，重复512次，也就是建立一个512M的文件。
-
-$split -b 200m test test_back
-执行这个命令之后，等执行完毕会看到目录下面多了几个文件
-$ls
-test test_backaa test_backab test_backac
-
-这样就完成了文件的分割。如果对于文本文件，还可以使用split的-l参数针对行数进行分割。
-
-这样分割传输之后，还需要重新合并才能使用，可以使用cat命令来完成。
-$cat test_backa* &gt; test_back
-
-执行完毕之后，可以看一下恢复的test_back文件和test文件的md5。
-$md5sum test test_back
-返回值应该是一样的。
-
-使用tar备份的时候有时也需要对大的备份文件进行分割。
-$tar czvf - /data | split -b 1024m - data
-
+杀死所有httpd进程
+#for pid in $(ps -C httpd -o pid=);do kill -9 $pid;done
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/split-and-cat/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/tips-for-ps/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

@@ -150,6 +150,7 @@ else:
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -172,6 +173,14 @@ else:
     <div id="content" class="inner">
         <article class="post">
 	<h2 class="title">smsd 发送中文短信乱码</h2>
+    <div class="meta">
+        <div class="date">Published on: <time datetime="2007-07-04T16:00:00.000Z" itemprop="datePublished">Jul 5, 2007</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/linux/">linux</a> <a href="/tags/gnokii/">gnokii</a> <a href="/tags/smsd/">smsd</a>
+</div>
+    </div>
 	<div class="entry-content"><p>smsd是使用mysql数据库的，所以这个乱码很容易把人搞晕。我之前<a href="http://blog.wdicc.com/wordpress/gnokii_howto_chinese_sms/" target="_blank" rel="external">写过</a>gnokii发送短信是和locale有关系的，只要在utf8的locale下面就可以正常发送中文短信了。而smsd也和这个类似，也需要utf8的locale。但是还需要注意的一点就是mysql也是有编码设置的。所以可能会认为，文本插入数据库之前是不是也需要对数据库做utf8的设置呢？其实是不需要的，这么做反而会造成乱码。</p> <p>smsd连接mysql用的是mysql默认的字符集，那么我们插入文本的时候，也同样需要使用这个字符集，需要注意的是，这个文本也需要是utf8编码的。mysql默认的字符集通常是 “default-character-set&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; latin1”。</p> <p>我写的一个python的用来插入数据库要发送的信息的程序。</p> <p><pre lang="python">#!/usr/bin/env python2.3
 #coding=utf-8
 import sys

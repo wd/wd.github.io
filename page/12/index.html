@@ -71,6 +71,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -101,6 +102,70 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="perl-and-fork/">perl and fork</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-03-06T16:00:00.000Z" itemprop="datePublished">Mar 7, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/perl/">perl</a> <a href="/tags/fork/">fork</a>
+</div>
+    </div>
+      
+        最近写程序用到了 fork ，记一下。
+
+我在 perl 里面某个地方开始，fork 多个进程去操作 db，主进程等子进程完事后，再继续后面的操作。
+
+<pre class="prettyprint lang-perl">
+use POSIX ":sys_wait_h";
+my $thread_num = 5;
+my %pids = ();
+
+# $dbi->{InactiveDestroy} = 1 用到 dbi 的话还要设置这个，要不子进程exit后，dbi
+# 连接就断了
+
+# .....前面的程序
+for ( 1..$thread_num ) {
+	my $pid = fork;
+	if (not $pid) { # 子进程
+		$pids{$pid} = 1;
+		# blalbalbla... 子进程去干活
+		eixt 0; # 要记得 exit ，要不子进程还会继续执行后面的。
+	} else { # 主进程
+		# balbalbal ... 如果没事做也可以不写
+	}
+}
+
+while( keys( %pids ) ) {
+	my $kid = waitpid(-1,WNOHANG);
+	if ($kid >0) {
+		delete $pids{$kid};
+		print "$kid end.\n";
+	} else {
+		sleep 1; # 继续等，如果有时间限制，可以在这里去 kill 子进程
+	}
+}
+
+# ....继续后面的程序
+
+</pre>
+
+还可以参考这个 http://www.perlmonks.org/?node_id=619722
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/perl-and-fork/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="shmall-and-shmmax-kernel-paramaters/">内核的 shmall 和 shmmax 参数</a>
 	</h2>
     <div class="entry-content">
@@ -109,7 +174,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/kernel/">kernel</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/kernel/">kernel</a>
 </div>
     </div>
       
@@ -167,7 +232,7 @@ DEFAULT max size of queue (bytes) = 16384
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/gnome/">gnome</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/gnome/">gnome</a>
 </div>
     </div>
       
@@ -221,47 +286,6 @@ diff -ur gnome-terminal-2.24.2.org/src/terminal-window.c gnome-terminal-2.24.2/s
 
   <article class="post">
 	<h2 class="title">
-		<a href="use-kde-42-in-gentoo/">将 gnome 换成 kde 4.2</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-01-22T16:00:00.000Z" itemprop="datePublished">Jan 23, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/gentoo/">gentoo</a> <a href="../tags/kde/">kde</a>
-</div>
-    </div>
-      
-        下面的步骤一定要明白干的是什么再操作，否则后果自负 :)。
-
-1 修改 make.conf 里面的 use 为 kde4 -kde -gnome qt4 -qt3 -avahi -esd 这样。把 gnome 相关的 use 都 - 掉。我还有 -arts，看需要。使用 kde 这个use有时会导致安装 kde3，所以如果要使用最好在 /etc/portage/package.use 里面单独指定。如果不介意 kde + gnome 共存，那么 1,2 不是必须的。
-
-2 emerge -uDN world
-
-3 修改 /etc/portage/package.unmask ,加入 &gt;sys-apps/portage-2.1, unmask portage 2.2 ，2.2 才支持 set
-
-4 layman -a kde-testing
-
-5 emerge -av @kdebase-4.2
-其他想装的东西可以去 /usr/local/portage/layman/kde-testing/sets 里面看。比如 emerge -av @kdepim-4.2，或者装里面的某个包，emerge kde-base/kmail:4.2
-
-6 修改 /var/lib/portage/world ，删掉里面的 gnome 的包，当然不介意 gnome 和 kde 共存的话后面的就不需要做了。
-
-7 emerge --depclean -p 清理 gnome 的包。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/use-kde-42-in-gentoo/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="writing-a-kde-plasma-applet/">写了一个 kde plasma applet</a>
 	</h2>
     <div class="entry-content">
@@ -270,7 +294,7 @@ diff -ur gnome-terminal-2.24.2.org/src/terminal-window.c gnome-terminal-2.24.2/s
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/plasma/">plasma</a> <a href="../tags/pyqt4/">pyqt4</a> <a href="../tags/python/">python</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/plasma/">plasma</a> <a href="/tags/pyqt4/">pyqt4</a> <a href="/tags/python/">python</a>
 </div>
     </div>
       
@@ -361,6 +385,47 @@ if __name__ == '__main__':
 
   <article class="post">
 	<h2 class="title">
+		<a href="use-kde-42-in-gentoo/">将 gnome 换成 kde 4.2</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-01-22T16:00:00.000Z" itemprop="datePublished">Jan 23, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/gentoo/">gentoo</a> <a href="/tags/kde/">kde</a>
+</div>
+    </div>
+      
+        下面的步骤一定要明白干的是什么再操作，否则后果自负 :)。
+
+1 修改 make.conf 里面的 use 为 kde4 -kde -gnome qt4 -qt3 -avahi -esd 这样。把 gnome 相关的 use 都 - 掉。我还有 -arts，看需要。使用 kde 这个use有时会导致安装 kde3，所以如果要使用最好在 /etc/portage/package.use 里面单独指定。如果不介意 kde + gnome 共存，那么 1,2 不是必须的。
+
+2 emerge -uDN world
+
+3 修改 /etc/portage/package.unmask ,加入 &gt;sys-apps/portage-2.1, unmask portage 2.2 ，2.2 才支持 set
+
+4 layman -a kde-testing
+
+5 emerge -av @kdebase-4.2
+其他想装的东西可以去 /usr/local/portage/layman/kde-testing/sets 里面看。比如 emerge -av @kdepim-4.2，或者装里面的某个包，emerge kde-base/kmail:4.2
+
+6 修改 /var/lib/portage/world ，删掉里面的 gnome 的包，当然不介意 gnome 和 kde 共存的话后面的就不需要做了。
+
+7 emerge --depclean -p 清理 gnome 的包。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/use-kde-42-in-gentoo/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="perl-cookie/">使用 perl 来登录网页</a>
 	</h2>
     <div class="entry-content">
@@ -369,7 +434,7 @@ if __name__ == '__main__':
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/cookie/">cookie</a> <a href="../tags/perl/">perl</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/cookie/">cookie</a> <a href="/tags/perl/">perl</a>
 </div>
     </div>
       
@@ -435,7 +500,7 @@ $o = $ua->get($url);
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/ext4/">ext4</a> <a href="../tags/reiserfs/">reiserfs</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/ext4/">ext4</a> <a href="/tags/reiserfs/">reiserfs</a>
 </div>
     </div>
       
@@ -473,7 +538,7 @@ cd /home; tar cpf - --exclude=/home --exclude=/proc --exclude=/sys | tar xpf -
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/gnome/">gnome</a> <a href="../tags/openbox/">openbox</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/gnome/">gnome</a> <a href="/tags/openbox/">openbox</a>
 </div>
     </div>
       
@@ -511,7 +576,7 @@ gdm 启动的时候，会运行 /etc/X11/gdm/Xsession 这个程序。可以试�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/kernel/">kernel</a> <a href="../tags/hibernate/">hibernate</a> <a href="../tags/tuxonice/">tuxonice</a> <a href="../tags/休眠/">休眠</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/kernel/">kernel</a> <a href="/tags/hibernate/">hibernate</a> <a href="/tags/tuxonice/">tuxonice</a> <a href="/tags/休眠/">休眠</a>
 </div>
     </div>
       
@@ -543,7 +608,7 @@ gentoo-souces 也是支持的休眠的。想要在 gnome 下面休眠的话，�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Joke/">Joke</a> <a href="../tags/猴子/">猴子</a>
+<a href="/tags/Joke/">Joke</a> <a href="/tags/猴子/">猴子</a>
 </div>
     </div>
       
@@ -571,66 +636,6 @@ gentoo-souces 也是支持的休眠的。想要在 gnome 下面休眠的话，�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/monkey-test/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="send-mail-with-attachment/">命令行发送有附件的邮件</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-11-30T16:00:00.000Z" itemprop="datePublished">Dec 1, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Mail/">Mail</a> <a href="../tags/sendmail/">sendmail</a>
-</div>
-    </div>
-      
-        命令行下面发送邮件比较简单，恐怕都会使用。
-
-<pre class="prettyprint lang-bash">
-$ echo "hello .. " | mail -s subject xxx@abc.com
-$ cat /path/to/file | mail -s subject xxx@abc.com
-$ mail -s subject xxx@abc.com << EOF
-hi
-the end..
-EOF
-</pre>
-
-上面这些方法都可以发送邮件。还有一种方法。
-
-<pre class="prettyprint lang-bash">
-$ cat a.txt
-Subject: test
-From: xxx@abc.com
-To: xxx@abc.com
-
-hi
-sdfsdfsdf
-the end.
-$ cat a.txt | sendmail -t
-</pre>
-
-这样可以把邮件头信息写到文件里面的，你也可以用 php，perl 来打印类似的信息给 sendmail -t ，让他来发。
-
-那么如果有附件应该怎么办？可以使用 uuencode。
-
-<pre class="prettyprint lang-bash">
-$ uuencode a.txt a.txt | mail -s test xxx@abc.com
-$ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t
-</pre>
-
-应该说的很明白了吧？
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/send-mail-with-attachment/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

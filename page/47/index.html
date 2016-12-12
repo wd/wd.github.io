@@ -71,6 +71,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -101,43 +102,34 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="alsa-in-debian/">debian下的alsa(zz)</a>
+		<a href="counter-for-tt/">Grisword给tt写的一个图片counter</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2005-04-18T16:00:00.000Z" itemprop="datePublished">Apr 19, 2005</time>
+      <div class="date">Published on: <time datetime="2005-04-19T16:00:00.000Z" itemprop="datePublished">Apr 20, 2005</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/debian/">debian</a>
+<a href="/tags/web/">web</a>
 </div>
     </div>
       
-        前段时间重装机器，用的是debian提供的2.6内核，装了alsa-base后发现alsa无法发声，但oss却工作正常。折腾了大半天也没搞明白是怎么回事，无奈之下只好使用oss。今天在版上看到有人讨论，才知道oss不能和alsa共存。而我的问题很可能就是系统在启动的时候预先加载了 oss的驱动。后来用google查了一下，在下面这个网址http://www.sonic.net/~rknop/linux/debian_alsa.html
-
-发现问题果然如此。原来debian中自动侦探硬件的程序discover在检测到声卡后会自动加载oss，只要不让它自动加载就可以了。具体做法就是在/etc/discover.conf中加上一句skip i810_audio 。然后重启就能使用alsa了，不过要注意的是alsa默认是静音，需要自己手动将声音调大。
-
-版上有人说还需要在/etc/hotplug/blacklist中加上i810_audio，我发现不需要这么做。因为安装alsa时，系统在/etc/hotplug/blacklist.d/alsa*中自动添加这些内容。
-
-版上有人说还需要更改/etc/modutils/alsa-base中的相关内容，具体就是将above改为alias。
-
-http://wiki.debian.org.tw/index.php/HardwareIdentification 这个网址讲述了debian中硬件识别的相关知识。
-
-引用网址：http://www.debian.org.hk/node/12420
+        保存为tools/counter.php
+代
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/alsa-in-debian/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/counter-for-tt/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
 
   <article class="post">
 	<h2 class="title">
-		<a href="install-freebsd/">今天装了个freebsd</a>
+		<a href="compile-nvidia-driver/">我來編譯 nVidia 顯卡驅動zz</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -145,35 +137,70 @@ http://wiki.debian.org.tw/index.php/HardwareIdentification 这个网址讲述了
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/FreeBSD/">FreeBSD</a>
+
 </div>
     </div>
       
-        花了大概一个下午的时间把FreeBSD5.3装上了。
+        ＜我來編譯 nVidia 顯卡驅動＞
+原文来自(但不是直译)：http://home.comcast.net/~andrex/Debian-nVidia/
 
-FreeBSD不像linux那样可以完全脱离光驱软驱来安装，鼓捣了半天，最后还是刻盘装的，不过似乎刻一张盘就ok了，第二张盘一直没用。
+nVidia 顯卡驅動程式是中兩個部份組成： 一是系統核心模塊(kernle module)，二是用戶層的庫(user-space libraries)。
+用戶層的庫是不開源的，也叫(GLX庫），由nVidia廠商直接發佈的己編譯包。 核心模塊是以源碼形式（內仍有一個己編譯組件），在Debian下的包是 nvidia-kernel-source 和 nvidia-kernel-common。 兩個包都只是要安裝一次就可以了，而核心模塊就要在每次你重建或更改系統核心時重新編譯。
 
-安装好之后就是设置网络了。在/etc/rc.conf里面设置，也可以运行sysinstall来设置，不过运行一次就添加一次，晕死了。设置好了ip就是改mac地址了。在这个文件似乎不行，设置了ether就会启动不起来网络。没办法，只好在/etc/rc里面试着添加了三句，没想到居然还搞定了，呵呵。
+主要有以下三個步驟：
 
-ifconfig rl0 down
-ifconfig rl0 ehter FFFFFFFF
-ifconfig rl0 up
+1。 編譯及安裝 nVidia的核心模塊
+2。 安裝用戶層庫
+3。 更新你的系統配置
 
-FreeBSD很奇怪，网卡名字似乎是和网卡型号联系的，不同型号不同名字。
+<br>
+        
+          <p class="more-link">
+            <a href="compile-nvidia-driver/#more">Read More</a>
+          </p>
+        
+      
+	</div>
 
-装好之后就是设置了ssh。对了，设置好网卡后会出现sendmail启动不起来的情况，修改/etc/defaults/rc.conf里面关于sendmail部分，能disable都disable就ok了。ssh设置了允许root登陆和密码验证。
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/compile-nvidia-driver/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
-PermitRootLogin yes
-PasswordAuthentication yes
+  <article class="post">
+	<h2 class="title">
+		<a href="use-cvs/">第一次用cvs</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2005-04-18T16:00:00.000Z" itemprop="datePublished">Apr 19, 2005</time>
+</div>
+      <div class="tags">Tags: 
 
-不习惯su来su去的，还是加入root敢死队吧，呵呵。
+<a href="/tags/other/">other</a>
+</div>
+    </div>
+      
+        客户端配置最重要的是CVSROOT环境变量的配置。
+
+其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径 
+
+例如，我在使用我们实验室的CVS服务器时的配置为： 
+
+:pserver:car@192.168.2.2:/had/src 
+
+每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。 
+
+上面是摘抄的一段，用cvs需要先cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 登陆，或者设置$CVSROOT环境变量，之后用cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd就可以checkout更新了。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/install-freebsd/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/use-cvs/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -188,7 +215,7 @@ PasswordAuthentication yes
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
@@ -214,45 +241,6 @@ PasswordAuthentication yes
 
   <article class="post">
 	<h2 class="title">
-		<a href="nice-look-of-debian/">弄了老久的debian，总算可以看了</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2005-04-18T16:00:00.000Z" itemprop="datePublished">Apr 19, 2005</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/debian/">debian</a>
-</div>
-    </div>
-      
-        装的xfce4.2，目前debian官方还没有收录，很轻快的一个桌面系统。本来想用xorg的，可是debian官方也没有，作罢。
-
-debian的系统菜单在/usr/share/applications下面，他会自动添加条目。xfce会调用这个里面的，显示debian系统菜单。xfce的菜单设置是在~/.config/xfce4下面，保存了好多信息。桌面菜单在desktop下面，用utf-8编码，修改的时候要注意。面板菜单调用的是/etc/xdg/xfce4/desktop/menu.xml，所以两个不能同步修改。回头看看能不能链接一下。
-
-xfce下的文件管理器是rox，用起来还行，呵呵。mplayer和xfce的source是下面的这个：
-
-# xfce4
-deb http://www.os-works.com/debian unstable main
-#uo
-deb http://211.151.91.103/debian-uo sid marillat ustc rareware
-
-mplayer的主页:http://www.mplayerhq.hu/homepage/design7/news.html。解码器:http://www.mplayerhq.hu/MPlayer/releases/codecs/。Skin：http://ftp.iasi.roedu.net/mirrors/ftp.mplayerhq.hu/MPlayer/Skin/。
-
-xfce的主页:www.us.xfce.org。插件主页:https://developer.berlios.de/project/showfiles.php?group_id=910&release_id=4494。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/nice-look-of-debian/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="usefull-vimrc/">一段自动设置文件编</a>
 	</h2>
     <div class="entry-content">
@@ -261,7 +249,7 @@ xfce的主页:www.us.xfce.org。插件主页:https://developer.berlios.de/projec
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
@@ -317,7 +305,7 @@ endif
 
   <article class="post">
 	<h2 class="title">
-		<a href="use-cvs/">第一次用cvs</a>
+		<a href="install-freebsd/">今天装了个freebsd</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -325,28 +313,74 @@ endif
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/FreeBSD/">FreeBSD</a>
 </div>
     </div>
       
-        客户端配置最重要的是CVSROOT环境变量的配置。
+        花了大概一个下午的时间把FreeBSD5.3装上了。
 
-其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径 
+FreeBSD不像linux那样可以完全脱离光驱软驱来安装，鼓捣了半天，最后还是刻盘装的，不过似乎刻一张盘就ok了，第二张盘一直没用。
 
-例如，我在使用我们实验室的CVS服务器时的配置为： 
+安装好之后就是设置网络了。在/etc/rc.conf里面设置，也可以运行sysinstall来设置，不过运行一次就添加一次，晕死了。设置好了ip就是改mac地址了。在这个文件似乎不行，设置了ether就会启动不起来网络。没办法，只好在/etc/rc里面试着添加了三句，没想到居然还搞定了，呵呵。
 
-:pserver:car@192.168.2.2:/had/src 
+ifconfig rl0 down
+ifconfig rl0 ehter FFFFFFFF
+ifconfig rl0 up
 
-每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。 
+FreeBSD很奇怪，网卡名字似乎是和网卡型号联系的，不同型号不同名字。
 
-上面是摘抄的一段，用cvs需要先cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 登陆，或者设置$CVSROOT环境变量，之后用cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd就可以checkout更新了。
+装好之后就是设置了ssh。对了，设置好网卡后会出现sendmail启动不起来的情况，修改/etc/defaults/rc.conf里面关于sendmail部分，能disable都disable就ok了。ssh设置了允许root登陆和密码验证。
+
+PermitRootLogin yes
+PasswordAuthentication yes
+
+不习惯su来su去的，还是加入root敢死队吧，呵呵。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/use-cvs/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/install-freebsd/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="nice-look-of-debian/">弄了老久的debian，总算可以看了</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2005-04-18T16:00:00.000Z" itemprop="datePublished">Apr 19, 2005</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/debian/">debian</a>
+</div>
+    </div>
+      
+        装的xfce4.2，目前debian官方还没有收录，很轻快的一个桌面系统。本来想用xorg的，可是debian官方也没有，作罢。
+
+debian的系统菜单在/usr/share/applications下面，他会自动添加条目。xfce会调用这个里面的，显示debian系统菜单。xfce的菜单设置是在~/.config/xfce4下面，保存了好多信息。桌面菜单在desktop下面，用utf-8编码，修改的时候要注意。面板菜单调用的是/etc/xdg/xfce4/desktop/menu.xml，所以两个不能同步修改。回头看看能不能链接一下。
+
+xfce下的文件管理器是rox，用起来还行，呵呵。mplayer和xfce的source是下面的这个：
+
+# xfce4
+deb http://www.os-works.com/debian unstable main
+#uo
+deb http://211.151.91.103/debian-uo sid marillat ustc rareware
+
+mplayer的主页:http://www.mplayerhq.hu/homepage/design7/news.html。解码器:http://www.mplayerhq.hu/MPlayer/releases/codecs/。Skin：http://ftp.iasi.roedu.net/mirrors/ftp.mplayerhq.hu/MPlayer/Skin/。
+
+xfce的主页:www.us.xfce.org。插件主页:https://developer.berlios.de/project/showfiles.php?group_id=910&release_id=4494。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/nice-look-of-debian/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -361,7 +395,7 @@ endif
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
@@ -388,7 +422,7 @@ Wednesday, October 23 2002 10:36 AM
 
   <article class="post">
 	<h2 class="title">
-		<a href="mysql-grant/">mysql修改数据库权限</a>
+		<a href="install-archlinux/">archlinux安装</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -396,20 +430,24 @@ Wednesday, October 23 2002 10:36 AM
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/web/">web</a>
+<a href="/tags/Archlinux/">Archlinux</a>
 </div>
     </div>
       
-        <pre class="prettyprint lang-sql">
-GRANT select,insert,update,delete,create,drop ON xxxdb.* TO xxxuser@localhost IDENTIFIED BY "xxxpwd";
-</pre>
+        1 准备工作
+1.1 下载arch0.7的base iso，或者完整iso
+  arch的iso可以从官方网站下载，http://www.archlinux.org/download.php ，
+  也可以从我的mirror下载，http://210.72.203.226/current/iso/i686/arch-0.7-base.iso ，我这里的是base iso。本文以完整iso为例，其实是没有区别的，都是安装一个基本系统。
+
+1.2 安排安装分区
+  把arch的iso放到硬盘的一个ext2、ext3或者resierfs分区上面，注意不要放到fat分区上面，
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/mysql-grant/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/install-archlinux/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -424,7 +462,7 @@ GRANT select,insert,update,delete,create,drop ON xxxdb.* TO xxxuser@localhost ID
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
@@ -444,38 +482,6 @@ GRANT select,insert,update,delete,create,drop ON xxxdb.* TO xxxuser@localhost ID
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/linux-remote-gui/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="install-archlinux/">archlinux安装</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2005-04-18T16:00:00.000Z" itemprop="datePublished">Apr 19, 2005</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Archlinux/">Archlinux</a>
-</div>
-    </div>
-      
-        1 准备工作
-1.1 下载arch0.7的base iso，或者完整iso
-  arch的iso可以从官方网站下载，http://www.archlinux.org/download.php ，
-  也可以从我的mirror下载，http://210.72.203.226/current/iso/i686/arch-0.7-base.iso ，我这里的是base iso。本文以完整iso为例，其实是没有区别的，都是安装一个基本系统。
-
-1.2 安排安装分区
-  把arch的iso放到硬盘的一个ext2、ext3或者resierfs分区上面，注意不要放到fat分区上面，
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/install-archlinux/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

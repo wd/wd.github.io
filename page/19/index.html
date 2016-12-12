@@ -71,6 +71,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -101,6 +102,110 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="smsd-and-chinese/">smsd 发送中文短信乱码</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-07-04T16:00:00.000Z" itemprop="datePublished">Jul 5, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/linux/">linux</a> <a href="/tags/gnokii/">gnokii</a> <a href="/tags/smsd/">smsd</a>
+</div>
+    </div>
+      
+        <p>smsd是使用mysql数据库的，所以这个乱码很容易把人搞晕。我之前<a href="http://blog.wdicc.com/wordpress/gnokii_howto_chinese_sms/" target="_blank" rel="external">写过</a>gnokii发送短信是和locale有关系的，只要在utf8的locale下面就可以正常发送中文短信了。而smsd也和这个类似，也需要utf8的locale。但是还需要注意的一点就是mysql也是有编码设置的。所以可能会认为，文本插入数据库之前是不是也需要对数据库做utf8的设置呢？其实是不需要的，这么做反而会造成乱码。</p> <p>smsd连接mysql用的是mysql默认的字符集，那么我们插入文本的时候，也同样需要使用这个字符集，需要注意的是，这个文本也需要是utf8编码的。mysql默认的字符集通常是 “default-character-set&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; latin1”。</p> <p>我写的一个python的用来插入数据库要发送的信息的程序。</p> <p><pre lang="python">#!/usr/bin/env python2.3
+#coding=utf-8
+import sys
+import MySQLdb
+
+#  inbox
+#+------------+------------------+------+-----+---------------------+----------------+
+#| Field      | Type             | Null | Key | Default             | Extra          |
+#+------------+------------------+------+-----+---------------------+----------------+
+#| id         | int(10) unsigned |      | PRI | NULL                | auto_increment |
+#| number     | varchar(20)      |      |     |                     |                |
+#| smsdate    | datetime         |      |     | 0000-00-00 00:00:00 |                |
+#| insertdate | timestamp        | YES  |     | CURRENT_TIMESTAMP   |                |
+#| text       | varchar(160)     | YES  |     | NULL                |                |
+#| phone      | tinyint(4)       | YES  |     | NULL                |                |
+#| processed  | tinyint(4)       |      |     | 0                   |                |
+#+------------+------------------+------+-----+---------------------+----------------+
+
+#  outbox
+#+----------------+------------------+------+-----+---------------------+----------------+
+#| Field          | Type             | Null | Key | Default             | Extra          |
+#+----------------+------------------+------+-----+---------------------+----------------+
+#| id             | int(10) unsigned |      | PRI | NULL                | auto_increment |
+#| number         | varchar(20)      |      |     |                     |                |
+#| processed_date | timestamp        | YES  |     | CURRENT_TIMESTAMP   |                |
+#| insertdate     | timestamp        | YES  |     | 0000-00-00 00:00:00 |                |
+#| text           | varchar(160)     | YES  |     | NULL                |                |
+#| phone          | tinyint(4)       | YES  |     | NULL                |                |
+#| processed      | tinyint(4)       |      |     | 0                   |                |
+#| error          | tinyint(4)       |      |     | -1                  |                |
+#| dreport        | tinyint(4)       |      |     | 0                   |                |
+#| not_before     | time             |      |     | 00:00:00            |                |
+#| not_after      | time             |      |     | 23:59:59            |                |
+#+----------------+------------------+------+-----+---------------------+----------------+
+
+class Mydb:
+        def __init__(self):
+                try:
+                        self.db=MySQLdb.Connection(host="localhost",user="gnokii",
+                                passwd="gnokii",db="gnokii")
+
+                except MySQLdb.OperationalError, message:
+                        errorMessage = "Error %d:\n%s" % (message[ 0 ], message[ 1 ] )
+                        print errorMessage
+                        sys.exit(1)
+                else:   
+                        self.cursor = self.db.cursor()
+#                       self.cursor.execute("SET NAMES 'utf8'")
+                        return
+                        
+        def insert(self,sql):
+                self.cursor.execute(sql)
+        
+        def showdata(self,sql):
+                self.cursor.execute(sql)
+                return self.cursor.fetchall()
+                
+        def __del__(self):
+                self.cursor.close
+                self.db.close
+
+text = sys.stdin.read()
+db = Mydb()
+
+if len(sys.argv) &gt; 1 and len(text):
+        number = sys.argv[1]
+        sql = 'insert into outbox (number,text) VALUES ("' + number + '","' + text + '")'
+        
+        db.insert(sql)
+
+else:   
+        print 
+        print "    ********** outbox ********** "
+        for rs in db.showdata("select * from outbox"):
+                print rs[0],rs[1],rs[2],rs[-7],rs[-5]
+        
+        print "    ********** inbox *********"
+        for rs2 in db.showdata("select * from inbox"):
+                print rs2[0],rs2[1],rs2[-3]</pre>
+</p>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/smsd-and-chinese/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="happy-birthday-to-cc-2/">今天是老婆生日</a>
 	</h2>
     <div class="entry-content">
@@ -109,7 +214,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a> <a href="../tags/老婆/">老婆</a> <a href="../tags/生日/">生日</a>
+<a href="/tags/heart/">heart</a> <a href="/tags/老婆/">老婆</a> <a href="/tags/生日/">生日</a>
 </div>
     </div>
       
@@ -127,6 +232,36 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="funny-words-of-child/">爆笑幼儿园（转载）</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-06-28T16:00:00.000Z" itemprop="datePublished">Jun 29, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/Joke/">Joke</a> <a href="/tags/童言无忌/">童言无忌</a>
+</div>
+    </div>
+      
+        <p>转自<a href="http://www.leehare.cn/read.php?3560">这里</a>。</p> <p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1号幼儿园 <br></strong>问题一：如果有一天大海里没有水了，鱼怎么办呢？ <br>　　小朋友A：鱼到小河里去呗。（想了想，继续）哦，不行，那鲸鱼怎么办？太大了，进不去。（真体贴啊） <br>　　小朋友B：变化石呗。（鱼们狂吐血……） <br>问题二：牛奶是从哪里来的？ <br>　　小朋友A：奶牛肚子下面有几个嘴，从那里流出来的。（你真的确定那是嘴吗？） <br>　　继续问：那椰奶怎么来的？ <br>　　小朋友B：椰奶是羊奶吧。（扯太远了吧，兄弟） <br>　　继续问到底：羊奶是什么？ <br>　　小朋友B：羊奶就是酸奶吧，我们家不喝的，我们家订的是光明牛奶。（好可怕的逻辑） <br>问题三：小朋友的脸是干吗用的？ <br>　　小朋友A：给妈妈亲的。 <br>　　追问：那给不给爸爸亲？ <br>　　小朋友A：给爸爸亲。 <br>　　继续追问：那你的脸到底是给谁亲的？ <br>　　小朋友A：给妈妈亲的。（爸爸泪流满面） <br>　　小朋友B：贴纸头用的。（你的脸难道是布告栏？） <br>问题四：为什么小孩子是从妈妈肚子里出来的，不是从爸爸肚子里出来的？ <br>　　小朋友A：女孩子是从妈妈肚子里出来的，男孩子是从爸爸肚子里出来的。（真会蒙人） <br>　　小男孩B：因为男生可爱！（小女孩们一起叫：男生不可爱！） <br>问题五：小朋友的头发有什么用？ <br>　　小女孩A：用来梳头发的。 <br>　　提问小男孩B：那你的头发不能扎辫子，有什么用呢？ <br>　　小朋友B：用来给理发店剃头的。（可贵的奉献精神） </p>
+        
+          <p class="more-link">
+            <a href="funny-words-of-child/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/funny-words-of-child/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="oracle-jobs/">oracle 的 job 又遇到问题了</a>
 	</h2>
     <div class="entry-content">
@@ -135,7 +270,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/job/">job</a> <a href="../tags/高级复制/">高级复制</a>
+<a href="/tags/other/">other</a> <a href="/tags/linux/">linux</a> <a href="/tags/oracle/">oracle</a> <a href="/tags/job/">job</a> <a href="/tags/高级复制/">高级复制</a>
 </div>
     </div>
       
@@ -226,63 +361,6 @@ NEXT_DATE
 
   <article class="post">
 	<h2 class="title">
-		<a href="funny-words-of-child/">爆笑幼儿园（转载）</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-06-28T16:00:00.000Z" itemprop="datePublished">Jun 29, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Joke/">Joke</a> <a href="../tags/童言无忌/">童言无忌</a>
-</div>
-    </div>
-      
-        <p>转自<a href="http://www.leehare.cn/read.php?3560">这里</a>。</p> <p><strong>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 1号幼儿园 <br></strong>问题一：如果有一天大海里没有水了，鱼怎么办呢？ <br>　　小朋友A：鱼到小河里去呗。（想了想，继续）哦，不行，那鲸鱼怎么办？太大了，进不去。（真体贴啊） <br>　　小朋友B：变化石呗。（鱼们狂吐血……） <br>问题二：牛奶是从哪里来的？ <br>　　小朋友A：奶牛肚子下面有几个嘴，从那里流出来的。（你真的确定那是嘴吗？） <br>　　继续问：那椰奶怎么来的？ <br>　　小朋友B：椰奶是羊奶吧。（扯太远了吧，兄弟） <br>　　继续问到底：羊奶是什么？ <br>　　小朋友B：羊奶就是酸奶吧，我们家不喝的，我们家订的是光明牛奶。（好可怕的逻辑） <br>问题三：小朋友的脸是干吗用的？ <br>　　小朋友A：给妈妈亲的。 <br>　　追问：那给不给爸爸亲？ <br>　　小朋友A：给爸爸亲。 <br>　　继续追问：那你的脸到底是给谁亲的？ <br>　　小朋友A：给妈妈亲的。（爸爸泪流满面） <br>　　小朋友B：贴纸头用的。（你的脸难道是布告栏？） <br>问题四：为什么小孩子是从妈妈肚子里出来的，不是从爸爸肚子里出来的？ <br>　　小朋友A：女孩子是从妈妈肚子里出来的，男孩子是从爸爸肚子里出来的。（真会蒙人） <br>　　小男孩B：因为男生可爱！（小女孩们一起叫：男生不可爱！） <br>问题五：小朋友的头发有什么用？ <br>　　小女孩A：用来梳头发的。 <br>　　提问小男孩B：那你的头发不能扎辫子，有什么用呢？ <br>　　小朋友B：用来给理发店剃头的。（可贵的奉献精神） </p>
-        
-          <p class="more-link">
-            <a href="funny-words-of-child/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/funny-words-of-child/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="change-trigger-setting-for-thold/">稍微深入了解了一下cacti的thold插件的邮件通知</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-06-27T16:00:00.000Z" itemprop="datePublished">Jun 28, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/cacti/">cacti</a> <a href="../tags/thold/">thold</a> <a href="../tags/trigger/">trigger</a>
-</div>
-    </div>
-      
-        <p>通过cacti的thold插件，可以做到snmp抓取到的数值低于你规定的值的时候进行邮件通知，例如我用他来监控磁盘空间，当磁盘空间低于某个数的时候就会给指定的email发邮件。但是有一点郁闷的是，有时候，可能是由于网络原因，抓取会超时，这样就会导致触发trigger，给你发送邮件。5分钟抓取一次，我这里的情况是几乎每个小时总会有2，3封这种邮件，很烦人，而且根本没意义。早就想屏蔽掉这种情况了，看了代码挺复杂就懒得弄，今天实在受不了了，深入了解了一下。</p> <p>其实thold本身已经考虑到了这种情况，在 thold 的设置里面，就有一项 Default Trigger Count （Number of consecutive times the data source must be in breach of the threshold for an alert to be raised），就是连续触发几次才认为他真的低于 thold 了，才发送邮件。我尝试过修改这个设置，发现不管用。看了代码才了解，每个 <strong>Thresholds</strong>&nbsp;都有自己的 trigger 值，那个 default trigger count 只对新建的 thresholds 才有用。所以针对现有的，需要逐个去修改才行。如果不设置这个选项，那么使用的就是上面设置的那个默认的，所以没特殊需要，还是不要针对每个 thresholds 设置自己的 trigger 值比较好，这样方便修改。我通过修改数据库的方法，直接把这些都修改了。</p> <p><pre lang="sql">update thold_data set thold_fail_trigger = NULL;</pre>
-</p><p>修改了之后还没有收到，这下应该清净了吧？</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/change-trigger-setting-for-thold/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="gaokao-zuowen/">2007年高考语文北京作文一篇（转载）</a>
 	</h2>
     <div class="entry-content">
@@ -291,7 +369,7 @@ NEXT_DATE
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Joke/">Joke</a> <a href="../tags/搞笑作文/">搞笑作文</a>
+<a href="/tags/Joke/">Joke</a> <a href="/tags/搞笑作文/">搞笑作文</a>
 </div>
     </div>
       
@@ -313,26 +391,27 @@ NEXT_DATE
 
   <article class="post">
 	<h2 class="title">
-		<a href="such-hot-weather/">天气太热了</a>
+		<a href="change-trigger-setting-for-thold/">稍微深入了解了一下cacti的thold插件的邮件通知</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2007-06-26T16:00:00.000Z" itemprop="datePublished">Jun 27, 2007</time>
+      <div class="date">Published on: <time datetime="2007-06-27T16:00:00.000Z" itemprop="datePublished">Jun 28, 2007</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a> <a href="../tags/weather/">weather</a>
+<a href="/tags/other/">other</a> <a href="/tags/linux/">linux</a> <a href="/tags/cacti/">cacti</a> <a href="/tags/thold/">thold</a> <a href="/tags/trigger/">trigger</a>
 </div>
     </div>
       
-        <p>最近两天天气有点变态了，闷热，北京的桑拿天又开始了。空调还没买上，晚上得整晚开风扇了。还好偶们家的风扇很强悍，风够大。早就说要把凉席弄上了，一直没时间，今天晚上回去看看。不知道周末天气如何，希望那两天能是个好天气。</p> <p>北京的交通是越来越让人郁闷了。前天早上有个超高的车在一个天桥那里卡住了，结果导致后面的车堵了得有几公里。平时十几分钟的路程走了1个小时。现在走在路上最怕的就是有事故。本来就2个车道（一个汽车道，一个自行车道，基本上自行车道都会被汽车占用，骑自行车的人都是在汽车中间穿梭），一旦发生事故，通常这条路就废了，这种路上也不时常安排几个交警，出现情况了，基本上就只能自己郁闷了，没几个小时解决不了问题。</p> <p>今天早上在车上还想，以前军训站排的时候，好像也没现在一早上站的时间长吧。从7点起来，洗脸刷牙穿衣服到车站，等车来了继续车上站着，换地铁还是站着，这一路下来也不少时间呢，现在站功也不得了了，呵呵。</p> <p>昨天和一个哥们一起喝酒，还在郁闷北京这种生活，但是郁闷归郁闷，生活还是得继续不是。</p>
+        <p>通过cacti的thold插件，可以做到snmp抓取到的数值低于你规定的值的时候进行邮件通知，例如我用他来监控磁盘空间，当磁盘空间低于某个数的时候就会给指定的email发邮件。但是有一点郁闷的是，有时候，可能是由于网络原因，抓取会超时，这样就会导致触发trigger，给你发送邮件。5分钟抓取一次，我这里的情况是几乎每个小时总会有2，3封这种邮件，很烦人，而且根本没意义。早就想屏蔽掉这种情况了，看了代码挺复杂就懒得弄，今天实在受不了了，深入了解了一下。</p> <p>其实thold本身已经考虑到了这种情况，在 thold 的设置里面，就有一项 Default Trigger Count （Number of consecutive times the data source must be in breach of the threshold for an alert to be raised），就是连续触发几次才认为他真的低于 thold 了，才发送邮件。我尝试过修改这个设置，发现不管用。看了代码才了解，每个 <strong>Thresholds</strong>&nbsp;都有自己的 trigger 值，那个 default trigger count 只对新建的 thresholds 才有用。所以针对现有的，需要逐个去修改才行。如果不设置这个选项，那么使用的就是上面设置的那个默认的，所以没特殊需要，还是不要针对每个 thresholds 设置自己的 trigger 值比较好，这样方便修改。我通过修改数据库的方法，直接把这些都修改了。</p> <p><pre lang="sql">update thold_data set thold_fail_trigger = NULL;</pre>
+</p><p>修改了之后还没有收到，这下应该清净了吧？</p>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/such-hot-weather/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/change-trigger-setting-for-thold/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -347,7 +426,7 @@ NEXT_DATE
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/oracle/">oracle</a> <a href="../tags/resin/">resin</a>
+<a href="/tags/other/">other</a> <a href="/tags/linux/">linux</a> <a href="/tags/oracle/">oracle</a> <a href="/tags/resin/">resin</a>
 </div>
     </div>
       
@@ -378,6 +457,32 @@ NEXT_DATE
 
   <article class="post">
 	<h2 class="title">
+		<a href="such-hot-weather/">天气太热了</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-06-26T16:00:00.000Z" itemprop="datePublished">Jun 27, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a> <a href="/tags/weather/">weather</a>
+</div>
+    </div>
+      
+        <p>最近两天天气有点变态了，闷热，北京的桑拿天又开始了。空调还没买上，晚上得整晚开风扇了。还好偶们家的风扇很强悍，风够大。早就说要把凉席弄上了，一直没时间，今天晚上回去看看。不知道周末天气如何，希望那两天能是个好天气。</p> <p>北京的交通是越来越让人郁闷了。前天早上有个超高的车在一个天桥那里卡住了，结果导致后面的车堵了得有几公里。平时十几分钟的路程走了1个小时。现在走在路上最怕的就是有事故。本来就2个车道（一个汽车道，一个自行车道，基本上自行车道都会被汽车占用，骑自行车的人都是在汽车中间穿梭），一旦发生事故，通常这条路就废了，这种路上也不时常安排几个交警，出现情况了，基本上就只能自己郁闷了，没几个小时解决不了问题。</p> <p>今天早上在车上还想，以前军训站排的时候，好像也没现在一早上站的时间长吧。从7点起来，洗脸刷牙穿衣服到车站，等车来了继续车上站着，换地铁还是站着，这一路下来也不少时间呢，现在站功也不得了了，呵呵。</p> <p>昨天和一个哥们一起喝酒，还在郁闷北京这种生活，但是郁闷归郁闷，生活还是得继续不是。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/such-hot-weather/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="slow-yupoo/">不得不说yupoo越来越慢了。。</a>
 	</h2>
     <div class="entry-content">
@@ -386,7 +491,7 @@ NEXT_DATE
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a> <a href="../tags/flickr/">flickr</a> <a href="../tags/yupoo/">yupoo</a> <a href="../tags/zooomr/">zooomr</a>
+<a href="/tags/heart/">heart</a> <a href="/tags/flickr/">flickr</a> <a href="/tags/yupoo/">yupoo</a> <a href="/tags/zooomr/">zooomr</a>
 </div>
     </div>
       
@@ -412,7 +517,7 @@ NEXT_DATE
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/Mail/">Mail</a> <a href="../tags/sendmail/">sendmail</a> <a href="../tags/邮件转发/">邮件转发</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/Mail/">Mail</a> <a href="/tags/sendmail/">sendmail</a> <a href="/tags/邮件转发/">邮件转发</a>
 </div>
     </div>
       
@@ -451,51 +556,6 @@ other2</pre>
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/howto-cc-an-email-to-others-in-sendmail/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="install-resin/">resin 的安装步骤</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-06-20T16:00:00.000Z" itemprop="datePublished">Jun 21, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/other/">other</a> <a href="../tags/linux/">linux</a> <a href="../tags/resin/">resin</a>
-</div>
-    </div>
-      
-        <p>resin目前已经到了3.1版本，从resin网站上面下载的resin不带jdk，需要自己去下载。resin的下载页面在<a href="http://www.caucho.com/download/index.xtp" target="_blank" rel="external">这里</a>。下载最新的 Resin Pro 3.1.1 版本。</p> <p>jdk的下载地址在 <a href="http://java.sun.com/javase/downloads/index.jsp" target="_blank" rel="external">这里</a>&nbsp;，resin 3.1需要1.5及以上版本的jdk。</p> <p>先来安装resin：</p> <p><pre lang="bash">tar zxvf resin-pro-3.1.1
-cd resin-pro-3.1.1
-./configure --prefix=/usr/local/resin #安装的目的地址
-make &amp;&amp; make install</pre>
-</p><p>安装完resin之后，安装jdk：</p>
-<p><pre lang="bash">cd /usr/local
-chmod +x /root/jdk-6u1-linux-i586.bin
-/root/jdk-6u1-linux-i586.bin</pre>
-</p><p>此后会在/usr/local/下面建立一个jdk1.6.0_01目录，jdk就安装完毕了。</p>
-<p>resin 的配置文件在 /usr/loca/resin/conf 下面，主要是 resin.conf 。默认的端口是8080。</p>
-<p><pre lang="txt"><http port="8080" address="*"></http></pre>
-</p><p></p>
-<p>然后就是添加自己的应用地址了。</p>
-<p><pre lang="txt"><host id="" root-directory=".">
-      <web-app id="/" root-directory="webapps/ROOT"></web-app></host></pre>
-</p><p></p>
-<p>在这下面添加一行</p>
-<p><pre lang="txt"><web-app id="/test" root-directory="/www/test/"></web-app></pre>
-</p><p></p>
-<p>此后呢，访问 http://ip:8080/test 就可以访问到你的应用了。 
-</p>
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/install-resin/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

@@ -71,6 +71,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -101,26 +102,53 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="usefull-command/">显示一个文件或者文件夹的数字形式的权限</a>
+		<a href="apache-limit-module/">通过mod_limitipconn模块来限制apache的并发连接数</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2005-12-27T16:00:00.000Z" itemprop="datePublished">Dec 28, 2005</time>
+      <div class="date">Published on: <time datetime="2005-12-28T16:00:00.000Z" itemprop="datePublished">Dec 29, 2005</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/web/">web</a>
 </div>
     </div>
       
-        stat -c %a
+        http://bbs.chinaunix.net/viewthread.php?tid=3129
+
+<b>下载mod_limitipconn.c</b>
+
+http://dominia.org/djao/limitipconn.html
+
+<b>修改httpd.conf</b>
+<pre class="prettyprint lang-txt">
+LoadModule limitipconn_module modules/mod_limitipconn.so
+
+ExtendedStatus On
+
+<ifmodule mod_limitipconn.c="">
+    <location somewhere="">
+	MaxConnPerIP 3
+	# exempting images from the connection limit is often a good
+	# idea if your web page has lots of inline images, since these
+	# pages often generate a flurry of concurrent image requests
+	NoIPLimit image/*
+    </location>
+#需要注意的是，路径应该是相对服务器的路径。
+    <location mp3="">
+	MaxConnPerIP 1
+	# In this case, all MIME types other than audio/mpeg and video*
+	# are exempt from the limit check
+	OnlyIPLimit audio/mpeg video
+    </location>
+</ifmodule></pre>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/usefull-command/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/apache-limit-module/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -135,7 +163,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Joke/">Joke</a>
+<a href="/tags/Joke/">Joke</a>
 </div>
     </div>
       
@@ -165,6 +193,32 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="usefull-command/">显示一个文件或者文件夹的数字形式的权限</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2005-12-27T16:00:00.000Z" itemprop="datePublished">Dec 28, 2005</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a>
+</div>
+    </div>
+      
+        stat -c %a
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/usefull-command/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="something-about-miranda-im/">写了一篇关于Miranda IM的文章</a>
 	</h2>
     <div class="entry-content">
@@ -173,7 +227,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Miranda-IM/">Miranda IM</a>
+<a href="/tags/Miranda-IM/">Miranda IM</a>
 </div>
     </div>
       
@@ -200,7 +254,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a>
+<a href="/tags/heart/">heart</a>
 </div>
     </div>
       
@@ -230,7 +284,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Joke/">Joke</a>
+<a href="/tags/Joke/">Joke</a>
 </div>
     </div>
       
@@ -266,7 +320,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a>
+<a href="/tags/heart/">heart</a>
 </div>
     </div>
       
@@ -294,7 +348,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a>
+<a href="/tags/heart/">heart</a>
 </div>
     </div>
       
@@ -347,7 +401,7 @@ yy一下，大家不都喜欢yy么？yy无际限...
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a>
+<a href="/tags/heart/">heart</a>
 </div>
     </div>
       
@@ -373,7 +427,7 @@ yy一下，大家不都喜欢yy么？yy无际限...
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a> <a href="../tags/老婆/">老婆</a>
+<a href="/tags/heart/">heart</a> <a href="/tags/老婆/">老婆</a>
 </div>
     </div>
       
@@ -385,62 +439,6 @@ yy一下，大家不都喜欢yy么？yy无际限...
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/first-pay/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="mirror-for-debian/">为debian unstable做镜像</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2005-12-13T16:00:00.000Z" itemprop="datePublished">Dec 14, 2005</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/debian/">debian</a>
-</div>
-    </div>
-      
-        #HOST=opensource.nchc.org.tw
-HOST=debian.nctu.edu.tw
-#HOST_NONUS=opensource.nchc.org.tw
-#HOST_NONUS=debian.cn99.com
-HOST_NONUS=debian.nctu.edu.tw
-
-DISTS="unstable"
-DISTS_NONUS="unstable/non-US"
-DISTS_SEC="unstable/updates"
-
-ARCHS="i386"
-
-MIRROR_ROOT='/data/debian/debian'
-MIRROR_ROOT_NONUS='/data/debian/debian-non-US'
-
-OPTIONS="--getcontents --progress --nosource --method=http -s main,contrib,non-free --ignore-release-gpg"
-
-
-#ADDDIRS="dists/unstable/main/disks-i386" 
-
-
-echo "Processing standard using $HOST" 
-/usr/bin/debmirror --host=$HOST --dist=$DISTS --arch=$ARCHS $OPTIONS -r /debian $MIRROR_ROOT
-
-echo "Processing non-US using $HOST_NONUS" 
-/usr/bin/debmirror --host=$HOST_NONUS --dist=$DISTS_NONUS --arch=$ARCHS $OPTIONS -r /debian-non-US $MIRROR_ROOT_NONUS
-
-echo "Processing xfce4.2 using www.os-works.com"
-
-/usr/bin/debmirror -a i386 -s main -h www.os-works.com -d testing -r /debian --progress -e http --ignore-release-gpg /data/debian/xf
-ce4.2
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/mirror-for-debian/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

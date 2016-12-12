@@ -72,6 +72,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -94,6 +95,14 @@
     <div id="content" class="inner">
         <article class="post">
 	<h2 class="title">lua metatable</h2>
+    <div class="meta">
+        <div class="date">Published on: <time datetime="2016-03-27T02:48:26.000Z" itemprop="datePublished">Mar 27, 2016</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/lua/">lua</a>
+</div>
+    </div>
 	<div class="entry-content"><figure class="highlight lua"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">t = <span class="built_in">setmetatable</span>(&#123; bar = <span class="number">4</span>, foo = <span class="number">7</span> &#125;, &#123; __index = &#123; foo = <span class="number">3</span> &#125; &#125;)</div><div class="line"></div><div class="line"><span class="built_in">print</span>(t.foo)  <span class="comment">-- 7</span></div><div class="line"><span class="built_in">print</span>(t.bar)  <span class="comment">-- 4</span></div><div class="line"></div><div class="line">t = <span class="built_in">setmetatable</span>(&#123;  &#125;, &#123; __index = &#123; foo = <span class="number">3</span>&#125; &#125;)</div><div class="line"></div><div class="line"><span class="built_in">print</span>(t.foo)  <span class="comment">-- 3</span></div><div class="line"><span class="built_in">print</span>(t.bar)  <span class="comment">-- nil</span></div><div class="line"></div><div class="line">fuc = <span class="function"><span class="keyword">function</span> <span class="params">(t,k)</span></span></div><div class="line">    <span class="keyword">if</span> k == <span class="string">'foo'</span> <span class="keyword">then</span></div><div class="line">        <span class="keyword">return</span> <span class="built_in">rawget</span>(t, <span class="string">'bar'</span>)</div><div class="line">    <span class="keyword">else</span></div><div class="line">        <span class="keyword">return</span> <span class="number">0</span></div><div class="line">    <span class="keyword">end</span></div><div class="line"><span class="keyword">end</span></div><div class="line"></div><div class="line">t = <span class="built_in">setmetatable</span>(&#123;   &#125;, &#123; __index = fuc &#125;)</div><div class="line"></div><div class="line"><span class="built_in">print</span>(t.foo)  <span class="comment">-- 3</span></div><div class="line"><span class="built_in">print</span>(t.bar)  <span class="comment">-- nil</span></div><div class="line"><span class="built_in">print</span>(t.ff)</div></pre></td></tr></table></figure>
 </div>
 

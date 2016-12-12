@@ -71,6 +71,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -101,7 +102,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="solve-qmail-error/">qmail中的几个error的产生的原因和解决方法</a>
+		<a href="qmail-conf-file/">Qmail的主要配置文件</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -109,76 +110,291 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Mail/">Mail</a>
+<a href="/tags/Mail/">Mail</a>
 </div>
     </div>
       
-        deferral: Unable_to_chdir_to_maildir._(#4.2.1)
+        1．Qmail的主要配置文件
 
-   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
+    qmail的配置文件是由多个文件组成的，不是集中在一个文件中，每个文件控制相应
+部分的功能和属性，一个可执行程序可能有多个配置文件控制，所有的配置文件共同决
+定了qmail运行的实现和模式。这些配置文件都在qmail的control目录中，本文的配置文
+件位于/var/qmail/control目录中
 
-如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
+    1.1、badmailfrom
 
-deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
+    这个配置文件是控制邮件系统拒绝接收的邮件地址和邮件域，主要是为了防止垃圾
+邮件。如果一个邮件地址或者邮件域被列入到这个文件中，系统就会拒绝接收这个邮件
+地址发来的邮件，或者拒绝邮件域下所有邮件地址发来的邮件。不过这个配置文件只是
+一般的垃圾邮件防范手段，对于比较全面的垃圾邮件过滤技术还要靠第三方软件来实现
+。该文件的格式如下：
 
-   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
+    11@11.com //拒绝这个地址发来的邮件
+    22@2w.com
+    @33.com //拒绝这个邮件域下的所有帐号发来的邮件
+    @44.com
+<br>
+        
+          <p class="more-link">
+            <a href="qmail-conf-file/#more">Read More</a>
+          </p>
+        
+      
+	</div>
 
-454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/qmail-conf-file/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
 
-  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
+  <article class="post">
+	<h2 class="title">
+		<a href="howto-qmail-with-spamassassin/">Howto Qmail with spamassassin</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+</div>
+      <div class="tags">Tags: 
 
-[root@caph qmail-smtpd]# telnet localhost 25
-Trying 127.0.0.1...
-Connected to localhost.
-Escape character is &#39;^]&#39;.
-220 xxx.com ESMTP
-ehlo
-250-xxx.com
-250-PIPELINING
-250-8BITMIME
-250-SIZE 104857600
-250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
-auth login
-334 VXNlcm5hbWU6
-awefaq23rasdf
-334 UGFzc3dvcmQ6
-awefwaef
-454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
-quit
-221 xxx.com
-Connection closed by foreign host.
+<a href="/tags/Mail/">Mail</a> <a href="/tags/qmail/">qmail</a>
+</div>
+    </div>
+      
+        http://sylvestre.ledru.info/howto/howto_qmail_spamassassin.php
 
-出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
+By Sylvestre Ledru June 2003
+Version francaise
+Return to the linux page
 
-QMAILDUID=`id -u vpopmail`
-QMAILDGID=`id -g vpopmail`
+(02/04/2002), Bug fix :
+I just add a little bug fix for some OS which remove the +x on qmail-queue (the qmail-scanner is not concerned)
+(01/11/2003), Qmail-scanner :
+I had a new way of calling spamassassin client using qmail-scanner.
+(23/07/2003), Preferences :
+Matthew Francis sent me a quite good howto explaining how to get user preferences for spamassassin. It is available here.
+(08/06/2003), Localisation :
+If you want to change the language of the spam report (ie why the email has been tagged as a spam), just change the locales to your language (dpkg-reconfigure locales under debian) and install gettext (apt-get install gettext) and you will have the appropriate version (french for example)...
+(11/03/2005), Update :
+After almost two years without updates, my other howto about qmail is much more complet and uptodate, I clean this one :
+- first method deprecated
+- new version of spamassassin 3.0.X
+- use of netqmail instead of qmail
+- new version of qmail-scanner with the q-s-st patch (activation of Spamassassin just for a domain)
 
-/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
-        -u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
-        /var/qmail/bin/qmail-smtpd
-        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1
+If you like this howto and you want to thank me for my work : here is my wishlist on Amazon - France or my Amazon US wishlist :)
+If you are a corporation and you make some business thanks to my howto, we'll love to have a present from you (or just tell me who is using my howto).
+Thank to Scott Kinkade for his cash donation. I really do appreciate.
 
-不需要修改~vpopmail/bin/vchkpw的属性。
+If you want more informations about the intallation of qmail, I wrote a long howto about.
+I wrote this howto because there is a lack of documentation about qmail with spamassassin.
 
-451 qq write error or disk full (#4.3.0)
+This howto has been designed for qmail with vpopmail but it should work without a lot of modifications with something else than vpopmail.
 
-通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
+Spamassassin is a very powerfull program which checks if the receveid email is a spam or not. The analys is based on a list of mark. If the sum of all the mark exceed a specified amount (for example 5), the email will be tagged (****SPAM**** in the topic).
+With this, it is very easy to create a rule which will move all emails into a specific directory (i.e. trash:)
 
-qq temporary problem (#4.3.0)
+If you want to link Qmail with spamassassin, it is quite easy.
+First, install spamassassin and install razor and pyzor if you want to use it.
+Under debian :
+apt-get install spamassassin You should use the "debian unstable or testing" version of spamassassin which, most of the time, will find more spam.
 
-看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
--rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
+Under other system (Redhat, Suse, Solaris ...) : The latest version of spamassassin today is the version 3.0.2. The installation is almost the same, only a few directives changed.
+wget http://useast.spamassassin.org/released/Mail-SpamAssassin-2.55.tar.gz
+tar -zxvf Mail-SpamAssassin-2.55.tar.gz
+cd Mail-SpamAssassin-2.55
+perl Makefile.PL
+make
+make install
+cp spamd/debian-rc-script.sh /etc/init.d/spamassassin You can replace debian by redhat, solaris, netbsd, suse ...
+chmod +x /etc/init.d/spamassassin
 
-vchkpw-smtp: vpopmail user not found
+Then, edit /etc/spamassassin/local.cf
+Version 2.5X :
+required_hits 6.0
+rewrite_subject 1
+report_header 1
+use_terse_report 1
+defang_mime 1
+dns_available yes
+dcc_add_header 1
+use_pyzor 1 (Only if you have installed pyzor)
+use_razor2 (Only if you have installed razor2)
+use_dcc 1
+Version 3 :
+#Number of points to tag the spam required_hits 5.0 # Add the result in the header always_add_headers 1 # change the subject rewrite_subject 1 report_safe 1 use_terse_report 1 # dns checks (warning : increase the process length) dns_available yes dcc_add_header 0 # Don't skip the relay black list skip_rbl_checks 0 use_dcc 1 dcc_timeout 10 # Remote verification use_pyzor 1 pyzor_timeout 10 pyzor_add_header 1 # Never from the previous results auto_learn 1 # use the bayes filter use_bayes 1 # Where spamassassin must store these informations : bayes_path /var/qmail/spamassassin/ # Where he stores the auto white list results : auto_whitelist_path /var/qmail/spamassassin/auto_whitelist
+If you want to have detailled information about spamassassin processing, add the line in the local.cf file : timelog_path /var/log/spamassassin, run the daemon with the -D option (so, specify it in the /etc/default/spamassassin file under debian), create the directory with appropriate rights (should be vpopmail). In the directory, you will have for each email a file which sum up the spamassassin process (it is a debug option !).
 
-查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。
+I use these rules. Feel free to change ! Documentation about this is available here : perldoc Mail::SpamAssassin::Conf
+
+In /etc/default/spamassassin (if this file does not exist, create it)
+Change ENABLED to 1, then add these options : - "-m 10 -v --auto-whitelist" for the version 2.5X.
+- "-v -m 10 -u vpopmail --nouser-config" for the version 3
+With that stuff, you can launch spamd which is bascilly a spamassassin deamon (provide great performances).
+-m 10 =&gt; 10 childs
+-v =&gt; vpopmail config
+--auto-whitelist =&gt; Use auto whitelist (friend list)
+Instead of spamassassin, you have to use spamc in order to test email.
+There are some options "-c -u vpopmail" which enabled the creation of preferences for a domain or a user but it does not work very well for me.
+/etc/init.d/spamassassin start
+
+Next, the modification of qmail in order to check emails.
+Basically, there are two kind of configuration for qmail :
+- the fastest/easiest way is to change the qmail-queue in order to "introduce" the spamasssin check.Deprecated
+- the cleanest way is to use qmail-scanner.
+Changing the qmail-queue program
+cp /var/qmail/bin/qmail-queue /var/qmail/bin/qmail-queue.orig
+chown qmailq:qmail qmail-queue
+chown qmailq:qmail qmail-queue.orig
+chmod u+s qmail-queue.orig
+chmod o+r,+x qmail-queue.orig qmail-queue Not fundamental but sometime it is necessary (depends the system)
+
+mkdir /home/vpopmail/.spamassassin
+cd /home/vpopmail
+chmod 777 /home/vpopmail/.spamassassin
+
+chown -R qmailq:qmail .spamassassin
+chmod u=rwx,g=rx,o= /home/vpopmail/.spamassassin
+Now, delete the content of the executable which manage the queue.
+echo -n &gt; /var/qmail/bin/qmail-queue
+Then, edit the qmail-queue file and add this inside :
+#!/bin/sh
+/usr/bin/spamc | /var/qmail/bin/qmail-queue.orig
+I agree that it is a quick/dirty method. It causes some issues with the injection of a bounce in the queue. (qmail-queue is not planned to work this way).
+With qmail-scanner - Visit http://sylvestre.ledru.info/howto/howto_qmail_vpopmail.php for more informations
+First, you have to patch qmail with the qmailqueue-patch or install netqmail which has already this plugin.
+Qmail with the patch :
+wget http://qmail.agarik.com/qmail-1.03.tar.gz
+tar -zxvf qmail-1.03.tar.gz
+cd qmail-1.03
+wget http://qmail.mirrored.ca/moni.csi.hu/pub/glibc-2.3.1/qmail-1.03.errno.patch
+wget http://sylvestre.ledru.info/howto/qmail/qmailqueue-patch
+patch -p1 &lt; qmail-1.03.errno.patch
+patch -p1 &lt; qmailqueue-patch
+With netqmail :
+wget http://qmail.agarik.com/netqmail-1.05.tar.gz
+tar -zxvf netqmail-1.05.tar.gz
+cd netqmail-1.05/
+./collate.sh
+cd netqmail-1.05
+Add the QMAILQUEUE parameter to the /etc/tcp.smtp file :
+127.0.0.1:allow,RELAYCLIENT="",QMAILQUEUE="/var/qmail/bin/qmail-scanner-queue.pl"
+198.168.1.:allow,RELAYCLIENT="",QMAILQUEUE="/var/qmail/bin/qmail-scanner-queue.pl"
+:allow,QMAILQUEUE="/var/qmail/bin/qmail-scanner-queue.pl"
+Rehash tcpserver :
+/usr/local/bin/tcprules /etc/tcp.smtp.cdb /etc/tcp.smtp.tmp &lt; /etc/tcp.smtp
+chmod 644 /etc/tcp.smtp.cdb
+And then, install qmail-scanner with qmail-scanner-st
+. qmail-scanner-st is a patched version a qmail-scanner which enabled great features like auto delete/reject/quarantine spam over a specified score but also to select which scanners will be used for a domain and even for a user, then, it is possible to configure the spamassassin / antivirus just for one domain/user.
+wget http://unc.dl.sourceforge.net/sourceforge/qmail-scanner/qmail-scanner-1.25.tgz wget http://xoomer.virgilio.it/j.toribio/qmail-scanner/download/q-s-1.25st-20050207.patch.gz
+gunzip q-s-1.25st-20050207.patch.gz
+tar -zxvf qmail-scanner-1.25.tgz
+cd qmail-scanner-1.25/
+patch -p1 &lt; ../q-s-1.25st-20050207.patch
+groupadd qscand
+useradd -c "Qmail-Scanner Account" -g qscand -s /bin/false qscand
+./configure --qs-user qscand --qs-group qscand --spooldir /var/spool/qmailscan --qmaildir /var/qmail --bindir /var/qmail/bin --qmail-queue-binary /var/qmail/bin/qmail-queue --admin-fromname "Mail admin" --admin postmaster --domain vladimir.avence.info --notify sender,admin,recips --local-domains `cat /var/qmail/control/rcpthosts | tr "\n" " "` --silent-viruses auto --unzip 1 --add-dscr-hdrs 1 --archive 0 --redundant yes --log-crypto 0 --scanners "fast_spamassassin" --scanners-per-domain yes --sa-subject "*****SPAM*****" --sa-delete 5 --install 1
+After the installation, if you want to change your preferences, you have to edit the /var/qmail/bin/qmail-scanner-queue.pl file. In this file, you can also add option for the spamassassin client.
+If you want to enable/disable some scanners, edit the /var/spool/qmailscan/scanners_per_domain.txt
+To rehash the scanner per domain file : /var/qmail/bin/qmail-scanner-queue.pl -p
+To rehash the quarantine attachement file : /var/qmail/bin/qmail-scanner-queue.pl -g
+trunks.ecranbleu.org:sa,ps,clamdscan_scanner
+
+# sa = spamassassin
+# ps = perl scanner
+
+This should be enough to use SpamAssassin on the whole system.
+I have to try to find how it can be linked with vpopmail in order to create preference for a specific domain or a specific user. (if someone knows : sylvestre@ecranbleu.org)
+
+Problems :
+- link with vpopmail
+This howto is inspired and corrected from :
+http://www.euronet.nl/users/erhnam/linux/qmail/qmail.htm.
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/solve-qmail-error/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/howto-qmail-with-spamassassin/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="proftpd-conf/">proftpd 配置</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/proftpd/">proftpd</a>
+</div>
+    </div>
+      
+        www.proftpd.org
+
+ServerName                      "Caph ftp server..."
+ServerType                      standalone
+DefaultServer                   on
+Port                            21
+Umask                           002
+MaxInstances                    30
+User                            ftp
+Group                           ftp
+
+DisplayLogin .welcome.msg
+DeferWelcome on
+ServerIdent Off
+UseReverseDNS off
+IdentLookups off
+MaxLoginAttempts 3
+MaxClientsPerHost 2
+MaxClients 20
+MaxInstances 100
+ListOptions ""
+
+DirFakeUser On ftp
+DirFakeGroup On ftp
+DeferWelcome On
+LogFormat awstats "%t   %h  %u  %m  %f  %s  %b"
+ExtendedLog /var/log/xferlog read,write awstats
+TransferLog none
+SystemLog /var/log/proftpd.log
+ServerIdent off
+WtmpLog off
+
+DefaultRoot ~ ftp
+<limit> Order allow,deny
+DenyGroup !ftp </limit><directory>
+AllowOverwrite                on
+AllowStoreRestart             on
+#  AllowForeignAddress             on
+<limit>
+DenyUser ftp
+</limit>
+<limit>
+AllowUser it
+</limit>
+</directory>
+
+<directory>
+<limit>
+AllowUser ftp
+</limit>
+</directory>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/proftpd-conf/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -193,7 +409,7 @@ vchkpw-smtp: vpopmail user not found
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Mail/">Mail</a>
+<a href="/tags/Mail/">Mail</a>
 </div>
     </div>
       
@@ -211,7 +427,7 @@ vchkpw-smtp: vpopmail user not found
 
   <article class="post">
 	<h2 class="title">
-		<a href="cvs/">cvs</a>
+		<a href="caphit-web-conf/">caphit web 配置</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -219,36 +435,71 @@ vchkpw-smtp: vpopmail user not found
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/web/">web</a>
 </div>
     </div>
       
-        客户端配置最重要的是CVSROOT环境变量的配置。
+        httpd.conf
+ServerName caph
+AddDefaultCharset GB2312
+NameVirtualHost *
 
-其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www
+ServerName 210.72.203.226
 
-例如，我在使用我们实验室的CVS服务器时的配置为：
+AllowOverride None
+Options +ExecCGI
+AddHandler cgi-script .cgi .pl
+Order allow,deny
+Allow from all
 
-:pserver:car@192.168.2.2:/had/src
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www/caphbook
+ServerName www.caphbook.com
+ServerAlias caphbook.com caphbook.com.cn www.caphbook.com.cn
+ErrorLog logs/caphbook.com-error_log
+CustomLog logs/caphbook.com-access_log common
 
-每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。
+#
+# ServerAdmin webmaster@aphit.com.cn
+# DocumentRoot /www/caphit
+# ServerName www.aphit.com.cn
+# ServerAlias aphit.com.cn
+#
+# Options Indexes
+#
+#
+#mail
 
-上面是摘抄的一段，用cvs需要先
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www/igenus
+ServerName mail.caphbook.com
+ServerAlias mail.caphbook.com.cn mail.aphit.com.cn
+ErrorLog logs/mail-error_log
+CustomLog logs/mail-access_log common
 
-cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 
+ssl.conf
 
-登陆，或者设置$CVSROOT环境变量，之后用
+此后
+service httpd restart
+chkconfig --level 345 httpd on
 
-cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd
-
-就可以checkout更新了。
+php.ini
+register_globals = On
+max_execution_time = 60 ; Maximum execution time of each script, in seconds
+max_input_time = 120 ; Maximum amount of time each script may spend parsing request data
+memory_limit = 20M
+php.ini
+LimitRequestBody 52428800
+apache配置完毕
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/cvs/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/caphit-web-conf/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -263,7 +514,7 @@ cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftp
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Mail/">Mail</a> <a href="../tags/qmail/">qmail</a>
+<a href="/tags/Mail/">Mail</a> <a href="/tags/qmail/">qmail</a>
 </div>
     </div>
       
@@ -639,7 +890,7 @@ contrib/test_installation.sh -doit测试
 
   <article class="post">
 	<h2 class="title">
-		<a href="caphit-web-conf/">caphit web 配置</a>
+		<a href="cvs/">cvs</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -647,71 +898,36 @@ contrib/test_installation.sh -doit测试
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/web/">web</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
-        httpd.conf
-ServerName caph
-AddDefaultCharset GB2312
-NameVirtualHost *
+        客户端配置最重要的是CVSROOT环境变量的配置。
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www
-ServerName 210.72.203.226
+其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
 
-AllowOverride None
-Options +ExecCGI
-AddHandler cgi-script .cgi .pl
-Order allow,deny
-Allow from all
+例如，我在使用我们实验室的CVS服务器时的配置为：
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www/caphbook
-ServerName www.caphbook.com
-ServerAlias caphbook.com caphbook.com.cn www.caphbook.com.cn
-ErrorLog logs/caphbook.com-error_log
-CustomLog logs/caphbook.com-access_log common
+:pserver:car@192.168.2.2:/had/src
 
-#
-# ServerAdmin webmaster@aphit.com.cn
-# DocumentRoot /www/caphit
-# ServerName www.aphit.com.cn
-# ServerAlias aphit.com.cn
-#
-# Options Indexes
-#
-#
-#mail
+每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www/igenus
-ServerName mail.caphbook.com
-ServerAlias mail.caphbook.com.cn mail.aphit.com.cn
-ErrorLog logs/mail-error_log
-CustomLog logs/mail-access_log common
+上面是摘抄的一段，用cvs需要先
 
-ssl.conf
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 
 
-此后
-service httpd restart
-chkconfig --level 345 httpd on
+登陆，或者设置$CVSROOT环境变量，之后用
 
-php.ini
-register_globals = On
-max_execution_time = 60 ; Maximum execution time of each script, in seconds
-max_input_time = 120 ; Maximum amount of time each script may spend parsing request data
-memory_limit = 20M
-php.ini
-LimitRequestBody 52428800
-apache配置完毕
+cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd
+
+就可以checkout更新了。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/caphit-web-conf/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/cvs/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -726,7 +942,7 @@ apache配置完毕
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Joke/">Joke</a>
+<a href="/tags/Joke/">Joke</a>
 </div>
     </div>
       
@@ -753,180 +969,6 @@ apache配置完毕
 
   <article class="post">
 	<h2 class="title">
-		<a href="howto-qmail-with-spamassassin/">Howto Qmail with spamassassin</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Mail/">Mail</a> <a href="../tags/qmail/">qmail</a>
-</div>
-    </div>
-      
-        http://sylvestre.ledru.info/howto/howto_qmail_spamassassin.php
-
-By Sylvestre Ledru June 2003
-Version francaise
-Return to the linux page
-
-(02/04/2002), Bug fix :
-I just add a little bug fix for some OS which remove the +x on qmail-queue (the qmail-scanner is not concerned)
-(01/11/2003), Qmail-scanner :
-I had a new way of calling spamassassin client using qmail-scanner.
-(23/07/2003), Preferences :
-Matthew Francis sent me a quite good howto explaining how to get user preferences for spamassassin. It is available here.
-(08/06/2003), Localisation :
-If you want to change the language of the spam report (ie why the email has been tagged as a spam), just change the locales to your language (dpkg-reconfigure locales under debian) and install gettext (apt-get install gettext) and you will have the appropriate version (french for example)...
-(11/03/2005), Update :
-After almost two years without updates, my other howto about qmail is much more complet and uptodate, I clean this one :
-- first method deprecated
-- new version of spamassassin 3.0.X
-- use of netqmail instead of qmail
-- new version of qmail-scanner with the q-s-st patch (activation of Spamassassin just for a domain)
-
-If you like this howto and you want to thank me for my work : here is my wishlist on Amazon - France or my Amazon US wishlist :)
-If you are a corporation and you make some business thanks to my howto, we'll love to have a present from you (or just tell me who is using my howto).
-Thank to Scott Kinkade for his cash donation. I really do appreciate.
-
-If you want more informations about the intallation of qmail, I wrote a long howto about.
-I wrote this howto because there is a lack of documentation about qmail with spamassassin.
-
-This howto has been designed for qmail with vpopmail but it should work without a lot of modifications with something else than vpopmail.
-
-Spamassassin is a very powerfull program which checks if the receveid email is a spam or not. The analys is based on a list of mark. If the sum of all the mark exceed a specified amount (for example 5), the email will be tagged (****SPAM**** in the topic).
-With this, it is very easy to create a rule which will move all emails into a specific directory (i.e. trash:)
-
-If you want to link Qmail with spamassassin, it is quite easy.
-First, install spamassassin and install razor and pyzor if you want to use it.
-Under debian :
-apt-get install spamassassin You should use the "debian unstable or testing" version of spamassassin which, most of the time, will find more spam.
-
-Under other system (Redhat, Suse, Solaris ...) : The latest version of spamassassin today is the version 3.0.2. The installation is almost the same, only a few directives changed.
-wget http://useast.spamassassin.org/released/Mail-SpamAssassin-2.55.tar.gz
-tar -zxvf Mail-SpamAssassin-2.55.tar.gz
-cd Mail-SpamAssassin-2.55
-perl Makefile.PL
-make
-make install
-cp spamd/debian-rc-script.sh /etc/init.d/spamassassin You can replace debian by redhat, solaris, netbsd, suse ...
-chmod +x /etc/init.d/spamassassin
-
-Then, edit /etc/spamassassin/local.cf
-Version 2.5X :
-required_hits 6.0
-rewrite_subject 1
-report_header 1
-use_terse_report 1
-defang_mime 1
-dns_available yes
-dcc_add_header 1
-use_pyzor 1 (Only if you have installed pyzor)
-use_razor2 (Only if you have installed razor2)
-use_dcc 1
-Version 3 :
-#Number of points to tag the spam required_hits 5.0 # Add the result in the header always_add_headers 1 # change the subject rewrite_subject 1 report_safe 1 use_terse_report 1 # dns checks (warning : increase the process length) dns_available yes dcc_add_header 0 # Don't skip the relay black list skip_rbl_checks 0 use_dcc 1 dcc_timeout 10 # Remote verification use_pyzor 1 pyzor_timeout 10 pyzor_add_header 1 # Never from the previous results auto_learn 1 # use the bayes filter use_bayes 1 # Where spamassassin must store these informations : bayes_path /var/qmail/spamassassin/ # Where he stores the auto white list results : auto_whitelist_path /var/qmail/spamassassin/auto_whitelist
-If you want to have detailled information about spamassassin processing, add the line in the local.cf file : timelog_path /var/log/spamassassin, run the daemon with the -D option (so, specify it in the /etc/default/spamassassin file under debian), create the directory with appropriate rights (should be vpopmail). In the directory, you will have for each email a file which sum up the spamassassin process (it is a debug option !).
-
-I use these rules. Feel free to change ! Documentation about this is available here : perldoc Mail::SpamAssassin::Conf
-
-In /etc/default/spamassassin (if this file does not exist, create it)
-Change ENABLED to 1, then add these options : - "-m 10 -v --auto-whitelist" for the version 2.5X.
-- "-v -m 10 -u vpopmail --nouser-config" for the version 3
-With that stuff, you can launch spamd which is bascilly a spamassassin deamon (provide great performances).
--m 10 =&gt; 10 childs
--v =&gt; vpopmail config
---auto-whitelist =&gt; Use auto whitelist (friend list)
-Instead of spamassassin, you have to use spamc in order to test email.
-There are some options "-c -u vpopmail" which enabled the creation of preferences for a domain or a user but it does not work very well for me.
-/etc/init.d/spamassassin start
-
-Next, the modification of qmail in order to check emails.
-Basically, there are two kind of configuration for qmail :
-- the fastest/easiest way is to change the qmail-queue in order to "introduce" the spamasssin check.Deprecated
-- the cleanest way is to use qmail-scanner.
-Changing the qmail-queue program
-cp /var/qmail/bin/qmail-queue /var/qmail/bin/qmail-queue.orig
-chown qmailq:qmail qmail-queue
-chown qmailq:qmail qmail-queue.orig
-chmod u+s qmail-queue.orig
-chmod o+r,+x qmail-queue.orig qmail-queue Not fundamental but sometime it is necessary (depends the system)
-
-mkdir /home/vpopmail/.spamassassin
-cd /home/vpopmail
-chmod 777 /home/vpopmail/.spamassassin
-
-chown -R qmailq:qmail .spamassassin
-chmod u=rwx,g=rx,o= /home/vpopmail/.spamassassin
-Now, delete the content of the executable which manage the queue.
-echo -n &gt; /var/qmail/bin/qmail-queue
-Then, edit the qmail-queue file and add this inside :
-#!/bin/sh
-/usr/bin/spamc | /var/qmail/bin/qmail-queue.orig
-I agree that it is a quick/dirty method. It causes some issues with the injection of a bounce in the queue. (qmail-queue is not planned to work this way).
-With qmail-scanner - Visit http://sylvestre.ledru.info/howto/howto_qmail_vpopmail.php for more informations
-First, you have to patch qmail with the qmailqueue-patch or install netqmail which has already this plugin.
-Qmail with the patch :
-wget http://qmail.agarik.com/qmail-1.03.tar.gz
-tar -zxvf qmail-1.03.tar.gz
-cd qmail-1.03
-wget http://qmail.mirrored.ca/moni.csi.hu/pub/glibc-2.3.1/qmail-1.03.errno.patch
-wget http://sylvestre.ledru.info/howto/qmail/qmailqueue-patch
-patch -p1 &lt; qmail-1.03.errno.patch
-patch -p1 &lt; qmailqueue-patch
-With netqmail :
-wget http://qmail.agarik.com/netqmail-1.05.tar.gz
-tar -zxvf netqmail-1.05.tar.gz
-cd netqmail-1.05/
-./collate.sh
-cd netqmail-1.05
-Add the QMAILQUEUE parameter to the /etc/tcp.smtp file :
-127.0.0.1:allow,RELAYCLIENT="",QMAILQUEUE="/var/qmail/bin/qmail-scanner-queue.pl"
-198.168.1.:allow,RELAYCLIENT="",QMAILQUEUE="/var/qmail/bin/qmail-scanner-queue.pl"
-:allow,QMAILQUEUE="/var/qmail/bin/qmail-scanner-queue.pl"
-Rehash tcpserver :
-/usr/local/bin/tcprules /etc/tcp.smtp.cdb /etc/tcp.smtp.tmp &lt; /etc/tcp.smtp
-chmod 644 /etc/tcp.smtp.cdb
-And then, install qmail-scanner with qmail-scanner-st
-. qmail-scanner-st is a patched version a qmail-scanner which enabled great features like auto delete/reject/quarantine spam over a specified score but also to select which scanners will be used for a domain and even for a user, then, it is possible to configure the spamassassin / antivirus just for one domain/user.
-wget http://unc.dl.sourceforge.net/sourceforge/qmail-scanner/qmail-scanner-1.25.tgz wget http://xoomer.virgilio.it/j.toribio/qmail-scanner/download/q-s-1.25st-20050207.patch.gz
-gunzip q-s-1.25st-20050207.patch.gz
-tar -zxvf qmail-scanner-1.25.tgz
-cd qmail-scanner-1.25/
-patch -p1 &lt; ../q-s-1.25st-20050207.patch
-groupadd qscand
-useradd -c "Qmail-Scanner Account" -g qscand -s /bin/false qscand
-./configure --qs-user qscand --qs-group qscand --spooldir /var/spool/qmailscan --qmaildir /var/qmail --bindir /var/qmail/bin --qmail-queue-binary /var/qmail/bin/qmail-queue --admin-fromname "Mail admin" --admin postmaster --domain vladimir.avence.info --notify sender,admin,recips --local-domains `cat /var/qmail/control/rcpthosts | tr "\n" " "` --silent-viruses auto --unzip 1 --add-dscr-hdrs 1 --archive 0 --redundant yes --log-crypto 0 --scanners "fast_spamassassin" --scanners-per-domain yes --sa-subject "*****SPAM*****" --sa-delete 5 --install 1
-After the installation, if you want to change your preferences, you have to edit the /var/qmail/bin/qmail-scanner-queue.pl file. In this file, you can also add option for the spamassassin client.
-If you want to enable/disable some scanners, edit the /var/spool/qmailscan/scanners_per_domain.txt
-To rehash the scanner per domain file : /var/qmail/bin/qmail-scanner-queue.pl -p
-To rehash the quarantine attachement file : /var/qmail/bin/qmail-scanner-queue.pl -g
-trunks.ecranbleu.org:sa,ps,clamdscan_scanner
-
-# sa = spamassassin
-# ps = perl scanner
-
-This should be enough to use SpamAssassin on the whole system.
-I have to try to find how it can be linked with vpopmail in order to create preference for a specific domain or a specific user. (if someone knows : sylvestre@ecranbleu.org)
-
-Problems :
-- link with vpopmail
-This howto is inspired and corrected from :
-http://www.euronet.nl/users/erhnam/linux/qmail/qmail.htm.
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/howto-qmail-with-spamassassin/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="a-bug-of-qss/">qss不正常显示的问题</a>
 	</h2>
     <div class="entry-content">
@@ -935,7 +977,7 @@ http://www.euronet.nl/users/erhnam/linux/qmail/qmail.htm.
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Mail/">Mail</a>
+<a href="/tags/Mail/">Mail</a>
 </div>
     </div>
       
@@ -999,7 +1041,7 @@ Mon, 03 Jan 2005 04:01:57 CST
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
@@ -1041,38 +1083,6 @@ Mon, 03 Jan 2005 04:01:57 CST
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/linux-bridge-script/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="snowing-now/">下雪了</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-11T16:00:00.000Z" itemprop="datePublished">Jan 12, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a>
-</div>
-    </div>
-      
-        这个冬天的第一场雪可能都不能算是雪，据说是某些地方下了几颗肉眼刚好看到的雪粒粒，而且还是就早晨一会，反正我没看到。
-
-第二场似乎应该就是元旦那次了吧，是元旦那天，还是元旦前夜，我忘记了，反正据说是下了，看到据说了吧，说明我还是没看到。呵呵。那两天都在家里呆着，没有出门，只是听说下雪之后站在阳台看了一眼，12层楼往下看，似乎没看到白色的积雪，也没看到哗哗的雪片。可能是我看的时候人家早停了吧，北京的雪基本上都是掉下来就化，所以地上没有积雪也正常的。
-
-这次算是第三次了吧。因为座位不靠窗，所以没有注意到，到隔壁办公室的时候，听他们说起来才注意到，外面的雪片还真大。早上走的时候其实就在下了，不过都是小颗粒，还没想到居然成大气候了，呵呵。
-
-雪现在还在下，在角落里面已经有了一些积雪了，走人走车的地方的雪基本都化了，地上好多水。北京的天气比较来说不够冷，但是够湿润，所以比较容易看到下雪，但是不容易看到积雪。我们家那里比较干燥，冬天就是干冷，下雪少，偶尔来一次就是大的，这一次之后，可能整个冬天都能到处看到积雪，尤其是村子后面的山头上，都白白的。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/snowing-now/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

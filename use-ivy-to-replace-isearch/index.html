@@ -76,6 +76,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -98,6 +99,14 @@
     <div id="content" class="inner">
         <article class="post">
 	<h2 class="title">use ivy to replace isearch</h2>
+    <div class="meta">
+        <div class="date">Published on: <time datetime="2016-01-10T11:22:20.000Z" itemprop="datePublished">Jan 10, 2016</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/emacs/">emacs</a>
+</div>
+    </div>
 	<div class="entry-content"><p>之前习惯使用 <code>isearch</code> 来搜索了，最近看别人使用 <code>ivy</code> 看着心痒痒的，就想试试看。其实 ivy 的效果和 <code>swoop</code> 很像，不过区别是 ivy 是在 minibuffer 来显示可选信息的，swoop 是在一个 buffer 显示的。有洁癖的可能稍微计较一下。</p>
 <figure class="highlight scheme"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="comment">;; ivy swiper</span></div><div class="line">(<span class="name">defun</span> wd-swiper-at-point ()</div><div class="line">  <span class="string">"Pull next word from buffer into search string."</span></div><div class="line">  (<span class="name">interactive</span>)</div><div class="line">  (<span class="name"><span class="builtin-name">let</span></span> (<span class="name">query</span>)</div><div class="line">    (<span class="name">with-ivy-window</span></div><div class="line">      (<span class="name"><span class="builtin-name">let</span></span> ((<span class="name">tmp</span> (<span class="name">symbol-at-point</span>)))</div><div class="line">        (<span class="name">setq</span> query tmp)))</div><div class="line">    (<span class="name"><span class="builtin-name">when</span></span> query</div><div class="line">      (<span class="name">insert</span> (<span class="name">format</span> <span class="string">"%s"</span> query))</div><div class="line">      )))</div><div class="line"></div><div class="line">(<span class="name">use-package</span> ivy</div><div class="line">  :config</div><div class="line">  (<span class="name">ivy-mode</span> <span class="number">1</span>)</div><div class="line">  (<span class="name">setq</span> ivy-use-virtual-buffers t)</div><div class="line">  (<span class="name">set-variable</span> <span class="symbol">'ivy-on-del-error-function</span> '(lambda()))</div><div class="line">  )</div><div class="line"></div><div class="line">(<span class="name">use-package</span> swiper</div><div class="line">  :config</div><div class="line">  (<span class="name">global-set-key</span> <span class="string">"\C-s"</span> <span class="symbol">'swiper</span>)</div><div class="line">  (<span class="name">define-key</span> swiper-map (<span class="name">kbd</span> <span class="string">"C-w"</span>) <span class="symbol">'wd-swiper-at-point</span>)</div><div class="line">  (<span class="name">define-key</span> swiper-map (<span class="name">kbd</span> <span class="string">"C-f"</span>) <span class="symbol">'swiper-avy</span>)</div><div class="line">  )</div></pre></td></tr></table></figure>
 <p>我大致做了上面几个设定，<code>\C-s</code> 绑定了 swiper，启动 swiper 之后用 <code>\C-w</code> 可以快速把光标位置的 symbol 放到 minibuffer 来搜索。然后 swiper 和 isearch 有个区别是，默认情况下，swiper 如果 minibuffer 没有内容，按 backspace 会退出，这个和 isearch 的习惯不一样，把 <code>ivy-on-del-error-function</code> 重新绑定一下就可以了。</p>

@@ -71,6 +71,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -101,6 +102,103 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="fbsplash-howto/">给系统加上 fbsplash 支持</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-07-24T16:00:00.000Z" itemprop="datePublished">Jul 25, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/fbsplash/">fbsplash</a>
+</div>
+    </div>
+      
+        先贴几个参考文章。
+<li>1 <a href="http://forums.gentoo.org/viewtopic-t-728450-highlight-grub2.html" target="_blank" rel="external">HOWTO: Fancy Grub and fbsplash on a machine with Intel graphic chipsets</a></li>
+<li>2 <a href="http://www.gentoo-wiki.info/Fbsplash" target="_blank" rel="external">Fbsplash</a></li>
+<br>
+这两个文章里面最重要是那些内核选项的支持，弄好了那些才有下面的内容。里面有个要注意的是 General Setup ---> Initial RAM filesystem and RAM disk (initramfs/initrd) support ---> Built-in initramfs compression mode 这个选项，好像是从 2.6.30 出来的。这个压缩模式选的是什么，关系到后面的工作。
+
+安装 splashutils[fbcondecor] 和 media-gfx/splash-themes-gentoo 或 media-gfx/splash-themes-livecd 这两个都是提供一些 theme，在 /etc/splash 目录下面。
+
+我的 kernel 没有 initrd 文件，是编译到内核的，所以这么做。
+<pre class="prettyprint lang-bash">
+cd /usr/src/linux && make && make install # recompile kernel, this is my way
+</pre>
+
+然后就是设置内核参数，下面是我的。那个 quiet 会让 kernel 不显示信息，如果你不想，那就去掉。
+video=uvesafb:1024x768-32,mtrr:3,ywrap quiet splash=silent,theme:natural_gentoo console=tty1 fbcon=scrollback:64K
+
+如果用的是 tuxonice 内核，那还可以给 sys-apps/tuxonice-userui 加上 fbsplash use，装好后会提示你 ln 一个 splash theme 为 tuxonice ，照做就是了。另外还需要在内核里面 Power management and ACPI options ---> Enhanced Hibernation (TuxOnIce) ---> Default userui program location 设置为 /sbin/tuxoniceui_fbsplash ，重编内核。。。
+
+这么弄完之后会发现，休眠后再启动的时候会显示一个没找到 /sbin/tuoniceui_fbsplash 的错误，还有一些百分比，这些实际上不影响正常启动。不过好像有点影响美观。我琢磨了下，觉得那个错误可能是没有把那个文件弄到 initramfs 里面的缘故，弄进去之后果然没了，不过还是有那个百分比出来。
+
+先 cp 一份这个文件 /usr/src/linux/usr/initramfs_data.cpio[看压缩设置] 到临时目录，file 看看属性，我的是 gzip 压缩的，那就解压一下。然后用 cpio 看下里面的文件。
+<pre class="prettyprint lang-bash">
+$ file initramfs_data.cpio 
+initramfs_data.cpio: gzip compressed data, was "initramfs_data.cpio", from Unix, last modified: Sat Jul 25 19:26:29 2009
+$ mv initramfs_data.cpio initramfs_data.cpio.gz
+$ gzip -d initramfs_data.cpio.gz 
+$ file initramfs_data.cpio 
+initramfs_data.cpio: ASCII cpio archive (SVR4 with no CRC)
+$ cpio --list < initramfs_data.cpio
+.
+lib
+lib/splash
+lib/splash/sys
+lib/splash/proc
+sbin
+sbin/v86d
+sbin/fbcondecor_helper
+sbin/splash_helper
+root
+dev
+dev/mem
+dev/tty1
+dev/fb
+dev/tty0
+dev/zero
+dev/misc
+dev/null
+dev/vc
+dev/console
+etc
+etc/splash
+etc/splash/luxisri.ttf
+etc/splash/natural_gentoo
+etc/splash/natural_gentoo/1024x768.cfg
+etc/splash/natural_gentoo/images
+etc/splash/natural_gentoo/images/silent-1024x768.jpg
+etc/splash/natural_gentoo/images/verbose-1024x768.jpg
+xxx blocks
+$ cat f
+sbin/tuxoniceui_fbsplash
+$ ls sbin
+tuxoniceui_fbsplash
+$ cpio -ov --format=newc -A -O initramfs_data.cpio < f
+sbin/tuxoniceui_fbsplash
+xxx blocks
+$ gzip -c initramfs_data.cpio initramfs_data.cpio.gz
+$ mv initramfs_data.cpio.gz /usr/src/linux/usr/initramfs_data.cpio
+</pre>
+
+ok， 这里你可以再看看文件里面的东西。没问题就可以复制过去了，要注意压缩格式。
+
+回头录一个视频放上来玩玩，呵呵。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/fbsplash-howto/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="how-to-use-grub2/">使用 grub2</a>
 	</h2>
     <div class="entry-content">
@@ -109,7 +207,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/grub/">grub</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/grub/">grub</a>
 </div>
     </div>
       
@@ -198,44 +296,6 @@ menuentry "测试JPEG背景图片" {
 
   <article class="post">
 	<h2 class="title">
-		<a href="clever-cc/">聪明的老婆</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-07-19T16:00:00.000Z" itemprop="datePublished">Jul 20, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/heart/">heart</a>
-</div>
-    </div>
-      
-        呃，今天好像疯牛病了，怎么一下更新了好几篇呢？。。。
-
-不得不说，老婆聪明没用在正道上。玩游戏那叫一个牛。昨天手机上面装了一个游戏，是一屏幕小球球，要消掉那种。我玩了会，弄出来一次把球全消了，260 多分，乐呵呵的给她看，让她玩玩，她要是玩不到，就可以取笑她了，嘿嘿。
-
-结果一会还给我了，人家弄了一个 600 多记录出来。。。。这还让不让人活了。。
-
-想起来之前用 palm 650 的时候，里面也有一个类似的游戏，排名前五都是他的名字，我都上不去那个榜。。。
-
-还有玩 qq 那个龙珠，其实就是类似 zuma 那个游戏。他居然学会了那个自己布局，然后一次全消掉那个方法。我反正是不会弄那个。。。
-
-好多次都是，我找到一个好玩的游戏，教给她怎么玩，然后过几天我就拍马也赶不上了。唉。。。可没劲了
-
-另外，不得不补充一下，其它地方她怎么总表现的那个猪呢？
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/clever-cc/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="auto-mount-smb-and/">写了一个用来 mount smb 和 u 盘之类的程序</a>
 	</h2>
     <div class="entry-content">
@@ -244,7 +304,7 @@ menuentry "测试JPEG背景图片" {
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/autumount/">autumount</a> <a href="../tags/smb/">smb</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/autumount/">autumount</a> <a href="/tags/smb/">smb</a>
 </div>
     </div>
       
@@ -300,6 +360,44 @@ menuentry "测试JPEG背景图片" {
 
   <article class="post">
 	<h2 class="title">
+		<a href="clever-cc/">聪明的老婆</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-07-19T16:00:00.000Z" itemprop="datePublished">Jul 20, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a>
+</div>
+    </div>
+      
+        呃，今天好像疯牛病了，怎么一下更新了好几篇呢？。。。
+
+不得不说，老婆聪明没用在正道上。玩游戏那叫一个牛。昨天手机上面装了一个游戏，是一屏幕小球球，要消掉那种。我玩了会，弄出来一次把球全消了，260 多分，乐呵呵的给她看，让她玩玩，她要是玩不到，就可以取笑她了，嘿嘿。
+
+结果一会还给我了，人家弄了一个 600 多记录出来。。。。这还让不让人活了。。
+
+想起来之前用 palm 650 的时候，里面也有一个类似的游戏，排名前五都是他的名字，我都上不去那个榜。。。
+
+还有玩 qq 那个龙珠，其实就是类似 zuma 那个游戏。他居然学会了那个自己布局，然后一次全消掉那个方法。我反正是不会弄那个。。。
+
+好多次都是，我找到一个好玩的游戏，教给她怎么玩，然后过几天我就拍马也赶不上了。唉。。。可没劲了
+
+另外，不得不补充一下，其它地方她怎么总表现的那个猪呢？
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/clever-cc/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="best-way-to-fuck-gfw/">你在用什么方式翻墙？</a>
 	</h2>
     <div class="entry-content">
@@ -308,7 +406,7 @@ menuentry "测试JPEG背景图片" {
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/gfw/">gfw</a> <a href="../tags/firefox/">firefox</a> <a href="../tags/fuckgfw/">fuckgfw</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/gfw/">gfw</a> <a href="/tags/firefox/">firefox</a> <a href="/tags/fuckgfw/">fuckgfw</a>
 </div>
     </div>
       
@@ -383,7 +481,7 @@ function FindProxyForURL(url, host)
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/firefox/">firefox</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/firefox/">firefox</a>
 </div>
     </div>
       
@@ -422,7 +520,7 @@ sqlite3 places.sqlite "VACUUM;"
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/python/">python</a> <a href="../tags/emacs/">emacs</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/python/">python</a> <a href="/tags/emacs/">emacs</a>
 </div>
     </div>
       
@@ -454,7 +552,7 @@ sqlite3 places.sqlite "VACUUM;"
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/python/">python</a> <a href="../tags/feition/">feition</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/python/">python</a> <a href="/tags/feition/">feition</a>
 </div>
     </div>
       
@@ -486,7 +584,7 @@ sqlite3 places.sqlite "VACUUM;"
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a>
+<a href="/tags/heart/">heart</a>
 </div>
     </div>
       
@@ -518,7 +616,7 @@ nameserver 208.67.220.220
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/svn/">svn</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/svn/">svn</a>
 </div>
     </div>
       
@@ -534,65 +632,6 @@ nameserver 208.67.220.220
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/svn-301-moved-permanently/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="upgrade-system-and-something-else/">升级系统杂记一篇</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-06-20T16:00:00.000Z" itemprop="datePublished">Jun 21, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/upgrade/">upgrade</a>
-</div>
-    </div>
-      
-        受不了 kde 窗口管理器的问题，前段时间把系统切换到了 openbox。kde 的 kwin 下面，窗口总有点问题，比如 pidgin 里面设置了提取消息的快捷键，可就是不好用。比如有时候新开的窗口就不在最上面，还比如有些 gtk 程序最大化之后偏偏就不是最大的，上面还是下面来着有一条。另外 kwin 对 dual head 支持感觉也不爽。
-
-kde 不用了，也懒得切回 gnome 了，就试试看 openbox 吧。目前已经用了一段时间的 ob 了，感觉还行。下面是用到的一些程序列表。
-
-<strong>firefox</strong> 目前升级到了 3.5rc1，感觉不错，建议都升级一个，在 mozilla overlay 里面有
-
-<strong>thunderbird</strong> 也用了 3.0beta2。本来用 kmail 其实挺好用的，里面的快捷键我觉得非常好，比如 r 回复作者，a 回复所有人，l 回复 maillist，有点在 mutt 里面的感觉了。不过 kmail 在 openbox 下的表现不是很爽，而且还有 kde 一陀依赖，用了一段时间还是不用了吧。支持 thunderbird  3.0 的 lightning 插件还没找到。另外，因为 thunderbird 不像 kmai 能在 tray 呆着，就自己写了一个程序，类似 mail-notification 的功能一样，呆在 tray，有 mail 的话点一下就启动 thunderbird。
-
-<strong>tint2</strong> 这个支持透明，有 tray 支持，感觉挺好的。而且对 dual head 支持非常好，可以在不同的 moniter 显示不各自的 task，非常好。
-
-<strong>fcitx</strong> 我使用二笔输入法，这个目前用的是感觉最好的，虽然新版越做越二，但是旧版也足够用了，建议此软件用户没事就不要升级了，升级可能随时会导致你的配置文件里面的配置不起作用了。
-
-<strong>roxterm</strong> 这个 term 很像 gnome-terminal, gnome-terminal 是我用的非常爽的一个 term 了，尤其是加了去掉 close button 的 patch 之后。konsole 就别说了，我觉得他除了一些我用不到的功能外，比 gnome-terminal 差好多，不能 shift 连续选择文字，tab 标题会被切隔 etc，反正用的挺不爽的。roxterm 支持快捷键设置，颜色设置等一些比较实用的东西，还比较小。 Terminal, lxdeterminal 其实也比较小巧，不过功能设置上面什么的，我觉得都不如 roxterm 好。
-
-<strong>xchat</strong> 用过 konversation 之后，这个好像看起来就没那么好了，呵呵。不过，其实也还是不错的，现在不太喜欢用 term 下面的 irc client 了，还是 gui 的好，呵呵。 
-
-<strong>stalonetray</strong> 之前因为 tint2 的 tray 支持还有点问题，tint2 crash 之后就可能导致有 tray 的程序也挂掉。之前总调整 tint2 设置的时候这个问题很不爽。尝试之后，在  trayer， stalonetray 还有几个别的里面选了 stalonetray, 因为 trayer 不能很明确的设置 tray 的位置。用单独的 tray 程序也有问题，tray 多的时候，不能很好的安排好 tray 的位置。所以还是用 tint2 自带的算了。
-
-上面几个软件使用中的几个吧，别的觉得没什么好说的，就不说了。这么一弄之后，执行了 depclean 之后，就是下面的壮观结果了，呵呵。
-
-Packages installed: 984 
-Packages in world: 147 
-Packages in system: 51 
-Required packages: 741 
-Number to remove: 243
-
-好像好几个星期没 clean 了。
-
-今天升级到了 xorg 1.6 感觉 keyboard repeat delay 有点长，g 了下，原来用 xset 就可以搞定，不得不说这个很强大。之前换了一个鼠标后，发现新的鼠标的移动速度快了好多，也是用 set 搞定的。
-
-xset m 1.5 1 # 设置鼠标速度
-xset r rate 180  # keyboard repeat delay 
-
-这是早先抓的图。  http://twitpic.com/6w6ym
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/upgrade-system-and-something-else/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

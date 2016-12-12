@@ -71,6 +71,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -101,6 +102,477 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="postgresql-explain/">PostgreSQL Explain</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2013-02-03T09:40:00.000Z" itemprop="datePublished">Feb 3, 2013</time>
+</div>
+      <div class="tags">Tags: 
+
+
+</div>
+    </div>
+      
+        <div id="table-of-contents">
+<h2>Table of Contents</h2>
+<div id="text-table-of-contents">
+<ul>
+<li><a href="#sec-1">1 notice</a></li>
+<li><a href="#sec-2">2 explain basics</a></li>
+<li><a href="#sec-3">3 explain analyse</a></li>
+<li><a href="#sec-4">4 Caveats 注意事项</a></li>
+</ul>
+</div>
+</div>
+
+<div id="outline-container-1" class="outline-3">
+<h3 id="sec-1"><span class="section-number-3">1</span> notice</h3>
+<div class="outline-text-3" id="text-1">
+
+
+<p>
+简单翻译了一下 <a href="http://www.postgresql.org/docs/9.2/static/using-explain.html" target="_blank" rel="external">http://www.postgresql.org/docs/9.2/static/using-explain.html</a> ，里面有些内容没翻译。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-3">
+<h3 id="sec-2"><span class="section-number-3">2</span> explain basics</h3>
+<div class="outline-text-3" id="text-2">
+
+
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1;
+
+                         QUERY PLAN
+-------------------------------------------------------------
+ Seq Scan on tenk1  (cost=0.00..458.00 rows=10000 width=244)
+</pre>
+
+
+<ul>
+<li>第一行输出需要的消耗。
+</li>
+<li>最后一行输出需要的消耗。
+</li>
+<li>返回的行数，假定全部返回。并非扫描处理的行数。
+</li>
+<li>每行的平均数据量，字节
+</li>
+</ul>
+
+
+<p>
+消耗是使用设置的规划器的一些 cost常量<sup><a class="footref" name="fnr.1" href="#fn.1">1</a></sup> 来计算出来的，上一级的 node 的 消耗包括了所有子 node 的消耗，消耗不包括传输结果花的时间。
+</p>
+
+
+
+<pre class="example">SELECT relpages, reltuples FROM pg_class WHERE relname = 'tenk1';
+</pre>
+
+
+<p>
+从上面这个语句可以看到，tenk1 有 358 磁盘页和 10000 行。这个查询的消耗计算公式如下
+</p>
+<pre class="example">
+ (disk pages read * seq_page_cost) + (rows scanned * cpu_tuple_cost)
+</pre>
+
+
+<p>
+默认情况下 <code>seq_page_cost = 1.0, cpu_tuple_cost = 0.01</code>, 所以最总消耗是 <code>(358 * 1.0) + (10000 * 0.01) = 458</code> 。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 7000;
+
+                         QUERY PLAN
+------------------------------------------------------------
+ Seq Scan on tenk1  (cost=0.00..483.00 rows=7001 width=244)
+   Filter: (unique1 &lt; 7000)
+</pre>
+
+
+<p>
+再看这个，加了一个 where 条件，多了一个 filter 操作，返回结果变少，但是消耗变多了。因为总体需要处理的数据没有变少，并且还多了
+</p>
+<pre class="example">
+ 10000 * cpu_operator_cost
+</pre>
+
+
+<p>
+需要的消耗。
+</p>
+<p>
+这些计算方法得到的数值可能和你系统的会稍有区别，使用 analyse 命令可能会改变计算结果，因为它会根据一些随机的样本重新收集表的状态信息。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100;
+
+                                  QUERY PLAN
+------------------------------------------------------------------------------
+ Bitmap Heap Scan on tenk1  (cost=5.03..229.17 rows=101 width=244)
+   Recheck Cond: (unique1 &lt; 100)
+   -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0)
+         Index Cond: (unique1 &lt; 100)
+</pre>
+
+
+<p>
+再来看一个。子执行计划节点会先扫描索引，上一级的执行计划节点会根据索引返回的位置来获取数据。获取散列数据比获取全部数据消耗要大，不过因为毕竟是少量数据，可以看到消耗还是小于全表扫描。上级的节点会在获取散列数据之前做一个磁盘排序，好减少获取的消耗，而 Bitmap 字样表示索引返回的结果是按照存储位置排好序的，这就是使用索引的一个原因。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND stringu1 = 'xxx';
+
+                                  QUERY PLAN
+------------------------------------------------------------------------------
+ Bitmap Heap Scan on tenk1  (cost=5.01..229.40 rows=1 width=244)
+   Recheck Cond: (unique1 &lt; 100)
+   Filter: (stringu1 = 'xxx'::name)
+   -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0)
+         Index Cond: (unique1 &lt; 100)
+</pre>
+
+
+<p>
+stringu1 = 'xxx' 减少了输出的行数，因为还需要扫描同样的行数，所以没有减少执行计划的消耗，而且还有稍微的增加，
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 = 42;
+
+                                 QUERY PLAN
+-----------------------------------------------------------------------------
+ Index Scan using tenk1_unique1 on tenk1  (cost=0.00..8.27 rows=1 width=244)
+   Index Cond: (unique1 = 42)
+</pre>
+
+
+<p>
+数据根据索引排序来获取，不需要额外的排序。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND unique2 &gt; 9000;
+
+                                     QUERY PLAN
+-------------------------------------------------------------------------------------
+ Bitmap Heap Scan on tenk1  (cost=25.01..60.14 rows=10 width=244)
+   Recheck Cond: ((unique1 &lt; 100) AND (unique2 &gt; 9000))
+   -&gt;  BitmapAnd  (cost=25.01..25.01 rows=10 width=0)
+         -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0)
+               Index Cond: (unique1 &lt; 100)
+         -&gt;  Bitmap Index Scan on tenk1_unique2  (cost=0.00..19.74 rows=999 width=0)
+               Index Cond: (unique2 &gt; 9000)
+
+EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND unique2 &gt; 9000 LIMIT 2;
+
+                                     QUERY PLAN
+-------------------------------------------------------------------------------------
+ Limit  (cost=0.00..14.25 rows=2 width=244)
+   -&gt;  Index Scan using tenk1_unique2 on tenk1  (cost=0.00..71.23 rows=10 width=244)
+         Index Cond: (unique2 &gt; 9000)
+         Filter: (unique1 &lt; 100)
+</pre>
+
+
+<p>
+这两个查询，第一个分别查两个索引，然后做 BitmapAnd 得到结果。第二个只查了其中一个索引，然后使用 filter 方式来做过滤，可以看到第二个查询里面的消耗 71.23 表示的是返回所有数据需要的消耗，Limit 节点在得到需要的结果厚，会终止执行，所以最终没有返回那么多，最终消耗小一点，比第一个查询小。
+</p>
+
+
+
+
+<pre class="example">EXPLAIN SELECT *
+FROM tenk1 t1, tenk2 t2
+WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2;
+
+                                      QUERY PLAN
+--------------------------------------------------------------------------------------
+ Nested Loop  (cost=4.33..118.25 rows=10 width=488)
+   -&gt;  Bitmap Heap Scan on tenk1 t1  (cost=4.33..39.44 rows=10 width=244)
+         Recheck Cond: (unique1 &lt; 10)
+         -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..4.33 rows=10 width=0)
+               Index Cond: (unique1 &lt; 10)
+   -&gt;  Index Scan using tenk2_unique2 on tenk2 t2  (cost=0.00..7.87 rows=1 width=244)
+         Index Cond: (unique2 = t1.unique2)
+</pre>
+
+
+<p>
+这个是两表 join，最后通过嵌套循环节点来做的 join。先查询外层 <code>Bitmap heap scan</code> 这个节点，这个节点还有个子节点。这个节点的查询和 <code>select ... where unique1 &lt; 10</code> 的查询类似。然后执行内层 <code>Index scan using</code> 这个节点，外层查询获取到的数据会插入进来，这个时候 t1.unique2 的值已经有了，所以这层的查询和 <code>select ... where t2.unique2 = 常量</code> 的查询类似，消耗比前面的小是因为第一次查询有了 cache，这次就会稍微快了一点。这层查询的消耗是 <code>外层行数*内层的消耗=10 * 7.87</code> 加上一些 cpu 消耗。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT *
+FROM tenk1 t1, tenk2 t2
+WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2 AND t1.hundred &lt; t2.hundred;
+
+                                      QUERY PLAN
+--------------------------------------------------------------------------------------
+ Nested Loop  (cost=4.33..118.28 rows=3 width=488)
+   Join Filter: (t1.hundred &lt; t2.hundred)
+   -&gt;  Bitmap Heap Scan on tenk1 t1  (cost=4.33..39.44 rows=10 width=244)
+         Recheck Cond: (unique1 &lt; 10)
+         -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..4.33 rows=10 width=0)
+               Index Cond: (unique1 &lt; 10)
+   -&gt;  Index Scan using tenk2_unique2 on tenk2 t2  (cost=0.00..7.87 rows=1 width=244)
+         Index Cond: (unique2 = t1.unique2)
+</pre>
+
+
+<p>
+如果有条件无法在两个子节点上面执行，那就只能在 join 节点来做 filter，类似上面这个。实际执行时间和前面那个没有 t1.hundred &lt; t2.hundred 条件的差不多。
+</p>
+<p>
+outer join 的时候，还可能会有 Join Filter 和 Filter 同时出现的情况，join filter 出现在外表的 on 语句里面，不匹配的数据依然会返回 null。而 filter 这个时候是用来过滤 join 结果的。
+</p>
+<p>
+对于 inner join，Join Filter 和 Filter 两个没有区别。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT *
+FROM tenk1 t1, tenk2 t2
+WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2;
+
+                                        QUERY PLAN
+------------------------------------------------------------------------------------------
+ Hash Join  (cost=230.43..713.94 rows=101 width=488)
+   Hash Cond: (t2.unique2 = t1.unique2)
+   -&gt;  Seq Scan on tenk2 t2  (cost=0.00..445.00 rows=10000 width=244)
+   -&gt;  Hash  (cost=229.17..229.17 rows=101 width=244)
+         -&gt;  Bitmap Heap Scan on tenk1 t1  (cost=5.03..229.17 rows=101 width=244)
+               Recheck Cond: (unique1 &lt; 100)
+               -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0)
+                     Index Cond: (unique1 &lt; 100)
+</pre>
+
+
+<p>
+改变一些条件，会看到执行计划变了，选择了 hash join。一个表的结果会在内层里面记录一个 hash 表，查另一个表的时候会查这个 hash 表来查看匹配的数据。
+</p>
+
+
+
+<pre class="example">EXPLAIN SELECT *
+FROM tenk1 t1, onek t2
+WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2;
+
+                                        QUERY PLAN
+------------------------------------------------------------------------------------------
+ Merge Join  (cost=197.83..267.93 rows=10 width=488)
+   Merge Cond: (t1.unique2 = t2.unique2)
+   -&gt;  Index Scan using tenk1_unique2 on tenk1 t1  (cost=0.00..656.25 rows=101 width=244)
+         Filter: (unique1 &lt; 100)
+   -&gt;  Sort  (cost=197.83..200.33 rows=1000 width=244)
+         Sort Key: t2.unique2
+         -&gt;  Seq Scan on onek t2  (cost=0.00..148.00 rows=1000 width=244)
+</pre>
+
+
+<p>
+这是一个 merge jion 操作。merge join 需要输入的表都按照 join 字段先进行排序。从 t1 直接通过索引进行了查询，得到的结果就是顺序的。因为 t2 需要返回的数据量大，从 t2 做了全表扫描，然后进行了排序。通常全表扫描+排序比走索引消耗小。
+</p>
+<p>
+出同样的结果有很多路可以走，如果想看看其他执行计划是否更实惠，可以通过打开关闭一些标志<sup><a class="footref" name="fnr.2" href="#fn.2">2</a></sup>来做到。
+</p>
+
+
+
+<pre class="example">SET enable_sort = off;
+
+EXPLAIN SELECT *
+FROM tenk1 t1, onek t2
+WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2;
+
+                                        QUERY PLAN
+------------------------------------------------------------------------------------------
+ Merge Join  (cost=0.00..292.36 rows=10 width=488)
+   Merge Cond: (t1.unique2 = t2.unique2)
+   -&gt;  Index Scan using tenk1_unique2 on tenk1 t1  (cost=0.00..656.25 rows=101 width=244)
+         Filter: (unique1 &lt; 100)
+   -&gt;  Index Scan using onek_unique2 on onek t2  (cost=0.00..224.76 rows=1000 width=244)
+</pre>
+
+
+<p>
+可以看到走索引比全表扫描消耗更大。
+</p>
+
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-3">
+<h3 id="sec-3"><span class="section-number-3">3</span> explain analyse</h3>
+<div class="outline-text-3" id="text-3">
+
+
+<p>
+explain 的 analyse 选项可以看看规划器执行 sql 所用的真实时间。
+</p>
+
+
+
+<pre class="example">EXPLAIN ANALYZE SELECT *
+FROM tenk1 t1, tenk2 t2
+WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2;
+
+                                                           QUERY PLAN
+---------------------------------------------------------------------------------------------------------------------------------
+ Nested Loop  (cost=4.33..118.25 rows=10 width=488) (actual time=0.370..1.126 rows=10 loops=1)
+   -&gt;  Bitmap Heap Scan on tenk1 t1  (cost=4.33..39.44 rows=10 width=244) (actual time=0.254..0.380 rows=10 loops=1)
+         Recheck Cond: (unique1 &lt; 10)
+         -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..4.33 rows=10 width=0) (actual time=0.164..0.164 rows=10 loops=1)
+               Index Cond: (unique1 &lt; 10)
+   -&gt;  Index Scan using tenk2_unique2 on tenk2 t2  (cost=0.00..7.87 rows=1 width=244) (actual time=0.041..0.048 rows=1 loops=10)
+         Index Cond: (unique2 = t1.unique2)
+ Total runtime: 2.414 ms
+</pre>
+
+
+<p>
+如上所示，会显示出来真实的执行时间（毫秒），返回的行数等其他信息。为了和 explain 里面消耗的取值能匹配上，loop 大于 1 的节点显示的是单次执行的时间，需要乘以循环次数。
+</p>
+
+
+
+<pre class="example">EXPLAIN ANALYZE SELECT *
+FROM tenk1 t1, tenk2 t2
+WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2 ORDER BY t1.fivethous;
+
+                                                                 QUERY PLAN
+--------------------------------------------------------------------------------------------------------------------------------------------
+ Sort  (cost=717.30..717.56 rows=101 width=488) (actual time=104.950..105.327 rows=100 loops=1)
+   Sort Key: t1.fivethous
+   Sort Method: quicksort  Memory: 68kB
+   -&gt;  Hash Join  (cost=230.43..713.94 rows=101 width=488) (actual time=3.680..102.396 rows=100 loops=1)
+         Hash Cond: (t2.unique2 = t1.unique2)
+         -&gt;  Seq Scan on tenk2 t2  (cost=0.00..445.00 rows=10000 width=244) (actual time=0.046..46.219 rows=10000 loops=1)
+         -&gt;  Hash  (cost=229.17..229.17 rows=101 width=244) (actual time=3.184..3.184 rows=100 loops=1)
+               Buckets: 1024  Batches: 1  Memory Usage: 27kB
+               -&gt;  Bitmap Heap Scan on tenk1 t1  (cost=5.03..229.17 rows=101 width=244) (actual time=0.612..1.959 rows=100 loops=1)
+                     Recheck Cond: (unique1 &lt; 100)
+                     -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0) (actual time=0.390..0.390 rows=100 loops=1)
+                           Index Cond: (unique1 &lt; 100)
+ Total runtime: 107.392 ms
+</pre>
+
+
+<p>
+有时候还会显示更多的一些信息，比如 sort 和 hash 节点。sort 节点会显示排序的方法，内存磁盘的占用。hash 节点会显示桶（buckets）和批次（batches），如果 batches 大于 1 会使用磁盘空间。
+</p>
+
+
+
+<pre class="example">EXPLAIN ANALYZE SELECT * FROM tenk1 WHERE ten &lt; 7;
+
+                                                QUERY PLAN
+----------------------------------------------------------------------------------------------------------
+ Seq Scan on tenk1  (cost=0.00..483.00 rows=7000 width=244) (actual time=0.111..59.249 rows=7000 loops=1)
+   Filter: (ten &lt; 7)
+   Rows Removed by Filter: 3000
+ Total runtime: 85.340 ms
+</pre>
+
+
+<p>
+上面这个执行计划显示了 filter 移除了多少行结果。
+</p>
+<p>
+explain 还提供了一个 buffers 选项。能得到 query 的哪部分 io 最密集。
+</p>
+
+
+
+<pre class="example">EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND unique2 &gt; 9000;
+
+                                                            QUERY PLAN
+-----------------------------------------------------------------------------------------------------------------------------------
+ Bitmap Heap Scan on tenk1  (cost=25.07..60.23 rows=10 width=244) (actual time=3.069..3.213 rows=10 loops=1)
+   Recheck Cond: ((unique1 &lt; 100) AND (unique2 &gt; 9000))
+   Buffers: shared hit=16
+   -&gt;  BitmapAnd  (cost=25.07..25.07 rows=10 width=0) (actual time=2.967..2.967 rows=0 loops=1)
+         Buffers: shared hit=7
+         -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.02 rows=102 width=0) (actual time=0.732..0.732 rows=200 loops=1)
+               Index Cond: (unique1 &lt; 100)
+               Buffers: shared hit=2
+         -&gt;  Bitmap Index Scan on tenk1_unique2  (cost=0.00..19.80 rows=1007 width=0) (actual time=2.015..2.015 rows=1009 loops=1)
+               Index Cond: (unique2 &gt; 9000)
+               Buffers: shared hit=5
+ Total runtime: 3.917 ms
+</pre>
+
+
+<p>
+要注意的是，explain analyse 会真的执行 sql，所以对于 update，insert，delete 等的 sql 操作，最好在执行的时候启用事务，执行完 explain 之后 rollback。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-3">
+<h3 id="sec-4"><span class="section-number-3">4</span> Caveats 注意事项</h3>
+<div class="outline-text-3" id="text-4">
+
+
+<p>
+有两个情况可能会影响 explain analyse 和实际执行的差别
+1 因为没有任何输出，所以 I/O 和网络网络传输消耗没有体现。
+2 因为要输出执行时间，而有些系统里面 gettimeofday() 这个系统调用很慢，所以会导致消耗增加。
+</p>
+<p>
+在衡量 explain 执行结果的时候，最好是在情况类似的 db 上面，否则可能没有任何参考价值。比如在一个小表上面的执行计划可能和大表就会很不一样。
+</p>
+<div id="footnotes">
+<h2 class="footnotes">Footnotes: </h2>
+<div id="text-footnotes">
+<p class="footnote"><sup><a class="footnum" name="fn.1" href="#fnr.1">1</a></sup> : http://www.postgresql.org/docs/9.2/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-CONSTANTS
+</p>
+
+
+<p class="footnote"><sup><a class="footnum" name="fn.2" href="#fnr.2">2</a></sup> : http://www.postgresql.org/docs/9.2/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE
+</p></div>
+</div>
+
+</div>
+</div>
+
+<div id="postamble">
+<p class="date">Date: 2013-02-03 18:27:03 CST</p>
+<p class="author">Author: Wang Dong</p>
+<p class="creator">Org version 7.8.11 with Emacs version 24</p>
+<a href="http://validator.w3.org/check?uri=referer" target="_blank" rel="external">Validate XHTML 1.0</a>
+</div>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/postgresql-explain/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="redmine-a-good-project-tracker/">redmine-a-good-project-tracker</a>
 	</h2>
     <div class="entry-content">
@@ -109,7 +581,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a>
+<a href="/tags/linux/">linux</a>
 </div>
     </div>
       
@@ -154,7 +626,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Web/">Web</a>
+<a href="/tags/web/">web</a>
 </div>
     </div>
       
@@ -199,7 +671,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a>
+<a href="/tags/heart/">heart</a>
 </div>
     </div>
       
@@ -226,7 +698,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/mysql/">mysql</a> <a href="../tags/sql/">sql</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/mysql/">mysql</a> <a href="/tags/sql/">sql</a>
 </div>
     </div>
       
@@ -277,6 +749,75 @@ t1 LEFT JOIN t2 ON t1.a=t2.a, t3
 
   <article class="post">
 	<h2 class="title">
+		<a href="controlmaster-in-ssh/">有跳板机的 ssh 登陆</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2012-05-05T16:00:00.000Z" itemprop="datePublished">May 6, 2012</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/ssh/">ssh</a>
+</div>
+    </div>
+      
+        
+<p>我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。
+</p>
+<p>
+大意是通过设置 proxycommand 来实现，我也写过一个 <a href="http://wdicc.com/cow-ssh-proxycommand/">http://wdicc.com/cow-ssh-proxycommand/</a> 。配置如下
+</p>
+
+
+<pre class="prettyprint lang-conf">
+# gateways
+Host abc
+     Hostname abc.com
+
+# servers
+Host *.xxx
+     ProxyCommand ssh abc exec nc %h %p 2>/dev/null
+</pre>
+
+<p>
+这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。
+</p>
+<p>
+倒霉的是，我厂有些 gateway 机器还需要使用 token，并不能使用 key 验证。虽然有了上面设置，如果从某个机器 cp 数据的时候，还得来回输入哪个 token，真他妈的 2b。
+</p>
+<p>
+还好 ssh 还提供了一个 controlmaster，很好的解决了这个问题。
+</p>
+
+
+<pre class="prettyprint lang-conf">
+Host *
+     User dong.wang
+     ServerAliveInterval 30
+     ControlMaster auto
+     ControlPath /tmp/ssh/master-%r@%h:%p
+     ControlPersist yes
+</pre>
+
+<p>
+上面这个设置是所有服务器启用 controlmaster，哪个 /tmp/ssh 目录可以自己设置，没有就创建一个。哪个 ControlPersist 可以是个时间。
+</p>
+<p>
+这样设置之后，第一次连接的时候，会启动一个 master。后续连接都会走这个，连接速度很快不说，还完全不需要输入什么 token。并且因为只有 gateway 需要输入 token，所以一个 gateway 只需要输入一次。实在是爽大了，真是居家旅行必备啊。就冲着连接速度快这一点也值了。
+</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/controlmaster-in-ssh/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="fdw-in-postgresql/">Postgresql 里面连接其他数据库</a>
 	</h2>
     <div class="entry-content">
@@ -285,7 +826,7 @@ t1 LEFT JOIN t2 ON t1.a=t2.a, t3
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/postgresql/">postgresql</a> <a href="../tags/dbi/">dbi</a> <a href="../tags/fdw/">fdw</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/postgresql/">postgresql</a> <a href="/tags/dbi/">dbi</a> <a href="/tags/fdw/">fdw</a>
 </div>
     </div>
       
@@ -351,75 +892,6 @@ db_link 本身是 pg 自带的，contrib 里面的。db_link 只支持 pg，建�
 
   <article class="post">
 	<h2 class="title">
-		<a href="controlmaster-in-ssh/">有跳板机的 ssh 登陆</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2012-05-05T16:00:00.000Z" itemprop="datePublished">May 6, 2012</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/ssh/">ssh</a>
-</div>
-    </div>
-      
-        
-<p>我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。
-</p>
-<p>
-大意是通过设置 proxycommand 来实现，我也写过一个 <a href="http://wdicc.com/cow-ssh-proxycommand/">http://wdicc.com/cow-ssh-proxycommand/</a> 。配置如下
-</p>
-
-
-<pre class="prettyprint lang-conf">
-# gateways
-Host abc
-     Hostname abc.com
-
-# servers
-Host *.xxx
-     ProxyCommand ssh abc exec nc %h %p 2>/dev/null
-</pre>
-
-<p>
-这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。
-</p>
-<p>
-倒霉的是，我厂有些 gateway 机器还需要使用 token，并不能使用 key 验证。虽然有了上面设置，如果从某个机器 cp 数据的时候，还得来回输入哪个 token，真他妈的 2b。
-</p>
-<p>
-还好 ssh 还提供了一个 controlmaster，很好的解决了这个问题。
-</p>
-
-
-<pre class="prettyprint lang-conf">
-Host *
-     User dong.wang
-     ServerAliveInterval 30
-     ControlMaster auto
-     ControlPath /tmp/ssh/master-%r@%h:%p
-     ControlPersist yes
-</pre>
-
-<p>
-上面这个设置是所有服务器启用 controlmaster，哪个 /tmp/ssh 目录可以自己设置，没有就创建一个。哪个 ControlPersist 可以是个时间。
-</p>
-<p>
-这样设置之后，第一次连接的时候，会启动一个 master。后续连接都会走这个，连接速度很快不说，还完全不需要输入什么 token。并且因为只有 gateway 需要输入 token，所以一个 gateway 只需要输入一次。实在是爽大了，真是居家旅行必备啊。就冲着连接速度快这一点也值了。
-</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/controlmaster-in-ssh/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="about-interview/">关于面试的一点经验</a>
 	</h2>
     <div class="entry-content">
@@ -428,7 +900,7 @@ Host *
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a> <a href="../tags/interview/">interview</a>
+<a href="/tags/heart/">heart</a> <a href="/tags/interview/">interview</a>
 </div>
     </div>
       
@@ -567,7 +1039,7 @@ Host *
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/emacs/">emacs</a> <a href="../tags/org-mode/">org-mode</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/emacs/">emacs</a> <a href="/tags/org-mode/">org-mode</a>
 </div>
     </div>
       
@@ -683,7 +1155,7 @@ org-mode 本身提供了 remember 来创建 todo list。
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/emacs/">emacs</a> <a href="../tags/macos/">macos</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/emacs/">emacs</a> <a href="/tags/macos/">macos</a>
 </div>
     </div>
       
@@ -748,101 +1220,6 @@ org-mode 本身提供了 remember 来创建 todo list。
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/emacs-settings-in-mac/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="analyse-and-vacuum-in-postgres/">postgres sql 调优一例</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2012-03-02T16:00:00.000Z" itemprop="datePublished">Mar 3, 2012</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/postgres/">postgres</a> <a href="../tags/sql/">sql</a>
-</div>
-    </div>
-      
-        <p>前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。
-</p>
-<p>
-所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。
-</p>
-<p>
-能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。
-</p>
-
-
-<pre class="prettyprint lang-text">
- Nested Loop Left Join  (cost=447.90..1003.43 rows=2 width=620)
-   Join Filter: (team.id = team_arrive_city.team_id)
-   ->  Nested Loop  (cost=77.62..85.98 rows=1 width=588)
-         ->  HashAggregate  (cost=77.62..77.68 rows=1 width=71)
-               ->  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..77.60 rows=1 width=71)
-                     Index Cond: ((thedate >= '2012-02-25'::date) AND (thedate <= '2012-02-27'::date))="" filter:="" (((source)::text="" ~~="" '%team%'::text)="" and="" ((source)::text="" !~~="" '%today%'::text)="" '%ongoing%'::text)="" ((s="" ource)::text="" '%special%'::text))="" -="">  Index Scan using team_pkey on team  (cost=0.00..8.28 rows=1 width=32)
-               Index Cond: (team.id = fact_tuan_rank_detail.team_id)
-               Filter: ((to_timestamp((team.end_time)::double precision))::date > '2012-02-27'::date)
-   ->  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
-         ->  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
-(12 rows)
-</=></pre>
-
-<p>
-仔细研究之后，发现了 rows=1 这个信息。这就是为什么查询分析器先对这个表做查询了，因为他认为这个表最小。
-</p>
-<p>
-此后对这个表执行了一下 <a href="http://www.postgresql.org/docs/9.1/static/sql-analyze.html" target="_blank" rel="external">analyse</a> 命令，更新了一些统计信息。然后再看执行计划如下。
-</p>
-
-
-<pre class="prettyprint lang-text">
- Hash Join  (cost=1210761.12..1326052.45 rows=2282704 width=620)
-   Hash Cond: (fact_tuan_rank_detail.team_id = team.id)
-   ->  HashAggregate  (cost=1203912.40..1265555.26 rows=1027381 width=71)
-         ->  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..1075489.81 rows=10273807 width=71)
-               Index Cond: ((thedate >= '2012-02-25'::date) AND (thedate <= '2012-02-27'::date))="" filter:="" (((source)::text="" ~~="" '%team%'::text)="" and="" ((source)::text="" !~~="" '%today%'::text)="" '%ongoing%'::text)="" ((source)="" ::text="" '%special%'::text))="" -="">  Hash  (cost=6666.33..6666.33 rows=14591 width=64)
-         ->  Merge Left Join  (cost=6414.63..6666.33 rows=14591 width=64)
-               Merge Cond: (team.id = b.team_id)
-               ->  Sort  (cost=4670.40..4686.82 rows=6567 width=32)
-                     Sort Key: team.id
-                     ->  Seq Scan on team  (cost=0.00..4254.02 rows=6567 width=32)
-                           Filter: ((to_timestamp((end_time)::double precision))::date > '2012-02-27'::date)
-               ->  Sort  (cost=1744.23..1780.71 rows=14591 width=40)
-                     Sort Key: b.team_id
-                     ->  Subquery Scan on b  (cost=370.29..735.06 rows=14591 width=40)
-                           ->  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
-                                 ->  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
-(18 rows)
-</=></pre>
-
-<p>
-可以看到执行计划已经变了，先做其他表的 join，最后再和大表 join。并且提示的执行时间也大致靠谱。
-</p>
-<p>
-从这里面引申一下，时常会听到有人说 explain 命令执行后得出的执行时间不靠谱，需要使用 explain analyse。可是为什么不靠谱呢，其实 explain analyse 需要的时间和实际执行时间一样，explain 不靠谱的原因是因为数据库对那个表的统计信息不及时导致的。
-</p>
-<p>
-再进一步了解，postgres 里面这个统计信息为什么不靠谱呢？难道还总是需要我维护这些信息啊？
-</p>
-<p>
-其实 postgres 里面有个 autovacuum 进程就是做这个事情的。autovacuum 进程默认是启用的。他会在数据库空闲的时候，对数据库做 vavcuum 和 analyse。具体多久执行一次，<a href="http://www.postgresql.org/docs/9.1/static/routine-vacuuming.html" target="_blank" rel="external">文档</a> 里面都有写，建议多看看这个页面里面的信息。
-</p>
-<p>
-此外，还发现 postgres 还提供了很多 <a href="http://www.postgresql.org/docs/9.1/static/monitoring-stats.html" target="_blank" rel="external">数据库状态查询函数</a> ，使用这里面函数可以查到每个表最后一次 analyse 的时间，vacuum 的时
-间，里面索引被使用的情况等等，好多信息。
-</p>
-
-ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不行了，查看 explain select * from t1 好像没问题，那怎么回事呢？开始没想明白，只好继续 analyse 一下，又好了。可过了两天又不行了。这次得细看了。最后发现是因为真实的 sql 是有 where 条件的，日期条件限定的那部分数据查询分析器认为很少导致了问题。没办法后面只好每次导数都 analyse 一下了。发现 pg_bulkload 导数的方式有点问题。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/analyse-and-vacuum-in-postgres/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

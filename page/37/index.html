@@ -71,6 +71,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -101,30 +102,40 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="how-mail-from-a-to-b/">邮件如何从A点到达B点zz</a>
+		<a href="about-nagios/">nagios，监控多组服务器的利器</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2006-03-29T16:00:00.000Z" itemprop="datePublished">Mar 30, 2006</time>
+      <div class="date">Published on: <time datetime="2006-04-02T16:00:00.000Z" itemprop="datePublished">Apr 3, 2006</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Mail/">Mail</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
-        <p>当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. </p>  <p>假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com,     下面是发送接收过程: </p>  <p>1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题,     加上邮件本身的文本部分. 整个邮件看起来是下面这样的: </p><pre>    To: bob@beta
-    Subject: lunch
+        面试的时候被有时会被问道的问题就是，如果让你去管理100台服务器，你打算怎么做？
 
-    How about pizza?
-</pre>  <p>2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. </p>  <p>3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta     替换为"Bob &lt;bob@beta.example.com&gt;") 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入:     MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给     MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA     可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序. </p>  <p>4. 如果注入成功--邮件句法正确, 并且 sendmail 调用适当--那么现在邮件已经在 MTA 的职责内了. 不同的 MTA 细节是完全不同的,     通常MTA首先检查邮件头决定邮件将发往何处. 然后建立一个到主机beta的SMTP连接, 转发邮件给 beta 系统上的MTA. SMTP对话要求邮件被分成两部分发送:     信封, 这个部分确定了接收者的地址(bob@beta.example.com)和返回地址(alice@alpha.example.com), 以及邮件本身,     包括邮件头和邮件主体. </p>  <p>5. 如果beta主机的MTA拒绝这个邮件, 可能原因是在beta系统上没有这个bob用户, 在alpha 上的MTA发送一个反弹邮件给返回地址, 也就是     alice@alpha, 通知她邮件发送出现了问题. </p>  <p>6. 如果 beta主机上的 MTA接收了邮件, 它查看接收者地址, 决定是发送给本地local 还是远程 remote系统的邮件. 这个例子里面,     接收者是本地用户, 然后MTA或者传送邮件给 mail delivery agent (MDA), 比如 /bin/mail或者传送给 procmail.   </p>  <p>7. 如果传输失败了, 可能是Bob的邮箱超过了使用限额, beta 主机上的 MTA 将发送一个反弹信息给信封上的返回地址, 即 alice@alpha.   </p>  <p>8. 如果传输成功, 邮件将在Bob的邮箱中等待, 直到他使用MUA来阅读和显示邮件. </p>
+老实说偶只弄过1台服务器，没事上去看看，还是可以的，100台，一台看一眼那就是多长时间啊。1台的时候可以用logwatch每天生成一份日志，每天看一眼日志。或者每天看看awstatus分析后的web日志。可是100台的时候基本不适用了，每天早上看100封mail会疯掉的，况且这个还不实时。。。
+
+听xh介绍之后，看了一下nagios，才知道有人早就想到这些问题了。其实我之前遇到第一个人问我的时候就应该去了解一下的。
+
+nagios是通过nagios进程管理下，定时运行某些检测程序，然后通过web方式来显示检测结果的，比如说ping、pop3、smtp、http，还有switch、router等等，甚至本机登陆用户、运行进程、磁盘空间等，还可以设置服务器的主从关系，比如哪个http服务器是位于某个router下面等，这样提示的时候会一并告诉你（这个还没有测试，不过是看到配置文件有这项设置）。
+
+nagios的安装和配置 <a href="http://www.totkat.org/pages/nagios.shtml" target="_blank" rel="external">http://www.totkat.org/pages/nagios.shtml</a>
+
+类似nagios的还有cacti，这个似乎是用来检测本机的，本机的磁盘空间、流量、负载等，还没有弄太清楚。
+
+Splunk是个商业的日志分析软件，运行于Unix环境，可以支持任何服务器产生的日志，并对日志进行高效索引，以便管理员可以对日志中的各种情况进行搜索，并可以通过图形化方式表现，虽然是商业软件，但是它提供了可以自由使用的splunk server，只是如果需要更多的LiveSplunks，Splunk Sync等功能才需要购买授权。
+
+下面这个地址是Nagios和Splunk的联合使用介绍<p> <a href="http://www.nagios.org/products/enterprisesolutions/splunk/" target="_blank" class="liexternal">http://www.nagios.org/products/enterprisesolutions/splunk/</a></p>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/how-mail-from-a-to-b/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/about-nagios/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -139,7 +150,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Mail/">Mail</a>
+<a href="/tags/Mail/">Mail</a>
 </div>
     </div>
       
@@ -180,33 +191,30 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="about-tcp-ip/">TCP三次握手及原理 zz</a>
+		<a href="how-mail-from-a-to-b/">邮件如何从A点到达B点zz</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2006-03-26T16:00:00.000Z" itemprop="datePublished">Mar 27, 2006</time>
+      <div class="date">Published on: <time datetime="2006-03-29T16:00:00.000Z" itemprop="datePublished">Mar 30, 2006</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Windows/">Windows</a>
+<a href="/tags/Mail/">Mail</a>
 </div>
     </div>
       
-        <span class="unnamed3">TCP/IP是很多的不同的协议组成，实际上是一个协议组，TCP用户数据报表协议(也称作TCP传输控制协议，Transport ControlProtocol。可靠的主机到主机层协议。这里要先强调一下，传输控制协议是OSI网络的第四层的叫法，TCP传输控制协议是TCP/IP传输的6个基本协议的一种。两个TCP意思非相同。)。TCP是一种可靠的面向连接的传送服务。它在传送数据时是分段进行的，主机交换数据必须建立一个会话。它用比特流通信，即数据被作为无结构的字节流。通过每个TCP传输的字段指定顺序号，以获得可靠性。是在OSI参考模型中的第四层，TCP是使用IP的网间互联功能而提供可靠的数据传输，IP不停的把报文放到网络上，而TCP是负责确信报文到达。在协同IP的操作中TCP负责：握手过程、报文管理、流量控制、错误检测和处理（控制），可以根据一定的编号顺序对非正常顺序的报文给予从新排列顺序。关于TCP的RFC文档有RFC793、RFC791、RFC1700。
-<p>　　在TCP会话初期，有所谓的“三握手”：对每次发送的数据量是怎样跟踪进行协商使数据段的发送和接收同步，根据所接收到的数据量而确定的数据确认数及数据发送、接收完毕后何时撤消联系，并建立虚连接。为了提供可靠的传送，TCP在发送新的数据之前，以特定的顺序将数据包的序号，并需要这些包传送给目标机之后的确认消息。TCP总是用来发送大批量的数据。当应用程序在收到数据后要做出确认时也要用到TCP。由于TCP需要时刻跟踪，这需要额外开销，使得TCP的格式有些显得复杂。下面就让我们看一个TCP的经典案例，这是后来被称为MITNICK攻击中KEVIN开创了两种攻击技术： </p><p>　　TCP会话劫持 
-　　SYN FLOOD（同步洪流） </p>
-<br>
-        
-          <p class="more-link">
-            <a href="about-tcp-ip/#more">Read More</a>
-          </p>
-        
+        <p>当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. </p>  <p>假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com,     下面是发送接收过程: </p>  <p>1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题,     加上邮件本身的文本部分. 整个邮件看起来是下面这样的: </p><pre>    To: bob@beta
+    Subject: lunch
+
+    How about pizza?
+</pre>  <p>2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. </p>  <p>3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta     替换为"Bob &lt;bob@beta.example.com&gt;") 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入:     MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给     MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA     可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序. </p>  <p>4. 如果注入成功--邮件句法正确, 并且 sendmail 调用适当--那么现在邮件已经在 MTA 的职责内了. 不同的 MTA 细节是完全不同的,     通常MTA首先检查邮件头决定邮件将发往何处. 然后建立一个到主机beta的SMTP连接, 转发邮件给 beta 系统上的MTA. SMTP对话要求邮件被分成两部分发送:     信封, 这个部分确定了接收者的地址(bob@beta.example.com)和返回地址(alice@alpha.example.com), 以及邮件本身,     包括邮件头和邮件主体. </p>  <p>5. 如果beta主机的MTA拒绝这个邮件, 可能原因是在beta系统上没有这个bob用户, 在alpha 上的MTA发送一个反弹邮件给返回地址, 也就是     alice@alpha, 通知她邮件发送出现了问题. </p>  <p>6. 如果 beta主机上的 MTA接收了邮件, 它查看接收者地址, 决定是发送给本地local 还是远程 remote系统的邮件. 这个例子里面,     接收者是本地用户, 然后MTA或者传送邮件给 mail delivery agent (MDA), 比如 /bin/mail或者传送给 procmail.   </p>  <p>7. 如果传输失败了, 可能是Bob的邮箱超过了使用限额, beta 主机上的 MTA 将发送一个反弹信息给信封上的返回地址, 即 alice@alpha.   </p>  <p>8. 如果传输成功, 邮件将在Bob的邮箱中等待, 直到他使用MUA来阅读和显示邮件. </p>
+
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/about-tcp-ip/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/how-mail-from-a-to-b/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -221,7 +229,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
@@ -246,6 +254,39 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="about-tcp-ip/">TCP三次握手及原理 zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-03-26T16:00:00.000Z" itemprop="datePublished">Mar 27, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/Windows/">Windows</a>
+</div>
+    </div>
+      
+        <span class="unnamed3">TCP/IP是很多的不同的协议组成，实际上是一个协议组，TCP用户数据报表协议(也称作TCP传输控制协议，Transport ControlProtocol。可靠的主机到主机层协议。这里要先强调一下，传输控制协议是OSI网络的第四层的叫法，TCP传输控制协议是TCP/IP传输的6个基本协议的一种。两个TCP意思非相同。)。TCP是一种可靠的面向连接的传送服务。它在传送数据时是分段进行的，主机交换数据必须建立一个会话。它用比特流通信，即数据被作为无结构的字节流。通过每个TCP传输的字段指定顺序号，以获得可靠性。是在OSI参考模型中的第四层，TCP是使用IP的网间互联功能而提供可靠的数据传输，IP不停的把报文放到网络上，而TCP是负责确信报文到达。在协同IP的操作中TCP负责：握手过程、报文管理、流量控制、错误检测和处理（控制），可以根据一定的编号顺序对非正常顺序的报文给予从新排列顺序。关于TCP的RFC文档有RFC793、RFC791、RFC1700。
+<p>　　在TCP会话初期，有所谓的“三握手”：对每次发送的数据量是怎样跟踪进行协商使数据段的发送和接收同步，根据所接收到的数据量而确定的数据确认数及数据发送、接收完毕后何时撤消联系，并建立虚连接。为了提供可靠的传送，TCP在发送新的数据之前，以特定的顺序将数据包的序号，并需要这些包传送给目标机之后的确认消息。TCP总是用来发送大批量的数据。当应用程序在收到数据后要做出确认时也要用到TCP。由于TCP需要时刻跟踪，这需要额外开销，使得TCP的格式有些显得复杂。下面就让我们看一个TCP的经典案例，这是后来被称为MITNICK攻击中KEVIN开创了两种攻击技术： </p><p>　　TCP会话劫持 
+　　SYN FLOOD（同步洪流） </p>
+<br>
+        
+          <p class="more-link">
+            <a href="about-tcp-ip/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/about-tcp-ip/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="lns-firewall/">LNS防火墙中级使用指南zz</a>
 	</h2>
     <div class="entry-content">
@@ -254,7 +295,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Windows/">Windows</a>
+<a href="/tags/Windows/">Windows</a>
 </div>
     </div>
       
@@ -313,7 +354,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/Windows/">Windows</a>
+<a href="/tags/Windows/">Windows</a>
 </div>
     </div>
       
@@ -336,7 +377,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="a-test/">测试一下</a>
+		<a href="L3-switch/">L3 switch</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -344,18 +385,23 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a>
+<a href="/tags/Windows/">Windows</a>
 </div>
     </div>
       
-        在xh这里蹭了一块地方，哈哈哈，不知道能蹭多久。先测试一下有没有问题。yahoo的dns修改了2天才生效，这个郁闷啊。
+        http://vbb3.twftp.org/archive/index.php/t-4016.html
+
+一般常用的交換器 Switch 是屬於第二層交換器 Layer 2 Switch，這種交換器是利用 OSI 第二層 MAC 位址的資訊來進行資料交換，它可以記憶學習第一個 Port 連接的 MAC 位址，透過 MAC 位址及封包目的的位址的辨別，L2 Switch 會將該封包直接傳送至連接目的地的 Port，而不會將該封包傳送到其他的 Port。若並無此目的地 IP 的資訊時，則 L2 Switch 會廣播至所有的連接埠上，待目的 IP 回應時，將新的連接埠對應學習起來，那麼下次就不用廣播而直接傳送。
+
+如果再把路由表的功能加入 L2 Switch，那麼它就會變成 L3 Switch，可以為 VLAN 建立適當的路由表，讓效能更加提昇。L3 的交換器又稱為 IP Switch 或 Switch Router，透過專屬的 ASIC 晶片來解析第三層表頭（如 IP Header）以達到傳送目的，因此通常可以提高到每秒百萬封包的效能以及數十個高速乙太網路連接埠之容量。L3 Switch 的路由表可以對 VLAN 做更有效的管制，讓廣播封包不會無限制的傳送。
+http://140.111.152.100/archives/2004_09.html
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/a-test/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/L3-switch/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -370,7 +416,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/web/">web</a>
+<a href="/tags/web/">web</a>
 </div>
     </div>
       
@@ -404,7 +450,7 @@ item.php
 
   <article class="post">
 	<h2 class="title">
-		<a href="LDAPLightweight-Directory-Access-Protocol/">LDAP,Lightweight Directory Access Protocol</a>
+		<a href="WSUSMicrosoft-Windows-Server-Update-Services/">WSUS,Microsoft Windows Server Update Services</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -412,20 +458,24 @@ item.php
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/other/">other</a>
+<a href="/tags/Windows/">Windows</a>
 </div>
     </div>
       
-        <strong>1 什么是LDAP</strong>
+        http://www.winsvr.org/info/info.php?sessid=&infoid=12
 
-LDAP的英文全称是Lightweight Directory Access Protocol，一般都简称为LDAP。
+<strong>1 什么是wsus</strong>
 
-LDAP目录中可以存储各种类型的数据：电子邮件地址、邮件路由信息、人力资源数据、公用密匙、联系人列表，等等。通过把LDAP目录作为系统集成中的一个重要环节，可以简化员工在企业内部查询信息的步骤，甚至连主要的数据源都可以放在任何地方。
+WSUS（Microsoft Windows Server Update Services）是微软推出的免费的Windows更新管理服务，目前最新版本为2.0.0.2472，除了支持Windows系统（Windows 2000全系列、Windows XP全系列和Windows server 2003全系列）的更新管理外，还可以支持SQL Server、Exchange 2000/2003、Office XP/2003等系统的更新管理，并且在以后，WSUS将实现微软全系列产品的更新管理。
+
+<strong>2 为什么要用wsus</strong>
+
+在小规模的企业网络中，客户端计算机通过自动更新连接Microsoft Update来进行系统更新并不会对企业的外部网络带宽造成太大的影响，例如有5台客户端计算机每台下载20M的更新程序，那么总占用的企业外部网络流量只是100M；但是在中大规模的企业网络中，如果每台客户端计算机都通过连接到Microsoft Update来实现更新，则会极大的影响企业的外部网络带宽，例如有500台客户端计算机每台下载20M的更新程序，就会占用10G的流量。更新变成了下面的流程“Microsoft Update->本地企业网络中的WSUS服务器->客户端计算机”。
 
 <br>
         
           <p class="more-link">
-            <a href="LDAPLightweight-Directory-Access-Protocol/#more">Read More</a>
+            <a href="WSUSMicrosoft-Windows-Server-Update-Services/#more">Read More</a>
           </p>
         
       
@@ -433,38 +483,7 @@ LDAP目录中可以存储各种类型的数据：电子邮件地址、邮件路�
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/LDAPLightweight-Directory-Access-Protocol/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="L3-switch/">L3 switch</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-03-22T16:00:00.000Z" itemprop="datePublished">Mar 23, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/Windows/">Windows</a>
-</div>
-    </div>
-      
-        http://vbb3.twftp.org/archive/index.php/t-4016.html
-
-一般常用的交換器 Switch 是屬於第二層交換器 Layer 2 Switch，這種交換器是利用 OSI 第二層 MAC 位址的資訊來進行資料交換，它可以記憶學習第一個 Port 連接的 MAC 位址，透過 MAC 位址及封包目的的位址的辨別，L2 Switch 會將該封包直接傳送至連接目的地的 Port，而不會將該封包傳送到其他的 Port。若並無此目的地 IP 的資訊時，則 L2 Switch 會廣播至所有的連接埠上，待目的 IP 回應時，將新的連接埠對應學習起來，那麼下次就不用廣播而直接傳送。
-
-如果再把路由表的功能加入 L2 Switch，那麼它就會變成 L3 Switch，可以為 VLAN 建立適當的路由表，讓效能更加提昇。L3 的交換器又稱為 IP Switch 或 Switch Router，透過專屬的 ASIC 晶片來解析第三層表頭（如 IP Header）以達到傳送目的，因此通常可以提高到每秒百萬封包的效能以及數十個高速乙太網路連接埠之容量。L3 Switch 的路由表可以對 VLAN 做更有效的管制，讓廣播封包不會無限制的傳送。
-http://140.111.152.100/archives/2004_09.html
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/L3-switch/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/WSUSMicrosoft-Windows-Server-Update-Services/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

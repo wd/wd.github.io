@@ -71,6 +71,7 @@
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
     
     <li>
@@ -101,6 +102,124 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="alarm-signal-in-perl/">alarm 使用不当遇到的问题</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2011-05-07T16:00:00.000Z" itemprop="datePublished">May 8, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/perl/">perl</a>
+</div>
+    </div>
+      
+        <p>前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。
+</p>
+<p>
+大概流程是有个 perl 程序 a.pl
+</p>
+
+<pre class="prettyprint">
+.....
+my $pid = fork();
+if ( !$pid ) {
+   my $cmdRet = `b.pl 2>&1`;
+   print FILE $cmdRet;
+   if ( $status ) {
+       warn "task failed";
+   } else {
+      warn "task success";
+   }
+   exit;
+}
+
+waitpid ........
+</pre>
+<p>
+b.pl 里面会执行 rsync 去获取一些文件，他会循环到几个机器上面去 rsync
+<pre class="prettyprint">
+for ( @hosts ) {
+    my $result = `rsync xxxxx 2>&1`;
+    if ( $? ) {
+        log($result);
+        log("failed");
+    } else {
+        log($result);
+        log("success");
+    }
+}
+
+sub log {
+    my $msg = shift;
+    print $msg;
+    # 然后通过 IO::Socket::INET 发送给另外一个 server  a
+}
+</pre>
+
+现象是，时不时的， b.pl 会只 rsync 了某几台(不确定是几台)机器上面的文件，然后就不继续了，从 server a 上面能收到他发日志，最后一条是 success 的信息
+</p>
+<p>
+从 a.pl 记录的日志那里看, FILE 里面记录的内容丢失了 server a 收到的最后一部分的数据，多少数据不一定，不过肯定是没有那个 success 信息。 这个文件里面也没有任何的错误信息。
+</p>
+<p>
+程序代码啥的都不动，rsync 的文件数不是总是一样的，也有文件多的时候没出错的时候,同时也设置了打开文件数为 65536.
+</p>
+<p>
+后来发现问题就在 b.pl 里面的 log 里面。因为要发送到其他机器，怕挂住影响后续程序，所以设置了一个 alarm。
+</p>
+
+<pre class="prettyprint">
+eval {
+    alarm 5;
+    xxxxxxx;
+    alarm 0;
+};
+
+if ( $@ ) {
+    print "error when send";
+}
+</pre>
+
+<p>
+这个 alarm 没有设置 handle 的函数，这样就会导致 alarm 到期的时候，会直接让整个 perl 程序挂掉，并显示 "Alarm clock"，而且这个输出不在标准错误和标准输出里面。
+</p>
+<p>
+修复也简单，alarm 前设置一个 handler 就好了。
+</p>
+<p>
+另外，还有个问题，一个 alarm 会中断前一个 alarm，所以类似 sleep 的使用，可以这样
+</p>
+
+<pre class="prettyprint">
+my $previousAlarm = 0;
+eval {
+    local $SIG{ALRM} = sub { die 'alarm'; };
+    $previousAlarm = alarm 5;
+     xxxx
+     alarm 0;
+};
+alarm 0;
+
+if ( $@ ) {
+    xxxxx;
+}
+
+alarm $previousAlarm;
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/alarm-signal-in-perl/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="cant-drop-table-in-hive/">hive 里面不能 drop table</a>
 	</h2>
     <div class="entry-content">
@@ -109,7 +228,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/hive/">hive</a> <a href="../tags/postgress/">postgress</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/hive/">hive</a> <a href="/tags/postgress/">postgress</a>
 </div>
     </div>
       
@@ -148,7 +267,7 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/hive/">hive</a>
+<a href="/tags/hive/">hive</a>
 </div>
     </div>
       
@@ -316,7 +435,7 @@ public class explodeWithPos extends GenericUDTF {
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/rsync/">rsync</a> <a href="../tags/org2blog/">org2blog</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/rsync/">rsync</a> <a href="/tags/org2blog/">org2blog</a>
 </div>
     </div>
       
@@ -385,7 +504,7 @@ files-from 是通过指定一个本地/远程的文件来定义需要同步的�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/emacs/">emacs</a>
+<a href="/tags/emacs/">emacs</a>
 </div>
     </div>
       
@@ -425,7 +544,7 @@ M-x twittering-switch-to-unread-timeline 切换到未读的 timeline，可以绑
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/perl/">perl</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/perl/">perl</a>
 </div>
     </div>
       
@@ -457,7 +576,7 @@ M-x twittering-switch-to-unread-timeline 切换到未读的 timeline，可以绑
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/heart/">heart</a> <a href="../tags/work/">work</a> <a href="../tags/life/">life</a>
+<a href="/tags/heart/">heart</a> <a href="/tags/work/">work</a> <a href="/tags/life/">life</a>
 </div>
     </div>
       
@@ -498,7 +617,7 @@ M-x twittering-switch-to-unread-timeline 切换到未读的 timeline，可以绑
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/bb/">bb</a> <a href="../tags/blackberry/">blackberry</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/bb/">bb</a> <a href="/tags/blackberry/">blackberry</a>
 </div>
     </div>
       
@@ -530,7 +649,7 @@ linux 下面有个 barry 可以简单管理一下 bb，不过很有限。可以�
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/perl/">perl</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/perl/">perl</a>
 </div>
     </div>
       
@@ -582,7 +701,7 @@ while ( 1 ) {
 </div>
       <div class="tags">Tags: 
 
-<a href="../tags/linux/">linux</a> <a href="../tags/oracle/">oracle</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/oracle/">oracle</a>
 </div>
     </div>
       
@@ -616,63 +735,6 @@ dbca 配置好后，oracle 应该就启动了。你可以连上去看看了。
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/oracle-install-guide/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="autossh-and-auto-enter-password/">自动连接 ssh 并输入密码</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2010-10-12T16:00:00.000Z" itemprop="datePublished">Oct 13, 2010</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="../tags/linux/">linux</a> <a href="../tags/ssh/">ssh</a> <a href="../tags/expect/">expect</a>
-</div>
-    </div>
-      
-        这年头不翻墙就看不到真像了，前几天整了个 ssh 代理，就研究了下自动登录。
-
-ssh 自动登录首选就是使用 key 了，可对方不干，那就只能使用密码了。自动输入密码可以用 expect。查这个的时候发现了一个 expect-lite，发现也挺有意思的，他把写 expect 脚本简单化了，比如想 send xxx，那就用 >xxxx 就行了，想 expect yyy 那就 <yyy 就好了，等等这些，呵呵。不过我后来没用这个，还是用的标准的="" expect，代码如下。="" <pre="" class="prettyprint lang-expect">
-spawn autossh -M 20000 -p SSH_PORT -N -D 7070 YOUR_NAME@YOUR_SERVER
-set timeout 60
-expect {
-     assword: {
-         stty -echo
-         send "YOUR_PASS\r"
-         stty echo
-         #exp_continue
-     }
-    incorrect {
-         send_user "invalid password or account\n"
-         exit
-     }
-    timeout {
-         send_user "connection to host timed out\n"
-         exit
-     }
-    eof {
-         send_user "connection to host failed\n"
-         exit
-     }
-}
-if {[fork]!=0} exit
-disconnect
-
-
-那里面那个 autossh 能自动给你重连，没仔细研究。那个 20000 后面的参数都是给 ssh 的，具体含意可以看 ssh 的 man。
-
-最主要是最后那两行，能做到连接上之后主程序就退出了，不占用你的终端，而不影响 ssh 的连接。
-</yyy>
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/autossh-and-auto-enter-password/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
