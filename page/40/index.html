@@ -134,6 +134,92 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="linux-bridge-script/">Linux下双网接入高级路由配置脚本zz</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-11T16:00:00.000Z" itemprop="datePublished">Jan 12, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a>
+</div>
+    </div>
+      
+        http://lwfs.net/2005/11/28/10/
+<pre class="prettyprint lang-bash">
+    #!/bin/bash
+
+    IP0=<ip of="" your="" eth0="">
+    IP1=<ip of="" your="" eth1="">
+    GW0=<gateway of="" your="" first="" net="">
+    GW1=<gateway of="" your="" second="" net="">
+    NET0=<network address="" of="" your="" first="" net:="" network="" netmask="">
+    NET1=<same as="" above,="" the="" second="" net="">
+    DEV0=eth0
+    DEV1=eth1
+
+    # comment the next two line after first run this script.
+    echo 200 cernet >>/etc/iproute2/rt_tables
+    echo 210 chinanet >>/etc/iproute2/rt_tables
+
+    ip route add ${NET0} dev ${DEV0} src ${IP0} table cernet
+    ip route add default via ${GW0} table cernet
+    ip route add ${NET1} dev ${DEV1} src ${IP1} table chinanet
+    ip route add default via ${GW1} table chinanet
+    ip route add ${NET0} dev ${DEV0} src ${IP0}
+    ip route add ${NET1} dev ${DEV1} src ${IP1}
+
+    # delete old rule
+    ip rule del from ${IP0}
+    ip rule del from ${IP1}
+    # setup new rule
+    ip rule add from ${IP0} table cernet
+    ip rule add from ${IP1} table chinanet 
+</same></network></gateway></gateway></ip></ip></pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/linux-bridge-script/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="last-of-a-year/">到年底了</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-10T16:00:00.000Z" itemprop="datePublished">Jan 11, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a>
+</div>
+    </div>
+      
+        年底比较期待的一件事情就是tatter tools 1.0，功能更加强大了。希望能无缝升级。
+
+现在不得不承认和老婆两个人都太懒了。该我洗的碗非要推到第二天做饭前，该老婆打扫的地板一拖就是好几天，猫沙本来应该一天一清理，可非要等到看着似乎都没地方的才动手。得改改这些烂习惯了。
+
+得考虑年底给家里带点什么东西了。cc家里的话，回头再商量商量给买什么好。还是带点东西好。嗯。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/last-of-a-year/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="isoqlog/">isoqlog</a>
 	</h2>
     <div class="entry-content">
@@ -276,64 +362,6 @@ Database updated (42119 signatures) from db.cn.clamav.net (IP: 221.6.197.162)</p
 
   <article class="post">
 	<h2 class="title">
-		<a href="last-of-a-year/">到年底了</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-10T16:00:00.000Z" itemprop="datePublished">Jan 11, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        年底比较期待的一件事情就是tatter tools 1.0，功能更加强大了。希望能无缝升级。
-
-现在不得不承认和老婆两个人都太懒了。该我洗的碗非要推到第二天做饭前，该老婆打扫的地板一拖就是好几天，猫沙本来应该一天一清理，可非要等到看着似乎都没地方的才动手。得改改这些烂习惯了。
-
-得考虑年底给家里带点什么东西了。cc家里的话，回头再商量商量给买什么好。还是带点东西好。嗯。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/last-of-a-year/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="write-something/">随便写点</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-07T16:00:00.000Z" itemprop="datePublished">Jan 8, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        明天要去书展值班，比较郁闷，本来和我们毫不相关的事情，却要我们去干活，这个很不合理。可是目前这个公司就这样的，没办法。在这里呆了快4年了，不合理的事情见的太多了，也懒得去多想了，看大家的说法，国企可能都这个德性，而且私企也慢慢的在学这种风气。到底什么是好的工作环境，真不知道了。
-
-这几天天气还算可以，周六早上早早的起来了，觉得这个周末时间好长，想想还是不要把那么多时间浪费在睡觉上比较好，年轻是资本，还是多积累一下吧。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/write-something/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="another-arch/">这</a>
 	</h2>
     <div class="entry-content">
@@ -374,6 +402,34 @@ mplayer关于宽屏的设置：
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/another-arch/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="write-something/">随便写点</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-07T16:00:00.000Z" itemprop="datePublished">Jan 8, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a>
+</div>
+    </div>
+      
+        明天要去书展值班，比较郁闷，本来和我们毫不相关的事情，却要我们去干活，这个很不合理。可是目前这个公司就这样的，没办法。在这里呆了快4年了，不合理的事情见的太多了，也懒得去多想了，看大家的说法，国企可能都这个德性，而且私企也慢慢的在学这种风气。到底什么是好的工作环境，真不知道了。
+
+这几天天气还算可以，周六早上早早的起来了，觉得这个周末时间好长，想想还是不要把那么多时间浪费在睡觉上比较好，年轻是资本，还是多积累一下吧。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/write-something/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -436,36 +492,6 @@ mplayer关于宽屏的设置：
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/Uhello/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="dynamic-iptables/">动态iptables 防火墙</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2005-12-28T16:00:00.000Z" itemprop="datePublished">Dec 29, 2005</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/other/">other</a>
-</div>
-    </div>
-      
-        http://www-128.ibm.com/developerworks/cn/linux/network/dif/index.html
-
-<a href="http://www-128.ibm.com/developerworks/cn/linux/network/dif/index.html#author" target="_blank">Daniel Robbins</a>, 总裁兼 CEO, Gentoo Technologies, Inc.
-
-    防火墙非常有趣，但在需要对防火墙规则进行快速且复杂的更改时，您会做些什么？很简单。请使用本文中演示的 Daniel Robbins 的动态防火墙脚本。可以使用这些脚本来增
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/dynamic-iptables/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

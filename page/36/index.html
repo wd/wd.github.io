@@ -102,7 +102,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="rsync-script/">rsync脚本的一个例子</a>
+		<a href="install-mysql/">mysql 安装</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -110,34 +110,97 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/other/">other</a> <a href="/tags/rsync/">rsync</a>
+<a href="/tags/other/">other</a> <a href="/tags/mysql/">mysql</a>
 </div>
     </div>
       
-        <pre class="prettyprint lang-bash">
+        下面的内容大部分来自mysql的readme
 
-SYNCLOGFILE="/var/log/rsync-201.log"
-SYNCLOCKFILE="/var/lock/rsync-201.lock"
+1 download mysql5.0
+2
+shell&gt; groupadd mysql
+shell&gt; useradd -g mysql mysql
+shell&gt; cd /usr/local
+shell&gt; gunzip &lt; /PATH/TO/MYSQL-VERSION-OS.tar.gz | tar xvf -
+shell&gt; ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql
+shell&gt; cd mysql
+shell&gt; scripts/mysql_install_db --user=mysql
 
-if [[ -f $SYNCLOCKFILE ]]; then
-  # lock file already present, bail
-  exit 1
-fi
+如下提示信息:
 
-echo -n ">>> Sync log for " >> $SYNCLOGFILE
-date >> $SYNCLOGFILE
+Installing all prepared tables
+Fill help tables
 
-touch $SYNCLOCKFILE
-rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
-rm -f $SYNCLOCKFILE
-</pre>
+To start mysqld at boot time you have to copy support-files/mysql.server
+to the right place for your system
+
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+To do so, start the server, then issue the following commands:
+./bin/mysqladmin -u root password 'new-password'
+./bin/mysqladmin -u root -h czhand password 'new-password'
+See the manual for more instructions.
+
+You can start the MySQL daemon with:
+cd . ; ./bin/mysqld_safe &amp;
+
+You can test the MySQL daemon with the benchmarks in the 'sql-bench' directory:
+cd sql-bench ; perl run-all-tests
+
+Please report any problems with the ./bin/mysqlbug script!
+
+The latest information about MySQL is available on the web at
+http://www.mysql.com
+Support MySQL by buying support/licenses at https://order.mysql.com
+
+shell&gt; chown -R root  .
+shell&gt; chown -R mysql data
+shell&gt; chgrp -R mysql .
+
+/home/my.cnf
+
+basedir=/usr/local/mysql
+datadir=/usr/local/mysql/data
+socket=/usr/local/mysql/data/mysql.sock
+#err-log=/var/log/mysqld.log
+pid-file=/usr/local/mysql/data/mysqld.pid
+
+shell&gt; bin/mysqld_safe --user=mysql &amp;
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/install-mysql/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="del-30-day-old-file/">find命令查找删除30天之前的文件</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/find/">find</a>
+</div>
+    </div>
+      
+        find /data -name "xxx.*" -follow -ctime +30 -exec rm -rf {} \;
+
+删除30天之前的文件。
+-follow表示跟随链接。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/del-30-day-old-file/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -272,6 +335,35 @@ rm -f $SYNCLOCKFILE
 
   <article class="post">
 	<h2 class="title">
+		<a href="man-in-debian/">debian中man不能翻页的解决方法</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-04-17T16:00:00.000Z" itemprop="datePublished">Apr 18, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/debian/">debian</a>
+</div>
+    </div>
+      
+        安装debian基本系统之后会发现man的时候往下翻页可以用ctrl＋F，可是怎么都翻不上去。包括方向键也都不起作用。
+
+解决方法其实非常简单，只要安装less就可以了。呵呵。
+#apt-get install less
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/man-in-debian/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="search-in-vim/">VIM查找替换归纳总结zz</a>
 	</h2>
     <div class="entry-content">
@@ -304,29 +396,31 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
 
   <article class="post">
 	<h2 class="title">
-		<a href="man-in-debian/">debian中man不能翻页的解决方法</a>
+		<a href="manage-route/">添加删除路由</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-17T16:00:00.000Z" itemprop="datePublished">Apr 18, 2006</time>
+      <div class="date">Published on: <time datetime="2006-04-16T16:00:00.000Z" itemprop="datePublished">Apr 17, 2006</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/debian/">debian</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
-        安装debian基本系统之后会发现man的时候往下翻页可以用ctrl＋F，可是怎么都翻不上去。包括方向键也都不起作用。
+        #route add -net 192.168.0.0/24
+#route add -host 192.168.0.23
+#route del -net 192.168.0.0/24
 
-解决方法其实非常简单，只要安装less就可以了。呵呵。
-#apt-get install less
+#route add default gw 192.168.0.1
+#route del default gw 192.168.0.1
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/man-in-debian/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/manage-route/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -369,71 +463,6 @@ For more advanced firewall configuration scripts through ifupdown you can use th
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/iptables-in-debian/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="manage-route/">添加删除路由</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-16T16:00:00.000Z" itemprop="datePublished">Apr 17, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/other/">other</a>
-</div>
-    </div>
-      
-        #route add -net 192.168.0.0/24
-#route add -host 192.168.0.23
-#route del -net 192.168.0.0/24
-
-#route add default gw 192.168.0.1
-#route del default gw 192.168.0.1
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/manage-route/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="affray-in-subway/">今天坐地铁遇到两起吵架</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-05T16:00:00.000Z" itemprop="datePublished">Apr 6, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        地铁实在是恐怖，人挤人都要被挤死的时候，地铁广播还在说请大家不要拥挤，实在是有点搞笑了。
-
-今天到了五颗松，上来两个人，突然就吵起来了，一个男的一个女的，都得有40多了吧。那个女的说那个男的不是男人，那个男的说我不是又怎么了，那个女的似乎很郁闷，呵呵。起因好像是上车的时候，两个人相互推挤了一下。
-
-到了复兴门，我上车后看见过来一堆人，推推搡搡的，那个年纪大点的一直要扑着过去打那个年纪轻的，有个女的一直拉着，呵呵。
-
-以前地铁可能也就上下班时间人多，现在的地铁是啥时候人都多，没有办法，这是最快捷的交通方式了。不知道新的地铁线开通之后能不能缓解一下，不过可能也难，像一些换其他线比较方便的线路，肯定人会更多。
-
-bless北京的交通。。。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/affray-in-subway/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

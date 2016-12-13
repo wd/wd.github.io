@@ -102,6 +102,36 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="libmcrypt-ffi-module/">基于 ffi 的 libmcrypt 加密模块</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2015-07-05T12:55:11.000Z" itemprop="datePublished">Jul 5, 2015</time>
+</div>
+      <div class="tags">Tags: 
+
+
+</div>
+    </div>
+      
+        <p>openresty 提供了 luajit 的支持，luajit 又提供了 ffi 库的支持。通过 ffi 可以很方便的调用 c 库的一些方法。</p>
+<p>我在项目里面用到了加解密，因为需要各语言支持，使用了 libmcrypt 库。之前通过 c 模块完成了在 lua 里面加密，在 perl 里面解密。有了 ffi 就可以使用纯 lua 模块搞定了。</p>
+<p>代码写的比较丑，有使用加解密的需求的可以参考下，另外计划写其他模块的也可以参考下。如下</p>
+<figure class="highlight lua"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div><div class="line">65</div><div class="line">66</div><div class="line">67</div><div class="line">68</div><div class="line">69</div><div class="line">70</div><div class="line">71</div><div class="line">72</div><div class="line">73</div><div class="line">74</div><div class="line">75</div><div class="line">76</div><div class="line">77</div><div class="line">78</div><div class="line">79</div></pre></td><td class="code"><pre><div class="line"><span class="keyword">local</span> ffi = <span class="built_in">require</span> <span class="string">'ffi'</span></div><div class="line"><span class="keyword">local</span> ffi_new = ffi.new</div><div class="line"><span class="keyword">local</span> ffi_str = ffi.<span class="built_in">string</span></div><div class="line"><span class="keyword">local</span> ffi_copy = ffi.copy</div><div class="line"><span class="keyword">local</span> <span class="built_in">setmetatable</span> = <span class="built_in">setmetatable</span></div><div class="line"></div><div class="line"><span class="keyword">local</span> _M = &#123; &#125;</div><div class="line"><span class="keyword">local</span> mt = &#123; __index = _M &#125;</div><div class="line"></div><div class="line">ffi.cdef<span class="string">[[</span></div><div class="line">struct CRYPT_STREAM;</div><div class="line">typedef struct CRYPT_STREAM *MCRYPT;</div><div class="line"></div><div class="line">MCRYPT mcrypt_module_open(char *algorithm,</div><div class="line">                          char *a_directory, char *mode,</div><div class="line">                          char *m_directory);</div><div class="line"></div><div class="line">int mcrypt_generic_init(const MCRYPT td, void *key, int lenofkey,</div><div class="line">                        void *IV);</div><div class="line"></div><div class="line">int mcrypt_generic_deinit(const MCRYPT td);</div><div class="line">int mcrypt_generic_end(const MCRYPT td);</div><div class="line">int mdecrypt_generic(MCRYPT td, void *plaintext, int len);</div><div class="line">int mcrypt_generic(MCRYPT td, void *plaintext, int len);</div><div class="line">int mcrypt_module_close(MCRYPT td);</div><div class="line"></div><div class="line">]]</div><div class="line"></div><div class="line"><span class="keyword">local</span> mcrypt = ffi.<span class="built_in">load</span>(<span class="string">'libmcrypt.so.4'</span>)</div><div class="line"></div><div class="line">_M.new = <span class="function"><span class="keyword">function</span> <span class="params">(self)</span></span></div><div class="line">    <span class="keyword">local</span> cipher = <span class="string">'blowfish'</span></div><div class="line">    <span class="keyword">local</span> mode = <span class="string">'cbc'</span></div><div class="line"></div><div class="line">    <span class="keyword">local</span> c_cipher = ffi_new(<span class="string">"char[9]"</span>, cipher)</div><div class="line">    <span class="keyword">local</span> c_mode = ffi_new(<span class="string">"char[4]"</span>, mode)</div><div class="line"></div><div class="line">    <span class="keyword">local</span> td = mcrypt.mcrypt_module_open(c_cipher, <span class="keyword">nil</span>, c_mode, <span class="keyword">nil</span>)</div><div class="line">    <span class="keyword">return</span> <span class="built_in">setmetatable</span>( &#123; _td = td &#125;, mt )</div><div class="line"><span class="keyword">end</span></div><div class="line"></div><div class="line">_M.encrypt = <span class="function"><span class="keyword">function</span><span class="params">(self, key, raw)</span></span></div><div class="line">    <span class="keyword">local</span> iv_len = <span class="number">8</span></div><div class="line">    <span class="keyword">local</span> td = self._td</div><div class="line"></div><div class="line">    <span class="keyword">local</span> c_key = ffi_new(<span class="string">"char[?]"</span>, #key+<span class="number">1</span>, key)</div><div class="line">    <span class="keyword">local</span> c_iv = ffi_new(<span class="string">"char[9]"</span>, key)</div><div class="line">    <span class="keyword">local</span> c_raw = ffi_new(<span class="string">"char[?]"</span>, #raw+<span class="number">1</span>, raw)</div><div class="line"></div><div class="line">    mcrypt.mcrypt_generic_init(td, c_key, #key, c_iv)</div><div class="line">    mcrypt.mcrypt_generic(td, c_raw, #raw )</div><div class="line">    mcrypt.mcrypt_generic_deinit(td)</div><div class="line"></div><div class="line">    <span class="keyword">return</span> ffi_str(c_raw, ffi.sizeof(c_raw)<span class="number">-1</span>)</div><div class="line"><span class="keyword">end</span></div><div class="line"></div><div class="line">_M.decrypt = <span class="function"><span class="keyword">function</span><span class="params">(self, key, raw)</span></span></div><div class="line">    <span class="keyword">local</span> iv_len = <span class="number">8</span></div><div class="line">    <span class="keyword">local</span> td = self._td</div><div class="line"></div><div class="line">    <span class="keyword">local</span> c_key = ffi_new(<span class="string">"char[?]"</span>, #key+<span class="number">1</span>, key)</div><div class="line">    <span class="keyword">local</span> c_iv = ffi_new(<span class="string">"char[9]"</span>, key)</div><div class="line">    <span class="keyword">local</span> c_raw = ffi_new(<span class="string">"char[?]"</span>, #raw+<span class="number">1</span>, raw)</div><div class="line"></div><div class="line">    mcrypt.mcrypt_generic_init(td, c_key, #key, c_iv)</div><div class="line">    mcrypt.mdecrypt_generic(td, c_raw, #raw )</div><div class="line">    mcrypt.mcrypt_generic_deinit(td)</div><div class="line"></div><div class="line">    <span class="keyword">return</span> ffi_str(c_raw, ffi.sizeof(c_raw)<span class="number">-1</span>)</div><div class="line"><span class="keyword">end</span></div><div class="line"></div><div class="line">_M.close = <span class="function"><span class="keyword">function</span><span class="params">(self)</span></span></div><div class="line">    <span class="keyword">local</span> td = self._td</div><div class="line">    <span class="keyword">if</span> td <span class="keyword">then</span></div><div class="line">        mcrypt.mcrypt_module_close(td)</div><div class="line">     <span class="keyword">end</span></div><div class="line"><span class="keyword">end</span></div><div class="line"></div><div class="line"><span class="keyword">return</span> _M</div></pre></td></tr></table></figure>
+<p>使用方法比较简单，代码里面写死了是 <code>blowfish</code> 的 <code>cbc</code> 模式，并且 iv 使用 key 的前 8 个字符<br><figure class="highlight lasso"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">local</span> mcrypt = <span class="keyword">require</span> <span class="string">"mcrypt"</span></div><div class="line"><span class="built_in">local</span> m = mcrypt:<span class="literal">new</span>()</div><div class="line"></div><div class="line">-- 一系列加解密</div><div class="line"><span class="built_in">local</span> en = m:encrypt(<span class="string">'xxx'</span>,<span class="string">'yyyy'</span>)</div><div class="line"><span class="attr">...</span></div><div class="line"><span class="built_in">local</span> de = m:decrypt(<span class="string">'xxx'</span>, yyyy<span class="string">')</span></div><div class="line"></div><div class="line">-- 最后关闭</div><div class="line">m:close()</div></pre></td></tr></table></figure></p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/libmcrypt-ffi-module/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="postgresql-transaction-isolation/">postgresql transaction isolation</a>
 	</h2>
     <div class="entry-content">
@@ -550,45 +580,6 @@
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/octopress-and-gitcafe/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="broadcom-wireless-card-on-gentoo/">broadcom BCM wireless card on gentoo</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2013-05-24T09:28:00.000Z" itemprop="datePublished">May 24, 2013</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a>
-</div>
-    </div>
-      
-        <p>昨天又折腾了一下我的无线，是 dell 的本子，broadcom 的卡 BCM4313，准备写一下的时候，发现之前居然折腾过 <a href="/bcm4312broadcom-stawpa_supplicantkernel2-6-33/">BCM4312</a>。。感觉真蛋疼。。</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">$ lspci -vnn <span class="_">-d</span> 14e4:</div><div class="line">02:00.0 Network controller [0280]: Broadcom Corporation BCM4313 802.11b/g/n Wireless LAN Controller [14e4:4727] (rev 01)</div><div class="line">        Subsystem: Dell Inspiron M5010 / XPS 8300 [1028:0010]</div><div class="line">        Flags: fast devsel, IRQ 17</div><div class="line">        Memory at e5300000 (64-bit, non-prefetchable) [size=16K]</div><div class="line">        Capabilities: &lt;access denied&gt;</div><div class="line">        Kernel modules: bcma</div></pre></td></tr></table></figure>
-<p>根据 <a href="http://wireless.kernel.org/en/users/Drivers/b43#bcm43xx.2C_b43legacy.2C_b43.2C_softmac.2C..._the_full_story" target="_blank" rel="external">这里</a> ， BCM 的网卡有三种可用驱动</p>
-<ul>
-<li>b43，kernel 自带，源自 broadcom linux 驱动的逆向工程</li>
-<li>brcmsmac, kernel 自带，似乎源自 broadcom 某个开源的驱动</li>
-<li>wl, broadcom 发布的 linux 驱动</li>
-</ul>
-<p>另外，kernel 自带的 b43 和 brcmsmac 支持标准的 802.11 栈，可以通过 iw iwconfig 之类的工具来配置，获取状态。wl 就不行了。</p>
-<p>如果想使用 b43 或者 brcmsmac，需要选择下面的 kernel 选项，要注意都选择成 module，因为还需要加载 firmware，如果编译进内核那需要把 firmware 也编译到内核才可以。<br><figure class="highlight xl"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">N<span class="function"><span class="title">etworking</span> support  ---&gt;</span>  W<span class="function"><span class="title">ireless</span>  ---&gt;</span> Generic IEEE <span class="number">802.11</span> Networking Stack (mac80211)</div><div class="line">D<span class="function"><span class="title">evice</span> Drivers  ---&gt;</span> B<span class="function"><span class="title">roadcom</span> specific AMBA  ---&gt;</span>  BCMA support</div></pre></td></tr></table></figure></p>
-<p>针对 b43 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom 43xx wireless support (mac80211 stack)</code>, 还需要安装 <code>sys-firmware/b43-firmware</code>。</p>
-<p>针对 brcmsmac 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom IEEE802.11n PCIe SoftMAC WLAN driver</code>，还需要安装 <code>sys-kernel/linux-firmware</code>。</p>
-<p>对于 wl，需要安装 <code>net-wireless/broadcom-sta</code>，安装的时候会自动检查必要的内核选项，按照提示选择好就可以了。主要是要注意去掉上面的 kernel 的选项，另外可能还需要一个 ipw2100 来提供某一个隐藏的 kernel 选项。此外还有个 PREEMPT_RCU 检查，需要选择下面的内核选项 <code>Processor type and features  ---&gt;  Preemption Model (Voluntary Kernel Preemption (Desktop))  ---&gt;  Voluntary Kernel Preemption (Desktop)</code>。</p>
-<p>如此之后编译安装重启就可以了。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/broadcom-wireless-card-on-gentoo/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
