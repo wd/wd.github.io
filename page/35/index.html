@@ -132,62 +132,6 @@ http://www.bea.com.cn/support_pattern/Too_Many_Open_Files_Pattern.html
 
   <article class="post">
 	<h2 class="title">
-		<a href="apache-weblogic-error/">Apache + weblogic 桥接的Connection_Refused错误</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-21T16:00:00.000Z" itemprop="datePublished">May 22, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/other/">other</a> <a href="/tags/weblogic/">weblogic</a>
-</div>
-    </div>
-      
-        http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
-
-主要是调整<code style="font-family: courier">weblogic的AcceptBackLog参数。</code>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/apache-weblogic-error/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="weblogic-apache-bridge/">weblogic apache 桥接指南</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-05-21T16:00:00.000Z" itemprop="datePublished">May 22, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/other/">other</a> <a href="/tags/weblogic/">weblogic</a>
-</div>
-    </div>
-      
-        Using Web Server Plug-Ins with WebLogic Server
-
-http://edocs.bea.com/wls/docs90/plugins/apache.html
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/weblogic-apache-bridge/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="split-and-cat/">用split分割备份文件，和用cat恢复备份</a>
 	</h2>
     <div class="entry-content">
@@ -250,6 +194,62 @@ $tar czvf - /data | split -b 1024m - data
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/split-and-cat/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="weblogic-apache-bridge/">weblogic apache 桥接指南</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-21T16:00:00.000Z" itemprop="datePublished">May 22, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/weblogic/">weblogic</a>
+</div>
+    </div>
+      
+        Using Web Server Plug-Ins with WebLogic Server
+
+http://edocs.bea.com/wls/docs90/plugins/apache.html
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/weblogic-apache-bridge/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="apache-weblogic-error/">Apache + weblogic 桥接的Connection_Refused错误</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-21T16:00:00.000Z" itemprop="datePublished">May 22, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/weblogic/">weblogic</a>
+</div>
+    </div>
+      
+        http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
+
+主要是调整<code style="font-family: courier">weblogic的AcceptBackLog参数。</code>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/apache-weblogic-error/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -380,7 +380,7 @@ mv: cannot move `xx' to `xx.ss': Operation not permitted
 
   <article class="post">
 	<h2 class="title">
-		<a href="stop-and-start-script-for-apache-and-weblogic/">启动停止weblogic和apache的脚本</a>
+		<a href="rsync-script/">rsync脚本的一个例子</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -388,18 +388,34 @@ mv: cannot move `xx' to `xx.ss': Operation not permitted
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/other/">other</a>
+<a href="/tags/other/">other</a> <a href="/tags/rsync/">rsync</a>
 </div>
     </div>
       
-        apache和weblogic做桥接之后，启动的时候要先启动weblogic，后启动apache，停止的时候要先停止apache，后停止weblogic，这
+        <pre class="prettyprint lang-bash">
+
+SYNCLOGFILE="/var/log/rsync-201.log"
+SYNCLOCKFILE="/var/lock/rsync-201.lock"
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n ">>> Sync log for " >> $SYNCLOGFILE
+date >> $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
+rm -f $SYNCLOCKFILE
+</pre>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -448,7 +464,7 @@ mv: cannot move `xx' to `xx.ss': Operation not permitted
 
   <article class="post">
 	<h2 class="title">
-		<a href="rsync-script/">rsync脚本的一个例子</a>
+		<a href="install-mysql/">mysql 安装</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -456,34 +472,68 @@ mv: cannot move `xx' to `xx.ss': Operation not permitted
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/other/">other</a> <a href="/tags/rsync/">rsync</a>
+<a href="/tags/other/">other</a> <a href="/tags/mysql/">mysql</a>
 </div>
     </div>
       
-        <pre class="prettyprint lang-bash">
+        下面的内容大部分来自mysql的readme
 
-SYNCLOGFILE="/var/log/rsync-201.log"
-SYNCLOCKFILE="/var/lock/rsync-201.lock"
+1 download mysql5.0
+2
+shell&gt; groupadd mysql
+shell&gt; useradd -g mysql mysql
+shell&gt; cd /usr/local
+shell&gt; gunzip &lt; /PATH/TO/MYSQL-VERSION-OS.tar.gz | tar xvf -
+shell&gt; ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql
+shell&gt; cd mysql
+shell&gt; scripts/mysql_install_db --user=mysql
 
-if [[ -f $SYNCLOCKFILE ]]; then
-  # lock file already present, bail
-  exit 1
-fi
+如下提示信息:
 
-echo -n ">>> Sync log for " >> $SYNCLOGFILE
-date >> $SYNCLOGFILE
+Installing all prepared tables
+Fill help tables
 
-touch $SYNCLOCKFILE
-rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
-rm -f $SYNCLOCKFILE
-</pre>
+To start mysqld at boot time you have to copy support-files/mysql.server
+to the right place for your system
+
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+To do so, start the server, then issue the following commands:
+./bin/mysqladmin -u root password 'new-password'
+./bin/mysqladmin -u root -h czhand password 'new-password'
+See the manual for more instructions.
+
+You can start the MySQL daemon with:
+cd . ; ./bin/mysqld_safe &amp;
+
+You can test the MySQL daemon with the benchmarks in the 'sql-bench' directory:
+cd sql-bench ; perl run-all-tests
+
+Please report any problems with the ./bin/mysqlbug script!
+
+The latest information about MySQL is available on the web at
+http://www.mysql.com
+Support MySQL by buying support/licenses at https://order.mysql.com
+
+shell&gt; chown -R root  .
+shell&gt; chown -R mysql data
+shell&gt; chgrp -R mysql .
+
+/home/my.cnf
+
+basedir=/usr/local/mysql
+datadir=/usr/local/mysql/data
+socket=/usr/local/mysql/data/mysql.sock
+#err-log=/var/log/mysqld.log
+pid-file=/usr/local/mysql/data/mysqld.pid
+
+shell&gt; bin/mysqld_safe --user=mysql &amp;
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/install-mysql/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
