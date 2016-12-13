@@ -3,7 +3,7 @@ layout: post
 title: "Some tips for bash scripting"
 date: 2012-12-02 19:43
 comments: true
-tags: Web
+tags: web
 ---
 最近几天写了一些 bash 脚本，又有些心得，记录一下。
 
