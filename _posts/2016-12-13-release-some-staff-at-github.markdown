@@ -1,4 +1,4 @@
-title: Released some staff at github
+title: Release some staff at github
 date: 2016-12-13 17:00:31
 tags:
  - hexo
