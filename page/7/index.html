@@ -102,6 +102,58 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="signal-in-perl/">perl 里面的信号处理</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2010-12-31T16:00:00.000Z" itemprop="datePublished">Jan 1, 2011</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/perl/">perl</a>
+</div>
+    </div>
+      
+        perl 里面的信号处理很简单，就是给 %SIG 这个 hash 赋值就好了。前几天遇到个问题，处理 SIG{CHLD} 的时候，我本来只起一个 child 进程，可是发现这个信号会被触发多次，开始弄不明白，后来偶然想到是不是 system，exec 之类的函数弄出来的，搜了下果然。
+
+perl 里面调用外部命令是会 fork 一个子进程的，所以也会触发那个信号，想避免可以设置局部变量，例如
+<pre class="prettyprint">
+$SIG{CHLD} = sub {
+    print "main\n";
+};
+
+.....
+{
+    local $SIG{CHLD} = undef; # 注意调用外部命令的时候，如果 IGNORE 就捕捉不了结果了
+    `mv xxx yyy`;
+    system(xxxxx);
+}
+
+.....
+</pre>
+
+使用 {} 来构造局部变量的方法有时候会让问题变的非常简单。
+
+另外，信号触发的时候，会把 sleep 中断，这个在 sleep 的 doc 里面说的很明白。如果还是想 sleep 到足够的时间，可以用下面的方法。
+<pre class="prettyprint">
+my $timeLeft = 10;
+while ( 1 ) {
+    last if $timeLeft <= 0;="" my="" $acttime="sleep($timeLeft);" $timeleft="$timeLeft" -="" $acttime;="" }="" <="" pre="">
+
+越来越感觉写 perl 还是很给力的，很多的奇技淫巧，不过我现在也是属于没弄明白多少，瞎写。
+</=></pre>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/signal-in-perl/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="oracle-install-guide/">又安装了一次 oracle</a>
 	</h2>
     <div class="entry-content">
@@ -721,42 +773,6 @@ close(MAIL);
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/sendmail-use-perl/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="emms-coding-system/">emacs 的 emms 里面的乱码</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2010-06-18T16:00:00.000Z" itemprop="datePublished">Jun 19, 2010</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a> <a href="/tags/emacs/">emacs</a> <a href="/tags/emms/">emms</a>
-</div>
-    </div>
-      
-        <a href="http://www.gnu.org/software/emms/" target="_blank" rel="external">emms</a> 是基于 emacs 的一个播放器，不过其它他做的应该只是管理音乐，具体播放还是靠 mpg123 或 mplayer 这样的程序。
-
-前几天下了一些 mp3, 这两天就又搞了搞 emms。emacser.cn 有篇<a href="http://emacser.com/emms.htm" target="_blank" rel="external">文章</a>就是介绍这个的，就不多说了。主要是被编码问题搞死了。
-
-下载的 mp3 的 tag 是 gbk 的，可是设置了 emms-info-mp3info-coding-system 为 gbk 没效果，而用 mp3info 程序看了 mp3 的 tag，确实是 gbk 的，奇怪了就。后来发现 emms 还带了一个 emms-print-metadata 这个程序，这个程序貌似不需要设置编码，他会出来的结果直接就是 utf8, 可就算用这个 (通过设置 (setq emms-info-functions '(emms-info-libtag)) )，出来的结果还是乱码。
-
-后来突然想起来是不是 cache 的问题，然后就发现有两个地方可能有 cache，一个是 emms-cache.el 一个是 emms-history.el，把这两个对应的 cache 文件删掉，再运行一次 emms 就没问题了。我还设置了下下面的。
-<pre class="prettyprint">
-(setq emms-cache-file "~/.emacs.d/emms/emms-cache"
-      emms-history-file "~/.emacs.d/emms/emms-history")
-</pre>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/emms-coding-system/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

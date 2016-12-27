@@ -102,6 +102,42 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="emms-coding-system/">emacs 的 emms 里面的乱码</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2010-06-18T16:00:00.000Z" itemprop="datePublished">Jun 19, 2010</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/emacs/">emacs</a> <a href="/tags/emms/">emms</a>
+</div>
+    </div>
+      
+        <a href="http://www.gnu.org/software/emms/" target="_blank" rel="external">emms</a> 是基于 emacs 的一个播放器，不过其它他做的应该只是管理音乐，具体播放还是靠 mpg123 或 mplayer 这样的程序。
+
+前几天下了一些 mp3, 这两天就又搞了搞 emms。emacser.cn 有篇<a href="http://emacser.com/emms.htm" target="_blank" rel="external">文章</a>就是介绍这个的，就不多说了。主要是被编码问题搞死了。
+
+下载的 mp3 的 tag 是 gbk 的，可是设置了 emms-info-mp3info-coding-system 为 gbk 没效果，而用 mp3info 程序看了 mp3 的 tag，确实是 gbk 的，奇怪了就。后来发现 emms 还带了一个 emms-print-metadata 这个程序，这个程序貌似不需要设置编码，他会出来的结果直接就是 utf8, 可就算用这个 (通过设置 (setq emms-info-functions '(emms-info-libtag)) )，出来的结果还是乱码。
+
+后来突然想起来是不是 cache 的问题，然后就发现有两个地方可能有 cache，一个是 emms-cache.el 一个是 emms-history.el，把这两个对应的 cache 文件删掉，再运行一次 emms 就没问题了。我还设置了下下面的。
+<pre class="prettyprint">
+(setq emms-cache-file "~/.emacs.d/emms/emms-cache"
+      emms-history-file "~/.emacs.d/emms/emms-history")
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/emms-coding-system/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="backup-gentoo/">备份 gentoo</a>
 	</h2>
     <div class="entry-content">
@@ -644,32 +680,6 @@ $(function() {
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/ssh-proxy/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="how-to-know-a-windows-boxs-ip-in-lan/">怎么能知道旁边的一台没有显示器的 windows 的 ip 呢？</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2010-01-19T16:00:00.000Z" itemprop="datePublished">Jan 20, 2010</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        <p>我旁边有个 windows，是 dhcp 获取 ip 的，ip 总变，很恶心。这机器还没有显示器，我都是通过 rdesktop 连上去用的，这样必须知道 ip 才行。那不接显示器，怎么能知道 ip 呢？</p><p>方法一，写一个脚本定时把 ipconfig 的结果通过 scp 或 ftp 发到某个有固定 ip 的机器。这样 ip 变了我至少过那么久的间隔就能知道他目前的 ip 了。时间设的长短可能就是你等的时间了。</p><p>方法二，扫描一下局域网结果存到 a，给那个机器断网，再扫一下存到 b，diff 比较那个状态有变化的。我用的就是这个方法。</p><p># nmap -PN 10.32.20.0/24 -p 3389 --open &gt; a</p><p>要用 root 执行，此外还有别的方法没？呵呵</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/how-to-know-a-windows-boxs-ip-in-lan/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

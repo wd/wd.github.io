@@ -102,6 +102,72 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="Beansdb-merge-tools/">Beansdb merge tools</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2016-12-26T10:36:11.000Z" itemprop="datePublished">Dec 26, 2016</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/beansdb/">beansdb</a>
+</div>
+    </div>
+      
+        <p>Beansdb 是豆瓣开源出来的一个高效的支持 memcached 协议的文件存储 db。按 key 查找的时候，会有索引定位到磁盘位置。不过貌似前段时间看到说他们搞了一个新的替代这个，我找了一下没找到链接。</p>
+<p>使用 beansdb 的时候，有 2 个问题需要解决</p>
+<ul>
+<li>冗余问题</li>
+<li>数据过期删除问题</li>
+</ul>
+<h2 id="数据冗余问题"><a href="#数据冗余问题" class="headerlink" title="数据冗余问题"></a>数据冗余问题</h2><p>先说第一个问题。beansdb 本身不提供分布式 hash 逻辑，它就是个单机的程序。冗余需要你自己搞定，如果你使用标准的 memcache 协议，可以有多 server 的配置，读的时候其中一个失败会自动找下一个 server，写的时候就不会了，需要你自己写到多个 server。如果你所有的 server 都是一模一样的，那多写就可以了。如果不一样，你还需要考虑自己的 hash 策略。</p>
+<p>豆瓣提供了一个 python 的<a href="https://github.com/douban/beansdb/blob/master/python/dbclient.py" target="_blank" rel="external">客户端</a>，这个客户端里面其实包含了 hash 策略。通过把 key 和 server 分桶来做 hash。摘一点代码如下</p>
+<figure class="highlight aspectj"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">BEANSDBCFG = &#123;</div><div class="line">    <span class="string">"localhost:7901"</span>: range(16),</div><div class="line">    <span class="string">"localhost:7902"</span>: range(16),</div><div class="line">    <span class="string">"localhost:7903"</span>: range(16),</div><div class="line">&#125;</div><div class="line"></div><div class="line">db = Beansdb(BEANSDBCFG, 16)</div></pre></td></tr></table></figure>
+<p>上面定义了三个 server，每个包含 16 个桶（你可以根据你的需求比如定义第一个 server 只包含某些桶）。</p>
+<pre><code>def __init__(self, servers, buckets_count=16, N=3, W=1, R=1):
+</code></pre><p>这里是定义写入数据的时候的逻辑，那个 <code>buckets_count</code> 是桶的数量，<code>N</code> 和 <code>R</code> 貌似没用。。。，<code>W</code> 是改动的时候要求成功的最小 server 数量，包括删除和写入的时候。</p>
+<p>读取的时候，会循环从包含这个 key 的桶的 server 列表里面循环读取，这里还有一个「自愈」的逻辑，循环读取直到遇到一个成功的 server，会同时把前面失败的 server 都写入一份数据。</p>
+<p>这样下来基本就解决了读写分布式和故障恢复的逻辑了，非常巧妙。</p>
+<p>其实针对这个问题，豆瓣还开源了个 <a href="https://github.com/douban/beanseye" target="_blank" rel="external">beanseye</a>，具体功能没有仔细研究，不过应该是上面需要客户端处理的事情都不需要考虑了。</p>
+<p>我们开始用的时候，不知道有 beanseye，我的场景是在 perl 环境下面使用，把 python 的客户端翻译了一个 perl 的版本出来。[1] 有兴趣可以看看。</p>
+<h2 id="数据过期删除问题"><a href="#数据过期删除问题" class="headerlink" title="数据过期删除问题"></a>数据过期删除问题</h2><p>beansdb 设计之初写入用的是 append 模式，就是说，遇到删除也是写入一条新的记录，并不会返回去修改原来的数据，所以能达到合理的 IO 速度。如果场景是大量不会删除的小文件，那么 beansdb 使用起来非常合适。</p>
+<p>如果有数据过期或者删除的需求，就需要想办法处理这些数据了，否则的话，beandb 的数据文件里面会慢慢的有大量的无用数据，浪费磁盘空间。</p>
+<p>这个删除过期数据的过程，我看豆瓣叫做 merge。思路其实就是把所有数据遍历一次，把有效的数据写入一个新的 data 文件，然后旧的删掉，就可以了。beansdb 的数据文件有 2 种，一种是 <code>xxx.data</code>，这种文件是数据文件，另外一种是 <code>xxx.hint.qlz</code> 这种是索引文件。</p>
+<p>针对这个需求，我写了两版程序，第一版就是单纯的解读一下数据文件，把其中的数据的信息读出来，主要是版本号和创建时间，然后根据版本号只写入高版本的，根据创建时间把过期的数据丢弃。生成新的 data 文件之后，要删除 hint 文件，启动的时候会自动产生 hint 文件。然后在 beansdb 的机器上面定期跑这个脚本就好了，注意跑之前应该先关闭 beansdb。</p>
+<p>第一个版本的程序只是解读了每个块的数据头，程序用起来也勉强还行，但是主要问题是，每次启动都需要重新产生 hint 文件，导致启动到提供服务很慢，所以就有了第二版程序。第二版包含了第一版的全部功能，还提供了按照文件大小来定义删除时限的功能。</p>
+<p>第二个版本程序基本把 data 和 hint 文件产生的逻辑都用 perl 实现了（不过还没有经过太多测试）。下面简单讲讲逻辑。</p>
+<h3 id="data-文件"><a href="#data-文件" class="headerlink" title="data 文件"></a>data 文件</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">‌<span class="keyword">typedef</span> <span class="keyword">struct</span> data_record</div><div class="line">&#123;</div><div class="line">    <span class="keyword">char</span> *value;</div><div class="line">    <span class="keyword">union</span></div><div class="line">    &#123;</div><div class="line">        <span class="keyword">bool</span> free_value;    <span class="comment">// free value or not</span></div><div class="line">        <span class="keyword">uint32_t</span> crc;</div><div class="line">    &#125;;</div><div class="line">    <span class="keyword">int32_t</span> tstamp;</div><div class="line">    <span class="keyword">int32_t</span> flag;</div><div class="line">    <span class="keyword">int32_t</span> version;</div><div class="line">    <span class="keyword">uint32_t</span> ksz;</div><div class="line">    <span class="keyword">uint32_t</span> vsz;</div><div class="line">    <span class="keyword">char</span> key[<span class="number">0</span>];</div><div class="line">‌&#125; DataRecord;</div></pre></td></tr></table></figure>
+<p>数据文件里面，每个 key 对应的数据的长度是 <code>4*6 + key_size + value_size + padding</code>。</p>
+<pre><code>read($fh, my $header, 4*6);
+my ( $crc, $tstamp, $flag, $ver, $ksz, $vsz ) = unpack(&apos;I i i i I I&apos;, $header);
+</code></pre><p>头部是 24 个字节，依次包括校验数据，写入时间戳，标记位，版本号，key 的长度，value 的长度。上面 <code>unpack</code> 方法第一个参数里面的含义，可以参考<a href="http://perldoc.perl.org/functions/pack.html" target="_blank" rel="external">perl 的文档</a>。每个 4 字节，32bit 整数。</p>
+<p>然后是读取 <code>$ksz</code> 的长度的 key，读取 <code>$vsz</code> 长度 value。如果 <code>$flag</code> 标记表明 value 有压缩，压缩用的是 QLZ 算法，真实的值需要用 qlz 解压缩之后才能得到。</p>
+<p>最后是 padding 部分，整个数据长度需要是 256 的整数倍。不足的部分，会写入 <code>\0</code> 做 padding。</p>
+<p>merge 的过程不关心 value 的真实值，所以不需要解压缩，把读取到的原样写回去就可以了。另外就是 merge 的时候遇到同一个 key 多个 version 出现的时候，只保留大的那个就可以了。这样操作之后 data 文件会变小。</p>
+<h3 id="hint-文件"><a href="#hint-文件" class="headerlink" title="hint 文件"></a>hint 文件</h3><figure class="highlight cpp"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div></pre></td><td class="code"><pre><div class="line">‌<span class="keyword">typedef</span> <span class="keyword">struct</span> hint_record</div><div class="line">&#123;</div><div class="line">    <span class="keyword">uint32_t</span> ksize:<span class="number">8</span>;</div><div class="line">    <span class="keyword">uint32_t</span> pos:<span class="number">24</span>;</div><div class="line">    <span class="keyword">int32_t</span> version;</div><div class="line">    <span class="keyword">uint16_t</span> hash;</div><div class="line">    <span class="keyword">char</span> key[NAME_IN_RECORD]; <span class="comment">// allign</span></div><div class="line">‌&#125; HintRecord;</div></pre></td></tr></table></figure>
+<p>hint 文件比 data 文件稍微复杂一点，每一条记录是 <code>key_size + data_pos + ver + hash + key + padding</code>。</p>
+<pre><code>my ( $ksz, $datapos, $ver, $hash ) = unpack(&quot;B8 B24 i B16&quot;, $header);
+
+$ksz = unpack(&quot;I&quot;, pack(&quot;B32&quot;, $ksz));
+$datapos = unpack(&quot;I&quot;, pack(&quot;B32&quot;, $datapos));
+$datapos = $datapos &lt;&lt; 8;
+$hash = unpack(&quot;I&quot;, pack(&quot;B32&quot;, $hash));
+</code></pre><p>头部的 10 个字节如上面代码，第一个 8 bit 是 key 的长度，接下来 24 个 bit 是这个 key 对应数据在 data 文件里面的位置。然后是 4 字节版本，16 bit 的 hash。</p>
+<p>padding 和上面 data 里面的逻辑一样，按照 256 的倍数补全。</p>
+<p>hint 文件结尾有个 <code>.qlz</code>，表示整个 hint 里面的数据是压缩的，所以在处理前需要先解压缩一下。（不过我看到我代码里面在读取 hint 的时候，是全部数据解压，写入的时候，是按照 record 压缩的，很奇怪）。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/Beansdb-merge-tools/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="release-some-staff-at-github/">Release some staff at github</a>
 	</h2>
     <div class="entry-content">
@@ -500,45 +566,6 @@
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/about-http-cookie/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="double-pinyin/">从双拼讲输入法</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2016-08-20T02:00:51.000Z" itemprop="datePublished">Aug 20, 2016</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/input/">input</a>
-</div>
-    </div>
-      
-        <p>上高中的时候，就流行五笔打字，不过那会家里都没有电脑，都是去网吧（或者叫打字社）去学习的，不过那会学习这个貌似唯一的用途就是录入用。</p>
-<p>当时也背过五笔的码表，王旁青头兼五一，估计很多人都很熟悉。上了大学在有更多机会接触电脑的时候，上网什么的，自然就开始使用拼音输入法，因为基本不需要练习，会盲打知道键盘按键键位就可以使用。当时用的比较多的是智能 ABC，后来 2000 年左右写书的时候，用的是紫光拼音，紫光的词库比智能 ABC 好一点，所以用起来也好用很多。此后一直使用拼音输入法。</p>
-<p>直到应该是大概 2008 年左右，ssslang 在使用二笔，就开始想尝试一下码表输入法。因为本身使用了这么多年的电脑输入和拼音输入法之后，对字形其实已经失去了概念，如果学五笔的话，肯定会是很痛苦的。</p>
-<p>而二笔输入法一个字 4 个码，第一个码还是拼音的第一个字母，但是大部分常用字都是 2 个码就可以出，所以这样等于每个字都至少知道了一半的编码，这个还是很赞的。</p>
-<p>二笔输入法也有很多编码方案，当时选的是哲豆二笔，这个方案只用了 26 个字母键，所以也可以在手机上面使用（其他方案用了一些符号键，比如 [ ]，当时手机还都是流行硬键盘，一般都没有单独的符号键，而且貌似现在的软键盘也没有单独的符号键）。我当时用的 palm treo 650，输入还是蛮爽的。后来自己把一些词库导入了进去，用起来就更加舒服了。</p>
-<p>但是后来的问题是慢慢的一些流行的智能机没有那么好的输入法自定义支持，就没法用了，慢慢切回来了拼音输入法。</p>
-<p>二笔是码表输入法，就是每个字有自己的编码，联系的过程就是熟悉码表的过程，如果某个字不熟悉，那么其实你是需要轻微的思考的，想一下那个字怎么写，是哪个码。所以输入的速度取决于对这些字的熟悉程度，遇到不熟悉的会有卡顿。</p>
-<p>最近看到了不少双拼的讨论，就想尝试一下双拼。因为如果反正都是用拼音输入法，那么对于 ing, eng 这些，如果可以按一个按键就输入进去，那么岂不是可以节省很多时间？并且这个还是基于拼音的，和那些需要记住字形的输入法不是一个套路，看着还不错。</p>
-<p>我是这周一开始尝试的。mac 上面用的是鼠须管，ios 用的 touchpal。双拼也有很多方案，我选的方案是小鹤双拼，也没啥特别的原因，就是看用的人挺多的。</p>
-<p>尝试的结果就是，输入了 4 天之后，周五我又换回了拼音输入法。。。。</p>
-<p>因为我越用越发现，双拼也是个码表输入法。开始想得是节省拼音的输入时间，但是打字的时候，比如输入 hao 的时候，想到的不是输入 h 然后输入 ao 对应的字母 c，而是熟悉之后自然而然的按照 hc 来输入，下次需要输入 lao 的时候，还是需要想一下 ao 在字母 c，需要输入 lc。</p>
-<p>这么看的话，和前面说的码表输入法有啥区别呢？所以我感觉双拼也是个码表输入法。既然是码表输入法，双拼的区分度那么差，何必折腾他呢，不如去用二笔呢。而且我用的时候最郁闷的是，二笔训练出来的键位记忆居然总会出来捣乱，这其实也更加说明这个就是码表输入法。。。</p>
-<p>而且还有就是，普通拼音输入法里面，尤其是手机上面，容易按错键，比如 hao 输入成了 hso 的时候，手机上面会纠错，把「好」这个选项放在第一个。但是如果是双拼就没那么好搞了，如果也增加纠错，那会增加很多重码，体验不好。</p>
-<p>另外还有个问题就是对于 sh, s, en, eng 这些不太清楚的人来讲，更加是个挑战，当然拼音可以用模糊音，按说双拼也可以想办法自定义模糊音。但是可能就失去了双拼的一些优势。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/double-pinyin/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

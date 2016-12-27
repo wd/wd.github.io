@@ -102,7 +102,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="stop-and-start-script-for-apache-and-weblogic/">启动停止weblogic和apache的脚本</a>
+		<a href="portmap/">端口映射</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -110,18 +110,110 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/other/">other</a>
+<a href="/tags/other/">other</a> <a href="/tags/iptables/">iptables</a>
 </div>
     </div>
       
-        apache和weblogic做桥接之后，启动的时候要先启动weblogic，后启动apache，停止的时候要先停止apache，后停止weblogic，这
+        ★ 需求
+
+1 只有一个ip，怎么让多台电脑上网？
+
+只讲一下主机是双网卡的时候怎么解决。windows下面可以使用winroute、wingate或者系统自带的共享网络连接的功能，都可以实现共享上网。linux下面使用iptables一句话就可以实现。
+
+至于主机是单网卡怎么解决，自己研究研究吧。我只在win下面尝试过用wingate，可是及其不稳定。
+
+2 怎么将某个端口映射给内网？
+
+内网某台电脑提供了服务，怎么让外网的用户可以访问呢？某些对外的服务可能会在内网的多台电脑上面提供，这时就需要做端口映射来让这些服务器让外网可以访问。
+
+<br>
+        
+          <p class="more-link">
+            <a href="portmap/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/portmap/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="install-mysql/">mysql 安装</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-05-08T16:00:00.000Z" itemprop="datePublished">May 9, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/mysql/">mysql</a>
+</div>
+    </div>
+      
+        下面的内容大部分来自mysql的readme
+
+1 download mysql5.0
+2
+shell&gt; groupadd mysql
+shell&gt; useradd -g mysql mysql
+shell&gt; cd /usr/local
+shell&gt; gunzip &lt; /PATH/TO/MYSQL-VERSION-OS.tar.gz | tar xvf -
+shell&gt; ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql
+shell&gt; cd mysql
+shell&gt; scripts/mysql_install_db --user=mysql
+
+如下提示信息:
+
+Installing all prepared tables
+Fill help tables
+
+To start mysqld at boot time you have to copy support-files/mysql.server
+to the right place for your system
+
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+To do so, start the server, then issue the following commands:
+./bin/mysqladmin -u root password 'new-password'
+./bin/mysqladmin -u root -h czhand password 'new-password'
+See the manual for more instructions.
+
+You can start the MySQL daemon with:
+cd . ; ./bin/mysqld_safe &amp;
+
+You can test the MySQL daemon with the benchmarks in the 'sql-bench' directory:
+cd sql-bench ; perl run-all-tests
+
+Please report any problems with the ./bin/mysqlbug script!
+
+The latest information about MySQL is available on the web at
+http://www.mysql.com
+Support MySQL by buying support/licenses at https://order.mysql.com
+
+shell&gt; chown -R root  .
+shell&gt; chown -R mysql data
+shell&gt; chgrp -R mysql .
+
+/home/my.cnf
+
+basedir=/usr/local/mysql
+datadir=/usr/local/mysql/data
+socket=/usr/local/mysql/data/mysql.sock
+#err-log=/var/log/mysqld.log
+pid-file=/usr/local/mysql/data/mysqld.pid
+
+shell&gt; bin/mysqld_safe --user=mysql &amp;
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/stop-and-start-script-for-apache-and-weblogic/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/install-mysql/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -371,48 +463,6 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/manage-route/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="iptables-in-debian/">debian下面的防火墙设置</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-16T16:00:00.000Z" itemprop="datePublished">Apr 17, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/debian/">debian</a>
-</div>
-    </div>
-      
-        <p>rh下面的防火墙设置是保存在/etc/sysconfig/iptables文件中的，这样每次重启都会恢复防火墙设置。
-
-debian木有这个文件，但是他提供了更加灵活的方式。
-<a href="http://www.debian.org/doc/manuals/securing-debian-howto/ch-sec-services.en.html#s-firewall-setup" target="_blank" rel="external">http://www.debian.org/doc/manuals/securing-debian-howto/ch-sec-services.en.html#s-firewall-setup</a>
-
-看了下，似乎比较简单的就是设置interfaces文件了。
-
-5.14.3.3 Configuring firewall rules through ifup
-You can use also the network configuration in /etc/network/interfaces to setup your firewall rules. For this you will need to: </p><p>Create your firewalling ruleset for when the interface is active. 
-Save your ruleset with iptables-save to a file in /etc, for example /etc/iptables.up.rules 
-Configure etc/network/interfaces to use the configured ruleset: 
- &nbsp; &nbsp; iface eth0 inet static
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; address x.x.x.x
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [.. interface configuration ..]
- &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; pre-up iptables-restore &lt; /etc/iptables.up.rules
-You can optionally also setup a set of rules to be applied when the network interface is down creating a set of rules, saving it in /etc/iptables.down.rules and adding this directive to the interface configuration: </p><p> &nbsp; &nbsp; &nbsp; &nbsp; post-down iptables-restore &lt; /etc/iptables.down.rules
-For more advanced firewall configuration scripts through ifupdown you can use the hooks available to each interface as in the *.d/ directories called with run-parts (see run-parts(8)). </p><p>可以去<a href="http://easyfwgen.morizot.net/gen/" target="_blank" rel="external">http://easyfwgen.morizot.net/gen/</a> 在线生成一个防火墙脚本，然后pre-up指定一下。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/iptables-in-debian/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

@@ -102,6 +102,35 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="octopress-and-gitcafe/">octopress and gitcafe</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2013-06-12T13:30:00.000Z" itemprop="datePublished">Jun 12, 2013</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a>
+</div>
+    </div>
+      
+        <p>ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。</p>
+<figure class="highlight diff"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line">diff --git a/.gitignore b/.gitignore</div><div class="line">index 85ed25d..5858b25 100644</div><div class="line"><span class="comment">--- a/.gitignore</span></div><div class="line"><span class="comment">+++ b/.gitignore</span></div><div class="line">@@ -12,3 +12,4 @@ source/stylesheets/screen.css</div><div class="line"> vendor</div><div class="line"> node_modules</div><div class="line"> .themes/fabric/</div><div class="line"><span class="addition">+gitcafe</span></div><div class="line">diff --git a/Rakefile b/Rakefile</div><div class="line">index 53072e5..62061e0 100644</div><div class="line"><span class="comment">--- a/Rakefile</span></div><div class="line"><span class="comment">+++ b/Rakefile</span></div><div class="line">@@ -27,6 +27,9 @@ new_post_ext    = "markdown"  # default new post file extension when using the n</div><div class="line"> new_page_ext    = "markdown"  # default new page file extension when using the new_page task</div><div class="line"> server_port     = "4000"      # port for preview server eg. localhost:4000</div><div class="line"></div><div class="line"><span class="addition">+gitcafe_dir      = "gitcafe"</span></div><div class="line"><span class="addition">+gitcafe_branch   = "gitcafe-pages"</span></div><div class="line"><span class="addition">+</span></div><div class="line"></div><div class="line"> desc "Initial setup for Octopress: copies the default theme into the path of Jekyll's generator. Rake install defaults to rake install[classic] to install a different them</div><div class="line"> task :install, :theme do |t, args|</div><div class="line">@@ -219,7 +214,7 @@ end</div><div class="line"> ##############</div><div class="line"></div><div class="line"> desc "Default deploy task"</div><div class="line"><span class="deletion">-task :deploy do</span></div><div class="line"><span class="addition">+task :deploy_old do</span></div><div class="line">   # Check if preview posts exist, which should not be published</div><div class="line">   if File.exists?(".preview-mode")</div><div class="line">     puts "## Found posts in preview mode, regenerating files ..."</div><div class="line">@@ -231,6 +226,31 @@ task :deploy do</div><div class="line">   Rake::Task["#&#123;deploy_default&#125;"].execute</div><div class="line"> end</div><div class="line"></div><div class="line"><span class="addition">+desc "deploy gitcafe"</span></div><div class="line"><span class="addition">+task :deploy do</span></div><div class="line"><span class="addition">+  # Check if preview posts exist, which should not be published</span></div><div class="line"><span class="addition">+  if File.exists?(".preview-mode")</span></div><div class="line"><span class="addition">+    puts "## Found posts in preview mode, regenerating files ..."</span></div><div class="line"><span class="addition">+    File.delete(".preview-mode")</span></div><div class="line"><span class="addition">+    #Rake::Task[:generate].execute # 这个地方每次都会 generate 我一般喜欢先 generate 本地看好没问题之后再 deploy，所以就注释掉了</span></div><div class="line"><span class="addition">+  end</span></div><div class="line"><span class="addition">+</span></div><div class="line"><span class="addition">+  puts "## Deploying branch to Gitcafe Pages "</span></div><div class="line"><span class="addition">+  puts "\n## copying #&#123;public_dir&#125; to #&#123;gitcafe_dir&#125;"</span></div><div class="line"><span class="addition">+  cp_r "#&#123;public_dir&#125;/.", gitcafe_dir</span></div><div class="line"><span class="addition">+  cd "#&#123;gitcafe_dir&#125;" do</span></div><div class="line"><span class="addition">+    system "git add ."</span></div><div class="line"><span class="addition">+    system "git add -u"</span></div><div class="line"><span class="addition">+    puts "\n## Commiting: Site updated at #&#123;Time.now.utc&#125;"</span></div><div class="line"><span class="addition">+    message = "Site updated at #&#123;Time.now.utc&#125;"</span></div><div class="line"><span class="addition">+    system "git commit -m \"#&#123;message&#125;\""</span></div><div class="line"><span class="addition">+    puts "\n## Pushing generated #&#123;gitcafe_dir&#125; website"</span></div><div class="line"><span class="addition">+    system "git push origin #&#123;gitcafe_branch&#125; --force"</span></div><div class="line"><span class="addition">+    puts "\n## Gcafe Pages deploy complete"</span></div><div class="line"><span class="addition">+  end</span></div><div class="line"><span class="addition">+end</span></div><div class="line"><span class="addition">+</span></div><div class="line"><span class="addition">+</span></div><div class="line"> desc "Generate website and deploy"</div><div class="line"> task :gen_deploy =&gt; [:integrate, :generate, :deploy] do</div><div class="line"> end</div></pre></td></tr></table></figure>
+<p>然后需要在 octopus 根目录 clone 一下你的 gitcafe 项目到 gitcafe 目录<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ git <span class="built_in">clone</span> git@gitcafe.com:wd/wd gitcafe</div><div class="line">....</div></pre></td></tr></table></figure></p>
+<p>然后就可以试试看 <code>rake generate</code> , <code>rake preview</code>, <code>rake deploy</code> 了。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/octopress-and-gitcafe/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="broadcom-wireless-card-on-gentoo/">broadcom BCM wireless card on gentoo</a>
 	</h2>
     <div class="entry-content">
@@ -1064,122 +1093,6 @@ Host *
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/about-interview/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="auto-archive-task-for-org-mode/">org-mode 里面自动归档任务</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2012-04-07T16:00:00.000Z" itemprop="datePublished">Apr 8, 2012</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a> <a href="/tags/emacs/">emacs</a> <a href="/tags/org-mode/">org-mode</a>
-</div>
-    </div>
-      
-        <p>我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
-</p>
-<p>
-org-mode 本身提供了 remember 来创建 todo list。
-</p>
-<p>
-新建一个 org 文件 ~/org/todo.org，包含两行内容如下
-</p>
-
-
-<pre class="prettyprint lang-text">
-* Tasks
-* Done
-</pre>
-
-<p>
-然后设置下面的内容
-</p>
-
-
-<pre class="prettyprint lang-lisp">
-(define-key global-map "\C-ca" 'org-agenda)
-(global-set-key (kbd "C-c m r") 'org-capture)
-(setq org-capture-templates
-      '(("t" "Todo" entry (file+headline "~/org/todo.org" "Tasks")
-         "* TODO %?\nCREATED: %U")
-        ("j" "Journal" entry (file+datetree "~/org/journal.org")
-         "* %?\nEntered on %U\n  %i\n  %a")))
-(defun wd-move-done-task-to-done-cats ( task-pos )
-  "move done task to *DONE cats"
-  (let* ((entry (org-get-entry))
-        (title (org-get-heading))
-        (task (format "** %s\n%s\n" title entry))
-        )
-    (goto-char (point-min))
-    (when (search-forward-regexp "^* Tasks$latex ")
-      (goto-char (point-min))
-      (when (search-forward-regexp "^* Done$")
-        (goto-char (match-beginning 0))
-        (forward-line)      
-        (insert task)
-        (goto-char task-pos)
-        (delete-region (org-entry-beginning-position) (org-entry-end-position))      
-        )
-      )
-    )
-  )
-
-(defun wd-track-task-status ( changes-plist )
-   "Track task status, and move it to '* Done' cats if it is stats change from to to done
-1 TODO 文件至少需要包含两个标题 * Tasks 和 * Done
-2 * Tasks 里面的 TODO 内容变成 DONE 的时候，会自动把这个条目移动到 * Done
-3 org-todo-keywords 的设置里面不能包含自动增加时间等的设置，否则增加的内容不能正确加到这个条目
-"
-   ;; (interactive)
-   (let ((type (plist-get change-plist :type))
-          (pos (plist-get change-plist :position))
-          (from (plist-get change-plist :from))
-          (to (plist-get change-plist :to))
-          )
-     (when (and (string= from "TODO")
-                (string= to "DONE"))
-       ;; (let ((answer (read-char "Move this entry to *DONE ? Y/N (Y)")))
-       ;;   (when (or (= answer (string-to-char "y"))
-       ;;             (= answer (string-to-char "Y"))
-       ;;             (= answer (string-to-char "
-"))
-       ;;             )
-           (wd-move-done-task-to-done-cats pos)
-         ;; ))
-       )
-     )
-   )
-
-(add-hook 'org-trigger-hook 'wd-track-task-status)
-
-;; (setq org-todo-keywords
-;;       '((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))
-(setq org-todo-keywords
-      '((sequence "TODO(t)" "WAIT(w)" "|" "DONE(d)" "CANCELED(c)")))
-</pre>
-
-<p>
-在任何地方按一下 C-c m r，会出来一个 window 让你选择要创建 todo 还是 journal。选 t，然后输入内容就会自动插入到 ~/org/todo.org 的 * Tasks 里面。
-</p>
-<p>
-此后，如果任务完成的时候，打开 todo.org，然后在任务上面 C-c C-t，会提示输入状态。如果是从 TODO 变成了 DONE，那这条任务会被转移到 * Done 里面。
-</p>
-<p>
-因为里面都有时间，所以在 agenda list 里面，可以用 L 看到任务完成时间等。也将就用了。
-</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/auto-archive-task-for-org-mode/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

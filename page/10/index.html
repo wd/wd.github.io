@@ -102,34 +102,63 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="grub2-fbsplash-in-gentoo/">grub2 fbsplash in gentoo</a>
+		<a href="use-pdnsd-cache-you-dns-record/">使用 pdnsd 来缓存 dns</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2009-07-24T16:00:00.000Z" itemprop="datePublished">Jul 25, 2009</time>
+      <div class="date">Published on: <time datetime="2009-07-27T16:00:00.000Z" itemprop="datePublished">Jul 28, 2009</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/linux/">linux</a> <a href="/tags/hibernate/">hibernate</a> <a href="/tags/fbsplash/">fbsplash</a> <a href="/tags/grub2/">grub2</a>
+<a href="/tags/linux/">linux</a> <a href="/tags/dns/">dns</a> <a href="/tags/pdnsd/">pdnsd</a>
 </div>
     </div>
       
-        http://v.youku.com/v_show/id_XMTA4MDAwMjI0.html
+        如果你的网络实在很快，好像也没这个必要。当然我用他还有一个目的就是我的 dns 我做主，省的被劫持。
 
-<embed src="http://player.youku.com/player.php/sid/XMTA4MDAwMjI0/v.swf" quality="high" width="480" height="400" align="middle" allowscriptaccess="sameDomain" type="application/x-shockwave-flash">
+打开一个网页有时候 dns 查询就占了一些时间，如果想把这个时间也节省下来，那可以试试看这个。类似的软件还有 dnsmasq，我觉得 dnsmasq 没 pdnsd 灵活一点，反正基本的缓存功能肯定是都有的。。。我这还有同事用 bind 做缓存，呵呵，选什么看各自喜好了。
 
-具体方法参考下面的文章
-<li>1 <a href="http://wdicc.com/fbsplash-howto/">给系统加上 fbsplash 支持</a></li>
-<li>2 <a href="http://wdicc.com/how-to-use-grub2/">使用 grub2</a></li>
+我用的 wicd, 他会修改 /etc/resolv.conf 这个文件，就算在他的设置里面设置了全局 dns 也没用。不过还好他提供了一个 /etc/resolv.conf.head 文件。这个文件里面的东西会被放到 /etc/resolv.conf 的开头。所以我在那里面写上了 nameserver 127.0.0.1。
 
-视频最后从 休眠 启动后，提示了一个 xtrlock 的错误，应该是刚进桌面就休眠引起的，正常情况应该是启动后会锁定屏幕。
+具体到 pdns 的设置，好像我也没改什么。
+<pre class="prettyprint lang-conf">
+server {
+	label = "opendns";
+	ip = 202.181.224.2, 202.181.202.140;
+	#ip = 208.67.222.222, 208.67.220.220;
+#	reject = 208.69.32.0/24,  # You may need to add additional address ranges
+#	         208.69.34.0/24,  # here if the addresses of their search engines
+#	         208.67.219.0/24; # change.
+	reject_policy = fail;     # If you do not provide any alternative server
+	                          # sections, like the following root-server
+	                          # example, "negate" may be more appropriate here.
+	timeout = 4;
+	uptest = ping;            # Test availability using ICMP echo requests.
+   ping_timeout = 100;       # ping test will time out after 10 seconds.
+	interval = 15m;           # Test every 15 minutes.
+	preset = off;
+	policy=included;
+	exclude=".abc.com";
+}
+
+server {
+	label = "yahoo";
+	ip = 10.62.163.4, 10.62.163.9;
+	timeout = 4;
+	uptest = ping;
+	ping_timeout = 100;
+	interval = 15m;
+}
+</pre>
+
+我设置两个 server。第一个解析除了 .abc.com 之外的，第二个解析 .abc.com 。这个 abc.com 实际上是我们内网的一个地址，只能在内网 dns 解析。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/grub2-fbsplash-in-gentoo/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="http://wdicc.com/use-pdnsd-cache-you-dns-record/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -227,6 +256,40 @@ ok， 这里你可以再看看文件里面的东西。没问题就可以复制�
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/fbsplash-howto/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="grub2-fbsplash-in-gentoo/">grub2 fbsplash in gentoo</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2009-07-24T16:00:00.000Z" itemprop="datePublished">Jul 25, 2009</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/hibernate/">hibernate</a> <a href="/tags/fbsplash/">fbsplash</a> <a href="/tags/grub2/">grub2</a>
+</div>
+    </div>
+      
+        http://v.youku.com/v_show/id_XMTA4MDAwMjI0.html
+
+<embed src="http://player.youku.com/player.php/sid/XMTA4MDAwMjI0/v.swf" quality="high" width="480" height="400" align="middle" allowscriptaccess="sameDomain" type="application/x-shockwave-flash">
+
+具体方法参考下面的文章
+<li>1 <a href="http://wdicc.com/fbsplash-howto/">给系统加上 fbsplash 支持</a></li>
+<li>2 <a href="http://wdicc.com/how-to-use-grub2/">使用 grub2</a></li>
+
+视频最后从 休眠 启动后，提示了一个 xtrlock 的错误，应该是刚进桌面就休眠引起的，正常情况应该是启动后会锁定屏幕。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/grub2-fbsplash-in-gentoo/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -604,38 +667,6 @@ sqlite3 places.sqlite "VACUUM;"
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/modified-fetion-py/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="fuck-lvb/">我日 tmd 绿爸</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2009-06-24T16:00:00.000Z" itemprop="datePublished">Jun 25, 2009</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        操，你干掉别的也就好了，妈了个b的，把 google.com 干掉了
-
-操相关部门，日
-
-现在用 opendns 能通
-nameserver 208.67.222.222
-nameserver 208.67.220.220
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/fuck-lvb/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

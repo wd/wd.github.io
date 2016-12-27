@@ -102,6 +102,36 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="use-ivy-to-replace-isearch/">use ivy to replace isearch</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2016-01-10T11:22:20.000Z" itemprop="datePublished">Jan 10, 2016</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/emacs/">emacs</a>
+</div>
+    </div>
+      
+        <p>之前习惯使用 <code>isearch</code> 来搜索了，最近看别人使用 <code>ivy</code> 看着心痒痒的，就想试试看。其实 ivy 的效果和 <code>swoop</code> 很像，不过区别是 ivy 是在 minibuffer 来显示可选信息的，swoop 是在一个 buffer 显示的。有洁癖的可能稍微计较一下。</p>
+<figure class="highlight scheme"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="comment">;; ivy swiper</span></div><div class="line">(<span class="name">defun</span> wd-swiper-at-point ()</div><div class="line">  <span class="string">"Pull next word from buffer into search string."</span></div><div class="line">  (<span class="name">interactive</span>)</div><div class="line">  (<span class="name"><span class="builtin-name">let</span></span> (<span class="name">query</span>)</div><div class="line">    (<span class="name">with-ivy-window</span></div><div class="line">      (<span class="name"><span class="builtin-name">let</span></span> ((<span class="name">tmp</span> (<span class="name">symbol-at-point</span>)))</div><div class="line">        (<span class="name">setq</span> query tmp)))</div><div class="line">    (<span class="name"><span class="builtin-name">when</span></span> query</div><div class="line">      (<span class="name">insert</span> (<span class="name">format</span> <span class="string">"%s"</span> query))</div><div class="line">      )))</div><div class="line"></div><div class="line">(<span class="name">use-package</span> ivy</div><div class="line">  :config</div><div class="line">  (<span class="name">ivy-mode</span> <span class="number">1</span>)</div><div class="line">  (<span class="name">setq</span> ivy-use-virtual-buffers t)</div><div class="line">  (<span class="name">set-variable</span> <span class="symbol">'ivy-on-del-error-function</span> '(lambda()))</div><div class="line">  )</div><div class="line"></div><div class="line">(<span class="name">use-package</span> swiper</div><div class="line">  :config</div><div class="line">  (<span class="name">global-set-key</span> <span class="string">"\C-s"</span> <span class="symbol">'swiper</span>)</div><div class="line">  (<span class="name">define-key</span> swiper-map (<span class="name">kbd</span> <span class="string">"C-w"</span>) <span class="symbol">'wd-swiper-at-point</span>)</div><div class="line">  (<span class="name">define-key</span> swiper-map (<span class="name">kbd</span> <span class="string">"C-f"</span>) <span class="symbol">'swiper-avy</span>)</div><div class="line">  )</div></pre></td></tr></table></figure>
+<p>我大致做了上面几个设定，<code>\C-s</code> 绑定了 swiper，启动 swiper 之后用 <code>\C-w</code> 可以快速把光标位置的 symbol 放到 minibuffer 来搜索。然后 swiper 和 isearch 有个区别是，默认情况下，swiper 如果 minibuffer 没有内容，按 backspace 会退出，这个和 isearch 的习惯不一样，把 <code>ivy-on-del-error-function</code> 重新绑定一下就可以了。</p>
+<p>ivy 默认会绑定一个快捷键是在你 minibuffer 输入一些内容之后，会出来很多匹配结果，这个时候可以按 <code>C-&#39;</code> 调用 <code>swiper-avy</code> 方便你快速定位，也挺好用的。不过我这里不好用，不知道怎么回事，只好重新绑定了一下。</p>
+<p>还可以在 swiper 查询阶段按 <code>M-q</code> 进入替换模式。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="http://wdicc.com/use-ivy-to-replace-isearch/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="libmcrypt-ffi-module/">基于 ffi 的 libmcrypt 加密模块</a>
 	</h2>
     <div class="entry-content">
@@ -551,35 +581,6 @@
 <div class="meta">
 	
 		<span class="comments"><a href="http://wdicc.com/octopress-and-jeklly-1-dot-0-1/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="octopress-and-gitcafe/">octopress and gitcafe</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2013-06-12T13:30:00.000Z" itemprop="datePublished">Jun 12, 2013</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a>
-</div>
-    </div>
-      
-        <p>ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。</p>
-<figure class="highlight diff"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div><div class="line">60</div><div class="line">61</div><div class="line">62</div><div class="line">63</div><div class="line">64</div></pre></td><td class="code"><pre><div class="line">diff --git a/.gitignore b/.gitignore</div><div class="line">index 85ed25d..5858b25 100644</div><div class="line"><span class="comment">--- a/.gitignore</span></div><div class="line"><span class="comment">+++ b/.gitignore</span></div><div class="line">@@ -12,3 +12,4 @@ source/stylesheets/screen.css</div><div class="line"> vendor</div><div class="line"> node_modules</div><div class="line"> .themes/fabric/</div><div class="line"><span class="addition">+gitcafe</span></div><div class="line">diff --git a/Rakefile b/Rakefile</div><div class="line">index 53072e5..62061e0 100644</div><div class="line"><span class="comment">--- a/Rakefile</span></div><div class="line"><span class="comment">+++ b/Rakefile</span></div><div class="line">@@ -27,6 +27,9 @@ new_post_ext    = "markdown"  # default new post file extension when using the n</div><div class="line"> new_page_ext    = "markdown"  # default new page file extension when using the new_page task</div><div class="line"> server_port     = "4000"      # port for preview server eg. localhost:4000</div><div class="line"></div><div class="line"><span class="addition">+gitcafe_dir      = "gitcafe"</span></div><div class="line"><span class="addition">+gitcafe_branch   = "gitcafe-pages"</span></div><div class="line"><span class="addition">+</span></div><div class="line"></div><div class="line"> desc "Initial setup for Octopress: copies the default theme into the path of Jekyll's generator. Rake install defaults to rake install[classic] to install a different them</div><div class="line"> task :install, :theme do |t, args|</div><div class="line">@@ -219,7 +214,7 @@ end</div><div class="line"> ##############</div><div class="line"></div><div class="line"> desc "Default deploy task"</div><div class="line"><span class="deletion">-task :deploy do</span></div><div class="line"><span class="addition">+task :deploy_old do</span></div><div class="line">   # Check if preview posts exist, which should not be published</div><div class="line">   if File.exists?(".preview-mode")</div><div class="line">     puts "## Found posts in preview mode, regenerating files ..."</div><div class="line">@@ -231,6 +226,31 @@ task :deploy do</div><div class="line">   Rake::Task["#&#123;deploy_default&#125;"].execute</div><div class="line"> end</div><div class="line"></div><div class="line"><span class="addition">+desc "deploy gitcafe"</span></div><div class="line"><span class="addition">+task :deploy do</span></div><div class="line"><span class="addition">+  # Check if preview posts exist, which should not be published</span></div><div class="line"><span class="addition">+  if File.exists?(".preview-mode")</span></div><div class="line"><span class="addition">+    puts "## Found posts in preview mode, regenerating files ..."</span></div><div class="line"><span class="addition">+    File.delete(".preview-mode")</span></div><div class="line"><span class="addition">+    #Rake::Task[:generate].execute # 这个地方每次都会 generate 我一般喜欢先 generate 本地看好没问题之后再 deploy，所以就注释掉了</span></div><div class="line"><span class="addition">+  end</span></div><div class="line"><span class="addition">+</span></div><div class="line"><span class="addition">+  puts "## Deploying branch to Gitcafe Pages "</span></div><div class="line"><span class="addition">+  puts "\n## copying #&#123;public_dir&#125; to #&#123;gitcafe_dir&#125;"</span></div><div class="line"><span class="addition">+  cp_r "#&#123;public_dir&#125;/.", gitcafe_dir</span></div><div class="line"><span class="addition">+  cd "#&#123;gitcafe_dir&#125;" do</span></div><div class="line"><span class="addition">+    system "git add ."</span></div><div class="line"><span class="addition">+    system "git add -u"</span></div><div class="line"><span class="addition">+    puts "\n## Commiting: Site updated at #&#123;Time.now.utc&#125;"</span></div><div class="line"><span class="addition">+    message = "Site updated at #&#123;Time.now.utc&#125;"</span></div><div class="line"><span class="addition">+    system "git commit -m \"#&#123;message&#125;\""</span></div><div class="line"><span class="addition">+    puts "\n## Pushing generated #&#123;gitcafe_dir&#125; website"</span></div><div class="line"><span class="addition">+    system "git push origin #&#123;gitcafe_branch&#125; --force"</span></div><div class="line"><span class="addition">+    puts "\n## Gcafe Pages deploy complete"</span></div><div class="line"><span class="addition">+  end</span></div><div class="line"><span class="addition">+end</span></div><div class="line"><span class="addition">+</span></div><div class="line"><span class="addition">+</span></div><div class="line"> desc "Generate website and deploy"</div><div class="line"> task :gen_deploy =&gt; [:integrate, :generate, :deploy] do</div><div class="line"> end</div></pre></td></tr></table></figure>
-<p>然后需要在 octopus 根目录 clone 一下你的 gitcafe 项目到 gitcafe 目录<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line">$ git <span class="built_in">clone</span> git@gitcafe.com:wd/wd gitcafe</div><div class="line">....</div></pre></td></tr></table></figure></p>
-<p>然后就可以试试看 <code>rake generate</code> , <code>rake preview</code>, <code>rake deploy</code> 了。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/octopress-and-gitcafe/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
