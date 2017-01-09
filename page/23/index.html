@@ -271,6 +271,48 @@ main(){
 
   <article class="post">
 	<h2 class="title">
+		<a href="awstats-log/">awstats 如何统计以前的日志？</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-04-01T16:00:00.000Z" itemprop="datePublished">Apr 2, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/linux/">linux</a> <a href="/tags/apache/">apache</a> <a href="/tags/awstats/">awstats</a>
+</div>
+    </div>
+      
+        突然想安装一个awstats了，参考 <a href="http://www.chedong.com/tech/awstats.html" target="_blank" rel="external">车东</a> 的文章，安装了一个。可是发现一个问题，设置了logfile为 access_log.%YYYY-24%MM-24%DD-24.log 之后，发现只能把昨天的日志统计进来，可是我的log下面还有好多呢，想统计以前的，怎么弄呢？幸好，awstats已经考虑到这个问题了。
+
+awstats.pl 脚本支持在命令行指定logfile，这样简单了，改变这个参数就可以了。不过要注意的是，如果你的data里面已经处理新的日志，那么指定logfile也没用了，以前的没办法更新进来了。只能是删掉data里面的内容，然后重新从最早的开始生成一遍。我写了一个脚本来做这个事情。
+
+<pre class="prettyprint lang-bash">
+
+awstats_dir=/opt/tt2/awstats/wwwroot/cgi-bin
+logfile_dir="/usr/local/apache/logs/"
+
+cd $awstats_dir
+
+for file in `find $logfile_dir -name "access_log.2*" | sort`;do
+        #echo "$file"
+        ./awstats.pl －update -config=wd -LogFile=$file
+done</pre>
+
+保存为 awstats.sh ，然后执行就可以了。他会查找 logfile_dir 下面所有的 access_log.2 开头的文件，作为参数来更新记录。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/awstats-log/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="compress-apache/">给apache加了一个compress模块，mod_deflate</a>
 	</h2>
     <div class="entry-content">
@@ -318,48 +360,6 @@ Gecko/20070309 irefox/2.0.0.3"</pre>
 
   <article class="post">
 	<h2 class="title">
-		<a href="awstats-log/">awstats 如何统计以前的日志？</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-04-01T16:00:00.000Z" itemprop="datePublished">Apr 2, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/other/">other</a> <a href="/tags/linux/">linux</a> <a href="/tags/apache/">apache</a> <a href="/tags/awstats/">awstats</a>
-</div>
-    </div>
-      
-        突然想安装一个awstats了，参考 <a href="http://www.chedong.com/tech/awstats.html" target="_blank" rel="external">车东</a> 的文章，安装了一个。可是发现一个问题，设置了logfile为 access_log.%YYYY-24%MM-24%DD-24.log 之后，发现只能把昨天的日志统计进来，可是我的log下面还有好多呢，想统计以前的，怎么弄呢？幸好，awstats已经考虑到这个问题了。
-
-awstats.pl 脚本支持在命令行指定logfile，这样简单了，改变这个参数就可以了。不过要注意的是，如果你的data里面已经处理新的日志，那么指定logfile也没用了，以前的没办法更新进来了。只能是删掉data里面的内容，然后重新从最早的开始生成一遍。我写了一个脚本来做这个事情。
-
-<pre class="prettyprint lang-bash">
-
-awstats_dir=/opt/tt2/awstats/wwwroot/cgi-bin
-logfile_dir="/usr/local/apache/logs/"
-
-cd $awstats_dir
-
-for file in `find $logfile_dir -name "access_log.2*" | sort`;do
-        #echo "$file"
-        ./awstats.pl －update -config=wd -LogFile=$file
-done</pre>
-
-保存为 awstats.sh ，然后执行就可以了。他会查找 logfile_dir 下面所有的 access_log.2 开头的文件，作为参数来更新记录。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/awstats-log/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="sub-network/">对子网的一些理解</a>
 	</h2>
     <div class="entry-content">
@@ -390,32 +390,6 @@ done</pre>
 
   <article class="post">
 	<h2 class="title">
-		<a href="hukouben/">把户口本给领了</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-03-27T16:00:00.000Z" itemprop="datePublished">Mar 28, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a> <a href="/tags/户口/">户口</a>
-</div>
-    </div>
-      
-        <img src="http://photo1.yupoo.com/20070328/111649_1793103679.jpg"><br><br>总算领上了，不用拿那个户口页到处晃了。而且，好像还省了一笔钱。恩。<br>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/hukouben/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="glasses-and-maomao/">戴眼镜的小毛</a>
 	</h2>
     <div class="entry-content">
@@ -436,6 +410,32 @@ done</pre>
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/glasses-and-maomao/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="hukouben/">把户口本给领了</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-03-27T16:00:00.000Z" itemprop="datePublished">Mar 28, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a> <a href="/tags/户口/">户口</a>
+</div>
+    </div>
+      
+        <img src="http://photo1.yupoo.com/20070328/111649_1793103679.jpg"><br><br>总算领上了，不用拿那个户口页到处晃了。而且，好像还省了一笔钱。恩。<br>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/hukouben/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

@@ -103,7 +103,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="a-bug-of-qss/">qss不正常显示的问题</a>
+		<a href="cvs/">cvs</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -111,56 +111,36 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/Mail/">Mail</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
-        1 php3.x版本以上不正常显示
+        客户端配置最重要的是CVSROOT环境变量的配置。
 
-设置php.ini的<font color="#FF0000">register_globals = On</font>
+其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
 
-或者
+例如，我在使用我们实验室的CVS服务器时的配置为：
 
-修改getGraph.php添加
-<font color="#FF0000">$data=$_GET[&#39;data&#39;];
-$t=$_GET[&#39;t&#39;];
-修改getGraph1.php添加
-$data=$_GET[&#39;data&#39;];
-$s=$_GET[&#39;s&#39;];</font>
+:pserver:car@192.168.2.2:/had/src
 
-2 还不能正常显示
+每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。
 
-那可能你的qmail-scanner的版本是1.2以上的，此版本以上的log文件格式有些变化，qss却没有做相应更新，所以会有问题。你可以看看你的log文件的日期是不是下面这种格式
-Mon, 03 Jan 2005 04:01:57 CST
-如果是，那么差不多就是这个问题了。
+上面是摘抄的一段，用cvs需要先
 
-解决方法是在index.php里面查找
-<font color="#FF0000"># Calc the date timestamp</font>
-把他下面的5行语句用下面的替换
-<font color="#FF0000">   if ( eregi("(^[0-9]+)", $val[0]) )
-   {
-      # Calc the date timestamp
-      $date = explode("/",$val[0]);
-      $dateT = $date[0];
-      $date[0] = $date[1];
-      $date[1] = $dateT;
-      $date = strtotime(implode("/",$date));
-   }
-   else
-   {
-      $date = strtotime ($val[0]);
-   };
-</font>
+cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 
 
-参考网址
-<a href="http://www.tnpi.biz/internet/mail/toaster/faq.shtml#how_do_i_get_qmailscanner_statistics_to_work" target="_blank">here</a>
+登陆，或者设置$CVSROOT环境变量，之后用
+
+cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd
+
+就可以checkout更新了。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="https://wdicc.com/a-bug-of-qss/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/cvs/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -255,7 +235,7 @@ Mon, 03 Jan 2005 04:01:57 CST
 
   <article class="post">
 	<h2 class="title">
-		<a href="last-of-a-year/">到年底了</a>
+		<a href="isoqlog/">isoqlog</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -263,22 +243,36 @@ Mon, 03 Jan 2005 04:01:57 CST
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/heart/">heart</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
-        年底比较期待的一件事情就是tatter tools 1.0，功能更加强大了。希望能无缝升级。
+        isoqlog是用来统计域里面的邮件的。通过查看qmail的log文件，来统计进出的邮件。
 
-现在不得不承认和老婆两个人都太懒了。该我洗的碗非要推到第二天做饭前，该老婆打扫的地板一拖就是好几天，猫沙本来应该一天一清理，可非要等到看着似乎都没地方的才动手。得改改这些烂习惯了。
+配置文件在/usr/local/etc下面，isoqlog.conf
+<pre class="prettyprint lang-txt">
+#isoqlog Configuration file 
 
-得考虑年底给家里带点什么东西了。cc家里的话，回头再商量商量给买什么好。还是带点东西好。嗯。
+logtype     = "qmail-multilog"                          # log type qmai-multilog, qmail-syslog, sendmail, postfix
+logstore    = "/var/log/qmail"                          #
+domainsfile = "/usr/local/etc/isoqlog.domains"          #
+outputdir   = "/www/isoqlog/log"                        # html output directory
+htmldir     = "/usr/local/share/isoqlog/htmltemp"
+langfile    = "/usr/local/share/isoqlog/lang/english"
+hostname    = "xxx.com"
+
+maxsender   = 100
+maxreceiver = 100
+maxtotal    = 100  
+
+maxbyte     = 100</pre>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="https://wdicc.com/last-of-a-year/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/isoqlog/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -333,7 +327,7 @@ Mon, 03 Jan 2005 04:01:57 CST
 
   <article class="post">
 	<h2 class="title">
-		<a href="isoqlog/">isoqlog</a>
+		<a href="last-of-a-year/">到年底了</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -341,36 +335,22 @@ Mon, 03 Jan 2005 04:01:57 CST
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/other/">other</a>
+<a href="/tags/heart/">heart</a>
 </div>
     </div>
       
-        isoqlog是用来统计域里面的邮件的。通过查看qmail的log文件，来统计进出的邮件。
+        年底比较期待的一件事情就是tatter tools 1.0，功能更加强大了。希望能无缝升级。
 
-配置文件在/usr/local/etc下面，isoqlog.conf
-<pre class="prettyprint lang-txt">
-#isoqlog Configuration file 
+现在不得不承认和老婆两个人都太懒了。该我洗的碗非要推到第二天做饭前，该老婆打扫的地板一拖就是好几天，猫沙本来应该一天一清理，可非要等到看着似乎都没地方的才动手。得改改这些烂习惯了。
 
-logtype     = "qmail-multilog"                          # log type qmai-multilog, qmail-syslog, sendmail, postfix
-logstore    = "/var/log/qmail"                          #
-domainsfile = "/usr/local/etc/isoqlog.domains"          #
-outputdir   = "/www/isoqlog/log"                        # html output directory
-htmldir     = "/usr/local/share/isoqlog/htmltemp"
-langfile    = "/usr/local/share/isoqlog/lang/english"
-hostname    = "xxx.com"
-
-maxsender   = 100
-maxreceiver = 100
-maxtotal    = 100  
-
-maxbyte     = 100</pre>
+得考虑年底给家里带点什么东西了。cc家里的话，回头再商量商量给买什么好。还是带点东西好。嗯。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="https://wdicc.com/isoqlog/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/last-of-a-year/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -427,6 +407,34 @@ Database updated (42119 signatures) from db.cn.clamav.net (IP: 221.6.197.162)</p
 
   <article class="post">
 	<h2 class="title">
+		<a href="write-something/">随便写点</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-07T16:00:00.000Z" itemprop="datePublished">Jan 8, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a>
+</div>
+    </div>
+      
+        明天要去书展值班，比较郁闷，本来和我们毫不相关的事情，却要我们去干活，这个很不合理。可是目前这个公司就这样的，没办法。在这里呆了快4年了，不合理的事情见的太多了，也懒得去多想了，看大家的说法，国企可能都这个德性，而且私企也慢慢的在学这种风气。到底什么是好的工作环境，真不知道了。
+
+这几天天气还算可以，周六早上早早的起来了，觉得这个周末时间好长，想想还是不要把那么多时间浪费在睡觉上比较好，年轻是资本，还是多积累一下吧。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/write-something/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="another-arch/">这</a>
 	</h2>
     <div class="entry-content">
@@ -467,34 +475,6 @@ mplayer关于宽屏的设置：
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/another-arch/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="write-something/">随便写点</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-07T16:00:00.000Z" itemprop="datePublished">Jan 8, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        明天要去书展值班，比较郁闷，本来和我们毫不相关的事情，却要我们去干活，这个很不合理。可是目前这个公司就这样的，没办法。在这里呆了快4年了，不合理的事情见的太多了，也懒得去多想了，看大家的说法，国企可能都这个德性，而且私企也慢慢的在学这种风气。到底什么是好的工作环境，真不知道了。
-
-这几天天气还算可以，周六早上早早的起来了，觉得这个周末时间好长，想想还是不要把那么多时间浪费在睡觉上比较好，年轻是资本，还是多积累一下吧。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/write-something/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

@@ -103,7 +103,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="caphit-web-conf/">caphit web 配置</a>
+		<a href="qmail-conf-file/">Qmail的主要配置文件</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -111,71 +111,41 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/web/">web</a>
+<a href="/tags/Mail/">Mail</a>
 </div>
     </div>
       
-        httpd.conf
-ServerName caph
-AddDefaultCharset GB2312
-NameVirtualHost *
+        1．Qmail的主要配置文件
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www
-ServerName 210.72.203.226
+    qmail的配置文件是由多个文件组成的，不是集中在一个文件中，每个文件控制相应
+部分的功能和属性，一个可执行程序可能有多个配置文件控制，所有的配置文件共同决
+定了qmail运行的实现和模式。这些配置文件都在qmail的control目录中，本文的配置文
+件位于/var/qmail/control目录中
 
-AllowOverride None
-Options +ExecCGI
-AddHandler cgi-script .cgi .pl
-Order allow,deny
-Allow from all
+    1.1、badmailfrom
 
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www/caphbook
-ServerName www.caphbook.com
-ServerAlias caphbook.com caphbook.com.cn www.caphbook.com.cn
-ErrorLog logs/caphbook.com-error_log
-CustomLog logs/caphbook.com-access_log common
+    这个配置文件是控制邮件系统拒绝接收的邮件地址和邮件域，主要是为了防止垃圾
+邮件。如果一个邮件地址或者邮件域被列入到这个文件中，系统就会拒绝接收这个邮件
+地址发来的邮件，或者拒绝邮件域下所有邮件地址发来的邮件。不过这个配置文件只是
+一般的垃圾邮件防范手段，对于比较全面的垃圾邮件过滤技术还要靠第三方软件来实现
+。该文件的格式如下：
 
-#
-# ServerAdmin webmaster@aphit.com.cn
-# DocumentRoot /www/caphit
-# ServerName www.aphit.com.cn
-# ServerAlias aphit.com.cn
-#
-# Options Indexes
-#
-#
-#mail
-
-ServerAdmin webmaster@caphbook.com
-DocumentRoot /www/igenus
-ServerName mail.caphbook.com
-ServerAlias mail.caphbook.com.cn mail.aphit.com.cn
-ErrorLog logs/mail-error_log
-CustomLog logs/mail-access_log common
-
-ssl.conf
-
-此后
-service httpd restart
-chkconfig --level 345 httpd on
-
-php.ini
-register_globals = On
-max_execution_time = 60 ; Maximum execution time of each script, in seconds
-max_input_time = 120 ; Maximum amount of time each script may spend parsing request data
-memory_limit = 20M
-php.ini
-LimitRequestBody 52428800
-apache配置完毕
-
+    11@11.com //拒绝这个地址发来的邮件
+    22@2w.com
+    @33.com //拒绝这个邮件域下的所有帐号发来的邮件
+    @44.com
+<br>
+        
+          <p class="more-link">
+            <a href="qmail-conf-file/#more">Read More</a>
+          </p>
+        
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="https://wdicc.com/caphit-web-conf/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/qmail-conf-file/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -280,6 +250,32 @@ AllowUser ftp
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/proftpd-conf/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="igenus/">igenus</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/Mail/">Mail</a>
+</div>
+    </div>
+      
+        igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/igenus/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -544,7 +540,7 @@ vchkpw-smtp: vpopmail user not found
 
   <article class="post">
 	<h2 class="title">
-		<a href="igenus/">igenus</a>
+		<a href="caphit-web-conf/">caphit web 配置</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -552,62 +548,71 @@ vchkpw-smtp: vpopmail user not found
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/Mail/">Mail</a>
+<a href="/tags/web/">web</a>
 </div>
     </div>
       
-        igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。
+        httpd.conf
+ServerName caph
+AddDefaultCharset GB2312
+NameVirtualHost *
+
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www
+ServerName 210.72.203.226
+
+AllowOverride None
+Options +ExecCGI
+AddHandler cgi-script .cgi .pl
+Order allow,deny
+Allow from all
+
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www/caphbook
+ServerName www.caphbook.com
+ServerAlias caphbook.com caphbook.com.cn www.caphbook.com.cn
+ErrorLog logs/caphbook.com-error_log
+CustomLog logs/caphbook.com-access_log common
+
+#
+# ServerAdmin webmaster@aphit.com.cn
+# DocumentRoot /www/caphit
+# ServerName www.aphit.com.cn
+# ServerAlias aphit.com.cn
+#
+# Options Indexes
+#
+#
+#mail
+
+ServerAdmin webmaster@caphbook.com
+DocumentRoot /www/igenus
+ServerName mail.caphbook.com
+ServerAlias mail.caphbook.com.cn mail.aphit.com.cn
+ErrorLog logs/mail-error_log
+CustomLog logs/mail-access_log common
+
+ssl.conf
+
+此后
+service httpd restart
+chkconfig --level 345 httpd on
+
+php.ini
+register_globals = On
+max_execution_time = 60 ; Maximum execution time of each script, in seconds
+max_input_time = 120 ; Maximum amount of time each script may spend parsing request data
+memory_limit = 20M
+php.ini
+LimitRequestBody 52428800
+apache配置完毕
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="https://wdicc.com/igenus/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="cvs/">cvs</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/other/">other</a>
-</div>
-    </div>
-      
-        客户端配置最重要的是CVSROOT环境变量的配置。
-
-其格式是： :pserver:username@hostname(或者IP地址):CVS仓库路径
-
-例如，我在使用我们实验室的CVS服务器时的配置为：
-
-:pserver:car@192.168.2.2:/had/src
-
-每一个实验室的成员应该是用自己的mail服务器账户作为usernam，密码也是mail服务器的密码。
-
-上面是摘抄的一段，用cvs需要先
-
-cvs -d:pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd login 
-
-登陆，或者设置$CVSROOT环境变量，之后用
-
-cvs -d :pserver:anonymous@cvs.sourceforge.net:/cvsroot/pureftpd checkout pureftpd
-
-就可以checkout更新了。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/cvs/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/caphit-web-conf/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -1033,7 +1038,7 @@ contrib/test_installation.sh -doit测试
 
   <article class="post">
 	<h2 class="title">
-		<a href="qmail-conf-file/">Qmail的主要配置文件</a>
+		<a href="a-bug-of-qss/">qss不正常显示的问题</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -1045,37 +1050,52 @@ contrib/test_installation.sh -doit测试
 </div>
     </div>
       
-        1．Qmail的主要配置文件
+        1 php3.x版本以上不正常显示
 
-    qmail的配置文件是由多个文件组成的，不是集中在一个文件中，每个文件控制相应
-部分的功能和属性，一个可执行程序可能有多个配置文件控制，所有的配置文件共同决
-定了qmail运行的实现和模式。这些配置文件都在qmail的control目录中，本文的配置文
-件位于/var/qmail/control目录中
+设置php.ini的<font color="#FF0000">register_globals = On</font>
 
-    1.1、badmailfrom
+或者
 
-    这个配置文件是控制邮件系统拒绝接收的邮件地址和邮件域，主要是为了防止垃圾
-邮件。如果一个邮件地址或者邮件域被列入到这个文件中，系统就会拒绝接收这个邮件
-地址发来的邮件，或者拒绝邮件域下所有邮件地址发来的邮件。不过这个配置文件只是
-一般的垃圾邮件防范手段，对于比较全面的垃圾邮件过滤技术还要靠第三方软件来实现
-。该文件的格式如下：
+修改getGraph.php添加
+<font color="#FF0000">$data=$_GET[&#39;data&#39;];
+$t=$_GET[&#39;t&#39;];
+修改getGraph1.php添加
+$data=$_GET[&#39;data&#39;];
+$s=$_GET[&#39;s&#39;];</font>
 
-    11@11.com //拒绝这个地址发来的邮件
-    22@2w.com
-    @33.com //拒绝这个邮件域下的所有帐号发来的邮件
-    @44.com
-<br>
-        
-          <p class="more-link">
-            <a href="qmail-conf-file/#more">Read More</a>
-          </p>
-        
+2 还不能正常显示
+
+那可能你的qmail-scanner的版本是1.2以上的，此版本以上的log文件格式有些变化，qss却没有做相应更新，所以会有问题。你可以看看你的log文件的日期是不是下面这种格式
+Mon, 03 Jan 2005 04:01:57 CST
+如果是，那么差不多就是这个问题了。
+
+解决方法是在index.php里面查找
+<font color="#FF0000"># Calc the date timestamp</font>
+把他下面的5行语句用下面的替换
+<font color="#FF0000">   if ( eregi("(^[0-9]+)", $val[0]) )
+   {
+      # Calc the date timestamp
+      $date = explode("/",$val[0]);
+      $dateT = $date[0];
+      $date[0] = $date[1];
+      $date[1] = $dateT;
+      $date = strtotime(implode("/",$date));
+   }
+   else
+   {
+      $date = strtotime ($val[0]);
+   };
+</font>
+
+参考网址
+<a href="http://www.tnpi.biz/internet/mail/toaster/faq.shtml#how_do_i_get_qmailscanner_statistics_to_work" target="_blank">here</a>
+
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="https://wdicc.com/qmail-conf-file/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/a-bug-of-qss/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
