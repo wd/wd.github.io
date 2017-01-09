@@ -76,8 +76,9 @@
     
     <li>
     <div id="dark">
-        <form method="get" action="/search.html" id="search">
-            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        <form action="//www.google.com.hk/search" method="get" accept-charset="UTF-8" id="search">
+            <input type="hidden" name="sitesearch" value="https://wdicc.com" />
+            <input type="text" name="q" results="0" placeholder="Search..." x-webkit-speech />
         </form>
     </div>
     </li>
@@ -102,7 +103,7 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="qmail-conf-file/">Qmail的主要配置文件</a>
+		<a href="a-bug-of-qss/">qss不正常显示的问题</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -114,37 +115,84 @@
 </div>
     </div>
       
-        1．Qmail的主要配置文件
+        1 php3.x版本以上不正常显示
 
-    qmail的配置文件是由多个文件组成的，不是集中在一个文件中，每个文件控制相应
-部分的功能和属性，一个可执行程序可能有多个配置文件控制，所有的配置文件共同决
-定了qmail运行的实现和模式。这些配置文件都在qmail的control目录中，本文的配置文
-件位于/var/qmail/control目录中
+设置php.ini的<font color="#FF0000">register_globals = On</font>
 
-    1.1、badmailfrom
+或者
 
-    这个配置文件是控制邮件系统拒绝接收的邮件地址和邮件域，主要是为了防止垃圾
-邮件。如果一个邮件地址或者邮件域被列入到这个文件中，系统就会拒绝接收这个邮件
-地址发来的邮件，或者拒绝邮件域下所有邮件地址发来的邮件。不过这个配置文件只是
-一般的垃圾邮件防范手段，对于比较全面的垃圾邮件过滤技术还要靠第三方软件来实现
-。该文件的格式如下：
+修改getGraph.php添加
+<font color="#FF0000">$data=$_GET[&#39;data&#39;];
+$t=$_GET[&#39;t&#39;];
+修改getGraph1.php添加
+$data=$_GET[&#39;data&#39;];
+$s=$_GET[&#39;s&#39;];</font>
 
-    11@11.com //拒绝这个地址发来的邮件
-    22@2w.com
-    @33.com //拒绝这个邮件域下的所有帐号发来的邮件
-    @44.com
-<br>
-        
-          <p class="more-link">
-            <a href="qmail-conf-file/#more">Read More</a>
-          </p>
-        
+2 还不能正常显示
+
+那可能你的qmail-scanner的版本是1.2以上的，此版本以上的log文件格式有些变化，qss却没有做相应更新，所以会有问题。你可以看看你的log文件的日期是不是下面这种格式
+Mon, 03 Jan 2005 04:01:57 CST
+如果是，那么差不多就是这个问题了。
+
+解决方法是在index.php里面查找
+<font color="#FF0000"># Calc the date timestamp</font>
+把他下面的5行语句用下面的替换
+<font color="#FF0000">   if ( eregi("(^[0-9]+)", $val[0]) )
+   {
+      # Calc the date timestamp
+      $date = explode("/",$val[0]);
+      $dateT = $date[0];
+      $date[0] = $date[1];
+      $date[1] = $dateT;
+      $date = strtotime(implode("/",$date));
+   }
+   else
+   {
+      $date = strtotime ($val[0]);
+   };
+</font>
+
+参考网址
+<a href="http://www.tnpi.biz/internet/mail/toaster/faq.shtml#how_do_i_get_qmailscanner_statistics_to_work" target="_blank">here</a>
+
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/qmail-conf-file/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/a-bug-of-qss/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="snowing-now/">下雪了</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-11T16:00:00.000Z" itemprop="datePublished">Jan 12, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a>
+</div>
+    </div>
+      
+        这个冬天的第一场雪可能都不能算是雪，据说是某些地方下了几颗肉眼刚好看到的雪粒粒，而且还是就早晨一会，反正我没看到。
+
+第二场似乎应该就是元旦那次了吧，是元旦那天，还是元旦前夜，我忘记了，反正据说是下了，看到据说了吧，说明我还是没看到。呵呵。那两天都在家里呆着，没有出门，只是听说下雪之后站在阳台看了一眼，12层楼往下看，似乎没看到白色的积雪，也没看到哗哗的雪片。可能是我看的时候人家早停了吧，北京的雪基本上都是掉下来就化，所以地上没有积雪也正常的。
+
+这次算是第三次了吧。因为座位不靠窗，所以没有注意到，到隔壁办公室的时候，听他们说起来才注意到，外面的雪片还真大。早上走的时候其实就在下了，不过都是小颗粒，还没想到居然成大气候了，呵呵。
+
+雪现在还在下，在角落里面已经有了一些积雪了，走人走车的地方的雪基本都化了，地上好多水。北京的天气比较来说不够冷，但是够湿润，所以比较容易看到下雪，但是不容易看到积雪。我们家那里比较干燥，冬天就是干冷，下雪少，偶尔来一次就是大的，这一次之后，可能整个冬天都能到处看到积雪，尤其是村子后面的山头上，都白白的。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/snowing-now/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -200,46 +248,14 @@
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/linux-bridge-script/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/linux-bridge-script/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
 
   <article class="post">
 	<h2 class="title">
-		<a href="snowing-now/">下雪了</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-11T16:00:00.000Z" itemprop="datePublished">Jan 12, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        这个冬天的第一场雪可能都不能算是雪，据说是某些地方下了几颗肉眼刚好看到的雪粒粒，而且还是就早晨一会，反正我没看到。
-
-第二场似乎应该就是元旦那次了吧，是元旦那天，还是元旦前夜，我忘记了，反正据说是下了，看到据说了吧，说明我还是没看到。呵呵。那两天都在家里呆着，没有出门，只是听说下雪之后站在阳台看了一眼，12层楼往下看，似乎没看到白色的积雪，也没看到哗哗的雪片。可能是我看的时候人家早停了吧，北京的雪基本上都是掉下来就化，所以地上没有积雪也正常的。
-
-这次算是第三次了吧。因为座位不靠窗，所以没有注意到，到隔壁办公室的时候，听他们说起来才注意到，外面的雪片还真大。早上走的时候其实就在下了，不过都是小颗粒，还没想到居然成大气候了，呵呵。
-
-雪现在还在下，在角落里面已经有了一些积雪了，走人走车的地方的雪基本都化了，地上好多水。北京的天气比较来说不够冷，但是够湿润，所以比较容易看到下雪，但是不容易看到积雪。我们家那里比较干燥，冬天就是干冷，下雪少，偶尔来一次就是大的，这一次之后，可能整个冬天都能到处看到积雪，尤其是村子后面的山头上，都白白的。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/snowing-now/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="isoqlog/">isoqlog</a>
+		<a href="last-of-a-year/">到年底了</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -247,36 +263,22 @@
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/other/">other</a>
+<a href="/tags/heart/">heart</a>
 </div>
     </div>
       
-        isoqlog是用来统计域里面的邮件的。通过查看qmail的log文件，来统计进出的邮件。
+        年底比较期待的一件事情就是tatter tools 1.0，功能更加强大了。希望能无缝升级。
 
-配置文件在/usr/local/etc下面，isoqlog.conf
-<pre class="prettyprint lang-txt">
-#isoqlog Configuration file 
+现在不得不承认和老婆两个人都太懒了。该我洗的碗非要推到第二天做饭前，该老婆打扫的地板一拖就是好几天，猫沙本来应该一天一清理，可非要等到看着似乎都没地方的才动手。得改改这些烂习惯了。
 
-logtype     = "qmail-multilog"                          # log type qmai-multilog, qmail-syslog, sendmail, postfix
-logstore    = "/var/log/qmail"                          #
-domainsfile = "/usr/local/etc/isoqlog.domains"          #
-outputdir   = "/www/isoqlog/log"                        # html output directory
-htmldir     = "/usr/local/share/isoqlog/htmltemp"
-langfile    = "/usr/local/share/isoqlog/lang/english"
-hostname    = "xxx.com"
-
-maxsender   = 100
-maxreceiver = 100
-maxtotal    = 100  
-
-maxbyte     = 100</pre>
+得考虑年底给家里带点什么东西了。cc家里的话，回头再商量商量给买什么好。还是带点东西好。嗯。
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/isoqlog/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/last-of-a-year/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -324,7 +326,51 @@ maxbyte     = 100</pre>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/a-joke-2/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/a-joke-2/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="isoqlog/">isoqlog</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-01-10T16:00:00.000Z" itemprop="datePublished">Jan 11, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a>
+</div>
+    </div>
+      
+        isoqlog是用来统计域里面的邮件的。通过查看qmail的log文件，来统计进出的邮件。
+
+配置文件在/usr/local/etc下面，isoqlog.conf
+<pre class="prettyprint lang-txt">
+#isoqlog Configuration file 
+
+logtype     = "qmail-multilog"                          # log type qmai-multilog, qmail-syslog, sendmail, postfix
+logstore    = "/var/log/qmail"                          #
+domainsfile = "/usr/local/etc/isoqlog.domains"          #
+outputdir   = "/www/isoqlog/log"                        # html output directory
+htmldir     = "/usr/local/share/isoqlog/htmltemp"
+langfile    = "/usr/local/share/isoqlog/lang/english"
+hostname    = "xxx.com"
+
+maxsender   = 100
+maxreceiver = 100
+maxtotal    = 100  
+
+maxbyte     = 100</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/isoqlog/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -374,37 +420,7 @@ Database updated (42119 signatures) from db.cn.clamav.net (IP: 221.6.197.162)</p
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/clamav/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="last-of-a-year/">到年底了</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-01-10T16:00:00.000Z" itemprop="datePublished">Jan 11, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        年底比较期待的一件事情就是tatter tools 1.0，功能更加强大了。希望能无缝升级。
-
-现在不得不承认和老婆两个人都太懒了。该我洗的碗非要推到第二天做饭前，该老婆打扫的地板一拖就是好几天，猫沙本来应该一天一清理，可非要等到看着似乎都没地方的才动手。得改改这些烂习惯了。
-
-得考虑年底给家里带点什么东西了。cc家里的话，回头再商量商量给买什么好。还是带点东西好。嗯。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/last-of-a-year/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/clamav/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -450,7 +466,7 @@ mplayer关于宽屏的设置：
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/another-arch/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/another-arch/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -478,7 +494,7 @@ mplayer关于宽屏的设置：
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/write-something/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/write-something/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -506,7 +522,7 @@ mplayer关于宽屏的设置：
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/new-year/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/new-year/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -526,7 +542,7 @@ mplayer关于宽屏的设置：
     </div>
     <footer id="footer">
     <div style="display:inline">
-    Copyright &copy; 2016
+    Copyright &copy; 2017
 
     wd
 . Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |

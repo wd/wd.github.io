@@ -76,8 +76,9 @@
     
     <li>
     <div id="dark">
-        <form method="get" action="/search.html" id="search">
-            <input name="query" type="text" placeholder="Search..." x-webkit-speech />
+        <form action="//www.google.com.hk/search" method="get" accept-charset="UTF-8" id="search">
+            <input type="hidden" name="sitesearch" value="https://wdicc.com" />
+            <input type="text" name="q" results="0" placeholder="Search..." x-webkit-speech />
         </form>
     </div>
     </li>
@@ -137,7 +138,7 @@
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/portmap/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/portmap/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -213,14 +214,14 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/install-mysql/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/install-mysql/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
 
   <article class="post">
 	<h2 class="title">
-		<a href="del-30-day-old-file/">find命令查找删除30天之前的文件</a>
+		<a href="rsync-script/">rsync脚本的一个例子</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
@@ -228,21 +229,34 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/other/">other</a> <a href="/tags/find/">find</a>
+<a href="/tags/other/">other</a> <a href="/tags/rsync/">rsync</a>
 </div>
     </div>
       
-        find /data -name "xxx.*" -follow -ctime +30 -exec rm -rf {} \;
+        <pre class="prettyprint lang-bash">
 
-删除30天之前的文件。
--follow表示跟随链接。
+SYNCLOGFILE="/var/log/rsync-201.log"
+SYNCLOCKFILE="/var/lock/rsync-201.lock"
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n ">>> Sync log for " >> $SYNCLOGFILE
+date >> $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
+rm -f $SYNCLOCKFILE
+</pre>
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/del-30-day-old-file/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/rsync-script/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -276,41 +290,7 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/178-accident/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="use-rsa-and-dsa/">使用ssh的rsa和dsa验证登陆linux</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-04-23T16:00:00.000Z" itemprop="datePublished">Apr 24, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/other/">other</a> <a href="/tags/ssh/">ssh</a>
-</div>
-    </div>
-      
-        参考地址：http://www.5ilinux.com/ssh01.html
-
-按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。
-
-用putty使用这个密匙的时候就出问题了，验证不了。
-
-然后用putty生成公匙密匙，上传公匙，验证不了。
-
-后来用openssh自带的ssh-keygen生成了公匙密匙，然后用putty的keygen转换了一下，用putty登陆就可以了。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="http://wdicc.com/use-rsa-and-dsa/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/178-accident/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -344,7 +324,41 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/limite-ssh-access-ip/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/limite-ssh-access-ip/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="use-rsa-and-dsa/">使用ssh的rsa和dsa验证登陆linux</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-04-23T16:00:00.000Z" itemprop="datePublished">Apr 24, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/ssh/">ssh</a>
+</div>
+    </div>
+      
+        参考地址：http://www.5ilinux.com/ssh01.html
+
+按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。
+
+用putty使用这个密匙的时候就出问题了，验证不了。
+
+然后用putty生成公匙密匙，上传公匙，验证不了。
+
+后来用openssh自带的ssh-keygen生成了公匙密匙，然后用putty的keygen转换了一下，用putty登陆就可以了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/use-rsa-and-dsa/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -370,7 +384,7 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/iptables-on-remote-server/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/iptables-on-remote-server/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -402,7 +416,7 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/search-in-vim/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/search-in-vim/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -431,7 +445,7 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/man-in-debian/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/man-in-debian/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -462,7 +476,7 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
 
 <div class="meta">
 	
-		<span class="comments"><a href="http://wdicc.com/manage-route/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/manage-route/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -482,7 +496,7 @@ VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替�
     </div>
     <footer id="footer">
     <div style="display:inline">
-    Copyright &copy; 2016
+    Copyright &copy; 2017
 
     wd
 . Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
