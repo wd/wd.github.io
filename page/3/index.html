@@ -103,6 +103,144 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="Across-the-Great-Wall-we-can-reach-every-corner-in-the-world/">Across the Great Wall, we can reach every corner in the world</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2016-03-20T12:39:53.000Z" itemprop="datePublished">Mar 20, 2016</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/gfw/">gfw</a>
+</div>
+    </div>
+      
+        <p>科学上网估计是每个搞 IT 的人必须要掌握的知识了。简单讲讲我目前使用的一些方法。</p>
+<h2 id="国外服务"><a href="#国外服务" class="headerlink" title="国外服务"></a>国外服务</h2><p>首先肯定需要先有个国外的资源，比如买专业的 vpn ss 服务等。数据经过第三方都不一定那么可靠，我的主力邮箱在 gmail，可不想被攻破，所以我选择了自己购买和搭建服务。</p>
+<p>我买的是 linode 的服务，最便宜的是 10$ 一个月。也可以买一些美国的 kvm 或者 zen 的虚拟机，有比较便宜的一个月可能才不到 1$，当然这种便宜的一般很快就会卖没，得看运气。我的 linode 是和 3 个基友一起合租的，这样大家每个人一年也就 300 来块钱，也就一顿海底捞（我这两年非常喜欢用饭钱来衡量消费，吃饭可是天天都有的，但是有些消费，比如买软件，买服务这些一般都是一年或者几年才一次，比起吃饭真的便宜多了），一般都能承担的吧。</p>
+<p>早期我买过一些 ssh 服务，速度不稳定，因为很难限制超售。后来还买过云梯，他们提供的节点比较多速度还不错。</p>
+<p>有了 vps 搭一个 ssserver 就是很简单的了，就不多说了。服务器上面我还配置了 ocserv 这个支持 cisco 客户端的 vpn 服务。当然并不是所有 vps 都支持，有的 vps 没有 tun 设备，跑不起来，买的时候要注意。</p>
+<h2 id="ssh-方式"><a href="#ssh-方式" class="headerlink" title="ssh 方式"></a>ssh 方式</h2><p>使用 ssh 方式的时候，最早是直接 ssh 链接弄一个 socks 端口给本地，然后本地使用 pac 配合。</p>
+<p>后来有段时间被断的不行，就试了 stunnel，可以把 ssh 转为 https 服务，这样就可以跑在 443 端口了，和其他 https 服务比较难区分。可以起点作用。</p>
+<p>这个方式没法支持手机。</p>
+<h2 id="使用-ngx"><a href="#使用-ngx" class="headerlink" title="使用 ngx"></a>使用 ngx</h2><p>有段时间还使用 hosts 文件加 ngx 反向代理还翻墙。ngx 上面配置 google.com 和 twitter.com 的反向代理，然后手机或者电脑上面配置 hosts 指向 ngx。就可以实现翻墙了。不过因为都是 https 的网站，所以服务器上面得配置 https 的服务，证书得弄到电脑或者手机上面信任才行。</p>
+<p>这个手机想要支持的话，ios 比较麻烦，必须得越狱。</p>
+<h2 id="vpn-方式"><a href="#vpn-方式" class="headerlink" title="vpn 方式"></a>vpn 方式</h2><p>早期用 vpn 方式的时候，pptp 可以搭配 <a href="https://github.com/fivesheep/chnroutes" target="_blank" rel="external">chnrouts</a> 来实现国外和国内走不同的路由。用起来也不错，不过问题是全局的有时候切换也不方便，并且有时候还需要连公司的 vpn 路由一乱就麻烦了。</p>
+<p>pc 上面选择比较多。手机上面，试过 anyconnect，缺点就是全局翻墙（我试过让 server 只 push fb twitter 的路由，但是维护麻烦，效果也不好）。anyconnect 比较赞的地方是他的链接 cookie 可以设置比较长的有效期，这样网络切换什么的临时断开之后自动重连也不需要输入密码。哦，当然，我的 anyconnect 和后面提到的 openvpn 都是通过自己签的证书来认证的，也不需要输入密码。</p>
+<p>后来用过 openvpn，openvpn 是基友维护的。他的思路很赞。</p>
+<p>他买了一台 server 放家里，家里是联通 adsl 24h 联机，然后 server 上面跑一个 openvpn 的服务器端给手机连接用，服务器上面再通过 vpn 和 vps 的 vpn 链接，同时这机器配置只有国外路由才走 vps，国内都是直接链接。大概链路就是  手机 -&gt; 家里的 server -&gt; vps。如果是国内的网站，就直接通过家里的 server 访问了，比国外的 vps 访问速度快。</p>
+<p>这个方法还有好处是有时候一些公开的场合链接一些 wifi 的时候，很不安全，而通过 vpn 之后，数据都是加密的，就安全多了。我在 surge 之前，在 hosts 不能用之后，基本都是用这个和 anyconnect。</p>
+<h2 id="使用-ss"><a href="#使用-ss" class="headerlink" title="使用 ss"></a>使用 ss</h2><p>开始使用 ss 的时候，是使用 goagentx （貌似已经比较难找到下载了）的，这个工具异常好用，支持切换全局还是使用 pac 非常方便。pac 推荐使用 <a href="https://github.com/JinnLynn/genpac" target="_blank" rel="external">genpac</a> 来维护 pac，放到 dropbox 里面就可以四处用了。</p>
+<p>我有相当长一段时间都是这么翻墙的。直到后面 ios 9 放开网络权限之后，出来了 surge。surge 现在卖的太贵了，不建议购买，最近好像看到有一些新的软件也在出现，可以考虑。</p>
+<p>surge 出来之后，ios 基本就是用这个了。</p>
+<p>surge 也有 mac 版本。如果没有，使用 ss mac 版本也可以，搭配 pac 可以做到透明。</p>
+<h2 id="应对不稳定的网络情况"><a href="#应对不稳定的网络情况" class="headerlink" title="应对不稳定的网络情况"></a>应对不稳定的网络情况</h2><p>家里是联通 adsl，链接我的 linode 一直都比较稳定，速度不错也没有丢包。公司访问 linode 有时候丢包比较严重，不过也将就用了。去年去长沙出差，那边完全访问不能把我搞的很痛苦。回来就开始琢磨怎么搞。</p>
+<p>上面基友的思路提醒了我，就是自己家里一台 server 建长链接，然后在外面翻墙先连家里。但是家里的路由器完全不能定制，后来发现我的群晖的 nas 可以装 haproxy，就搞定这个事情了。在路由器上面映射一个端口给群晖，群晖上面跑 haproxy 转发到 linode。给路由器弄了个 ddns，在外面翻墙都连接这个 dns。</p>
+<p>群晖上面跑 haproxy 还不影响硬盘休眠，还挺不错。这样就彻底解决了我翻墙的问题了。</p>
+<p>但是遇到家里停电断网就虾米了。。</p>
+<h2 id="家里的全局翻墙方案"><a href="#家里的全局翻墙方案" class="headerlink" title="家里的全局翻墙方案"></a>家里的全局翻墙方案</h2><p>前段时间换了 Netgear R6300v2，才发现我之前错过了好多好玩的东西。刷了个国内论坛定制的梅林 rom，自带了 ss 客户端，并且配置的非常完美，支持多种翻墙策略，具体就不细说了。就说现在的效果吧。</p>
+<p>直接映射了端口到 linode 的 ss，并且也支持 ddns（我用的 3322 的），这样 nas 上面的 haproxy 就彻底可以不用了。</p>
+<p>路由器跑了 ss 客户端，加 redsocks2 和 dns2proxy，实现了国内网站直连，国外根据域名匹配到列表里面的服务器通过 ss 链接。这样家里所有的终端，不需要跑任何服务，就可以无缝翻墙了。我的 ps4，apple tv，ipad 上面的 yotube 都可以访问了。然后还支持黑名单，我把 nas 加进去了，防止使用 bt 下载的时候跑到国外流量。</p>
+<p>这样我目前手机和 mac 都是直接通过 surge，国外流量通过 3322 的 dns 先链接到路由器，然后转发到 linode 实现翻墙。</p>
+<h2 id="目前唯一的问题"><a href="#目前唯一的问题" class="headerlink" title="目前唯一的问题"></a>目前唯一的问题</h2><p>mac 版本的 surge，还不能自己配置网络，这样临时想关掉代理的时候，就比较麻烦，得去网络配置里面关。也不能很简单的配置让全部流量走 proxy，有时候需要测试下什么的，就比较麻烦。所以我现在有时候还会使用 goagentx 辅助一下。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/Across-the-Great-Wall-we-can-reach-every-corner-in-the-world/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="setup-proxy-for-emacs/">setup proxy for emacs</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2016-02-27T13:55:20.000Z" itemprop="datePublished">Feb 27, 2016</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/emacs/">emacs</a> <a href="/tags/osx/">osx</a>
+</div>
+    </div>
+      
+        <p>我在 mac 上面使用 emacs 都是使用 daemon + emacsclient 模式。使用 <code>paradox</code> 包管理(其实就是比 <code>list-package</code> 稍微多了一点功能’)，但是因为那些包什么的信息都在国外的网站，还有 github 什么的，导致速度巨慢甚至连不上，关键 emacs 单线程还得卡着别的操作，所以挺讨厌的(其实 paradox 提供了异步更新的方式，不会阻塞现在进程，但是有时候会不知道进度…)。</p>
+<p>思路就是使用 <code>proxychains</code>。</p>
+<p>新建一个 <code>/Library/LaunchAgents/gnu.emacs.daemon.plist</code> 文件</p>
+<figure class="highlight xml"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line"><span class="php"><span class="meta">&lt;?</span>xml version=<span class="string">"1.0"</span> encoding=<span class="string">"UTF-8"</span><span class="meta">?&gt;</span></span></div><div class="line"><span class="meta">&lt;!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN"</span></div><div class="line">    "http://www.apple.com/DTDs/PropertyList-1.0.dtd"&gt;</div><div class="line"> <span class="tag">&lt;<span class="name">plist</span> <span class="attr">version</span>=<span class="string">"1.0"</span>&gt;</span></div><div class="line">  <span class="tag">&lt;<span class="name">dict</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>Label<span class="tag">&lt;/<span class="name">key</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">string</span>&gt;</span>gnu.emacs.daemon<span class="tag">&lt;/<span class="name">string</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">key</span>&gt;</span>ProgramArguments<span class="tag">&lt;/<span class="name">key</span>&gt;</span></div><div class="line">    <span class="tag">&lt;<span class="name">array</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">string</span>&gt;</span>/usr/local/bin/proxychains4<span class="tag">&lt;/<span class="name">string</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">string</span>&gt;</span>-f<span class="tag">&lt;/<span class="name">string</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">string</span>&gt;</span>/Users/wd/.proxychains/proxychains.conf<span class="tag">&lt;/<span class="name">string</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">string</span>&gt;</span>/usr/local/opt/emacs-mac/bin/emacs<span class="tag">&lt;/<span class="name">string</span>&gt;</span></div><div class="line">      <span class="tag">&lt;<span class="name">string</span>&gt;</span>--daemon<span class="tag">&lt;/<span class="name">string</span>&gt;</span></div><div class="line">    <span class="tag">&lt;/<span class="name">array</span>&gt;</span></div><div class="line">   <span class="tag">&lt;<span class="name">key</span>&gt;</span>RunAtLoad<span class="tag">&lt;/<span class="name">key</span>&gt;</span></div><div class="line">   <span class="tag">&lt;<span class="name">true</span>/&gt;</span></div><div class="line">   <span class="tag">&lt;<span class="name">key</span>&gt;</span>ServiceDescription<span class="tag">&lt;/<span class="name">key</span>&gt;</span></div><div class="line">   <span class="tag">&lt;<span class="name">string</span>&gt;</span>Gnu Emacs Daemon<span class="tag">&lt;/<span class="name">string</span>&gt;</span></div><div class="line">   <span class="tag">&lt;<span class="name">key</span>&gt;</span>UserName<span class="tag">&lt;/<span class="name">key</span>&gt;</span></div><div class="line">   <span class="tag">&lt;<span class="name">string</span>&gt;</span>wd<span class="tag">&lt;/<span class="name">string</span>&gt;</span></div><div class="line">  <span class="tag">&lt;/<span class="name">dict</span>&gt;</span></div><div class="line"><span class="tag">&lt;/<span class="name">plist</span>&gt;</span></div></pre></td></tr></table></figure>
+<p>其中 <code>/Users/wd/.proxychains/proxychains.conf</code> 文件的内容如下</p>
+<figure class="highlight lsl"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line">strict_chain</div><div class="line">proxy_dns</div><div class="line">remote_dns_subnet <span class="number">224</span></div><div class="line">tcp_read_time_out <span class="number">15000</span></div><div class="line">tcp_connect_time_out <span class="number">8000</span></div><div class="line">localnet <span class="number">127.0</span><span class="number">.0</span><span class="number">.0</span>/<span class="number">255.0</span><span class="number">.0</span><span class="number">.0</span></div><div class="line">localnet <span class="number">10.0</span><span class="number">.0</span><span class="number">.0</span>/<span class="number">255.0</span><span class="number">.0</span><span class="number">.0</span></div><div class="line">localnet <span class="number">172.16</span><span class="number">.0</span><span class="number">.0</span>/<span class="number">255.240</span><span class="number">.0</span><span class="number">.0</span></div><div class="line">localnet <span class="number">192.168</span><span class="number">.0</span><span class="number">.0</span>/<span class="number">255.255</span><span class="number">.0</span><span class="number">.0</span></div><div class="line">quiet_mode</div><div class="line"></div><div class="line">[ProxyList]</div><div class="line">#socks5 <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">1080</span></div><div class="line">http <span class="number">127.0</span><span class="number">.0</span><span class="number">.1</span> <span class="number">6152</span></div></pre></td></tr></table></figure>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/setup-proxy-for-emacs/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="use-gearman-to-distribute-you-nagios-check/">use gearman to distribute you nagios check</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2016-01-18T07:14:36.000Z" itemprop="datePublished">Jan 18, 2016</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/nagios/">nagios</a> <a href="/tags/gearman/">gearman</a>
+</div>
+    </div>
+      
+        <h1 id="安装"><a href="#安装" class="headerlink" title="安装"></a>安装</h1><h2 id="gearman"><a href="#gearman" class="headerlink" title="gearman"></a>gearman</h2><p>需要 boost &gt; 1.39, libevent-devel, libuuid-devel, gperf<br>需要 gcc &gt;= 4.2</p>
+<p>export CC=gcc44<br>export CC=g++44</p>
+<h2 id="mod-gearman"><a href="#mod-gearman" class="headerlink" title="mod-gearman"></a>mod-gearman</h2><p>libtool-ltdl-devel ncurses-devel<br>–with-gearman</p>
+<h1 id="配置"><a href="#配置" class="headerlink" title="配置"></a>配置</h1><p>gearman 分为几个模块</p>
+<ul>
+<li>mod_gearman: 负责把 nagios 中的检查任务发给 gearmand job server</li>
+<li>gearmand: 负责接收任务，分配给 worker 执行。这个是个通用的队列管理服务。</li>
+<li>gearman_workder: 负责消费 gearmand 中的 job。</li>
+</ul>
+<p>其中 <code>mod_gearman</code> 的代码里面包括了上面提到的 mod_gearman 和 gearman_workder。</p>
+<p>所以规划好 gearmand 启动的机器，以及你的 worker 机器。其中要注意 worker 机器上面是会执行所有[1] nagios 监控</p>
+<p>需要配置的文件有几个</p>
+<ul>
+<li>nagios.cfg 增加 broker</li>
+<li>mod-gearman/etc/mod_gearman/mod_gearman_neb.conf broker 的配置文件</li>
+<li>mod-gearman/etc/mod_gearman/mod_gearman_worker.conf workder 的配置文件</li>
+</ul>
+<h1 id="启动"><a href="#启动" class="headerlink" title="启动"></a>启动</h1><ul>
+<li>先启动 gearmand 使用 mod-gearman/etc/init.d/gearmand 这个脚本。</li>
+<li>启动 worker 使用 mod-gearman/etc/init.d/mod_gearman_worker 这个脚本。启动之后可以用 gearman_top 看到多了一些队列。</li>
+<li>重启 nagios</li>
+</ul>
+<p>确认 nagios.log 里面正常加载了 gearman，然后看 gearman_top 里面开始有一些 run 的 job 了。</p>
+<h1 id="注意事项"><a href="#注意事项" class="headerlink" title="注意事项"></a>注意事项</h1><p>基本上使用 gearman 还算是对用户透明，需要配置的东西不多，默认配置就可以跑。</p>
+<p>一般使用 gearman 的时候都是现有 nagios 遇到瓶颈了，这个时候扩展的时候需要注意下，第一步可以在 nagios 机器上面（或者弄一台新的机器）做 gearman 的 job server，然后在 nagios 的机器上面跑一个 worker，这样基本就是 0 配置都可以跑起来，不会有任何问题。</p>
+<p>第一步完成之后就会需要增加 worker，这个时候就要注意了，新的 worker 机器上面，需要在相同的路径下面包括所有你用到的 nagios plugin（包括自己写的，也包括这些 plugin 依赖的其他内容，比如临时文件路径，配置文件等），否则分发过来的 job 会执行不成功。</p>
+<p>这个时候有个办法，就是把原来机器的 nagios 相关目录通过 nfs 共享给其他机器（但是得注意二进制程序是兼容的）。</p>
+<p>另外如果需要测试一下新的 worker，也可以通过配置只让 worker 执行某些 servicegroup 或者 hostgroup 的任务。要注意这个时候需要配置 service, eventhandler, host 都为 no，然后配置 servicegroups 或者 hostgroups。</p>
+<h1 id="Footnotes"><a href="#Footnotes" class="headerlink" title="Footnotes"></a>Footnotes</h1><p>[1] 其实 worker 是可以被配置为只处理某些监控的，这个后面会讲。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/use-gearman-to-distribute-you-nagios-check/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="use-ivy-to-replace-isearch/">use ivy to replace isearch</a>
 	</h2>
     <div class="entry-content">
@@ -463,125 +601,6 @@
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/diabetic-cat-maomao/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="campus-recruiting/">campus recruiting</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2013-10-07T08:38:00.000Z" itemprop="datePublished">Oct 7, 2013</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        <p>去年就参加了校招的笔试和面试，不过都是在北京，和其他同学的经验交流也不是很多，今年参加了外省3个地区的校招，有点心得记录一下。</p>
-<h3 id="笔试题"><a href="#笔试题" class="headerlink" title="笔试题"></a>笔试题</h3><p>笔试题非常重要，因为第一轮筛选全靠他了。</p>
-<p>笔试题的难度要考虑好，需要把哪些代码能力差的，思路不靠谱的都筛掉。当然通过一两道题筛人有可能漏掉好的，但是这种几率非常小，真漏掉也没办法，毕竟一般能通过的人会很多的。</p>
-<p>我的经验是，第一题出一道实际中存在的问题，但是又得让只会 c/c++ 的同学做起来不是很复杂的，不能只想着用 python 一句话就做出来之类，那样阅卷会很困难。比如把一句英文中所有单词的首字母大写，这种题就很好。但是比如给两个文件找他们共存的字符串就不太好，只会 c 语言的同学做这个题会很费劲。</p>
-<p>第二题稍微要有点区分度，要考察下数据结构相关的内容。比如 hash 懂不懂，排序算法会不会之类。</p>
-<p>我觉得笔试时间不宜太长，一道题给 20 分钟足够，也避免了不会的人在那瞎掰一通，将来阅卷困难。</p>
-<p>笔试也要注意考场纪律，不允许交头接耳，能隔开坐最好，不能的话，可以考虑让先来的都隔开，后来的往进插，这样能隔开好朋友，能最大限度避免作弊。看到作弊的要提醒一下，提醒无效的就收卷子，或者调座位。</p>
-<h3 id="面试"><a href="#面试" class="headerlink" title="面试"></a>面试</h3><p>一个人一天大致能面试 15 个左右，差不多 30-40 分钟一个。</p>
-<p>面试考察三个方面。</p>
-<ul>
-<li>搞过的项目，实验的方向，是否都弄明白了。这个一般就是一边讲，一边问，抓到点就详细问一下，看看是否确实掌握了，同时也能考察到他的学习能力。</li>
-<li>学校学的东西是否都扎实。这也就是所谓的基础知识了。一般就是数据结构算法，网络等。</li>
-<li>沟通交流是否顺畅。是不是能很好的理解问题，能通俗简单的讲明白学到的东西。</li>
-</ul>
-<p>就我面试的经验，我感觉上面三个方面就足够了，如果都觉得可以，那基本就没问题了。如果某个方面有缺陷，那还得看其他方面是否有很多的加分。</p>
-<h3 id="面霸"><a href="#面霸" class="headerlink" title="面霸"></a>面霸</h3><p>对于面霸，也不要直接拒绝，最好最后一天统一给安排一次笔试，出一道题考察一下。这题一定要有区分度，类似笔试题的第二题。否则阅卷很困难。题做的好的，可以安排面试一下。不要在面试中间插入面霸，对其他同学不公平。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/campus-recruiting/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="how-to-finding-a-job-for-graduates/">how to finding a job for graduates</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2013-10-07T07:43:00.000Z" itemprop="datePublished">Oct 7, 2013</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        <p>昨天晚上胃难受起来翻了会知乎，回答了<a href="http://www.zhihu.com/question/21721705/answer/19228492?utm_source=weibo&amp;utm_medium=weibo_share&amp;utm_content=share_answer&amp;utm_campaign=share_button" target="_blank" rel="external">一个问题</a>，也算校招的一个总结了。包含了给准备找工作的毕业生的一些建议。好久没写 blog 了，粘贴到这里除除草。</p>
-<p>刚好做了几天校招，或许对你有帮助。</p>
-<p>非计算机相关专业的同学，一般一些算法基础会稍差（当然也有自学数据结构且弄的比较明白的人），比较偏向实际应用开发方面，但是要注意并不是说做过很多类型的开发就会有很多的加分，而是要注重深入。</p>
-<p>招聘一般都会有笔试，笔试考察的是你写代码和解决问题的能力，随便用什么语言，能解决问题就可以。首先你得过笔试这关，写不了代码的，开发肯定是没办法招的。</p>
-<p>然后就是面试，比如就针对你做的开发，我会提问几个 python，java，html 相关的技术问题，看你是否确实使用并且掌握了他们的基本原理。开始会是一些非常简单的问题，比如 python 如何打印一个 dict 的所有 key，如何做类继承，如何调用执行外部命令等，就这些简单问题如果能答上来，一般会继续问一些相对深入的，了解下你熟悉的程度。这一关需要你对一些基础问题能答上来，如果后续也能答上来，那这方面的得分会比较高。如果基础问题答不上来，表示经验要么是瞎掰的，要么就是兴趣不在开发没用心研究过，那我基本不会给过。</p>
-<p>如果实际使用和学习过的东西都还算明白，那么后续会考察一些算法基础的东西，各种数据结构里面的东西，不过针对这种跨专业的，要求不会特别高，如果实在没了解过，那也没有办法。如果了解过且比较明白，那会有加分。不会也不会减分。</p>
-<p>此外还会考察交流沟通能力，思路是否清晰，思维是否敏捷等，这些方面好的话，会有加分。要注意这块如果有严重问题的，也不会给过，因为开发工程师是需要和其他人做配合工作的，如果沟通或者需求理解有问题，那是不行的。</p>
-<p>综合上面三块，看最后的结果。可以看出来，非计算机相关专业的，还是多少有点吃亏的。<br>哦对了，这是我们公司的要求，可能稍微有点高，就你贴出来的经验看，如果确实都是你做出来的，我感觉你至少找个开发的工作应该是没太大问题的，可能问题是在起点会是在哪里，是在大公司还是二流三流公司，呵呵。</p>
-<p>另外对于你想做 android 开发，其实并不是说你有过类似经验就只能找那个方向的工作，主要还是看你的兴趣在哪里，一般大学的那点经验对于一个公司来说，基本没什么用，太浅了。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/how-to-finding-a-job-for-graduates/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="octopress-and-jeklly-1-dot-0-1/">octopress and jeklly 1.0.1</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2013-06-12T13:45:00.000Z" itemprop="datePublished">Jun 12, 2013</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux-web/">linux,web</a>
-</div>
-    </div>
-      
-        <p>自从 jeklly 1.0.x 发布之后，我的 octopress 站点就在 github，gitcafe 上面更新不了了，写了新帖子然后 push 之后，会收到个邮件，说 generate site faild。</p>
-<p>等等。。这个不是静态站点吗？generate 你妹阿！！然后就找阿找阿找解决办法，尝试过下面这些</p>
-<ul>
-<li>touch 一个 .nojeklly 不让它 generate</li>
-<li>找 octopress 支持 jeklly 1.0.1 的新版本</li>
-<li>google 之，怎么可能就我遇到问题了呢</li>
-<li>使用 jeklly 1.0.1 单独搭一个，不用 octopress 了</li>
-<li>…其他忘记了的。。</li>
-</ul>
-<p>悲剧的是，以上这些方法没一个搞定了</p>
-<ul>
-<li>某处搜到的这个 .nojeklly 完全不管用</li>
-<li>octopress 2.1 这个 branch 支持 jeklly 1.0.1，可惜没能让他运转起来。。具体 release 日期似乎还没看到。。。</li>
-<li>google 不到有用的信息，唯一有用的就是有人给 octopress 提的 pull request，可惜被 merge 到 2.1 了</li>
-<li>这个倒是简单，可惜的是 octopress 其实背后做了很多事情，单纯的拿弄 post 过去发现有些文件解析不了，我遇到的是 <code>``` </code> 这个标记，是 octopress 支持的，可惜我的 post 里面好多都是这个。另外还有主题阿等等这些。</li>
-</ul>
-<p>综上，就觉得，nnd，这破玩意怎么这么复杂？！</p>
-<p>后来不知道哪天突然想到，我之前测试 hexo 的时候，它没有 jeklly 一说，不是也可以么？另外，github pages 的例子里面，也就是 echo 了一个文件呀，也没有 jeklly 阿，不是也可以么？然后就觉得豁然开朗，github 之流肯定是默认会给你处理 jeklly 的代码，然后产生一个 site，而不是直接使用你产生的 html 文件。回想之前每次 deploy github pages，都会收到一个邮件提醒说 site generate success 之类，那就应该是猜的没错了。</p>
-<p>然后就开始尝试只 push html（octopress 的结果文件在 public 里面）上去，结果确实如所料，毛问题都没有了，gitcafe 和 github 都可以了。总算舒服了。。另外还写了一个使用 octopress deploy 到 gitcafe 的<a href="http://wdicc.om/octopress-and-gitcafe/" target="_blank" rel="external">帖子</a>，有需要可以参考。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/octopress-and-jeklly-1-dot-0-1/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

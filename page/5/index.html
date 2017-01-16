@@ -103,6 +103,288 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="fdw-in-postgresql/">Postgresql 里面连接其他数据库</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2012-05-05T16:00:00.000Z" itemprop="datePublished">May 6, 2012</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/postgresql/">postgresql</a> <a href="/tags/dbi/">dbi</a> <a href="/tags/fdw/">fdw</a>
+</div>
+    </div>
+      
+        
+<p>PG 9.x 引入了 fdw，可以通过 pg 去连接其他 db，不仅限于其他 pg，还可以是 mysql，oracle，文件等。按照设计，fdw 还应该提供给查询规划器一些对方 db 的索引等信息，这样在查询过程中可以提升查询速度。
+</p>
+
+<div id="outline-container-1" class="outline-3">
+<h3 id="sec-1">dbi_link</h3>
+<div class="outline-text-3" id="text-1">
+
+
+<p>
+dbi 就是 perl 的 dbi，总的思想就是通过 plperl 写一些 function（所以也给了调试修改的便利），通过 dbi 去连接其他数据库，可以连接的 db 和 dbi 的支持一样。
+</p>
+<p>
+测试了一下，第一次连接的时候会 cache 对方 db 的信息，对于复杂库没测试成功，只有一个表的库连接成功，并且可以查询。查询的时候就和查询本地库没有区别。
+</p>
+<p>
+效率上面看，不是很高，每次查询都必然需要获取对方全部数据。就算是有 where 条件，也不会试用到对方 db 的索引。所以综合来看，只是提供了一个简单的方法来获取数据，最好是一次性的。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-3">
+<h3 id="sec-2">db_link</h3>
+<div class="outline-text-3" id="text-2">
+
+
+<p>
+db_link 本身是 pg 自带的，contrib 里面的。db_link 只支持 pg，建立连接之后，后续查询可以只指定使用哪个连接即可。
+</p>
+<p>
+相对 dbi_link，使用起来稍微复杂一点，需要特定的格式。效率上面看，查全表数据比 dbi_link 快。
+</p>
+<p>
+他有个优势是每次查询对方库的时候都需要指定一个 sql，而如果只需要少量数据的时候，可以在 sql 里面直接使用 where 来过滤数据，这样就能使用对方 db 的索引了，速度快很多。不过就是稍微有点繁琐。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-3">
+<h3 id="sec-3">fdw</h3>
+<div class="outline-text-3" id="text-3">
+
+
+<p>
+<a href="http://www.postgresonline.com/journal/archives/250-File-FDW-Family-Part-1-file_fdw.html" target="_blank" rel="external">http://www.postgresonline.com/journal/archives/250-File-FDW-Family-Part-1-file\_fdw.html</a> 这里有个链接，讲了 file fdw。其他 fdw 还没有试过。我理解 fdw 是否能使用对方 db 的索引，还需要看 fdw 的实现。file fdw 提供了类似 oracle 外部表一样的东西。实际上早年间 yahoo 的兄弟写过一个外部表的 pg 扩展的，不知道是不是这个 file fdw 就是从那来的。
+</p></div>
+</div>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/fdw-in-postgresql/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="controlmaster-in-ssh/">有跳板机的 ssh 登陆</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2012-05-05T16:00:00.000Z" itemprop="datePublished">May 6, 2012</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/ssh/">ssh</a>
+</div>
+    </div>
+      
+        
+<p>我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。
+</p>
+<p>
+大意是通过设置 proxycommand 来实现，我也写过一个 <a href="http://wdicc.com/cow-ssh-proxycommand/">http://wdicc.com/cow-ssh-proxycommand/</a> 。配置如下
+</p>
+
+
+<pre class="prettyprint lang-conf">
+# gateways
+Host abc
+     Hostname abc.com
+
+# servers
+Host *.xxx
+     ProxyCommand ssh abc exec nc %h %p 2>/dev/null
+</pre>
+
+<p>
+这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。
+</p>
+<p>
+倒霉的是，我厂有些 gateway 机器还需要使用 token，并不能使用 key 验证。虽然有了上面设置，如果从某个机器 cp 数据的时候，还得来回输入哪个 token，真他妈的 2b。
+</p>
+<p>
+还好 ssh 还提供了一个 controlmaster，很好的解决了这个问题。
+</p>
+
+
+<pre class="prettyprint lang-conf">
+Host *
+     User dong.wang
+     ServerAliveInterval 30
+     ControlMaster auto
+     ControlPath /tmp/ssh/master-%r@%h:%p
+     ControlPersist yes
+</pre>
+
+<p>
+上面这个设置是所有服务器启用 controlmaster，哪个 /tmp/ssh 目录可以自己设置，没有就创建一个。哪个 ControlPersist 可以是个时间。
+</p>
+<p>
+这样设置之后，第一次连接的时候，会启动一个 master。后续连接都会走这个，连接速度很快不说，还完全不需要输入什么 token。并且因为只有 gateway 需要输入 token，所以一个 gateway 只需要输入一次。实在是爽大了，真是居家旅行必备啊。就冲着连接速度快这一点也值了。
+</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/controlmaster-in-ssh/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="about-interview/">关于面试的一点经验</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2012-04-07T16:00:00.000Z" itemprop="datePublished">Apr 8, 2012</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a> <a href="/tags/interview/">interview</a>
+</div>
+    </div>
+      
+        <p>最近面试了不少，也算有点经验了，阶段总结一下。本文也基本是针对刚毕业的或者毕业没两年的，大牛就别看了，浪费时间。
+</p>
+
+<div id="outline-container-1" class="outline-2">
+<h2 id="sec-1">简历</h2>
+<div class="outline-text-2" id="text-1">
+
+
+<p>
+其实写简历的时候，为了能获得更多的面试机会，通常都会有些夸大，尤其是刚毕业没多久，经验不多的，这个情况更严重。把只看过两次的东西，说成熟悉，把用过几次的说成熟练。
+</p>
+<p>
+对于新人来说，这么做似乎会增加面试机会。但实际上，没有目的的面试，只会浪费双方的时间。很多次看到简历觉得似乎这个是我们需要的人，叫来问两句明白水平之后，基本就只能让对方走人了。不管怎么样，这对双方都是一个损失。
+</p>
+<p>
+与其夸大简历寻求面试机会，有时候还不如花点时间上个培训班。我见到过不少上培训班的，可能花 3 个月半年的，来了之后你问问题，答得也还算靠谱。不过上培训班能学到的水平大家也清楚，基本是比较初级的，对于高级职位没有帮助。
+</p>
+<p>
+总之吧，简历不好夸大，提到的东西至少得是你有自己见解的，否则还不如不提。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-2" class="outline-2">
+<h2 id="sec-2">面试题</h2>
+<div class="outline-text-2" id="text-2">
+
+
+<p>
+对于技术工程师，很多公司都有面试题。有些求职者可能觉得这个东西挺讨厌的，浪费时间。想知道水平直接聊聊不就完了。
+</p>
+<p>
+其实面试通常时间都不会很长，在这么短的时间内要决定时不时要一个人，也不是个简单的事情，要了解各方面。通常找工程师的时候，动手能力也是一项。从面试题能看出来动手能力。
+</p>
+<p>
+看你写 for 循环也能看出来你的基础扎实不扎实。我还真见过不少人使用他熟悉的语言，这些都写错的。
+</p>
+<p>
+当然，面试题不是一切，也不是不允许有笔误，毕竟现在那么多编辑工具都有提示，真没记住还不行么？错是可以错的，可是别人指出错误的时候你一要能看出来错误在哪里，二要虚心接受错误。别牛逼哄哄的还说什么从来不手写，都在编辑器写之类，那种态度要不得，哪个公司哪个领导都不愿意找一个大爷回来养着，伺候不起的。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-3" class="outline-2">
+<h2 id="sec-3">面试过程</h2>
+<div class="outline-text-2" id="text-3">
+
+
+<p>
+面试聊天期间大可不必紧张，你的主要目的是表达出来你会的东西。大可不必管对方需要什么样子的人，你合适不合适由对方做判断就好了。
+</p>
+<p>
+而同时其实面试官也会努力帮你，让你表达出你会的东西。
+</p>
+<p>
+至于说不会的东西怎么办？如实说就可以了。可以类比，但是千万不要狡辩，你要明白的是对方的水平肯定不会比你差，你的任何狡辩只能让对方觉得你这个人很无知自大。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-4" class="outline-2">
+<h2 id="sec-4">将来的团队</h2>
+<div class="outline-text-2" id="text-4">
+
+
+<p>
+面试不要只关注工资。一个好的工作环境，一个靠谱的团队，带给你的隐性收入远比眼前的工资来的多。不过说实话，这些收入恐怕1，2年就挖空了，那个时候如果一个公司不能按照行情给一个靠谱的价格，那就比较难能继续留住人了。也是个博弈吧，这些事情不是很懂。
+</p>
+<p>
+同时，找一个自己喜欢的愿意专研的工作也比较重要。
+</p>
+<p>
+当然，如果你就是想涨工资，那就另说。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-5" class="outline-2">
+<h2 id="sec-5">薪资</h2>
+<div class="outline-text-2" id="text-5">
+
+
+<p>
+不要尝试讨价还价。
+</p>
+<p>
+现在的 IT 公司薪资基本都是不透明的，普通员工通常都只知道自己的工资。
+</p>
+<p>
+如果你不想让自己觉得被坑，那最好在来面试之前就通过各个渠道去获取一下这个公司的薪资水平，并且确定自己能接受的最低工资是多少，可以通过朋友你自己等对你的评价来判断，不要依赖面试官。另外你工作的前一家公司给你的工资也是一个参考，觉得自己屈才的话，大可以往上提。
+</p>
+<p>
+综合考虑自己的能力，公司能给你带来的隐性收入，到时候直接报你能接受的最低工资就好了。如果是对方真的觉得你的水平不到那个工资，那也没办法的事情。重要的是自己能接受的最低限度是多少，就不要和对方讨价了，否则就算入职了回头也会郁闷的。
+</p>
+</div>
+
+</div>
+
+<div id="outline-container-6" class="outline-2">
+<h2 id="sec-6">跳槽</h2>
+<div class="outline-text-2" id="text-6">
+
+
+<p>
+如果是跳槽过来的，一般都会问一下为什么从原单位离职。建议如实交代，就算是因为工资不高等觉得好像放不到台面上面的原因。没关系的，诚信是个基本要求。
+</p>
+<p>
+跳槽也不建议太频繁。虽然现在通过跳槽涨工资是个普遍现象，但是也没有刚那边工作半年就来这边面试，并且要求工资涨 2k 的吧？那你再牛逼也没公司敢要，刚培养到能干活，跑了？
+</p></div>
+</div>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/about-interview/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="auto-archive-task-for-org-mode/">org-mode 里面自动归档任务</a>
 	</h2>
     <div class="entry-content">
@@ -691,358 +973,6 @@ robomm给我介绍的我联系过两个，其中有一个只是发email问了问
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/about-mao/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="about-org2blog/">介绍下 org2blog</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2011-10-23T16:00:00.000Z" itemprop="datePublished">Oct 24, 2011</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a> <a href="/tags/emacs/">emacs</a> <a href="/tags/org2blog/">org2blog</a>
-</div>
-    </div>
-      
-        <div id="outline-container-1" class="outline-2">
-<h2 id="sec-1">org2blog 是什么</h2>
-<div id="text-1" class="outline-text-2">
-
-<a href="https://github.com/punchagan/org2blog" target="_blank" rel="external">org2blog</a> 是用来把 org-mode 格式的文章发布到 wordpress 的工具。其实之前使用 webloger.el 也可以发布到 wordpress，不过是
-webloger.el 已经基本没人维护了，这个 org2blog 作者支持还很积极，另外 org-mode 还提供了一些额外的方便编辑的方法，所以其实
-是个不错的东东。
-
-</div>
-</div>
-<div id="outline-container-2" class="outline-2">
-<h2 id="sec-2">安装</h2>
-<div id="text-2" class="outline-text-2">
-
-其实按照上面地址的内容，安装很简单。
-<pre class="prettyprint">
-(setq load-path (cons "~/.emacs.d/org2blog/" load-path))
-(require 'org2blog-autoloads)</pre>
-<ol>
-	<li>依赖 <a href="http://launchpad.net/xml-rpc-el" target="_blank" rel="external">xml-rpc</a> ，添加到 load-path</li>
-	<li>需要最新版本的 org-mode，我使用的是 emacs 24 里面的 7.7，之前使用 7.5(?) 的时候，遇到了发布的时候会在文章结尾附加
-&lt;/body&gt;&lt;/html&gt; 导致 blog 的展现挂掉的问题。</li>
-</ol>
-</div>
-</div>
-<div id="outline-container-3" class="outline-2">
-<h2 id="sec-3">使用</h2>
-<div id="outline-container-3-1" class="outline-3">
-<h3 id="sec-3-1">配置</h3>
-<div id="text-3-1" class="outline-text-3">
-<pre class="prettyprint">
-;; org2blog
-;;
-
-(require 'org2blog-autoloads)
-(setq org2blog/wp-blog-alist
-      `(("abc"
-         :url "http://abc.com/xmlrpc.php"
-         :username "admin"
-         :password PWD
-         :keep-new-lines t
-         :confirm t
-         :wp-code nil
-         :tags-as-categories nil)
-        ))
-
-(setq org2blog/wp-buffer-template
-  "#+DATE: %s
-#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil TeX:nil 
-#+CATEGORY: Heart
-#+TAGS: 
-#+PERMALINK: 
-#+TITLE:
-\n")</pre>
-我不使用 wordpress 的 code 格式，所以设置了 wp-code 为 nil。可以定义多个 blog。
-
-</div>
-</div>
-<div id="outline-container-3-2" class="outline-3">
-<h3 id="sec-3-2">登陆，发帖</h3>
-<div id="text-3-2" class="outline-text-3">
-
-M-x org2blog/wp-login 会提示你要登陆哪个 blog
-M-x org2blog/wp-new-entry 会使用设置的 template 打开一个 buffer
-M-x org2blog/wp-post-buffer 保存成 draft
-M-x org2blog/wp-post-buffer-and-publish 真实发布
-
-另外，还可以发布一个 tree 而不是整个 org 文件，以及一些其他的操作就不多说了。
-
-发布源代码可以使用 BEGIN_SRC END_SRC 块，或者冒号开头的行会被当作源代码。
-
-我使用的是 wp-syntax，所以发布源代码使用 BEGIN_HTML 在里面使用 pre 标签
-<pre class="prettyprint">
-&lt;pre lang="lisp"&gt;
-(setq a 1)
-&lt;/pre&gt;
-#+END_HTML</pre>
-</div>
-</div>
-<div id="outline-container-3-3" class="outline-3">
-<h3 id="sec-3-3">其他</h3>
-<div id="text-3-3" class="outline-text-3">
-
-使用 org2blog 只能从 org 发布到 wordpress，不能从 wordpress 回到 org 文件再进行编辑，不过我看到有人已经提供了一个解决方
-法，或许将来也会支持这个功能。
-
-使用 org2blog 发布很讨厌的一点是，他会把你的 org 加上很多的 html 代码，再编辑的时候比较讨厌。
-
-org2blog 在 github 的页面 <a href="https://github.com/punchagan/org2blog" target="_blank" rel="external">https://github.com/punchagan/org2blog</a> 上面有不少有用的东西，建议看看。
-
-</div>
-</div>
-</div>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/about-org2blog/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="intro-openresty/">介绍下 openresty</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2011-10-22T16:00:00.000Z" itemprop="datePublished">Oct 23, 2011</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/web/">web</a> <a href="/tags/linux/">linux</a> <a href="/tags/javascript/">javascript</a> <a href="/tags/openresty/">openresty</a>
-</div>
-    </div>
-      
-        一直没有时间使用 ngx_lua，上周算是真正使用了下，总结下，也算是帮忙推广下 openresty。
-<div id="outline-container-1" class="outline-2">
-<h2 id="sec-1">什么是 openresty</h2>
-<div id="text-1" class="outline-text-2">
-
-openresty 的主力作者是 <a href="http://weibo.com/agentzh" target="_blank" rel="external">@agentzh</a> 它的网页在 <a href="http://openresty.org" target="_blank" rel="external">这里</a>，上面有介绍。按我的理解，他是介于客户端浏览器 js 和数据库之间的一层。
-
-在 ajex 还没有盛行的时代，数据库的数据需要展现在浏览器的时候，一般都是使用 php/jsp 之类读取数据，然后拼表格/图表这些。在客户端机器越来越牛逼之后，把部分运算放在浏览器里面开始盛行，ajex 也越来越流行。这个时候通常还需要有个服务器端的程序来配合从数据库获取并提供数据，应该也有不少类似的程序来提供这个数据。
-
-老版本的 openresty 是基于 perl 做的，可以上 cpan 上面 <a href="http://search.cpan.org/~agent/OpenResty-0.5.12/lib/OpenResty/Spec/REST_cn.pod" target="_blank" rel="external">搜到</a> (不知道为啥这页面我打不开了)。agentzh 还专门为他写了一个 admin site，纯 js + oprensty 来实现的，可以直接在上面配置接口，很方便。目前老版本应该没人用了。
-
-新版本的 openresty 基本上等于是 nginx 和一些 nginx 模块的集合，大部分模块都是 agentzh 和 <a href="https://github.com/chaoslawful" target="_blank" rel="external">chaoslawful</a> 完成的，目前 agentzh 离职在家全职开发 openresty 相关，chaoslawful 还在淘宝 <a href="http://linezing.com" target="_blank" rel="external">量子统计</a> 。
-
-这大概就是我了解的 openresty 的起源和目前的情况。写的比较简单，里面的曲折就不多说了，可以找上面提到的大牛聊天。
-
-</div>
-</div>
-<div id="outline-container-2" class="outline-2">
-<h2 id="sec-2">怎么使用 openresty</h2>
-<div id="text-2" class="outline-text-2">
-
-我下面用一个简单的例子来描述下，我是怎么使用 openresty 的，从中应该能看出来 openresty 能干啥，怎么用。
-
-</div>
-<div id="outline-container-2-1" class="outline-3">
-<h3 id="sec-2-1">需求</h3>
-<div id="text-2-1" class="outline-text-3">
-
-在 postgresql 数据库有张网站日访问流量表，包含两个字段 thedate 和 pv。需要把里面的数据展现出来，画出来流量曲线。
-
-<dl><dt>注意</dt><dd>下面的代码大都从现有程序里面扒出来的，所以不一定直接就能用，只是个示意而已。</dd></dl></div>
-</div>
-<div id="outline-container-2-2" class="outline-3">
-<h3 id="sec-2-2">安装 openresty</h3>
-<div id="text-2-2" class="outline-text-3">
-
-首先需要安装 openresty。从 <a href="http://openresty.org" target="_blank" rel="external">openresty.org</a> 下载当前的 stable 版本 ngx_openresty-1.0.6.22.tar.gz。
-<pre class="prettyprint lang-bash">
-$ cd ngx_openresty-1.0.6.22
-$ ./configure --with-http_drizzle_module --with-http_postgres_module --with-pg_config=/opt/pg90/bin/pg_config --prefix=/usr/local/openresty --with-libdrizzle=/usr/local/libdrizzle/ --with-luajit --with-http_iconv_module # 这是我用到的参数，按照需要加减
-$ make
-# make install</pre>
-configure 的时候 postgres_module 是必须的，其他的 drizzle_module 是用来支持从 mysql 获取数据的，iconv_module 是用来做编码转换的，luajit 据说可以提升不少性能。
-
-不出问题的话，在 /usr/local/openresty 目录下面就安装好了。其实更合理的方式应该是提供一个 rpm 或者 deb 包的。
-
-</div>
-</div>
-<div id="outline-container-2-3" class="outline-3">
-<h3 id="sec-2-3">启动 nginx</h3>
-<div id="text-2-3" class="outline-text-3">
-
-openresty 给提供了简单可用的 nginx.conf，所以现在可以先尝试启动下 /usr/local/openresty/nginx/sbin/nginx 了，如果启动没问题，那就 ok 了。
-
-配置文件在 /usr/local/openresty/nginx/conf/nginx.conf。
-
-</div>
-</div>
-<div id="outline-container-2-4" class="outline-3">
-<h3 id="sec-2-4">配置 nginx</h3>
-<div id="text-2-4" class="outline-text-3">
-
-主要就是配置 /usr/local/openresty/nginx/conf/nginx.conf，以后很多事情都会在这里面来完成，说是 nginx.conf 编程也不为过，呵呵。
-
-增加下面的配置
-<pre class="prettyprint lang-conf">
-
-    upstream pgsql {
-        postgres_server server_ip:5432 dbname=test password=123 user=test;
-        #postgres_keepalive  max=2 mode=single overflow=reject;
-        postgres_keepalive off;
-    }
-
-# server 里面增加一个 location
-
-       location /=/pv {
-            postgres_query 'select thedate, pv from pv';
-            postgres_pass pgsql;
-
-            rds_json on;
-            rds_json_format compact;
-
-            xss_get on;
-            xss_callback_arg '_c';
-        }</pre>
-<ol>
-	<li>其中关于 upstream postgres 用来定义需要连接的数据库信息，和发送 sql 到数据库，可以参考 <a href="https://github.com/FRiCKLE/ngx_postgres/" target="_blank" rel="external">这里</a>。</li>
-	<li>rds_json 用来将数据库的输出变成 json 格式，可以参考 <a href="https://github.com/agentzh/rds-json-nginx-module" target="_blank" rel="external">这里</a> 。</li>
-	<li>xss_get 用来支持跨域，jquery 默认使用的 callback 参数是 _c，可以参考 <a href="https://github.com/agentzh/xss-nginx-module" target="_blank" rel="external">这里</a>。</li>
-</ol>
-这样配置好之后，重启下。结果应该很清晰了，请求 <a href="http://your_ip/=/pv" target="_blank" rel="external">http://your\_ip/=/pv</a> 应该就可以得到数据库里面的数据了，可以使用 curl 看看结果，应该类似下面的
-<pre class="prettyprint lang-json">
-</pre></div>
-</div>
-<div id="outline-container-2-5" class="outline-3">
-<h3 id="sec-2-5">js 画图</h3>
-<div id="text-2-5" class="outline-text-3">
-
-挑一个画图程序，比如我用过的 <a href="http://highcharts.com" target="_blank" rel="external">highcharts</a>, <a href="http://www.amcharts.com/" target="_blank" rel="external">amcharts</a> 这些都不错，amcharts 是使用 flash 画图，兼容各种浏览器，highcharts 号称也支持，不过我弄出来的图在 chrome/firefox 下面没问题，ie 不支持，他用的是 svg 标签。
-
-就写几行代码来示意下吧
-<pre class="prettyprint lang-javascript">
-    $.ajax({
-        url : 'http://your_ip/=/pv',
-        success: function (data) {
-            renderPvCharts(data);
-        }
-    });
-
-    function renderPvCharts(data) {
-        $('body').append('</pre>
-<pre class="prettyprint lang-javascript">
-        var result = Utils.getSplineChartSeries( data ); # 将 nginx 返回的 json 格式数据转化为 highcharts 需要的格式
-        var options = {
-			chart: {
-                zoomType: 'xy',
-				renderTo: 'pv', # div 的 id
-				defaultSeriesType: 'spline'
-			},
-			title: {
-                text: '每日 pv'
-            },
-			xAxis: {
-                type: 'datetime'
-			},
-			tooltip: {
-				formatter: function() {
-			        return '<strong>'+ this.series.name +'</strong>
-'+
-						Highcharts.dateFormat('%e. %b', this.x) +': '+ this.y;
-				}
-			},
-			legend: {
-				layout: 'vertical',
-				align: 'right',
-				verticalAlign: 'top',
-				x: -10,
-				y: 100,
-				borderWidth: 0
-			},
-            series : result.y
-        };
-
-        var chart = new Highcharts.Chart( options );
-    };
-
-} );</pre>
-简单解释下
-<ol>
-	<li>在页面 readay 的时候，使用 ajex 设置回调函数并请求接口。</li>
-	<li>回调函数里面使用 Utils.getSplineChartSeries 转换一下数据，方便直接给 options 里面数据赋值，具体需要的数据格式，看 highcharts 的 spline 的 demo 就可以。</li>
-	<li>回调函数里面显示图表。</li>
-</ol>
-这样就完事了，数据就展现出来了。
-
-</div>
-</div>
-<div id="outline-container-2-6" class="outline-3">
-<h3 id="sec-2-6">其他</h3>
-<div id="text-2-6" class="outline-text-3">
-
-从上面可以看到整个数据流是怎么回事。openresty 可以做的事情远比上面描述的复杂，上面只是个最简单的应用了。
-<ol>
-	<li>比如使用 <a href="https://github.com/agentzh/rds-csv-nginx-module" target="_blank" rel="external">rds_csv</a> 来直接得到 csv 格式的数据提供给用户，而不是 json。</li>
-	<li>可以使用 <a href="https://github.com/chaoslawful/lua-nginx-module" target="_blank" rel="external">ngx_lua</a> 在 nginx.conf 里面使用 lua 来在服务器端对数据做一些处理再丢给浏览器。
-大家都知道 js 处理的数据太大的时候，会导致浏览器卡死，所以如果不方便通过 sql 控制输出的时候，可以使用 lua 来处理下。当然 这只是其中一个应用，使用 ngx_lua 你可以干很多事情，比如上面那个使用 js 来生成 spline 数据的函数就可以用 lua 来实现，lua 还可以和 c 结合来做一些事情。对于 location 的参数，在 ngx_lua 里面也是可以访问的，比如 ngx.var.arg_c 这样。具体还是看 wiki 吧，写不完的。
-<ol>
-	<li>openresty 还能直接访问 redis 和 memcached。</li>
-</ol>
-本篇只能算是一个入门而已，openresty 在淘宝量子统计的应用非常广泛。另外在 <a href="http://qunar.com" target="_blank" rel="external">去哪网</a> 也有不少应用，比如我知道的安全过滤模块，和一些数据报表，都是基于 openresty 的。
-
-附一个 highcarts 画的图
-
-<img class="alignnone" title="流量情况" src="http://wdicc.com/images/2011-10-24-171245_1100x312_scrot.png" alt="" width="1100" height="312"></li>
-</ol>
-</div>
-</div>
-</div>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/intro-openresty/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="generate_series-function-in-postgresql/">postgresql 里面的 generate_series</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2011-10-13T16:00:00.000Z" itemprop="datePublished">Oct 14, 2011</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a> <a href="/tags/postgresql/">postgresql</a>
-</div>
-    </div>
-      
-        
-<p>有个报表需要把几天的记录按照小时 join 起来，最开始的作法是通过 js 来 join 数据。后来遇到了问题，就是某天某个小时可能会没有记录，然后想破头了，在 js 里面循环的时候设置每天循环到的当前的小时。可崩溃的是还会出现有的是这两小时没有，有的是另外的，用 js 搞不定了，就尝试用 sql 搞定。
-</p>
-<p>
-sql 开始的方法是简单的使用 full join。然后发现没法保证主表在所有的小时都有记录。后来就发现了这个 generate_series 函数，发现很有意思。地址在这里 <a href="http://www.postgresql.org/docs/9.0/static/functions-srf.html" target="_blank" rel="external">http://www.postgresql.org/docs/9.0/static/functions-srf.html</a> 。这里还有个 generate_scripts 的函数，可以用来遍历数组产生一个表格的。
-</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/generate_series-function-in-postgresql/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

@@ -103,6 +103,166 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="glasses-and-maomao/">戴眼镜的小毛</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-03-27T16:00:00.000Z" itemprop="datePublished">Mar 28, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a> <a href="/tags/小毛/">小毛</a>
+</div>
+    </div>
+      
+        <img src="http://photo1.yupoo.com/20070328/111646_1474112226.jpg"><br><img src="http://photo1.yupoo.com/20070328/111643_180303892.jpg"><br>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/glasses-and-maomao/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="egg-and-rice/">蛋炒饭</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-03-24T16:00:00.000Z" itemprop="datePublished">Mar 25, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a> <a href="/tags/蛋炒饭/">蛋炒饭</a>
+</div>
+    </div>
+      
+        上周邻居过来吃饭，米饭弄多了。这两天周末吃了三顿蛋炒饭，都是我做的，呵呵。<br><br><img src="http://photo1.yupoo.com/20070325/211953_1885917037.jpg"><br><br>看看如何，自我感觉还不错，呵呵。不足的是差点绿色。葱也是白色的。<br>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/egg-and-rice/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="irssi-script-howto/">Irssi script howto</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-03-20T16:00:00.000Z" itemprop="datePublished">Mar 21, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a> <a href="/tags/irssi/">irssi</a>
+</div>
+    </div>
+      
+        为 irssi 写一些简单的脚本其实不是很难。我大概讲解一下如何写作。
+
+<b>== 理解 signal ==</b>
+
+写过 vb 程序的都应该知道，vb 都是按照事件来触发执行程序的。例如你给某个窗体的 单击事件 写了代码，那么当这个窗体被单击的时候，就会执行你写的代码。
+
+在 irssi 也是类似，不过他的不是事件，是 signal 。你所要做的就是针对不同的 signal 写不同代码即可。
+
+irssi 的 signal 在这个 <a href="http://irssi.org/documentation/signals" target="_blank" rel="external">文档</a> 里面都写的很全了，此外安装 irssi 的时候也会安装 irssi 的一些文档，里面也有 signal 的相关文档。
+
+<b>== 一个简单脚本 ==</b>
+
+脚本头部要包含一些脚本的信息，例如下面。
+
+<pre class="prettyprint lang-perl">
+use vars qw($VERSION %IRSSI);
+use Irssi;
+
+$VERSION = '1.00';
+%IRSSI = (
+    authors     => 'wd',
+    contact     => 'wd#wdicc.com',
+    name        => 'My first Script',
+    description => 'This script notify ' .
+                   'you when recive msg.',
+    license     => 'Public Domain',
+);
+
+sub recive_msg{
+    my ($server, $msg, $nick, $address, $target) = @_;
+    #do nothing 
+
+}
+
+Irssi::signal_add_first('message public',  'recive_msg');</pre>
+
+最下面那行就是截获 irssi 的 signal 了。“message public”这个 signal 是在 irssi 接收到 public message 的时候产生，上面的脚本截获这个 signal 之后，执行后面的 revice_msg 函数 。查一下上面的 signal 文档可以找到下面的内容。
+
+ "message public", SERVER_REC, char *msg, char *nick, char *address, char *target
+
+这表示 irssi 在产生 message public 这个 signal 之后，还会同时传递后面的那些信息。上面那个脚本里面，这些信息都传递给了 recive_msg 函数。这样 recive_msg 函数的第一行就是设置一些变量来接收这些信息。
+
+这就是一个简单的 signal 的处理过程，当然，上面的这个脚本在截获 signal 之后其实什么都没有做。那么怎么让脚本和 irssi 交互呢？
+
+<b>== 和 irssi 交互 ==</b>
+
+按照上面的例子，可以用 $server->command() 或者 $server->print() 来和 irssi 交互。
+
+$server->command 可以在 irssi 里面执行一个 irssi 命令。例如
+
+ $server->command("msg wd hi");
+
+这样相当于在 irssi 里面输入 "/msg wd hi" 这个命令。其他命令类推一下。
+
+$server->print 可以在 irssi 里面打印一些信息，这些信息别人是看不到的，这些信息类似于 irssi 给你的消息。例如
+
+ $server->print("$server","a test msg");
+
+这些信息会在1号窗口（这个不一定，看连接了几个server）里面显示。
+
+有了 print 就可以在 irssi 里面测试 recive_msg 函数接收的信息都是什么意义了。试试看下面的命令
+
+ $server->print("$server","$nick send you a msg : $msg");
+
+<b>== 设置一些选项 ==</b>
+
+可以为脚本设置一些选项，这样也可以让脚本适合更多人使用。
+
+ Irssi::settings_add_str("wd","test","just for test");
+ Irssi::settings_add_bool('blah', 'blah_color', 1);;
+
+上面这两行设置了两个变量，一个是字符串 test，初始值为 "just for test"，另一个是布尔变量 blah_color ，初始值是1。第一个参数是设置将变量显示在哪个段，用 /set 命令查看的时候会看到。
+
+使用下面的命令可以获取设置。
+
+ $a = Irssi::settings_get_str("test");
+ $b = Irssi::settings_get_bool('blah_color');
+
+这样按照上面的设置， $a 的值就是 "just for test" ， $b 的值就是 1。当然，用户如果用 /set 命令来设置了这些参数，那么取回的信息就不一定是这些了。
+
+<b>== 参考资料 ==</b>
+
+<a href="http://juerd.nl/site.plp/irssiscripttut" target="_blank" rel="external">Scripting Irssi</a>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/irssi-script-howto/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="irssi-how-to/">Irssi How to</a>
 	</h2>
     <div class="entry-content">
@@ -403,6 +563,36 @@ cpio -idmv < ship.db.cpio</pre>
 
   <article class="post">
 	<h2 class="title">
+		<a href="people-in-prison-break/">Prison Break人物绰号详解</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2007-03-07T16:00:00.000Z" itemprop="datePublished">Mar 8, 2007</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a>
+</div>
+    </div>
+      
+        <p><strong>1. Haywire： Charles "Haywire"Patoshik<br/></strong><br/>adjective. 1. crazy, mad. 2. To go haywire = to go nuts.<br/>eg. That guy's been to the war and gone haywire.<br/>tags: crazy mad nuts looney insane<br/><br/>片中的疯子。绰号本身就是疯子的意思。<br/><br/>Hay 的意思是"干草"，wire的意思是"铁丝网"，haywire的意思也就是"捆绑干草的铁丝"。农民一般都是用一根细的铁丝把乾草一捆捆地捆起来。但是，haywire不知道什么时候就会忽然崩开或弹起来，不能很稳定系统的工作。也象一个人神经失控一样。铁丝这种四处乱弹乱跳的现象就形成了美国人常用的一个俗语，也就是：to go haywire，意思是"临时的、效率低的，出毛病"或者" 陷于混乱、兴奋得发狂、精神失常"。所以haywire的意思就扩展成可以形容任何公司和经营是"组织混乱的"和"不能正常工作的"。后来它也可以用来形容人，意思是"疯狂的"。</p>
+        
+          <p class="more-link">
+            <a href="people-in-prison-break/#more">Read More</a>
+          </p>
+        
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/people-in-prison-break/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="upgrade-cacti/">升级了一下cacti</a>
 	</h2>
     <div class="entry-content">
@@ -464,136 +654,6 @@ echo -e $"Starting $PROG:"
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/test-performancing/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="people-in-prison-break/">Prison Break人物绰号详解</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-03-07T16:00:00.000Z" itemprop="datePublished">Mar 8, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        <p><strong>1. Haywire： Charles "Haywire"Patoshik<br/></strong><br/>adjective. 1. crazy, mad. 2. To go haywire = to go nuts.<br/>eg. That guy's been to the war and gone haywire.<br/>tags: crazy mad nuts looney insane<br/><br/>片中的疯子。绰号本身就是疯子的意思。<br/><br/>Hay 的意思是"干草"，wire的意思是"铁丝网"，haywire的意思也就是"捆绑干草的铁丝"。农民一般都是用一根细的铁丝把乾草一捆捆地捆起来。但是，haywire不知道什么时候就会忽然崩开或弹起来，不能很稳定系统的工作。也象一个人神经失控一样。铁丝这种四处乱弹乱跳的现象就形成了美国人常用的一个俗语，也就是：to go haywire，意思是"临时的、效率低的，出毛病"或者" 陷于混乱、兴奋得发狂、精神失常"。所以haywire的意思就扩展成可以形容任何公司和经营是"组织混乱的"和"不能正常工作的"。后来它也可以用来形容人，意思是"疯狂的"。</p>
-        
-          <p class="more-link">
-            <a href="people-in-prison-break/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/people-in-prison-break/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="lvm-note/">lvm 学习笔记</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-03-05T16:00:00.000Z" itemprop="datePublished">Mar 6, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/other/">other</a> <a href="/tags/linux/">linux</a> <a href="/tags/LVM/">LVM</a>
-</div>
-    </div>
-      
-        lvm出来很久了，一直没弄过。当初的了解就是使用他之后就获得动态调整分区的特性。昨天装了一个rh，先尝试了一下使用这个lvm。
-
-<strong>lvm里面用到的一些概念</strong>
-
-lvm其实就是将一些“物理”分区，比如 /dev/hda1，/dev/hda6 ，或者“物理”硬盘，比如 /dev/hda，/dev/hdb 这些，都弄到一起，然后在外面看来，他们是一个整体，也就是一个VG（Volume Group，卷组），其实就类似于一块硬盘了。
-
-而这些“物理”分区，或者“物理”硬盘，就是 /dev/hda1，/dev/hdb 这些，就是一个个PV（Physical Volume，物理卷）。可以看到PV可以是一个分区，也可以是一块硬盘。
-
-有了VG我们还不能直接使用他，就和我们还需要给硬盘分区一样，我们也需要给VG分区，也就是创建LV（Logical Volume，逻辑卷）。这样，LV的数据其实就分布到了LV所在的VG里面，也就是所有的PV对应的分区或者硬盘里面。
-
-掌握了VG，PV，LV这些概念之后，操作起来就很容易了。
-        
-          <p class="more-link">
-            <a href="lvm-note/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/lvm-note/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="seems-last-snow/">看样子是今年最后一场雪了吧</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-03-03T16:00:00.000Z" itemprop="datePublished">Mar 4, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a> <a href="/tags/下雪/">下雪</a>
-</div>
-    </div>
-      
-        <a href="http://blog.wdicc.com/wordpress/2006/12/30/286/" target="_blank" rel="external">第一场雪之后</a>，今天估计应该是最后一场雪了。本来还打算这个周末去滑雪的，看样子没去还挺幸运。。。昨天下了雨，今天下了雪。。。他们去滑雪的不知道情况如何。
-
-<img src="http://photo1.yupoo.com/20070304/104518_1883243794.jpg" height="375" width="500">
-
-<img src="http://photo1.yupoo.com/20070304/104610_1257144738.jpg" height="375" width="500">
-
-<img src="http://photo1.yupoo.com/20070304/104520_1015849718.jpg" height="375" width="500">
-
-<a href="http://wdicc.yupoo.com/" target="_blank" rel="external">这里</a>还有一些图片。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/seems-last-snow/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="hard-work/">做客服真不容易</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2007-03-02T16:00:00.000Z" itemprop="datePublished">Mar 3, 2007</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        不投机倒把的话，赚钱都不容易。给电信网通这些做客服赚钱可更不容易了。之前有一个<a href="http://plod.popoever.com/archives/000590.html" title="猫吃卡" target="_blank">动感地带的猫</a>这个事件，现在又有了<a href="http://bbs.e222.com/dispbbs.asp?boardID=113&ID=8453" target="_blank">被股市大跌逼疯的人</a>。前面一个还是恶搞，郁闷归郁闷，至少还没有粗话。后面这个电信mm可就可怜多了，估计一接电话的那段开场白就把mm给吓坏了，那个人骂了好长时间之后，那个mm才回过神来开始说话。客服也应该对这种情况建立一种应急预案了吧。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/hard-work/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

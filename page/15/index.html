@@ -103,6 +103,148 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="howto-reset-ati-fglrx-settings/">万恶的 ATI fglrx 驱动</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-07-03T16:00:00.000Z" itemprop="datePublished">Jul 4, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/ati/">ati</a> <a href="/tags/fglrx/">fglrx</a>
+</div>
+    </div>
+      
+        ATI 官方驱动带了一个 amdcccle 命令，可以显示图形界面对显示器作一些设置，例如修改分辨率，twinview, dual head, bigdesktop 这些设置。其实 nvidia 的官方驱动也是带了这么一个工具的。
+
+但是呢，有时候就会发现，通过这个命令修改显示之后，你的xorg.conf 里面的设置就不起作用了！无论你之后如何去修改你的 xorg.conf ，他根本不会去理会。
+
+我遇到的问题就是，某次通过 amdcccle 设置了一下 bigdesktop，结果导致接上我的另外一个LCD之后，那个LCD的分辨率死活就卡在 1024x768 上了。要知道，那个LCD是支持 1280x1024的，可是无论如何设置，就是不能提高分辨率了。查看 xorg 的log，能看到读取的 /etc/X11/xorg.conf 文件，可是就是没效果。
+
+开始怀疑是显示器出于保护，把分辨率设置底了，结果接到别人的笔记本上面是没问题的。后来研究来研究去，发现还是 ATI 驱动的问题。
+
+/etc/ati 下面有不少文件，也不知道这些文件是什么用途，但是 amdpcsdb 这个文件就是罪魁祸首了。删掉后LCD的分辨率就正常了。
+
+很奇怪，我执行 amdcccle 的时候，用的可不是 sudo ，他是怎么写到这个文件里面的？
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/howto-reset-ati-fglrx-settings/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="greasemonkey-autologin-script/">自动登录网站的 greasemonkey 脚本</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-06-21T16:00:00.000Z" itemprop="datePublished">Jun 22, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/firefox/">firefox</a> <a href="/tags/greasemonkey/">greasemonkey</a>
+</div>
+    </div>
+      
+        自动登录 gmail 的 greasemonkey 脚本，可以根据需要修改 formElement.name=="Email" 为别的，来登录别的网站。注意修改 name, include 这些相关的东东
+<pre class="prettyprint lang-javascript">
+// (c) 2007, Yabin Guo
+// To install, you need Greasemonkey: http://greasemonkey.mozdev.org/
+//
+// --------------------------------------------------------------------
+// ==UserScript==
+// @name          gmail Login
+// @description   Auto-login of gmail
+// @include       https://www.google.com/a/wdicc.com/*
+// ==/UserScript==
+
+//replace your seraph username and password in the following expression;
+userName="wd";
+passWord="*******";
+
+function submitFirstPasswordForm() {
+	var form=document.forms[0];
+    var submitButton = null;
+	var passwordElem;
+	var accountElem;
+	var submitButton;
+    for (i=0; formElement=form[i]; ++i){
+		if(formElement.type=="password"){
+			passwordElem=formElement;
+		}else if(formElement.name=="Email"){
+			accountElem=formElement;
+		}else if(formElement.type=="submit"){
+			submitButton=formElement;
+		}
+	}
+
+	accountElem.value=userName;
+	passwordElem.value=passWord;
+
+    if (submitButton) {
+        submitButton.focus();
+        submitButton.style.MozOutline = "2px solid purple";
+        // Submit the form by calling click() on the submit button.
+        submitButton.click();
+        // Break out of both loops.
+        return; 
+      }
+}
+
+window.addEventListener(
+  "load", 
+  function() { 
+    setTimeout(submitFirstPasswordForm, 0); 
+  }, 
+  false
+);
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/greasemonkey-autologin-script/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="guanggaoguanggao/">张贴小广告~</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2008-05-24T16:00:00.000Z" itemprop="datePublished">May 25, 2008</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a>
+</div>
+    </div>
+      
+        <a href="http://uglyorbeauty.blog.sohu.com/" target="_blank" rel="external">http://uglyorbeauty.blog.sohu.com/</a>
+
+做个广告哈~嘿嘿，大家多捧场~
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/guanggaoguanggao/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="doing-exercise/">开始锻炼第二天</a>
 	</h2>
     <div class="entry-content">
@@ -363,36 +505,6 @@ my $test;
 
   <article class="post">
 	<h2 class="title">
-		<a href="usb-automount-in-gnome/">gnome 里面的 usb automount 终于好了</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-04-04T16:00:00.000Z" itemprop="datePublished">Apr 5, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a> <a href="/tags/gnome/">gnome</a> <a href="/tags/usb/">usb</a>
-</div>
-    </div>
-      
-        升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。。
-
-就连之前 分区不显示在桌面上面 的问题都好了，ft，和scsi有关系？
-
-gnome 下面有 gnome-volume-manager &amp; gnome-mount &amp; gnome-vfs 和自动挂载相关。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/usb-automount-in-gnome/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="jianlongxiejia-so-bad-movie/">《见龙卸甲》又一个大烂片诞生了</a>
 	</h2>
     <div class="entry-content">
@@ -421,88 +533,6 @@ gnome 下面有 gnome-volume-manager &amp; gnome-mount &amp; gnome-vfs 和自动
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/jianlongxiejia-so-bad-movie/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="emacsclient-conflict-with-pidgin/">搞定安装emacs之后pidgin打开邮箱的功能失效</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-04-04T16:00:00.000Z" itemprop="datePublished">Apr 5, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a> <a href="/tags/gnome/">gnome</a> <a href="/tags/pidgin/">pidgin</a>
-</div>
-    </div>
-      
-        安装emacs之后，发现在 pidgin 里面选择打开 hotmail 邮箱的时候不好用了，浏览器没反映，以前是会打开一个 file:///tmp/purple2CMD9T 这样的文件的，然后这个文件重定向到 hotmail 邮箱，其实说白了基本没用，还不如自己在浏览器打一个 hotmail.com，因为他好像不会发送你的帐户信息，就像在msn里面那样，直接登录。
-
-但是不能用了，总觉得心里堵的荒，趁着刚搞定 mplayer 对gnome的屏保的xxoo，以及 automount 的东风，一定要搞定这个，嗯。
-
-查看 pidgin 的debug信息可以看到，pidgin是调用xdg-open 来打开那个文件，由xdg-open 调用相应的程序来打开。命令行执行一下，可以看到xdg-open 调用了 emacsclient 来打开那个文件，这显然是不行的。
-<pre class="prettyprint lang-text">
-/usr/bin/emacsclient: can't find socket; have you started the server?
-To start the server in Emacs, type "M-x server-start".
-/usr/bin/emacsclient: No socket or alternate editor.  Please use:
---socket-nam
---server-file      (or environment variable EMACS_SERVER_FILE)
---alternate-editor (or environment variable ALTERNATE_EDITOR)</pre>
-怎么修改，尝试了 xdg-mime ，结果不行。今天 sssslang 提醒说 xdg-open 是个shell脚本，看了之后发现在gnome下面，他调用的其实是 gnome-open 来打开的。gnome-open 是个bin文件，没的看了。搜了一下，发现 /etc/gnome-vfs-mime-magic 似乎是用来判断文件类型的，根据文件的头。不过这个和打开程序没关系。
-
-然后找到 /usr/share/applications/mimeinfo.cache 这个文件，把里面emacsclient 相关的都删掉，反正我也不用他。然后还得把 /usr/share/applications/emacsclient.desktop 里面 MimeType 行干掉，要不后面执行更新的时候会再次把emacsclient 的信息更新到 mimeinfo.cache 里面。
-
-好了，执行一下 sudo update-desktop-database 更新一下cache，就没问题了。需要注意这个cache在 .local/share 下面也有一个。
-
-太高兴了，问题都解决了。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/emacsclient-conflict-with-pidgin/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="use-mplayer-in-gnome/">在gnome下面使用mplayer</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2008-04-04T16:00:00.000Z" itemprop="datePublished">Apr 5, 2008</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a> <a href="/tags/gnome/">gnome</a> <a href="/tags/mplayer/">mplayer</a> <a href="/tags/screensaver/">screensaver</a>
-</div>
-    </div>
-      
-        使用mplayer其实没必要用什么前端了，多简洁，不过可能是因为我很少看有字幕的视频的缘故。smplayer是基于qt的，有兴趣可以试试看，我觉得速度有点慢。此外还有gnome-mplayer，有选项可以stop gnome的screensaver。
-
-今天忽然兴起就想看看smplayer的最新版是否能在播放的时候屏蔽gnome screensaver，结果在他们论坛上面找到了方法。其实smplayer本身是没那个功能的，作为前端，他只是负责把 stop-xscreensaver 参数传递给mplayer而已。不过却发现了一个mpalyer的设置：
-<pre class="prettyprint lang-text">heartbeat-cmd="gnome-screensaver-command -p">
-这个设置不知道是从什么时候出现的，可以用来停止gnome的screensaver，放到 .mplayer/config 里面就行了。
-
-这下子gnome-screensaver 也可以干掉了，这玩意不支持mplayer的一些快捷键，例如osd切换。在播放一些有问题的文件的时候，还经常 cpu 100% 死掉。
-
-另外，gnome里面的文件，在nautilus里面双击默认的打开方式是由 /usr/share/applications 里面的那些desktop文件决定的，这些文件里面定义了可以打开什么类型的文件。gnome的菜单也是从这里生成的。当然，在文件上面右键-&gt;属性-&gt;打开方式也可以自定义一个。
-
-此外，~/.local/share/applications 里面也有一些 desktop，这些是你自定义的。比如系统经过判断，rmvb的文件使用 realplayer 来打开，但是你又想用 mplayer 来打开，那么就会在这个目录下面的文件里面记录下来。
-
-mplayer 的那个 desktop 文件里面指定的是 gmplayer 来打开文件的，我可不喜欢这个gmplayer，所以修改一下这个文件就好了。这样比自己添加自定义命令的好处是，有个图标。。。还有可以打开 smb:// 的文件。
-</pre>
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/use-mplayer-in-gnome/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

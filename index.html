@@ -103,6 +103,111 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="Python-inherit-and-super/">Python inherit and super</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2017-01-16T03:53:04.000Z" itemprop="datePublished">Jan 16, 2017</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/python/">python</a> <a href="/tags/super/">super</a> <a href="/tags/inherit/">inherit</a>
+</div>
+    </div>
+      
+        <p>又学习了一个 python 的继承。有很多帖子都有介绍，比如<a href="https://laike9m.com/blog/li-jie-python-super,70/" target="_blank" rel="external">理解 Python super</a>，<a href="http://www.cnblogs.com/lovemo1314/archive/2011/05/03/2035005.html" target="_blank" rel="external">python super()</a>。</p>
+<p>先看一个例子，这个是第一个文章里面的。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Root</span><span class="params">(object)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"this is Root"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span><span class="params">(Root)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter B"</span>)</div><div class="line">        super(B, self).__init__()</div><div class="line">        print(<span class="string">"leave B"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">C</span><span class="params">(Root)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter C"</span>)</div><div class="line">        super(C, self).__init__()</div><div class="line">        print(<span class="string">"leave C"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">D</span><span class="params">(C)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter D"</span>)</div><div class="line">        super(D, self).__init__()</div><div class="line">        print(<span class="string">"leave D"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">E</span><span class="params">(D, B)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter E"</span>)</div><div class="line">        super(E, self).__init__()</div><div class="line">        print(<span class="string">"leave E"</span>)</div><div class="line"></div><div class="line">e = E()</div><div class="line">print(e.__class__.mro())</div><div class="line"></div><div class="line"><span class="comment"># results:</span></div><div class="line"><span class="comment"># enter E</span></div><div class="line"><span class="comment"># enter D</span></div><div class="line"><span class="comment"># enter C</span></div><div class="line"><span class="comment"># enter B</span></div><div class="line"><span class="comment"># this is Root</span></div><div class="line"><span class="comment"># leave B</span></div><div class="line"><span class="comment"># leave C</span></div><div class="line"><span class="comment"># leave D</span></div><div class="line"><span class="comment"># leave E</span></div><div class="line"><span class="comment"># [&lt;class '__main__.E'&gt;, &lt;class '__main__.D'&gt;, &lt;class '__main__.C'&gt;, &lt;class '__main__.B'&gt;, &lt;class '__main__.Root'&gt;, &lt;class 'object'&gt;]</span></div></pre></td></tr></table></figure>
+<p>没有什么问题，所有的类都做了初始化，很完美。接着再看一个例子，这个例子其实是上面第二篇文章里面的。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter A"</span>)</div><div class="line">        print(<span class="string">"leave A"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span><span class="params">(object)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter B"</span>)</div><div class="line">        print(<span class="string">"leave B"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">C</span><span class="params">(A)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter C"</span>)</div><div class="line">        super(C, self).__init__()</div><div class="line">        print(<span class="string">"leave C"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">D</span><span class="params">(A)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter D"</span>)</div><div class="line">        super(D, self).__init__()</div><div class="line">        print(<span class="string">"leave D"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">E</span><span class="params">(B, C)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter E"</span>)</div><div class="line">        super(E, self).__init__()</div><div class="line">        print(<span class="string">"leave E"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">F</span><span class="params">(E, D)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter F"</span>)</div><div class="line">        super(F, self).__init__()</div><div class="line">        print(<span class="string">"leave F"</span>)</div><div class="line"></div><div class="line"></div><div class="line">f = F()</div><div class="line">print(f.__class__.mro())</div><div class="line"></div><div class="line"><span class="comment"># results:</span></div><div class="line"><span class="comment"># enter F</span></div><div class="line"><span class="comment"># enter E</span></div><div class="line"><span class="comment"># enter B</span></div><div class="line"><span class="comment"># leave B</span></div><div class="line"><span class="comment"># leave E</span></div><div class="line"><span class="comment"># leave F</span></div><div class="line"><span class="comment"># [&lt;class '__main__.F'&gt;, &lt;class '__main__.E'&gt;, &lt;class '__main__.B'&gt;, &lt;class '__main__.C'&gt;, &lt;class '__main__.D'&gt;, &lt;class '__main__.A'&gt;, &lt;class 'object'&gt;]</span></div></pre></td></tr></table></figure>
+<p>我发现和文章里面贴的结果不一样，里面缺少对 C，D，A 的初始化。琢磨半天才弄明白，主要原因就是，<code>A</code>，<code>B</code> 其实也是继承自 <code>object</code>，然而我们并没有调用 <code>super</code> 来初始化，所以只需要加上就可以了。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div><div class="line">32</div><div class="line">33</div><div class="line">34</div><div class="line">35</div><div class="line">36</div><div class="line">37</div><div class="line">38</div><div class="line">39</div><div class="line">40</div><div class="line">41</div><div class="line">42</div><div class="line">43</div><div class="line">44</div><div class="line">45</div><div class="line">46</div><div class="line">47</div><div class="line">48</div><div class="line">49</div><div class="line">50</div><div class="line">51</div><div class="line">52</div><div class="line">53</div><div class="line">54</div><div class="line">55</div><div class="line">56</div><div class="line">57</div><div class="line">58</div><div class="line">59</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter A"</span>)</div><div class="line">        super(A, self).__init__()</div><div class="line">        print(<span class="string">"leave A"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">B</span><span class="params">(object)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter B"</span>)</div><div class="line">        super(B, self).__init__()</div><div class="line">        print(<span class="string">"leave B"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">C</span><span class="params">(A)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter C"</span>)</div><div class="line">        super(C, self).__init__()</div><div class="line">        print(<span class="string">"leave C"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">D</span><span class="params">(A)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter D"</span>)</div><div class="line">        super(D, self).__init__()</div><div class="line">        print(<span class="string">"leave D"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">E</span><span class="params">(B, C)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter E"</span>)</div><div class="line">        super(E, self).__init__()</div><div class="line">        print(<span class="string">"leave E"</span>)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">F</span><span class="params">(E, D)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">"enter F"</span>)</div><div class="line">        super(F, self).__init__()</div><div class="line">        print(<span class="string">"leave F"</span>)</div><div class="line"></div><div class="line"></div><div class="line">f = F()</div><div class="line">print(f.__class__.mro())</div><div class="line"></div><div class="line"><span class="comment"># results:</span></div><div class="line"><span class="comment"># enter F</span></div><div class="line"><span class="comment"># enter E</span></div><div class="line"><span class="comment"># enter B</span></div><div class="line"><span class="comment"># enter C</span></div><div class="line"><span class="comment"># enter D</span></div><div class="line"><span class="comment"># enter A</span></div><div class="line"><span class="comment"># leave A</span></div><div class="line"><span class="comment"># leave D</span></div><div class="line"><span class="comment"># leave C</span></div><div class="line"><span class="comment"># leave B</span></div><div class="line"><span class="comment"># leave E</span></div><div class="line"><span class="comment"># leave F</span></div><div class="line"><span class="comment"># [&lt;class '__main__.F'&gt;, &lt;class '__main__.E'&gt;, &lt;class '__main__.B'&gt;, &lt;class '__main__.C'&gt;, &lt;class '__main__.D'&gt;, &lt;class '__main__.A'&gt;, &lt;class 'object'&gt;]</span></div></pre></td></tr></table></figure>
+<p>这样就完美了。目测这个会是一个隐藏的坑。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/Python-inherit-and-super/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="Python-metaclass/">Python metaclass</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2017-01-12T10:26:22.000Z" itemprop="datePublished">Jan 12, 2017</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/python/">python</a>
+</div>
+    </div>
+      
+        <p>又理解了一下 python 的 metaclass 可以做什么，尝试记录一下。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Meta</span><span class="params">(type)</span>:</span></div><div class="line">    register = []</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__new__</span><span class="params">(cls, class_name, parrent_class, params)</span>:</span></div><div class="line">        print(<span class="string">"In meta new: &#123;&#125;, &#123;&#125;, &#123;&#125;, &#123;&#125;"</span>.format(cls, class_name, parrent_class, params))</div><div class="line">        cls.register.append(class_name)</div><div class="line">        params[<span class="string">'test_prop'</span>] = <span class="keyword">True</span></div><div class="line">        <span class="comment"># return super(Meta, cls).__new__(cls, class_name, parrent_class, params)</span></div><div class="line">        <span class="comment"># return type.__new__(cls, class_name, parrent_class, params)</span></div><div class="line">        <span class="comment"># return super(Meta, cls).__new__(type, class_name, parrent_class, params)</span></div><div class="line">        <span class="comment"># return type.__new__(type, class_name, parrent_class, params)</span></div><div class="line">        <span class="keyword">return</span> type(class_name, parrent_class, params)</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, class_name, parrent_class, params)</span>:</span></div><div class="line">        print(<span class="string">"In meta init: &#123;&#125;, &#123;&#125;, &#123;&#125;"</span>.format(class_name, parrent_class, params))</div><div class="line">        super(Meta, self).__init__(class_name, parrent_class, params)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object, metaclass=Meta)</span>:</span></div><div class="line">    <span class="keyword">pass</span></div><div class="line"></div><div class="line">print(<span class="string">"register: &#123;&#125;"</span>.format(Meta.register))</div><div class="line">print(<span class="string">"prop: &#123;&#125;"</span>.format(A.test_prop))</div><div class="line">print(<span class="string">"register: &#123;&#125;"</span>.format(A.register))  <span class="comment"># Error</span></div><div class="line"></div><div class="line"><span class="comment"># outputs:</span></div><div class="line"><span class="comment"># In meta new: &lt;class '__main__.Meta'&gt;, A, (&lt;class 'object'&gt;,), &#123;'__module__': '__main__', '__qualname__': 'A'&#125;</span></div><div class="line"><span class="comment"># In meta init: A, (&lt;class 'object'&gt;,), &#123;'__module__': '__main__', '__qualname__': 'A'&#125;</span></div><div class="line"><span class="comment"># register: ['A']</span></div><div class="line"><span class="comment"># prop: True</span></div><div class="line"><span class="comment"># AttributeError: type object 'A' has no attribute 'register'</span></div></pre></td></tr></table></figure>
+<p>可以看到，在构造 <code>A</code> 的时候，<code>Meta</code> 这个类里面，<code>__new__</code> 和 <code>__init__</code> 都会被调用到。上面代码往 <code>A</code> 里面塞了一个属性。</p>
+<p>在 <code>__new__</code> 里面，有几个注释，可以去掉注释看看不同的效果。目前还有点疑惑，传给 <code>__new__</code> 第一个参数到底是什么。另外，开始对 <code>super</code> 也有点疑惑了，还在学习。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/Python-metaclass/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="Reinvent-the-wheel/">Reinvent the wheel</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2017-01-12T08:16:20.000Z" itemprop="datePublished">Jan 12, 2017</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a> <a href="/tags/tech/">tech</a>
+</div>
+    </div>
+      
+        <p><a href="https://en.wikipedia.org/wiki/Reinventing_the_wheel" target="_blank" rel="external">Reinvent the wheel</a> 估计技术人员都知道这个典故。</p>
+<p>刚才突然想谈这个，是看到图拉鼎参加 <a href="https://weex-project.io/" target="_blank" rel="external">weex</a> 的聚会有感而发。我要是没理解错，这个应该是类似于 React native 的一套实现，我没有仔细看过他的实现，不过说他重复造轮子应该也不为过，毕竟，大家普遍赞成的是在已有的轮子上面添砖加瓦，而不是另起一套。</p>
+<p>重复造轮子到底应该不应该支持？</p>
+<p>之前我司来了一个发明了 avalon 框架的牛人，之后我看好像就在很多的推介这个，新人来了先学习这个。后来还有很多这种框架，新人来了都是先学习这些框架。</p>
+<p>这个事情上面，我看有几个好处</p>
+<ul>
+<li>发明的人可以在公司内部得到很高的地位，以及相应的奖励。不管好用不好用，推行一版，一波人升天。后人再升级一版，又一波人升天。</li>
+<li>学会了使用这些框架的人，如果自己本身不太灵活，到了其他公司会发现无法干活，因为使用多了会有一个很深的烙印。这样离职起来就没那么方便。</li>
+<li>比较好规范和控制公司内部的技术方向。</li>
+</ul>
+<p>坏处</p>
+<ul>
+<li>和最新的技术方向可能有割裂，因为并不一定能及时更新适应。</li>
+<li>问题解决只能依赖内部的这些人来解决，这种东西想要推广出去毕竟还是难。</li>
+<li>浪费人力做基础建设。</li>
+</ul>
+<p>其实看起来，对于基层员工来看好处还是大于坏处的。毕竟如果老板不关心这个成本或者不清楚可以节约这个成本的话，那些好处还是实实在在的，牛逼有的吹。</p>
+<p>在老板关心的方面，可能还有一个点，就是创新有时候是比较难的，但是所谓的微创新其实是简单一些，造轮子的时候，一般多少都会有一些微创新。如果搞的人确实有能力，避免一些原来设计里面的鸡肋冗余的部分，让新的设计更加轻快，其实也算是有好处。</p>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/Reinvent-the-wheel/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="Beansdb-merge-tools/">Beansdb merge tools</a>
 	</h2>
     <div class="entry-content">
@@ -446,127 +551,6 @@ $hash = unpack(&quot;I&quot;, pack(&quot;B32&quot;, $hash));
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/registration-about-google-voice/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="new-and-old/">新与旧</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2016-11-13T05:39:18.000Z" itemprop="datePublished">Nov 13, 2016</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a>
-</div>
-    </div>
-      
-        <p>北京有个古北水镇，运营上据说是杭州乌镇的那拨人。乌镇没去过，去过古北水镇。在一片山里面，长城下面，一群建筑。里面还开了一些模仿古代的商店，比如酒家，染坊这些可以参观。</p>
-<p>这个地方离北京大概是 2 个多小时的车程（全程高速不怎么堵车的情况下）。周末过去之后会发现停车场停满了车，还有好多旅游车，水镇上面也人山人海。</p>
-<p>这里面的建筑都是后期开发商人工开辟的。景区里面的酒店基本都是1k起，并且还得提前预约。据说夜景很漂亮，不过我没看过。</p>
-<p>北京是个古老的城市，如果城区里面的历史建筑都留着，现在可够你转几个月的，光就绕着北京城墙走一圈，估计一天都不一定可以。曾经在西安的城墙上面走过一圈，感觉还不错，我记得还收了门票的。</p>
-<p>北京有个南锣鼓巷，过去转你会发现并没有什么能让你理解回味京味的东西，卖的也是羊肉串奶茶这些，排好长的队买一串拿着边吃边走完了，其实可能也挺没意思的。</p>
-<p>都说台湾是中华传统保持比较好的地方。去了台北第一印象就是，破房子挺多的。那边房子是私产，所以拆迁很难。然后个人又不一定有能力翻盖，所以就有破烂的房子。给我们开车的台湾人还说去过北京，说羡慕那边的高楼大厦，到处都很新，很时髦的样子。</p>
-<p>台湾有很多夜市，去过几个，有的比较商业化的，你会发现周边也都是高楼了。有的就是普通的，真的是一条路白天行车，晚上就堵起来开始摆摊。我记得某个夜市里面有个摊位，说是开了好多年了，现在物价高，不得已只好比早年涨了几毛钱。看着都震惊了，涨几毛钱还废什么话，况且本身人家卖的也不贵，都是良心价。</p>
-<p>地价涨没那么快，可能各种基础花费都会比较稳定，否则地价涨了房租涨了，那物价必定会涨。所以10年前我在北京长椿街那上班的时候，一份盖饭，大概是 7，8 块钱。到了现在，估计是翻一倍。另外这种店还越来越少，因为卫生条件，房租这些要求导致价格底了不好赚钱。</p>
-<p>台湾夜市里面也经常能碰见那种几十年的老店，那真的是几十年一直在做那个生意。几十年价格也没有变化太多。想起来前门的那个面馆前段时间关门了，没有办法，涨价没法涨，收入基本不变的情况下，地价变化太大，只好关门了。</p>
-<p>就目前这个房地产的情况，北京还能有多少真正的老字号，有多少真正的老街，估计基本不会有了。后面估计会有更加多人工的景区了，费用估计还不能便宜了。</p>
-<p>想起来凤凰古城了，大家不愿意拆，那就某天一把火烧了，这下都同意了吧，这可是天意。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/new-and-old/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="decorator-in-python/">python 的 decorator 学习</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2016-10-21T10:50:59.000Z" itemprop="datePublished">Oct 21, 2016</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/python/">python</a> <a href="/tags/decorator/">decorator</a>
-</div>
-    </div>
-      
-        <p>最近学习了一下 python 的 decorator（装饰器），看的是这篇，<a href="http://coolshell.cn/articles/11265.html" target="_blank" rel="external">Python修饰器的函数式编程</a>， 觉得挺有意思的，写点东西记录一下。</p>
-<p>装饰器简单讲就是返回一个函数的函数/类。看个简单的例子。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#!/usr/bin/python</span></div><div class="line"><span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">dec1</span><span class="params">(fn)</span>:</span></div><div class="line">    print(<span class="string">'inside dec1'</span>)</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">wrapper</span><span class="params">()</span>:</span></div><div class="line">        print(<span class="string">'inside wrapper'</span>)</div><div class="line">        <span class="keyword">return</span> fn()</div><div class="line">    <span class="keyword">return</span> wrapper</div><div class="line"></div><div class="line"></div><div class="line"><span class="meta">@dec1</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">f1</span><span class="params">()</span>:</span></div><div class="line">    print(<span class="string">'inside f1'</span>)</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    print(<span class="string">'begin exec'</span>)</div><div class="line">    f1()</div><div class="line">    print(<span class="string">'end exec'</span>)</div><div class="line"></div><div class="line"><span class="comment"># 执行结果:</span></div><div class="line"><span class="comment"># inside dec1</span></div><div class="line"><span class="comment"># begin exec</span></div><div class="line"><span class="comment"># inside wrapper</span></div><div class="line"><span class="comment"># inside f1</span></div><div class="line"><span class="comment"># end exec</span></div></pre></td></tr></table></figure>
-<p>看上面例子能看到，装饰器生效有 2 个步骤，第一个是装饰，第二个是执行。上面装饰器的效果，和下面的代码的效果是一样。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#!/usr/bin/python</span></div><div class="line"><span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">dec1</span><span class="params">(fn)</span>:</span></div><div class="line">    print(<span class="string">'inside dec1'</span>)</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">wrapper</span><span class="params">()</span>:</span></div><div class="line">        print(<span class="string">'inside wrapper'</span>)</div><div class="line">        <span class="keyword">return</span> fn()</div><div class="line">    <span class="keyword">return</span> wrapper</div><div class="line"></div><div class="line"></div><div class="line"><span class="comment"># @dec1</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">f1</span><span class="params">()</span>:</span></div><div class="line">    print(<span class="string">'inside f1'</span>)</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    print(<span class="string">'begin exec'</span>)</div><div class="line">    dec1(f1)()</div><div class="line">    print(<span class="string">'end exec'</span>)</div><div class="line"></div><div class="line"><span class="comment"># 执行结果:</span></div><div class="line"><span class="comment"># begin exec</span></div><div class="line"><span class="comment"># inside dec1</span></div><div class="line"><span class="comment"># inside wrapper</span></div><div class="line"><span class="comment"># inside f1</span></div><div class="line"><span class="comment"># end exec</span></div></pre></td></tr></table></figure>
-<p>可以看到除了 「begin/end exec」，其他部分执行结果是一样的。所以理解装饰器，就把 <code>@dec1</code> 换成 <code>dec1(fn)()</code> 这么理解就可以了。</p>
-<p>有时候会看到类也可以作为装饰器使用。其实理解起来也类似。举个例子。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#!/usr/bin/python</span></div><div class="line"><span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">dec1</span><span class="params">(object)</span>:</span></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, fn)</span>:</span></div><div class="line">        print(<span class="string">'inside dec1'</span>)</div><div class="line">        self.fn = fn</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__call__</span><span class="params">(self)</span>:</span></div><div class="line">        print(<span class="string">'inside wrapper'</span>)</div><div class="line">        <span class="keyword">return</span> self.fn()</div><div class="line"></div><div class="line"></div><div class="line"><span class="meta">@dec1</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">f1</span><span class="params">()</span>:</span></div><div class="line">    print(<span class="string">'inside f1'</span>)</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    print(<span class="string">'begin exec'</span>)</div><div class="line">    f1()</div><div class="line">    print(<span class="string">'end exec'</span>)</div><div class="line"></div><div class="line"><span class="comment"># 执行结果:</span></div><div class="line"><span class="comment"># inside dec1</span></div><div class="line"><span class="comment"># begin exec</span></div><div class="line"><span class="comment"># inside wrapper</span></div><div class="line"><span class="comment"># inside f1</span></div><div class="line"><span class="comment"># end exec</span></div></pre></td></tr></table></figure>
-<p>这里和上面类似，把 <code>@dec1</code> 理解成 <code>dec1(fn)()</code>，不过是这里的 <code>dec1</code> 是个类，那么 <code>dec1(fn)</code> 其实是调用的 <code>dec1.__init__(fn)</code>，那么后续的 <code>dec1(fn)()</code> 就是调用产生的对象的 <code>dec1.__call__()</code> 了。</p>
-<p>有时候还能看到加了参数的装饰器。加了参数的是怎么回事呢。再看下面的例子。</p>
-<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div></pre></td><td class="code"><pre><div class="line"><span class="comment">#!/usr/bin/python</span></div><div class="line"><span class="comment"># -*- coding: utf-8 -*-</span></div><div class="line"></div><div class="line"></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">dec1</span><span class="params">(name)</span>:</span></div><div class="line">    print(<span class="string">'inside dec1'</span>)</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">real_dec1</span><span class="params">(fn)</span>:</span></div><div class="line">        <span class="function"><span class="keyword">def</span> <span class="title">wrapper</span><span class="params">()</span>:</span></div><div class="line">            print(<span class="string">'inside wrapper'</span>)</div><div class="line">            <span class="keyword">return</span> fn()</div><div class="line">        <span class="keyword">return</span> wrapper</div><div class="line">    <span class="keyword">return</span> real_dec1</div><div class="line"></div><div class="line"></div><div class="line"><span class="meta">@dec1(name='1')</span></div><div class="line"><span class="function"><span class="keyword">def</span> <span class="title">f1</span><span class="params">()</span>:</span></div><div class="line">    print(<span class="string">'inside f1'</span>)</div><div class="line"></div><div class="line"><span class="keyword">if</span> __name__ == <span class="string">'__main__'</span>:</div><div class="line">    print(<span class="string">'begin exec'</span>)</div><div class="line">    f1()</div><div class="line">    print(<span class="string">'end exec'</span>)</div><div class="line"></div><div class="line"><span class="comment"># 执行结果:</span></div><div class="line"><span class="comment"># inside dec1</span></div><div class="line"><span class="comment"># begin exec</span></div><div class="line"><span class="comment"># inside wrapper</span></div><div class="line"><span class="comment"># inside f1</span></div><div class="line"><span class="comment"># end exec</span></div></pre></td></tr></table></figure>
-<p>看懂了没有，就是多了个嵌套而已。遇到加了参数的，那就是把之前的没有参数的部分返回回来就可以了。等价的例子就不贴了，这个等价于 <code>dec1(name=&#39;1&#39;)(fn)()</code>。</p>
-<p>如果是类装饰器，并且有参数，那等价于 <code>dec1(name=&#39;1&#39;)(fn)()</code>，其中 <code>__init__(self, name)</code> 先处理第一层参数，然后 <code>__call__(fn)</code> 处理第二层，然后需要在 <code>__call__</code> 里面再定义一个 wrapper 返回。</p>
-<p>说明白没有？呵呵。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/decorator-in-python/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="about-http-cookie/">cookie 的一点研究</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2016-09-16T00:59:09.000Z" itemprop="datePublished">Sep 16, 2016</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/cookie/">cookie</a> <a href="/tags/http/">http</a>
-</div>
-    </div>
-      
-        <p>这几天搞了一下 python 里面 cookie 相关的东西。我的目的是想要尝试用 python 登录某个网站，并且保持登录状态直到过期。因为 http 协议是无状态的，所以一般来讲，网站想要用户保持登录，那么网站在用户登录之后，必须要和用户端协商好怎么来证明这个用户已经登录过了。</p>
-<p>用户端如果使用浏览器，那么网站就可以利用浏览器对 cookie 的支持来让用户在不知情的情况下，让网站在用户登录后发的一个 token 在用户后续的请求里面都包含上。</p>
-<p>用户端如果不是浏览器，比如是个 python 程序，那么网站可以和用户协商每次请求里面都包含某个下发的 token（当然，甚至要求客户端每次请求都带着用户名密码也是可行的）。</p>
-<p>但是如果网站本身只是给浏览器用户准备的，那么通过用程序来「模拟」浏览器行为，把必要的 token 保存并在后续的请求里面都带上，也是可行的。</p>
-<p>python 里面，发送 http 请求可以简单的使用 <code>urllib.request.urlopen(url)</code>，但是如果想要定制一下请求，比如修改一些 header 信息，那么就得使用 <code>urllib.request.Request</code> 这个 class 先构造一个 Request 对象，然后传递给 urlopen 了。</p>
-<p>如果要处理 cookie，那就需要使用 <code>http.cookiejar.CookieJar</code> 了，有了 Cookiejar 对象，就可以把网站下发的 cookie 保存到这个变量里面，然后在必要的时候，可以返回给服务器端了。如果想要保存到文件，那么可以使用 <code>http.cookiejar.LWPCookieJar</code> 或者 <code>http.cookiejar.MozillaCookieJar</code>，也可以基于 <code>http.cookiejar.FileCookieJar</code> 自己实现一个子类，来用自己的办法保存和加载 cookie，比如保存到数据库什么的，这样就可以多台机器之间共享 cookie 了。</p>
-<p><code>urlopen</code> 本身不支持自定义 cookiejar 逻辑，得使用 <code>opener = build_opener(HTTPCookieProcessor(cookiejar=Cookiejar对象))</code> 来先构造一个自定义的 openner, 然后使用 <code>opener(Request对象)</code> 来发送请求。</p>
-<p>如果不定义自己的 cookie policy，那么会使用默认的 <code>http.cookiejar.DefaultCookiePolicy</code>，也可以自己基于 <code>http.cookiejar.CookiePolicy</code> 实现自己的逻辑。只需要 override <code>set_ok</code> 和 <code>return_ok</code> 这两个方法就可以。</p>
-<p>http cookie 其实有很多属性，比如 domain, expire, path 等常见属性，也有 httponly, secure 等几个不常见的。这些属性都是浏览器处理的。就是说，浏览器把 cookie 返回给服务器端的时候，如果 domain 不匹配，或者已经过了 expire 时间等等一些不符合浏览器制定的 cookie 逻辑的时候，浏览器就不会把 cookie 发送给服务器端。就比如，服务器产生 cookie 的时候，声明了 domain=a.com，那么如果是来自于 b.com 的请求，浏览器是根本不会给他发送这个 cookie。再比如，服务器端产生 cookie 的时候，声明了 1 天后过期，那么 1 天之后，浏览器也不会再给服务器端发这个 cookie 了。</p>
-<p>但是如果是我们自己实现客户端模拟浏览器的时候，其实我们是可以耍流氓的，可以制定自己的 cookie 逻辑，也就是上面提到的 cookie policy。比如我可以简单的在 <code>return_ok</code> 这个方法里面 <code>return True</code>，在任何情况下都把所有的 cookie 返回给服务器，这样服务器端如果不提前想明白，它是一点都不知道的。</p>
-<p>所谓提前想明白就是想明白是不是需要针对这种情况做处理。如果本身我们系统也没有那么严格要求，那么不处理也可以。但是如果是某个比如金融系统，那么是必须要考虑的。否则如果完全依赖 cookie 的话，如果我通过某些手段弄到了用户的 cookie，那么我就可以骗过服务器端，让他认为我就是那个用户。</p>
-<p>我想了一下，貌似被盗窃 cookie 这种事情服务器端不太好防范，但是可以做的是防止浏览器耍流氓。比如我们把 cookie 加密，并里面增加一个发送 cookie 的时间。收到客户端发过来的 cookie 之后，我们解密看看时间有没有过期，这样就可以在服务器端让 cookie 失效了。</p>
-<p>另外，也可以考虑使用 session。session 是把一些用户的状态保存在服务器端。但是 session 实际上也是依赖 cookie 的，因为前面说了 http 协议无状态，就算可以把用户状态保存在服务器端，但是总还是得识别用户才可以。那个识别的 cookie 就是所谓的 session cookie，其实就是某个用户的唯一标识。</p>
-<p>对于 session cookie 被窃，好像也没有太好的办法，无非也是想办法比对之前用户的一些状态信息，比如 ip 和现在的信息是不是一致，不一致可以认为有被窃的怀疑，这个时候让用户再次验证用户信息，这都不能 100% 保证，但是至少会增加窃贼的成本。</p>
-<p>上面说到这些，都可以自己测试一下，测试也并不一定需要搭一个服务器端配合，以及使用复杂的抓包专鉴，其实使用 <code>nc</code> 就可以。</p>
-<p>使用 <code>nc -l 9999</code> 就可以启动一个监听在 9999 端口的 socket 服务器。之后使用 python 或者 curl 之类的程序请求，就能立刻看到请求发送过来的 http 信息，这个对于学习 http 协议其实也很方便。</p>
-<figure class="highlight groovy"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div></pre></td><td class="code"><pre><div class="line">$ nc -l <span class="number">9999</span></div><div class="line">GET <span class="regexp">/ HTTP/</span><span class="number">1.1</span></div><div class="line">Accept-<span class="string">Encoding:</span> identity</div><div class="line"><span class="string">Connection:</span> close</div><div class="line"><span class="string">Cookie:</span> QN2=test; QN1=ClbaCVfZF5lfszBALzTIAg==</div><div class="line">User-<span class="string">Agent:</span> Mozilla<span class="regexp">/5.0 (Macintosh; Intel Mac OS X 10_11_6)  AppleWebKit/</span><span class="number">537.36</span> (KHTML, like Gecko) Chrome<span class="regexp">/52.0.2743.116 Safari/</span><span class="number">537.36</span></div><div class="line"><span class="string">Host:</span> <span class="string">localhost:</span><span class="number">9999</span></div></pre></td></tr></table></figure>
-<p>收到的上面这个请求，可以看到发送过来了 2 个 cookie。</p>
-<p>如果还想测试数据返回的情况，那么可以写一个 <code>test.resp</code> 文件，内容如下</p>
-<figure class="highlight dts"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div></pre></td><td class="code"><pre><div class="line">$ cat test.resp</div><div class="line">HTTP/<span class="number">1.1</span> <span class="number">200</span> OK</div><div class="line"><span class="symbol">Date:</span> Sun, <span class="number">18</span> Oct <span class="number">2009</span> <span class="number">08</span>:<span class="number">56</span>:<span class="number">53</span> GMT</div><div class="line"><span class="symbol">Server:</span> Apache/<span class="number">2.2</span><span class="number">.14</span> (Win32)</div><div class="line">Last-Modified: Sat, <span class="number">20</span> Nov <span class="number">2004</span> <span class="number">07</span>:<span class="number">16</span>:<span class="number">26</span> GMT</div><div class="line"><span class="symbol">ETag:</span> <span class="string">"10000000565a5-2c-3e94b66c2e680"</span></div><div class="line">Set-Cookie: QN1=ClbaCVfZF5lfszBALzTIAg==; expires=Thu, <span class="number">31</span>-Dec<span class="number">-37</span> <span class="number">23</span>:<span class="number">55</span>:<span class="number">55</span> GMT; path=/</div><div class="line">Set-Cookie: QN2=test; expires=Thu, <span class="number">31</span>-Dec<span class="number">-37</span> <span class="number">23</span>:<span class="number">55</span>:<span class="number">55</span> GMT; path=/; secure; httponly</div><div class="line">Accept-Ranges: bytes</div><div class="line">Content-Length: <span class="number">44</span></div><div class="line"><span class="symbol">Connection:</span> close</div><div class="line">Content-Type: text/html</div><div class="line">X-Pad: avoid browser bug</div><div class="line"></div><div class="line"><span class="params">&lt;html&gt;</span><span class="params">&lt;body&gt;</span><span class="params">&lt;h1&gt;</span>It works!<span class="params">&lt;/h1&gt;</span><span class="params">&lt;/body&gt;</span><span class="params">&lt;/html&gt;</span></div></pre></td></tr></table></figure>
-<p>然后使用 <code>nc -l 9999 &lt; test.resp</code> 命令启动服务，客户端来请求的时候，就会返回上面 <code>test.resp</code> 里面的内容。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/about-http-cookie/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

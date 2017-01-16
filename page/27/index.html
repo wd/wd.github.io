@@ -103,33 +103,169 @@
 
   <article class="post">
 	<h2 class="title">
-		<a href="lilina-cache/">lilina里面不能正确生成前一天的cache的问题</a>
+		<a href="irssi_bot/">我的第一个perl脚本</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2006-12-05T16:00:00.000Z" itemprop="datePublished">Dec 6, 2006</time>
+      <div class="date">Published on: <time datetime="2006-12-15T16:00:00.000Z" itemprop="datePublished">Dec 16, 2006</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/web/">web</a> <a href="/tags/lilina/">lilina</a> <a href="/tags/rss/">rss</a>
+<a href="/tags/other/">other</a>
 </div>
     </div>
       
-        lilina可以生成好几天的cache，可以看到上面有每天的链接可以访问，可是这两天发现，在today里面明明看到前一天晚上23:40多有rss，结果点击到前一天生成的链接却发现，没有？见鬼了。
+        是给irssi写的，只不过通过他和irssi接口，所有功能都是bash脚本实现的，回头看看如何转到perl。
+<pre class="prettyprint lang-perl">
+use vars qw($VERSION %IRSSI);
 
-仔细研究下，似乎是23:00之后的rss都不会做cache，咋回事哩，翻了一下源代码，发现问题所在了。
+use Irssi;
+$VERSION = '1.00';
+%IRSSI = (
+authors     => 'wd',
+contact     => 'wd@wdicc.com',
+name        => 'My First Script',
+description => 'This script allows ' .
+'you to query weather and other info ' .
+'using some command.',
+license     => 'Public Domain',
+);
 
-index.php里面有下面一句：
-<pre class="prettyprint lang-php">$saven_file = realpath(".")."/".date('Ymd').".html">
-这是设置cache文件的名称和位置的语句，可以看到文件名里面用的是当前的日期。单独这一点不会有问题，问题在于我的cron里面是每隔一个小时的0分钟执行一次，也就是1:00，2:00……23:00，0:00，这样，23:00之后0:00之前的rss就被吞掉了。解决方法就是将cron修改为类似下面的，让他每隔整点的58分执行更新。
-<pre class="prettyprint lang-bash">
-</pre></pre>
+sub send_msg {
+my ($server, $who, @result) = @_;
+my $count;
+$count = 1;
+while ($count <= @result)="" {="" $server-="">command("msg $who $result[$count-1]");
+$count++;
+}
+}
+
+sub pre_send {
+my ($server, $who) =@_;
+$server->command("msg $who 0I'm working,Waiting me...");
+}
+
+sub end_send {
+my ($server, $who) =@_;
+$server->command("msg $who 0...The end.");
+}
+
+sub msg_public {
+my ($server, $msg, $nick, $address, $target) = @_;
+my @result;my $who;
+
+$who = $target;
+if ($target eq "") { $who = $nick; }
+
+if ($msg =~ /^!([Dd]ict|[Ww]eather|[Gg]oogle|[Hh]elp|nslookup|rss).*$/) {
+&pre_send($server,$who);
+$msg =~ s/!//;
+if ($msg =~ /^[Hh]elp.*$/) {
+@result = ("Usage:",
+"!dict ur_word",
+"   eg: !dict license",
+"!weather location [today|tomorrow]",
+"   eg: !weather beijing",
+"!google sth.",
+"   eg: !google archlinux",
+"!nslookup domin_name",
+"   eg: !nslookup archlinux.org",
+"!rss feed_url",
+"   eg: !rss http://blog.wdicc.com/wordpress/feed/");
+} else {
+@result = `/home/stef/get $msg`;
+}
+#$server->print("#arch-cn", "$nick, $target, $who");
+&send_msg($server, $who, @result);
+&end_send($server, $who);
+}
+}
+
+Irssi::signal_add_first('message public', 'msg_public');
+Irssi::signal_add_first('message private', 'msg_public');</=></pre>
+
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="https://wdicc.com/lilina-cache/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/irssi_bot/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="gnokii_howto_chinese_sms/">继续来解决gnokii中文问题</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-12-10T16:00:00.000Z" itemprop="datePublished">Dec 11, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a>
+</div>
+    </div>
+      
+        这玩意原来和 <a href="http://groups.google.com/group/mailing.unix.gnokii/browse_thread/thread/a006ae68df36d863/2931523e4eafaa06%232931523e4eafaa06" target="_blank" rel="external">locale</a> 有关系。一个utf8编码的文件（里面包含中文），只要执行gnokii之前设置一下正确的locale手机收到就是正常的。比如我建立了下面的一个发送短信的命令。
+<pre class="prettyprint lang-bash">
+LC_ALL=zh_CN.utf8
+/usr/local/gnokii/bin/gnokii $@</pre>
+这样cat utf8_text | gnokii_utf8 --sendsms ur_phone_num发送就没问题了。看样子和smsd和mysql的版本是没有关系的。之前尝试在debian上面升级mysql虽然失败了，不过看样子也没多大影响。 :)
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/gnokii_howto_chinese_sms/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="iptables-and-portmap/">iptables做端口映射的一点新的心得</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-12-06T16:00:00.000Z" itemprop="datePublished">Dec 7, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a>
+</div>
+    </div>
+      
+        iptables做端口映射很简单的一个事情，我之前也写了<a href="http://blog.wdicc.com/wordpress/2006/05/09/153/" target="_blank" rel="external">如何来实现</a>这个咚咚。今天要用到的时候，遇到了问题，写写怎么解决的。
+
+写好SNAT和DNAT相关语句之后，在INPUT、FORWARD和OUTPUT里面针对各个端口都开放了权限，可是就是访问不了，看tcpdump可以看到，SNAT肯定是进行了，因为有对方回来的信息。后来仔细分析了一下整个转换的过程，发现了问题所在。
+
+这里总共涉及到三台电脑，假设A是我们的server，B是中转server，C是希望通过B来访问A的客户端，所以一次完整的请求如下图。
+<pre class="prettyprint lang-text">
+所以呢，以25端口为例，需要开放的端口依次是：
+<pre class="prettyprint lang-text">
+B : INPUT (目标端口25)
+B : FORWARD (目标端口25)
+B : OUTPUT (目标端口25)
+A : INPUT (目标端口25)
+--->上面是请求，下面开始回应请求
+A : OUTPUT (源端口25)
+B : INPUT (源端口25)
+B : FORWARD (源端口25)
+B : OUTPUT (源端口25)
+C : INPUT (源端口25)</pre>
+如此，一次请求发送过去的时候，所有数据包的目的端口都是25（假设B开放的转发端口也是25），源端口是1024-65535之间的某个数值，反回来所有数据包的源端口都是25，目的端口对应前面的那个端口。
+
+我的问题就是光开放了B的FORWARD的目的端口25，源端口25没有打开，这样数据不能正确返回给C，打开就好了。
+</pre>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/iptables-and-portmap/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -222,6 +358,39 @@ apt-get -b source gnokii</pre>
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/gnokii_cant_get_sms/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="lilina-cache/">lilina里面不能正确生成前一天的cache的问题</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-12-05T16:00:00.000Z" itemprop="datePublished">Dec 6, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/web/">web</a> <a href="/tags/lilina/">lilina</a> <a href="/tags/rss/">rss</a>
+</div>
+    </div>
+      
+        lilina可以生成好几天的cache，可以看到上面有每天的链接可以访问，可是这两天发现，在today里面明明看到前一天晚上23:40多有rss，结果点击到前一天生成的链接却发现，没有？见鬼了。
+
+仔细研究下，似乎是23:00之后的rss都不会做cache，咋回事哩，翻了一下源代码，发现问题所在了。
+
+index.php里面有下面一句：
+<pre class="prettyprint lang-php">$saven_file = realpath(".")."/".date('Ymd').".html">
+这是设置cache文件的名称和位置的语句，可以看到文件名里面用的是当前的日期。单独这一点不会有问题，问题在于我的cron里面是每隔一个小时的0分钟执行一次，也就是1:00，2:00……23:00，0:00，这样，23:00之后0:00之前的rss就被吞掉了。解决方法就是将cron修改为类似下面的，让他每隔整点的58分执行更新。
+<pre class="prettyprint lang-bash">
+</pre></pre>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/lilina-cache/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -415,113 +584,6 @@ http://blog.wdicc.com/wordpress/wp-content/uploads/2006/11/keyword.jpg
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/lunch-and-supper/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="chaffy-dish-weekend/">周末在家吃火锅</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-11-26T16:00:00.000Z" itemprop="datePublished">Nov 27, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a> <a href="/tags/周末/">周末</a> <a href="/tags/呷哺/">呷哺</a> <a href="/tags/火锅/">火锅</a>
-</div>
-    </div>
-      
-        上个周末过得比较腐败，没有了其它安排，周六下午睡到了9点，起来玩了会游戏，又继续睡，睡的头都晕了……。周日cc的同学过来，考虑到最简单的吃法，就是吃火锅了。
-
-去超市没有买到小肥羊的锅底，用了一个什么重庆的，挺辣的。想起来上次去双安吃的那个重庆火锅了，吃了半天除了辣就没有别的味道了，真是很没意思。不过我们昨天吃的除了辣还有一个味道，就是咸。刚开始吃还不觉得，后来 cc 说了咸之后，大家才醒悟，开始一直注意辣了，没想到这玩意确实挺咸的。后来想想，可能是因为我们锅比较小的缘故吧。
-
-四个人吃，锅底小料加菜总共花了得有100左右，想想看吧， cc 同学走了之后，就发现剩下的东西还够四个人吃两顿的……，真晕。这几天看样子还得吃一个火锅了。
-
-不过这次火锅比较好的结果就是， cc 对这个的味道感觉还行，当然她一如既往吃的是鸡肉，这样的话，就不用老跑去呷哺吃了，在家解决。 :)
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/chaffy-dish-weekend/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="add-some-feature-to-blog/">给blog的后台发文章添了一点功能</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-11-21T16:00:00.000Z" itemprop="datePublished">Nov 22, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/web/">web</a>
-</div>
-    </div>
-      
-        给blog加了一个插件 <a href="http://trac.labnotes.org/cgi-bin/trac.cgi/wiki/WPPlugin/AdvancedWysiwyg">Advanced WYSIWYG Editor</a> ，可以打开wp使用的tinymce编辑器的一些功能。例如他网站上面列出来的那些：
-<ul>
-	<li>Format selection: paragraph, formatted, headers, etc.</li>
-	<li>Underline.</li>
-	<li>Full justification.</li>
-	<li>Anchor.</li>
-	<li>Horizontal line.</li>
-	<li>Copy, cut, paste.</li>
-	<li>Insert table.</li>
-	<li>Subscript, superscript.</li>
-	<li>Foreground color, background color.</li>
-	<li>Character map.</li>
-	<li>Full screen editing.</li>
-</ul>
-        
-          <p class="more-link">
-            <a href="add-some-feature-to-blog/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/add-some-feature-to-blog/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="google-adsense/">申请了google adsense</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-11-19T16:00:00.000Z" itemprop="datePublished">Nov 20, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/web/">web</a> <a href="/tags/adsense/">adsense</a>
-</div>
-    </div>
-      
-        以前好像申请过，不过没有通过。这次试试看又申请了一次，通过了，呵呵。尝试在网页上面添加了一下东东，不知道管用不管用，试试看了。google的那个公益广告其实有点意思，“你知道xxx吗？”我觉得挺吸引人的，我也选择了没关键字的时候显示公益广告了，可是看了半天好像也没显示公益广告。
-
-前几天maillist看到有人说通过adsense一个月可以收入450$，这个吓了一跳，真不少呢。不过我只希望他能给我把域名的钱赚回来就好了，如果还有富余，就去买块国外的空间，呵呵。
-
-adsense让一些小网站有了希望，至少，开一个网站不赔钱，或许应该没问题吧。现在域名加一小块空间，好像也不是很贵，所以指望adsense还是可以的。
-
-adsense同时也鼓励这些小网站能作出内容来，有内容，才会有人来访问，才有可能赚点钱。其实这样挺好的。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/google-adsense/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

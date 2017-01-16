@@ -1,0 +1,196 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>Python metaclass - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;又理解了一下 python 的 metaclass 可以做什么，尝试记录一下。&lt;/p&gt;
+&lt;figure class=&quot;highlight python&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;4&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;5&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;6&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;7&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;8&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;9&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;10&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;11&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;12&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;13&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;14&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;15&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;16&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;17&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;18&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;19&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;20&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;21&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;22&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;23&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;24&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;25&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;26&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;27&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;28&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;29&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;30&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;31&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;Meta&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(type)&lt;/span&gt;:&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    register = []&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;__new__&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(cls, class_name, parrent_class, params)&lt;/span&gt;:&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        print(&lt;span class=&quot;string&quot;&gt;&quot;In meta new: &amp;#123;&amp;#125;, &amp;#123;&amp;#125;, &amp;#123;&amp;#125;, &amp;#123;&amp;#125;&quot;&lt;/span&gt;.format(cls, class_name, parrent_class, params))&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        cls.register.append(class_name)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        params[&lt;span class=&quot;string&quot;&gt;&#39;test_prop&#39;&lt;/span&gt;] = &lt;span class=&quot;keyword&quot;&gt;True&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        &lt;span class=&quot;comment&quot;&gt;# return super(Meta, cls).__new__(cls, class_name, parrent_class, params)&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        &lt;span class=&quot;comment&quot;&gt;# return type.__new__(cls, class_name, parrent_class, params)&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        &lt;span class=&quot;comment&quot;&gt;# return super(Meta, cls).__new__(type, class_name, parrent_class, params)&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        &lt;span class=&quot;comment&quot;&gt;# return type.__new__(type, class_name, parrent_class, params)&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        &lt;span class=&quot;keyword&quot;&gt;return&lt;/span&gt; type(class_name, parrent_class, params)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;function&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;def&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;__init__&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(self, class_name, parrent_class, params)&lt;/span&gt;:&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        print(&lt;span class=&quot;string&quot;&gt;&quot;In meta init: &amp;#123;&amp;#125;, &amp;#123;&amp;#125;, &amp;#123;&amp;#125;&quot;&lt;/span&gt;.format(class_name, parrent_class, params))&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        super(Meta, self).__init__(class_name, parrent_class, params)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;class&quot;&gt;&lt;span class=&quot;keyword&quot;&gt;class&lt;/span&gt; &lt;span class=&quot;title&quot;&gt;A&lt;/span&gt;&lt;span class=&quot;params&quot;&gt;(object, metaclass=Meta)&lt;/span&gt;:&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    &lt;span class=&quot;keyword&quot;&gt;pass&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;print(&lt;span class=&quot;string&quot;&gt;&quot;register: &amp;#123;&amp;#125;&quot;&lt;/span&gt;.format(Meta.register))&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;print(&lt;span class=&quot;string&quot;&gt;&quot;prop: &amp;#123;&amp;#125;&quot;&lt;/span&gt;.format(A.test_prop))&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;print(&lt;span class=&quot;string&quot;&gt;&quot;register: &amp;#123;&amp;#125;&quot;&lt;/span&gt;.format(A.register))  &lt;span class=&quot;comment&quot;&gt;# Error&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;# outputs:&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;# In meta new: &amp;lt;class &#39;__main__.Meta&#39;&amp;gt;, A, (&amp;lt;class &#39;object&#39;&amp;gt;,), &amp;#123;&#39;__module__&#39;: &#39;__main__&#39;, &#39;__qualname__&#39;: &#39;A&#39;&amp;#125;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;# In meta init: A, (&amp;lt;class &#39;object&#39;&amp;gt;,), &amp;#123;&#39;__module__&#39;: &#39;__main__&#39;, &#39;__qualname__&#39;: &#39;A&#39;&amp;#125;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;# register: [&#39;A&#39;]&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;# prop: True&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;# AttributeError: type object &#39;A&#39; has no attribute &#39;register&#39;&lt;/span&gt;&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;p&gt;可以看到，在构造 &lt;code&gt;A&lt;/code&gt; 的时候，&lt;code&gt;Meta&lt;/code&gt; 这个类里面，&lt;code&gt;__new__&lt;/code&gt; 和 &lt;code&gt;__init__&lt;/code&gt; 都会被调用到。上面代码往 &lt;code&gt;A&lt;/code&gt; 里面塞了一个属性。&lt;/p&gt;
+&lt;p&gt;在 &lt;code&gt;__new__&lt;/code&gt; 里面，有几个注释，可以去掉注释看看不同的效果。目前还有点疑惑，传给 &lt;code&gt;__new__&lt;/code&gt; 第一个参数到底是什么。另外，开始对 &lt;code&gt;super&lt;/code&gt; 也有点疑惑了，还在学习。&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form action="//www.google.com.hk/search" method="get" accept-charset="UTF-8" id="search">
+            <input type="hidden" name="sitesearch" value="https://wdicc.com" />
+            <input type="text" name="q" results="0" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Python metaclass</h2>
+    <div class="meta">
+        <div class="date">Published on: <time datetime="2017-01-12T10:26:22.000Z" itemprop="datePublished">Jan 12, 2017</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/python/">python</a>
+</div>
+    </div>
+	<div class="entry-content"><p>又理解了一下 python 的 metaclass 可以做什么，尝试记录一下。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div><div class="line">26</div><div class="line">27</div><div class="line">28</div><div class="line">29</div><div class="line">30</div><div class="line">31</div></pre></td><td class="code"><pre><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">Meta</span><span class="params">(type)</span>:</span></div><div class="line">    register = []</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__new__</span><span class="params">(cls, class_name, parrent_class, params)</span>:</span></div><div class="line">        print(<span class="string">"In meta new: &#123;&#125;, &#123;&#125;, &#123;&#125;, &#123;&#125;"</span>.format(cls, class_name, parrent_class, params))</div><div class="line">        cls.register.append(class_name)</div><div class="line">        params[<span class="string">'test_prop'</span>] = <span class="keyword">True</span></div><div class="line">        <span class="comment"># return super(Meta, cls).__new__(cls, class_name, parrent_class, params)</span></div><div class="line">        <span class="comment"># return type.__new__(cls, class_name, parrent_class, params)</span></div><div class="line">        <span class="comment"># return super(Meta, cls).__new__(type, class_name, parrent_class, params)</span></div><div class="line">        <span class="comment"># return type.__new__(type, class_name, parrent_class, params)</span></div><div class="line">        <span class="keyword">return</span> type(class_name, parrent_class, params)</div><div class="line"></div><div class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__init__</span><span class="params">(self, class_name, parrent_class, params)</span>:</span></div><div class="line">        print(<span class="string">"In meta init: &#123;&#125;, &#123;&#125;, &#123;&#125;"</span>.format(class_name, parrent_class, params))</div><div class="line">        super(Meta, self).__init__(class_name, parrent_class, params)</div><div class="line"></div><div class="line"></div><div class="line"><span class="class"><span class="keyword">class</span> <span class="title">A</span><span class="params">(object, metaclass=Meta)</span>:</span></div><div class="line">    <span class="keyword">pass</span></div><div class="line"></div><div class="line">print(<span class="string">"register: &#123;&#125;"</span>.format(Meta.register))</div><div class="line">print(<span class="string">"prop: &#123;&#125;"</span>.format(A.test_prop))</div><div class="line">print(<span class="string">"register: &#123;&#125;"</span>.format(A.register))  <span class="comment"># Error</span></div><div class="line"></div><div class="line"><span class="comment"># outputs:</span></div><div class="line"><span class="comment"># In meta new: &lt;class '__main__.Meta'&gt;, A, (&lt;class 'object'&gt;,), &#123;'__module__': '__main__', '__qualname__': 'A'&#125;</span></div><div class="line"><span class="comment"># In meta init: A, (&lt;class 'object'&gt;,), &#123;'__module__': '__main__', '__qualname__': 'A'&#125;</span></div><div class="line"><span class="comment"># register: ['A']</span></div><div class="line"><span class="comment"># prop: True</span></div><div class="line"><span class="comment"># AttributeError: type object 'A' has no attribute 'register'</span></div></pre></td></tr></table></figure>
+<p>可以看到，在构造 <code>A</code> 的时候，<code>Meta</code> 这个类里面，<code>__new__</code> 和 <code>__init__</code> 都会被调用到。上面代码往 <code>A</code> 里面塞了一个属性。</p>
+<p>在 <code>__new__</code> 里面，有几个注释，可以去掉注释看看不同的效果。目前还有点疑惑，传给 <code>__new__</code> 第一个参数到底是什么。另外，开始对 <code>super</code> 也有点疑惑了，还在学习。</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/Python-metaclass/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = 'https://wdicc.com/Python-metaclass/';
+            this.page.identifier = 'https://wdicc.com/Python-metaclass/';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2017
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

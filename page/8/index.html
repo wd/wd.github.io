@@ -103,6 +103,279 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="sendmail-pm/">无聊又写一个用来发邮件的 pm..</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2010-07-08T16:00:00.000Z" itemprop="datePublished">Jul 9, 2010</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/sendmail/">sendmail</a> <a href="/tags/perl/">perl</a>
+</div>
+    </div>
+      
+        
+继使用 perl 发<a href="http://wdicc.com/sendmail-use-perl/">中文标题邮件</a>，和<a href="http://wdicc.com/sned-mail-with-attachment/">中文附件邮件</a>后，又把他们整合了一下写了一个 pm 干这个事。
+
+其实发带附件的邮件应该是有现成的 pm 干这个事的，比如 MIME::Lite 之类，没特殊需求还是用那个吧，这个纯属无聊写的。
+
+文件前面有使用方法。。
+
+<pre class="prettyprint">
+package SendMail;
+
+use strict;
+use warnings;
+use Data::Dumper;
+use Encode;
+use MIME::Base64;
+
+=head1 Examples
+use SendMail;
+
+my $sm = SendMail->new( {
+    To => 'you@foo.com, other@bar.com',
+    Subject => 'just a test 中文',
+    });
+
+-- or --
+
+my $sm = SendMail->new( {
+    From => 'me@abc.com',
+    To => 'you@foo.com, other@bar.com',
+    Subject => 'just a test 中文',
+    } );
+
+-- or --
+
+my $sm = SendMail->new( {
+    From => 'me@abc.com',
+    To => 'you@foo.com, other@bar.com',
+    Cc => 'cc@foobar.com',
+    Subject => 'just a test 中文',
+    } );
+
+
+$sm->attach( {
+    Type => "text/plain",
+    Data => "只是一个测试..a test"
+    });
+
+$sm->attach( {
+    Type => 'application/octet-stream',
+    Filename => 'test 中文.txt',
+    Data => "只是一个 test ..."
+    });
+
+$sm->test;
+
+-- or --
+
+$sm->send;
+
+=cut
+
+
+
+use vars qw($VERSION);
+$VERSION = '0.01';
+
+our $boundary = "FFFFFFFFKKKKKK";
+our $from = 'no-reply@abc.com';
+our $subject = "No subject";
+
+our $to;
+our $cc;
+our @body;
+
+
+sub new {
+    my $package = shift;
+    my $info = shift;
+
+    $subject = $info->{Subject} || $subject;
+    $subject = encode('MIME-B', decode('utf8', $subject));
+    $from = $info->{From} || $from;
+    $to = $info->{To} || die "Need to set MailTo 'To'!";
+    $cc = $info->{Cc} || "";
+
+    push @body, "MIME-Version: 1.0";
+    push @body, "Content-Type: multipart/mixed; boundary=\"$boundary\"";
+    push @body, "";
+
+    return bless( {}, $package);
+}
+
+sub attach {
+    my $self = shift;
+    my $f_hash = shift;
+
+    die "Need data when attach!" if ( not defined $f_hash->{Data} );
+
+    my $type = "text/plain";
+    $type = $f_hash->{Type} if defined $f_hash->{Type};
+
+    my @t;
+    push @t, "--$boundary";
+    if ( $type eq "text/plain" ) {
+        push @t, "Content-Type: $type; charset=utf-8";
+    } else {
+        my $filename = "file1.txt";
+        $filename = encode('MIME-B', decode('utf8', $f_hash->{Filename})) if defined $f_hash->{Filename};
+        push @t, "Content-Type: $type";
+        push @t, "Content-Disposition: attachment; filename=$filename";
+    }
+    push @t, "Content-Transfer-Encoding: base64";
+    push @t, "";
+    push @t, encode_base64($f_hash->{Data});
+
+    push @body, @t;
+}
+
+sub send {
+    my $self = shift;
+
+    open(my $fh, '|/usr/sbin/sendmail -t');
+    $self->print_to($fh);
+    close($fh);
+}
+
+sub print_to {
+    my $self = shift;
+    my $fh = shift;
+
+    push @body, "--$boundary--";
+
+    print $fh "From: $from\r\n";
+    print $fh "To: $to\r\n";
+    print $fh "Cc: $cc\r\n" if $cc;
+    print $fh "Subject: $subject\r\n";
+
+    for ( @body ) {
+        print $fh "$_\r\n";
+    }
+}
+
+sub test {
+    my $self = shift;
+
+    open ( my $fh, '>-');
+    $self->print_to($fh);
+    close($fh);
+}
+
+1;
+</pre>
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/sendmail-pm/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="sned-mail-with-attachment/">使用 perl 发带附件的邮件</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2010-07-04T16:00:00.000Z" itemprop="datePublished">Jul 5, 2010</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/sendmail/">sendmail</a> <a href="/tags/perl/">perl</a>
+</div>
+    </div>
+      
+        继 <a href="http://wdicc.com/sendmail-use-perl/">上篇</a> 使用 perl 发带中文标题的邮件后，又研究了下发带附件的。
+
+基本差别不大，主要是那个 Content-type 要变一下。那个 boundary 可以自己随便写，和后面的统一就行了。
+
+<pre class="prettyprint lang-perl">
+my $title = encode_base64("标题", "");
+my $body = encode_base64("邮件正文");
+my $attach = encode_base64("附件内容");
+my $filename = encode('MIME-B', decode('utf8', "文件中文.txt"))
+
+open(MAIL, '|/usr/sbin/sendmail -t');
+ 
+print MAIL "From: test\@abs.com\r\n";
+print MAIL "To: test\@abs.com\r\n";
+print MAIL "Subject: =?UTF-8?B?$title?=\r\n";
+print MAIL "MIME-Version: 1.0\r\n";
+# print MAIL "Content-type: text/plain; charset=utf-8\r\n";
+print MAIL <<eof; content-type:="" multipart="" mixed;="" boundary="\"FFFFFFFFKKKKKK\"" --ffffffffkkkkkk="" text="" plain;="" charset="utf-8" content-transfer-encoding:="" base64="" $body="" application="" octet-stream="" content-disposition:="" attachment;="" filename="$filename.csv" $attach="" --ffffffffkkkkkk--="" eof="" close(mail);="" <="" pre="">
+</eof;></pre>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/sned-mail-with-attachment/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="sendmail-use-perl/">使用 perl 发送中文邮件标题乱码</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2010-06-29T16:00:00.000Z" itemprop="datePublished">Jun 30, 2010</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/linux/">linux</a> <a href="/tags/sendmail/">sendmail</a> <a href="/tags/perl/">perl</a>
+</div>
+    </div>
+      
+        
+代码如下面，解决乱码的方法是使用 base64 编码。
+
+<pre class="prettyprint lang-perl">
+use MIME::Base64::Perl;
+
+open(MAIL, '|/usr/sbin/sendmail -t');
+
+my $recver = 'wangdong@abc.com';
+my $alertTitle = "中文 asdfsdf sdfsdf sdf sdf s df sd fsd f sd fsd f sdf sdf sdf";
+my $alertText = "body ";
+
+my $encoded = encode_base64($alertTitle, "");
+
+print MAIL "From: alert\@abc.com\r\n";
+print MAIL "To: $recver\r\n";
+print MAIL "Subject: =?UTF-8?B?" . $encoded . "?=\r\n";
+print MAIL "MIME-Version: 1.0\r\n";
+print MAIL "Content-type: text/plain; charset=utf-8\r\n";
+print MAIL "\n";
+print MAIL "$alertText";
+
+close(MAIL);
+</pre>
+
+这里面 encode_base64 可以把文本做 base64 编码，要注意的是这个方法的第二个参数，是用来把编码结果进行格式化的，会每 76 个字符插入一个这个参数，默认是换行。
+
+如果不是 utf8 的文本，那把里面的 utf8 改一下就好了。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/sendmail-use-perl/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="emms-coding-system/">emacs 的 emms 里面的乱码</a>
 	</h2>
     <div class="entry-content">
@@ -499,188 +772,6 @@ git branch 还能建分支，非常的方便。使用 git branch wd 就能建立
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/about-justice/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="use-emacs-publish-your-blog/">用 emacs 写 blog</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2010-03-09T16:00:00.000Z" itemprop="datePublished">Mar 10, 2010</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a> <a href="/tags/wordpress/">wordpress</a> <a href="/tags/emacs/">emacs</a>
-</div>
-    </div>
-      
-        不想看大段文字的可以直接看 http://github.com/wd/work/tree/master/weblogger.el/。
-
-先看看 <a href="http://emacser.com/weblogger.htm" target="_blank" rel="external">这个</a>， 我用的weblogger.el 就是从那来的，这个 el 打了 html 支持和 tags(summary) 的支持。
-
-因为写中文 title 的时候，生成的 url 会有一堆的中文字符，看起来就是乱码，不可读，这时候可以在 wp 的后台指定一个 post-slug，url 会根据这个生成。这里我主要是研究了一下对 post-slug 的支持。
-
-weblogger.el 里面 应该是在 weblogger-determine-capabilities 里面判断一下你的 blog 支持的类型，我看了 wordpress 的支持的 methods，里面metaWeblog.newPost, 和 blogger.newPost 应该都是支持的，他应该首选的是 metaWeblog 那个。
-
-然后呢，就是看 wp 的 xml-rpc 文件，里面有个 mw_newPost 对应的就是 metaWeblog.newPost 应该是。在这个函数头试了一把，用的确实是这个。然后就看这里面是怎么处理的了。
-
-这里面最后用的是 wp_insert_post 发的贴子，再看这个函数，能看到里面用的是 post_name 来生成的 post-slug。那么我们只要设置一下这个变量就可以了。在这个函数里面，搜一下 post-name 能看到
-<pre class="prettyprint">
-// Let WordPress generate the post_name (slug) unless
-// one has been provided.
-$post_name = "";
-if(isset($content_struct["wp_slug"])) {
-    $post_name = $content_struct["wp_slug"];
-}
-</pre>
-
-我们只要在 weblogger.el 里面 post 一个这个变量就好了。在 post 里面能看到如果有个 X-url 的话，他会 post 一个 link 字段出来。那就好了，把上面那个 wp_slug 改成 link，然后写 blog 的时候加一个字段 X-url 就会使用这个你指定的 url 了。
-
-这个文章就是用 emacs 写的。 :D
-
-又研究了下，再补充点内容，呵呵。(2010-03-10)
-
-问题是这样的，新建一个 post 的时候会出来 subject, keywords, newsgroup 这三个字段，怎么能让他加上 summary 和 x-url 呢，这样我就不用每次都手动写了，怎么弄呢，我就找啊找啊，总算找到方法了。
-
-新建的 buffer 里面不是会有个提示么，什么 '--text follows this line --', 就找这个，看是哪里提供的。在 weblogger.el 里面，找了半天，发现没有这个提示。怎么回事？要相信程序，肯定是会有的，只能是找错了地方。
-
-看看这个 el 的看头，引用了 message.el，搜了一下，这个原来是 gnus 提供的，找到这个 el，搜了一下，找到那几个字符了。原来是在这里面添加的。然后我就尝试定义 message-required-news-headers 这个变量，发现不好用，看来还是得在 weblogger.el 里面弄。在这里面找到 weblogger-edit-entry 这个函数，这个就是发帖子的时候用的，在里面有个顺序往下看，这个 message-goto-keywords 比较可疑，在 message.el 里面搜了下，果然，同时还看到一个 message-goto-summary，加上看看，嘿嘿，果然就搞定了。再找找 x-url，没找到，那就仿 summary 的写一个呗
-<pre class="prettyprint">
-(defun message-goto-x-url ()
-  "Move point to the x-url header."
-  (interactive)
-  (message-position-on-field "X-url" "Subject"))
-</pre>
-
-这不完了么，这下就爽多了，嘿嘿。。不过如果能把那些 keywords, summary 等字段改成什么 categories,tags 就好了。。。有时间看看。。。
-
-又研究了一下，加点内容。。(2010-03-11)
-
-其实就是上面留的这点东西，我自己改吧了一下，好像能用了。地址在 http://github.com/wd/work/tree/master/weblogger.el/，里面的 permlink 就是指定 url 的。我看发文章好像没问题了。
-
-另外，我试着在这个 mode 里面让他自动启动 auto-complete-mode，可是怎么弄都不行，不知道怎么回事。下面是我在 .emacs 用的代码。
-<pre class="prettyprint">
-(add-hook 'weblogger-start-edit-entry-hook (lambda()
-    (auto-fill-mode -1)
-    (abbrev-mode -1)
-    (auto-complete-mode 1)
-    ))
-</pre>
-
-有人能帮忙不。。。
-
-又修改了一些东西。。可以看看 github 的 commit log 。。。。(2010-03-12)
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/use-emacs-publish-your-blog/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="introduce-to-jemplate/">Jemplate 的简单介绍</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2010-02-26T16:00:00.000Z" itemprop="datePublished">Feb 27, 2010</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a> <a href="/tags/php/">php</a> <a href="/tags/jemplate/">jemplate</a> <a href="/tags/js/">js</a>
-</div>
-    </div>
-      
-        如果你还在用 php 写 web，那么你 out 了，呵呵。现在流行的是 rest + js。当然，rest 层可能还是 php 写的，不过还有用 perl 写的 openresty 1.0 和完全用 c 写的 openresty 2.0。openresty 是个很不错的东西，本来想细说一下，发现不知道怎么说好。去 cpan 上面搜吧。openresty 2.0 是基于 nginx 的，agentzh 在他上面加了好多的模块，让 nginx 直接和数据库通信，都不用 php 了。前端完全用 js 来搞定，以后应该都是 js 工程师了。
-
-smarty 写 php 的人应该都知道吧，Jemplate 是很类似的一个东西，是方便你写 js 的一个工具。我这写了一个非常简单的例子。
-
-下面这个是 Jemplate 的一个模板，保存为 test.tt。
-<pre class="prettyprint">
-<div>[% test %]</div>
-<p>
-[% FILTER html %]
-    asdff < sdf > sdfsdf
-[% END %]
-</p>
-</pre>
-
-然后用 Jemplate 编译一下
-<pre class="prettyprint">
-jemplate --runtime > a.js
-jemplate --compile test.tt >> a.js
-</pre>
-
-这之后就和 test.tt 没关系了，除非你改了他，那就需要重新生成这个 a.js。
-
-再看我们的页面。里面 jquery-1.4.2.min.js 是为了方便操作页面使用的，jquery 决对是个好东西，写 js 应该使用他。那个 jquery.b.js 是我们自己写的，真正把数据添加到页面的代码。
-<pre class="prettyprint">
-<html>
-<head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8">
-    <title>test</title>
-    <script src="jquery-1.4.2.min.js" type="text/javascript" charset="utf-8"> </script>
-    <script src="a.js" type="text/javascript" charset="utf-8"> </script>
-    <script src="jquery.b.js" type="text/javascript" charset="utf-8"> </script>
-</head>
-<body>
-<div id="main"></div>    
-</body>
-</html>
-</pre>
-
-在这个 jquery.b.js 里面，我们让 jemplate 处理了一下 test.tt，给他里面的 test 变量赋值 ffffff，然后把设置到 #main 的 html 里面。
-<pre class="prettyprint">
-$(function() {
-    var html= Jemplate.process(
-        'test.tt', { test: 'ffffff' }
-    );
-
-    $('#main').html(html);
-});
-</pre>
-
-这样这个页面就完事了，简单么，呵呵。你可以用 jemplate 和 js 强大的语法来实现更多的功能的。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/introduce-to-jemplate/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="ssh-proxy/">ssh 之穿越与反穿越</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2010-01-20T16:00:00.000Z" itemprop="datePublished">Jan 21, 2010</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/linux/">linux</a> <a href="/tags/ssh/">ssh</a> <a href="/tags/proxy/">proxy</a>
-</div>
-    </div>
-      
-        <p>有时候我们不得不和网管对着干，去想办法去穿越某些防火墙，访问到我们要访问的资源。例如下面的情况，A 和 C 之间是有个墙的，不通。可有个 B 能访问到 C，而 A 又能访问到 B ，那我们可以通过你 ssh 做代理穿越那个墙。</p><p>A -&gt; | -&gt; C<br> \-&gt; B -&gt; C</p><p>在A 上面执行下面的命令</p><p>ssh -f -N -g -L 8888:C_ip:80 B_ip<br>参数的含义：-f 放到后台<br>-N 不在对方机器请求 shell<br>-g 能使得别的机器能连接 A 的那个端口<br>-L 就是代理，具体看 man </p><p>这样，在 A 上面访问 8888 端口，就能访问到 C 的 80 端口了。</p><p>那如果是下面的网络情况，那怎么办？A 能访问到 C，但是 C 不能直接访问 A。</p><p>A -&gt; C<br>C-&gt; | -&gt; A</p><p>在 A 上面执行下面的命令</p><p>ssh -f -N -R 9999:A_ip:80 C_ip<br>-R 是反向代理, -g 在这里好像不好用不知道为什么</p><p>从 C 上面访问自己的 9999 端口，就会访问到 A 的 80 端口。</p>
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/ssh-proxy/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
