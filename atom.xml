@@ -5,7 +5,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="https://wdicc.com/"/>
-  <updated>2017-01-16T04:04:20.000Z</updated>
+  <updated>2017-01-16T10:50:18.000Z</updated>
   <id>https://wdicc.com/</id>
   
   <author>
@@ -14,6 +14,79 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Upgrade kernel to 4.9 for linode</title>
+    <link href="https://wdicc.com/Upgrade-kernel-to-4-9-for-linode/"/>
+    <id>https://wdicc.com/Upgrade-kernel-to-4-9-for-linode/</id>
+    <published>2017-01-16T10:37:56.000Z</published>
+    <updated>2017-01-16T10:50:18.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>bbr 那么牛逼，赶紧赶一个潮流。其实我之前用了 kcp，也是类似的东西，不过那个要求服务器端和客户端都需要跑 kcp 服务才可以。bbr 就不用了，只需要服务器配置好就可以了。</p>
+<p>Linode 实际上已经提供了 4.9 的内核。打开 <code>Dashboard</code>，然后点击你使用的 profile 右侧的 edit，在出来的界面里面，Kernel 右侧的列表里面，有个 4.9 的选项，不过我测试这个内核并不能打开 bbr，不知道是怎么回事，有兴趣的可以试试看，要注意选对架构（就是 64 还是 32）。</p>
+<p>所以还是需要自己装内核。debian 官方已经打包好了 kernel 4.9，访问 <a href="http://mirrors.kernel.org/debian/pool/main/l/linux/" target="_blank" rel="external">http://mirrors.kernel.org/debian/pool/main/l/linux/</a> ，然后找到适合自己的 linux-image-4.9，我的是 <a href="http://mirrors.kernel.org/debian/pool/main/l/linux/linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb" target="_blank" rel="external">http://mirrors.kernel.org/debian/pool/main/l/linux/linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb</a> ，下载到 vps 上面。</p>
+<p>然后执行 <code>sudo dkpg -i ./linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb</code>，最后应该会提示一个错误，缺少依赖的包。这个时候执行 <code>sudo apt-get -f install</code>，会提示安装缺失的包。</p>
+<p>然后，还需要安装 <code>grub</code>。看你的情况。就刚才 profile 编辑的页面里面，kernel 右侧的选项里面，你看看你的是 <code>grub2</code> 还是 <code>pv-grub</code>。</p>
+<ul>
+<li><p><code>grub2</code>: 参考<a href="https://www.linode.com/docs/tools-reference/custom-kernels-distros/run-a-distribution-supplied-kernel-with-kvm" target="_blank" rel="external">这个</a></p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$ </span>sudo apt-get install grub2</div><div class="line"><span class="variable">$ </span>sudo update-grub</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>pv-grub</code>: 参考<a href="https://www.linode.com/docs/tools-reference/custom-kernels-distros/run-a-distributionsupplied-kernel-with-pvgrub" target="_blank" rel="external">这个</a></p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$ </span>sudo apt-get install grub</div><div class="line"><span class="variable">$ </span>sudo mkdir /boot/grub</div><div class="line"><span class="variable">$ </span>sudo update-grub</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>然后在 profile 编辑页面里面，kernel 右侧选择对应的 grub 选项，重启 vps 就可以了。如果启动失败了，就在这个选项里面，选择之前的选项重启就可以恢复。</p>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;bbr 那么牛逼，赶紧赶一个潮流。其实我之前用了 kcp，也是类似的东西，不过那个要求服务器端和客户端都需要跑 kcp 服务才可以。bbr 就不用了，只需要服务器配置好就可以了。&lt;/p&gt;
+&lt;p&gt;Linode 实际上已经提供了 4.9 的内核。打开 &lt;code&gt;Dashboa
+    
+    </summary>
+    
+    
+      <category term="kernel" scheme="https://wdicc.com/tags/kernel/"/>
+    
+      <category term="linode" scheme="https://wdicc.com/tags/linode/"/>
+    
+      <category term="bbr" scheme="https://wdicc.com/tags/bbr/"/>
+    
+  </entry>
+  
+  <entry>
+    <title>Python __new__</title>
+    <link href="https://wdicc.com/Python-new/"/>
+    <id>https://wdicc.com/Python-new/</id>
+    <published>2017-01-16T07:47:59.000Z</published>
+    <updated>2017-01-17T03:40:26.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>翻译一点 <a href="https://www.python.org/download/releases/2.2/descrintro/#__new__" target="_blank" rel="external">https://www.python.org/download/releases/2.2/descrintro/#__new__</a> 有些感觉还是挺生硬的，方便自己理解吧。</p>
+<p><code>__new__</code> 的一些规则:</p>
+<ul>
+<li><code>__new__</code> 是一个静态方法。定义它的时候并不需要执行 <code>__new__ = staticmethod(__new__)</code>，因为它的名字就包含了这个含义（这个对于类构造方法来说是个特殊的函数）</li>
+<li><code>__new__</code> 的第一个参数，必须是一个类，其余的参数是留给构造方法的。</li>
+<li>覆盖了基类的 <code>__new__</code> 方法的类有可能会调用基类的 <code>__new__</code> 方法。传递给基类的 <code>__new__</code> 方法的第一个参数，应该是覆盖基类的 <code>__new__</code> 方法的类，而不是基类，如果传递了基类，你得到的将是基类的示例。</li>
+<li>除非你想要按照后面两条描述的方法来使用，否则 <code>__new__</code> 方法必须要调用基类的 <code>__new__</code> 方法，这个是创建你的对象的实例的唯一方法。子类的 <code>__new__</code> 方法可以从两个方面影响产生的实例：传递不同的参数给基类的 <code>__new__</code>，以及修改基类产生的对象（例如初始化一些实例变量）</li>
+<li><code>__new__</code> 方法必须返回一个对象。并不一定必须返回一个新的对象，虽然通常都那么做。如果你返回一个已经存在的对象，依然会有对于 <code>__init__</code> 构造函数的调用。如果你返回一个其他函数的对象，那个对象的 <code>__init__</code> 也会被调用。如果忘记返回，python 会给你返回 None，你程序的调用方也许会觉得很奇怪。</li>
+<li>对于不可变对象，<code>__new__</code> 可以返回一个之前缓存的对象。对于一些比较小的 int, str, tuple 类型就是这么做的。这也是为什么他们的 <code>__init__</code> 什么都没做：否则之前缓存的对象会被 init 很多次。（另外一个原因是本身页没有东西可以给 <code>__init__</code> 初始化的了，<code>__new__</code> 返回的就是一个已经初始化的对象）。</li>
+<li>如果你想要给一个内置的不可变类型增加一些可变的状态（例如给 string 类型增加一个默认的转换方法），最好是在 <code>__init__</code> 方法里面初始化可变状态，而不要在 <code>__new__</code> 里面。</li>
+<li>如果你想要修改构造方法的签名，一般需要覆盖 <code>__new__</code> 和 <code>__init__</code> 方法来接受心的签名。然而，大部分内置类型都会忽视自己不用的参数，尤其是不可变类型（int，long，float，complex，str，unicode，tuple）都有一个假的 <code>__init__</code>，而可变类型（dict，list，file，super，classmethod，staticmethd，property）有一个假的 <code>__new__</code>。内置类型 <code>object</code> 有假的 <code>__init__</code> 和 <code>__new__</code> （给其他对象继承）。内置类型 <code>type</code> 在很多方面都很特别，请参考 metaclasses。</li>
+<li>（这条和 <code>__new__</code> 没关系，但是页应该了解一下）如果新建一个 <code>type</code> 的子类，实例会自动给 <code>__dict__</code> 和 <code>__weakrefs__</code> 预留空间（ <code>__dict__</code> 在你使用前不会初始化，所以你不需要担心创建的所有实例被一个空的字典所占用的空间）。如果不需要这个多余的空间，可以给你的类设置 <code>__slots__ = []</code>（更多信息可以参考 <code>__slots__</code>。</li>
+<li>Factoid: <code>__new__</code> 是一个静态方法，不是类方法。我开始的时候觉得他应该是一个类方法，and that’s why I added the classmethod primitive。不幸的是，对于一个类方法，在这种情况下面 upcalls 不工作，所以我只好把他设计成一个第一个参数是一个 class 的静态方法。讽刺的是，there are now no known uses for class methods in the Python distribution (other than in the test suite). I might even get rid of classmethod in a future release if no good use for it can be found!</li>
+</ul>
+]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;翻译一点 &lt;a href=&quot;https://www.python.org/download/releases/2.2/descrintro/#__new__&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;https://www.python.org/dow
+    
+    </summary>
+    
+    
+      <category term="python" scheme="https://wdicc.com/tags/python/"/>
+    
+  </entry>
   
   <entry>
     <title>Python inherit and super</title>
@@ -783,76 +856,6 @@ $hash = unpack(&quot;I&quot;, pack(&quot;B32&quot;, $hash));
     
     
       <category term="blog" scheme="https://wdicc.com/tags/blog/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>Custom Netgear r6300v2 wireless router</title>
-    <link href="https://wdicc.com/Custom-Netgear-r6300v2-wireless-router/"/>
-    <id>https://wdicc.com/Custom-Netgear-r6300v2-wireless-router/</id>
-    <published>2016-03-27T03:50:38.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>接 <a href="/Across-the-Great-Wall-we-can-reach-every-corner-in-the-world">科学上网</a>。买了群晖之后，一直通过群晖上面跑一个 haproxy 来做转发。不过心里总觉得有点不爽，毕竟一方面多转发了一次，另外群晖在不使用的时候，还会休眠，又或多或少担心影响休眠（经过测试应该是不影响的，但是..）。所以买了 r6300v2 之后，就琢磨通过路由器做这个事情。</p>
-<p>路由器上面搞就有两个选择，一是从 iptables 入手，直接转发出去，另外一个是从软件层面做。</p>
-<p>开始搞了几天的 iptables，发现原有系统 iptables 条目还是挺多的，加上路由器翻墙的功能也需要加一些条目，导致尝试了好几天之后总算能够转发过去链接了，但是数据包过不去，为了调试就开始打算在路由器安装 tcpdump。然后找到了 <a href="https://github.com/Entware/entware" target="_blank" rel="external">https://github.com/Entware/entware</a> ，配置好之后可以使用 opkg 来安装包。包列表可以参考这里 <a href="http://pkg.entware.net/binaries/armv7/Packages.html" target="_blank" rel="external">http://pkg.entware.net/binaries/armv7/Packages.html</a> ，这个路由器是 armv7 版本的 cpu。</p>
-<p>安装 opkg 之前先得了解下，梅林固件分两部分存储，一部分是系统区，一部分是自定义区。系统区应该是你刷的固件所在的地方，是不能修改的，自定义区是可以存放一些自己定义的脚本的。每次系统启动的时候，你的一些自定义的东西都是存在自定义区加载的。自定义区就是 /jffs 分区。想要使用，得在 系统管理 -&gt; 系统设置 里面，打开 JFFS 的配置，允许执行上面的脚本。</p>
-<p>因为系统自带的 /jffs 分区只有 60M 左右，而我们装包的时候很容易就超过这个限制了，我现在已经用了 8xM 空间。所以最好还是用一个 u 盘来做这个事情。每次想要自动加载 u 盘，启动 u 盘里面的程序的话，还需要一些自定义的脚本来做这个事情。</p>
-<p>先把 opkg 配置好，需要先准备好 /opt 目录。</p>
-<figure class="highlight vim"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="built_in">mkdir</span> -<span class="keyword">p</span> /tmp/<span class="keyword">opt</span></div><div class="line">mount -t ext4 -<span class="keyword">o</span> rw,noatime /dev/sda1 /<span class="keyword">opt</span></div></pre></td></tr></table></figure>
-<p>上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</p>
-<p>然后参考 <a href="https://github.com/Entware/entware" target="_blank" rel="external">https://github.com/Entware/entware</a> 操作就可以了，可以看到他会在 /opt 给你安装一陀东西。因为这个是 u 盘，所以东西重启也不会丢失。</p>
-<p>然后参考<a href="https://github.com/RMerl/asuswrt-merlin/wiki/User-scripts" target="_blank" rel="external">梅林的 wiki</a>，它允许用户在 <code>/jffs/scripts</code> 自定义一些启动脚本，来支持我们自动挂载和启动 u 盘上面的程序。</p>
-<p>post-mount 内容如下，前面几个注释的是调试用的。最后一个 if 里面内容是执行一些 opkg 安装的程序的启动脚本，这个后面说。<br><figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#!/bin/sh</span></div><div class="line"></div><div class="line"><span class="comment">#echo $(date) &gt; /tmp/000service-start</span></div><div class="line"><span class="comment">#echo "$1" &gt;&gt; /tmp/000service-start</span></div><div class="line"><span class="comment">#ls /dev/sda* &gt;&gt; /tmp/000service-start</span></div><div class="line"></div><div class="line"><span class="keyword">if</span> [ -b /dev/sda1 ];<span class="keyword">then</span></div><div class="line">        mkdir -p /tmp/opt</div><div class="line">        mount -t ext4 -o rw,noatime /dev/sda1 /opt</div><div class="line"><span class="keyword">fi</span></div><div class="line"></div><div class="line"><span class="keyword">if</span> [ -x /opt/bin/opkg ];<span class="keyword">then</span></div><div class="line">        /opt/etc/init.d/rc.unslung start</div><div class="line"><span class="keyword">fi</span></div></pre></td></tr></table></figure></p>
-<p>要记得 <code>sudo chmod +x post-mount</code>，然后可以重启路由器看看是不是启动之后就能看到 /opt 有了你上次安装的程序了。</p>
-<p>上面一阶段搞定之后，就可以装一些软件了，比如我装了 vim, tcpdump，bind-dig, haproxy。opkg 的命令使用可以参考这里 <a href="https://wiki.openwrt.org/doc/techref/opkg" target="_blank" rel="external">https://wiki.openwrt.org/doc/techref/opkg</a> 。</p>
-<p>接着上面的话题，本来打算装好 tcpdump 来调试的，然后发现可以比较方便的启动 haproxy 之后，就打算用 haproxy 弄了，路由表太多，分析比较麻烦，还是走简单的吧。。</p>
-<p><code>/opt/etc/haproxy.cfg</code> 如下，把 IP 和 PORT 改成你自己的。</p>
-<figure class="highlight x86asm"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div></pre></td><td class="code"><pre><div class="line"><span class="meta">global</span></div><div class="line">        ulimit-n  <span class="number">331071</span></div><div class="line"></div><div class="line">defaults</div><div class="line">        log <span class="meta">global</span></div><div class="line">        mode    tcp</div><div class="line">        <span class="meta">option</span>  dontlognull</div><div class="line">        timeout connect <span class="number">1000</span></div><div class="line">        timeout client <span class="number">150000</span></div><div class="line">        timeout server <span class="number">150000</span></div><div class="line"></div><div class="line">frontend <span class="built_in">ss</span>-<span class="keyword">in</span></div><div class="line">        bind *:本机PORT</div><div class="line">        default_backend <span class="built_in">ss</span>-<span class="keyword">out</span></div><div class="line"></div><div class="line">backend <span class="built_in">ss</span>-<span class="keyword">out</span></div><div class="line">        server server1 <span class="built_in">IP</span>:远端PORT maxconn <span class="number">20480</span></div></pre></td></tr></table></figure>
-<p><code>/opt/etc/init.d/S001haproxy.sh</code> 如下，<code>sudo chmod +x /etc/init.d/S001haproxy.sh</code></p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#!/bin/sh</span></div><div class="line"></div><div class="line">haproxy_bin=/opt/sbin/haproxy</div><div class="line">haproxy_cfg=/opt/etc/haproxy.cfg</div><div class="line">pid=/opt/var/run/haproxy.pid</div><div class="line"></div><div class="line">action=<span class="variable">$1</span></div><div class="line"></div><div class="line"><span class="keyword">if</span> [ -z <span class="string">"<span class="variable">$action</span>"</span> ];<span class="keyword">then</span></div><div class="line">        <span class="built_in">printf</span> <span class="string">"Usage: <span class="variable">$0</span> &#123;start|stop|restart&#125;\n"</span> &gt;&amp;2</div><div class="line">        <span class="built_in">exit</span> 1</div><div class="line"><span class="keyword">fi</span></div><div class="line"></div><div class="line"><span class="keyword">case</span> <span class="string">"<span class="variable">$action</span>"</span> <span class="keyword">in</span></div><div class="line">        start)</div><div class="line">                <span class="variable">$haproxy_bin</span> <span class="_">-f</span> <span class="variable">$haproxy_cfg</span> -p <span class="variable">$pid</span> -D</div><div class="line">                ;;</div><div class="line">        stop)</div><div class="line">                <span class="built_in">kill</span> $(cat <span class="variable">$pid</span>)</div><div class="line">                ;;</div><div class="line">        restart)</div><div class="line">                <span class="built_in">kill</span> $(cat <span class="variable">$pid</span>)</div><div class="line">                <span class="variable">$haproxy_bin</span> <span class="_">-f</span> <span class="variable">$haproxy_cfg</span> -p <span class="variable">$pid</span> -D</div><div class="line">                ;;</div><div class="line"><span class="keyword">esac</span></div></pre></td></tr></table></figure>
-<p>因为前面在 post-mount 最后一个 if 里面的语句，这样启动路由器就会自动启动 haproxy 了。</p>
-<p>想使用这个端口转发，还需要在路由器配置界面里面增加一个到路由器 ip 的映射，然后还需要一个 <code>/jffs/scripts/firewall-start</code> 如下</p>
-<figure class="highlight bash"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="meta">#!/bin/sh</span></div><div class="line"></div><div class="line">iptables -I INPUT -i ppp0 -p tcp --destination-port PORT -j ACCEPT</div></pre></td></tr></table></figure>
-<p>我使用的过程中还发现一个问题，pkg.entware.net 貌似被墙了。。虽然配置了翻墙但是不太明白为什么路由器上面时好时坏，而我局域网内的 mac 访问总是 ok 的，很奇怪。路由器上面不能访问有个办法是通过 mac 代理一下。</p>
-<p>mac 上面启动一个 ngx，配置如下，使用 nginx -p ./ -c nginx.conf 启动。<br><figure class="highlight nginx"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div></pre></td><td class="code"><pre><div class="line"><span class="section">events</span> &#123;</div><div class="line">  <span class="attribute">worker_connections</span> <span class="number">1024</span>;</div><div class="line">&#125;</div><div class="line"></div><div class="line"></div><div class="line"><span class="section">http</span> &#123;</div><div class="line">  <span class="section">server</span> &#123;</div><div class="line">      <span class="attribute">listen</span> <span class="number">0.0.0.0:8000</span>;</div><div class="line">      <span class="attribute">location</span> / &#123;</div><div class="line">           <span class="attribute">proxy_pass</span> http://pkg.entware.net;</div><div class="line">      &#125;</div><div class="line">  &#125;</div><div class="line">&#125;</div></pre></td></tr></table></figure></p>
-<p>然后修改路由器上面 /opt/etc/opkg.conf <code>src/gz packages http://MAC_IP:8000/binaries/armv7</code>，然后就可以了。</p>
-<p>写完自己看发现这不是一份操作指南，只能算是一些提示，如果有人照着做能不能成功可能还是得看自己。。。</p>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;p&gt;接 &lt;a href=&quot;/Across-the-Great-Wall-we-can-reach-every-corner-in-the-world&quot;&gt;科学上网&lt;/a&gt;。买了群晖之后，一直通过群晖上面跑一个 haproxy 来做转发。不过心里总觉得有点不爽，毕竟一方面多转发了一
-    
-    </summary>
-    
-    
-      <category term="linux" scheme="https://wdicc.com/tags/linux/"/>
-    
-      <category term="gfw" scheme="https://wdicc.com/tags/gfw/"/>
-    
-      <category term="router" scheme="https://wdicc.com/tags/router/"/>
-    
-  </entry>
-  
-  <entry>
-    <title>lua metatable</title>
-    <link href="https://wdicc.com/lua-metatable/"/>
-    <id>https://wdicc.com/lua-metatable/</id>
-    <published>2016-03-27T02:48:26.000Z</published>
-    <updated>2016-10-22T04:19:18.000Z</updated>
-    
-    <content type="html"><![CDATA[<figure class="highlight lua"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div></pre></td><td class="code"><pre><div class="line">t = <span class="built_in">setmetatable</span>(&#123; bar = <span class="number">4</span>, foo = <span class="number">7</span> &#125;, &#123; __index = &#123; foo = <span class="number">3</span> &#125; &#125;)</div><div class="line"></div><div class="line"><span class="built_in">print</span>(t.foo)  <span class="comment">-- 7</span></div><div class="line"><span class="built_in">print</span>(t.bar)  <span class="comment">-- 4</span></div><div class="line"></div><div class="line">t = <span class="built_in">setmetatable</span>(&#123;  &#125;, &#123; __index = &#123; foo = <span class="number">3</span>&#125; &#125;)</div><div class="line"></div><div class="line"><span class="built_in">print</span>(t.foo)  <span class="comment">-- 3</span></div><div class="line"><span class="built_in">print</span>(t.bar)  <span class="comment">-- nil</span></div><div class="line"></div><div class="line">fuc = <span class="function"><span class="keyword">function</span> <span class="params">(t,k)</span></span></div><div class="line">    <span class="keyword">if</span> k == <span class="string">'foo'</span> <span class="keyword">then</span></div><div class="line">        <span class="keyword">return</span> <span class="built_in">rawget</span>(t, <span class="string">'bar'</span>)</div><div class="line">    <span class="keyword">else</span></div><div class="line">        <span class="keyword">return</span> <span class="number">0</span></div><div class="line">    <span class="keyword">end</span></div><div class="line"><span class="keyword">end</span></div><div class="line"></div><div class="line">t = <span class="built_in">setmetatable</span>(&#123;   &#125;, &#123; __index = fuc &#125;)</div><div class="line"></div><div class="line"><span class="built_in">print</span>(t.foo)  <span class="comment">-- 3</span></div><div class="line"><span class="built_in">print</span>(t.bar)  <span class="comment">-- nil</span></div><div class="line"><span class="built_in">print</span>(t.ff)</div></pre></td></tr></table></figure>
-]]></content>
-    
-    <summary type="html">
-    
-      &lt;figure class=&quot;highlight lua&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;
-    
-    </summary>
-    
-    
-      <category term="lua" scheme="https://wdicc.com/tags/lua/"/>
     
   </entry>
   

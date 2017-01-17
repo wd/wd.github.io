@@ -103,6 +103,84 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="public-key-in-ssh/">使用公匙密匙来登录ssh</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-09-25T16:00:00.000Z" itemprop="datePublished">Sep 26, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a> <a href="/tags/ssh/">ssh</a> <a href="/tags/urxvt/">urxvt</a> <a href="/tags/公匙/">公匙</a> <a href="/tags/密匙/">密匙</a>
+</div>
+    </div>
+      
+        ssh一种更加安全的登录方式是使用rsa/dsa方式来做验证。密码口令很可能被猜出来，但是用dsa方式验证的ssh，除非他弄到你的私匙，否则肯定是安全的。
+
+ssh-keygen命令可以用来生成rsa/dsa方式的公匙密匙。
+ssh-keygen或者ssh-keygen -t rsa生成rsa方式的密匙。ssh-keygen -d 或者 ssh-keygen -t dsa生成dsa方式的密匙。具体rsa和dsa的区别看 <a href="http://www-128.ibm.com/developerworks/cn/linux/security/openssh/part1/index.html" target="_blank" rel="external">这里</a> 。
+
+上面的命令会在~/.ssh文件夹中生成公匙（id_*sa.pub）和密匙（id_*sa），将pub文件中的内容copy到远程服务器你的home目录下面的.ssh目录中的authorized_keys[2]这个文件中，有没有最后的那个2要看你用的是ssh1还是ssh2方式，通常都有2。
+
+然后就是远程服务器的这些文件需要有正确的权限，.ssh目录是700，authorized_keys2文件是644。
+
+此后再登录服务器的时候应该就不需要输入密码了。
+
+有一个小tip，就是给服务器的ip设置一个好记的形式，那么多的ip记住不容易阿，而且每次还得一个一个输入。具体方法就是修改hosts文件，添加类似下面的内容就可以了，相当于自己做了一个dns，呵呵。
+#销售server
+218.x.2.128 s128 xs xiaoshou
+#db server
+218.x.23.189 s189 db oracle
+这样，以后访问s128或者s189就可以了，当然后面的xs、xiaoshou、db、oracle也都是别名，都可以用来访问。
+
+还有一个tip，是关于term的。如果用的是urxvt，访问的远程服务器的时候可能会遇到“unknow terminal : rxvt-unicode” 类似的错误，如果出现了类似错误，会导致在服务器端vim和ls都没有颜色。解决方法是在.Xdefaults文件中添加URxvt.termName: xterm，或者.bash_profile里面自己设置一下TERM类型。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/public-key-in-ssh/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="live-in-new-house/">入住新房</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-09-20T16:00:00.000Z" itemprop="datePublished">Sep 21, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a> <a href="/tags/newhouse/">newhouse</a>
+</div>
+    </div>
+      
+        不管怎么说，昨天住进去了。再也不关心房价了，再也不用和房东打交到了。
+
+这几次找的搬家公司都挺便宜的，第一次从春园搬到秀园，几步路的距离吧，花了100，问别的公司可都开口150起呢。第二次从青塔到国美第一城，距离好远，从西四环外，搬到东四环外。这次花费200。第三次就是从国美第一城搬到了现在的万象新天，10几分钟车程吧，花费160。
+
+昨天晚上回去买了托把，垃圾桶。粗略收拾了一下卧室，并且把冰箱、微波炉都擦干净了。现在东西还有很多没收拾，都再客厅里面，不过还好客厅够大，呵呵。
+
+现在最紧要的是购买衣柜、纱窗、窗帘。昨天去小区里面的一个商家问了问，价格不便宜。纱窗三个窗口需要1200，窗帘1米78，衣柜做好了可能需要3k。纱窗那个就不用说了，实在太黑了，要价上面给打了8折还那么贵，我说我装个新的门也够了。窗帘我们问了附近的批发市场里面的，最贵的也就40一米。衣柜的话价格倒差不多，他这个是定做，样式都可以自己设计。
+
+昨天晚上蚊子还真不少，翻了半天也没有翻到蚊香，不过我晚上好像没怎么被咬，不知道cc如何，呵呵。不是说高层没有蚊子么？蚊子怎么飞上来的啊？他们还真不嫌累。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/live-in-new-house/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="live-in-syms-house/">寄宿在老大家里</a>
 	</h2>
     <div class="entry-content">
@@ -268,32 +346,6 @@ ALTER USER susan ACCOUNT LOCK;
 
   <article class="post">
 	<h2 class="title">
-		<a href="fetchmail-procmail-mutt-msmtp/">fetchmail,procmail,mutt,msmtp</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-09-02T16:00:00.000Z" itemprop="datePublished">Sep 3, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/other/">other</a> <a href="/tags/fetchmail/">fetchmail</a> <a href="/tags/msmtp/">msmtp</a> <a href="/tags/mutt/">mutt</a>
-</div>
-    </div>
-      
-        linux下面恐怕很多人都会推荐这种组合了。这个组合中的fetchmail负责将远方的pop,imap之类的mail收下来。然后procmail负责将这些mail投递到本地用户那里。mutt呢，就是用来管理查看这些邮件的了。msmtp用来联接远程的smtp服务器发送邮件。这
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/fetchmail-procmail-mutt-msmtp/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
 		<a href="urxvt-conf/">差不多配置好了urxvt</a>
 	</h2>
     <div class="entry-content">
@@ -320,40 +372,26 @@ ALTER USER susan ACCOUNT LOCK;
 
   <article class="post">
 	<h2 class="title">
-		<a href="3-sitcom/">最近在追的三部美剧</a>
+		<a href="fetchmail-procmail-mutt-msmtp/">fetchmail,procmail,mutt,msmtp</a>
 	</h2>
     <div class="entry-content">
     <div class="meta">
-      <div class="date">Published on: <time datetime="2006-08-30T16:00:00.000Z" itemprop="datePublished">Aug 31, 2006</time>
+      <div class="date">Published on: <time datetime="2006-09-02T16:00:00.000Z" itemprop="datePublished">Sep 3, 2006</time>
 </div>
       <div class="tags">Tags: 
 
-<a href="/tags/heart/">heart</a> <a href="/tags/4400/">4400</a> <a href="/tags/lost/">lost</a> <a href="/tags/movie/">movie</a> <a href="/tags/越狱/">越狱</a>
+<a href="/tags/other/">other</a> <a href="/tags/fetchmail/">fetchmail</a> <a href="/tags/msmtp/">msmtp</a> <a href="/tags/mutt/">mutt</a>
 </div>
     </div>
       
-        韩剧看的更多的是喜剧效果，和东方美女。美剧呢，更加引人入胜一点，往往不知不觉就看完了好几集，然后就在期待下面的。韩剧一集1个多小时，看的时候往往会让人生闷，忍不住拖着看。美剧就不会了，看的时候巴不得每个镜头都不要错过，每个镜头都那么吸引人。
-
-韩剧自从看了<a href="http://lib.verycd.com/2005/01/10/0000034551.html" target="_blank" rel="external">《豪杰春香》</a>之后，就再没有看过了，因为那之后看了<a href="http://lib.verycd.com/2005/08/31/0000063290.html" target="_blank" rel="external">《越狱》</a>，看了美剧之后，实在对韩剧提不起兴趣了，所以后来下载的<a href="http://lib.verycd.com/2005/12/15/0000079877.html" target="_blank" rel="external">《my girl》</a>没看就直接删掉了。
-
-说说最近看的三部美剧。第一部就要首推<a href="http://lib.verycd.com/2005/08/31/0000063290.html" target="_blank" rel="external">《越狱》</a>了。第一季已经播完，总共22集。第二季正在播，今天应该可以看到第二集了。
-
-<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/229701964/123_100_6fdbafa5ace0926.html" target="_blank" rel="external"><img width="361" height="500" border="0" alt="123_100_6fdbafa5ace0926" src="http://static.flickr.com/69/229701964_52c4e18dd6.jpg"></a>
-
-第二部就是 <a href="http://lib.verycd.com/2006/06/27/0000108444.html" target="_blank" rel="external">《4400》</a>了。已经播到第三季了，第一季是5集，第二季是12集，第三季目前播到了13集。
-
-<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/229705692/4400.html" target="_blank" rel="external"><img width="500" height="375" border="0" alt="4400" src="http://static.flickr.com/75/229705692_ef0e5772c0.jpg"></a>
-
-第三部就是<a href="http://lib.verycd.com/2006/02/24/0000091563.html" target="_blank" rel="external">《Lost》</a>了。这个刚开始看，我第一季还没有看完，不过也不用急了，美剧总是播的很慢的。已经播完第一季，共25集。第二季也播完了好像，24集。
-
-<a class="tt-flickr" href="http://blog.wdicc.com/wordpress/Photos/photo/229708920/lost.html" target="_blank" rel="external"><img width="500" height="400" border="0" alt="lost" src="http://static.flickr.com/57/229708920_ea4154021e.jpg"></a>
+        linux下面恐怕很多人都会推荐这种组合了。这个组合中的fetchmail负责将远方的pop,imap之类的mail收下来。然后procmail负责将这些mail投递到本地用户那里。mutt呢，就是用来管理查看这些邮件的了。msmtp用来联接远程的smtp服务器发送邮件。这
 
       
 	</div>
 
 <div class="meta">
 	
-		<span class="comments"><a href="https://wdicc.com/3-sitcom/#disqus_thread">Comments</a></span>
+		<span class="comments"><a href="https://wdicc.com/fetchmail-procmail-mutt-msmtp/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -383,60 +421,6 @@ Ctrl-a c
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/screen-hotkey/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="ttl-in-ping/">PING命令中TTL的具体含义zz</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-08-29T16:00:00.000Z" itemprop="datePublished">Aug 30, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/other/">other</a> <a href="/tags/linux/">linux</a> <a href="/tags/ping/">ping</a>
-</div>
-    </div>
-      
-        有台服务器ping的时候老出现 Time to live exceeded 这个错误，这样就会误报服务器挂掉，很烦人。找了半天似乎找到了解决方法了。
-
-ping的时候返回的包的ttl值是根据对方系统的设置来的，默认情况下，win是128,linux是64,返回的时候，每经过一个节点，就减1,这样，根据返回包的ttl值就可以判断经过了几个路由节点。而节点要是比较多的话，会导致这个ttl值为0,这样就出现上面提到的问题了。当然，要是遇到包进了环路，也会产生这样的问题，详细的内容可以看下面的转载文章。
-
-这样，解决这个问题的方法就是修改对方系统的默认ttl 值，比如修改为255，这样如果还产生上面的错误的话，那就没准是哪里的问题了。呵呵。
-
-<font color="#333333" style="line-height: 18px"> Linux下修改方法:
-
-方法1(重启后有效)：
-#sysctl -w net.ipv4.ip_default_ttl=N
-(N=0~255),若N>255,则ttl=0
-方法2(重启后无效)：
-#echo N(N为0～255) > /proc/sys/net/ipv4/ip_default_ttl</font>
-
-原文地址：<a href="http://blog.zol.com.cn/blog/wjf_top/35836.html">这里</a>
-<div align="left" style="width: 98%"><span class="neirong1_12u" style="overflow: hidden; width: 100%"> 								PING命令中TTL的具体含义
-提供者 vitty简单来说，TTL全程Time to Live，意思就是生存周期。
-首先要说明ping命令是使用的网络层协议ICMP，所以TTL指的是一个网络层的网络数据包（package）的生存周期，这句话不懂的先回去复习OSI7层协议去。
-
-第一个问题，为什么要有生存周期这个概念。
-
-很 显然，一个package从一台机器到另一台机器中间需要经过很长的路径，显然这个路径不是单一的，是很复杂的，并且很可能存在环路。如果一个数据包在传 输过程中进入了环路，如果不终止它的话，它会一直循环下去，如果很多个数据包都这样循环的话，那对于网络来说这就是灾难了。所以需要在包中设置这样一个 值，包在每经过一个节点，将这个值减1，反复这样操作，最终可能造成2个结果：包在这个值还为正数的时候到达了目的地，或者是在经过一定数量的节点后，这 个值减为了0。前者代表完成了一次正常的传输，后者代表包可能选择了一条非常长的路径甚至是进入了环路，这显然不是我们期望的，所以在这个值为0的时候， 网络设备将不会再传递这个包而是直接将他抛弃，并发送一个通知给包的源地址，说这个包已死。
-其实TTL值这个东西本身并代表不了什么，对于使用者来说，关心的问题应该是包是否到达了目的地而不是经过了几个节点后到达。但是TTL值还是可以得到有意思的信息的。
-
-每 个操作系统对TTL值得定义都不同，这个值甚至可以通过修改某些系统的网络参数来修改，例如Win2000默认为128，通过注册表也可以修改。而 Linux大多定义为64。不过一般来说，很少有人会去修改自己机器的这个值的，这就给了我们机会可以通过ping的回显TTL来大体判断一台机器是什么 操作系统。
-        
-          <p class="more-link">
-            <a href="ttl-in-ping/#more">Read More</a>
-          </p>
-        
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/ttl-in-ping/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>

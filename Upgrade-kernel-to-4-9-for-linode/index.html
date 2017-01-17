@@ -1,0 +1,216 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+	<meta charset="utf-8">
+    
+	<title>Upgrade kernel to 4.9 for linode - wd and cc</title>
+    <meta name="author" content="wd">
+    
+	<meta name="description" content="&lt;p&gt;bbr 那么牛逼，赶紧赶一个潮流。其实我之前用了 kcp，也是类似的东西，不过那个要求服务器端和客户端都需要跑 kcp 服务才可以。bbr 就不用了，只需要服务器配置好就可以了。&lt;/p&gt;
+&lt;p&gt;Linode 实际上已经提供了 4.9 的内核。打开 &lt;code&gt;Dashboard&lt;/code&gt;，然后点击你使用的 profile 右侧的 edit，在出来的界面里面，Kernel 右侧的列表里面，有个 4.9 的选项，不过我测试这个内核并不能打开 bbr，不知道是怎么回事，有兴趣的可以试试看，要注意选对架构（就是 64 还是 32）。&lt;/p&gt;
+&lt;p&gt;所以还是需要自己装内核。debian 官方已经打包好了 kernel 4.9，访问 &lt;a href=&quot;http://mirrors.kernel.org/debian/pool/main/l/linux/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://mirrors.kernel.org/debian/pool/main/l/linux/&lt;/a&gt; ，然后找到适合自己的 linux-image-4.9，我的是 &lt;a href=&quot;http://mirrors.kernel.org/debian/pool/main/l/linux/linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;http://mirrors.kernel.org/debian/pool/main/l/linux/linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb&lt;/a&gt; ，下载到 vps 上面。&lt;/p&gt;
+&lt;p&gt;然后执行 &lt;code&gt;sudo dkpg -i ./linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb&lt;/code&gt;，最后应该会提示一个错误，缺少依赖的包。这个时候执行 &lt;code&gt;sudo apt-get -f install&lt;/code&gt;，会提示安装缺失的包。&lt;/p&gt;
+&lt;p&gt;然后，还需要安装 &lt;code&gt;grub&lt;/code&gt;。看你的情况。就刚才 profile 编辑的页面里面，kernel 右侧的选项里面，你看看你的是 &lt;code&gt;grub2&lt;/code&gt; 还是 &lt;code&gt;pv-grub&lt;/code&gt;。&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;grub2&lt;/code&gt;: 参考&lt;a href=&quot;https://www.linode.com/docs/tools-reference/custom-kernels-distros/run-a-distribution-supplied-kernel-with-kvm&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;这个&lt;/a&gt;&lt;/p&gt;
+&lt;figure class=&quot;highlight elixir&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;variable&quot;&gt;$ &lt;/span&gt;sudo apt-get install grub2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;variable&quot;&gt;$ &lt;/span&gt;sudo update-grub&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;/li&gt;
+&lt;li&gt;&lt;p&gt;&lt;code&gt;pv-grub&lt;/code&gt;: 参考&lt;a href=&quot;https://www.linode.com/docs/tools-reference/custom-kernels-distros/run-a-distributionsupplied-kernel-with-pvgrub&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;这个&lt;/a&gt;&lt;/p&gt;
+&lt;figure class=&quot;highlight elixir&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;variable&quot;&gt;$ &lt;/span&gt;sudo apt-get install grub&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;variable&quot;&gt;$ &lt;/span&gt;sudo mkdir /boot/grub&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;variable&quot;&gt;$ &lt;/span&gt;sudo update-grub&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;然后在 profile 编辑页面里面，kernel 右侧选择对应的 grub 选项，重启 vps 就可以了。如果启动失败了，就在这个选项里面，选择之前的选项重启就可以恢复。&lt;/p&gt;
+"> <!-- TODO: truncate -->
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+	<link href="/favicon.ico" rel="shortcut icon">
+    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+
+    <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
+    <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
+	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
+    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+
+    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
+
+    <!-- remove or comment it to disable ajaxification -->   
+    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+
+    
+
+    
+
+</head>
+
+
+<body>
+    <div id="wrapper">
+    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+<h1 class="animated bounceInDown">
+    <div id="headerbg">
+        wd and cc
+    </div>
+</h1>
+<span class="subtitle">happy everyday</span>
+<br>
+
+<ul id="social-links" style="text-align:center; clear:both;">
+  
+  <!-- GitHub -->
+  <li>
+  <a href="https://github.com/wd" class="github" title="Github"></a>
+  </li>
+  
+  
+  
+  
+  <!-- Twitter -->
+  <li>
+  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+  </li>
+  
+  
+  
+  
+  
+</ul>
+
+
+<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
+<ul id="nav">
+	<li id="ajax"><a href="/index.html">Home</a></li>
+	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
+	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
+    <li><a href="/atom.xml">RSS</a></li>
+    
+    <li>
+    <div id="dark">
+        <form action="//www.google.com.hk/search" method="get" accept-charset="UTF-8" id="search">
+            <input type="hidden" name="sitesearch" value="https://wdicc.com" />
+            <input type="text" name="q" results="0" placeholder="Search..." x-webkit-speech />
+        </form>
+    </div>
+    </li>
+        
+</ul>
+
+
+
+
+</header>
+
+<div id="toload">
+<!-- begin toload -->
+    <div id="content" class="inner">
+        <article class="post">
+	<h2 class="title">Upgrade kernel to 4.9 for linode</h2>
+    <div class="meta">
+        <div class="date">Published on: <time datetime="2017-01-16T10:37:56.000Z" itemprop="datePublished">Jan 16, 2017</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/kernel/">kernel</a> <a href="/tags/linode/">linode</a> <a href="/tags/bbr/">bbr</a>
+</div>
+    </div>
+	<div class="entry-content"><p>bbr 那么牛逼，赶紧赶一个潮流。其实我之前用了 kcp，也是类似的东西，不过那个要求服务器端和客户端都需要跑 kcp 服务才可以。bbr 就不用了，只需要服务器配置好就可以了。</p>
+<p>Linode 实际上已经提供了 4.9 的内核。打开 <code>Dashboard</code>，然后点击你使用的 profile 右侧的 edit，在出来的界面里面，Kernel 右侧的列表里面，有个 4.9 的选项，不过我测试这个内核并不能打开 bbr，不知道是怎么回事，有兴趣的可以试试看，要注意选对架构（就是 64 还是 32）。</p>
+<p>所以还是需要自己装内核。debian 官方已经打包好了 kernel 4.9，访问 <a href="http://mirrors.kernel.org/debian/pool/main/l/linux/" target="_blank" rel="external">http://mirrors.kernel.org/debian/pool/main/l/linux/</a> ，然后找到适合自己的 linux-image-4.9，我的是 <a href="http://mirrors.kernel.org/debian/pool/main/l/linux/linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb" target="_blank" rel="external">http://mirrors.kernel.org/debian/pool/main/l/linux/linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb</a> ，下载到 vps 上面。</p>
+<p>然后执行 <code>sudo dkpg -i ./linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb</code>，最后应该会提示一个错误，缺少依赖的包。这个时候执行 <code>sudo apt-get -f install</code>，会提示安装缺失的包。</p>
+<p>然后，还需要安装 <code>grub</code>。看你的情况。就刚才 profile 编辑的页面里面，kernel 右侧的选项里面，你看看你的是 <code>grub2</code> 还是 <code>pv-grub</code>。</p>
+<ul>
+<li><p><code>grub2</code>: 参考<a href="https://www.linode.com/docs/tools-reference/custom-kernels-distros/run-a-distribution-supplied-kernel-with-kvm" target="_blank" rel="external">这个</a></p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$ </span>sudo apt-get install grub2</div><div class="line"><span class="variable">$ </span>sudo update-grub</div></pre></td></tr></table></figure>
+</li>
+<li><p><code>pv-grub</code>: 参考<a href="https://www.linode.com/docs/tools-reference/custom-kernels-distros/run-a-distributionsupplied-kernel-with-pvgrub" target="_blank" rel="external">这个</a></p>
+<figure class="highlight elixir"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div></pre></td><td class="code"><pre><div class="line"><span class="variable">$ </span>sudo apt-get install grub</div><div class="line"><span class="variable">$ </span>sudo mkdir /boot/grub</div><div class="line"><span class="variable">$ </span>sudo update-grub</div></pre></td></tr></table></figure>
+</li>
+</ul>
+<p>然后在 profile 编辑页面里面，kernel 右侧选择对应的 grub 选项，重启 vps 就可以了。如果启动失败了，就在这个选项里面，选择之前的选项重启就可以恢复。</p>
+</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/Upgrade-kernel-to-4-9-for-linode/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+	<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+</div>
+
+
+
+
+
+    
+      <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = 'https://wdicc.com/Upgrade-kernel-to-4-9-for-linode/';
+            this.page.identifier = 'https://wdicc.com/Upgrade-kernel-to-4-9-for-linode/';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+      </script>
+    
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+</div>
+</section>
+
+
+    </div>
+    <footer id="footer">
+    <div style="display:inline">
+    Copyright &copy; 2017
+
+    wd
+. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
+    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+</div>
+
+
+    </footer>
+    <script src="/javascripts/fabric.js"></script>
+<script src="/javascripts/jquery.fancybox.pack.js"></script>
+<script type="text/javascript">
+(function($){
+	$('.fancybox').fancybox();
+})(jQuery);
+</script>
+ <!-- Delete or comment this line to disable Fancybox -->
+
+
+
+<!-- end toload --> 
+</div>
+</div>
+<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
+<script type="text/javascript">
+/*<![CDATA[*/
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
+/*]]>*/
+</script><!-- remove it to remove the scroll to top button -->
+</body>
+</html>

@@ -103,6 +103,82 @@
 
   <article class="post">
 	<h2 class="title">
+		<a href="marry_christmas/">圣诞节，平安夜</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-12-24T16:00:00.000Z" itemprop="datePublished">Dec 25, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/heart/">heart</a>
+</div>
+    </div>
+      
+        昨天晚上就是传说中的平安夜了。
+
+早在上周一，公司的大厦就把楼外面的干树枝上面妆点上了彩灯，远远看效果还不错，早早就感受了圣诞的节日气氛。昨天我值班，到了晚上回家的时候，又感受了一把平安夜。
+
+在复兴门的时候，平时应该空荡荡的地铁站，突然间人山人海的，都是小年轻，男男女女的，坐地铁到王府井。本来平时到四惠打黑车的时候，都是20到家。可是今天不一样了，好多人下车，搞的黑车司机也飘飘然起来，25都不走，一定要拼车。有个司机本来说好一个，然后加我和我老婆就差不多一车了，那司机还不走，还想拉一个。结果那个mm人家打别的车走了，我们也去找别的车了，这下子这哥们啥都没捞着。
+
+最终还是说服一个的哥不打票，25送我们回去。 下车的时候司机说我们骗他，打票得三十五，呵呵。
+
+不明白洋节怎么越来越流行了。情人节，愚人节，圣诞节，象圣诞节，都不信教，还非要去什么教堂玩，唉，真是的。
+
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/marry_christmas/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
+		<a href="3-solve-way/">一个简单问题的三种实现方法</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-12-20T16:00:00.000Z" itemprop="datePublished">Dec 21, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/other/">other</a>
+</div>
+    </div>
+      
+        #arch-cn irc上面rock提出了一个需求，将一行太长的文字让他自动按照要求换行。
+
+刚开始拿到这个问题的时候，感觉sed或者awk好像实现不了亚，没那么智能的，可是简单分析一下，“按照要求” 我们假定要求是 “每5个字符” 就换行一次。这样这个问题就明朗了。再换句话说，需求就是 “每5个字符插入一个换行符”。
+
+第一种方法，用sed：
+<pre class="prettyprint lang-bash">
+第二种方法，用gawk（sssslang提供）：
+<pre class="prettyprint lang-bash">cat $content | gawk --re-interval '{gsub(/(.){2}/,"&n">
+第三种方法，好像有点bt，用perl：
+<pre class="prettyprint lang-perl">
+@content = `tail /var/log/postfix.log`;
+foreach (@content) {
+for ($i=0; $i < length($_); $i+=$cut) {
+                print substr("$_",$i,$cut)."\n";
+        }
+}</pre>
+反斜杠\都被过滤掉了，不知道咋回事，自己看着加上。。
+</pre></pre>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/3-solve-way/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="irssi_bot/">我的第一个perl脚本</a>
 	</h2>
     <div class="entry-content">
@@ -272,6 +348,39 @@ C : INPUT (源端口25)</pre>
 
   <article class="post">
 	<h2 class="title">
+		<a href="lilina-cache/">lilina里面不能正确生成前一天的cache的问题</a>
+	</h2>
+    <div class="entry-content">
+    <div class="meta">
+      <div class="date">Published on: <time datetime="2006-12-05T16:00:00.000Z" itemprop="datePublished">Dec 6, 2006</time>
+</div>
+      <div class="tags">Tags: 
+
+<a href="/tags/web/">web</a> <a href="/tags/lilina/">lilina</a> <a href="/tags/rss/">rss</a>
+</div>
+    </div>
+      
+        lilina可以生成好几天的cache，可以看到上面有每天的链接可以访问，可是这两天发现，在today里面明明看到前一天晚上23:40多有rss，结果点击到前一天生成的链接却发现，没有？见鬼了。
+
+仔细研究下，似乎是23:00之后的rss都不会做cache，咋回事哩，翻了一下源代码，发现问题所在了。
+
+index.php里面有下面一句：
+<pre class="prettyprint lang-php">$saven_file = realpath(".")."/".date('Ymd').".html">
+这是设置cache文件的名称和位置的语句，可以看到文件名里面用的是当前的日期。单独这一点不会有问题，问题在于我的cron里面是每隔一个小时的0分钟执行一次，也就是1:00，2:00……23:00，0:00，这样，23:00之后0:00之前的rss就被吞掉了。解决方法就是将cron修改为类似下面的，让他每隔整点的58分执行更新。
+<pre class="prettyprint lang-bash">
+</pre></pre>
+      
+	</div>
+
+<div class="meta">
+	
+		<span class="comments"><a href="https://wdicc.com/lilina-cache/#disqus_thread">Comments</a></span>
+	
+</div>
+</article>
+
+  <article class="post">
+	<h2 class="title">
 		<a href="gnokii_cant_get_sms/">debian下面解决gnokii读取短信的bug</a>
 	</h2>
     <div class="entry-content">
@@ -358,39 +467,6 @@ apt-get -b source gnokii</pre>
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/gnokii_cant_get_sms/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="lilina-cache/">lilina里面不能正确生成前一天的cache的问题</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-12-05T16:00:00.000Z" itemprop="datePublished">Dec 6, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/web/">web</a> <a href="/tags/lilina/">lilina</a> <a href="/tags/rss/">rss</a>
-</div>
-    </div>
-      
-        lilina可以生成好几天的cache，可以看到上面有每天的链接可以访问，可是这两天发现，在today里面明明看到前一天晚上23:40多有rss，结果点击到前一天生成的链接却发现，没有？见鬼了。
-
-仔细研究下，似乎是23:00之后的rss都不会做cache，咋回事哩，翻了一下源代码，发现问题所在了。
-
-index.php里面有下面一句：
-<pre class="prettyprint lang-php">$saven_file = realpath(".")."/".date('Ymd').".html">
-这是设置cache文件的名称和位置的语句，可以看到文件名里面用的是当前的日期。单独这一点不会有问题，问题在于我的cron里面是每隔一个小时的0分钟执行一次，也就是1:00，2:00……23:00，0:00，这样，23:00之后0:00之前的rss就被吞掉了。解决方法就是将cron修改为类似下面的，让他每隔整点的58分执行更新。
-<pre class="prettyprint lang-bash">
-</pre></pre>
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/lilina-cache/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
@@ -524,66 +600,6 @@ command_line    /bin/echo -e "$HOSTADDRESS$($NOTIFICATIONNUMBER$)n$SERVICEDESC$-
 <div class="meta">
 	
 		<span class="comments"><a href="https://wdicc.com/my-lilina/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="wp-keyword-plugin/">给wp的一个关键字插件做了一下修改</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-11-29T16:00:00.000Z" itemprop="datePublished">Nov 30, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/web/">web</a> <a href="/tags/关键字/">关键字</a> <a href="/tags/插件/">插件</a>
-</div>
-    </div>
-      
-        参考<a title="访问插件主页" href="http://adsense-wordpress-plugin.ayanev.com/" target="_blank" rel="external">AdSense Earnings Reports</a>插件将wp的一个关键字插件<a title="访问插件主页" href="http://blog.tassoman.com/wordpress-plugins/tradedoubler-filter" target="_blank" rel="external">Trade Doubler Filter</a>修改了一下，之前只能通过修改源代码来添加关键字，现在可以在后台添加了。
-
-附件是修改之后的文件。
-
-http://blog.wdicc.com/wordpress/wp-content/uploads/2006/11/keyword.jpg
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/wp-keyword-plugin/#disqus_thread">Comments</a></span>
-	
-</div>
-</article>
-
-  <article class="post">
-	<h2 class="title">
-		<a href="lunch-and-supper/">午饭和晚饭</a>
-	</h2>
-    <div class="entry-content">
-    <div class="meta">
-      <div class="date">Published on: <time datetime="2006-11-28T16:00:00.000Z" itemprop="datePublished">Nov 29, 2006</time>
-</div>
-      <div class="tags">Tags: 
-
-<a href="/tags/heart/">heart</a> <a href="/tags/减肥/">减肥</a> <a href="/tags/午餐/">午餐</a>
-</div>
-    </div>
-      
-        在公司吃了半年多公司饭之后，也装模作样开始带饭了，呵呵。
-
-刚开始来公司的时候，是和其他几个同事一起去附近的饭馆拼桌，要几个炒菜一起吃，然后AA。后来一个比较老的同事离职之后，我和另外一个和我差不多新的同事就没了主意，后来就开始吃大厦的食堂。后来大厦里面的有个广东餐馆竞争，也开始提供自助餐。这样，吃到现在，这些地方都吃腻了。所以开始带饭。
-
-中午吃完满满一盒饭菜，就发现撑的荒，呵呵。 等到下午3，4点的时候，好像还觉得有点饱，这样晚上就完全不用吃饭了。就像今天，估计晚上又省了。。。这样也不错，还有利于减肥。。。
-
-      
-	</div>
-
-<div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/lunch-and-supper/#disqus_thread">Comments</a></span>
 	
 </div>
 </article>
