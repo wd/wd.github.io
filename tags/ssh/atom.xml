@@ -1,0 +1,302 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Ssh on wd and cc</title>
+    <link>https://wdicc.com/tags/ssh/atom/index.xml</link>
+    <description>Recent content in Ssh on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/ssh/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>有跳板机的 ssh 登陆</title>
+      <link>https://wdicc.com/controlmaster-in-ssh/</link>
+      <pubDate>Sun, 06 May 2012 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/controlmaster-in-ssh/</guid>
+      <description>&lt;p&gt;我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。&lt;br /&gt;
+&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;br /&gt;
+大意是通过设置 proxycommand 来实现，我也写过一个 &lt;a href=&#34;http://wdicc.com/cow-ssh-proxycommand/&#34;&gt;http://wdicc.com/cow-ssh-proxycommand/&lt;/a&gt; 。配置如下&lt;br /&gt;
+&lt;/p&gt;&lt;br /&gt;
+
+
+&lt;pre class=&#34;prettyprint lang-conf&#34;&gt;
+# gateways
+Host abc
+     Hostname abc.com
+
+# servers
+Host *.xxx
+     ProxyCommand ssh abc exec nc %h %p 2&gt;/dev/null
+&lt;/pre&gt;&lt;br /&gt;
+
+&lt;p&gt;&lt;br /&gt;
+这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。&lt;br /&gt;
+&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;br /&gt;
+倒霉的是，我厂有些 gateway 机器还需要使用 token，并不能使用 key 验证。虽然有了上面设置，如果从某个机器 cp 数据的时候，还得来回输入哪个 token，真他妈的 2b。&lt;br /&gt;
+&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;br /&gt;
+还好 ssh 还提供了一个 controlmaster，很好的解决了这个问题。&lt;br /&gt;
+&lt;/p&gt;&lt;br /&gt;
+
+
+&lt;pre class=&#34;prettyprint lang-conf&#34;&gt;
+Host *
+     User dong.wang
+     ServerAliveInterval 30
+     ControlMaster auto
+     ControlPath /tmp/ssh/master-%r@%h:%p
+     ControlPersist yes
+&lt;/pre&gt;&lt;br /&gt;
+
+&lt;p&gt;&lt;br /&gt;
+上面这个设置是所有服务器启用 controlmaster，哪个 /tmp/ssh 目录可以自己设置，没有就创建一个。哪个 ControlPersist 可以是个时间。&lt;br /&gt;
+&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;br /&gt;
+这样设置之后，第一次连接的时候，会启动一个 master。后续连接都会走这个，连接速度很快不说，还完全不需要输入什么 token。并且因为只有 gateway 需要输入 token，所以一个 gateway 只需要输入一次。实在是爽大了，真是居家旅行必备啊。就冲着连接速度快这一点也值了。&lt;br /&gt;
+&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>自动连接 ssh 并输入密码</title>
+      <link>https://wdicc.com/autossh-and-auto-enter-password/</link>
+      <pubDate>Wed, 13 Oct 2010 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/autossh-and-auto-enter-password/</guid>
+      <description>这年头不翻墙就看不到真像了，前几天整了个 ssh 代理，就研究了下自动登录。&lt;br /&gt;
+
+ssh 自动登录首选就是使用 key 了，可对方不干，那就只能使用密码了。自动输入密码可以用 expect。查这个的时候发现了一个 expect-lite，发现也挺有意思的，他把写 expect 脚本简单化了，比如想 send xxx，那就用 &gt;xxxx 就行了，想 expect yyy 那就 &lt;yyy 就好了，等等这些，呵呵。不过我后来没用这个，还是用的标准的 expect，代码如下。&lt;br /&gt;
+
+&lt;pre class=&#34;prettyprint lang-expect&#34;&gt;
+spawn autossh -M 20000 -p SSH_PORT -N -D 7070 YOUR_NAME@YOUR_SERVER
+set timeout 60
+expect {
+     assword: {
+         stty -echo
+         send &#34;YOUR_PASS\r&#34;
+         stty echo
+         #exp_continue
+     }
+    incorrect {
+         send_user &#34;invalid password or account\n&#34;
+         exit
+     }
+    timeout {
+         send_user &#34;connection to host timed out\n&#34;
+         exit
+     }
+    eof {
+         send_user &#34;connection to host failed\n&#34;
+         exit
+     }
+}
+if {[fork]!=0} exit
+disconnect
+&lt;/pre&gt;&lt;br /&gt;
+
+那里面那个 autossh 能自动给你重连，没仔细研究。那个 20000 后面的参数都是给 ssh 的，具体含意可以看 ssh 的 man。&lt;br /&gt;
+
+最主要是最后那两行，能做到连接上之后主程序就退出了，不占用你的终端，而不影响 ssh 的连接。&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>ssh 之穿越与反穿越</title>
+      <link>https://wdicc.com/ssh-proxy/</link>
+      <pubDate>Thu, 21 Jan 2010 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/ssh-proxy/</guid>
+      <description>&lt;p&gt;有时候我们不得不和网管对着干，去想办法去穿越某些防火墙，访问到我们要访问的资源。例如下面的情况，A 和 C 之间是有个墙的，不通。可有个 B 能访问到 C，而 A 又能访问到 B ，那我们可以通过你 ssh 做代理穿越那个墙。&lt;/p&gt;&lt;p&gt;A -&amp;gt; | -&amp;gt; C&lt;br /&gt; \-&amp;gt; B -&amp;gt; C&lt;/p&gt;&lt;p&gt;在A 上面执行下面的命令&lt;/p&gt;&lt;p&gt;ssh -f -N -g -L 8888:C_ip:80 B_ip&lt;br /&gt;参数的含义：-f 放到后台&lt;br /&gt;-N 不在对方机器请求 shell&lt;br /&gt;-g 能使得别的机器能连接 A 的那个端口&lt;br /&gt;-L 就是代理，具体看 man &lt;/p&gt;&lt;p&gt;这样，在 A 上面访问 8888 端口，就能访问到 C 的 80 端口了。&lt;/p&gt;&lt;p&gt;那如果是下面的网络情况，那怎么办？A 能访问到 C，但是 C 不能直接访问 A。&lt;/p&gt;&lt;p&gt;A -&amp;gt; C&lt;br /&gt;C-&amp;gt; | -&amp;gt; A&lt;/p&gt;&lt;p&gt;在 A 上面执行下面的命令&lt;/p&gt;&lt;p&gt;ssh -f -N -R 9999:A_ip:80 C_ip&lt;br /&gt;-R 是反向代理, -g 在这里好像不好用不知道为什么&lt;/p&gt;&lt;p&gt;从 C 上面访问自己的 9999 端口，就会访问到 A 的 80 端口。&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>NB 的 ssh proxycommand</title>
+      <link>https://wdicc.com/cow-ssh-proxycommand/</link>
+      <pubDate>Wed, 09 Dec 2009 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/cow-ssh-proxycommand/</guid>
+      <description>是从水木上面学来的。还参考了&lt;a href=&#34;http://benno.id.au/blog/2006/06/08/ssh_proxy_command&#34;&gt;这个&lt;/a&gt;。&lt;br /&gt;
+
+如果你工作的环境是下面这样的，那 ssh 的 proxycommand 对你会很有用。&lt;br /&gt;
+
+your pc -&gt; gw server -&gt; work server&lt;br /&gt;
+
+一般公司的服务器的网络都会设置安全级别，防止出现安全问题。那个 gw 也叫跳板机。需要在 gw 机器上面有 nc 。&lt;br /&gt;
+
+修改 .ssh/config 文件，加上 &lt;br /&gt;
+Host gw&lt;br /&gt;
+  Hostname gw.abc.com&lt;br /&gt;
+
+Host work&lt;br /&gt;
+  Hostname work.abc.com&lt;br /&gt;
+  User wd&lt;br /&gt;
+  ProxyCommand ssh gw nc -q 0 %h %p 2&gt;/dev/null&lt;br /&gt;
+
+这样直接 ssh work 就好了。&lt;br /&gt;
+
+那个 -q 0 可能有些版本的 nc 不支持。去掉就好了。那个 %h 表示 hostname，那个 %p 表示 port，可以直接写死。其它的 man ssh_config 吧。&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>使用公匙密匙来登录ssh</title>
+      <link>https://wdicc.com/public-key-in-ssh/</link>
+      <pubDate>Tue, 26 Sep 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/public-key-in-ssh/</guid>
+      <description>ssh一种更加安全的登录方式是使用rsa/dsa方式来做验证。密码口令很可能被猜出来，但是用dsa方式验证的ssh，除非他弄到你的私匙，否则肯定是安全的。&lt;br /&gt;
+
+ssh-keygen命令可以用来生成rsa/dsa方式的公匙密匙。&lt;br /&gt;
+ssh-keygen或者ssh-keygen -t rsa生成rsa方式的密匙。ssh-keygen -d 或者 ssh-keygen -t dsa生成dsa方式的密匙。具体rsa和dsa的区别看 &lt;a href=&#34;http://www-128.ibm.com/developerworks/cn/linux/security/openssh/part1/index.html&#34;&gt;这里&lt;/a&gt; 。&lt;br /&gt;
+
+上面的命令会在~/.ssh文件夹中生成公匙（id_*sa.pub）和密匙（id_*sa），将pub文件中的内容copy到远程服务器你的home目录下面的.ssh目录中的authorized_keys[2]这个文件中，有没有最后的那个2要看你用的是ssh1还是ssh2方式，通常都有2。&lt;br /&gt;
+
+然后就是远程服务器的这些文件需要有正确的权限，.ssh目录是700，authorized_keys2文件是644。&lt;br /&gt;
+
+此后再登录服务器的时候应该就不需要输入密码了。&lt;br /&gt;
+
+有一个小tip，就是给服务器的ip设置一个好记的形式，那么多的ip记住不容易阿，而且每次还得一个一个输入。具体方法就是修改hosts文件，添加类似下面的内容就可以了，相当于自己做了一个dns，呵呵。&lt;br /&gt;
+#销售server&lt;br /&gt;
+218.x.2.128 s128 xs xiaoshou&lt;br /&gt;
+#db server&lt;br /&gt;
+218.x.23.189 s189 db oracle&lt;br /&gt;
+这样，以后访问s128或者s189就可以了，当然后面的xs、xiaoshou、db、oracle也都是别名，都可以用来访问。&lt;br /&gt;
+
+还有一个tip，是关于term的。如果用的是urxvt，访问的远程服务器的时候可能会遇到“unknow terminal : rxvt-unicode” 类似的错误，如果出现了类似错误，会导致在服务器端vim和ls都没有颜色。解决方法是在.Xdefaults文件中添加URxvt.termName: xterm，或者.bash_profile里面自己设置一下TERM类型。&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>使用ssh的rsa和dsa验证登陆linux</title>
+      <link>https://wdicc.com/use-rsa-and-dsa/</link>
+      <pubDate>Mon, 24 Apr 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/use-rsa-and-dsa/</guid>
+      <description>参考地址：http://www.5ilinux.com/ssh01.html&lt;br /&gt;
+
+按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。&lt;br /&gt;
+
+用putty使用这个密匙的时候就出问题了，验证不了。&lt;br /&gt;
+
+然后用putty生成公匙密匙，上传公匙，验证不了。&lt;br /&gt;
+
+后来用openssh自带的ssh-keygen生成了公匙密匙，然后用putty的keygen转换了一下，用putty登陆就可以了。&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>限制ssh访问的ip</title>
+      <link>https://wdicc.com/limite-ssh-access-ip/</link>
+      <pubDate>Mon, 24 Apr 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/limite-ssh-access-ip/</guid>
+      <description>★ 需求&lt;br /&gt;
+
+最近公司服务器上面某个用户的帐号密码被修改了好几次。查看了一下，确实有人用他的帐号从外网ip（国外的ip）登陆过，猜想可能是他自己的电脑中木马或者什么病毒了。用户自己没有安全意识是很头痛的一个问题，其实给他们新建帐号的时候使用的都是简单密码，但是似乎都没有人上服务器自己修改，但是你又不能要求你的用户如何如何（比如给自己电脑装防火墙、杀毒软件etc），因为那是人家自己的事情。那么我就想，有没有一个方法可以限制某个用户只能从某个ip（或者ip列表）登陆呢？下面是一些解决方法。&lt;br /&gt;
+
+&lt;br&gt;&lt;!--more--&gt;★ 解决方案&lt;br /&gt;
+
+1) 通过修改/etc/ssh/sshd_config文件，让sshd只监听内网ip。这样只有内网ip才能登陆ssh。但是这样的话就不能远程维护服务器了，有点得不偿失得感觉。&lt;br /&gt;
+
+2) 通过修改/etc/hosts.allow和/etc/hosts.deny来限制某个ip的登陆。这个方式其实和上面得类似，你也不知道hacker会从哪个ip登陆，所以你没办法deny他得ip，deny他得时候可能连你自己也deny了。&lt;br /&gt;
+
+3) 可以通过/etc/ssh/sshd_config文件来实现。&lt;br /&gt;
+
+ &amp;nbsp; &amp;nbsp; AllowUsers&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; This keyword can be followed by a list of user name patterns,&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; separated by spaces.&amp;nbsp; If specified, login is allowed only for us-&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; er names that match one of the patterns.&amp;nbsp; Only user names are&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; valid; a numerical user ID is not recognized.&amp;nbsp; By default, login&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; is allowed for all users.&amp;nbsp; If the pattern takes the form US-&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; ER@HOST then USER and HOST are separately checked, restricting&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; logins to particular users from particular hosts.&amp;nbsp; The allow/deny&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; directives are processed in the following order: DenyUsers,&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; AllowUsers, DenyGroups, and finally AllowGroups.&lt;br /&gt;
+
+PATTERNS&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; A pattern consists of zero or more non-whitespace characters, `*&#39; (a&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; wildcard that matches zero or more characters), or `?&#39; (a wildcard that&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; matches exactly one character).&amp;nbsp; For example, to specify a set of decla-&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; rations for any host in the ``.co.uk&#39;&#39; set of domains, the following pat-&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; tern could be used:&lt;br /&gt;
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Host *.co.uk&lt;br /&gt;
+
+ &amp;nbsp; &amp;nbsp; The following pattern would match any host in the 192.168.0.[0-9] network&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; range:&lt;br /&gt;
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Host 192.168.0.?&lt;br /&gt;
+
+ &amp;nbsp; &amp;nbsp; A pattern-list is a comma-separated list of patterns.&amp;nbsp; Patterns within&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; pattern-lists may be negated by preceding them with an exclamation mark&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; (`!&#39;).&amp;nbsp; For example, to allow a key to be used from anywhere within an&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; organisation except from the ``dialup&#39;&#39; pool, the following entry (in au-&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; thorized_keys) could be used:&lt;br /&gt;
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; from=&#34;!*.dialup.example.com,*.example.com&#34;&lt;br /&gt;
+
+比如不允许test用户从192.168.0.x登陆，那么可以添加一行&lt;br /&gt;
+
+denyusers test@192.168.0.&lt;br /&gt;
+
+按照上面的PATTERNS说明，似乎可以加叹号来排除某个ip，但是尝试过没有成功，不知道什么原因了。&lt;br /&gt;
+
+按照文档，deny是级别最高的，而设置了allow之后，就只能allow的用户访问了，所以如果想限制某个用户只能从某个ip段登陆，用这个似乎实现不了。&lt;br /&gt;
+
+4) 使用ssh得RSA/DSA key。&lt;br /&gt;
+
+参考地址:http://www.5ilinux.com/ssh01.html &lt;br /&gt;
+
+用ssh-keygen命令生成一对公匙密匙，然后把密匙给用户，并且限制ssh只能通过RSA方式认证。这样会导致所有ssh用户都得用这种方式登陆了，会更加郁闷。&lt;br /&gt;
+
+这种方式可以在用户得authorized_keys2文件中，加入from=&#34;!192.168.1.158,*&#34;来让用户只能通过158登陆。（这个没有做过验证）&lt;br /&gt;
+
+
+PATTERNS&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; A pattern consists of zero or more non-whitespace characters, `*&#39; (a&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; wildcard that matches zero or more characters), or `?&#39; (a wildcard that&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; matches exactly one character).&amp;nbsp; For example, to specify a set of decla-&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; rations for any host in the ``.co.uk&#39;&#39; set of domains, the following pat-&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; tern could be used:&lt;br /&gt;
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Host *.co.uk&lt;br /&gt;
+
+ &amp;nbsp; &amp;nbsp; The following pattern would match any host in the 192.168.0.[0-9] network&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; range:&lt;br /&gt;
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; Host 192.168.0.?&lt;br /&gt;
+
+ &amp;nbsp; &amp;nbsp; A pattern-list is a comma-separated list of patterns.&amp;nbsp; Patterns within&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; pattern-lists may be negated by preceding them with an exclamation mark&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; (`!&#39;).&amp;nbsp; For example, to allow a key to be used from anywhere within an&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; organisation except from the ``dialup&#39;&#39; pool, the following entry (in au-&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; thorized_keys) could be used:&lt;br /&gt;
+
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; from=&#34;!*.dialup.example.com,*.example.com&#34;&lt;br /&gt;
+
+
+
+5) 用pam。&lt;br /&gt;
+
+参考地址:http://www.linuxmine.com/1078.html &lt;br /&gt;
+
+看看/etc/pam.d/login文件，有没有pam_access.so的设置。我的debian系统中，ssh相关的都在/etc/pam.d/ssh文件中设置。加入一行&lt;br /&gt;
+
+account&amp;nbsp; required &amp;nbsp; &amp;nbsp; &amp;nbsp; pam_access.so&lt;br /&gt;
+
+然后修改他的配置文件/etc/security/access.conf文件。加入一行&lt;br /&gt;
+
+-:wd:192.168.1. EXCEPT 192.168.1.158&lt;br /&gt;
+
+这样，wd用户从192.168.1.x（192.168.1.158除外）的登陆权限被去掉了。也就是说，wd这个用户就只能从158这个ip以及外网ip登陆了。&lt;br /&gt;
+
+大功告成。 :)&lt;br /&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

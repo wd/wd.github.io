@@ -1,0 +1,137 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rtorrent on wd and cc</title>
+    <link>https://wdicc.com/tags/rtorrent/atom/index.xml</link>
+    <description>Recent content in Rtorrent on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/rtorrent/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>超强的rtorrent</title>
+      <link>https://wdicc.com/supper-rtorrent/</link>
+      <pubDate>Sat, 13 Sep 2008 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/supper-rtorrent/</guid>
+      <description>越狱又开始了，没周末总要下一个看看。之前用 delug，速度还行，用起来感觉不错。可是自从 1.0rc 的某个版本之后，下载的时候时不时出现 CPU 100% 的情况。就装了 transmisstion，他不支持 dht，国内的下载速度很慢，去下国外的好像还行。&lt;br /&gt;
+
+今天又试了一下 rtorrent，之前也用过，不过速度总上不来让人很郁闷。rtorrent 从某个版本就开始支持 dht 了，我之前使用的时候不知道从哪里去看这个支持，速度很慢，基本就不用了。今天总算发现了问题在哪里。&lt;br /&gt;
+
+rtorrent 的配置文件是 ~/.rtorrent.rc ，例如我的。&lt;br /&gt;
+&lt;pre class=&#34;prettyprint lang-ini&#34;&gt;
+# ~/.rtorrent.rc and enable/modify the options as needed. Remember to
+# uncomment the options you wish to enable.
+
+# Maximum and minimum number of peers to connect to per torrent.
+min_peers = 40
+max_peers = 200
+
+# Same as above but for seeding completed torrents (-1 = same as downloading)
+#min_peers_seed = 10
+#max_peers_seed = 50
+
+# Maximum number of simultanious uploads per torrent.
+#max_uploads = 15
+
+# Global upload and download rate in KiB. &#34;0&#34; for unlimited.
+#download_rate = 0
+upload_rate = 30
+
+# Default directory to save the downloaded torrents.
+directory = /movie/download
+
+# Default session directory. Make sure you don&#39;t run multiple instance
+# of rtorrent using the same session directory. Perhaps using a
+# relative path?
+session = ./rtorrent-session
+
+# Watch a directory for new torrents, and stop those that have been
+# deleted.
+#schedule = watch_directory,5,5,load_start=./watch/*.torrent
+#schedule = untied_directory,5,5,stop_untied=
+
+# Close torrents when diskspace is low.
+#schedule = low_diskspace,5,60,close_low_diskspace=100M
+
+# Stop torrents when reaching upload ratio in percent,
+# when also reaching total upload in bytes, or when
+# reaching final upload ratio in percent.
+# example: stop at ratio 2.0 with at least 200 MB uploaded, or else ratio 20.0
+#schedule = ratio,60,60,&#34;stop_on_ratio=200,200M,2000&#34;
+
+# The ip address reported to the tracker.
+#ip = 127.0.0.1
+#ip = rakshasa.no
+
+# The ip address the listening socket and outgoing connections is
+# bound to.
+#bind = 127.0.0.1
+#bind = rakshasa.no
+
+# Port range to use for listening.
+port_range = 18204-19203
+
+# Start opening ports at a random position within the port range.
+#port_random = yes
+
+# Check hash for finished torrents. Might be usefull until the bug is
+# fixed that causes lack of diskspace not to be properly reported.
+#check_hash = no
+
+# Set whetever the client should try to connect to UDP trackers.
+use_udp_trackers = yes
+
+# Alternative calls to bind and ip that should handle dynamic ip&#39;s.
+#schedule = ip_tick,0,1800,ip=rakshasa
+#schedule = bind_tick,0,1800,bind=rakshasa
+
+# Encryption options, set to none (default) or any combination of the following:
+# allow_incoming, try_outgoing, require, require_RC4, enable_retry, prefer_plaintext
+#
+# The example value allows incoming encrypted connections, starts unencrypted
+# outgoing connections but retries with encryption if they fail, preferring
+# plaintext to RC4 encryption after the encrypted handshake
+#
+encryption = allow_incoming,enable_retry,prefer_plaintext
+
+# Enable DHT support for trackerless torrents or when all trackers are down.
+# May be set to &#34;disable&#34; (completely disable DHT), &#34;off&#34; (do not start DHT),
+# &#34;auto&#34; (start and stop DHT as needed), or &#34;on&#34; (start DHT immediately).
+# The default is &#34;off&#34;. For DHT to work, a session directory must be defined.
+#
+dht = on
+
+# UDP port to use for DHT.
+#
+dht_port = 18203
+
+# Enable peer exchange (for torrents not marked private)
+#
+peer_exchange = yes
+
+#
+# Do not modify the following parameters unless you know what you&#39;re doing.
+#
+
+# Hash read-ahead controls how many MB to request the kernel to read
+# ahead. If the value is too low the disk may not be fully utilized,
+# while if too high the kernel might not be able to keep the read
+# pages in memory thus end up trashing.
+#hash_read_ahead = 10
+
+# Interval between attempts to check the hash, in milliseconds.
+#hash_interval = 100
+
+# Number of attempts to check the hash while using the mincore status,
+# before forcing. Overworked systems might need lower values to get a
+# decent hash checking rate.
+#hash_max_tries = 10
+
+encoding_list = UTF-8&lt;/pre&gt;
+里面最主要的是 dht=on 和 session，这两个同时启用，才能让 dht 生效，因为 dht 需要保存 dht table 到这个路径下面。配置好之后，去 tracker list 里面看，应该多了一个 dht:// ，这就o了，还有些其他信息，可以自己琢磨琢磨。
+</description>
+    </item>
+    
+  </channel>
+</rss>

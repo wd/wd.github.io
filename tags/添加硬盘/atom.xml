@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>添加硬盘 on wd and cc</title>
+    <link>https://wdicc.com/tags/%E6%B7%BB%E5%8A%A0%E7%A1%AC%E7%9B%98/atom/index.xml</link>
+    <description>Recent content in 添加硬盘 on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/%E6%B7%BB%E5%8A%A0%E7%A1%AC%E7%9B%98/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>给freebsd添加新硬盘</title>
+      <link>https://wdicc.com/add-disk-in-freebsd/</link>
+      <pubDate>Tue, 18 Sep 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/add-disk-in-freebsd/</guid>
+      <description>没想到freebsd里面这么变态，linux下面可能fdisk就搞定的事情，到了这里需要好几个操作，还搞不明白怎么回事。。。&lt;br /&gt;
+
+要弄清楚这个，先要了解几个概念。bsd下面的ide硬盘叫做 ad，scsi 硬盘叫做da。ad0,ad1,ad2...，按照ide接口来定的。假定新加的硬盘是 ad2。每个ad又可以分4个 slice，这样就有了 ad2s1, ad2s2...。每个slice下面呢，又可以分几个区，例如 ad2s1e, ad2s1f ，可以从 a 到 h 八个，abcd是有特殊意思的。最后实际挂载使用的就是这个 /dev/ad2s1e 了。&lt;br /&gt;
+
+这样整个过程就分几个步骤。&lt;br /&gt;
+
+&lt;strong&gt;1 先初始化硬盘&lt;/strong&gt;&lt;br /&gt;
+&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
+1+0 records in
+1+0 records out
+1024 bytes transferred in 0.000160 secs (6400845 bytes/sec)&lt;/pre&gt;
+或者
+&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
+******* Working on device /dev/ad2 *******&lt;/pre&gt;
+此后可以用 fdisk ad2 命令看到一些信息，可以看到整个硬盘的信息。
+&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
+parameters extracted from in-core disklabel are:
+cylinders=516822 heads=15 sectors/track=63 (945 blks/cyl)
+
+Figures below won&#39;t work with BIOS for partitions not in cyl 1
+parameters to be used for BIOS calculations are:
+cylinders=516822 heads=15 sectors/track=63 (945 blks/cyl)
+
+Media sector size is 512
+Warning: BIOS sector numbering starts with sector 1
+Information from DOS bootblock is:
+The data for partition 1 is:
+sysid 165,(FreeBSD/NetBSD/386BSD)
+start 63, size 488396727 (238474 Meg), flag 80 (active)
+beg: cyl 0/ head 1/ sector 1;
+end: cyl 725/ head 14/ sector 63
+The data for partition 2 is:
+&amp;lt;unused&amp;gt;
+The data for partition 3 is:
+&amp;lt;unused&amp;gt;
+The data for partition 4 is:
+&amp;lt;unused&amp;gt;&lt;/pre&gt;
+&lt;strong&gt;2 使用 fdisk 命令分 slice&lt;/strong&gt;
+
+fdisk -i ad2 会一步一步询问4个slice的设置，比较麻烦。不过这里也可以不分，就一个slice，一样用，呵呵。
+
+&lt;strong&gt;3 使用 disklabel 命令分区&lt;/strong&gt;
+
+这里假定我们就一个slice。为这个 slice 建立分区。
+&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
+这样就建立了一个 ad2s1c 的分区，c表示的是整个硬盘。使用下面的命令进行分区，这个还不会玩。。:(
+&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
+&lt;strong&gt;4 使用newfs建立文件系统&lt;/strong&gt;
+
+就以分一个区为例，执行下面的命令。
+&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
+这个命令会打印一堆数字，应该表示的是建立文件系统的进度，等会打印完了，分区就可以用了。
+
+参考文章： http://bbs.fyjy.net/printthread.php?t=2037
+</description>
+    </item>
+    
+  </channel>
+</rss>

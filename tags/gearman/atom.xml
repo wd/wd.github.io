@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Gearman on wd and cc</title>
+    <link>https://wdicc.com/tags/gearman/atom/index.xml</link>
+    <description>Recent content in Gearman on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/gearman/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>use gearman to distribute you nagios check</title>
+      <link>https://wdicc.com/use-gearman-to-distribute-you-nagios-check/</link>
+      <pubDate>Mon, 18 Jan 2016 15:14:36 +0800</pubDate>
+      
+      <guid>https://wdicc.com/use-gearman-to-distribute-you-nagios-check/</guid>
+      <description>
+
+&lt;h1 id=&#34;安装&#34;&gt;安装&lt;/h1&gt;
+
+&lt;h2 id=&#34;gearman&#34;&gt;gearman&lt;/h2&gt;
+
+&lt;p&gt;需要 boost &amp;gt; 1.39, libevent-devel, libuuid-devel, gperf
+需要 gcc &amp;gt;= 4.2&lt;/p&gt;
+
+&lt;p&gt;export CC=gcc44
+export CC=g++44&lt;/p&gt;
+
+&lt;h2 id=&#34;mod-gearman&#34;&gt;mod-gearman&lt;/h2&gt;
+
+&lt;p&gt;libtool-ltdl-devel ncurses-devel
+&amp;ndash;with-gearman&lt;/p&gt;
+
+&lt;h1 id=&#34;配置&#34;&gt;配置&lt;/h1&gt;
+
+&lt;p&gt;gearman 分为几个模块
+* mod_gearman: 负责把 nagios 中的检查任务发给 gearmand job server
+* gearmand: 负责接收任务，分配给 worker 执行。这个是个通用的队列管理服务。
+* gearman_workder: 负责消费 gearmand 中的 job。&lt;/p&gt;
+
+&lt;p&gt;其中 &lt;code&gt;mod_gearman&lt;/code&gt; 的代码里面包括了上面提到的 mod_gearman 和 gearman_workder。&lt;/p&gt;
+
+&lt;p&gt;所以规划好 gearmand 启动的机器，以及你的 worker 机器。其中要注意 worker 机器上面是会执行所有[1] nagios 监控&lt;/p&gt;
+
+&lt;p&gt;需要配置的文件有几个
+* nagios.cfg 增加 broker
+* mod-gearman/etc/mod_gearman/mod_gearman_neb.conf broker 的配置文件
+* mod-gearman/etc/mod_gearman/mod_gearman_worker.conf workder 的配置文件&lt;/p&gt;
+
+&lt;h1 id=&#34;启动&#34;&gt;启动&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;先启动 gearmand 使用 mod-gearman/etc/init.d/gearmand 这个脚本。&lt;/li&gt;
+&lt;li&gt;启动 worker 使用 mod-gearman/etc/init.d/mod_gearman_worker 这个脚本。启动之后可以用 gearman_top 看到多了一些队列。&lt;/li&gt;
+&lt;li&gt;重启 nagios&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;确认 nagios.log 里面正常加载了 gearman，然后看 gearman_top 里面开始有一些 run 的 job 了。&lt;/p&gt;
+
+&lt;h1 id=&#34;注意事项&#34;&gt;注意事项&lt;/h1&gt;
+
+&lt;p&gt;基本上使用 gearman 还算是对用户透明，需要配置的东西不多，默认配置就可以跑。&lt;/p&gt;
+
+&lt;p&gt;一般使用 gearman 的时候都是现有 nagios 遇到瓶颈了，这个时候扩展的时候需要注意下，第一步可以在 nagios 机器上面（或者弄一台新的机器）做 gearman 的 job server，然后在 nagios 的机器上面跑一个 worker，这样基本就是 0 配置都可以跑起来，不会有任何问题。&lt;/p&gt;
+
+&lt;p&gt;第一步完成之后就会需要增加 worker，这个时候就要注意了，新的 worker 机器上面，需要在相同的路径下面包括所有你用到的 nagios plugin（包括自己写的，也包括这些 plugin 依赖的其他内容，比如临时文件路径，配置文件等），否则分发过来的 job 会执行不成功。&lt;/p&gt;
+
+&lt;p&gt;这个时候有个办法，就是把原来机器的 nagios 相关目录通过 nfs 共享给其他机器（但是得注意二进制程序是兼容的）。&lt;/p&gt;
+
+&lt;p&gt;另外如果需要测试一下新的 worker，也可以通过配置只让 worker 执行某些 servicegroup 或者 hostgroup 的任务。要注意这个时候需要配置 service, eventhandler, host 都为 no，然后配置 servicegroups 或者 hostgroups。&lt;/p&gt;
+
+&lt;h1 id=&#34;footnotes&#34;&gt;Footnotes&lt;/h1&gt;
+
+&lt;p&gt;[1] 其实 worker 是可以被配置为只处理某些监控的，这个后面会讲。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

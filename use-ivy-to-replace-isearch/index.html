@@ -3,146 +3,167 @@
 <head>
 	<meta charset="utf-8">
     
-	<title>use ivy to replace isearch - wd and cc</title>
-    <meta name="author" content="wd">
     
-	<meta name="description" content="&lt;p&gt;之前习惯使用 &lt;code&gt;isearch&lt;/code&gt; 来搜索了，最近看别人使用 &lt;code&gt;ivy&lt;/code&gt; 看着心痒痒的，就想试试看。其实 ivy 的效果和 &lt;code&gt;swoop&lt;/code&gt; 很像，不过区别是 ivy 是在 minibuffer 来显示可选信息的，swoop 是在一个 buffer 显示的。有洁癖的可能稍微计较一下。&lt;/p&gt;
-&lt;figure class=&quot;highlight scheme&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;1&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;2&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;3&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;4&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;5&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;6&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;7&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;8&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;9&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;10&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;11&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;12&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;13&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;14&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;15&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;16&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;17&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;18&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;19&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;20&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;21&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;22&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;23&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;24&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;25&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;td class=&quot;code&quot;&gt;&lt;pre&gt;&lt;div class=&quot;line&quot;&gt;&lt;span class=&quot;comment&quot;&gt;;; ivy swiper&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;(&lt;span class=&quot;name&quot;&gt;defun&lt;/span&gt; wd-swiper-at-point ()&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  &lt;span class=&quot;string&quot;&gt;&quot;Pull next word from buffer into search string.&quot;&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  (&lt;span class=&quot;name&quot;&gt;interactive&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  (&lt;span class=&quot;name&quot;&gt;&lt;span class=&quot;builtin-name&quot;&gt;let&lt;/span&gt;&lt;/span&gt; (&lt;span class=&quot;name&quot;&gt;query&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    (&lt;span class=&quot;name&quot;&gt;with-ivy-window&lt;/span&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;      (&lt;span class=&quot;name&quot;&gt;&lt;span class=&quot;builtin-name&quot;&gt;let&lt;/span&gt;&lt;/span&gt; ((&lt;span class=&quot;name&quot;&gt;tmp&lt;/span&gt; (&lt;span class=&quot;name&quot;&gt;symbol-at-point&lt;/span&gt;)))&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;        (&lt;span class=&quot;name&quot;&gt;setq&lt;/span&gt; query tmp)))&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;    (&lt;span class=&quot;name&quot;&gt;&lt;span class=&quot;builtin-name&quot;&gt;when&lt;/span&gt;&lt;/span&gt; query&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;      (&lt;span class=&quot;name&quot;&gt;insert&lt;/span&gt; (&lt;span class=&quot;name&quot;&gt;format&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;%s&quot;&lt;/span&gt; query))&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;      )))&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;(&lt;span class=&quot;name&quot;&gt;use-package&lt;/span&gt; ivy&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  :config&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  (&lt;span class=&quot;name&quot;&gt;ivy-mode&lt;/span&gt; &lt;span class=&quot;number&quot;&gt;1&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  (&lt;span class=&quot;name&quot;&gt;setq&lt;/span&gt; ivy-use-virtual-buffers t)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  (&lt;span class=&quot;name&quot;&gt;set-variable&lt;/span&gt; &lt;span class=&quot;symbol&quot;&gt;&#39;ivy-on-del-error-function&lt;/span&gt; &#39;(lambda()))&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  )&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;(&lt;span class=&quot;name&quot;&gt;use-package&lt;/span&gt; swiper&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  :config&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  (&lt;span class=&quot;name&quot;&gt;global-set-key&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;\C-s&quot;&lt;/span&gt; &lt;span class=&quot;symbol&quot;&gt;&#39;swiper&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  (&lt;span class=&quot;name&quot;&gt;define-key&lt;/span&gt; swiper-map (&lt;span class=&quot;name&quot;&gt;kbd&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;C-w&quot;&lt;/span&gt;) &lt;span class=&quot;symbol&quot;&gt;&#39;wd-swiper-at-point&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  (&lt;span class=&quot;name&quot;&gt;define-key&lt;/span&gt; swiper-map (&lt;span class=&quot;name&quot;&gt;kbd&lt;/span&gt; &lt;span class=&quot;string&quot;&gt;&quot;C-f&quot;&lt;/span&gt;) &lt;span class=&quot;symbol&quot;&gt;&#39;swiper-avy&lt;/span&gt;)&lt;/div&gt;&lt;div class=&quot;line&quot;&gt;  )&lt;/div&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;/figure&gt;
-&lt;p&gt;我大致做了上面几个设定，&lt;code&gt;\C-s&lt;/code&gt; 绑定了 swiper，启动 swiper 之后用 &lt;code&gt;\C-w&lt;/code&gt; 可以快速把光标位置的 symbol 放到 minibuffer 来搜索。然后 swiper 和 isearch 有个区别是，默认情况下，swiper 如果 minibuffer 没有内容，按 backspace 会退出，这个和 isearch 的习惯不一样，把 &lt;code&gt;ivy-on-del-error-function&lt;/code&gt; 重新绑定一下就可以了。&lt;/p&gt;
-&lt;p&gt;ivy 默认会绑定一个快捷键是在你 minibuffer 输入一些内容之后，会出来很多匹配结果，这个时候可以按 &lt;code&gt;C-&amp;#39;&lt;/code&gt; 调用 &lt;code&gt;swiper-avy&lt;/code&gt; 方便你快速定位，也挺好用的。不过我这里不好用，不知道怎么回事，只好重新绑定了一下。&lt;/p&gt;
-&lt;p&gt;还可以在 swiper 查询阶段按 &lt;code&gt;M-q&lt;/code&gt; 进入替换模式。&lt;/p&gt;
-"> <!-- TODO: truncate -->
-	
+    
+    
+    <title>use ivy to replace isearch - wd and cc</title>
+    <meta name="author" content="wd">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+    <link href="" rel="alternate" title="wd and cc" type="application/atom+xml">
 	<link href="/favicon.ico" rel="shortcut icon">
-    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
 
     <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+    
 
-    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
-
-    <!-- remove or comment it to disable ajaxification -->   
-    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+    <script type="text/javascript" src="/js/jquery-tapir.js"></script>
 
     
 
-    
-
+    <link rel="stylesheet" href="/css/hljs.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
 </head>
 
 
 <body>
     <div id="wrapper">
-    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+        <header id="header" class="inner">
 <h1 class="animated bounceInDown">
     <div id="headerbg">
         wd and cc
     </div>
 </h1>
-<span class="subtitle">happy everyday</span>
+
+<span class="subtitle">happy every day</span>
 <br>
 
 <ul id="social-links" style="text-align:center; clear:both;">
-  
-  <!-- GitHub -->
-  <li>
-  <a href="https://github.com/wd" class="github" title="Github"></a>
-  </li>
-  
-  
-  
-  
-  <!-- Twitter -->
-  <li>
-  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
-  </li>
-  
-  
-  
-  
-  
+    
+    
+    <li>
+    <a href="https://github.com/wd" class="github" title="Github"></a>
+    </li>
+    
+    
+    
+    
+    
+    <li>
+    <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+    </li>
+    
+    
+    
+    
+    
 </ul>
 
 
-<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
 	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
-    
     <li>
     <div id="dark">
         <form action="//www.google.com.hk/search" method="get" accept-charset="UTF-8" id="search">
-            <input type="hidden" name="sitesearch" value="https://wdicc.com" />
+            <input type="hidden" name="sitesearch" value="https://wdicc.com/" />
             <input type="text" name="q" results="0" placeholder="Search..." x-webkit-speech />
         </form>
     </div>
     </li>
-        
 </ul>
-
-
-
 
 </header>
 
 <div id="toload">
-<!-- begin toload -->
+
     <div id="content" class="inner">
-        <article class="post">
-	<h2 class="title">use ivy to replace isearch</h2>
+        
+<article class="post">
+    <h2 class="title">use ivy to replace isearch</h2>
     <div class="meta">
-        <div class="date">Published on: <time datetime="2016-01-10T11:22:20.000Z" itemprop="datePublished">Jan 10, 2016</time>
+        <div class="date">Published on: <time datetime='2016-01-10T19:22:20.000&#43;08:00' itemprop="datePublished">2016-01-10</time>
 </div>
         <div class="tags">Tags: 
 
-<a href="/tags/emacs/">emacs</a>
+<a href="/tags/emacs">emacs</a>
+
+
 </div>
     </div>
-	<div class="entry-content"><p>之前习惯使用 <code>isearch</code> 来搜索了，最近看别人使用 <code>ivy</code> 看着心痒痒的，就想试试看。其实 ivy 的效果和 <code>swoop</code> 很像，不过区别是 ivy 是在 minibuffer 来显示可选信息的，swoop 是在一个 buffer 显示的。有洁癖的可能稍微计较一下。</p>
-<figure class="highlight scheme"><table><tr><td class="gutter"><pre><div class="line">1</div><div class="line">2</div><div class="line">3</div><div class="line">4</div><div class="line">5</div><div class="line">6</div><div class="line">7</div><div class="line">8</div><div class="line">9</div><div class="line">10</div><div class="line">11</div><div class="line">12</div><div class="line">13</div><div class="line">14</div><div class="line">15</div><div class="line">16</div><div class="line">17</div><div class="line">18</div><div class="line">19</div><div class="line">20</div><div class="line">21</div><div class="line">22</div><div class="line">23</div><div class="line">24</div><div class="line">25</div></pre></td><td class="code"><pre><div class="line"><span class="comment">;; ivy swiper</span></div><div class="line">(<span class="name">defun</span> wd-swiper-at-point ()</div><div class="line">  <span class="string">"Pull next word from buffer into search string."</span></div><div class="line">  (<span class="name">interactive</span>)</div><div class="line">  (<span class="name"><span class="builtin-name">let</span></span> (<span class="name">query</span>)</div><div class="line">    (<span class="name">with-ivy-window</span></div><div class="line">      (<span class="name"><span class="builtin-name">let</span></span> ((<span class="name">tmp</span> (<span class="name">symbol-at-point</span>)))</div><div class="line">        (<span class="name">setq</span> query tmp)))</div><div class="line">    (<span class="name"><span class="builtin-name">when</span></span> query</div><div class="line">      (<span class="name">insert</span> (<span class="name">format</span> <span class="string">"%s"</span> query))</div><div class="line">      )))</div><div class="line"></div><div class="line">(<span class="name">use-package</span> ivy</div><div class="line">  :config</div><div class="line">  (<span class="name">ivy-mode</span> <span class="number">1</span>)</div><div class="line">  (<span class="name">setq</span> ivy-use-virtual-buffers t)</div><div class="line">  (<span class="name">set-variable</span> <span class="symbol">'ivy-on-del-error-function</span> '(lambda()))</div><div class="line">  )</div><div class="line"></div><div class="line">(<span class="name">use-package</span> swiper</div><div class="line">  :config</div><div class="line">  (<span class="name">global-set-key</span> <span class="string">"\C-s"</span> <span class="symbol">'swiper</span>)</div><div class="line">  (<span class="name">define-key</span> swiper-map (<span class="name">kbd</span> <span class="string">"C-w"</span>) <span class="symbol">'wd-swiper-at-point</span>)</div><div class="line">  (<span class="name">define-key</span> swiper-map (<span class="name">kbd</span> <span class="string">"C-f"</span>) <span class="symbol">'swiper-avy</span>)</div><div class="line">  )</div></pre></td></tr></table></figure>
+    <div class="entry-content"><p>之前习惯使用 <code>isearch</code> 来搜索了，最近看别人使用 <code>ivy</code> 看着心痒痒的，就想试试看。其实 ivy 的效果和 <code>swoop</code> 很像，不过区别是 ivy 是在 minibuffer 来显示可选信息的，swoop 是在一个 buffer 显示的。有洁癖的可能稍微计较一下。</p>
+
+<pre><code>;; ivy swiper
+(defun wd-swiper-at-point ()
+  &quot;Pull next word from buffer into search string.&quot;
+  (interactive)
+  (let (query)
+    (with-ivy-window
+      (let ((tmp (symbol-at-point)))
+        (setq query tmp)))
+    (when query
+      (insert (format &quot;%s&quot; query))
+      )))
+
+(use-package ivy
+  :config
+  (ivy-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (set-variable 'ivy-on-del-error-function '(lambda()))
+  )
+
+(use-package swiper
+  :config
+  (global-set-key &quot;\C-s&quot; 'swiper)
+  (define-key swiper-map (kbd &quot;C-w&quot;) 'wd-swiper-at-point)
+  (define-key swiper-map (kbd &quot;C-f&quot;) 'swiper-avy)
+  )
+</code></pre>
+
 <p>我大致做了上面几个设定，<code>\C-s</code> 绑定了 swiper，启动 swiper 之后用 <code>\C-w</code> 可以快速把光标位置的 symbol 放到 minibuffer 来搜索。然后 swiper 和 isearch 有个区别是，默认情况下，swiper 如果 minibuffer 没有内容，按 backspace 会退出，这个和 isearch 的习惯不一样，把 <code>ivy-on-del-error-function</code> 重新绑定一下就可以了。</p>
-<p>ivy 默认会绑定一个快捷键是在你 minibuffer 输入一些内容之后，会出来很多匹配结果，这个时候可以按 <code>C-&#39;</code> 调用 <code>swiper-avy</code> 方便你快速定位，也挺好用的。不过我这里不好用，不知道怎么回事，只好重新绑定了一下。</p>
+
+<p>ivy 默认会绑定一个快捷键是在你 minibuffer 输入一些内容之后，会出来很多匹配结果，这个时候可以按 <code>C-'</code> 调用 <code>swiper-avy</code> 方便你快速定位，也挺好用的。不过我这里不好用，不知道怎么回事，只好重新绑定了一下。</p>
+
 <p>还可以在 swiper 查询阶段按 <code>M-q</code> 进入替换模式。</p>
 </div>
 
 <div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/use-ivy-to-replace-isearch/#disqus_thread">Comments</a></span>
-	
+    
 </div>
 </article>
 
-	<div class="share">
+<div class="share">
 	<div class="addthis_toolbox addthis_default_style ">
+	
+	<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
 	
 	
 	<a class="addthis_button_tweet"></a>
 	
 	
+	<a class="addthis_button_google_plusone" g:plusone:size="midum"></a>
+	
 	<a class="addthis_counter addthis_pill_style"></a>
 	</div>
-  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=wd"></script>
 </div>
 
 
 
-
-
     
-      <script type="text/javascript">
+     <script type="text/javascript">
         var disqus_config = function () {
-            this.page.url = 'https://wdicc.com/use-ivy-to-replace-isearch/';
-            this.page.identifier = 'https://wdicc.com/use-ivy-to-replace-isearch/';
+            this.page.url = 'https:\/\/wdicc.com\/use-ivy-to-replace-isearch\/';
+            this.page.identifier = 'https:\/\/wdicc.com\/use-ivy-to-replace-isearch\/';
         };
 
         (function() {
@@ -151,14 +172,17 @@
           s.setAttribute('data-timestamp', +new Date());
           (d.head || d.body).appendChild(s);
         })();
-      </script>
+     </script>
     
+
+
 
 
 <section id="comment">
     <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
 </section>
 
 
@@ -166,33 +190,23 @@
     <footer id="footer">
     <div style="display:inline">
     Copyright &copy; 2017
-
+    
     wd
-. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
-    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+    . Powered by <a href="http://gohugo.io" target="_blank">Hugo</a> |
+    Theme is <a href="https://github.com/wd/hugo-fabric">hugo-fabric</a>, fork from <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a> by <a href="https://wdicc.com">me</a>
 </div>
-
 
     </footer>
-    <script src="/javascripts/fabric.js"></script>
-<script src="/javascripts/jquery.fancybox.pack.js"></script>
+    <script src="/js/fabric.js"></script>
+
+
+</div>
+</div>
+<script src="/js/jquery.ui.totop.js" type="text/javascript"></script>
 <script type="text/javascript">
-(function($){
-	$('.fancybox').fancybox();
-})(jQuery);
+ 
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery);
+ 
 </script>
- <!-- Delete or comment this line to disable Fancybox -->
-
-
-
-<!-- end toload --> 
-</div>
-</div>
-<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
-<script type="text/javascript">
-/*<![CDATA[*/
-;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
-/*]]>*/
-</script><!-- remove it to remove the scroll to top button -->
 </body>
 </html>

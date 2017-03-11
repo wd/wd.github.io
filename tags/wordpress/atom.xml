@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Wordpress on wd and cc</title>
+    <link>https://wdicc.com/tags/wordpress/atom/index.xml</link>
+    <description>Recent content in Wordpress on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/wordpress/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>用 emacs 写 blog</title>
+      <link>https://wdicc.com/use-emacs-publish-your-blog/</link>
+      <pubDate>Wed, 10 Mar 2010 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/use-emacs-publish-your-blog/</guid>
+      <description>不想看大段文字的可以直接看 http://github.com/wd/work/tree/master/weblogger.el/。&lt;br /&gt;
+
+先看看 &lt;a href=&#34;http://emacser.com/weblogger.htm&#34;&gt;这个&lt;/a&gt;， 我用的weblogger.el 就是从那来的，这个 el 打了 html 支持和 tags(summary) 的支持。&lt;br /&gt;
+
+因为写中文 title 的时候，生成的 url 会有一堆的中文字符，看起来就是乱码，不可读，这时候可以在 wp 的后台指定一个 post-slug，url 会根据这个生成。这里我主要是研究了一下对 post-slug 的支持。&lt;br /&gt;
+
+weblogger.el 里面 应该是在 weblogger-determine-capabilities 里面判断一下你的 blog 支持的类型，我看了 wordpress 的支持的 methods，里面metaWeblog.newPost, 和 blogger.newPost 应该都是支持的，他应该首选的是 metaWeblog 那个。&lt;br /&gt;
+
+然后呢，就是看 wp 的 xml-rpc 文件，里面有个 mw_newPost 对应的就是 metaWeblog.newPost 应该是。在这个函数头试了一把，用的确实是这个。然后就看这里面是怎么处理的了。&lt;br /&gt;
+
+这里面最后用的是 wp_insert_post 发的贴子，再看这个函数，能看到里面用的是 post_name 来生成的 post-slug。那么我们只要设置一下这个变量就可以了。在这个函数里面，搜一下 post-name 能看到&lt;br /&gt;
+&lt;pre class=&#34;prettyprint&#34;&gt;
+// Let WordPress generate the post_name (slug) unless
+// one has been provided.
+$post_name = &#34;&#34;;
+if(isset($content_struct[&#34;wp_slug&#34;])) {
+    $post_name = $content_struct[&#34;wp_slug&#34;];
+}
+&lt;/pre&gt;&lt;br /&gt;
+
+我们只要在 weblogger.el 里面 post 一个这个变量就好了。在 post 里面能看到如果有个 X-url 的话，他会 post 一个 link 字段出来。那就好了，把上面那个 wp_slug 改成 link，然后写 blog 的时候加一个字段 X-url 就会使用这个你指定的 url 了。&lt;br /&gt;
+
+这个文章就是用 emacs 写的。 :D&lt;br /&gt;
+
+又研究了下，再补充点内容，呵呵。(2010-03-10)&lt;br /&gt;
+
+问题是这样的，新建一个 post 的时候会出来 subject, keywords, newsgroup 这三个字段，怎么能让他加上 summary 和 x-url 呢，这样我就不用每次都手动写了，怎么弄呢，我就找啊找啊，总算找到方法了。&lt;br /&gt;
+
+新建的 buffer 里面不是会有个提示么，什么 &#39;--text follows this line --&#39;, 就找这个，看是哪里提供的。在 weblogger.el 里面，找了半天，发现没有这个提示。怎么回事？要相信程序，肯定是会有的，只能是找错了地方。&lt;br /&gt;
+
+看看这个 el 的看头，引用了 message.el，搜了一下，这个原来是 gnus 提供的，找到这个 el，搜了一下，找到那几个字符了。原来是在这里面添加的。然后我就尝试定义 message-required-news-headers 这个变量，发现不好用，看来还是得在 weblogger.el 里面弄。在这里面找到 weblogger-edit-entry 这个函数，这个就是发帖子的时候用的，在里面有个顺序往下看，这个 message-goto-keywords 比较可疑，在 message.el 里面搜了下，果然，同时还看到一个 message-goto-summary，加上看看，嘿嘿，果然就搞定了。再找找 x-url，没找到，那就仿 summary 的写一个呗&lt;br /&gt;
+&lt;pre class=&#34;prettyprint&#34;&gt;
+(defun message-goto-x-url ()
+  &#34;Move point to the x-url header.&#34;
+  (interactive)
+  (message-position-on-field &#34;X-url&#34; &#34;Subject&#34;))
+&lt;/pre&gt;&lt;br /&gt;
+
+这不完了么，这下就爽多了，嘿嘿。。不过如果能把那些 keywords, summary 等字段改成什么 categories,tags 就好了。。。有时间看看。。。&lt;br /&gt;
+
+又研究了一下，加点内容。。(2010-03-11)&lt;br /&gt;
+
+其实就是上面留的这点东西，我自己改吧了一下，好像能用了。地址在 http://github.com/wd/work/tree/master/weblogger.el/，里面的 permlink 就是指定 url 的。我看发文章好像没问题了。&lt;br /&gt;
+
+另外，我试着在这个 mode 里面让他自动启动 auto-complete-mode，可是怎么弄都不行，不知道怎么回事。下面是我在 .emacs 用的代码。&lt;br /&gt;
+&lt;pre class=&#34;prettyprint&#34;&gt;
+(add-hook &#39;weblogger-start-edit-entry-hook (lambda()
+    (auto-fill-mode -1)
+    (abbrev-mode -1)
+    (auto-complete-mode 1)
+    ))
+&lt;/pre&gt;&lt;br /&gt;
+
+有人能帮忙不。。。&lt;br /&gt;
+
+又修改了一些东西。。可以看看 github 的 commit log 。。。。(2010-03-12)&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>把wordpress升级到了2.3版本</title>
+      <link>https://wdicc.com/upgrade-blog-to-wp-23/</link>
+      <pubDate>Sat, 29 Sep 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/upgrade-blog-to-wp-23/</guid>
+      <description>测试版的时候懒的弄，现在正式版了，今天有空，就升级了一下。tag使用了自带的，发现不一定就比人家 &lt;a href=&#34;http://www.neato.co.nz/ultimate-tag-warrior/&#34; title=&#34;Visit plugin homepage&#34;&gt;Ultimate Tag Warrior&lt;/a&gt; 好用。修改工作倒没什么，找了一篇文章参考一下就好。&lt;br /&gt;
+
+最近工作基本都切换到了 ArchLinux ，gnome的环境，为了省事吧，fvwm配置起来是很好用，可是那个配置文件几天不看就看不懂了，这实在太累了。&lt;br /&gt;
+
+目前遇到的问题好象都能解决。域登陆问题还没有搞定，不知道怎么能登陆windows域，访问那个 fileserver。不过还好，不是总要去访问那个东西。&lt;br /&gt;
+
+scim 和 OOo 的冲突问题很麻烦，不过使用 scim-bridge 解决了。但是又出现了 nautilus 和 scim冲突，nautilus 里面不能输入中文，鬼知道是哪个的问题了。不过不能输入中文 就算了，我输入英文总可以了，实在不行还可以去 terminal 下面修改。&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>安装了一个 Gregarius</title>
+      <link>https://wdicc.com/install-gregarius/</link>
+      <pubDate>Tue, 23 Jan 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/install-gregarius/</guid>
+      <description>lilina 的速度有点慢，就尝试换一个看看，装好了 Gregarius ，使用了下感觉还行，打开页面的时候比较慢，不知道是卡在哪里。lilina 那个以后不更新了，就使用 &lt;a href=&#34;http://rss.wdicc.com&#34;&gt;Gregarius&lt;/a&gt; 了。&lt;br /&gt;
+
+wordpress 也更新了，到 2.1 了。好像增加了一些新功能，等会升级看看。&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>把tt转成了wordpress</title>
+      <link>https://wdicc.com/change-tt-to-wordpress/</link>
+      <pubDate>Thu, 03 Aug 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/change-tt-to-wordpress/</guid>
+      <description>用了一个兄弟的&lt;a href=&#34;http://dbfox.idv.tw/blog/?p=110&#34; target=&#34;_blank&#34;&gt;转化程序&lt;/a&gt; ,效果非常不错。&lt;br /&gt;
+
+ 现在还有点问题，明天好好修理一下，呵呵。&lt;br /&gt;
+
+&lt;pre class=&#34;prettyprint lang-mysql&#34;&gt;
+UPDATE wp_posts SET post_content = replace( post_content, &#34;[/CODE]&#34;, &#34;[/ coolcode]&#34; ) WHERE `post_content` LIKE &#39;%[/CODE]%&#39;
+&lt;/pre&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

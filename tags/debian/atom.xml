@@ -1,0 +1,212 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Debian on wd and cc</title>
+    <link>https://wdicc.com/tags/debian/atom/index.xml</link>
+    <description>Recent content in Debian on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/debian/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>debian中man不能翻页的解决方法</title>
+      <link>https://wdicc.com/man-in-debian/</link>
+      <pubDate>Tue, 18 Apr 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/man-in-debian/</guid>
+      <description>安装debian基本系统之后会发现man的时候往下翻页可以用ctrl＋F，可是怎么都翻不上去。包括方向键也都不起作用。&lt;br /&gt;
+
+解决方法其实非常简单，只要安装less就可以了。呵呵。&lt;br /&gt;
+#apt-get install less&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>debian下面的防火墙设置</title>
+      <link>https://wdicc.com/iptables-in-debian/</link>
+      <pubDate>Mon, 17 Apr 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/iptables-in-debian/</guid>
+      <description>&lt;p&gt;rh下面的防火墙设置是保存在/etc/sysconfig/iptables文件中的，这样每次重启都会恢复防火墙设置。&lt;br /&gt;
+
+debian木有这个文件，但是他提供了更加灵活的方式。&lt;br /&gt;
+&lt;a href=&#34;http://www.debian.org/doc/manuals/securing-debian-howto/ch-sec-services.en.html#s-firewall-setup&#34;&gt;http://www.debian.org/doc/manuals/securing-debian-howto/ch-sec-services.en.html#s-firewall-setup&lt;/a&gt;&lt;br /&gt;
+
+看了下，似乎比较简单的就是设置interfaces文件了。&lt;br /&gt;
+
+5.14.3.3 Configuring firewall rules through ifup&lt;br /&gt;
+You can use also the network configuration in /etc/network/interfaces to setup your firewall rules. For this you will need to: &lt;/p&gt;&lt;p&gt;Create your firewalling ruleset for when the interface is active. &lt;br /&gt;
+Save your ruleset with iptables-save to a file in /etc, for example /etc/iptables.up.rules &lt;br /&gt;
+Configure etc/network/interfaces to use the configured ruleset: &lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; iface eth0 inet static&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; address x.x.x.x&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; [.. interface configuration ..]&lt;br /&gt;
+ &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; pre-up iptables-restore &amp;lt; /etc/iptables.up.rules&lt;br /&gt;
+You can optionally also setup a set of rules to be applied when the network interface is down creating a set of rules, saving it in /etc/iptables.down.rules and adding this directive to the interface configuration: &lt;/p&gt;&lt;p&gt; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; post-down iptables-restore &amp;lt; /etc/iptables.down.rules&lt;br /&gt;
+For more advanced firewall configuration scripts through ifupdown you can use the hooks available to each interface as in the *.d/ directories called with run-parts (see run-parts(8)). &lt;/p&gt;&lt;p&gt;可以去&lt;a href=&#34;http://easyfwgen.morizot.net/gen/&#34;&gt;http://easyfwgen.morizot.net/gen/&lt;/a&gt; 在线生成一个防火墙脚本，然后pre-up指定一下。&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>为debian unstable做镜像</title>
+      <link>https://wdicc.com/mirror-for-debian/</link>
+      <pubDate>Wed, 14 Dec 2005 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/mirror-for-debian/</guid>
+      <description>#HOST=opensource.nchc.org.tw&lt;br /&gt;
+HOST=debian.nctu.edu.tw&lt;br /&gt;
+#HOST_NONUS=opensource.nchc.org.tw&lt;br /&gt;
+#HOST_NONUS=debian.cn99.com&lt;br /&gt;
+HOST_NONUS=debian.nctu.edu.tw&lt;br /&gt;
+
+DISTS=&#34;unstable&#34;&lt;br /&gt;
+DISTS_NONUS=&#34;unstable/non-US&#34;&lt;br /&gt;
+DISTS_SEC=&#34;unstable/updates&#34;&lt;br /&gt;
+
+ARCHS=&#34;i386&#34;&lt;br /&gt;
+
+MIRROR_ROOT=&#39;/data/debian/debian&#39;&lt;br /&gt;
+MIRROR_ROOT_NONUS=&#39;/data/debian/debian-non-US&#39;&lt;br /&gt;
+
+OPTIONS=&#34;--getcontents --progress --nosource --method=http -s main,contrib,non-free --ignore-release-gpg&#34;&lt;br /&gt;
+
+
+#ADDDIRS=&#34;dists/unstable/main/disks-i386&#34; &lt;br /&gt;
+
+
+echo &#34;Processing standard using $HOST&#34; &lt;br /&gt;
+/usr/bin/debmirror --host=$HOST --dist=$DISTS --arch=$ARCHS $OPTIONS -r /debian $MIRROR_ROOT&lt;br /&gt;
+
+echo &#34;Processing non-US using $HOST_NONUS&#34; &lt;br /&gt;
+/usr/bin/debmirror --host=$HOST_NONUS --dist=$DISTS_NONUS --arch=$ARCHS $OPTIONS -r /debian-non-US $MIRROR_ROOT_NONUS&lt;br /&gt;
+
+echo &#34;Processing xfce4.2 using www.os-works.com&#34;&lt;br /&gt;
+
+/usr/bin/debmirror -a i386 -s main -h www.os-works.com -d testing -r /debian --progress -e http --ignore-release-gpg /data/debian/xf&lt;br /&gt;
+ce4.2&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>debian下的alsa(zz)</title>
+      <link>https://wdicc.com/alsa-in-debian/</link>
+      <pubDate>Tue, 19 Apr 2005 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/alsa-in-debian/</guid>
+      <description>前段时间重装机器，用的是debian提供的2.6内核，装了alsa-base后发现alsa无法发声，但oss却工作正常。折腾了大半天也没搞明白是怎么回事，无奈之下只好使用oss。今天在版上看到有人讨论，才知道oss不能和alsa共存。而我的问题很可能就是系统在启动的时候预先加载了 oss的驱动。后来用google查了一下，在下面这个网址http://www.sonic.net/~rknop/linux/debian_alsa.html&lt;br /&gt;
+
+发现问题果然如此。原来debian中自动侦探硬件的程序discover在检测到声卡后会自动加载oss，只要不让它自动加载就可以了。具体做法就是在/etc/discover.conf中加上一句skip i810_audio 。然后重启就能使用alsa了，不过要注意的是alsa默认是静音，需要自己手动将声音调大。&lt;br /&gt;
+
+版上有人说还需要在/etc/hotplug/blacklist中加上i810_audio，我发现不需要这么做。因为安装alsa时，系统在/etc/hotplug/blacklist.d/alsa*中自动添加这些内容。&lt;br /&gt;
+
+版上有人说还需要更改/etc/modutils/alsa-base中的相关内容，具体就是将above改为alias。&lt;br /&gt;
+
+http://wiki.debian.org.tw/index.php/HardwareIdentification 这个网址讲述了debian中硬件识别的相关知识。&lt;br /&gt;
+
+引用网址：http://www.debian.org.hk/node/12420&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>弄了老久的debian，总算可以看了</title>
+      <link>https://wdicc.com/nice-look-of-debian/</link>
+      <pubDate>Tue, 19 Apr 2005 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/nice-look-of-debian/</guid>
+      <description>装的xfce4.2，目前debian官方还没有收录，很轻快的一个桌面系统。本来想用xorg的，可是debian官方也没有，作罢。&lt;br /&gt;
+
+debian的系统菜单在/usr/share/applications下面，他会自动添加条目。xfce会调用这个里面的，显示debian系统菜单。xfce的菜单设置是在~/.config/xfce4下面，保存了好多信息。桌面菜单在desktop下面，用utf-8编码，修改的时候要注意。面板菜单调用的是/etc/xdg/xfce4/desktop/menu.xml，所以两个不能同步修改。回头看看能不能链接一下。&lt;br /&gt;
+
+xfce下的文件管理器是rox，用起来还行，呵呵。mplayer和xfce的source是下面的这个：&lt;br /&gt;
+
+# xfce4&lt;br /&gt;
+deb http://www.os-works.com/debian unstable main&lt;br /&gt;
+#uo&lt;br /&gt;
+deb http://211.151.91.103/debian-uo sid marillat ustc rareware&lt;br /&gt;
+
+mplayer的主页:http://www.mplayerhq.hu/homepage/design7/news.html。解码器:http://www.mplayerhq.hu/MPlayer/releases/codecs/。Skin：http://ftp.iasi.roedu.net/mirrors/ftp.mplayerhq.hu/MPlayer/Skin/。&lt;br /&gt;
+
+xfce的主页:www.us.xfce.org。插件主页:https://developer.berlios.de/project/showfiles.php?group_id=910&amp;release_id=4494。&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>给本本装了个debian</title>
+      <link>https://wdicc.com/debian-on-my-notebook/</link>
+      <pubDate>Tue, 19 Apr 2005 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/debian-on-my-notebook/</guid>
+      <description>重装了一下。&lt;br /&gt;
+
+安装了一个kde，觉得太慢了，换了xfce4，挺快得，呵呵。&lt;br /&gt;
+
+＃cat .xinitrc &lt;br /&gt;
+export LANG=zh_CN&lt;br /&gt;
+export LC_CTYPE=zh_CN&lt;br /&gt;
+export XMODIFIERS=@im=fcitx&lt;br /&gt;
+export XIM=fcitx&lt;br /&gt;
+export XIM_PROGRAM=fcitx&lt;br /&gt;
+export BROWSER=&#34;mozilla-firefox&#34;&lt;br /&gt;
+export TERMCMD=&#34;mrxvt&#34;&lt;br /&gt;
+fcitx &amp;&lt;br /&gt;
+startxfce4&lt;br /&gt;
+
+这样就可以调用fcitx输入法了。&lt;br /&gt;
+
+&lt;br&gt;&lt;!--more--&gt;mrxvt支持多tab，是国产得软件，呵呵。不过还得设置才能正常显示输入中文。&lt;br /&gt;
+
+#cat ~/.mrxvtrc&lt;br /&gt;
+mrxvt*mfont:              hanzigb16st&lt;br /&gt;
+mrxvt*xftmfont:           simsun&lt;br /&gt;
+mrxvt*xftSize:            14&lt;br /&gt;
+mrxvt*multichar_encoding: GB&lt;br /&gt;
+mrxvt*inputMethod:        fcitx&lt;br /&gt;
+
+这样就ok了。&lt;br /&gt;
+
+
+看到xfce4.2出来了，可是debian还没有包含，找到一个安装方法:http://www.os-works.com/view/debian/&lt;br /&gt;
+
+To start the installation of the Debian packages, add the following two lines to the file /etc/apt/sources.list on your system: &lt;br /&gt;
+
+
+deb http://www.os-works.com/debian testing main&lt;br /&gt;
+deb-src http://www.os-works.com/debian testing main&lt;br /&gt;
+You&amp;#39;ll have to update your package cache afterwards, using the command (as user root): &lt;br /&gt;
+
+
+apt-get update&lt;br /&gt;
+This may take some time dependeing on your bandwidth. &lt;br /&gt;
+
+Now, if you want to install the whole Xfld desktop - including the Terminal emulator, the ROX file manager, the Xfmedia media player and several additional panel plugins - you should run the command &lt;br /&gt;
+
+
+apt-get install -t testing xfld-desktop&lt;br /&gt;
+as user root. This will download all required packages and install them on your computer. The parameter -t testing should not be needed in most cases, but it doesn&amp;#39;t hurt either. It tells apt-get to use packages from the testing release - which is the release name we use for our repository - even if your system defaults to another release (e.g. unstable). See this introduction to APT Pinning for further details on how to manage multiple APT sources. For example, if you are using Debian unstable (aka sid), you may need to add the following lines to the file /etc/apt/preferences/ (create the file if its not already present on your system) to ensure that you will actually install Xfce 4.2 and not Xfce 4.0 from Debian unstable: &lt;br /&gt;
+
+
+Package: *&lt;br /&gt;
+Pin: origin www.os-works.com&lt;br /&gt;
+Pin-Priority: 999&lt;br /&gt;
+These three lines will make sure that APT assigns a higher priority to the Xfce 4.2, when installing or upgrading software on your system. Once you have added these lines, you don&amp;#39;t need to use the -t testing option to apt-get any longer. &lt;br /&gt;
+
+In case you want to use only the core components of the Xfce 4.2 Desktop Environment, the command &lt;br /&gt;
+
+
+apt-get install -t testing xfce4&lt;br /&gt;
+will install the window manager, session manager, panel, file manager and the various utilities that ship with Xfce, but not the additional software that completes the Xfld Desktop. &lt;br /&gt;
+
+If you have Xfce 4.0.x currently installed on your system, you can try to upgrade to the Xfce 4.2 packages using the command &lt;br /&gt;
+
+
+apt-get dist-upgrade&lt;br /&gt;
+If you have trouble upgrading from the Xfce packages in the official Debian repository, you could try to uninstall the official packages first: &lt;br /&gt;
+
+
+apt-get remove libxfce4util-1&lt;br /&gt;
+will remove all Xfce packages from your system. Afterwards, you should retry with the installation as described above.&lt;br /&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

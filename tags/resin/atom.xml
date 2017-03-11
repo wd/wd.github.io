@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Resin on wd and cc</title>
+    <link>https://wdicc.com/tags/resin/atom/index.xml</link>
+    <description>Recent content in Resin on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/resin/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>为resin配置oracle连接池</title>
+      <link>https://wdicc.com/resin-and-oracle/</link>
+      <pubDate>Wed, 27 Jun 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/resin-and-oracle/</guid>
+      <description>&lt;p&gt;resin 2.x 的配置方法和 3.x 的方法有区别。按照&lt;a href=&#34;http://www.caucho.com/resin-3.1/doc/db-thirdparty.xtp&#34;&gt;官方文档&lt;/a&gt;，做下面的配置。&lt;/p&gt; &lt;p&gt;&lt;pre lang=&#34;txt&#34;&gt;&lt;database&gt;&lt;br /&gt;
+  &lt;jndi-name&gt;oraPool&lt;/jndi-name&gt;&lt;br /&gt;
+  &lt;driver&gt;&lt;br /&gt;
+    &lt;type&gt;oracle.jdbc.pool.OracleConnectionPoolDataSource&lt;/type&gt;&lt;br /&gt;
+    &lt;url&gt;jdbc:oracle:thin:@localhost:1521:dbname&lt;/url&gt;&lt;br /&gt;
+    &lt;user&gt;username&lt;/user&gt;&lt;br /&gt;
+    &lt;password&gt;password&lt;/password&gt;&lt;br /&gt;
+  &lt;/driver&gt;&lt;br /&gt;
+#....&lt;br /&gt;
+&lt;/database&gt;&lt;/pre&gt;&lt;br /&gt;
+&lt;p&gt;&amp;nbsp;在上面的 &lt;font color=&#34;#ff0000&#34;&gt;.... &lt;/font&gt;这里还可以添加&lt;a href=&#34;http://www.caucho.com/resin-3.1/doc/database-tags.xtp&#34;&gt;其他的&lt;/a&gt;配置信息。配置好之后启动resin，会发现提示类似下面的信息。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;pre lang=&#34;txt&#34;&gt;conf/resin.conf:218: java.lang.ClassNotFoundException: oracle.jdbc.pool.OracleConnectionPoolDataSource&lt;/pre&gt;&lt;br /&gt;
+&lt;p&gt;提示没有找到连接oracle数据库的jdbc驱动。这个驱动在oracle的安装目录里面有。比如我这里是在 /db/oracle/10.1.0/product/10g/jdbc/lib/ 。里面好多文件，具体都什么作用可以看&lt;a href=&#34;http://www.oracle.com/technology/tech/java/sqlj_jdbc/htdocs/jdbc_faq.htm#02_07&#34;&gt;这里&lt;/a&gt;。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;复制这个目录里面的 classes12.jar 和 nls_charset12.jar 到resin的 lib 目录下面，重新启动 resin 就可以了。本文完成过程中参考了&lt;a href=&#34;http://dev.csdn.net/article/29/29762.shtm&#34;&gt;这篇&lt;/a&gt;文章。如何使用这个pool，官方文档也有&lt;a href=&#34;http://www.caucho.com/resin-3.1/doc/config-database.xtp#usage/lookup&#34;&gt;说明&lt;/a&gt;。&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>resin 的安装步骤</title>
+      <link>https://wdicc.com/install-resin/</link>
+      <pubDate>Thu, 21 Jun 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/install-resin/</guid>
+      <description>&lt;p&gt;resin目前已经到了3.1版本，从resin网站上面下载的resin不带jdk，需要自己去下载。resin的下载页面在&lt;a href=&#34;http://www.caucho.com/download/index.xtp&#34;&gt;这里&lt;/a&gt;。下载最新的 Resin Pro 3.1.1 版本。&lt;/p&gt; &lt;p&gt;jdk的下载地址在 &lt;a href=&#34;http://java.sun.com/javase/downloads/index.jsp&#34;&gt;这里&lt;/a&gt;&amp;nbsp;，resin 3.1需要1.5及以上版本的jdk。&lt;/p&gt; &lt;p&gt;先来安装resin：&lt;/p&gt; &lt;p&gt;&lt;pre lang=&#34;bash&#34;&gt;tar zxvf resin-pro-3.1.1&lt;br /&gt;
+cd resin-pro-3.1.1&lt;br /&gt;
+./configure --prefix=/usr/local/resin #安装的目的地址&lt;br /&gt;
+make &amp;amp;&amp;amp; make install&lt;/pre&gt;&lt;br /&gt;
+&lt;p&gt;安装完resin之后，安装jdk：&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;pre lang=&#34;bash&#34;&gt;cd /usr/local&lt;br /&gt;
+chmod +x /root/jdk-6u1-linux-i586.bin&lt;br /&gt;
+/root/jdk-6u1-linux-i586.bin&lt;/pre&gt;&lt;br /&gt;
+&lt;p&gt;此后会在/usr/local/下面建立一个jdk1.6.0_01目录，jdk就安装完毕了。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;resin 的配置文件在 /usr/loca/resin/conf 下面，主要是 resin.conf 。默认的端口是8080。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;pre lang=&#34;txt&#34;&gt;&lt;http port=&#34;8080&#34; address=&#34;*&#34;&gt;&lt;/pre&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;然后就是添加自己的应用地址了。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;pre lang=&#34;txt&#34;&gt;&lt;host id=&#34;&#34; root-directory=&#34;.&#34;&gt;&lt;br /&gt;
+      &lt;web-app id=&#34;/&#34; root-directory=&#34;webapps/ROOT&#34;&gt;&lt;/pre&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;在这下面添加一行&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;pre lang=&#34;txt&#34;&gt;&lt;web-app id=&#34;/test&#34; root-directory=&#34;/www/test/&#34;&gt;&lt;/pre&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;此后呢，访问 http://ip:8080/test 就可以访问到你的应用了。 &lt;br /&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Inherit on wd and cc</title>
+    <link>https://wdicc.com/tags/inherit/atom/index.xml</link>
+    <description>Recent content in Inherit on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/inherit/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>Python inherit and super</title>
+      <link>https://wdicc.com/Python-inherit-and-super/</link>
+      <pubDate>Mon, 16 Jan 2017 11:53:04 +0800</pubDate>
+      
+      <guid>https://wdicc.com/Python-inherit-and-super/</guid>
+      <description>&lt;p&gt;又学习了一个 python 的继承。有很多帖子都有介绍，比如&lt;a href=&#34;https://laike9m.com/blog/li-jie-python-super,70/&#34;&gt;理解 Python super&lt;/a&gt;，&lt;a href=&#34;http://www.cnblogs.com/lovemo1314/archive/2011/05/03/2035005.html&#34;&gt;python super()&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;先看一个例子，这个是第一个文章里面的。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class Root(object):
+    def __init__(self):
+        print(&amp;quot;this is Root&amp;quot;)
+
+
+class B(Root):
+    def __init__(self):
+        print(&amp;quot;enter B&amp;quot;)
+        super(B, self).__init__()
+        print(&amp;quot;leave B&amp;quot;)
+
+
+class C(Root):
+    def __init__(self):
+        print(&amp;quot;enter C&amp;quot;)
+        super(C, self).__init__()
+        print(&amp;quot;leave C&amp;quot;)
+
+
+class D(C):
+    def __init__(self):
+        print(&amp;quot;enter D&amp;quot;)
+        super(D, self).__init__()
+        print(&amp;quot;leave D&amp;quot;)
+
+
+class E(D, B):
+    def __init__(self):
+        print(&amp;quot;enter E&amp;quot;)
+        super(E, self).__init__()
+        print(&amp;quot;leave E&amp;quot;)
+
+e = E()
+print(e.__class__.mro())
+
+# results:
+# enter E
+# enter D
+# enter C
+# enter B
+# this is Root
+# leave B
+# leave C
+# leave D
+# leave E
+# [&amp;lt;class &#39;__main__.E&#39;&amp;gt;, &amp;lt;class &#39;__main__.D&#39;&amp;gt;, &amp;lt;class &#39;__main__.C&#39;&amp;gt;, &amp;lt;class &#39;__main__.B&#39;&amp;gt;, &amp;lt;class &#39;__main__.Root&#39;&amp;gt;, &amp;lt;class &#39;object&#39;&amp;gt;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;没有什么问题，所有的类都做了初始化，很完美。接着再看一个例子，这个例子其实是上面第二篇文章里面的。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class A(object):
+    def __init__(self):
+        print(&amp;quot;enter A&amp;quot;)
+        print(&amp;quot;leave A&amp;quot;)
+
+
+class B(object):
+    def __init__(self):
+        print(&amp;quot;enter B&amp;quot;)
+        print(&amp;quot;leave B&amp;quot;)
+
+
+class C(A):
+    def __init__(self):
+        print(&amp;quot;enter C&amp;quot;)
+        super(C, self).__init__()
+        print(&amp;quot;leave C&amp;quot;)
+
+
+class D(A):
+    def __init__(self):
+        print(&amp;quot;enter D&amp;quot;)
+        super(D, self).__init__()
+        print(&amp;quot;leave D&amp;quot;)
+
+
+class E(B, C):
+    def __init__(self):
+        print(&amp;quot;enter E&amp;quot;)
+        super(E, self).__init__()
+        print(&amp;quot;leave E&amp;quot;)
+
+
+class F(E, D):
+    def __init__(self):
+        print(&amp;quot;enter F&amp;quot;)
+        super(F, self).__init__()
+        print(&amp;quot;leave F&amp;quot;)
+
+
+f = F()
+print(f.__class__.mro())
+
+# results:
+# enter F
+# enter E
+# enter B
+# leave B
+# leave E
+# leave F
+# [&amp;lt;class &#39;__main__.F&#39;&amp;gt;, &amp;lt;class &#39;__main__.E&#39;&amp;gt;, &amp;lt;class &#39;__main__.B&#39;&amp;gt;, &amp;lt;class &#39;__main__.C&#39;&amp;gt;, &amp;lt;class &#39;__main__.D&#39;&amp;gt;, &amp;lt;class &#39;__main__.A&#39;&amp;gt;, &amp;lt;class &#39;object&#39;&amp;gt;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我发现和文章里面贴的结果不一样，里面缺少对 C，D，A 的初始化。琢磨半天才弄明白，主要原因就是，&lt;code&gt;A&lt;/code&gt;，&lt;code&gt;B&lt;/code&gt; 其实也是继承自 &lt;code&gt;object&lt;/code&gt;，然而我们并没有调用 &lt;code&gt;super&lt;/code&gt; 来初始化，所以只需要加上就可以了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;class A(object):
+    def __init__(self):
+        print(&amp;quot;enter A&amp;quot;)
+        super(A, self).__init__()
+        print(&amp;quot;leave A&amp;quot;)
+
+
+class B(object):
+    def __init__(self):
+        print(&amp;quot;enter B&amp;quot;)
+        super(B, self).__init__()
+        print(&amp;quot;leave B&amp;quot;)
+
+
+class C(A):
+    def __init__(self):
+        print(&amp;quot;enter C&amp;quot;)
+        super(C, self).__init__()
+        print(&amp;quot;leave C&amp;quot;)
+
+
+class D(A):
+    def __init__(self):
+        print(&amp;quot;enter D&amp;quot;)
+        super(D, self).__init__()
+        print(&amp;quot;leave D&amp;quot;)
+
+
+class E(B, C):
+    def __init__(self):
+        print(&amp;quot;enter E&amp;quot;)
+        super(E, self).__init__()
+        print(&amp;quot;leave E&amp;quot;)
+
+
+class F(E, D):
+    def __init__(self):
+        print(&amp;quot;enter F&amp;quot;)
+        super(F, self).__init__()
+        print(&amp;quot;leave F&amp;quot;)
+
+
+f = F()
+print(f.__class__.mro())
+
+# results:
+# enter F
+# enter E
+# enter B
+# enter C
+# enter D
+# enter A
+# leave A
+# leave D
+# leave C
+# leave B
+# leave E
+# leave F
+# [&amp;lt;class &#39;__main__.F&#39;&amp;gt;, &amp;lt;class &#39;__main__.E&#39;&amp;gt;, &amp;lt;class &#39;__main__.B&#39;&amp;gt;, &amp;lt;class &#39;__main__.C&#39;&amp;gt;, &amp;lt;class &#39;__main__.D&#39;&amp;gt;, &amp;lt;class &#39;__main__.A&#39;&amp;gt;, &amp;lt;class &#39;object&#39;&amp;gt;]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样就完美了。目测这个会是一个隐藏的坑。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

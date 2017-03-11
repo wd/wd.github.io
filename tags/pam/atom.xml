@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Pam on wd and cc</title>
+    <link>https://wdicc.com/tags/pam/atom/index.xml</link>
+    <description>Recent content in Pam on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/pam/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>PAM入门介绍</title>
+      <link>https://wdicc.com/about-pam/</link>
+      <pubDate>Sat, 05 Aug 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/about-pam/</guid>
+      <description>来源 &lt;a target=&#34;_blank&#34; href=&#34;http://sinbad.zhoubin.com/read.html?board=UNIX&amp;num=482&#34;&gt;这里&lt;/a&gt;&lt;br /&gt;
+
+PAM（Pluggable Authentication Modules ）是由Sun提出的一种认证机制。它通过提供一些&lt;br /&gt;
+动态链接库和一套统一的API，将系统提供的服务 和该服务的认证方式分开，使得系统管理&lt;br /&gt;
+员可以灵活地根据需要给不同的服务配置不同的认证方式而无需更改服务程序，同时也便于&lt;br /&gt;
+向系 统中添加新的认证手段。&lt;br /&gt;
+PAM最初是集成在Solaris中，目前已移植到其它系统中，如Linux、SunOS、HP-UX 9.0等。&lt;br /&gt;
+
+一、PAM的结构&lt;br /&gt;
+
+PAM的整个框架结构如下图所示：&lt;br /&gt;
+
+
+系统管理员通过PAM配置文件来制定认证策略，即指定什么服务该采用什么样的认证方法；应&lt;br /&gt;
+用程序开发者通过在服务程序中使用PAM API而实现对认证方法的调用；而PAM服务模块（se&lt;br /&gt;
+rvice module）的开发者则利用PAM SPI（Service Module API）来编写认证模块（主 要是&lt;br /&gt;
+引出一些函数pam_sm_xxxx( )供libpam调用），将不同的认证机制（比如传统的UNIX认证方&lt;br /&gt;
+法、Kerberos等）加入到系统中；PAM核 心库（libpam）则读取配置文件，以此为根据将服&lt;br /&gt;
+务程序和相应的认证方法联系起来。&lt;!--more--&gt;&lt;br /&gt;
+二、PAM支持的四种管理界面：&lt;br /&gt;
+
+1、认证管理（authentication management）&lt;br /&gt;
+主要是接受用户名和密码，进而对该用户的密码进行认证，并负责设置用户的一些秘密&lt;br /&gt;
+信息。&lt;br /&gt;
+2、帐户管理（account management）&lt;br /&gt;
+主要是检查帐户是否被允许登录系统，帐号是否已经过期，帐号的登录是否有时间段的&lt;br /&gt;
+限制等等。&lt;br /&gt;
+3、密码管理（password management）&lt;br /&gt;
+主要是用来修改用户的密码。&lt;br /&gt;
+4、会话管理（session management）&lt;br /&gt;
+主要是提供对会话的管理和记账（accounting）。&lt;br /&gt;
+
+三、PAM的文件：&lt;br /&gt;
+
+/usr/lib/libpam.so.*                  PAM核心库&lt;br /&gt;
+/etc/pam.conf或者/etc/pam.d/          PAM配置文件&lt;br /&gt;
+/usr/lib/security/pam_*.so            可动态加载的PAM service module&lt;br /&gt;
+对于RedHat，其目录不是/usr/lib，而是/lib。&lt;br /&gt;
+
+四、PAM的配置：&lt;br /&gt;
+
+PAM的配置是通过单个配置文件/etc/pam.conf。RedHat还支持另外一种配置方式，即通过配&lt;br /&gt;
+置目录/etc/pam.d/，且这种的优先级要高于单 个配置文件的方式。&lt;br /&gt;
+
+1、使用配置文件/etc/pam.conf&lt;br /&gt;
+
+该文件是由如下的行所组成的：&lt;br /&gt;
+service-name  module-type  control-flag  module-path  arguments&lt;br /&gt;
+
+service-name 服务的名字，比如telnet、login、ftp等，服务名字“OTHER”代表所有没有&lt;br /&gt;
+在该文件中明确配置的其它服务。&lt;br /&gt;
+module-type  模块类型有四种：auth、account、session、password，即对应PAM所支持的&lt;br /&gt;
+四种管理方式。同一个服务可以调用多个 PAM模块进行认证，这些模块构成一个stack。&lt;br /&gt;
+control-flag 用来告诉PAM库该如何处理与该服务相关的PAM模块的成功或失败情况。它有四&lt;br /&gt;
+种可能的 值：required，requisite，sufficient，optional。&lt;br /&gt;
+required 表示本模块必须返回成功才能通过认证，但是如果该模块返回失败的话，失败&lt;br /&gt;
+结果也不会立即通知用户，而是要等到同一stack 中的所有模块全部执行完毕再将失败结果&lt;br /&gt;
+返回给应用程序。可以认为是一个必要条件。&lt;br /&gt;
+requisite 与required类似，该模块必须返回成功才能通过认证，但是一旦该模块返回&lt;br /&gt;
+失败，将不再执行同一stack内的任何模块，而是直 接将控制权返回给应用程序。是一个必&lt;br /&gt;
+要条件。注：这种只有RedHat支持，Solaris不支持。&lt;br /&gt;
+sufficient 表明本模块返回成功已经足以通过身份认证的要求，不必再执行同一stack&lt;br /&gt;
+内的其它模块，但是如果本模块返回失败的话可以 忽略。可以认为是一个充分条件。&lt;br /&gt;
+optional表明本模块是可选的，它的成功与否一般不会对身份认证起关键作用，其返回&lt;br /&gt;
+值一般被忽略。&lt;br /&gt;
+对于control-flag，从Linux-PAM-0.63版本起，支持一种新的语法，具体可参看Linux&lt;br /&gt;
+PAM文档。&lt;br /&gt;
+module-path 用来指明本模块对应的程序文件的路径名，一般采用绝对路径，如果没有给出&lt;br /&gt;
+绝对路径，默认该文件在目录/usr/lib/security下 面。&lt;br /&gt;
+arguments  是用来传递给该模块的参数。一般来说每个模块的参数都不相同，可以由该模块&lt;br /&gt;
+的开发者自己定义，但是也有以下几个共同 的参数：&lt;br /&gt;
+debug          该模块应当用syslog( )将调试信息写入到系统日志文件中。&lt;br /&gt;
+no_warn        表明该模块不应把警告信息发送给应用程序。&lt;br /&gt;
+use_first_pass  表明该模块不能提示用户输入密码，而应使用前一个模块从用户那里&lt;br /&gt;
+得到的密码。&lt;br /&gt;
+try_first_pass  表明该模块首先应当使用前一个模块从用户那里得到的密码，如果该&lt;br /&gt;
+密码验证不通过，再提示用户输入新的密码。&lt;br /&gt;
+use_mapped_pass 该模块不能提示用户输入密码，而是使用映射过的密码。&lt;br /&gt;
+expose_account  允许该模块显示用户的帐号名等信息，一般只能在安全的环境下使用&lt;br /&gt;
+，因为泄漏用户名会对安全造成一定程度的威 胁。&lt;br /&gt;
+
+2、使用配置目录/etc/pam.d/（只适用于RedHat Linux）&lt;br /&gt;
+
+该目录下的每个文件的名字对应服务名，例如ftp服务对应文件/etc/pam.d/ftp。如果名为x&lt;br /&gt;
+xxx的服务所对应的配置文件/etc/pam.d/xxxx不存 在，则该服务将使用默认的配置文件/et&lt;br /&gt;
+c/pam.d/other。每个文件由如下格式的文本行所构成：&lt;br /&gt;
+module-type  control-flag  module-path  arguments&lt;br /&gt;
+每个字段的含义和/etc/pam.conf中的相同。&lt;br /&gt;
+
+3、配置的例子&lt;br /&gt;
+
+例一：用/etc/pam.conf配置默认的认证方式。&lt;br /&gt;
+
+下面的例子将拒绝所有没有在/etc/pam.conf中明确配置的服务。OTHER代表没有明确配置的&lt;br /&gt;
+其它所有服务，pam_deny模块的作用只是简 单地拒绝通过认证。&lt;br /&gt;
+OTHER  auth    required      /usr/lib/security/pam_deny.so&lt;br /&gt;
+OTHER  account  required      /usr/lib/security/pam_deny.so&lt;br /&gt;
+OTHER  password required      /usr/lib/security/pam_deny.so&lt;br /&gt;
+OTHER  session  required      /usr/lib/security/pam_deny.so&lt;br /&gt;
+
+
+例二：通过/etc/pam.d/rsh文件配置rsh服务的认证方式。&lt;br /&gt;
+
+rsh服务认证用户时，先使用/etc/hosts.equiv和.rhosts文件的认证方式，然后再根据/etc&lt;br /&gt;
+/nologin文件的存在与否来判断是否允许该用户使用 rsh，最后使用password database来认&lt;br /&gt;
+证用户。&lt;br /&gt;
+
+auth      required    /lib/security/pam_rhosts_auth.so&lt;br /&gt;
+auth      required    /lib/security/pam_nologin.so&lt;br /&gt;
+account    required    /lib/security/pam_pwdb.so&lt;br /&gt;
+session    required    /lib/security/pam_pwdb.so&lt;br /&gt;
+
+
+例三：通过/etc/pam.conf配置ftpd的认证方式。&lt;br /&gt;
+
+下面是ftpd服务利用PAM模块进行用户认证的三个步骤。首先用pam_ftp模块检查当前用户是&lt;br /&gt;
+否为匿名用户，如果是匿名用户，则 sufficient控制标志表明无需再进行后面的认证步骤，&lt;br /&gt;
+直接通过认证；否则继续使用pam_unix_auth模块来进行标准的unix认证，即用/etc/ passw&lt;br /&gt;
+d和/etc/shadow进行认证；通过了pam_unix_auth模块的认证之后，还要继续用pam_listfil&lt;br /&gt;
+e模块来检查该用户是否出现在文件/etc/ ftpusers中，如果是则该用户被deny掉。&lt;br /&gt;
+ftpd    auth    sufficient  /usr/lib/security/pam_ftp.so&lt;br /&gt;
+ftpd    auth    required    /usr/lib/security/pam_unix_auth.so use_first_pass&lt;br /&gt;
+ftpd    auth    required    /usr/lib/security/pam_listfile.so \&lt;br /&gt;
+onerr=succeed item=user sense=deny file=/etc/ftpuser&lt;br /&gt;
+s&lt;br /&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

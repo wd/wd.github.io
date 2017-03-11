@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Rsync on wd and cc</title>
+    <link>https://wdicc.com/tags/rsync/atom/index.xml</link>
+    <description>Recent content in Rsync on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/rsync/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>rsync files-from 参数</title>
+      <link>https://wdicc.com/rsync-files-from-option/</link>
+      <pubDate>Sat, 16 Apr 2011 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/rsync-files-from-option/</guid>
+      <description>&lt;div id=&#34;outline-container-1&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
+&lt;h2 id=&#34;sec-1&#34;&gt;rsync&lt;/h2&gt;&lt;br /&gt;
+&lt;div id=&#34;outline-container-1_1&#34; class=&#34;outline-3&#34;&gt;&lt;br /&gt;
+&lt;h3 id=&#34;sec-1_1&#34;&gt;include/exclude&lt;/h3&gt;&lt;br /&gt;
+&lt;div id=&#34;text-1_1&#34; class=&#34;outline-text-3&#34;&gt;&lt;br /&gt;
+
+rsync 支持使用 include/exclude 来过滤要同步的文件，使用这两个参数的时候，需要注意下面的这个问题&lt;br /&gt;
+&lt;pre class=&#34;prettyprint&#34;&gt;
+Note that, when using the –recursive (-r) option (which is implied by -a), every subcomponent of every path  is  vis‐
+        ited  from the top down, so include/exclude patterns get applied recursively to each subcomponent’s full name (e.g. to
+        include &#34;/foo/bar/baz&#34; the subcomponents &#34;/foo&#34; and &#34;/foo/bar&#34; must not be excluded).  The exclude  patterns  actually
+        short-circuit  the  directory  traversal stage when rsync finds the files to send.  If a pattern excludes a particular
+        parent directory, it can render a deeper include pattern ineffectual  because  rsync  did  not  descend  through  that
+        excluded section of the hierarchy.  This is particularly important when using a trailing ’*’ rule.  For instance, this
+        won’t work: 
+
+/some/path/this-file-will-not-be-found
+/file-is-included 
+*&lt;/pre&gt;
+rsync 使用 -r 来遍历子目录的时候，如果还想用 exclude include 来过滤文件，那么要注意 一个目录如果满足了 exclude，而且还没有对应的 include，那这个目录下面的子目录也会被 exclude，就算你对这个子目录写了 include 。
+
+虽然能解决问题，可实在很费劲，直到无意中发现了 files-from 参数。
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;outline-container-1_2&#34; class=&#34;outline-3&#34;&gt;
+&lt;h3 id=&#34;sec-1_2&#34;&gt;files-from&lt;/h3&gt;
+&lt;div id=&#34;text-1_2&#34; class=&#34;outline-text-3&#34;&gt;
+
+files-from 是通过指定一个本地/远程的文件来定义需要同步的文件。这个文件生成方法可就多了，你可以用 find/sed/awk/xxxxx 等搭配来得到你这个文件，一行命令不够还可以多行，是不是爽多了？
+&lt;pre class=&#34;prettyprint&#34;&gt;
+如果是远程文件，那就 –files-from=:/path/to/files。
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;outline-container-2&#34; class=&#34;outline-2&#34;&gt;
+&lt;h2 id=&#34;sec-2&#34;&gt;写在后面&lt;/h2&gt;
+&lt;div id=&#34;text-2&#34; class=&#34;outline-text-2&#34;&gt;
+
+顺便测试一下 org2blog，这帖子是用 org2blog 写的，给作者提了个建议，加上 permlink 的支持，没几天居然给加上了，刚好测试一下，呵呵。
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>rsync脚本的一个例子</title>
+      <link>https://wdicc.com/rsync-script/</link>
+      <pubDate>Tue, 09 May 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/rsync-script/</guid>
+      <description>&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
+
+SYNCLOGFILE=&#34;/var/log/rsync-201.log&#34;
+SYNCLOCKFILE=&#34;/var/lock/rsync-201.lock&#34;
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n &#34;&gt;&gt;&gt; Sync log for &#34; &gt;&gt; $SYNCLOGFILE
+date &gt;&gt; $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  &gt;&gt; $SYNCLOGFILE 2&gt;&amp;1
+rm -f $SYNCLOCKFILE
+&lt;/pre&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

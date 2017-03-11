@@ -3,184 +3,115 @@
 <head>
 	<meta charset="utf-8">
     
-	<title>postgres sql 调优一例 - wd and cc</title>
-    <meta name="author" content="wd">
     
-	<meta name="description" content="&lt;p&gt;前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。
-&lt;/p&gt;
-&lt;p&gt;
-所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。
-&lt;/p&gt;
-&lt;p&gt;
-能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。
-&lt;/p&gt;
-
-
-&lt;pre class=&quot;prettyprint lang-text&quot;&gt;
- Nested Loop Left Join  (cost=447.90..1003.43 rows=2 width=620)
-   Join Filter: (team.id = team_arrive_city.team_id)
-   -&gt;  Nested Loop  (cost=77.62..85.98 rows=1 width=588)
-         -&gt;  HashAggregate  (cost=77.62..77.68 rows=1 width=71)
-               -&gt;  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..77.60 rows=1 width=71)
-                     Index Cond: ((thedate &gt;= &#39;2012-02-25&#39;::date) AND (thedate &lt;= &#39;2012-02-27&#39;::date))=&quot;&quot; filter:=&quot;&quot; (((source)::text=&quot;&quot; ~~=&quot;&quot; &#39;%team%&#39;::text)=&quot;&quot; and=&quot;&quot; ((source)::text=&quot;&quot; !~~=&quot;&quot; &#39;%today%&#39;::text)=&quot;&quot; &#39;%ongoing%&#39;::text)=&quot;&quot; ((s=&quot;&quot; ource)::text=&quot;&quot; &#39;%special%&#39;::text))=&quot;&quot; -=&quot;&quot;&gt;  Index Scan using team_pkey on team  (cost=0.00..8.28 rows=1 width=32)
-               Index Cond: (team.id = fact_tuan_rank_detail.team_id)
-               Filter: ((to_timestamp((team.end_time)::double precision))::date &gt; &#39;2012-02-27&#39;::date)
-   -&gt;  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
-         -&gt;  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
-(12 rows)
-&lt;/=&gt;&lt;/pre&gt;
-
-&lt;p&gt;
-仔细研究之后，发现了 rows=1 这个信息。这就是为什么查询分析器先对这个表做查询了，因为他认为这个表最小。
-&lt;/p&gt;
-&lt;p&gt;
-此后对这个表执行了一下 &lt;a href=&quot;http://www.postgresql.org/docs/9.1/static/sql-analyze.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;analyse&lt;/a&gt; 命令，更新了一些统计信息。然后再看执行计划如下。
-&lt;/p&gt;
-
-
-&lt;pre class=&quot;prettyprint lang-text&quot;&gt;
- Hash Join  (cost=1210761.12..1326052.45 rows=2282704 width=620)
-   Hash Cond: (fact_tuan_rank_detail.team_id = team.id)
-   -&gt;  HashAggregate  (cost=1203912.40..1265555.26 rows=1027381 width=71)
-         -&gt;  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..1075489.81 rows=10273807 width=71)
-               Index Cond: ((thedate &gt;= &#39;2012-02-25&#39;::date) AND (thedate &lt;= &#39;2012-02-27&#39;::date))=&quot;&quot; filter:=&quot;&quot; (((source)::text=&quot;&quot; ~~=&quot;&quot; &#39;%team%&#39;::text)=&quot;&quot; and=&quot;&quot; ((source)::text=&quot;&quot; !~~=&quot;&quot; &#39;%today%&#39;::text)=&quot;&quot; &#39;%ongoing%&#39;::text)=&quot;&quot; ((source)=&quot;&quot; ::text=&quot;&quot; &#39;%special%&#39;::text))=&quot;&quot; -=&quot;&quot;&gt;  Hash  (cost=6666.33..6666.33 rows=14591 width=64)
-         -&gt;  Merge Left Join  (cost=6414.63..6666.33 rows=14591 width=64)
-               Merge Cond: (team.id = b.team_id)
-               -&gt;  Sort  (cost=4670.40..4686.82 rows=6567 width=32)
-                     Sort Key: team.id
-                     -&gt;  Seq Scan on team  (cost=0.00..4254.02 rows=6567 width=32)
-                           Filter: ((to_timestamp((end_time)::double precision))::date &gt; &#39;2012-02-27&#39;::date)
-               -&gt;  Sort  (cost=1744.23..1780.71 rows=14591 width=40)
-                     Sort Key: b.team_id
-                     -&gt;  Subquery Scan on b  (cost=370.29..735.06 rows=14591 width=40)
-                           -&gt;  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
-                                 -&gt;  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
-(18 rows)
-&lt;/=&gt;&lt;/pre&gt;
-
-&lt;p&gt;
-可以看到执行计划已经变了，先做其他表的 join，最后再和大表 join。并且提示的执行时间也大致靠谱。
-&lt;/p&gt;
-&lt;p&gt;
-从这里面引申一下，时常会听到有人说 explain 命令执行后得出的执行时间不靠谱，需要使用 explain analyse。可是为什么不靠谱呢，其实 explain analyse 需要的时间和实际执行时间一样，explain 不靠谱的原因是因为数据库对那个表的统计信息不及时导致的。
-&lt;/p&gt;
-&lt;p&gt;
-再进一步了解，postgres 里面这个统计信息为什么不靠谱呢？难道还总是需要我维护这些信息啊？
-&lt;/p&gt;
-&lt;p&gt;
-其实 postgres 里面有个 autovacuum 进程就是做这个事情的。autovacuum 进程默认是启用的。他会在数据库空闲的时候，对数据库做 vavcuum 和 analyse。具体多久执行一次，&lt;a href=&quot;http://www.postgresql.org/docs/9.1/static/routine-vacuuming.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;文档&lt;/a&gt; 里面都有写，建议多看看这个页面里面的信息。
-&lt;/p&gt;
-&lt;p&gt;
-此外，还发现 postgres 还提供了很多 &lt;a href=&quot;http://www.postgresql.org/docs/9.1/static/monitoring-stats.html&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;数据库状态查询函数&lt;/a&gt; ，使用这里面函数可以查到每个表最后一次 analyse 的时间，vacuum 的时
-间，里面索引被使用的情况等等，好多信息。
-&lt;/p&gt;
-
-ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不行了，查看 explain select * from t1 好像没问题，那怎么回事呢？开始没想明白，只好继续 analyse 一下，又好了。可过了两天又不行了。这次得细看了。最后发现是因为真实的 sql 是有 where 条件的，日期条件限定的那部分数据查询分析器认为很少导致了问题。没办法后面只好每次导数都 analyse 一下了。发现 pg_bulkload 导数的方式有点问题。
-"> <!-- TODO: truncate -->
-	
+    
+    
+    <title>postgres sql 调优一例 - wd and cc</title>
+    <meta name="author" content="wd">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+    <link href="" rel="alternate" title="wd and cc" type="application/atom+xml">
 	<link href="/favicon.ico" rel="shortcut icon">
-    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
 
     <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+    
 
-    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
-
-    <!-- remove or comment it to disable ajaxification -->   
-    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+    <script type="text/javascript" src="/js/jquery-tapir.js"></script>
 
     
 
-    
-
+    <link rel="stylesheet" href="/css/hljs.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
 </head>
 
 
 <body>
     <div id="wrapper">
-    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+        <header id="header" class="inner">
 <h1 class="animated bounceInDown">
     <div id="headerbg">
         wd and cc
     </div>
 </h1>
-<span class="subtitle">happy everyday</span>
+
+<span class="subtitle">happy every day</span>
 <br>
 
 <ul id="social-links" style="text-align:center; clear:both;">
-  
-  <!-- GitHub -->
-  <li>
-  <a href="https://github.com/wd" class="github" title="Github"></a>
-  </li>
-  
-  
-  
-  
-  <!-- Twitter -->
-  <li>
-  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
-  </li>
-  
-  
-  
-  
-  
+    
+    
+    <li>
+    <a href="https://github.com/wd" class="github" title="Github"></a>
+    </li>
+    
+    
+    
+    
+    
+    <li>
+    <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+    </li>
+    
+    
+    
+    
+    
 </ul>
 
 
-<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
 	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
-    
     <li>
     <div id="dark">
         <form action="//www.google.com.hk/search" method="get" accept-charset="UTF-8" id="search">
-            <input type="hidden" name="sitesearch" value="https://wdicc.com" />
+            <input type="hidden" name="sitesearch" value="https://wdicc.com/" />
             <input type="text" name="q" results="0" placeholder="Search..." x-webkit-speech />
         </form>
     </div>
     </li>
-        
 </ul>
-
-
-
 
 </header>
 
 <div id="toload">
-<!-- begin toload -->
+
     <div id="content" class="inner">
-        <article class="post">
-	<h2 class="title">postgres sql 调优一例</h2>
+        
+<article class="post">
+    <h2 class="title">postgres sql 调优一例</h2>
     <div class="meta">
-        <div class="date">Published on: <time datetime="2012-03-02T16:00:00.000Z" itemprop="datePublished">Mar 3, 2012</time>
+        <div class="date">Published on: <time datetime='2012-03-03T00:00:00.000&#43;00:00' itemprop="datePublished">2012-03-03</time>
 </div>
         <div class="tags">Tags: 
 
-<a href="/tags/linux/">linux</a> <a href="/tags/postgres/">postgres</a> <a href="/tags/sql/">sql</a>
+<a href="/tags/linux">linux</a>
+
+<a href="/tags/postgres">postgres</a>
+
+<a href="/tags/sql">sql</a>
+
+
 </div>
     </div>
-	<div class="entry-content"><p>前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。
-</p>
-<p>
-所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。
-</p>
-<p>
-能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。
-</p>
+    <div class="entry-content"><p>前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。<br />
+</p><br />
+<p><br />
+所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。<br />
+</p><br />
+<p><br />
+能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。<br />
+</p><br />
 
 
 <pre class="prettyprint lang-text">
@@ -189,20 +120,23 @@ ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不�
    ->  Nested Loop  (cost=77.62..85.98 rows=1 width=588)
          ->  HashAggregate  (cost=77.62..77.68 rows=1 width=71)
                ->  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..77.60 rows=1 width=71)
-                     Index Cond: ((thedate >= '2012-02-25'::date) AND (thedate <= '2012-02-27'::date))="" filter:="" (((source)::text="" ~~="" '%team%'::text)="" and="" ((source)::text="" !~~="" '%today%'::text)="" '%ongoing%'::text)="" ((s="" ource)::text="" '%special%'::text))="" -="">  Index Scan using team_pkey on team  (cost=0.00..8.28 rows=1 width=32)
+                     Index Cond: ((thedate >= '2012-02-25'::date) AND (thedate <= '2012-02-27'::date))
+                     Filter: (((source)::text ~~ '%team%'::text) AND ((source)::text !~~ '%today%'::text) AND ((source)::text !~~ '%ongoing%'::text) AND ((s
+ource)::text !~~ '%special%'::text))
+         ->  Index Scan using team_pkey on team  (cost=0.00..8.28 rows=1 width=32)
                Index Cond: (team.id = fact_tuan_rank_detail.team_id)
                Filter: ((to_timestamp((team.end_time)::double precision))::date > '2012-02-27'::date)
    ->  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
          ->  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
 (12 rows)
-</=></pre>
+</pre><br />
 
-<p>
-仔细研究之后，发现了 rows=1 这个信息。这就是为什么查询分析器先对这个表做查询了，因为他认为这个表最小。
-</p>
-<p>
-此后对这个表执行了一下 <a href="http://www.postgresql.org/docs/9.1/static/sql-analyze.html" target="_blank" rel="external">analyse</a> 命令，更新了一些统计信息。然后再看执行计划如下。
-</p>
+<p><br />
+仔细研究之后，发现了 rows=1 这个信息。这就是为什么查询分析器先对这个表做查询了，因为他认为这个表最小。<br />
+</p><br />
+<p><br />
+此后对这个表执行了一下 <a href="http://www.postgresql.org/docs/9.1/static/sql-analyze.html">analyse</a> 命令，更新了一些统计信息。然后再看执行计划如下。<br />
+</p><br />
 
 
 <pre class="prettyprint lang-text">
@@ -210,7 +144,10 @@ ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不�
    Hash Cond: (fact_tuan_rank_detail.team_id = team.id)
    ->  HashAggregate  (cost=1203912.40..1265555.26 rows=1027381 width=71)
          ->  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..1075489.81 rows=10273807 width=71)
-               Index Cond: ((thedate >= '2012-02-25'::date) AND (thedate <= '2012-02-27'::date))="" filter:="" (((source)::text="" ~~="" '%team%'::text)="" and="" ((source)::text="" !~~="" '%today%'::text)="" '%ongoing%'::text)="" ((source)="" ::text="" '%special%'::text))="" -="">  Hash  (cost=6666.33..6666.33 rows=14591 width=64)
+               Index Cond: ((thedate >= '2012-02-25'::date) AND (thedate <= '2012-02-27'::date))
+               Filter: (((source)::text ~~ '%team%'::text) AND ((source)::text !~~ '%today%'::text) AND ((source)::text !~~ '%ongoing%'::text) AND ((source)
+::text !~~ '%special%'::text))
+   ->  Hash  (cost=6666.33..6666.33 rows=14591 width=64)
          ->  Merge Left Join  (cost=6414.63..6666.33 rows=14591 width=64)
                Merge Cond: (team.id = b.team_id)
                ->  Sort  (cost=4670.40..4686.82 rows=6567 width=32)
@@ -223,56 +160,56 @@ ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不�
                            ->  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
                                  ->  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
 (18 rows)
-</=></pre>
+</pre><br />
 
-<p>
-可以看到执行计划已经变了，先做其他表的 join，最后再和大表 join。并且提示的执行时间也大致靠谱。
-</p>
-<p>
-从这里面引申一下，时常会听到有人说 explain 命令执行后得出的执行时间不靠谱，需要使用 explain analyse。可是为什么不靠谱呢，其实 explain analyse 需要的时间和实际执行时间一样，explain 不靠谱的原因是因为数据库对那个表的统计信息不及时导致的。
-</p>
-<p>
-再进一步了解，postgres 里面这个统计信息为什么不靠谱呢？难道还总是需要我维护这些信息啊？
-</p>
-<p>
-其实 postgres 里面有个 autovacuum 进程就是做这个事情的。autovacuum 进程默认是启用的。他会在数据库空闲的时候，对数据库做 vavcuum 和 analyse。具体多久执行一次，<a href="http://www.postgresql.org/docs/9.1/static/routine-vacuuming.html" target="_blank" rel="external">文档</a> 里面都有写，建议多看看这个页面里面的信息。
-</p>
-<p>
-此外，还发现 postgres 还提供了很多 <a href="http://www.postgresql.org/docs/9.1/static/monitoring-stats.html" target="_blank" rel="external">数据库状态查询函数</a> ，使用这里面函数可以查到每个表最后一次 analyse 的时间，vacuum 的时
-间，里面索引被使用的情况等等，好多信息。
-</p>
+<p><br />
+可以看到执行计划已经变了，先做其他表的 join，最后再和大表 join。并且提示的执行时间也大致靠谱。<br />
+</p><br />
+<p><br />
+从这里面引申一下，时常会听到有人说 explain 命令执行后得出的执行时间不靠谱，需要使用 explain analyse。可是为什么不靠谱呢，其实 explain analyse 需要的时间和实际执行时间一样，explain 不靠谱的原因是因为数据库对那个表的统计信息不及时导致的。<br />
+</p><br />
+<p><br />
+再进一步了解，postgres 里面这个统计信息为什么不靠谱呢？难道还总是需要我维护这些信息啊？<br />
+</p><br />
+<p><br />
+其实 postgres 里面有个 autovacuum 进程就是做这个事情的。autovacuum 进程默认是启用的。他会在数据库空闲的时候，对数据库做 vavcuum 和 analyse。具体多久执行一次，<a href="http://www.postgresql.org/docs/9.1/static/routine-vacuuming.html">文档</a> 里面都有写，建议多看看这个页面里面的信息。<br />
+</p><br />
+<p><br />
+此外，还发现 postgres 还提供了很多 <a href="http://www.postgresql.org/docs/9.1/static/monitoring-stats.html">数据库状态查询函数</a> ，使用这里面函数可以查到每个表最后一次 analyse 的时间，vacuum 的时<br />
+间，里面索引被使用的情况等等，好多信息。<br />
+</p><br />
 
-ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不行了，查看 explain select * from t1 好像没问题，那怎么回事呢？开始没想明白，只好继续 analyse 一下，又好了。可过了两天又不行了。这次得细看了。最后发现是因为真实的 sql 是有 where 条件的，日期条件限定的那部分数据查询分析器认为很少导致了问题。没办法后面只好每次导数都 analyse 一下了。发现 pg_bulkload 导数的方式有点问题。
+ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不行了，查看 explain select * from t1 好像没问题，那怎么回事呢？开始没想明白，只好继续 analyse 一下，又好了。可过了两天又不行了。这次得细看了。最后发现是因为真实的 sql 是有 where 条件的，日期条件限定的那部分数据查询分析器认为很少导致了问题。没办法后面只好每次导数都 analyse 一下了。发现 pg_bulkload 导数的方式有点问题。<br />
 </div>
 
 <div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/analyse-and-vacuum-in-postgres/#disqus_thread">Comments</a></span>
-	
+    
 </div>
 </article>
 
-	<div class="share">
+<div class="share">
 	<div class="addthis_toolbox addthis_default_style ">
+	
+	<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
 	
 	
 	<a class="addthis_button_tweet"></a>
 	
 	
+	<a class="addthis_button_google_plusone" g:plusone:size="midum"></a>
+	
 	<a class="addthis_counter addthis_pill_style"></a>
 	</div>
-  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=wd"></script>
 </div>
 
 
 
-
-
     
-      <script type="text/javascript">
+     <script type="text/javascript">
         var disqus_config = function () {
-            this.page.url = 'https://wdicc.com/analyse-and-vacuum-in-postgres/';
-            this.page.identifier = 'https://wdicc.com/analyse-and-vacuum-in-postgres/';
+            this.page.url = 'https:\/\/wdicc.com\/analyse-and-vacuum-in-postgres\/';
+            this.page.identifier = 'https:\/\/wdicc.com\/analyse-and-vacuum-in-postgres\/';
         };
 
         (function() {
@@ -281,14 +218,17 @@ ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不�
           s.setAttribute('data-timestamp', +new Date());
           (d.head || d.body).appendChild(s);
         })();
-      </script>
+     </script>
     
+
+
 
 
 <section id="comment">
     <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
 </section>
 
 
@@ -296,33 +236,23 @@ ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不�
     <footer id="footer">
     <div style="display:inline">
     Copyright &copy; 2017
-
+    
     wd
-. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
-    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+    . Powered by <a href="http://gohugo.io" target="_blank">Hugo</a> |
+    Theme is <a href="https://github.com/wd/hugo-fabric">hugo-fabric</a>, fork from <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a> by <a href="https://wdicc.com">me</a>
 </div>
-
 
     </footer>
-    <script src="/javascripts/fabric.js"></script>
-<script src="/javascripts/jquery.fancybox.pack.js"></script>
+    <script src="/js/fabric.js"></script>
+
+
+</div>
+</div>
+<script src="/js/jquery.ui.totop.js" type="text/javascript"></script>
 <script type="text/javascript">
-(function($){
-	$('.fancybox').fancybox();
-})(jQuery);
+ 
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery);
+ 
 </script>
- <!-- Delete or comment this line to disable Fancybox -->
-
-
-
-<!-- end toload --> 
-</div>
-</div>
-<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
-<script type="text/javascript">
-/*<![CDATA[*/
-;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
-/*]]>*/
-</script><!-- remove it to remove the scroll to top button -->
 </body>
 </html>

@@ -3,254 +3,192 @@
 <head>
 	<meta charset="utf-8">
     
-	<title>qmail中的几个error的产生的原因和解决方法 - wd and cc</title>
-    <meta name="author" content="wd">
     
-	<meta name="description" content="deferral: Unable_to_chdir_to_maildir._(#4.2.1)
-
-   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
-
-如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
-
-deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
-
-   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
-
-454 oops, unable to write pipe and I can&amp;#39;t auth (#4.3.0)
-
-  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
-
-[root@caph qmail-smtpd]# telnet localhost 25
-Trying 127.0.0.1...
-Connected to localhost.
-Escape character is &amp;#39;^]&amp;#39;.
-220 xxx.com ESMTP
-ehlo
-250-xxx.com
-250-PIPELINING
-250-8BITMIME
-250-SIZE 104857600
-250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
-auth login
-334 VXNlcm5hbWU6
-awefaq23rasdf
-334 UGFzc3dvcmQ6
-awefwaef
-454 oops, unable to write pipe and I can&amp;#39;t auth (#4.3.0)
-quit
-221 xxx.com
-Connection closed by foreign host.
-
-出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
-
-QMAILDUID=`id -u vpopmail`
-QMAILDGID=`id -g vpopmail`
-
-/usr/local/bin/tcpserver -v -H -R -l &quot;$LOCAL&quot; -x /etc/tcp.smtp.cdb -c &quot;$MAXSMTPD&quot;
-        -u &quot;$QMAILDUID&quot; -g &quot;$QMAILDGID&quot; 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
-        /var/qmail/bin/qmail-smtpd
-        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2&gt;&amp;1
-
-不需要修改~vpopmail/bin/vchkpw的属性。
-
-451 qq write error or disk full (#4.3.0)
-
-通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
-
-qq temporary problem (#4.3.0)
-
-看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
--rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
-
-vchkpw-smtp: vpopmail user not found
-
-查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。
-"> <!-- TODO: truncate -->
-	
+    
+    
+    <title>qmail中的几个error的产生的原因和解决方法 - wd and cc</title>
+    <meta name="author" content="wd">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+    <link href="" rel="alternate" title="wd and cc" type="application/atom+xml">
 	<link href="/favicon.ico" rel="shortcut icon">
-    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
 
     <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+    
 
-    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
-
-    <!-- remove or comment it to disable ajaxification -->   
-    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+    <script type="text/javascript" src="/js/jquery-tapir.js"></script>
 
     
 
-    
-
+    <link rel="stylesheet" href="/css/hljs.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
 </head>
 
 
 <body>
     <div id="wrapper">
-    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+        <header id="header" class="inner">
 <h1 class="animated bounceInDown">
     <div id="headerbg">
         wd and cc
     </div>
 </h1>
-<span class="subtitle">happy everyday</span>
+
+<span class="subtitle">happy every day</span>
 <br>
 
 <ul id="social-links" style="text-align:center; clear:both;">
-  
-  <!-- GitHub -->
-  <li>
-  <a href="https://github.com/wd" class="github" title="Github"></a>
-  </li>
-  
-  
-  
-  
-  <!-- Twitter -->
-  <li>
-  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
-  </li>
-  
-  
-  
-  
-  
+    
+    
+    <li>
+    <a href="https://github.com/wd" class="github" title="Github"></a>
+    </li>
+    
+    
+    
+    
+    
+    <li>
+    <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+    </li>
+    
+    
+    
+    
+    
 </ul>
 
 
-<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
 	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
-    
     <li>
     <div id="dark">
         <form action="//www.google.com.hk/search" method="get" accept-charset="UTF-8" id="search">
-            <input type="hidden" name="sitesearch" value="https://wdicc.com" />
+            <input type="hidden" name="sitesearch" value="https://wdicc.com/" />
             <input type="text" name="q" results="0" placeholder="Search..." x-webkit-speech />
         </form>
     </div>
     </li>
-        
 </ul>
-
-
-
 
 </header>
 
 <div id="toload">
-<!-- begin toload -->
+
     <div id="content" class="inner">
-        <article class="post">
-	<h2 class="title">qmail中的几个error的产生的原因和解决方法</h2>
+        
+<article class="post">
+    <h2 class="title">qmail中的几个error的产生的原因和解决方法</h2>
     <div class="meta">
-        <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+        <div class="date">Published on: <time datetime='2006-01-16T00:00:00.000&#43;00:00' itemprop="datePublished">2006-01-16</time>
 </div>
         <div class="tags">Tags: 
 
-<a href="/tags/Mail/">Mail</a>
+<a href="/tags/mail">Mail</a>
+
+
 </div>
     </div>
-	<div class="entry-content">deferral: Unable_to_chdir_to_maildir._(#4.2.1)
+    <div class="entry-content">deferral: Unable_to_chdir_to_maildir._(#4.2.1)<br />
 
-   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
+   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。<br />
 
-如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
+如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。<br />
 
-deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
+deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)<br />
 
-   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
+   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。<br />
 
-454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)<br />
 
-  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
+  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。<br />
 
-[root@caph qmail-smtpd]# telnet localhost 25
-Trying 127.0.0.1...
-Connected to localhost.
-Escape character is &#39;^]&#39;.
-220 xxx.com ESMTP
-ehlo
-250-xxx.com
-250-PIPELINING
-250-8BITMIME
-250-SIZE 104857600
-250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
-auth login
-334 VXNlcm5hbWU6
-awefaq23rasdf
-334 UGFzc3dvcmQ6
-awefwaef
-454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
-quit
-221 xxx.com
-Connection closed by foreign host.
+[root@caph qmail-smtpd]# telnet localhost 25<br />
+Trying 127.0.0.1...<br />
+Connected to localhost.<br />
+Escape character is &#39;^]&#39;.<br />
+220 xxx.com ESMTP<br />
+ehlo<br />
+250-xxx.com<br />
+250-PIPELINING<br />
+250-8BITMIME<br />
+250-SIZE 104857600<br />
+250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。<br />
+auth login<br />
+334 VXNlcm5hbWU6<br />
+awefaq23rasdf<br />
+334 UGFzc3dvcmQ6<br />
+awefwaef<br />
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)<br />
+quit<br />
+221 xxx.com<br />
+Connection closed by foreign host.<br />
 
-出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
+出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。<br />
 
-QMAILDUID=`id -u vpopmail`
-QMAILDGID=`id -g vpopmail`
+QMAILDUID=`id -u vpopmail`<br />
+QMAILDGID=`id -g vpopmail`<br />
 
-/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
-        -u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
-        /var/qmail/bin/qmail-smtpd
-        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1
+/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"<br />
+        -u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org<br />
+        /var/qmail/bin/qmail-smtpd<br />
+        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1<br />
 
-不需要修改~vpopmail/bin/vchkpw的属性。
+不需要修改~vpopmail/bin/vchkpw的属性。<br />
 
-451 qq write error or disk full (#4.3.0)
+451 qq write error or disk full (#4.3.0)<br />
 
-通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
+通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。<br />
 
-qq temporary problem (#4.3.0)
+qq temporary problem (#4.3.0)<br />
 
-看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
--rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
+看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。<br />
+-rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl<br />
 
-vchkpw-smtp: vpopmail user not found
+vchkpw-smtp: vpopmail user not found<br />
 
-查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。
+查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。<br />
 </div>
 
 <div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/solve-qmail-error/#disqus_thread">Comments</a></span>
-	
+    
 </div>
 </article>
 
-	<div class="share">
+<div class="share">
 	<div class="addthis_toolbox addthis_default_style ">
+	
+	<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
 	
 	
 	<a class="addthis_button_tweet"></a>
 	
 	
+	<a class="addthis_button_google_plusone" g:plusone:size="midum"></a>
+	
 	<a class="addthis_counter addthis_pill_style"></a>
 	</div>
-  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=wd"></script>
 </div>
 
 
 
-
-
     
-      <script type="text/javascript">
+     <script type="text/javascript">
         var disqus_config = function () {
-            this.page.url = 'https://wdicc.com/solve-qmail-error/';
-            this.page.identifier = 'https://wdicc.com/solve-qmail-error/';
+            this.page.url = 'https:\/\/wdicc.com\/solve-qmail-error\/';
+            this.page.identifier = 'https:\/\/wdicc.com\/solve-qmail-error\/';
         };
 
         (function() {
@@ -259,14 +197,17 @@ vchkpw-smtp: vpopmail user not found
           s.setAttribute('data-timestamp', +new Date());
           (d.head || d.body).appendChild(s);
         })();
-      </script>
+     </script>
     
+
+
 
 
 <section id="comment">
     <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
 </section>
 
 
@@ -274,33 +215,23 @@ vchkpw-smtp: vpopmail user not found
     <footer id="footer">
     <div style="display:inline">
     Copyright &copy; 2017
-
+    
     wd
-. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
-    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+    . Powered by <a href="http://gohugo.io" target="_blank">Hugo</a> |
+    Theme is <a href="https://github.com/wd/hugo-fabric">hugo-fabric</a>, fork from <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a> by <a href="https://wdicc.com">me</a>
 </div>
-
 
     </footer>
-    <script src="/javascripts/fabric.js"></script>
-<script src="/javascripts/jquery.fancybox.pack.js"></script>
+    <script src="/js/fabric.js"></script>
+
+
+</div>
+</div>
+<script src="/js/jquery.ui.totop.js" type="text/javascript"></script>
 <script type="text/javascript">
-(function($){
-	$('.fancybox').fancybox();
-})(jQuery);
+ 
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery);
+ 
 </script>
- <!-- Delete or comment this line to disable Fancybox -->
-
-
-
-<!-- end toload --> 
-</div>
-</div>
-<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
-<script type="text/javascript">
-/*<![CDATA[*/
-;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
-/*]]>*/
-</script><!-- remove it to remove the scroll to top button -->
 </body>
 </html>

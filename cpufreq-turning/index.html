@@ -3,216 +3,177 @@
 <head>
 	<meta charset="utf-8">
     
-	<title>Linux下面动态调整cpu频率 - wd and cc</title>
-    <meta name="author" content="wd">
     
-	<meta name="description" content="笔记本的cpu的频率是可调整的，一般用电池的时候，就会降频使用，延长电池使用时间。上周末忘记把笔记本的电源带回来了，用电池在linux下工作，发现降频真是个好东东，用了一个小时，电池显示还能用3个多小时，并且cpu温度从20多度才涨到40来度。为了让本本更凉一点，就看了看cpufreqd的工作原理。
-
-cpufreqd采用的是打分制，每条rule的总分是100分，比如有个rule里面有4条规则，如果满足了其中3条，那么总分就是75分，以此类推 。使用分数最多的规则，如果两条规则的分数相同，使用当前正在使用的规则，或者使用位置靠前的规则。下面来说说看这个东西怎么玩。
-
-比如按照我的工作情况，我有下面的需求：
-1 如果使用了mplayer,gcc等，那么用最高频率。
-2 如果使用了firefox，那么用中间频率。
-3 如果没有满足上面两条，那么用最低频率。
-
-这样就相当于设置了三个运行级别，你可以按照自己的需求来定义运行的程序。
-
-从上面的需求可以看出来，我们设置1这种情况下分数为100，那么没有mplayer的时候，1的分数应该是50。这样其他的两个要至少在50以上才行。而且3还得是在2匹配和不匹配的分数的中间。我的设置如下：
-
-[Rule]
-name=firefox
-ac=on
-programs=firefox-bin
-programs=sss
-acpi_temperature=0-60
-profile=Performance Low
-[/Rule]
-
-[Rule]
-name=Movie Watcher
-ac=on
-programs=xine,mplayer,gmplayer,wdmplayer,gcc
-profile=Performance High
-[/Rule]
-
-[Rule]
-name=AC Rule
-ac=on                    # (on/off)
-programs=aaa
-acpi_temperature=0-60
-profile=On Demand Low
-[/Rule]
-
-这样，基本可以实现我上面的需求。条目是可以多次出现的，所以比如可以多加几条programs=gcc，让gcc在使用的时候和不在使用的时 候得分差很多，这样方便安排其他的情况。
-
-windows下面可没这么灵活的设置亚，呵呵。
-"> <!-- TODO: truncate -->
-	
+    
+    
+    <title>Linux下面动态调整cpu频率 - wd and cc</title>
+    <meta name="author" content="wd">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+    <link href="" rel="alternate" title="wd and cc" type="application/atom+xml">
 	<link href="/favicon.ico" rel="shortcut icon">
-    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
 
     <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+    
 
-    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
-
-    <!-- remove or comment it to disable ajaxification -->   
-    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+    <script type="text/javascript" src="/js/jquery-tapir.js"></script>
 
     
 
-    
-
+    <link rel="stylesheet" href="/css/hljs.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
 </head>
 
 
 <body>
     <div id="wrapper">
-    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+        <header id="header" class="inner">
 <h1 class="animated bounceInDown">
     <div id="headerbg">
         wd and cc
     </div>
 </h1>
-<span class="subtitle">happy everyday</span>
+
+<span class="subtitle">happy every day</span>
 <br>
 
 <ul id="social-links" style="text-align:center; clear:both;">
-  
-  <!-- GitHub -->
-  <li>
-  <a href="https://github.com/wd" class="github" title="Github"></a>
-  </li>
-  
-  
-  
-  
-  <!-- Twitter -->
-  <li>
-  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
-  </li>
-  
-  
-  
-  
-  
+    
+    
+    <li>
+    <a href="https://github.com/wd" class="github" title="Github"></a>
+    </li>
+    
+    
+    
+    
+    
+    <li>
+    <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+    </li>
+    
+    
+    
+    
+    
 </ul>
 
 
-<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
 	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
-    
     <li>
     <div id="dark">
         <form action="//www.google.com.hk/search" method="get" accept-charset="UTF-8" id="search">
-            <input type="hidden" name="sitesearch" value="https://wdicc.com" />
+            <input type="hidden" name="sitesearch" value="https://wdicc.com/" />
             <input type="text" name="q" results="0" placeholder="Search..." x-webkit-speech />
         </form>
     </div>
     </li>
-        
 </ul>
-
-
-
 
 </header>
 
 <div id="toload">
-<!-- begin toload -->
+
     <div id="content" class="inner">
-        <article class="post">
-	<h2 class="title">Linux下面动态调整cpu频率</h2>
+        
+<article class="post">
+    <h2 class="title">Linux下面动态调整cpu频率</h2>
     <div class="meta">
-        <div class="date">Published on: <time datetime="2006-11-13T16:00:00.000Z" itemprop="datePublished">Nov 14, 2006</time>
+        <div class="date">Published on: <time datetime='2006-11-14T00:00:00.000&#43;00:00' itemprop="datePublished">2006-11-14</time>
 </div>
         <div class="tags">Tags: 
 
-<a href="/tags/other/">other</a> <a href="/tags/cpufreqd/">cpufreqd</a> <a href="/tags/降频/">降频</a>
+<a href="/tags/cpufreqd">cpufreqd</a>
+
+<a href="/tags/other">other</a>
+
+<a href="/tags/%E9%99%8D%E9%A2%91">降频</a>
+
+
 </div>
     </div>
-	<div class="entry-content">笔记本的cpu的频率是可调整的，一般用电池的时候，就会降频使用，延长电池使用时间。上周末忘记把笔记本的电源带回来了，用电池在linux下工作，发现降频真是个好东东，用了一个小时，电池显示还能用3个多小时，并且cpu温度从20多度才涨到40来度。为了让本本更凉一点，就看了看cpufreqd的工作原理。
+    <div class="entry-content">笔记本的cpu的频率是可调整的，一般用电池的时候，就会降频使用，延长电池使用时间。上周末忘记把笔记本的电源带回来了，用电池在linux下工作，发现降频真是个好东东，用了一个小时，电池显示还能用3个多小时，并且cpu温度从20多度才涨到40来度。为了让本本更凉一点，就看了看cpufreqd的工作原理。<br />
 
-cpufreqd采用的是打分制，每条rule的总分是100分，比如有个rule里面有4条规则，如果满足了其中3条，那么总分就是75分，以此类推 。使用分数最多的规则，如果两条规则的分数相同，使用当前正在使用的规则，或者使用位置靠前的规则。下面来说说看这个东西怎么玩。
+cpufreqd采用的是打分制，每条rule的总分是100分，比如有个rule里面有4条规则，如果满足了其中3条，那么总分就是75分，以此类推 。使用分数最多的规则，如果两条规则的分数相同，使用当前正在使用的规则，或者使用位置靠前的规则。下面来说说看这个东西怎么玩。<br />
 
-比如按照我的工作情况，我有下面的需求：
-1 如果使用了mplayer,gcc等，那么用最高频率。
-2 如果使用了firefox，那么用中间频率。
-3 如果没有满足上面两条，那么用最低频率。
+比如按照我的工作情况，我有下面的需求：<br />
+1 如果使用了mplayer,gcc等，那么用最高频率。<br />
+2 如果使用了firefox，那么用中间频率。<br />
+3 如果没有满足上面两条，那么用最低频率。<br />
 
-这样就相当于设置了三个运行级别，你可以按照自己的需求来定义运行的程序。
+这样就相当于设置了三个运行级别，你可以按照自己的需求来定义运行的程序。<br />
 
-从上面的需求可以看出来，我们设置1这种情况下分数为100，那么没有mplayer的时候，1的分数应该是50。这样其他的两个要至少在50以上才行。而且3还得是在2匹配和不匹配的分数的中间。我的设置如下：
+从上面的需求可以看出来，我们设置1这种情况下分数为100，那么没有mplayer的时候，1的分数应该是50。这样其他的两个要至少在50以上才行。而且3还得是在2匹配和不匹配的分数的中间。我的设置如下：<br />
 
-[Rule]
-name=firefox
-ac=on
-programs=firefox-bin
-programs=sss
-acpi_temperature=0-60
-profile=Performance Low
-[/Rule]
+[Rule]<br />
+name=firefox<br />
+ac=on<br />
+programs=firefox-bin<br />
+programs=sss<br />
+acpi_temperature=0-60<br />
+profile=Performance Low<br />
+[/Rule]<br />
 
-[Rule]
-name=Movie Watcher
-ac=on
-programs=xine,mplayer,gmplayer,wdmplayer,gcc
-profile=Performance High
-[/Rule]
+[Rule]<br />
+name=Movie Watcher<br />
+ac=on<br />
+programs=xine,mplayer,gmplayer,wdmplayer,gcc<br />
+profile=Performance High<br />
+[/Rule]<br />
 
-[Rule]
-name=AC Rule
-ac=on                    # (on/off)
-programs=aaa
-acpi_temperature=0-60
-profile=On Demand Low
-[/Rule]
+[Rule]<br />
+name=AC Rule<br />
+ac=on                    # (on/off)<br />
+programs=aaa<br />
+acpi_temperature=0-60<br />
+profile=On Demand Low<br />
+[/Rule]<br />
 
-这样，基本可以实现我上面的需求。条目是可以多次出现的，所以比如可以多加几条programs=gcc，让gcc在使用的时候和不在使用的时 候得分差很多，这样方便安排其他的情况。
+这样，基本可以实现我上面的需求。条目是可以多次出现的，所以比如可以多加几条programs=gcc，让gcc在使用的时候和不在使用的时 候得分差很多，这样方便安排其他的情况。<br />
 
-windows下面可没这么灵活的设置亚，呵呵。
+windows下面可没这么灵活的设置亚，呵呵。<br />
 </div>
 
 <div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/cpufreq-turning/#disqus_thread">Comments</a></span>
-	
+    
 </div>
 </article>
 
-	<div class="share">
+<div class="share">
 	<div class="addthis_toolbox addthis_default_style ">
+	
+	<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
 	
 	
 	<a class="addthis_button_tweet"></a>
 	
 	
+	<a class="addthis_button_google_plusone" g:plusone:size="midum"></a>
+	
 	<a class="addthis_counter addthis_pill_style"></a>
 	</div>
-  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=wd"></script>
 </div>
 
 
 
-
-
     
-      <script type="text/javascript">
+     <script type="text/javascript">
         var disqus_config = function () {
-            this.page.url = 'https://wdicc.com/cpufreq-turning/';
-            this.page.identifier = 'https://wdicc.com/cpufreq-turning/';
+            this.page.url = 'https:\/\/wdicc.com\/cpufreq-turning\/';
+            this.page.identifier = 'https:\/\/wdicc.com\/cpufreq-turning\/';
         };
 
         (function() {
@@ -221,14 +182,17 @@ windows下面可没这么灵活的设置亚，呵呵。
           s.setAttribute('data-timestamp', +new Date());
           (d.head || d.body).appendChild(s);
         })();
-      </script>
+     </script>
     
+
+
 
 
 <section id="comment">
     <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
 </section>
 
 
@@ -236,33 +200,23 @@ windows下面可没这么灵活的设置亚，呵呵。
     <footer id="footer">
     <div style="display:inline">
     Copyright &copy; 2017
-
+    
     wd
-. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
-    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+    . Powered by <a href="http://gohugo.io" target="_blank">Hugo</a> |
+    Theme is <a href="https://github.com/wd/hugo-fabric">hugo-fabric</a>, fork from <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a> by <a href="https://wdicc.com">me</a>
 </div>
-
 
     </footer>
-    <script src="/javascripts/fabric.js"></script>
-<script src="/javascripts/jquery.fancybox.pack.js"></script>
+    <script src="/js/fabric.js"></script>
+
+
+</div>
+</div>
+<script src="/js/jquery.ui.totop.js" type="text/javascript"></script>
 <script type="text/javascript">
-(function($){
-	$('.fancybox').fancybox();
-})(jQuery);
+ 
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery);
+ 
 </script>
- <!-- Delete or comment this line to disable Fancybox -->
-
-
-
-<!-- end toload --> 
-</div>
-</div>
-<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
-<script type="text/javascript">
-/*<![CDATA[*/
-;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
-/*]]>*/
-</script><!-- remove it to remove the scroll to top button -->
 </body>
 </html>

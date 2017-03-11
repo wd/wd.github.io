@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Fbsplash on wd and cc</title>
+    <link>https://wdicc.com/tags/fbsplash/atom/index.xml</link>
+    <description>Recent content in Fbsplash on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/fbsplash/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>grub2 fbsplash in gentoo</title>
+      <link>https://wdicc.com/grub2-fbsplash-in-gentoo/</link>
+      <pubDate>Sat, 25 Jul 2009 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/grub2-fbsplash-in-gentoo/</guid>
+      <description>http://v.youku.com/v_show/id_XMTA4MDAwMjI0.html&lt;br /&gt;
+
+&lt;embed src=&#34;http://player.youku.com/player.php/sid/XMTA4MDAwMjI0/v.swf&#34; quality=&#34;high&#34; width=&#34;480&#34; height=&#34;400&#34; align=&#34;middle&#34; allowScriptAccess=&#34;sameDomain&#34; type=&#34;application/x-shockwave-flash&#34;&gt;&lt;/embed&gt;&lt;br /&gt;
+
+具体方法参考下面的文章&lt;br /&gt;
+&lt;li&gt;1 &lt;a href=&#39;http://wdicc.com/fbsplash-howto/&#39;&gt;给系统加上 fbsplash 支持&lt;/a&gt;&lt;/li&gt;&lt;br /&gt;
+&lt;li&gt;2 &lt;a href=&#39;http://wdicc.com/how-to-use-grub2/&#39;&gt;使用 grub2&lt;/a&gt;&lt;/li&gt;&lt;br /&gt;
+
+视频最后从 休眠 启动后，提示了一个 xtrlock 的错误，应该是刚进桌面就休眠引起的，正常情况应该是启动后会锁定屏幕。&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>给系统加上 fbsplash 支持</title>
+      <link>https://wdicc.com/fbsplash-howto/</link>
+      <pubDate>Sat, 25 Jul 2009 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/fbsplash-howto/</guid>
+      <description>先贴几个参考文章。&lt;br /&gt;
+&lt;li&gt;1 &lt;a href=&#34;http://forums.gentoo.org/viewtopic-t-728450-highlight-grub2.html&#34;&gt;HOWTO: Fancy Grub and fbsplash on a machine with Intel graphic chipsets&lt;/a&gt;&lt;/li&gt;&lt;br /&gt;
+&lt;li&gt;2 &lt;a href=&#34;http://www.gentoo-wiki.info/Fbsplash&#34;&gt;Fbsplash&lt;/a&gt;&lt;/li&gt;&lt;br /&gt;
+&lt;br /&gt;
+这两个文章里面最重要是那些内核选项的支持，弄好了那些才有下面的内容。里面有个要注意的是 General Setup ---&gt; Initial RAM filesystem and RAM disk (initramfs/initrd) support ---&gt; Built-in initramfs compression mode 这个选项，好像是从 2.6.30 出来的。这个压缩模式选的是什么，关系到后面的工作。&lt;br /&gt;
+
+安装 splashutils[fbcondecor] 和 media-gfx/splash-themes-gentoo 或 media-gfx/splash-themes-livecd 这两个都是提供一些 theme，在 /etc/splash 目录下面。&lt;br /&gt;
+
+我的 kernel 没有 initrd 文件，是编译到内核的，所以这么做。&lt;br /&gt;
+&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
+cd /usr/src/linux &amp;&amp; make &amp;&amp; make install # recompile kernel, this is my way
+&lt;/pre&gt;&lt;br /&gt;
+
+然后就是设置内核参数，下面是我的。那个 quiet 会让 kernel 不显示信息，如果你不想，那就去掉。&lt;br /&gt;
+video=uvesafb:1024x768-32,mtrr:3,ywrap quiet splash=silent,theme:natural_gentoo console=tty1 fbcon=scrollback:64K&lt;br /&gt;
+
+如果用的是 tuxonice 内核，那还可以给 sys-apps/tuxonice-userui 加上 fbsplash use，装好后会提示你 ln 一个 splash theme 为 tuxonice ，照做就是了。另外还需要在内核里面 Power management and ACPI options ---&gt; Enhanced Hibernation (TuxOnIce) ---&gt; Default userui program location 设置为 /sbin/tuxoniceui_fbsplash ，重编内核。。。&lt;br /&gt;
+
+这么弄完之后会发现，休眠后再启动的时候会显示一个没找到 /sbin/tuoniceui_fbsplash 的错误，还有一些百分比，这些实际上不影响正常启动。不过好像有点影响美观。我琢磨了下，觉得那个错误可能是没有把那个文件弄到 initramfs 里面的缘故，弄进去之后果然没了，不过还是有那个百分比出来。&lt;br /&gt;
+
+先 cp 一份这个文件 /usr/src/linux/usr/initramfs_data.cpio[看压缩设置] 到临时目录，file 看看属性，我的是 gzip 压缩的，那就解压一下。然后用 cpio 看下里面的文件。&lt;br /&gt;
+&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
+$ file initramfs_data.cpio 
+initramfs_data.cpio: gzip compressed data, was &#34;initramfs_data.cpio&#34;, from Unix, last modified: Sat Jul 25 19:26:29 2009
+$ mv initramfs_data.cpio initramfs_data.cpio.gz
+$ gzip -d initramfs_data.cpio.gz 
+$ file initramfs_data.cpio 
+initramfs_data.cpio: ASCII cpio archive (SVR4 with no CRC)
+$ cpio --list &lt; initramfs_data.cpio
+.
+lib
+lib/splash
+lib/splash/sys
+lib/splash/proc
+sbin
+sbin/v86d
+sbin/fbcondecor_helper
+sbin/splash_helper
+root
+dev
+dev/mem
+dev/tty1
+dev/fb
+dev/tty0
+dev/zero
+dev/misc
+dev/null
+dev/vc
+dev/console
+etc
+etc/splash
+etc/splash/luxisri.ttf
+etc/splash/natural_gentoo
+etc/splash/natural_gentoo/1024x768.cfg
+etc/splash/natural_gentoo/images
+etc/splash/natural_gentoo/images/silent-1024x768.jpg
+etc/splash/natural_gentoo/images/verbose-1024x768.jpg
+xxx blocks
+$ cat f
+sbin/tuxoniceui_fbsplash
+$ ls sbin
+tuxoniceui_fbsplash
+$ cpio -ov --format=newc -A -O initramfs_data.cpio &lt; f
+sbin/tuxoniceui_fbsplash
+xxx blocks
+$ gzip -c initramfs_data.cpio initramfs_data.cpio.gz
+$ mv initramfs_data.cpio.gz /usr/src/linux/usr/initramfs_data.cpio
+&lt;/pre&gt;&lt;br /&gt;
+
+ok， 这里你可以再看看文件里面的东西。没问题就可以复制过去了，要注意压缩格式。&lt;br /&gt;
+
+回头录一个视频放上来玩玩，呵呵。&lt;br /&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

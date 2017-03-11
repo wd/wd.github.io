@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Weblogc on wd and cc</title>
+    <link>https://wdicc.com/tags/weblogc/atom/index.xml</link>
+    <description>Recent content in Weblogc on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/weblogc/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>weblogic乱码问题</title>
+      <link>https://wdicc.com/weblogic-encoding/</link>
+      <pubDate>Sat, 05 Aug 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/weblogic-encoding/</guid>
+      <description>1 先看这里：WebLogic8.1的中文问题解决方法&lt;br /&gt;
+
+http://dev2dev.bea.com.cn/techdoc/200311546.html&lt;br /&gt;
+
+
+2 看看系统locale的设置，可以使用locale命令查看当前的locale设置，可以使用如下命令设置locale。&lt;br /&gt;
+
+#LANG=en_US&lt;br /&gt;
+
+没有在weblogic的手册中找到关于这部分的信息，可以测试一下系统locale对应用是否有影响。&lt;br /&gt;
+&lt;!--more--&gt;&lt;br /&gt;
+3 下面是手册中关于国际化的一段说法，按照下面的说法，应该是不管有没有设置weblogic的字符集，他都会正确处理多字节字符，默认使用的是utf－8。&lt;br /&gt;
+
+Often the default character sets used by WebLogic Server are adequate and you do not need to explicitly specify a character set for a Web Service. For example, if a client application specifies its preferred character set, and there is no character set specified for a Web Service, then WebLogic Server responds by using the client&#39;s preferred character set. Also, non-internationalized WebLogic Server instances use the US-ASCII character set by default, and internationalized WebLogic Server instances use the UTF-8 character set by default, and both of these character sets are compatible when one WebLogic Server instance is communicating with the other. This also means that a Web Service running on a non-internationalized WebLogic Server instance can handle multi-byte characters correctly.&lt;br /&gt;
+
+具体修改的方法可以参看这里：http://e-docs.bea.com/wls/docs81/webserv/i18n.html。&lt;br /&gt;
+生效的顺序如下：&lt;br /&gt;
+
+Order of Precedence of Character Set Configuration Used By WebLogic Server&lt;br /&gt;
+
+The following list shows the order by which WebLogic Server determines the character set of a WebLogic Web Service when it is creating the SOAP response to an invoke of one of its operations:&lt;br /&gt;
+
+1. The value of the charset attribute in the corresponding &lt;web-service&gt; element of the web-services.xml deployment descriptor.&lt;br /&gt;
+
+If this is not set, then WebLogic Server looks at the following:&lt;br /&gt;
+
+2. The character set preferred by the client application that invoked the Web Service operation. If your client application uses the WebLogic Web Services client APIS, the character set is specified using the weblogic.webservice.binding.BindingInfo.setAcceptCharset() method.&lt;br /&gt;
+
+If this is not set, then WebLogic Server looks at the following:&lt;br /&gt;
+
+3. The value of the WebLogic Server system property weblogic.webservice.i18n.charset.&lt;br /&gt;
+
+If this is not set, then WebLogic Server looks at the following:&lt;br /&gt;
+
+4. The character set specified for the JVM. Specifically, if the JVM property user.language is set to en, then WebLogic Web Services use the US-ASCII character set. If the user.language property is set to anything else, WebLogic Web Services use the UTF-8 character set.&lt;br /&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

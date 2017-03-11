@@ -3,294 +3,218 @@
 <head>
 	<meta charset="utf-8">
     
-	<title>smsd 发送中文短信乱码 - wd and cc</title>
-    <meta name="author" content="wd">
     
-	<meta name="description" content="&lt;p&gt;smsd是使用mysql数据库的，所以这个乱码很容易把人搞晕。我之前&lt;a href=&quot;http://blog.wdicc.com/wordpress/gnokii_howto_chinese_sms/&quot; target=&quot;_blank&quot; rel=&quot;external&quot;&gt;写过&lt;/a&gt;gnokii发送短信是和locale有关系的，只要在utf8的locale下面就可以正常发送中文短信了。而smsd也和这个类似，也需要utf8的locale。但是还需要注意的一点就是mysql也是有编码设置的。所以可能会认为，文本插入数据库之前是不是也需要对数据库做utf8的设置呢？其实是不需要的，这么做反而会造成乱码。&lt;/p&gt; &lt;p&gt;smsd连接mysql用的是mysql默认的字符集，那么我们插入文本的时候，也同样需要使用这个字符集，需要注意的是，这个文本也需要是utf8编码的。mysql默认的字符集通常是 “default-character-set&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp;&amp;nbsp; latin1”。&lt;/p&gt; &lt;p&gt;我写的一个python的用来插入数据库要发送的信息的程序。&lt;/p&gt; &lt;p&gt;&lt;pre lang=&quot;python&quot;&gt;#!/usr/bin/env python2.3
-#coding=utf-8
-import sys
-import MySQLdb
-
-#  inbox
-#+------------+------------------+------+-----+---------------------+----------------+
-#| Field      | Type             | Null | Key | Default             | Extra          |
-#+------------+------------------+------+-----+---------------------+----------------+
-#| id         | int(10) unsigned |      | PRI | NULL                | auto_increment |
-#| number     | varchar(20)      |      |     |                     |                |
-#| smsdate    | datetime         |      |     | 0000-00-00 00:00:00 |                |
-#| insertdate | timestamp        | YES  |     | CURRENT_TIMESTAMP   |                |
-#| text       | varchar(160)     | YES  |     | NULL                |                |
-#| phone      | tinyint(4)       | YES  |     | NULL                |                |
-#| processed  | tinyint(4)       |      |     | 0                   |                |
-#+------------+------------------+------+-----+---------------------+----------------+
-
-#  outbox
-#+----------------+------------------+------+-----+---------------------+----------------+
-#| Field          | Type             | Null | Key | Default             | Extra          |
-#+----------------+------------------+------+-----+---------------------+----------------+
-#| id             | int(10) unsigned |      | PRI | NULL                | auto_increment |
-#| number         | varchar(20)      |      |     |                     |                |
-#| processed_date | timestamp        | YES  |     | CURRENT_TIMESTAMP   |                |
-#| insertdate     | timestamp        | YES  |     | 0000-00-00 00:00:00 |                |
-#| text           | varchar(160)     | YES  |     | NULL                |                |
-#| phone          | tinyint(4)       | YES  |     | NULL                |                |
-#| processed      | tinyint(4)       |      |     | 0                   |                |
-#| error          | tinyint(4)       |      |     | -1                  |                |
-#| dreport        | tinyint(4)       |      |     | 0                   |                |
-#| not_before     | time             |      |     | 00:00:00            |                |
-#| not_after      | time             |      |     | 23:59:59            |                |
-#+----------------+------------------+------+-----+---------------------+----------------+
-
-class Mydb:
-        def __init__(self):
-                try:
-                        self.db=MySQLdb.Connection(host=&quot;localhost&quot;,user=&quot;gnokii&quot;,
-                                passwd=&quot;gnokii&quot;,db=&quot;gnokii&quot;)
-
-                except MySQLdb.OperationalError, message:
-                        errorMessage = &quot;Error %d:\n%s&quot; % (message[ 0 ], message[ 1 ] )
-                        print errorMessage
-                        sys.exit(1)
-                else:   
-                        self.cursor = self.db.cursor()
-#                       self.cursor.execute(&quot;SET NAMES &#39;utf8&#39;&quot;)
-                        return
-                        
-        def insert(self,sql):
-                self.cursor.execute(sql)
-        
-        def showdata(self,sql):
-                self.cursor.execute(sql)
-                return self.cursor.fetchall()
-                
-        def __del__(self):
-                self.cursor.close
-                self.db.close
-
-text = sys.stdin.read()
-db = Mydb()
-
-if len(sys.argv) &amp;gt; 1 and len(text):
-        number = sys.argv[1]
-        sql = &#39;insert into outbox (number,text) VALUES (&quot;&#39; + number + &#39;&quot;,&quot;&#39; + text + &#39;&quot;)&#39;
-        
-        db.insert(sql)
-
-else:   
-        print 
-        print &quot;    ********** outbox ********** &quot;
-        for rs in db.showdata(&quot;select * from outbox&quot;):
-                print rs[0],rs[1],rs[2],rs[-7],rs[-5]
-        
-        print &quot;    ********** inbox *********&quot;
-        for rs2 in db.showdata(&quot;select * from inbox&quot;):
-                print rs2[0],rs2[1],rs2[-3]&lt;/pre&gt;
-&lt;/p&gt;"> <!-- TODO: truncate -->
-	
+    
+    
+    <title>smsd 发送中文短信乱码 - wd and cc</title>
+    <meta name="author" content="wd">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+    <link href="" rel="alternate" title="wd and cc" type="application/atom+xml">
 	<link href="/favicon.ico" rel="shortcut icon">
-    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
 
     <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+    
 
-    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
-
-    <!-- remove or comment it to disable ajaxification -->   
-    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+    <script type="text/javascript" src="/js/jquery-tapir.js"></script>
 
     
 
-    
-
+    <link rel="stylesheet" href="/css/hljs.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
 </head>
 
 
 <body>
     <div id="wrapper">
-    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+        <header id="header" class="inner">
 <h1 class="animated bounceInDown">
     <div id="headerbg">
         wd and cc
     </div>
 </h1>
-<span class="subtitle">happy everyday</span>
+
+<span class="subtitle">happy every day</span>
 <br>
 
 <ul id="social-links" style="text-align:center; clear:both;">
-  
-  <!-- GitHub -->
-  <li>
-  <a href="https://github.com/wd" class="github" title="Github"></a>
-  </li>
-  
-  
-  
-  
-  <!-- Twitter -->
-  <li>
-  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
-  </li>
-  
-  
-  
-  
-  
+    
+    
+    <li>
+    <a href="https://github.com/wd" class="github" title="Github"></a>
+    </li>
+    
+    
+    
+    
+    
+    <li>
+    <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+    </li>
+    
+    
+    
+    
+    
 </ul>
 
 
-<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
 	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
-    
     <li>
     <div id="dark">
         <form action="//www.google.com.hk/search" method="get" accept-charset="UTF-8" id="search">
-            <input type="hidden" name="sitesearch" value="https://wdicc.com" />
+            <input type="hidden" name="sitesearch" value="https://wdicc.com/" />
             <input type="text" name="q" results="0" placeholder="Search..." x-webkit-speech />
         </form>
     </div>
     </li>
-        
 </ul>
-
-
-
 
 </header>
 
 <div id="toload">
-<!-- begin toload -->
+
     <div id="content" class="inner">
-        <article class="post">
-	<h2 class="title">smsd 发送中文短信乱码</h2>
+        
+<article class="post">
+    <h2 class="title">smsd 发送中文短信乱码</h2>
     <div class="meta">
-        <div class="date">Published on: <time datetime="2007-07-04T16:00:00.000Z" itemprop="datePublished">Jul 5, 2007</time>
+        <div class="date">Published on: <time datetime='2007-07-05T00:00:00.000&#43;00:00' itemprop="datePublished">2007-07-05</time>
 </div>
         <div class="tags">Tags: 
 
-<a href="/tags/other/">other</a> <a href="/tags/linux/">linux</a> <a href="/tags/gnokii/">gnokii</a> <a href="/tags/smsd/">smsd</a>
+<a href="/tags/gnokii">gnokii</a>
+
+<a href="/tags/linux">linux</a>
+
+<a href="/tags/other">other</a>
+
+<a href="/tags/smsd">smsd</a>
+
+
 </div>
     </div>
-	<div class="entry-content"><p>smsd是使用mysql数据库的，所以这个乱码很容易把人搞晕。我之前<a href="http://blog.wdicc.com/wordpress/gnokii_howto_chinese_sms/" target="_blank" rel="external">写过</a>gnokii发送短信是和locale有关系的，只要在utf8的locale下面就可以正常发送中文短信了。而smsd也和这个类似，也需要utf8的locale。但是还需要注意的一点就是mysql也是有编码设置的。所以可能会认为，文本插入数据库之前是不是也需要对数据库做utf8的设置呢？其实是不需要的，这么做反而会造成乱码。</p> <p>smsd连接mysql用的是mysql默认的字符集，那么我们插入文本的时候，也同样需要使用这个字符集，需要注意的是，这个文本也需要是utf8编码的。mysql默认的字符集通常是 “default-character-set&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; latin1”。</p> <p>我写的一个python的用来插入数据库要发送的信息的程序。</p> <p><pre lang="python">#!/usr/bin/env python2.3
-#coding=utf-8
-import sys
-import MySQLdb
+    <div class="entry-content"><p>smsd是使用mysql数据库的，所以这个乱码很容易把人搞晕。我之前<a href="http://blog.wdicc.com/wordpress/gnokii_howto_chinese_sms/">写过</a>gnokii发送短信是和locale有关系的，只要在utf8的locale下面就可以正常发送中文短信了。而smsd也和这个类似，也需要utf8的locale。但是还需要注意的一点就是mysql也是有编码设置的。所以可能会认为，文本插入数据库之前是不是也需要对数据库做utf8的设置呢？其实是不需要的，这么做反而会造成乱码。</p> <p>smsd连接mysql用的是mysql默认的字符集，那么我们插入文本的时候，也同样需要使用这个字符集，需要注意的是，这个文本也需要是utf8编码的。mysql默认的字符集通常是 “default-character-set&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; latin1”。</p> <p>我写的一个python的用来插入数据库要发送的信息的程序。</p> <p><pre lang="python">#!/usr/bin/env python2.3<br />
+#coding=utf-8<br />
+import sys<br />
+import MySQLdb<br />
 
-#  inbox
-#+------------+------------------+------+-----+---------------------+----------------+
-#| Field      | Type             | Null | Key | Default             | Extra          |
-#+------------+------------------+------+-----+---------------------+----------------+
-#| id         | int(10) unsigned |      | PRI | NULL                | auto_increment |
-#| number     | varchar(20)      |      |     |                     |                |
-#| smsdate    | datetime         |      |     | 0000-00-00 00:00:00 |                |
-#| insertdate | timestamp        | YES  |     | CURRENT_TIMESTAMP   |                |
-#| text       | varchar(160)     | YES  |     | NULL                |                |
-#| phone      | tinyint(4)       | YES  |     | NULL                |                |
-#| processed  | tinyint(4)       |      |     | 0                   |                |
-#+------------+------------------+------+-----+---------------------+----------------+
+#  inbox<br />
+#+------------+------------------+------+-----+---------------------+----------------+<br />
+#| Field      | Type             | Null | Key | Default             | Extra          |<br />
+#+------------+------------------+------+-----+---------------------+----------------+<br />
+#| id         | int(10) unsigned |      | PRI | NULL                | auto_increment |<br />
+#| number     | varchar(20)      |      |     |                     |                |<br />
+#| smsdate    | datetime         |      |     | 0000-00-00 00:00:00 |                |<br />
+#| insertdate | timestamp        | YES  |     | CURRENT_TIMESTAMP   |                |<br />
+#| text       | varchar(160)     | YES  |     | NULL                |                |<br />
+#| phone      | tinyint(4)       | YES  |     | NULL                |                |<br />
+#| processed  | tinyint(4)       |      |     | 0                   |                |<br />
+#+------------+------------------+------+-----+---------------------+----------------+<br />
 
-#  outbox
-#+----------------+------------------+------+-----+---------------------+----------------+
-#| Field          | Type             | Null | Key | Default             | Extra          |
-#+----------------+------------------+------+-----+---------------------+----------------+
-#| id             | int(10) unsigned |      | PRI | NULL                | auto_increment |
-#| number         | varchar(20)      |      |     |                     |                |
-#| processed_date | timestamp        | YES  |     | CURRENT_TIMESTAMP   |                |
-#| insertdate     | timestamp        | YES  |     | 0000-00-00 00:00:00 |                |
-#| text           | varchar(160)     | YES  |     | NULL                |                |
-#| phone          | tinyint(4)       | YES  |     | NULL                |                |
-#| processed      | tinyint(4)       |      |     | 0                   |                |
-#| error          | tinyint(4)       |      |     | -1                  |                |
-#| dreport        | tinyint(4)       |      |     | 0                   |                |
-#| not_before     | time             |      |     | 00:00:00            |                |
-#| not_after      | time             |      |     | 23:59:59            |                |
-#+----------------+------------------+------+-----+---------------------+----------------+
+#  outbox<br />
+#+----------------+------------------+------+-----+---------------------+----------------+<br />
+#| Field          | Type             | Null | Key | Default             | Extra          |<br />
+#+----------------+------------------+------+-----+---------------------+----------------+<br />
+#| id             | int(10) unsigned |      | PRI | NULL                | auto_increment |<br />
+#| number         | varchar(20)      |      |     |                     |                |<br />
+#| processed_date | timestamp        | YES  |     | CURRENT_TIMESTAMP   |                |<br />
+#| insertdate     | timestamp        | YES  |     | 0000-00-00 00:00:00 |                |<br />
+#| text           | varchar(160)     | YES  |     | NULL                |                |<br />
+#| phone          | tinyint(4)       | YES  |     | NULL                |                |<br />
+#| processed      | tinyint(4)       |      |     | 0                   |                |<br />
+#| error          | tinyint(4)       |      |     | -1                  |                |<br />
+#| dreport        | tinyint(4)       |      |     | 0                   |                |<br />
+#| not_before     | time             |      |     | 00:00:00            |                |<br />
+#| not_after      | time             |      |     | 23:59:59            |                |<br />
+#+----------------+------------------+------+-----+---------------------+----------------+<br />
 
-class Mydb:
-        def __init__(self):
-                try:
-                        self.db=MySQLdb.Connection(host="localhost",user="gnokii",
-                                passwd="gnokii",db="gnokii")
+class Mydb:<br />
+        def __init__(self):<br />
+                try:<br />
+                        self.db=MySQLdb.Connection(host="localhost",user="gnokii",<br />
+                                passwd="gnokii",db="gnokii")<br />
 
-                except MySQLdb.OperationalError, message:
-                        errorMessage = "Error %d:\n%s" % (message[ 0 ], message[ 1 ] )
-                        print errorMessage
-                        sys.exit(1)
-                else:   
-                        self.cursor = self.db.cursor()
-#                       self.cursor.execute("SET NAMES 'utf8'")
-                        return
-                        
-        def insert(self,sql):
-                self.cursor.execute(sql)
-        
-        def showdata(self,sql):
-                self.cursor.execute(sql)
-                return self.cursor.fetchall()
-                
-        def __del__(self):
-                self.cursor.close
-                self.db.close
+                except MySQLdb.OperationalError, message:<br />
+                        errorMessage = "Error %d:\n%s" % (message[ 0 ], message[ 1 ] )<br />
+                        print errorMessage<br />
+                        sys.exit(1)<br />
+                else:   <br />
+                        self.cursor = self.db.cursor()<br />
+#                       self.cursor.execute("SET NAMES 'utf8'")<br />
+                        return<br />
+                        <br />
+        def insert(self,sql):<br />
+                self.cursor.execute(sql)<br />
+        <br />
+        def showdata(self,sql):<br />
+                self.cursor.execute(sql)<br />
+                return self.cursor.fetchall()<br />
+                <br />
+        def __del__(self):<br />
+                self.cursor.close<br />
+                self.db.close<br />
 
-text = sys.stdin.read()
-db = Mydb()
+text = sys.stdin.read()<br />
+db = Mydb()<br />
 
-if len(sys.argv) &gt; 1 and len(text):
-        number = sys.argv[1]
-        sql = 'insert into outbox (number,text) VALUES ("' + number + '","' + text + '")'
-        
-        db.insert(sql)
+if len(sys.argv) &gt; 1 and len(text):<br />
+        number = sys.argv[1]<br />
+        sql = 'insert into outbox (number,text) VALUES ("' + number + '","' + text + '")'<br />
+        <br />
+        db.insert(sql)<br />
 
-else:   
-        print 
-        print "    ********** outbox ********** "
-        for rs in db.showdata("select * from outbox"):
-                print rs[0],rs[1],rs[2],rs[-7],rs[-5]
-        
-        print "    ********** inbox *********"
-        for rs2 in db.showdata("select * from inbox"):
-                print rs2[0],rs2[1],rs2[-3]</pre>
-</p></div>
+else:   <br />
+        print <br />
+        print "    ********** outbox ********** "<br />
+        for rs in db.showdata("select * from outbox"):<br />
+                print rs[0],rs[1],rs[2],rs[-7],rs[-5]<br />
+        <br />
+        print "    ********** inbox *********"<br />
+        for rs2 in db.showdata("select * from inbox"):<br />
+                print rs2[0],rs2[1],rs2[-3]</pre><br />
+</div>
 
 <div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/smsd-and-chinese/#disqus_thread">Comments</a></span>
-	
+    
 </div>
 </article>
 
-	<div class="share">
+<div class="share">
 	<div class="addthis_toolbox addthis_default_style ">
+	
+	<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
 	
 	
 	<a class="addthis_button_tweet"></a>
 	
 	
+	<a class="addthis_button_google_plusone" g:plusone:size="midum"></a>
+	
 	<a class="addthis_counter addthis_pill_style"></a>
 	</div>
-  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=wd"></script>
 </div>
 
 
 
-
-
     
-      <script type="text/javascript">
+     <script type="text/javascript">
         var disqus_config = function () {
-            this.page.url = 'https://wdicc.com/smsd-and-chinese/';
-            this.page.identifier = 'https://wdicc.com/smsd-and-chinese/';
+            this.page.url = 'https:\/\/wdicc.com\/smsd-and-chinese\/';
+            this.page.identifier = 'https:\/\/wdicc.com\/smsd-and-chinese\/';
         };
 
         (function() {
@@ -299,14 +223,17 @@ else:
           s.setAttribute('data-timestamp', +new Date());
           (d.head || d.body).appendChild(s);
         })();
-      </script>
+     </script>
     
+
+
 
 
 <section id="comment">
     <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
 </section>
 
 
@@ -314,33 +241,23 @@ else:
     <footer id="footer">
     <div style="display:inline">
     Copyright &copy; 2017
-
+    
     wd
-. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
-    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+    . Powered by <a href="http://gohugo.io" target="_blank">Hugo</a> |
+    Theme is <a href="https://github.com/wd/hugo-fabric">hugo-fabric</a>, fork from <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a> by <a href="https://wdicc.com">me</a>
 </div>
-
 
     </footer>
-    <script src="/javascripts/fabric.js"></script>
-<script src="/javascripts/jquery.fancybox.pack.js"></script>
+    <script src="/js/fabric.js"></script>
+
+
+</div>
+</div>
+<script src="/js/jquery.ui.totop.js" type="text/javascript"></script>
 <script type="text/javascript">
-(function($){
-	$('.fancybox').fancybox();
-})(jQuery);
+ 
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery);
+ 
 </script>
- <!-- Delete or comment this line to disable Fancybox -->
-
-
-
-<!-- end toload --> 
-</div>
-</div>
-<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
-<script type="text/javascript">
-/*<![CDATA[*/
-;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
-/*]]>*/
-</script><!-- remove it to remove the scroll to top button -->
 </body>
 </html>

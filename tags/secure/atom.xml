@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Secure on wd and cc</title>
+    <link>https://wdicc.com/tags/secure/atom/index.xml</link>
+    <description>Recent content in Secure on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/secure/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>涉及到linux系统安全的几个文件</title>
+      <link>https://wdicc.com/some-importent-files-in-linux/</link>
+      <pubDate>Tue, 24 Jul 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/some-importent-files-in-linux/</guid>
+      <description>&lt;p&gt;部分内容转自&lt;a href=&#34;http://man.chinaunix.net/linux/debian/debian_learning/index.html&#34; target=&#34;_blank&#34;&gt;这里&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;strong&gt;1 cron.allow,cron.deny&lt;/strong&gt;&lt;/p&gt; &lt;blockquote&gt; &lt;p&gt;If the cron.allow file exists, then you must be listed therein in order to  be  allowed  to  use  this  command.   If  the  cron.allow  file  does  not  exist but the cron.deny file does exist, then you must not be listed in the cron.deny file in order to use this command.  If neither of these files exists, only the super user will be allowed to use this command.&lt;/p&gt;&lt;/blockquote&gt; &lt;p&gt;上面是引用 man crontab 里面的一段解释。如果 cron.allow 存在，那里面的用户可以使用crontab命令。如果cron.allow 不存在，而 cron.deny 存在，那么列在里面的用户不可以使用crontab命令。如果都不存在，那么只允许super用户来使用这个命令。 &lt;p&gt;安装rh的时候，默认就会存在一个 cron.deny 的空文件，所以普通用户也可以使用crontab。 &lt;p&gt;&lt;strong&gt;2 at.allow,at.deny&lt;/strong&gt; &lt;blockquote&gt; &lt;p&gt;The  superuser  may  use  these  commands  in  any case.  For other users, permission to use at is determined by the files&lt;br&gt;/etc/at.allow and /etc/at.deny. &lt;/p&gt; &lt;p&gt;If the file /etc/at.allow exists, only usernames mentioned in it are allowed to use at. &lt;/p&gt; &lt;p&gt;If /etc/at.allow does not exist, /etc/at.deny is checked, every username not mentioned in it is then allowed to use at.  &lt;p&gt;If neither exists, only the superuser is allowed use of at.  &lt;p&gt;An empty /etc/at.deny means that every user is allowed use these commands, this is the default configuration.&lt;/p&gt;&lt;/blockquote&gt; &lt;p&gt;这个其实和上面那个是类似的。默认也是有个空的 at.deny 文件，允许所有用户使用at。 &lt;p&gt;&lt;strong&gt;3 /etc/security/access.conf&lt;/strong&gt; &lt;blockquote&gt; &lt;p&gt;# Login access control table.&lt;br&gt;# &lt;br&gt;# When someone logs in, the table is scanned for the first entry that&lt;br&gt;# matches the (user, host) combination, or, in case of non-networked&lt;br&gt;# logins, the first entry that matches the (user, tty) combination.  The&lt;br&gt;# permissions field of that table entry determines whether the login will &lt;br&gt;# be accepted or refused.&lt;/p&gt;&lt;/blockquote&gt; &lt;p&gt;login 权限控制表。可以控制允许登陆的ip，登陆的tty等信息。 &lt;blockquote&gt; &lt;p&gt;# Disallow console logins to all but a few accounts.&lt;br&gt;#&lt;br&gt;#-:ALL EXCEPT wheel shutdown sync:LOCAL&lt;/p&gt;&lt;/blockquote&gt; &lt;p&gt;比如可以设置只允许某些用户从本地登陆。建议设置root用户不能从本地登陆。 &lt;p&gt;&lt;strong&gt;4 /etc/securetty&lt;/strong&gt; &lt;p&gt;该文件可控制根用户登录的设备，该文件里记录的是可以作为根用户登录的设备名，如tty1、tty2等。用户是不能从不存在于该文件里的设备登录为根用户的。这种情况用户只能以普通用户登录进来，再用su命令转为根用户。/etc/securetty文件的格式如下：&lt;pre&gt;# /etc/securetty: list of terminals on which root is allowed to login.&lt;br /&gt;
+# See securetty(5) and login(1).&lt;br /&gt;
+console&lt;br /&gt;
+
+# for people with serial port consoles&lt;br /&gt;
+ttyS0&lt;br /&gt;
+
+# for devfs&lt;br /&gt;
+tts/0&lt;br /&gt;
+
+# Standard consoles&lt;br /&gt;
+tty1&lt;br /&gt;
+tty2&lt;br /&gt;
+tty3&lt;br /&gt;
+...&lt;br /&gt;
+&lt;/pre&gt;&lt;br /&gt;
+&lt;p&gt;如果/etc/securetty是一个空文件，则根用户就不能从任务的设备登录系统。只能以普通用户登录，再用su命令转成根用户。如果/etc/securetty文件不存在，那么根用户可以从任何地方登录。这样会引发安全问题，所以/etc/securetty文件在系统中是一定要存在的。&lt;br /&gt;
+&lt;p&gt;&lt;strong&gt;5  /etc/login.defs&lt;/strong&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;login.defs是设置用户帐号限制的文件，在这里我们可配置密码的最大过期天数，密码的最大长度约束等内容。该文件里的配置对root用户无效。如果/etc/shadow文件里有相同的选项，则以/etc/shadow里的设置为准，也就是说/etc/shadow的配置优先级高于 /etc/login.defs。下面内容是该文件的节选：&lt;pre&gt;...&lt;br /&gt;
+#&lt;br /&gt;
+# Password aging controls:&lt;br /&gt;
+#&lt;br /&gt;
+#       PASS_MAX_DAYS   Maximum number of days a password may be used.&lt;br /&gt;
+#       PASS_MIN_DAYS   Minimum number of days allowed between password change.&lt;br /&gt;
+#       PASS_WARN_AGE   Number of days warning given before a password expires.&lt;br /&gt;
+#&lt;br /&gt;
+PASS_MAX_DAYS 99999&lt;br /&gt;
+PASS_MIN_DAYS 0&lt;br /&gt;
+PASS_WARN_AGE 7&lt;br /&gt;
+...&lt;br /&gt;
+#&lt;br /&gt;
+# Number of significant characters in the password for crypt().&lt;br /&gt;
+# Default is 8, don&#39;t change unless your crypt() is better.&lt;br /&gt;
+# If using MD5 in your PAM configuration, set this higher.&lt;br /&gt;
+#&lt;br /&gt;
+PASS_MAX_LEN            8&lt;br /&gt;
+...&lt;br /&gt;
+&lt;/pre&gt;&lt;br /&gt;
+&lt;p&gt;&lt;strong&gt;6 /etc/pam.d/su&lt;/strong&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;通过pam来限制su命令的使用。比如可以设置哪些组，哪些用户才能使用。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;#auth       sufficient   /lib/security/$ISA/pam_wheel.so trust use_uid&lt;br&gt;# Uncomment the following line to require a user to be in the &#34;wheel&#34; group.&lt;br&gt;auth       required     /lib/security/$ISA/pam_wheel.so group=admin&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

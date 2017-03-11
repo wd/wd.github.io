@@ -1,0 +1,158 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Firefox on wd and cc</title>
+    <link>https://wdicc.com/tags/firefox/atom/index.xml</link>
+    <description>Recent content in Firefox on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/firefox/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>你在用什么方式翻墙？</title>
+      <link>https://wdicc.com/best-way-to-fuck-gfw/</link>
+      <pubDate>Mon, 20 Jul 2009 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/best-way-to-fuck-gfw/</guid>
+      <description>翻墙估计应该是上网的必修课了，当然那些 90 后就别说了，他们大概只上 *qq.com 就好了。&lt;br /&gt;
+
+翻墙有不少方法，比如通过找公共的 vpn，用 tor，找一些 phpproxy 网站等。我这推荐一个比较好的方法，通过 &lt;a href=&#34;http://www.sshgfw.com/&#34;&gt;fuckgfw&lt;/a&gt; 提供的 ssh proxy，速度比 tor 快的不是一点半点。&lt;br /&gt;
+
+我用的 linux，写了一个 expect 脚本来起代理服务，如下。里面的 USER 和  PWD 换成你申请到的用户名和密码。我把这个脚本命名叫 p, 放到了 ~/bin 下面，当然我的 ~/bin 是在 path 里面的，这样，执行一个 p 命令代理就自动起来了。用完的时候可以按 Ctrl-c 退出。&lt;br /&gt;
+
+&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
+#!/bin/bash
+
+expect -c &#39;
+spawn ssh -D 7070 -N USER@SERVER
+expect {
+	password { 
+		send &#34;PWD\r&#34;;
+	}
+}
+
+interact {
+	\001 exit;
+}&#39;
+&lt;/pre&gt;&lt;br /&gt;
+
+当然，我用到的不只这个脚本了，要不也没什么好写的了。(本来觉得自己写了挺好的一个文章，最后还是就 expect 脚本 + autoproxy，唉，丢人。)&lt;del datetime=&#34;2009-07-20T02:13:48+00:00&#34;&gt;还用到了一个 proxy.pac ，自动使用代理的配置。如下，把这个文件存成 proxy.pac, 然后在 firefox 的 编辑-&gt;首选项-&gt;高级-&gt;网络-&gt;设置-&gt;自动代理配置URL 这个里面输入 &#34;file:///home/wd/bin/proxy.pac&#34; ，这样，你连接某个网站的时候，他会自动的去判断是不是要用代理。这个文件是 linuxsir 的 狱卒 给我的。:)&lt;br /&gt;
+
+&lt;pre class=&#34;prettyprint lang-javascript&#34;&gt;
+function FindProxyForURL(url, host)
+{
+    url = url.toLowerCase();
+    host = host.toLowerCase();
+    if (dnsDomainIs(host,&#34;twitter.com&#34;)
+        || dnsDomainIs(host,&#34;my.opera.com&#34;)
+        || dnsDomainIs(host,&#34;hk.yahoo.com&#34;)
+        || dnsDomainIs(host,&#34;tw.yahoo.com&#34;)
+        || dnsDomainIs(host,&#34;livejournal.com&#34;)
+        || dnsDomainIs(host,&#34;mitbbs.com&#34;)
+        || dnsDomainIs(host,&#34;friendfeed.com&#34;)
+        || dnsDomainIs(host,&#34;youtube.com&#34;)
+        || dnsDomainIs(host,&#34;sshgfw.com&#34;)
+        )
+        return &#34;SOCKS 127.0.0.1:7070&#34;;
+    else 
+		return &#34;DIRECT&#34;;
+}
+&lt;/pre&gt;&lt;br /&gt;
+
+这么做一个问题就是，如果你要新加某个网站进去，必须得重启 fx 才能生效。实际上 foxproxy 也可以配置使用 自动代理的，而且可以设置让他多长时间自动重载一下这个文件，算是智能一点了吧。不过我用 foxproxy 的时候发现，如果同时打开两个需要用到代理的网站，他会是一个一个打开的，不能同时，不知道是怎么回事。&lt;br /&gt;
+
+我现在用的是 multiproxy swith ，这个可以设置 pac 文件，不过是不会自动重载。当然，重启这个事情也不是什么大问题，装一个 quickrestart ext，然后在 toolbar 上面加一个，点一下就重启了，再加上 fx 会 restore session ，也就是等几秒，就生效了。&lt;/del&gt;&lt;br /&gt;
+
+再当然一个。如果觉得这个 pac 弄起来还是麻烦，那可以装一个 autoproxy，里面内置了一些列表，你只要设置一个 127.0.0.1:7070 的 socks 代理让他用就好了。哪个用 proxy 哪个不用是全自动的，不用你管。自己添加的列表也能即时生效。目前我用的这个，推荐一下哦。&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>清理 firefox places.sqlite 来提速</title>
+      <link>https://wdicc.com/clean-places-sqlite/</link>
+      <pubDate>Sat, 18 Jul 2009 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/clean-places-sqlite/</guid>
+      <description>来自这里 http://forum.moztw.org/viewtopic.php?t=26802&lt;br /&gt;
+
+使用前先备份，后悔了还能弄回去。&lt;br /&gt;
+
+&lt;pre class=&#34;prettyprint lang-sql&#34;&gt;
+sqlite3 places.sqlite &#34;DELETE FROM moz_historyvisits WHERE place_id IN (SELECT id FROM moz_places WHERE visit_count &lt;=2 );&#34;
+
+sqlite3 places.sqlite &#34;DELETE FROM moz_places WHERE (visit_count &lt;=2 AND hidden &lt;&gt; 1 AND id NOT IN (SELECT place_id FROM moz_annos UNION SELECT fk FROM moz_bookmarks));&#34;
+
+sqlite3 places.sqlite &#34;DELETE FROM moz_inputhistory WHERE place_id NOT IN (SELECT id FROM moz_places);&#34;
+
+sqlite3 places.sqlite &#34;DELETE FROM moz_favicons WHERE id NOT IN (SELECT
+favicon_id FROM moz_places);&#34;
+
+sqlite3 places.sqlite &#34;VACUUM;&#34;
+&lt;/pre&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>自动登录网站的 greasemonkey 脚本</title>
+      <link>https://wdicc.com/greasemonkey-autologin-script/</link>
+      <pubDate>Sun, 22 Jun 2008 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/greasemonkey-autologin-script/</guid>
+      <description>自动登录 gmail 的 greasemonkey 脚本，可以根据需要修改 formElement.name==&#34;Email&#34; 为别的，来登录别的网站。注意修改 name, include 这些相关的东东&lt;br /&gt;
+&lt;pre class=&#34;prettyprint lang-javascript&#34;&gt;
+// (c) 2007, Yabin Guo
+// To install, you need Greasemonkey: http://greasemonkey.mozdev.org/
+//
+// --------------------------------------------------------------------
+// ==UserScript==
+// @name          gmail Login
+// @description   Auto-login of gmail
+// @include       https://www.google.com/a/wdicc.com/*
+// ==/UserScript==
+
+//replace your seraph username and password in the following expression;
+userName=&#34;wd&#34;;
+passWord=&#34;*******&#34;;
+
+function submitFirstPasswordForm() {
+	var form=document.forms[0];
+    var submitButton = null;
+	var passwordElem;
+	var accountElem;
+	var submitButton;
+    for (i=0; formElement=form[i]; ++i){
+		if(formElement.type==&#34;password&#34;){
+			passwordElem=formElement;
+		}else if(formElement.name==&#34;Email&#34;){
+			accountElem=formElement;
+		}else if(formElement.type==&#34;submit&#34;){
+			submitButton=formElement;
+		}
+	}
+
+	accountElem.value=userName;
+	passwordElem.value=passWord;
+
+    if (submitButton) {
+        submitButton.focus();
+        submitButton.style.MozOutline = &#34;2px solid purple&#34;;
+        // Submit the form by calling click() on the submit button.
+        submitButton.click();
+        // Break out of both loops.
+        return; 
+      }
+}
+
+window.addEventListener(
+  &#34;load&#34;, 
+  function() { 
+    setTimeout(submitFirstPasswordForm, 0); 
+  }, 
+  false
+);
+&lt;/pre&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

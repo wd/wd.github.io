@@ -3,854 +3,494 @@
 <head>
 	<meta charset="utf-8">
     
-	<title>caphit qmail 配置 - wd and cc</title>
-    <meta name="author" content="wd">
     
-	<meta name="description" content="参考网址
-http://lifewithqmail.org(中文版http://lifewithqmail.org/LWQ-CN.html)
-http://qmail.te8.com/rpms/glibc-2.3.1/(patch下载地址)
-http://www.fehcom.de/qmail/qmail.html
-http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-mysql.htm
-http://bbs.chinaunix.net/forum/viewtopic.php?t=254662
-
-ucspi-tcp
-http://cr.yp.to/ucspi-tcp.html
-ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nodefaultrbl.patch
-（或者）ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nobase.patch
-patch -d ucspi-tcp.xxx -p1 &amp;lt; ucspi-tcp-xxx.patch
-make&amp;amp;&amp;amp;make setup check
-
-daemontools
-http://cr.yp.to/daemontools.html
-daemontools-0.76.errno.patch
-package/install
-Adding svscanboot to inittab...init should start svscan now.
-
-cmd5checkpw
-http://www.fehcom.de/qmail/auth/cmd5checkpw-030_tgz.bin
-make&amp;amp;&amp;amp;make setup
-
-qmail 1.03
-http://cr.yp.to/qmail.html
-http://www.fehcom.de/qmail/qmail.html
-http://www.fehcom.de/qmail/spamcontrol/spamcontrol-2311_tgz.bin
-tar zxvf spamcontrol-2311_tgz.bin
-编辑conf-spamcontrol
-建立用户组
-groupadd nofiles
-useradd -g nofiles -d /var/qmail qmaild -s /sbin/nologin
-useradd -g nofiles -d /var/qmail qmaill -s /sbin/nologin
-useradd -g nofiles -d /var/qmail qmailp -s /sbin/nologin
-useradd -g nofiles -d /var/qmail/alias alias -s /sbin/nologin
-groupadd qmail
-useradd -g qmail -d /var/qmail qmailq -s /sbin/nologin
-useradd -g qmail -d /var/qmail qmailr -s /sbin/nologin
-useradd -g qmail -d /var/qmail qmails -s /sbin/nologin
-./install_spamcontrol.sh
-make setup check
-./config-fast xxxx.com
-
-vpopmail
-http://sourceforge.net/projects/vpopmail/
-groupadd vchkpw;useradd vpopmail
-CREATE DATABASE vpopmail;
-GRANT select,insert,update,delete,create,drop ON vpopmail.* TO vpopmailuser@localhost IDENTIFIED BY &#39;vpoppasswd&#39;;
-配置(用igenus需要enable-many-domains)
-./configure   --enable-logging=p
---enable-domain-quotas=y
---enable-auth-module=mysql
---enable-tcprules-prog=/usr/local/bin/tcprules
---enable-tcpserver-file=/etc/tcp.smtp
---disable-mysql-limits
---enable-mysql-logging
---enable-many-domains
-make&amp;amp;&amp;amp;make install-strip
-vi vpopmail.mysql
-vi vlimits.default
-echo &quot;xxxx.com&quot; &amp;gt; /home/vpopmail/etc/defaultdomain
-vi /home/vpopmail/domains/.quotawarn.msg
-From: CAPH Postmaster
-&lt;postmaster@xxx.com&gt; Reply-To: postmaster@xxx.com
-To: SomeCompany User:;
-Subject: Mail quota warning
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit&lt;/postmaster@xxx.com&gt;
-
-Your mailbox on the server is now more than 90% full.
-
-So that you can continue to receive mail,
-you need to remove some messages from your mailbox.
-
-If you require assistance with this,
-please contact our support department :
-
-email : postmaster@xxx.com
-Tel   : 010 68372647
-echo &quot;Message rejected. Not enough storage space in user&#39;s mailbox to accept message.&quot; &amp;gt; /home/vpopmail/domains/.over-quota.msg
-
-/var/qmail/rc
-vi /var/qmail/rc
-#!/bin/sh
-
-# Using stdout for logging
-# Using control/defaultdelivery from qmail-local to deliver messages by default
-
-exec env - PATH=&quot;/var/qmail/bin:$PATH&quot;
-qmail-start &quot;`cat /var/qmail/control/defaultdelivery`&quot;
-
-echo ./Maildir/ &amp;gt;/var/qmail/control/defaultdelivery
-chmod 755 /var/qmail/rc
-mkdir /var/log/qmail
-
-/var/qmail/bin/qmailctl
-
-vi /var/qmail/bin/qmailctl
-#!/bin/sh
-
-# description: the qmail MTA
-
-PATH=/var/qmail/bin:/bin:/usr/bin:/usr/local/bin:/usr/local/sbin
-export PATH
-LOG_AUTH=1
-export LOG_AUTH
-
-QMAILDUID=`id -u qmaild`
-NOFILESGID=`id -g qmaild`
-
-case &quot;$1&quot; in
-start)
-echo &quot;Starting qmail&quot;
-if svok /service/qmail-send ; then
-svc -u /service/qmail-send /service/qmail-send/log
-else
-echo &quot;qmail-send supervise not running&quot;
-fi
-if svok /service/qmail-smtpd ; then
-svc -u /service/qmail-smtpd /service/qmail-smtpd/log
-else
-echo &quot;qmail-smtpd supervise not running&quot;
-fi
-if svok /service/qmail-pop3d ; then
-svc -u /service/qmail-pop3d /service/qmail-pop3d/log
-else
-echo qmail-pop3d supervise not running
-fi
-if [ -d /var/lock/subsys ]; then
-touch /var/lock/subsys/qmail
-fi
-;;
-stop)
-echo &quot;Stopping qmail...&quot;
-echo &quot;  qmail-smtpd&quot;
-svc -d /service/qmail-smtpd /service/qmail-smtpd/log
-echo &quot;  qmail-smtpd&quot;
-svc -d /service/qmail-smtpd /service/qmail-smtpd/log
-echo &quot;  qmail-send&quot;
-svc -d /service/qmail-send /service/qmail-send/log
-echo &quot;  qmail-pop3d&quot;
-svc -d /service/qmail-pop3d /service/qmail-pop3d/log
-if [ -f /var/lock/subsys/qmail ]; then
-rm /var/lock/subsys/qmail
-fi
-;;
-stat)
-svstat /service/qmail-send
-svstat /service/qmail-send/log
-svstat /service/qmail-smtpd
-svstat /service/qmail-smtpd/log
-svstat /service/qmail-pop3d
-svstat /service/qmail-pop3d/log
-qmail-qstat
-;;
-doqueue|alrm|flush)
-echo &quot;Flushing timeout table and sending ALRM signal to qmail-send.&quot;
-/var/qmail/bin/qmail-tcpok
-svc -a /service/qmail-send
-;;
-queue)
-qmail-qstat
-qmail-qread
-;;
-reload|hup)
-echo &quot;Sending HUP signal to qmail-send.&quot;
-svc -h /service/qmail-send
-;;
-pause)
-echo &quot;Pausing qmail-send&quot;
-svc -p /service/qmail-send
-echo &quot;Pausing qmail-smtpd&quot;
-svc -p /service/qmail-smtpd
-echo &quot;Pausing qmail-pop3d&quot;
-svc -p /service/qmail-smtpd
-echo &quot;Pausing qmail-pop3d&quot;
-svc -p /service/qmail-pop3d
-;;
-cont)
-echo &quot;Continuing qmail-send&quot;
-svc -c /service/qmail-send
-echo &quot;Continuing qmail-smtpd&quot;
-svc -c /service/qmail-smtpd
-echo &quot;Continuing qmail-pop3d&quot;
-svc -c /service/qmail-pop3d
-;;
-restart)
-echo &quot;Restarting qmail:&quot;
-echo &quot;* Stopping qmail-smtpd.&quot;
-svc -d /service/qmail-smtpd /service/qmail-smtpd/log
-echo &quot;* Sending qmail-send SIGTERM and restarting.&quot;
-svc -t /service/qmail-send /service/qmail-send/log
-echo &quot;* Restarting qmail-smtpd.&quot;
-svc -u /service/qmail-smtpd /service/qmail-smtpd/log
-echo &quot;* Restarting qmail-pop3d.&quot;
-svc -t /service/qmail-pop3d /service/qmail-pop3d/log
-;;
-cdb)
-tcprules /etc/tcp.smtp.cdb /etc/tcp.smtp.tmp &amp;lt; /etc/tcp.smtp
-tcprules /etc/tcp.pop3.cdb /etc/tcp.pop3.tmp &amp;lt; /etc/tcp.pop3
-chmod 644 /etc/tcp.smtp.cdb
-chmod 644 /etc/tcp.pop3.cdb
-echo &quot;Reloaded /etc/tcp.smtp.&quot;
-echo &quot;Reloaded /etc/tcp.pop3.&quot;
-;;
-help)
-cat &amp;lt;   stop -- stops mail service (smtp connections refused, nothing goes out)
-start -- starts mail service (smtp connection accepted, mail can go out)
-pause -- temporarily stops mail service (connections accepted, nothing leaves)
-cont -- continues paused mail service
-stat -- displays status of mail service
-cont -- continues paused mail service
-stat -- displays status of mail service
-cdb -- rebuild the tcpserver cdb file for smtp
-restart -- stops and restarts smtp, sends qmail-send a TERM &amp;amp; restarts it
-doqueue -- schedules queued messages for immediate delivery
-reload -- sends qmail-send HUP, rereading locals and virtualdomains
-queue -- shows status of queue
-alrm -- same as doqueue
-flush -- same as doqueue
-hup -- same as reload
-HELP
-;;
-*)
-echo &quot;Usage: $0 {start|stop|restart|doqueue|flush|reload|stat|pause|cont|cdb|queue|help}&quot;
-exit 1
-;;
-esac
-
-exit 0
-
-chmod 755 /var/qmail/bin/qmailctl
-ln -s /var/qmail/bin/qmailctl /usr/bin
-echo 20 &amp;gt; /var/qmail/control/concurrencyincoming
-chmod 644 /var/qmail/control/concurrencyincoming
-
-supervise 脚本
-mkdir -p /var/qmail/supervise/qmail-send/log
-mkdir -p /var/qmail/supervise/qmail-smtpd/log
-mkdir -p /var/qmail/supervise/qmail-pop3d/log
-
-qmail-send
-
-/var/qmail/supervise/qmail-send/run
-
-#!/bin/sh
-exec /var/qmail/rc
-
-/var/qmail/supervise/qmail-send/log/run
-
-#!/bin/sh
-exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t /var/log/qmail
-
-qmail-smtpd
-
-/var/qmail/supervise/qmail-smtpd/run
-
-#!/bin/sh
-
-#QMAILDUID=`id -u qmaild`
-NOFILESGID=`id -g qmaild`
-QMAILDUID=`id -u vpopmail`
-QMAILDGID=`id -g vpopmail`
-
-MAXSMTPD=`cat /var/qmail/control/concurrencyincoming`
-LOCAL=`head -1 /var/qmail/control/me`
-if [ -z &quot;$QMAILDUID&quot; -o -z &quot;$NOFILESGID&quot; -o -z &quot;$MAXSMTPD&quot; -o -z &quot;$LOCAL&quot; ]; then
-echo QMAILDUID, NOFILESGID, MAXSMTPD, or LOCAL is unset in
-echo /var/qmail/supervise/qmail-smtpd/run
-exit 1
-fi
-if [ ! -f /var/qmail/control/rcpthosts ]; then
-echo &quot;No /var/qmail/control/rcpthosts!&quot;
-echo &quot;Refusing to start SMTP listener because it&#39;ll create an open relay&quot;
-exit 1
-fi
-exec /usr/local/bin/softlimit -m 30000000
-/usr/local/bin/tcpserver -v -H -R -l &quot;$LOCAL&quot; -x /etc/tcp.smtp.cdb -c &quot;$MAXSMTPD&quot;
--u &quot;$QMAILDUID&quot; -g &quot;$QMAILDGID&quot; 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
-/var/qmail/bin/qmail-smtpd
-/home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2&amp;gt;&amp;amp;1
-
-/var/qmail/supervise/qmail-smtpd/log/run
-
-#!/bin/sh
-exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t
-/var/log/qmail/smtpd
-
-qmail-pop3d
-
-/var/qmail/supervise/qmail-pop3d/run
-
-#!/bin/sh
-
-LOCAL=`head -1 /var/qmail/control/me`
-
-exec /usr/local/bin/softlimit -m 30000000
-/usr/local/bin/tcpserver -x /etc/tcp.pop3.cdb
--H -l $LOCAL
--v -c 20 -R 0 pop3
-/var/qmail/bin/qmail-popup $LOCAL
-/home/vpopmail/bin/vchkpw /var/qmail/bin/qmail-pop3d Maildir 2&amp;gt;&amp;amp;1
-
-/var/qmail/supervise/qmail-pop3d/log/run
-
-#!/bin/sh
-exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t
-/var/log/qmail/pop3d
-
-chmod 755 /var/qmail/supervise/qmail-send/run;chmod 755 /var/qmail/supervise/qmail-send/log/run
-chmod 755 /var/qmail/supervise/qmail-smtpd/run;chmod 755 /var/qmail/supervise/qmail-smtpd/log/run
-chmod 755 /var/qmail/supervise/qmail-pop3d/run;chmod 755 /var/qmail/supervise/qmail-pop3d/log/run
-mkdir -p /var/log/qmail/smtpd;chown qmaill /var/log/qmail /var/log/qmail/smtpd
-ln -s /var/qmail/supervise/qmail-send /var/qmail/supervise/qmail-smtpd /var/qmail/supervise/qmail-pop3d /service
-touch .qmail-root .qmail-postmaster
-ln -s .qmail-postmaster /var/qmail/alias/.qmail-mailer-daemon
-chmod 644 /var/qmail/alias/.qmail-root /var/qmail/alias/.qmail-postmaster
-
-clamav
-http://www.clamav.net/
-groupadd clamav
-useradd -g clamav -s /sbin/nologin clamav -d /tmp
-./configure
-make check
-make install
-
-maildrop
-
-./configure
-make;make install-strip;make install-man
-
-spamassassin
-
-perl Makefile.PL
-make
-make install
-cp spamd/redhat-rc-script.sh /etc/init.d/spamd
-
-qmail-scanner
-
-groupadd qscand;useradd -g qscand -s /sbin/nologin qscand -d /tmp
-./configure --spooldir /var/qmailscan --qmaildir /var/qmail --bindir /var/qmail/bin --qmail-queue-binary
-/var/qmail/bin/qmail-queue  --admin postmaster --domain xxx.com --notify sender,admin --local-domains &quot;xxx.com,xxx.com.cn,xxx.com.cn&quot; --silent-viruses auto --debug yes --unzip 1
---block-password-protected 0 --add-dscr-hdrs 0 --archive 0 --redundant yes --log-details syslog --log-crypto 0
---fix-mime 2  --ignore-eol-check 0 --scanners &quot;clamscan,fast_spamassassin&quot;
-
-cp qmail-scanner-queue.pl /var/qmail/bin
-chown qscand:qscand /var/qmail/bin/qmail-scanner-queue.pl
-chmod 4755 /var/qmail/bin/qmail-scanner-queue.pl
-vi /etc/tcp.smtp
-
-127.:allow,RELAYCLIENT=&quot;&quot;,MFDNSCHECK=&quot;&quot;,BADMIMETYPE=&quot;&quot;,RBLSMTPD=&quot;&quot;,QMAILQUEUE=&quot;/var/
-qmail/bin/qmail-scanner-queue.pl&quot;
-
-qmailctl cdb
-qmailctl restart
-contrib/test_installation.sh -doit测试
-"> <!-- TODO: truncate -->
-	
+    
+    
+    <title>caphit qmail 配置 - wd and cc</title>
+    <meta name="author" content="wd">
+    <meta name="description" content="">
+    <meta name="keywords" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-	<link href="atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+    <link href="" rel="alternate" title="wd and cc" type="application/atom+xml">
 	<link href="/favicon.ico" rel="shortcut icon">
-    <link href="/stylesheets/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
-    <link href="/stylesheets/hljs.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/screen.css" media="screen, projection" rel="stylesheet" type="text/css">
+    <link href="/css/custom.css" media="screen, projection" rel="stylesheet" type="text/css">
 
     <link href='//fonts.googleapis.com/css?family=Slackey' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Fjalla+One' rel='stylesheet' type='text/css'>
     <link href='//fonts.googleapis.com/css?family=Amethysta' rel='stylesheet' type='text/css'>
 	<script src="//ajax.googleapis.com/ajax/libs/jquery/1.8.2/jquery.min.js"></script>
-    <!--[if lt IE 9]><script src="//html5shiv.googlecode.com/svn/trunk/html5.js"></script><![}]-->
+    
 
-    <script type="text/javascript" src="/javascripts/jquery-tapir.js"></script>
-
-    <!-- remove or comment it to disable ajaxification -->   
-    <!-- <script src="/javascripts/ajaxify.js"></script> -->
+    <script type="text/javascript" src="/js/jquery-tapir.js"></script>
 
     
 
-    
-
+    <link rel="stylesheet" href="/css/hljs.css">
+    <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.6.0/highlight.min.js"></script>
+    <script>hljs.initHighlightingOnLoad();</script>
 </head>
 
 
 <body>
     <div id="wrapper">
-    <header id="header" class="inner"><!-- for more effects see _animate.scss -->
+        <header id="header" class="inner">
 <h1 class="animated bounceInDown">
     <div id="headerbg">
         wd and cc
     </div>
 </h1>
-<span class="subtitle">happy everyday</span>
+
+<span class="subtitle">happy every day</span>
 <br>
 
 <ul id="social-links" style="text-align:center; clear:both;">
-  
-  <!-- GitHub -->
-  <li>
-  <a href="https://github.com/wd" class="github" title="Github"></a>
-  </li>
-  
-  
-  
-  
-  <!-- Twitter -->
-  <li>
-  <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
-  </li>
-  
-  
-  
-  
-  
+    
+    
+    <li>
+    <a href="https://github.com/wd" class="github" title="Github"></a>
+    </li>
+    
+    
+    
+    
+    
+    <li>
+    <a href="http://www.twitter.com/wd" class="twitter" title="Twitter"></a>
+    </li>
+    
+    
+    
+    
+    
 </ul>
 
 
-<!-- use full url including 'index.html' for navigation bar if you are using ajax -->
 <ul id="nav">
 	<li id="ajax"><a href="/index.html">Home</a></li>
 	<li id="ajax"><a href="/archives/index.html">Archives</a></li>
 	<li id="ajax"><a href="/tags/index.html">Tags</a></li>
     <li><a href="/atom.xml">RSS</a></li>
-    
     <li>
     <div id="dark">
         <form action="//www.google.com.hk/search" method="get" accept-charset="UTF-8" id="search">
-            <input type="hidden" name="sitesearch" value="https://wdicc.com" />
+            <input type="hidden" name="sitesearch" value="https://wdicc.com/" />
             <input type="text" name="q" results="0" placeholder="Search..." x-webkit-speech />
         </form>
     </div>
     </li>
-        
 </ul>
-
-
-
 
 </header>
 
 <div id="toload">
-<!-- begin toload -->
+
     <div id="content" class="inner">
-        <article class="post">
-	<h2 class="title">caphit qmail 配置</h2>
+        
+<article class="post">
+    <h2 class="title">caphit qmail 配置</h2>
     <div class="meta">
-        <div class="date">Published on: <time datetime="2006-01-15T16:00:00.000Z" itemprop="datePublished">Jan 16, 2006</time>
+        <div class="date">Published on: <time datetime='2006-01-16T00:00:00.000&#43;00:00' itemprop="datePublished">2006-01-16</time>
 </div>
         <div class="tags">Tags: 
 
-<a href="/tags/Mail/">Mail</a> <a href="/tags/qmail/">qmail</a>
+<a href="/tags/mail">Mail</a>
+
+<a href="/tags/qmail">qmail</a>
+
+
 </div>
     </div>
-	<div class="entry-content">参考网址
-http://lifewithqmail.org(中文版http://lifewithqmail.org/LWQ-CN.html)
-http://qmail.te8.com/rpms/glibc-2.3.1/(patch下载地址)
-http://www.fehcom.de/qmail/qmail.html
-http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-mysql.htm
-http://bbs.chinaunix.net/forum/viewtopic.php?t=254662
+    <div class="entry-content">参考网址<br />
+http://lifewithqmail.org(中文版http://lifewithqmail.org/LWQ-CN.html)<br />
+http://qmail.te8.com/rpms/glibc-2.3.1/(patch下载地址)<br />
+http://www.fehcom.de/qmail/qmail.html<br />
+http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-mysql.htm<br />
+http://bbs.chinaunix.net/forum/viewtopic.php?t=254662<br />
 
-ucspi-tcp
-http://cr.yp.to/ucspi-tcp.html
-ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nodefaultrbl.patch
-（或者）ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nobase.patch
-patch -d ucspi-tcp.xxx -p1 &lt; ucspi-tcp-xxx.patch
-make&amp;&amp;make setup check
+ucspi-tcp<br />
+http://cr.yp.to/ucspi-tcp.html<br />
+ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nodefaultrbl.patch<br />
+（或者）ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nobase.patch<br />
+patch -d ucspi-tcp.xxx -p1 &lt; ucspi-tcp-xxx.patch<br />
+make&amp;&amp;make setup check<br />
 
-daemontools
-http://cr.yp.to/daemontools.html
-daemontools-0.76.errno.patch
-package/install
-Adding svscanboot to inittab...init should start svscan now.
+daemontools<br />
+http://cr.yp.to/daemontools.html<br />
+daemontools-0.76.errno.patch<br />
+package/install<br />
+Adding svscanboot to inittab...init should start svscan now.<br />
 
-cmd5checkpw
-http://www.fehcom.de/qmail/auth/cmd5checkpw-030_tgz.bin
-make&amp;&amp;make setup
+cmd5checkpw<br />
+http://www.fehcom.de/qmail/auth/cmd5checkpw-030_tgz.bin<br />
+make&amp;&amp;make setup<br />
 
-qmail 1.03
-http://cr.yp.to/qmail.html
-http://www.fehcom.de/qmail/qmail.html
-http://www.fehcom.de/qmail/spamcontrol/spamcontrol-2311_tgz.bin
-tar zxvf spamcontrol-2311_tgz.bin
-编辑conf-spamcontrol
-建立用户组
-groupadd nofiles
-useradd -g nofiles -d /var/qmail qmaild -s /sbin/nologin
-useradd -g nofiles -d /var/qmail qmaill -s /sbin/nologin
-useradd -g nofiles -d /var/qmail qmailp -s /sbin/nologin
-useradd -g nofiles -d /var/qmail/alias alias -s /sbin/nologin
-groupadd qmail
-useradd -g qmail -d /var/qmail qmailq -s /sbin/nologin
-useradd -g qmail -d /var/qmail qmailr -s /sbin/nologin
-useradd -g qmail -d /var/qmail qmails -s /sbin/nologin
-./install_spamcontrol.sh
-make setup check
-./config-fast xxxx.com
+qmail 1.03<br />
+http://cr.yp.to/qmail.html<br />
+http://www.fehcom.de/qmail/qmail.html<br />
+http://www.fehcom.de/qmail/spamcontrol/spamcontrol-2311_tgz.bin<br />
+tar zxvf spamcontrol-2311_tgz.bin<br />
+编辑conf-spamcontrol<br />
+建立用户组<br />
+groupadd nofiles<br />
+useradd -g nofiles -d /var/qmail qmaild -s /sbin/nologin<br />
+useradd -g nofiles -d /var/qmail qmaill -s /sbin/nologin<br />
+useradd -g nofiles -d /var/qmail qmailp -s /sbin/nologin<br />
+useradd -g nofiles -d /var/qmail/alias alias -s /sbin/nologin<br />
+groupadd qmail<br />
+useradd -g qmail -d /var/qmail qmailq -s /sbin/nologin<br />
+useradd -g qmail -d /var/qmail qmailr -s /sbin/nologin<br />
+useradd -g qmail -d /var/qmail qmails -s /sbin/nologin<br />
+./install_spamcontrol.sh<br />
+make setup check<br />
+./config-fast xxxx.com<br />
 
-vpopmail
-http://sourceforge.net/projects/vpopmail/
-groupadd vchkpw;useradd vpopmail
-CREATE DATABASE vpopmail;
-GRANT select,insert,update,delete,create,drop ON vpopmail.* TO vpopmailuser@localhost IDENTIFIED BY 'vpoppasswd';
-配置(用igenus需要enable-many-domains)
-./configure   --enable-logging=p
---enable-domain-quotas=y
---enable-auth-module=mysql
---enable-tcprules-prog=/usr/local/bin/tcprules
---enable-tcpserver-file=/etc/tcp.smtp
---disable-mysql-limits
---enable-mysql-logging
---enable-many-domains
-make&amp;&amp;make install-strip
-vi vpopmail.mysql
-vi vlimits.default
-echo "xxxx.com" &gt; /home/vpopmail/etc/defaultdomain
-vi /home/vpopmail/domains/.quotawarn.msg
-From: CAPH Postmaster
-<postmaster@xxx.com> Reply-To: postmaster@xxx.com
-To: SomeCompany User:;
-Subject: Mail quota warning
-Mime-Version: 1.0
-Content-Type: text/plain; charset=iso-8859-1
-Content-Transfer-Encoding: 7bit</postmaster@xxx.com>
+vpopmail<br />
+http://sourceforge.net/projects/vpopmail/<br />
+groupadd vchkpw;useradd vpopmail<br />
+CREATE DATABASE vpopmail;<br />
+GRANT select,insert,update,delete,create,drop ON vpopmail.* TO vpopmailuser@localhost IDENTIFIED BY 'vpoppasswd';<br />
+配置(用igenus需要enable-many-domains)<br />
+./configure   --enable-logging=p<br />
+--enable-domain-quotas=y<br />
+--enable-auth-module=mysql<br />
+--enable-tcprules-prog=/usr/local/bin/tcprules<br />
+--enable-tcpserver-file=/etc/tcp.smtp<br />
+--disable-mysql-limits<br />
+--enable-mysql-logging<br />
+--enable-many-domains<br />
+make&amp;&amp;make install-strip<br />
+vi vpopmail.mysql<br />
+vi vlimits.default<br />
+echo "xxxx.com" &gt; /home/vpopmail/etc/defaultdomain<br />
+vi /home/vpopmail/domains/.quotawarn.msg<br />
+From: CAPH Postmaster<br />
+<postmaster@xxx.com> Reply-To: postmaster@xxx.com<br />
+To: SomeCompany User:;<br />
+Subject: Mail quota warning<br />
+Mime-Version: 1.0<br />
+Content-Type: text/plain; charset=iso-8859-1<br />
+Content-Transfer-Encoding: 7bit</postmaster@xxx.com><br />
 
-Your mailbox on the server is now more than 90% full.
+Your mailbox on the server is now more than 90% full.<br />
 
-So that you can continue to receive mail,
-you need to remove some messages from your mailbox.
+So that you can continue to receive mail,<br />
+you need to remove some messages from your mailbox.<br />
 
-If you require assistance with this,
-please contact our support department :
+If you require assistance with this,<br />
+please contact our support department :<br />
 
-email : postmaster@xxx.com
-Tel   : 010 68372647
-echo "Message rejected. Not enough storage space in user's mailbox to accept message." &gt; /home/vpopmail/domains/.over-quota.msg
+email : postmaster@xxx.com<br />
+Tel   : 010 68372647<br />
+echo "Message rejected. Not enough storage space in user's mailbox to accept message." &gt; /home/vpopmail/domains/.over-quota.msg<br />
 
-/var/qmail/rc
-vi /var/qmail/rc
-#!/bin/sh
+/var/qmail/rc<br />
+vi /var/qmail/rc<br />
+#!/bin/sh<br />
 
-# Using stdout for logging
-# Using control/defaultdelivery from qmail-local to deliver messages by default
+# Using stdout for logging<br />
+# Using control/defaultdelivery from qmail-local to deliver messages by default<br />
 
-exec env - PATH="/var/qmail/bin:$PATH"
-qmail-start "`cat /var/qmail/control/defaultdelivery`"
+exec env - PATH="/var/qmail/bin:$PATH"<br />
+qmail-start "`cat /var/qmail/control/defaultdelivery`"<br />
 
-echo ./Maildir/ &gt;/var/qmail/control/defaultdelivery
-chmod 755 /var/qmail/rc
-mkdir /var/log/qmail
+echo ./Maildir/ &gt;/var/qmail/control/defaultdelivery<br />
+chmod 755 /var/qmail/rc<br />
+mkdir /var/log/qmail<br />
 
-/var/qmail/bin/qmailctl
+/var/qmail/bin/qmailctl<br />
 
-vi /var/qmail/bin/qmailctl
-#!/bin/sh
+vi /var/qmail/bin/qmailctl<br />
+#!/bin/sh<br />
 
-# description: the qmail MTA
+# description: the qmail MTA<br />
 
-PATH=/var/qmail/bin:/bin:/usr/bin:/usr/local/bin:/usr/local/sbin
-export PATH
-LOG_AUTH=1
-export LOG_AUTH
+PATH=/var/qmail/bin:/bin:/usr/bin:/usr/local/bin:/usr/local/sbin<br />
+export PATH<br />
+LOG_AUTH=1<br />
+export LOG_AUTH<br />
 
-QMAILDUID=`id -u qmaild`
-NOFILESGID=`id -g qmaild`
+QMAILDUID=`id -u qmaild`<br />
+NOFILESGID=`id -g qmaild`<br />
 
-case "$1" in
-start)
-echo "Starting qmail"
-if svok /service/qmail-send ; then
-svc -u /service/qmail-send /service/qmail-send/log
-else
-echo "qmail-send supervise not running"
-fi
-if svok /service/qmail-smtpd ; then
-svc -u /service/qmail-smtpd /service/qmail-smtpd/log
-else
-echo "qmail-smtpd supervise not running"
-fi
-if svok /service/qmail-pop3d ; then
-svc -u /service/qmail-pop3d /service/qmail-pop3d/log
-else
-echo qmail-pop3d supervise not running
-fi
-if [ -d /var/lock/subsys ]; then
-touch /var/lock/subsys/qmail
-fi
-;;
-stop)
-echo "Stopping qmail..."
-echo "  qmail-smtpd"
-svc -d /service/qmail-smtpd /service/qmail-smtpd/log
-echo "  qmail-smtpd"
-svc -d /service/qmail-smtpd /service/qmail-smtpd/log
-echo "  qmail-send"
-svc -d /service/qmail-send /service/qmail-send/log
-echo "  qmail-pop3d"
-svc -d /service/qmail-pop3d /service/qmail-pop3d/log
-if [ -f /var/lock/subsys/qmail ]; then
-rm /var/lock/subsys/qmail
-fi
-;;
-stat)
-svstat /service/qmail-send
-svstat /service/qmail-send/log
-svstat /service/qmail-smtpd
-svstat /service/qmail-smtpd/log
-svstat /service/qmail-pop3d
-svstat /service/qmail-pop3d/log
-qmail-qstat
-;;
-doqueue|alrm|flush)
-echo "Flushing timeout table and sending ALRM signal to qmail-send."
-/var/qmail/bin/qmail-tcpok
-svc -a /service/qmail-send
-;;
-queue)
-qmail-qstat
-qmail-qread
-;;
-reload|hup)
-echo "Sending HUP signal to qmail-send."
-svc -h /service/qmail-send
-;;
-pause)
-echo "Pausing qmail-send"
-svc -p /service/qmail-send
-echo "Pausing qmail-smtpd"
-svc -p /service/qmail-smtpd
-echo "Pausing qmail-pop3d"
-svc -p /service/qmail-smtpd
-echo "Pausing qmail-pop3d"
-svc -p /service/qmail-pop3d
-;;
-cont)
-echo "Continuing qmail-send"
-svc -c /service/qmail-send
-echo "Continuing qmail-smtpd"
-svc -c /service/qmail-smtpd
-echo "Continuing qmail-pop3d"
-svc -c /service/qmail-pop3d
-;;
-restart)
-echo "Restarting qmail:"
-echo "* Stopping qmail-smtpd."
-svc -d /service/qmail-smtpd /service/qmail-smtpd/log
-echo "* Sending qmail-send SIGTERM and restarting."
-svc -t /service/qmail-send /service/qmail-send/log
-echo "* Restarting qmail-smtpd."
-svc -u /service/qmail-smtpd /service/qmail-smtpd/log
-echo "* Restarting qmail-pop3d."
-svc -t /service/qmail-pop3d /service/qmail-pop3d/log
-;;
-cdb)
-tcprules /etc/tcp.smtp.cdb /etc/tcp.smtp.tmp &lt; /etc/tcp.smtp
-tcprules /etc/tcp.pop3.cdb /etc/tcp.pop3.tmp &lt; /etc/tcp.pop3
-chmod 644 /etc/tcp.smtp.cdb
-chmod 644 /etc/tcp.pop3.cdb
-echo "Reloaded /etc/tcp.smtp."
-echo "Reloaded /etc/tcp.pop3."
-;;
-help)
-cat &lt;   stop -- stops mail service (smtp connections refused, nothing goes out)
-start -- starts mail service (smtp connection accepted, mail can go out)
-pause -- temporarily stops mail service (connections accepted, nothing leaves)
-cont -- continues paused mail service
-stat -- displays status of mail service
-cont -- continues paused mail service
-stat -- displays status of mail service
-cdb -- rebuild the tcpserver cdb file for smtp
-restart -- stops and restarts smtp, sends qmail-send a TERM &amp; restarts it
-doqueue -- schedules queued messages for immediate delivery
-reload -- sends qmail-send HUP, rereading locals and virtualdomains
-queue -- shows status of queue
-alrm -- same as doqueue
-flush -- same as doqueue
-hup -- same as reload
-HELP
-;;
-*)
-echo "Usage: $0 {start|stop|restart|doqueue|flush|reload|stat|pause|cont|cdb|queue|help}"
-exit 1
-;;
-esac
+case "$1" in<br />
+start)<br />
+echo "Starting qmail"<br />
+if svok /service/qmail-send ; then<br />
+svc -u /service/qmail-send /service/qmail-send/log<br />
+else<br />
+echo "qmail-send supervise not running"<br />
+fi<br />
+if svok /service/qmail-smtpd ; then<br />
+svc -u /service/qmail-smtpd /service/qmail-smtpd/log<br />
+else<br />
+echo "qmail-smtpd supervise not running"<br />
+fi<br />
+if svok /service/qmail-pop3d ; then<br />
+svc -u /service/qmail-pop3d /service/qmail-pop3d/log<br />
+else<br />
+echo qmail-pop3d supervise not running<br />
+fi<br />
+if [ -d /var/lock/subsys ]; then<br />
+touch /var/lock/subsys/qmail<br />
+fi<br />
+;;<br />
+stop)<br />
+echo "Stopping qmail..."<br />
+echo "  qmail-smtpd"<br />
+svc -d /service/qmail-smtpd /service/qmail-smtpd/log<br />
+echo "  qmail-smtpd"<br />
+svc -d /service/qmail-smtpd /service/qmail-smtpd/log<br />
+echo "  qmail-send"<br />
+svc -d /service/qmail-send /service/qmail-send/log<br />
+echo "  qmail-pop3d"<br />
+svc -d /service/qmail-pop3d /service/qmail-pop3d/log<br />
+if [ -f /var/lock/subsys/qmail ]; then<br />
+rm /var/lock/subsys/qmail<br />
+fi<br />
+;;<br />
+stat)<br />
+svstat /service/qmail-send<br />
+svstat /service/qmail-send/log<br />
+svstat /service/qmail-smtpd<br />
+svstat /service/qmail-smtpd/log<br />
+svstat /service/qmail-pop3d<br />
+svstat /service/qmail-pop3d/log<br />
+qmail-qstat<br />
+;;<br />
+doqueue|alrm|flush)<br />
+echo "Flushing timeout table and sending ALRM signal to qmail-send."<br />
+/var/qmail/bin/qmail-tcpok<br />
+svc -a /service/qmail-send<br />
+;;<br />
+queue)<br />
+qmail-qstat<br />
+qmail-qread<br />
+;;<br />
+reload|hup)<br />
+echo "Sending HUP signal to qmail-send."<br />
+svc -h /service/qmail-send<br />
+;;<br />
+pause)<br />
+echo "Pausing qmail-send"<br />
+svc -p /service/qmail-send<br />
+echo "Pausing qmail-smtpd"<br />
+svc -p /service/qmail-smtpd<br />
+echo "Pausing qmail-pop3d"<br />
+svc -p /service/qmail-smtpd<br />
+echo "Pausing qmail-pop3d"<br />
+svc -p /service/qmail-pop3d<br />
+;;<br />
+cont)<br />
+echo "Continuing qmail-send"<br />
+svc -c /service/qmail-send<br />
+echo "Continuing qmail-smtpd"<br />
+svc -c /service/qmail-smtpd<br />
+echo "Continuing qmail-pop3d"<br />
+svc -c /service/qmail-pop3d<br />
+;;<br />
+restart)<br />
+echo "Restarting qmail:"<br />
+echo "* Stopping qmail-smtpd."<br />
+svc -d /service/qmail-smtpd /service/qmail-smtpd/log<br />
+echo "* Sending qmail-send SIGTERM and restarting."<br />
+svc -t /service/qmail-send /service/qmail-send/log<br />
+echo "* Restarting qmail-smtpd."<br />
+svc -u /service/qmail-smtpd /service/qmail-smtpd/log<br />
+echo "* Restarting qmail-pop3d."<br />
+svc -t /service/qmail-pop3d /service/qmail-pop3d/log<br />
+;;<br />
+cdb)<br />
+tcprules /etc/tcp.smtp.cdb /etc/tcp.smtp.tmp &lt; /etc/tcp.smtp<br />
+tcprules /etc/tcp.pop3.cdb /etc/tcp.pop3.tmp &lt; /etc/tcp.pop3<br />
+chmod 644 /etc/tcp.smtp.cdb<br />
+chmod 644 /etc/tcp.pop3.cdb<br />
+echo "Reloaded /etc/tcp.smtp."<br />
+echo "Reloaded /etc/tcp.pop3."<br />
+;;<br />
+help)<br />
+cat &lt;   stop -- stops mail service (smtp connections refused, nothing goes out)<br />
+start -- starts mail service (smtp connection accepted, mail can go out)<br />
+pause -- temporarily stops mail service (connections accepted, nothing leaves)<br />
+cont -- continues paused mail service<br />
+stat -- displays status of mail service<br />
+cont -- continues paused mail service<br />
+stat -- displays status of mail service<br />
+cdb -- rebuild the tcpserver cdb file for smtp<br />
+restart -- stops and restarts smtp, sends qmail-send a TERM &amp; restarts it<br />
+doqueue -- schedules queued messages for immediate delivery<br />
+reload -- sends qmail-send HUP, rereading locals and virtualdomains<br />
+queue -- shows status of queue<br />
+alrm -- same as doqueue<br />
+flush -- same as doqueue<br />
+hup -- same as reload<br />
+HELP<br />
+;;<br />
+*)<br />
+echo "Usage: $0 {start|stop|restart|doqueue|flush|reload|stat|pause|cont|cdb|queue|help}"<br />
+exit 1<br />
+;;<br />
+esac<br />
 
-exit 0
+exit 0<br />
 
-chmod 755 /var/qmail/bin/qmailctl
-ln -s /var/qmail/bin/qmailctl /usr/bin
-echo 20 &gt; /var/qmail/control/concurrencyincoming
-chmod 644 /var/qmail/control/concurrencyincoming
+chmod 755 /var/qmail/bin/qmailctl<br />
+ln -s /var/qmail/bin/qmailctl /usr/bin<br />
+echo 20 &gt; /var/qmail/control/concurrencyincoming<br />
+chmod 644 /var/qmail/control/concurrencyincoming<br />
 
-supervise 脚本
-mkdir -p /var/qmail/supervise/qmail-send/log
-mkdir -p /var/qmail/supervise/qmail-smtpd/log
-mkdir -p /var/qmail/supervise/qmail-pop3d/log
+supervise 脚本<br />
+mkdir -p /var/qmail/supervise/qmail-send/log<br />
+mkdir -p /var/qmail/supervise/qmail-smtpd/log<br />
+mkdir -p /var/qmail/supervise/qmail-pop3d/log<br />
 
-qmail-send
+qmail-send<br />
 
-/var/qmail/supervise/qmail-send/run
+/var/qmail/supervise/qmail-send/run<br />
 
-#!/bin/sh
-exec /var/qmail/rc
+#!/bin/sh<br />
+exec /var/qmail/rc<br />
 
-/var/qmail/supervise/qmail-send/log/run
+/var/qmail/supervise/qmail-send/log/run<br />
 
-#!/bin/sh
-exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t /var/log/qmail
+#!/bin/sh<br />
+exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t /var/log/qmail<br />
 
-qmail-smtpd
+qmail-smtpd<br />
 
-/var/qmail/supervise/qmail-smtpd/run
+/var/qmail/supervise/qmail-smtpd/run<br />
 
-#!/bin/sh
+#!/bin/sh<br />
 
-#QMAILDUID=`id -u qmaild`
-NOFILESGID=`id -g qmaild`
-QMAILDUID=`id -u vpopmail`
-QMAILDGID=`id -g vpopmail`
+#QMAILDUID=`id -u qmaild`<br />
+NOFILESGID=`id -g qmaild`<br />
+QMAILDUID=`id -u vpopmail`<br />
+QMAILDGID=`id -g vpopmail`<br />
 
-MAXSMTPD=`cat /var/qmail/control/concurrencyincoming`
-LOCAL=`head -1 /var/qmail/control/me`
-if [ -z "$QMAILDUID" -o -z "$NOFILESGID" -o -z "$MAXSMTPD" -o -z "$LOCAL" ]; then
-echo QMAILDUID, NOFILESGID, MAXSMTPD, or LOCAL is unset in
-echo /var/qmail/supervise/qmail-smtpd/run
-exit 1
-fi
-if [ ! -f /var/qmail/control/rcpthosts ]; then
-echo "No /var/qmail/control/rcpthosts!"
-echo "Refusing to start SMTP listener because it'll create an open relay"
-exit 1
-fi
-exec /usr/local/bin/softlimit -m 30000000
-/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
--u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
-/var/qmail/bin/qmail-smtpd
-/home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2&gt;&amp;1
+MAXSMTPD=`cat /var/qmail/control/concurrencyincoming`<br />
+LOCAL=`head -1 /var/qmail/control/me`<br />
+if [ -z "$QMAILDUID" -o -z "$NOFILESGID" -o -z "$MAXSMTPD" -o -z "$LOCAL" ]; then<br />
+echo QMAILDUID, NOFILESGID, MAXSMTPD, or LOCAL is unset in<br />
+echo /var/qmail/supervise/qmail-smtpd/run<br />
+exit 1<br />
+fi<br />
+if [ ! -f /var/qmail/control/rcpthosts ]; then<br />
+echo "No /var/qmail/control/rcpthosts!"<br />
+echo "Refusing to start SMTP listener because it'll create an open relay"<br />
+exit 1<br />
+fi<br />
+exec /usr/local/bin/softlimit -m 30000000<br />
+/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"<br />
+-u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org<br />
+/var/qmail/bin/qmail-smtpd<br />
+/home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2&gt;&amp;1<br />
 
-/var/qmail/supervise/qmail-smtpd/log/run
+/var/qmail/supervise/qmail-smtpd/log/run<br />
 
-#!/bin/sh
-exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t
-/var/log/qmail/smtpd
+#!/bin/sh<br />
+exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t<br />
+/var/log/qmail/smtpd<br />
 
-qmail-pop3d
+qmail-pop3d<br />
 
-/var/qmail/supervise/qmail-pop3d/run
+/var/qmail/supervise/qmail-pop3d/run<br />
 
-#!/bin/sh
+#!/bin/sh<br />
 
-LOCAL=`head -1 /var/qmail/control/me`
+LOCAL=`head -1 /var/qmail/control/me`<br />
 
-exec /usr/local/bin/softlimit -m 30000000
-/usr/local/bin/tcpserver -x /etc/tcp.pop3.cdb
--H -l $LOCAL
--v -c 20 -R 0 pop3
-/var/qmail/bin/qmail-popup $LOCAL
-/home/vpopmail/bin/vchkpw /var/qmail/bin/qmail-pop3d Maildir 2&gt;&amp;1
+exec /usr/local/bin/softlimit -m 30000000<br />
+/usr/local/bin/tcpserver -x /etc/tcp.pop3.cdb<br />
+-H -l $LOCAL<br />
+-v -c 20 -R 0 pop3<br />
+/var/qmail/bin/qmail-popup $LOCAL<br />
+/home/vpopmail/bin/vchkpw /var/qmail/bin/qmail-pop3d Maildir 2&gt;&amp;1<br />
 
-/var/qmail/supervise/qmail-pop3d/log/run
+/var/qmail/supervise/qmail-pop3d/log/run<br />
 
-#!/bin/sh
-exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t
-/var/log/qmail/pop3d
+#!/bin/sh<br />
+exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t<br />
+/var/log/qmail/pop3d<br />
 
-chmod 755 /var/qmail/supervise/qmail-send/run;chmod 755 /var/qmail/supervise/qmail-send/log/run
-chmod 755 /var/qmail/supervise/qmail-smtpd/run;chmod 755 /var/qmail/supervise/qmail-smtpd/log/run
-chmod 755 /var/qmail/supervise/qmail-pop3d/run;chmod 755 /var/qmail/supervise/qmail-pop3d/log/run
-mkdir -p /var/log/qmail/smtpd;chown qmaill /var/log/qmail /var/log/qmail/smtpd
-ln -s /var/qmail/supervise/qmail-send /var/qmail/supervise/qmail-smtpd /var/qmail/supervise/qmail-pop3d /service
-touch .qmail-root .qmail-postmaster
-ln -s .qmail-postmaster /var/qmail/alias/.qmail-mailer-daemon
-chmod 644 /var/qmail/alias/.qmail-root /var/qmail/alias/.qmail-postmaster
+chmod 755 /var/qmail/supervise/qmail-send/run;chmod 755 /var/qmail/supervise/qmail-send/log/run<br />
+chmod 755 /var/qmail/supervise/qmail-smtpd/run;chmod 755 /var/qmail/supervise/qmail-smtpd/log/run<br />
+chmod 755 /var/qmail/supervise/qmail-pop3d/run;chmod 755 /var/qmail/supervise/qmail-pop3d/log/run<br />
+mkdir -p /var/log/qmail/smtpd;chown qmaill /var/log/qmail /var/log/qmail/smtpd<br />
+ln -s /var/qmail/supervise/qmail-send /var/qmail/supervise/qmail-smtpd /var/qmail/supervise/qmail-pop3d /service<br />
+touch .qmail-root .qmail-postmaster<br />
+ln -s .qmail-postmaster /var/qmail/alias/.qmail-mailer-daemon<br />
+chmod 644 /var/qmail/alias/.qmail-root /var/qmail/alias/.qmail-postmaster<br />
 
-clamav
-http://www.clamav.net/
-groupadd clamav
-useradd -g clamav -s /sbin/nologin clamav -d /tmp
-./configure
-make check
-make install
+clamav<br />
+http://www.clamav.net/<br />
+groupadd clamav<br />
+useradd -g clamav -s /sbin/nologin clamav -d /tmp<br />
+./configure<br />
+make check<br />
+make install<br />
 
-maildrop
+maildrop<br />
 
-./configure
-make;make install-strip;make install-man
+./configure<br />
+make;make install-strip;make install-man<br />
 
-spamassassin
+spamassassin<br />
 
-perl Makefile.PL
-make
-make install
-cp spamd/redhat-rc-script.sh /etc/init.d/spamd
+perl Makefile.PL<br />
+make<br />
+make install<br />
+cp spamd/redhat-rc-script.sh /etc/init.d/spamd<br />
 
-qmail-scanner
+qmail-scanner<br />
 
-groupadd qscand;useradd -g qscand -s /sbin/nologin qscand -d /tmp
-./configure --spooldir /var/qmailscan --qmaildir /var/qmail --bindir /var/qmail/bin --qmail-queue-binary
-/var/qmail/bin/qmail-queue  --admin postmaster --domain xxx.com --notify sender,admin --local-domains "xxx.com,xxx.com.cn,xxx.com.cn" --silent-viruses auto --debug yes --unzip 1
---block-password-protected 0 --add-dscr-hdrs 0 --archive 0 --redundant yes --log-details syslog --log-crypto 0
---fix-mime 2  --ignore-eol-check 0 --scanners "clamscan,fast_spamassassin"
+groupadd qscand;useradd -g qscand -s /sbin/nologin qscand -d /tmp<br />
+./configure --spooldir /var/qmailscan --qmaildir /var/qmail --bindir /var/qmail/bin --qmail-queue-binary<br />
+/var/qmail/bin/qmail-queue  --admin postmaster --domain xxx.com --notify sender,admin --local-domains "xxx.com,xxx.com.cn,xxx.com.cn" --silent-viruses auto --debug yes --unzip 1<br />
+--block-password-protected 0 --add-dscr-hdrs 0 --archive 0 --redundant yes --log-details syslog --log-crypto 0<br />
+--fix-mime 2  --ignore-eol-check 0 --scanners "clamscan,fast_spamassassin"<br />
 
-cp qmail-scanner-queue.pl /var/qmail/bin
-chown qscand:qscand /var/qmail/bin/qmail-scanner-queue.pl
-chmod 4755 /var/qmail/bin/qmail-scanner-queue.pl
-vi /etc/tcp.smtp
+cp qmail-scanner-queue.pl /var/qmail/bin<br />
+chown qscand:qscand /var/qmail/bin/qmail-scanner-queue.pl<br />
+chmod 4755 /var/qmail/bin/qmail-scanner-queue.pl<br />
+vi /etc/tcp.smtp<br />
 
-127.:allow,RELAYCLIENT="",MFDNSCHECK="",BADMIMETYPE="",RBLSMTPD="",QMAILQUEUE="/var/
-qmail/bin/qmail-scanner-queue.pl"
+127.:allow,RELAYCLIENT="",MFDNSCHECK="",BADMIMETYPE="",RBLSMTPD="",QMAILQUEUE="/var/<br />
+qmail/bin/qmail-scanner-queue.pl"<br />
 
-qmailctl cdb
-qmailctl restart
-contrib/test_installation.sh -doit测试
+qmailctl cdb<br />
+qmailctl restart<br />
+contrib/test_installation.sh -doit测试<br />
 </div>
 
 <div class="meta">
-	
-		<span class="comments"><a href="https://wdicc.com/caphit-qmail-conf/#disqus_thread">Comments</a></span>
-	
+    
 </div>
 </article>
 
-	<div class="share">
+<div class="share">
 	<div class="addthis_toolbox addthis_default_style ">
+	
+	<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
 	
 	
 	<a class="addthis_button_tweet"></a>
 	
 	
+	<a class="addthis_button_google_plusone" g:plusone:size="midum"></a>
+	
 	<a class="addthis_counter addthis_pill_style"></a>
 	</div>
-  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=null"></script>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=wd"></script>
 </div>
 
 
 
-
-
     
-      <script type="text/javascript">
+     <script type="text/javascript">
         var disqus_config = function () {
-            this.page.url = 'https://wdicc.com/caphit-qmail-conf/';
-            this.page.identifier = 'https://wdicc.com/caphit-qmail-conf/';
+            this.page.url = 'https:\/\/wdicc.com\/caphit-qmail-conf\/';
+            this.page.identifier = 'https:\/\/wdicc.com\/caphit-qmail-conf\/';
         };
 
         (function() {
@@ -859,14 +499,17 @@ contrib/test_installation.sh -doit测试
           s.setAttribute('data-timestamp', +new Date());
           (d.head || d.body).appendChild(s);
         })();
-      </script>
+     </script>
     
+
+
 
 
 <section id="comment">
     <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite"><noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-</div>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="http://disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
 </section>
 
 
@@ -874,33 +517,23 @@ contrib/test_installation.sh -doit测试
     <footer id="footer">
     <div style="display:inline">
     Copyright &copy; 2017
-
+    
     wd
-. Powered by <a href="http://zespia.tw/hexo/" target="_blank">Hexo</a> |
-    Theme is <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a>, fork from <a href="http://github.com/panks/fabric">fabric</a> by <a href="http://panks.me">Pankaj Kumar</a>
+    . Powered by <a href="http://gohugo.io" target="_blank">Hugo</a> |
+    Theme is <a href="https://github.com/wd/hugo-fabric">hugo-fabric</a>, fork from <a href="https://github.com/wd/hexo-fabric">hexo-fabric</a> by <a href="https://wdicc.com">me</a>
 </div>
-
 
     </footer>
-    <script src="/javascripts/fabric.js"></script>
-<script src="/javascripts/jquery.fancybox.pack.js"></script>
+    <script src="/js/fabric.js"></script>
+
+
+</div>
+</div>
+<script src="/js/jquery.ui.totop.js" type="text/javascript"></script>
 <script type="text/javascript">
-(function($){
-	$('.fancybox').fancybox();
-})(jQuery);
+ 
+;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery);
+ 
 </script>
- <!-- Delete or comment this line to disable Fancybox -->
-
-
-
-<!-- end toload --> 
-</div>
-</div>
-<script src="/javascripts/jquery.ui.totop.js" type="text/javascript"></script>
-<script type="text/javascript">
-/*<![CDATA[*/
-;(function($){$().UItoTop({easingType:'easeOutCirc'});})(jQuery); 
-/*]]>*/
-</script><!-- remove it to remove the scroll to top button -->
 </body>
 </html>

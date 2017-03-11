@@ -1,0 +1,596 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Web on wd and cc</title>
+    <link>https://wdicc.com/tags/web/atom/index.xml</link>
+    <description>Recent content in Web on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/web/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>octopress and jeklly 1.0.1</title>
+      <link>https://wdicc.com/octopress-and-jeklly-1-dot-0-1/</link>
+      <pubDate>Wed, 12 Jun 2013 21:45:00 +0800</pubDate>
+      
+      <guid>https://wdicc.com/octopress-and-jeklly-1-dot-0-1/</guid>
+      <description>&lt;p&gt;自从 jeklly 1.0.x 发布之后，我的 octopress 站点就在 github，gitcafe 上面更新不了了，写了新帖子然后 push 之后，会收到个邮件，说 generate site faild。&lt;/p&gt;
+
+&lt;p&gt;等等。。这个不是静态站点吗？generate 你妹阿！！然后就找阿找阿找解决办法，尝试过下面这些&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;touch 一个 .nojeklly 不让它 generate&lt;/li&gt;
+&lt;li&gt;找 octopress 支持 jeklly 1.0.1 的新版本&lt;/li&gt;
+&lt;li&gt;google 之，怎么可能就我遇到问题了呢&lt;/li&gt;
+&lt;li&gt;使用 jeklly 1.0.1 单独搭一个，不用 octopress 了&lt;/li&gt;
+&lt;li&gt;&amp;hellip;其他忘记了的。。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;悲剧的是，以上这些方法没一个搞定了&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;某处搜到的这个 .nojeklly 完全不管用&lt;/li&gt;
+&lt;li&gt;octopress 2.1 这个 branch 支持 jeklly 1.0.1，可惜没能让他运转起来。。具体 release 日期似乎还没看到。。。&lt;/li&gt;
+&lt;li&gt;google 不到有用的信息，唯一有用的就是有人给 octopress 提的 pull request，可惜被 merge 到 2.1 了&lt;/li&gt;
+&lt;li&gt;这个倒是简单，可惜的是 octopress 其实背后做了很多事情，单纯的拿弄 post 过去发现有些文件解析不了，我遇到的是 ` 这个标记，是 octopress 支持的，可惜我的 post 里面好多都是这个。另外还有主题阿等等这些。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;综上，就觉得，nnd，这破玩意怎么这么复杂？！&lt;/p&gt;
+
+&lt;p&gt;后来不知道哪天突然想到，我之前测试 hexo 的时候，它没有 jeklly 一说，不是也可以么？另外，github pages 的例子里面，也就是 echo 了一个文件呀，也没有 jeklly 阿，不是也可以么？然后就觉得豁然开朗，github 之流肯定是默认会给你处理 jeklly 的代码，然后产生一个 site，而不是直接使用你产生的 html 文件。回想之前每次 deploy github pages，都会收到一个邮件提醒说 site generate success 之类，那就应该是猜的没错了。&lt;/p&gt;
+
+&lt;p&gt;然后就开始尝试只 push html（octopress 的结果文件在 public 里面）上去，结果确实如所料，毛问题都没有了，gitcafe 和 github 都可以了。总算舒服了。。另外还写了一个使用 octopress deploy 到 gitcafe 的&lt;a href=&#34;http://wdicc.om/octopress-and-gitcafe/&#34;&gt;帖子&lt;/a&gt;，有需要可以参考。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Some tips for bash scripting</title>
+      <link>https://wdicc.com/some-tips-on-bash-scripting/</link>
+      <pubDate>Sun, 02 Dec 2012 19:43:00 +0800</pubDate>
+      
+      <guid>https://wdicc.com/some-tips-on-bash-scripting/</guid>
+      <description>
+
+&lt;p&gt;最近几天写了一些 bash 脚本，又有些心得，记录一下。&lt;/p&gt;
+
+&lt;h2 id=&#34;获取当前路径的绝对路径&#34;&gt;获取当前路径的绝对路径&lt;/h2&gt;
+
+&lt;p&gt;比较常见的需求可能是获取相对路径，这样方便程序复制到其他目录也可以运行。使用 &lt;code&gt;$(dirname $0)&lt;/code&gt; 就可以获取相对路径，不过这里说的是绝对路径。&lt;/p&gt;
+
+&lt;p&gt;其实也简单，相对路径加上当前目录，那不就是绝对路径么。不过是，有时候 &lt;code&gt;$(dirname $0)&lt;/code&gt; 取到的也可能是绝对路径（一般期望相对路径的程序也能跑通，所以不大关心）。&lt;/p&gt;
+
+&lt;p&gt;可以用下面的做法，大意是先判断一下获取到的路径是不是 &lt;code&gt;/&lt;/code&gt; 开头，如果是，那就不处理，如果不是，那就把当前的路径附加上去得到一个绝对路径。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;PG_DIR=&amp;quot;$(dirname $0)/../&amp;quot;
+
+echo &amp;quot;$PG_DIR&amp;quot; | grep -q ^/
+
+if [ $? -ne 0 ];then
+        PG_DIR=&amp;quot;$(pwd)/$PG_DIR&amp;quot;
+fi
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;使用-getopt-获取命令行参数&#34;&gt;使用 getopt 获取命令行参数&lt;/h2&gt;
+
+&lt;p&gt;获取参数比较常见的做法是取 &lt;code&gt;$1&lt;/code&gt; &lt;code&gt;$2&lt;/code&gt; 这些，不过不太专业，这里说的是类似于 &lt;code&gt;--prefix=/path/to/install -v&lt;/code&gt; 这种。&lt;/p&gt;
+
+&lt;p&gt;bash 本身提供了一个内部命令 &lt;code&gt;getopts&lt;/code&gt; 来做这个事情，不过那个只能支持 short_opts，就是类似 &lt;code&gt;-v&lt;/code&gt; 这种，不支持长的。&lt;/p&gt;
+
+&lt;p&gt;getopt 是一个 GNU 程序，他支持 long_opts。下面是个例子。代码基本来自网上。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;ARGS=$(getopt -a -o h -l initdb::,help -- &amp;quot;$@&amp;quot;)
+[ $? -ne 0 ] &amp;amp;&amp;amp; usage
+
+eval set -- &amp;quot;${ARGS}&amp;quot; 
+
+while true
+do
+        case $1 in
+                --initdb)
+                        initdb $2
+                        ;;
+                -h|--help)
+                        usage;
+                        ;;
+                --)
+                        shift
+                        break
+                        ;;
+        esac
+        shift
+done
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;解释一下上面的参数的含义:
+* &lt;code&gt;-o&lt;/code&gt; 参数指定的就是短参数，我试过，貌似还得指定至少一个短参数。
+* &lt;code&gt;-l&lt;/code&gt; 参数指定的就是长参数。
+* 多个参数用逗号 &lt;code&gt;,&lt;/code&gt; 分隔。
+* 参数后面跟一个冒号 &lt;code&gt;:&lt;/code&gt; 表示这个参数(option)必须要给一个参数(argument)，类似上面的 &lt;code&gt;--prefix=/path/to/install&lt;/code&gt; 这种。
+* 参数后面跟2个冒号 &lt;code&gt;::&lt;/code&gt; 表示这个参数后面的参数可有可无。比如例子里面的 &lt;code&gt;--initdb&lt;/code&gt;&lt;/p&gt;
+
+&lt;h2 id=&#34;find-exec-提示-no-such-file-or-directory&#34;&gt;find exec 提示 No such file or directory&lt;/h2&gt;
+
+&lt;p&gt;这个是之前用来日志删除的一个程序，大概命令类似 &lt;code&gt;find ./ -name &#39;2012*&#39; -exec rm -r {} \;&lt;/code&gt;，后来总发现报 &lt;code&gt;No such file or directory&lt;/code&gt; 这个错误，可是去看的时候，发现那些目录也被删掉了。开始觉得可能是有其他人的程序也在删除这个目录，问了一圈结果没人删。&lt;/p&gt;
+
+&lt;p&gt;后来经过测试琢磨找到原因了，在于这个命令的执行思路大概是先去找那个名字的文件或者目录，然后挨个执行后面的命令。那么，如果找到的既有上级目录，也有下级文件的时候，如果目录先被删掉了，那删文件的时候可不就是 &lt;code&gt;No such file or directory&lt;/code&gt; 么。&lt;/p&gt;
+
+&lt;p&gt;好在 find 提供了一个参数 &lt;code&gt;-prune&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;       -prune True; if the file is a directory, do not descend into it. If -depth is given, false; no effect.  Because -delete implies -depth, you can-
+              not usefully use -prune and -delete together.
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>介绍下 openresty</title>
+      <link>https://wdicc.com/intro-openresty/</link>
+      <pubDate>Sun, 23 Oct 2011 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/intro-openresty/</guid>
+      <description>一直没有时间使用 ngx_lua，上周算是真正使用了下，总结下，也算是帮忙推广下 openresty。&lt;br /&gt;
+&lt;div id=&#34;outline-container-1&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
+&lt;h2 id=&#34;sec-1&#34;&gt;什么是 openresty&lt;/h2&gt;&lt;br /&gt;
+&lt;div id=&#34;text-1&#34; class=&#34;outline-text-2&#34;&gt;&lt;br /&gt;
+
+openresty 的主力作者是 &lt;a href=&#34;http://weibo.com/agentzh&#34;&gt;@agentzh&lt;/a&gt; 它的网页在 &lt;a href=&#34;http://openresty.org&#34;&gt;这里&lt;/a&gt;，上面有介绍。按我的理解，他是介于客户端浏览器 js 和数据库之间的一层。&lt;br /&gt;
+
+在 ajex 还没有盛行的时代，数据库的数据需要展现在浏览器的时候，一般都是使用 php/jsp 之类读取数据，然后拼表格/图表这些。在客户端机器越来越牛逼之后，把部分运算放在浏览器里面开始盛行，ajex 也越来越流行。这个时候通常还需要有个服务器端的程序来配合从数据库获取并提供数据，应该也有不少类似的程序来提供这个数据。&lt;br /&gt;
+
+老版本的 openresty 是基于 perl 做的，可以上 cpan 上面 &lt;a href=&#34;http://search.cpan.org/~agent/OpenResty-0.5.12/lib/OpenResty/Spec/REST_cn.pod&#34;&gt;搜到&lt;/a&gt; (不知道为啥这页面我打不开了)。agentzh 还专门为他写了一个 admin site，纯 js + oprensty 来实现的，可以直接在上面配置接口，很方便。目前老版本应该没人用了。&lt;br /&gt;
+
+新版本的 openresty 基本上等于是 nginx 和一些 nginx 模块的集合，大部分模块都是 agentzh 和 &lt;a href=&#34;https://github.com/chaoslawful&#34;&gt;chaoslawful&lt;/a&gt; 完成的，目前 agentzh 离职在家全职开发 openresty 相关，chaoslawful 还在淘宝 &lt;a href=&#34;http://linezing.com&#34;&gt;量子统计&lt;/a&gt; 。&lt;br /&gt;
+
+这大概就是我了解的 openresty 的起源和目前的情况。写的比较简单，里面的曲折就不多说了，可以找上面提到的大牛聊天。&lt;br /&gt;
+
+&lt;/div&gt;&lt;br /&gt;
+&lt;/div&gt;&lt;br /&gt;
+&lt;div id=&#34;outline-container-2&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
+&lt;h2 id=&#34;sec-2&#34;&gt;怎么使用 openresty&lt;/h2&gt;&lt;br /&gt;
+&lt;div id=&#34;text-2&#34; class=&#34;outline-text-2&#34;&gt;&lt;br /&gt;
+
+我下面用一个简单的例子来描述下，我是怎么使用 openresty 的，从中应该能看出来 openresty 能干啥，怎么用。&lt;br /&gt;
+
+&lt;/div&gt;&lt;br /&gt;
+&lt;div id=&#34;outline-container-2-1&#34; class=&#34;outline-3&#34;&gt;&lt;br /&gt;
+&lt;h3 id=&#34;sec-2-1&#34;&gt;需求&lt;/h3&gt;&lt;br /&gt;
+&lt;div id=&#34;text-2-1&#34; class=&#34;outline-text-3&#34;&gt;&lt;br /&gt;
+
+在 postgresql 数据库有张网站日访问流量表，包含两个字段 thedate 和 pv。需要把里面的数据展现出来，画出来流量曲线。&lt;br /&gt;
+
+&lt;dl&gt;&lt;dt&gt;注意&lt;/dt&gt;&lt;dd&gt;下面的代码大都从现有程序里面扒出来的，所以不一定直接就能用，只是个示意而已。&lt;/dd&gt;&lt;/dl&gt;&lt;/div&gt;&lt;br /&gt;
+&lt;/div&gt;&lt;br /&gt;
+&lt;div id=&#34;outline-container-2-2&#34; class=&#34;outline-3&#34;&gt;&lt;br /&gt;
+&lt;h3 id=&#34;sec-2-2&#34;&gt;安装 openresty&lt;/h3&gt;&lt;br /&gt;
+&lt;div id=&#34;text-2-2&#34; class=&#34;outline-text-3&#34;&gt;&lt;br /&gt;
+
+首先需要安装 openresty。从 &lt;a href=&#34;http://openresty.org&#34;&gt;openresty.org&lt;/a&gt; 下载当前的 stable 版本 ngx_openresty-1.0.6.22.tar.gz。&lt;br /&gt;
+&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
+$ cd ngx_openresty-1.0.6.22
+$ ./configure --with-http_drizzle_module --with-http_postgres_module --with-pg_config=/opt/pg90/bin/pg_config --prefix=/usr/local/openresty --with-libdrizzle=/usr/local/libdrizzle/ --with-luajit --with-http_iconv_module # 这是我用到的参数，按照需要加减
+$ make
+# make install&lt;/pre&gt;
+configure 的时候 postgres_module 是必须的，其他的 drizzle_module 是用来支持从 mysql 获取数据的，iconv_module 是用来做编码转换的，luajit 据说可以提升不少性能。
+
+不出问题的话，在 /usr/local/openresty 目录下面就安装好了。其实更合理的方式应该是提供一个 rpm 或者 deb 包的。
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;outline-container-2-3&#34; class=&#34;outline-3&#34;&gt;
+&lt;h3 id=&#34;sec-2-3&#34;&gt;启动 nginx&lt;/h3&gt;
+&lt;div id=&#34;text-2-3&#34; class=&#34;outline-text-3&#34;&gt;
+
+openresty 给提供了简单可用的 nginx.conf，所以现在可以先尝试启动下 /usr/local/openresty/nginx/sbin/nginx 了，如果启动没问题，那就 ok 了。
+
+配置文件在 /usr/local/openresty/nginx/conf/nginx.conf。
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;outline-container-2-4&#34; class=&#34;outline-3&#34;&gt;
+&lt;h3 id=&#34;sec-2-4&#34;&gt;配置 nginx&lt;/h3&gt;
+&lt;div id=&#34;text-2-4&#34; class=&#34;outline-text-3&#34;&gt;
+
+主要就是配置 /usr/local/openresty/nginx/conf/nginx.conf，以后很多事情都会在这里面来完成，说是 nginx.conf 编程也不为过，呵呵。
+
+增加下面的配置
+&lt;pre class=&#34;prettyprint lang-conf&#34;&gt;
+
+    upstream pgsql {
+        postgres_server server_ip:5432 dbname=test password=123 user=test;
+        #postgres_keepalive  max=2 mode=single overflow=reject;
+        postgres_keepalive off;
+    }
+
+# server 里面增加一个 location
+
+       location /=/pv {
+            postgres_query &#39;select thedate, pv from pv&#39;;
+            postgres_pass pgsql;
+
+            rds_json on;
+            rds_json_format compact;
+
+            xss_get on;
+            xss_callback_arg &#39;_c&#39;;
+        }&lt;/pre&gt;
+&lt;ol&gt;
+	&lt;li&gt;其中关于 upstream postgres 用来定义需要连接的数据库信息，和发送 sql 到数据库，可以参考 &lt;a href=&#34;https://github.com/FRiCKLE/ngx_postgres/&#34;&gt;这里&lt;/a&gt;。&lt;/li&gt;
+	&lt;li&gt;rds_json 用来将数据库的输出变成 json 格式，可以参考 &lt;a href=&#34;https://github.com/agentzh/rds-json-nginx-module&#34;&gt;这里&lt;/a&gt; 。&lt;/li&gt;
+	&lt;li&gt;xss_get 用来支持跨域，jquery 默认使用的 callback 参数是 _c，可以参考 &lt;a href=&#34;https://github.com/agentzh/xss-nginx-module&#34;&gt;这里&lt;/a&gt;。&lt;/li&gt;
+&lt;/ol&gt;
+这样配置好之后，重启下。结果应该很清晰了，请求 &lt;a href=&#34;http://your_ip/=/pv&#34;&gt;http://your\_ip/=/pv&lt;/a&gt; 应该就可以得到数据库里面的数据了，可以使用 curl 看看结果，应该类似下面的
+&lt;pre class=&#34;prettyprint lang-json&#34;&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;outline-container-2-5&#34; class=&#34;outline-3&#34;&gt;
+&lt;h3 id=&#34;sec-2-5&#34;&gt;js 画图&lt;/h3&gt;
+&lt;div id=&#34;text-2-5&#34; class=&#34;outline-text-3&#34;&gt;
+
+挑一个画图程序，比如我用过的 &lt;a href=&#34;http://highcharts.com&#34;&gt;highcharts&lt;/a&gt;, &lt;a href=&#34;http://www.amcharts.com/&#34;&gt;amcharts&lt;/a&gt; 这些都不错，amcharts 是使用 flash 画图，兼容各种浏览器，highcharts 号称也支持，不过我弄出来的图在 chrome/firefox 下面没问题，ie 不支持，他用的是 svg 标签。
+
+就写几行代码来示意下吧
+&lt;pre class=&#34;prettyprint lang-javascript&#34;&gt;
+    $.ajax({
+        url : &#39;http://your_ip/=/pv&#39;,
+        success: function (data) {
+            renderPvCharts(data);
+        }
+    });
+
+    function renderPvCharts(data) {
+        $(&#39;body&#39;).append(&#39;&lt;/pre&gt;
+&lt;pre class=&#34;prettyprint lang-javascript&#34;&gt;
+        var result = Utils.getSplineChartSeries( data ); # 将 nginx 返回的 json 格式数据转化为 highcharts 需要的格式
+        var options = {
+			chart: {
+                zoomType: &#39;xy&#39;,
+				renderTo: &#39;pv&#39;, # div 的 id
+				defaultSeriesType: &#39;spline&#39;
+			},
+			title: {
+                text: &#39;每日 pv&#39;
+            },
+			xAxis: {
+                type: &#39;datetime&#39;
+			},
+			tooltip: {
+				formatter: function() {
+			        return &#39;&lt;strong&gt;&#39;+ this.series.name +&#39;&lt;/strong&gt;
+&#39;+
+						Highcharts.dateFormat(&#39;%e. %b&#39;, this.x) +&#39;: &#39;+ this.y;
+				}
+			},
+			legend: {
+				layout: &#39;vertical&#39;,
+				align: &#39;right&#39;,
+				verticalAlign: &#39;top&#39;,
+				x: -10,
+				y: 100,
+				borderWidth: 0
+			},
+            series : result.y
+        };
+
+        var chart = new Highcharts.Chart( options );
+    };
+
+} );&lt;/pre&gt;
+简单解释下
+&lt;ol&gt;
+	&lt;li&gt;在页面 readay 的时候，使用 ajex 设置回调函数并请求接口。&lt;/li&gt;
+	&lt;li&gt;回调函数里面使用 Utils.getSplineChartSeries 转换一下数据，方便直接给 options 里面数据赋值，具体需要的数据格式，看 highcharts 的 spline 的 demo 就可以。&lt;/li&gt;
+	&lt;li&gt;回调函数里面显示图表。&lt;/li&gt;
+&lt;/ol&gt;
+这样就完事了，数据就展现出来了。
+
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id=&#34;outline-container-2-6&#34; class=&#34;outline-3&#34;&gt;
+&lt;h3 id=&#34;sec-2-6&#34;&gt;其他&lt;/h3&gt;
+&lt;div id=&#34;text-2-6&#34; class=&#34;outline-text-3&#34;&gt;
+
+从上面可以看到整个数据流是怎么回事。openresty 可以做的事情远比上面描述的复杂，上面只是个最简单的应用了。
+&lt;ol&gt;
+	&lt;li&gt;比如使用 &lt;a href=&#34;https://github.com/agentzh/rds-csv-nginx-module&#34;&gt;rds_csv&lt;/a&gt; 来直接得到 csv 格式的数据提供给用户，而不是 json。&lt;/li&gt;
+	&lt;li&gt;可以使用 &lt;a href=&#34;https://github.com/chaoslawful/lua-nginx-module&#34;&gt;ngx_lua&lt;/a&gt; 在 nginx.conf 里面使用 lua 来在服务器端对数据做一些处理再丢给浏览器。
+大家都知道 js 处理的数据太大的时候，会导致浏览器卡死，所以如果不方便通过 sql 控制输出的时候，可以使用 lua 来处理下。当然 这只是其中一个应用，使用 ngx_lua 你可以干很多事情，比如上面那个使用 js 来生成 spline 数据的函数就可以用 lua 来实现，lua 还可以和 c 结合来做一些事情。对于 location 的参数，在 ngx_lua 里面也是可以访问的，比如 ngx.var.arg_c 这样。具体还是看 wiki 吧，写不完的。
+&lt;ol&gt;
+	&lt;li&gt;openresty 还能直接访问 redis 和 memcached。&lt;/li&gt;
+&lt;/ol&gt;
+本篇只能算是一个入门而已，openresty 在淘宝量子统计的应用非常广泛。另外在 &lt;a href=&#34;http://qunar.com&#34;&gt;去哪网&lt;/a&gt; 也有不少应用，比如我知道的安全过滤模块，和一些数据报表，都是基于 openresty 的。
+
+附一个 highcarts 画的图
+
+&lt;img class=&#34;alignnone&#34; title=&#34;流量情况&#34; src=&#34;http://wdicc.com/images/2011-10-24-171245_1100x312_scrot.png&#34; alt=&#34;&#34; width=&#34;1100&#34; height=&#34;312&#34; /&gt;&lt;/li&gt;
+&lt;/ol&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>yahoo 全能搜索</title>
+      <link>https://wdicc.com/yahoo-search/</link>
+      <pubDate>Sat, 01 Sep 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/yahoo-search/</guid>
+      <description>&lt;p&gt;yahoo新推出的全能搜索感觉很新颖，尤其那个人物关系图，国内好像还没有别家做，呵呵。不过不知道这个图是怎么维护的，如果是人工，那还是很费事的，也不知道这玩意怎么做到智能，我估计还是得人工设置关键字之间的关系。&lt;/p&gt; &lt;p&gt;下面是一个介绍的视频。地址在&lt;a href=&#34;http://www.yahoo.cn/homepage/flash.html&#34;&gt;这里&lt;/a&gt;。&lt;/p&gt; &lt;p&gt;&amp;nbsp;&lt;/p&gt; &lt;object codebase=&#34;http://fpdownload.macromedia.com/pub/shockwave/cabs/flash/swflash.cab#version=8,0,0,0&#34; height=&#34;480&#34; width=&#34;640&#34; align=&#34;middle&#34; classid=&#34;clsid:d27cdb6e-ae6d-11cf-96b8-444553540000&#34;&gt;&lt;param name=&#34;_cx&#34; value=&#34;16933&#34;&gt;&lt;param name=&#34;_cy&#34; value=&#34;12700&#34;&gt;&lt;param name=&#34;FlashVars&#34; value=&#34;&#34;&gt;&lt;param name=&#34;Movie&#34; value=&#34;http://www.yahoo.cn/swf/onesearch.swf&#34;&gt;&lt;param name=&#34;Src&#34; value=&#34;http://www.yahoo.cn/swf/onesearch.swf&#34;&gt;&lt;param name=&#34;WMode&#34; value=&#34;Window&#34;&gt;&lt;param name=&#34;Play&#34; value=&#34;-1&#34;&gt;&lt;param name=&#34;Loop&#34; value=&#34;-1&#34;&gt;&lt;param name=&#34;Quality&#34; value=&#34;High&#34;&gt;&lt;param name=&#34;SAlign&#34; value=&#34;&#34;&gt;&lt;param name=&#34;Menu&#34; value=&#34;-1&#34;&gt;&lt;param name=&#34;Base&#34; value=&#34;&#34;&gt;&lt;param name=&#34;AllowScriptAccess&#34; value=&#34;sameDomain&#34;&gt;&lt;param name=&#34;Scale&#34; value=&#34;ShowAll&#34;&gt;&lt;param name=&#34;DeviceFont&#34; value=&#34;0&#34;&gt;&lt;param name=&#34;EmbedMovie&#34; value=&#34;0&#34;&gt;&lt;param name=&#34;BGColor&#34; value=&#34;FFFFFF&#34;&gt;&lt;param name=&#34;SWRemote&#34; value=&#34;&#34;&gt;&lt;param name=&#34;MovieData&#34; value=&#34;&#34;&gt;&lt;param name=&#34;SeamlessTabbing&#34; value=&#34;1&#34;&gt;&lt;param name=&#34;Profile&#34; value=&#34;0&#34;&gt;&lt;param name=&#34;ProfileAddress&#34; value=&#34;&#34;&gt;&lt;param name=&#34;ProfilePort&#34; value=&#34;0&#34;&gt;&lt;param name=&#34;AllowNetworking&#34; value=&#34;all&#34;&gt;&lt;param name=&#34;AllowFullScreen&#34; value=&#34;false&#34;&gt; &lt;embed src=&#34;http://www.yahoo.cn/swf/onesearch.swf&#34; quality=&#34;high&#34; bgcolor=&#34;#ffffff&#34; allowscriptaccess=&#34;sameDomain&#34; type=&#34;application/x-shockwave-flash&#34; pluginspage=&#34;http://www.macromedia.com/go/getflashplayer&#34; align=&#34;middle&#34; height=&#34;480&#34; width=&#34;640&#34;&gt; &lt;/object&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>难道我的广告卖出去了？</title>
+      <link>https://wdicc.com/my-alimama-ad-sold/</link>
+      <pubDate>Sat, 25 Aug 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/my-alimama-ad-sold/</guid>
+      <description>&lt;p&gt;今天总算可以上会网了，看看阿里妈妈上面，发现广告卖出去了？状态是投放中，可是blog应该显示广告的地方显示的是一片空白？很怪异，我也不知道咋回事了。&lt;/p&gt; &lt;p&gt;发现alimama上面很多大网站也开始上了，alimama 的成功值日可待啊，呵呵。投放广告之前就可以广告可能的展示次数，还是不错的，可以广告的投放客户很透明的知道这个网站的pv，不过是如果这个网站不想要透露这个信息的话，也是比较麻烦的一个问题。google的adsense广告的话，网站自己可以知道广告的pv，投放广告的就不清楚能不能知道了。不过至少第三方是不清楚这个信息的。他们之间的交易是如何的，可能只有google知道了。alimama 的透明、诚信还是有他的道理的。&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>阿里妈妈来了</title>
+      <link>https://wdicc.com/alimama-is-coming/</link>
+      <pubDate>Sat, 11 Aug 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/alimama-is-coming/</guid>
+      <description>&lt;p&gt;不知道什么是&lt;a href=&#34;http://www.alimama.com/&#34;&gt;阿里妈妈&lt;/a&gt;？那你老土了，哈哈。第一次听说的时候，大家都在问，那有阿里爷爷，阿里儿子没？呵呵。&lt;a title=&#34;http://www.alimama.com/&#34; href=&#34;http://www.alimama.com/&#34;&gt;http://www.alimama.com/&lt;/a&gt;&amp;nbsp;是阿里妈妈的网址，这两天刚上线。&lt;/p&gt; &lt;p&gt;alimama 是一个广告的c2c平台。什么是c2c？c2c=Consumer To Consumer，b2b=Business to Business。你可以把你网站的广告位放到这个平台上面去卖，我看了一下，有卖50元/一周的，也有卖0.5元/一周的，呵呵，就看你网站的pv，uv了。&lt;/p&gt; &lt;p&gt;btw：还是装了一个livewriter，blog后台打开太慢了。&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>测试看看还乱码不</title>
+      <link>https://wdicc.com/test-live-writer-3/</link>
+      <pubDate>Sun, 29 Jul 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/test-live-writer-3/</guid>
+      <description>&lt;p&gt;迁移了一下之后，live writer 发布的时候总乱码，不知道咋回事。再测试看看。&lt;/p&gt; &lt;p&gt;在&lt;a href=&#34;http://e-spacy.com/blog/1894.html&#34;&gt;这里&lt;/a&gt;找到一个乱码问题的解决方法，测试看看。&lt;/p&gt; &lt;p&gt;下面这个图是空调车。。。&lt;/p&gt; &lt;p&gt;&lt;img src=&#34;http://photo8.yupoo.com/20070717/091948_1908862546.jpg&#34;&gt;&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>非常不错的 utorrent</title>
+      <link>https://wdicc.com/utorrent-is-the-best-bittorrent-client/</link>
+      <pubDate>Tue, 10 Jul 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/utorrent-is-the-best-bittorrent-client/</guid>
+      <description>&lt;p&gt;最早发现bt这玩意的时候，还是2003年。那会上 btchina 找新资源是一种乐趣。那会用的是官方的那个下载软件，就一个界面，下载几个开几个窗口，下载速度不能控制。后来慢慢有了能控制速度的版本，但是界面还基本都那么单一。再后来就用上了 bitsprit，bitcomet这些。bitcomet用了很长时间，内网速度很好，占资源又少。但是自从 0.7（好像是这个版本）之后，就没用过了，下载速度不见长，还往下掉，运行也越来越慢。那会我就开始用bitsprite了，虽然也不怎么样，但是下载还是有速度的。。。&lt;/p&gt; &lt;p&gt;今天无聊试了下utorrent，发现速度还是上不去，就几k，这真没办法用。翻了一下utorrent 的论坛，&lt;font color=&#34;#008080&#34;&gt;取消了“upnp映射”这个选项&lt;/font&gt;的选择后，发现速度上去了！现在长时间都是 100多k，还是比较爽的。还用上了 utorrent 的webui，类似 mldonkey 了现在，可以远程操纵 utorrent。感觉良好，呵呵。&lt;/p&gt; &lt;p&gt;webui 地址： &lt;a href=&#34;http://forum.utorrent.com/viewtopic.php?id=14565&#34; target=&#34;_blank&#34;&gt;这里&lt;/a&gt;，最新的 utorrent 1.7 beta 可以用。看看 webui的readme就知道怎么安装了。&lt;/p&gt; &lt;p&gt;另外还有一个 fx 的扩展： &lt;a href=&#34;http://forum.utorrent.com/viewtopic.php?id=15619&#34; target=&#34;_blank&#34;&gt;这里&lt;/a&gt;&lt;/p&gt; &lt;p&gt;&lt;a href=&#34;http://www.zooomr.com/photos/wd/2660430/&#34; target=&#34;_blank&#34; atomicselection=&#34;true&#34;&gt;&lt;img src=&#34;http://static.zooomr.com/images/2660430_10aa0a1b1e.jpg?r=360&#34;&gt;&lt;/a&gt;&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>tmp下面有好多的sess_文件</title>
+      <link>https://wdicc.com/lots-sess_-files/</link>
+      <pubDate>Wed, 20 Jun 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/lots-sess_-files/</guid>
+      <description>&lt;p&gt;之前以为是有个&lt;a href=&#34;http://blog.wdicc.com/wordpress/update-blog-to-2-2/&#34;&gt;did_you_path_math插件&lt;/a&gt;的问题，可是停止这个插件后，发现还是会有这些文件出来。&lt;/p&gt; &lt;p&gt;&lt;pre lang=&#34;txt&#34;&gt;-rw-------    1 nobody   4294967295        0 Jun 20 16:01 sess_l12chvh9bjik2a7ms152ggnu36&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 16:00 sess_r6gml3pbcfaribnctamiq9rk53&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 16:00 sess_lnvhsb928701qq1kgf1fiiuem5&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 16:00 sess_bhlk360m7jqh1c8khku000gte4&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:58 sess_uuflltlj4c81pk116qtegr15q2&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:57 sess_6fbdvd4fmq49pp9kvi0g68ihr5&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:55 sess_s4o0c5untrfj2rpdqemp06lk65&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:51 sess_9cir4ug259se527d01pcgr63j0&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:50 sess_kj973ei5sudldg3n9bfq0cgb23&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:49 sess_7j8h39red2jak1upe1k80c1tt7&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:45 sess_tnhhikhc2hgui3e9ugh835i0s0&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:44 sess_mgpr813dtuil5m6u765kbov503&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:41 sess_8vcse5004pvd2icntct9jgt5m4&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:39 sess_g2r1hkg2u4o9v0c919nem61724&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:39 sess_60qoqf65giur2ulj01ce2snal0&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:38 sess_vier69ckh0dmp9613k0gfm05m3&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:38 sess_m57eveg1oarv2hheem2nkv45i4&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:38 sess_hgtktf6eeeghdfm1e7blb1v4a7&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:38 sess_qko77d166lmadk3gcn4lop7qe1&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:36 sess_en9v49gnlbmtma56s8tkqpqbc5&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:32 sess_aeu3nad39iljqr6kahaq7ceih5&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:31 sess_ulboab1mt4ov930fkllrc6rlt3&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:31 sess_47on5eflfdfnupdov6a59soui3&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:31 sess_o98ss7kbp31jce5d2jt133n183&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:31 sess_p97q0t0qlmtalkbpism7aa7gb6&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:30 sess_le35e8bodjrlp4ufk33c2k6h62&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:29 sess_9dlskkqqas3nu7t2asu4ok8ec2&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:29 sess_a56sha53hr1737nt9rahh2nn02&lt;br /&gt;
+-rw-------    1 nobody   4294967295        0 Jun 20 15:29 sess_2g2r8j02h4al5rmbb0mnpuu865&lt;/pre&gt;&lt;br /&gt;
+&lt;p&gt;&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&amp;nbsp;见鬼了，也不知道是怎么回事。google了一下，说修改php.ini的下面几个参数。&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;pre lang=&#34;ini&#34;&gt;; Define the probability that the &#39;garbage collection&#39; process is started&lt;br /&gt;
+; on every session initialization.&lt;br /&gt;
+; The probability is calculated by using gc_probability/gc_divisor,&lt;br /&gt;
+; e.g. 1/100 means there is a 1% chance that the GC process starts&lt;br /&gt;
+; on each request.&lt;br /&gt;
+
+session.gc_probability = 1&lt;br /&gt;
+session.gc_divisor     = 1000&lt;br /&gt;
+
+; After this number of seconds, stored data will be seen as &#39;garbage&#39; and&lt;br /&gt;
+; cleaned up by the garbage collection process.&lt;br /&gt;
+session.gc_maxlifetime = 1440&lt;/pre&gt;&lt;br /&gt;
+&lt;p&gt;修改好像也是治标不治本，不知道有没有办法查出来这些文件是怎么会出来的，有时候会一分钟出来好几个这个文件，很烦。&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>继续测试 live writer 的 post-slug 功能</title>
+      <link>https://wdicc.com/test-live-writer-post-slug/</link>
+      <pubDate>Sat, 09 Jun 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/test-live-writer-post-slug/</guid>
+      <description>&lt;p&gt;居然没有提示就装好了，搞得我重装了好几次，下载了好几个版本。&lt;/p&gt; &lt;p&gt;这次看看post-slug好用不好用。&lt;/p&gt; &lt;p&gt;&amp;nbsp;&lt;/p&gt; &lt;p&gt;&lt;pre lang=&#34;bash&#34;&gt;grep -r &#34;shit&#34; GFW&lt;/pre&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>升级了一下blog，顺便换了一个spam插件</title>
+      <link>https://wdicc.com/update-blog-to-2-2/</link>
+      <pubDate>Thu, 07 Jun 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/update-blog-to-2-2/</guid>
+      <description>wordpress 早就升级到 2.2 了，一直懒得弄，今天升级了一下。&lt;br /&gt;
+
+最近发现有spam了，那个 Did You Pass Math 插件居然没挡住？spam还会计算这个？真晕了。因为这个插件老搞出来很多session文件在/tmp目录，所以刚好换一个用用。&lt;br /&gt;
+
+弄了一个 &lt;a href=&#34;http://www.paulbutler.org/&#34;&gt;JS SpamBlock&lt;/a&gt; ,会在comment下面隐藏一个input段，如果不支持js的浏览器访问，就得在input里面填数字才能发表。支持js的就不需要填了。spam应该都不支持的吧？。。&lt;br /&gt;
+&lt;p class=&#34;poweredbyperformancing&#34;&gt;Powered by &lt;a href=&#34;http://scribefire.com/&#34;&gt;ScribeFire&lt;/a&gt;.&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>google reader 和 zhuaxia</title>
+      <link>https://wdicc.com/google-reader-and-zhuaxia/</link>
+      <pubDate>Wed, 06 Jun 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/google-reader-and-zhuaxia/</guid>
+      <description>最早的时候用的是&lt;a href=&#34;http://www.bloglines.com&#34;&gt;bloglines&lt;/a&gt; ，结果发现有时候有的看过的feed会又变成没看过的，也不知道是feed的问题，还是bloglines的问题，但是这个问题让人很郁闷。后来 &lt;a href=&#34;https://www.google.com/reader/&#34;&gt;Google reader&lt;/a&gt; 支持帖标签分类之后，就用 Google reader 了。&lt;br /&gt;
+
+Google reader 最近用的有点郁闷，有写feed有时候会有些撞墙的问题，搞的 reader 里面不能点这几个feed，点完之后别的也看不了了，很让人郁闷。然后就想起来了好多人推荐的 &lt;a href=&#34;http://www.zhuaxia.com&#34;&gt;zhuaxia&lt;/a&gt; 。&lt;br /&gt;
+
+zhuaxia用了一段时间，发现他的切换不同的tag速度慢，最郁闷的问题是每次打开首页都会显示上次看的feed，这样没新内容还好，有新内容的时候，就会显示这些内容，这时左边的列表是合起来的，不注意不知道是哪个feed，很郁闷。今天无意中又看到了一个信息，Google reader 支持 https 访问，试了一下果然可以，那可真爽了，就不用担心撞墙了，呵呵。所以，又换回来了。 :)&lt;br /&gt;
+
+&lt;p class=&#34;poweredbyperformancing&#34;&gt;Powered by &lt;a href=&#34;http://scribefire.com/&#34;&gt;ScribeFire&lt;/a&gt;.&lt;/p&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>装了一个live writer新版，测试看看</title>
+      <link>https://wdicc.com/test-live-writer/</link>
+      <pubDate>Thu, 31 May 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/test-live-writer/</guid>
+      <description>&lt;p&gt;测试下看看呢？&lt;/p&gt; &lt;p&gt;&amp;nbsp;&lt;/p&gt; &lt;p&gt;&lt;/p&gt; &lt;p&gt;&lt;/p&gt; &lt;p&gt;好像很&lt;font color=&#34;#ff0000&#34;&gt;多功能&lt;/font&gt;不错，呵呵。&lt;/p&gt; &lt;p align=&#34;center&#34;&gt;&lt;u&gt;&lt;strike&gt;居中？&lt;/strike&gt;&lt;/u&gt;&lt;/p&gt; &lt;ol&gt; &lt;li&gt; &lt;div align=&#34;left&#34;&gt;&lt;u&gt;&lt;strike&gt;awefsdf&lt;/strike&gt;&lt;/u&gt;&lt;/div&gt; &lt;li&gt; &lt;div align=&#34;left&#34;&gt;&lt;u&gt;&lt;strike&gt;sdfsdf&lt;/strike&gt;&lt;/u&gt;&lt;/div&gt; &lt;li&gt; &lt;div align=&#34;left&#34;&gt;&lt;u&gt;&lt;strike&gt;sdfsdfsdf&lt;/strike&gt;&lt;/u&gt;&lt;/div&gt;&lt;/li&gt;&lt;/ol&gt; &lt;p align=&#34;left&#34;&gt;&amp;nbsp;&lt;/p&gt; &lt;blockquote&gt; &lt;p align=&#34;left&#34;&gt;新的asdfasdfasdfasdfasdfasdfa&lt;/p&gt; &lt;p align=&#34;left&#34;&gt;sdfasdf&lt;/p&gt;&lt;/blockquote&gt; &lt;p align=&#34;left&#34;&gt;下面的&lt;/p&gt; &lt;p align=&#34;left&#34;&gt;&lt;pre lang=&#34;bash&#34;&gt;grep -r xxx aaa&lt;/pre&gt;&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>又找到一个wp的coding插件的问题</title>
+      <link>https://wdicc.com/bug-of-coding-plugin/</link>
+      <pubDate>Fri, 18 May 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/bug-of-coding-plugin/</guid>
+      <description>在 geshi/geshi.php 里面，有个函数会将 &amp;,&gt;,&lt;,&#34; 这些替换为html字符。而同时呢，wp 的 wp-includes/formatting.php 里面也会将这些字符做处理，这样就混乱了。解决方法也很简单，把coding插件里面的相应函数注释掉就好了（目前发现注释掉&amp;和&#34;就可以）。&lt;br /&gt;
+
+&lt;pre class=&#34;prettyprint lang-php&#34;&gt;
+        // init
+
+        $aTransSpecchar = array(
+//            &#39;&amp;&#39; =&gt; &#39;&amp;amp;&#39;,
+//            &#39;&#34;&#39; =&gt; &#39;&amp;quot;&#39;,
+            &#39;&lt;&#39; =&gt; &#39;&lt;&#39;,
+            &#39;&gt;&#39; =&gt; &#39;&gt;&#39; 
+            );            
+
+        $aTransSpecchar = array();
+.....
+}&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>twitter ? 我知道你在干什么</title>
+      <link>https://wdicc.com/twitter-what-are-u-doing/</link>
+      <pubDate>Sat, 14 Apr 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/twitter-what-are-u-doing/</guid>
+      <description>twitter 已经流行很久了，一直没以为怎么回事。又不能和im结合，我还总去你的网站看啊，没意思。刚又看到有人说这个，去看了一下，发现这个支持rss输出，这下就爽很多了呀，弄到lilina里面不就可以了么？不错不错。。&lt;br /&gt;
+
+我的地址是   http://twitter.com/wd ，注册了这个的给一个地址呀，呵呵。&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>发现了一个magpie的bug</title>
+      <link>https://wdicc.com/a-bug-of-magpie/</link>
+      <pubDate>Fri, 13 Apr 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/a-bug-of-magpie/</guid>
+      <description>在 rss_parse.inc 里面，创建xml parser的时候，针对php5，用的是xml_parser_create(&#39;&#39;)，就那个&#39;&#39;，导致了问题的出现。但是问题不是总有的，有的source可以，有的就会卡住。例如下面这个html就会卡住。&lt;br /&gt;
+
+&lt;pre class=&#34;prettyprint lang-text&#34;&gt;&lt;html xmlns=&#34;http://www.w3.org/1999/xhtml &#34;&gt;
+                &lt;head&gt;&lt;title&gt;Connect Error&lt;/title&gt;&lt;/head&gt;
+                &lt;body&gt;
+                        &lt;h1&gt;Connect Error&lt;/h1&gt;
+                        &lt;p&gt;Could not connect to MySQL database.&lt;/p&gt;             &lt;/body&gt;
+        &lt;/html&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>找到一个wp coding插件的bug</title>
+      <link>https://wdicc.com/a-bug-for-coding-plugin/</link>
+      <pubDate>Fri, 13 Apr 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/a-bug-for-coding-plugin/</guid>
+      <description>coding插件用的是geshi来加格式的。发现贴了一个html后coding不支持，找了半天bug，总算找到了。&lt;br /&gt;
+
+在 $pattern 这个正则里面，(([^&lt;]|&lt;[^\/])*) 匹配的应该是不是&lt;或者&lt; /的字符串，而html代码里面很多都是&lt; /，这样html代码就不会匹配了。修改一下就好了。(([^&lt;]|&lt;[^\/]|&lt;\/[^pP])*)。&lt;br /&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>给apache加了一个compress模块，mod_deflate</title>
+      <link>https://wdicc.com/compress-apache/</link>
+      <pubDate>Mon, 02 Apr 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/compress-apache/</guid>
+      <description>apache 1.3 里面有个压缩模块叫做 mod_gzip ，不支持 2.x。在2.x 里面有一个 &lt;a href=&#34;http://httpd.apache.org/docs/2.0/mod/mod_deflate.html&#34;&gt;mod_deflate&lt;/a&gt; 模块，也是类似的效果。想使用的话，很简单，编译的时候加上 --enable-deflate 就可以了。之后可以用 apachectl -l  看是不是正常加载了这个模块。&lt;br /&gt;
+
+httpd.conf 添加下面的语句&lt;br /&gt;
+&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
+
+对所有指定类似的文件都应用这个模块。添加之后访问看看。
+
+&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
+203.86.x.x - - [02/Apr/2007:15:24:23 +0800] &#34;GET / HTTP/1.1&#34; 200 &lt;font color=&#34;#FF0000&#34;&gt;4718&lt;/font&gt; &#34;-&#34; 
+&#34;Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) 
+Gecko/20070309 Firefox/2.0.0.3&#34;
+
+203.86.x.x - - [02/Apr/2007:15:46:16 +0800] &#34;GET / HTTP/1.1&#34; 200 &lt;font color=&#34;#FF0000&#34;&gt;1684&lt;/font&gt; &#34;-&#34; 
+&#34;Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) 
+Gecko/20070309 irefox/2.0.0.3&#34;&lt;/pre&gt;
+
+好像是小了。。。
+
+如果error.log 里面出现了下面的错误
+&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
+
+ 这表示apache的那个模块没有安装正确。
+</description>
+    </item>
+    
+    <item>
+      <title>测试一下performancing看看</title>
+      <link>https://wdicc.com/test-performancing/</link>
+      <pubDate>Thu, 08 Mar 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/test-performancing/</guid>
+      <description>实在受不了后台的打开速度了，试试看fx的performancing插件，这个在推荐插件列表上面好久了。而且也支持我的wp，发一个帖子看看效果如何。&lt;br /&gt;
+
+&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
+WLS=/usr/local/wls
+APACHE=/usr/local/apache/bin/apachectl
+URL_STATUS=0
+echo -e $&#34;Starting $PROG:&#34;
+        cd $WLS
+        WEBCHECK_LOGIC_START &gt;/dev/null &amp;
+        echo -n &#34;waiting....&#34;&lt;/pre&gt;
+
+再看看&lt;b&gt;粗体&lt;/b&gt;什么&lt;u&gt;的，&lt;/u&gt;好像还行。还能有&lt;font color=&#34;#cc0000&#34;&gt;颜色&lt;/font&gt;？
+</description>
+    </item>
+    
+    <item>
+      <title>又折腾了一下blog</title>
+      <link>https://wdicc.com/study-blog/</link>
+      <pubDate>Wed, 28 Feb 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/study-blog/</guid>
+      <description>下载一个全新的wp   2.1.1，然后解压，复制到web目录下面，文件夹改名为wp-new。将旧的wp修改为wp-old，新的wp-new修改为wp，打开浏览器访问admin，会提示升级。升级之后，将wp-old 里面的wp-content目录cp过来覆盖，然后登录后台去一个一个启用插件。&lt;br /&gt;
+
+好像现在还没有遇到问题。。。&lt;br /&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

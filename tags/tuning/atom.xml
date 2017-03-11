@@ -1,0 +1,145 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Tuning on wd and cc</title>
+    <link>https://wdicc.com/tags/tuning/atom/index.xml</link>
+    <description>Recent content in Tuning on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/tuning/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>linux tuning</title>
+      <link>https://wdicc.com/linux-tuning/</link>
+      <pubDate>Mon, 04 Jun 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/linux-tuning/</guid>
+      <description>地址 &lt;a href=&#34;http://www.enigma.id.au/linux_tuning.txt&#34;&gt;http://www.enigma.id.au/linux_tuning.txt&lt;/a&gt;&lt;br /&gt;
+
+&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
+# server with a decent amount of memory.
+#
+# This file should be saved as /etc/sysctl.conf
+# You can source it manually if your system has booted by using:
+# sysctl -e -p /etc/sysctl.conf
+#
+# Paul Day, paul (at) bur.st
+#
+# Last updated 02/03/05 and tested on 2.6.9
+#
+
+# Increase RPC slots
+sunrpc.tcp_slot_table_entries = 32
+sunrpc.udp_slot_table_entries = 32
+# Increase size of RPC datagram queue length
+net.unix.max_dgram_qlen = 50
+# Log spoofed, source routed and redirects
+net.ipv4.conf.default.log_martians = 1
+# Don&#39;t accept source routes
+net.ipv4.conf.default.accept_source_route = 0
+# Don&#39;t send redirects
+net.ipv4.conf.default.send_redirects = 0
+# Source route verification on - incoming packets must match outgoing routing
+net.ipv4.conf.default.rp_filter = 1
+# Don&#39;t accept redirects
+net.ipv4.conf.default.accept_redirects = 0
+# Don&#39;t forward source routes
+net.ipv4.conf.default.mc_forwarding = 0
+# Disable forwarding 
+net.ipv4.conf.default.forwarding = 0
+# Log spoofed, source routed and redirects
+net.ipv4.conf.all.log_martians = 1
+# Don&#39;t relay bootp
+net.ipv4.conf.all.bootp_relay = 0
+# Don&#39;t proxy arp for anyone
+net.ipv4.conf.all.proxy_arp = 0
+# Don&#39;t accept source route packets
+net.ipv4.conf.all.accept_source_route = 0
+# Don&#39;t send redirects
+net.ipv4.conf.all.send_redirects = 0
+# Source route verification on - incoming packets must match outgoing routing
+net.ipv4.conf.all.rp_filter = 1
+# Don&#39;t accept redirects
+net.ipv4.conf.all.accept_redirects = 0
+# Don&#39;t forward source routes
+net.ipv4.conf.all.mc_forwarding = 0
+# Don&#39;t enable forwarding
+net.ipv4.conf.all.forwarding = 0
+# Don&#39;t allow the arp table to become bigger than this
+net.ipv4.neigh.default.gc_thresh3 = 2048
+# Tell the gc when to become aggressive with arp table cleaning.
+# Adjust this based on size of the LAN. 256 is suitable for most
+net.ipv4.neigh.default.gc_thresh2 = 1024
+# Adjust where the gc will leave arp table alone - set to 32.
+net.ipv4.neigh.default.gc_thresh1 = 32
+# Adjust to arp table gc to clean-up more often
+net.ipv4.neigh.default.gc_interval = 30
+# Increase TCP
+net.ipv4.neigh.default.proxy_qlen = 96
+net.ipv4.neigh.default.unres_qlen = 6
+# Increase size of socket buffers
+net.ipv4.tcp_rmem = 4096	98304	349520
+net.ipv4.tcp_wmem = 4096	65535	262142
+net.ipv4.tcp_mem = 98304	262142	393216
+# Turn off sack
+net.ipv4.tcp_dsack = 0
+# Don&#39;t use ECN because too many sites have wacky routers that can&#39;t handle it`
+net.ipv4.tcp_ecn = 0
+net.ipv4.tcp_reordering = 3
+# Turn off sack/fack
+net.ipv4.tcp_fack = 0
+# Enable bad error message Protection
+net.ipv4.icmp_ignore_bogus_error_responses = 1
+# Ignore broadcasts pings, could become part of a Smurf
+net.ipv4.icmp_echo_ignore_broadcasts = 1
+# But don&#39;t ignore directed pings
+net.ipv4.icmp_echo_ignore_all = 0
+# Widen local port range
+net.ipv4.ip_local_port_range = 33000	60000
+# Bump up TCP socket queuer to help with syn floods
+net.ipv4.tcp_max_syn_backlog = 2048
+# Turn syn-cookie protection on
+net.ipv4.tcp_syncookies = 1
+# Drop it so lack of FIN times out quicker
+net.ipv4.tcp_fin_timeout = 30
+# How many times to retry killing an alive TCP connection
+net.ipv4.tcp_retries2 = 15
+net.ipv4.tcp_retries1 = 3
+# Enable a fix for RFC1337 - time-wait assassination hazards in TCP
+net.ipv4.tcp_rfc1337 = 1
+# Drop keep-alive time
+net.ipv4.tcp_keepalive_time = 3600
+# Set number of times to retry a SYN-ACK in a half-open new connections
+net.ipv4.tcp_synack_retries = 5
+# Set number of times to retry SYN in a new connection
+net.ipv4.tcp_syn_retries = 5
+# Turn off sack
+net.ipv4.tcp_sack = 0
+# Enable really big (&gt;65kB) TCP window scaling if we want it.
+net.ipv4.tcp_window_scaling = 1
+# Turn off timestamps
+# Turn this back on if you&#39;re on a gigabit or very busy network
+# Having it off is one less thing the IP stack needs to work on
+net.ipv4.tcp_timestamps = 0
+# Increase number of incoming connections backlog
+net.core.somaxconn = 512
+# Bump optmem_max up
+net.core.optmem_max = 20480
+# Increase number of incoming connections backlog
+net.core.netdev_max_backlog = 1024
+net.core.dev_weight = 64
+# Bump up default r/wmem to max
+net.core.rmem_default = 262141
+net.core.wmem_default = 262141
+# Bump up max r/wmem
+net.core.rmem_max = 262141
+net.core.wmem_max = 262141
+# Increase size of file handles and inode cache
+fs.file-max = 209708&lt;/pre&gt;
+
+&lt;p class=&#34;poweredbyperformancing&#34;&gt;Powered by &lt;a href=&#34;http://scribefire.com/&#34;&gt;ScribeFire&lt;/a&gt;.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

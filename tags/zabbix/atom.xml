@@ -1,0 +1,258 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Zabbix on wd and cc</title>
+    <link>https://wdicc.com/tags/zabbix/atom/index.xml</link>
+    <description>Recent content in Zabbix on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <atom:link href="https://wdicc.com/tags/zabbix/atom/index.xml" rel="self" type="application/rss+xml" />
+    
+    <item>
+      <title>LLD in zabbix</title>
+      <link>https://wdicc.com/LLD-in-zabbix/</link>
+      <pubDate>Sat, 30 Jul 2016 14:09:58 +0800</pubDate>
+      
+      <guid>https://wdicc.com/LLD-in-zabbix/</guid>
+      <description>
+
+&lt;p&gt;如果需要监控的内容比较多的时候，手动管理报警信息就已经不使用了，加一批机器就需要忙活一阵子。也不能体现我们充满智慧的大脑的作用。&lt;/p&gt;
+
+&lt;p&gt;zabbix 支持 LLD(low level discovery) 方式来自动产生监控项目，包括 item, trigger 这些都可以自动添加。大概讲解一下可以利用这个东西做什么事情。&lt;/p&gt;
+
+&lt;h2 id=&#34;zabbix-收集数据的方式&#34;&gt;zabbix 收集数据的方式&lt;/h2&gt;
+
+&lt;p&gt;zabbix 有很多收集数据的方法，这里重点讲 2 个，一个是 &lt;code&gt;zabbix agent&lt;/code&gt;，一个是 &lt;code&gt;zabbix traper&lt;/code&gt;。这两个方式可以和 nagios 里面的 active 和 passive 方式做类比。traaper 方式对应的就是 passive，就是 client 主动发送数据给 server。&lt;/p&gt;
+
+&lt;p&gt;对于 zabbix agent 方式，我们可以自己定义一些 &lt;code&gt;userParameter&lt;/code&gt; 来添加自定义监控，这些网上很多例子。如果使用 trapper 方式，那么原则上面可以不用做任何自定义，就可以通过 zabbix-sender 或者自己模拟 sender 的协议，通过比如 python，java 等发送自己的监控信息。通过 python 发送的例子网上也有。&lt;/p&gt;
+
+&lt;h2 id=&#34;lld&#34;&gt;LLD&lt;/h2&gt;
+
+&lt;p&gt;参考&lt;a href=&#34;https://www.zabbix.com/documentation/3.2/manual/discovery/low_level_discovery&#34;&gt;这里&lt;/a&gt;，LLD 主要的思路就是给服务器端发送一个 json 数据格式。例如下面这个。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+  &amp;quot;data&amp;quot;:[
+  
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/&amp;quot;,                           &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;rootfs&amp;quot;   },
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/sys&amp;quot;,                        &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;sysfs&amp;quot;    },
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/proc&amp;quot;,                       &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;proc&amp;quot;     },
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/dev&amp;quot;,                        &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;devtmpfs&amp;quot; },
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/dev/pts&amp;quot;,                    &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;devpts&amp;quot;   },
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/lib/init/rw&amp;quot;,                &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;tmpfs&amp;quot;    },
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/dev/shm&amp;quot;,                    &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;tmpfs&amp;quot;    },
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/home&amp;quot;,                       &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;ext3&amp;quot;     },
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/tmp&amp;quot;,                        &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;ext3&amp;quot;     },
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/usr&amp;quot;,                        &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;ext3&amp;quot;     },
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/var&amp;quot;,                        &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;ext3&amp;quot;     },
+  { &amp;quot;{#FSNAME}&amp;quot;:&amp;quot;/sys/fs/fuse/connections&amp;quot;,    &amp;quot;{#FSTYPE}&amp;quot;:&amp;quot;fusectl&amp;quot;  }
+  
+  ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个数据里面，data 是必须的，里面包含里面发现的可监控数据，这可以是任何数据。例子里面是发现了可以用来监控的磁盘分区。data 是个数组，每个可监控项是一个数组元素。还有类似下面这样的数据。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;data&amp;quot;: [
+        {
+            &amp;quot;{#HOST}&amp;quot;: &amp;quot;Japan 1&amp;quot;,
+            &amp;quot;{#COUNT}&amp;quot;: &amp;quot;5&amp;quot;
+        },
+        {
+            &amp;quot;{#HOST}&amp;quot;: &amp;quot;Japan 2&amp;quot;,
+            &amp;quot;{#COUNT}&amp;quot;: &amp;quot;12&amp;quot;
+        },
+        {
+            &amp;quot;{#HOST}&amp;quot;: &amp;quot;Latvia&amp;quot;,
+            &amp;quot;{#COUNT}&amp;quot;: &amp;quot;3&amp;quot;
+        }
+    ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个是发现了一些可监控的 host。&lt;/p&gt;
+
+&lt;p&gt;理解没有？发现是发现可监控的服务，并不是发现监控项。比如我们可以通过发现这机器上面有没有启动 ssh，发现有启动之后，我们就可以通过服务器端配置 discovery 自动添加一些监控规则。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;data&amp;quot;: [
+        { &amp;quot;{#SSH_PORT}&amp;quot;: &amp;quot;22&amp;quot; },
+        { &amp;quot;{#SSH_PORT}&amp;quot;: &amp;quot;8022&amp;quot; }
+    ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;比如上面这个，我们发现了 2 个 ssh 进程，一个是 22 端口，一个是 8022 端口。&lt;/p&gt;
+
+&lt;p&gt;所以重点是发现有什么可监控的服务，并不是发现监控项。&lt;/p&gt;
+
+&lt;p&gt;BUT，其实并不是不能发现监控项，也是可以的。不过是，这种被发现的监控项，除非对应的 trigger 也都是一样的，否则你会发现无法分别添加不同的 trigger 规则。&lt;/p&gt;
+
+&lt;h2 id=&#34;发现监控项&#34;&gt;发现监控项&lt;/h2&gt;
+
+&lt;p&gt;有了发现服务之后，就肯定需要对相应的服务的一些监控项做监控了。这个给 discovery 规则配置 item prototype 就可以了，不过这个里面有点坑需要填，后面会说，这里先不讲。&lt;/p&gt;
+
+&lt;p&gt;那么比如对于 ssh 服务，可以监控
+* 当前链接人数，conn.cnt
+* 配置文件的 md5，conf.md5（配合 zabbix trigger 可以用来监控文件是不是被修改了）&lt;/p&gt;
+
+&lt;p&gt;那监控数据就如下面&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;22.conn.cnt&amp;quot;: 4,
+    &amp;quot;22.conf.md5&amp;quot;: &amp;quot;18492113fb263c9d0a33c9fea403eea1&amp;quot;,
+    &amp;quot;8022.conn.cnt&amp;quot;: 9,
+    &amp;quot;8022.conf.md5&amp;quot;: &amp;quot;6cab272daa07202ccb57c4064c0dcfb8&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面就是一个 discovery 项目，filter 是 {% raw %}{#SSH_PORT}{% endraw %}，和 2 个 item prototype，分别是 {% raw %}{#SSH_PORT}.cnn.cnt{% endraw %} 和 {% raw %}{#SSH_PORT}.conf.md5{% endraw %}。&lt;/p&gt;
+
+&lt;h2 id=&#34;复杂一点的-lld&#34;&gt;复杂一点的 LLD&lt;/h2&gt;
+
+&lt;p&gt;一个 LLD 还可以发现多个服务。比如下面这种。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;data&amp;quot;: [
+        { &amp;quot;{#SSH_PORT}&amp;quot;: &amp;quot;22&amp;quot; },
+        { &amp;quot;{#SSH_PORT}&amp;quot;: &amp;quot;8022&amp;quot; },
+        { &amp;quot;{#PG_PORT}&amp;quot;: 5432 },
+        { &amp;quot;{#PG_PORT}&amp;quot;: 6432 }
+    ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个除了我们前面讲的 ssh 服务，还发现了两个 pg 的服务。在服务器端，只需要添加两个 discovery 规则就可以了，分别使用 {% raw %}{#SSH_PORT}{% endraw %} 和 {% raw %}{#PG_PORT}{% endraw %} 这两个宏来过滤数据。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;data&amp;quot;: [
+        { &amp;quot;{#SSH_PORT}&amp;quot;: &amp;quot;22&amp;quot; },
+        { &amp;quot;{#SSH_PORT}&amp;quot;: &amp;quot;8022&amp;quot; },
+        { &amp;quot;{#PG_PORT}&amp;quot;: 5432 },
+        { &amp;quot;{#PG_PORT}&amp;quot;: 6432 }
+        { &amp;quot;{#MASTER_DB_PORT}&amp;quot;: 5432, &amp;quot;{#SLAVE_DB}&amp;quot;: &amp;quot;host1&amp;quot; },
+        { &amp;quot;{#MASTER_DB_PORT}&amp;quot;: 5432, &amp;quot;{#SLAVE_DB}&amp;quot;: &amp;quot;host2&amp;quot; },
+    ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面这个，除了有 2 个 db 之外，还有一个 db 是个 master，能看到他对应的 slave 有哪些。要注意，我们在新增加的这个发现项里面，不能再使用 {% raw %}{#PG_PORT}{% endraw %} 这个宏了，因为如果使用了这个宏，就会和第3，4个项目无法区分了。所以我们改了一下名字。&lt;/p&gt;
+
+&lt;p&gt;到此为止，只是我们的构思，想要告诉 zabbix 我们想要监控什么。真正使用还需要走一些路。&lt;/p&gt;
+
+&lt;h2 id=&#34;如何发送数据&#34;&gt;如何发送数据&lt;/h2&gt;
+
+&lt;p&gt;不管是 discovery 数据，还是 item 的监控数据，都可以通过 agent 和 trapper 方式发送。&lt;/p&gt;
+
+&lt;p&gt;对于 discovery 数据，使用 agent 发送就是上面讲的格式。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;data&amp;quot;: [
+        { &amp;quot;{#PG.OTHER}&amp;quot;: &amp;quot;0&amp;quot; },
+     ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果使用 trapper 方式发送，格式如下&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;data&amp;quot;: [
+        {
+            &amp;quot;host&amp;quot;: &amp;quot;HOST1&amp;quot;,
+            &amp;quot;value&amp;quot;: &amp;quot;{\&amp;quot;data\&amp;quot;: [{\&amp;quot;{#PG.OTHER}\&amp;quot;: \&amp;quot;0\&amp;quot;}]}&amp;quot;,
+            &amp;quot;key&amp;quot;: &amp;quot;pg.discover&amp;quot;
+        }
+    ],
+    &amp;quot;request&amp;quot;: &amp;quot;sender data&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面这个数据里面，data 和 request 是 zabbix sender 的固定格式。data 里面，包含了 host, value, key 三个字段。host 是被监控的 host，和将来服务器端的 host 对应。value 是发送的监控内容，可以看到也就是我们使用 agent 发送的内容。key 就是对应的监控项，这个监控项也就是 agent 方式发送对应的那个 userParameter。&lt;/p&gt;
+
+&lt;p&gt;使用 trapper 方式发送里面，是可以伪造被监控的 host 的，所以 trapper 方式并不要求一定要在被监控机器上面执行。&lt;/p&gt;
+
+&lt;p&gt;对于 item 监控数据，使用 agent 发送是下面这种格式。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;key1&amp;quot;: 2,
+    &amp;quot;key2&amp;quot;: &amp;quot;ok&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;使用 trapper 方式发送，是下面的这种格式。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;data&amp;quot;: [
+        {
+            &amp;quot;host&amp;quot;: &amp;quot;HOST1&amp;quot;,
+            &amp;quot;value&amp;quot;: 1,
+            &amp;quot;key&amp;quot;: &amp;quot;key1&amp;quot;
+        },
+        {
+            &amp;quot;host&amp;quot;: &amp;quot;HOST1&amp;quot;,
+            &amp;quot;value&amp;quot;: &amp;quot;ok&amp;quot;,
+            &amp;quot;key&amp;quot;: &amp;quot;key2&amp;quot;
+        }
+    ],
+    &amp;quot;request&amp;quot;: &amp;quot;sender data&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;zabbix-里面的限制&#34;&gt;zabbix 里面的限制&lt;/h2&gt;
+
+&lt;p&gt;上面的例子很完美，但实际上 zabbix 是有一些限制的。比如 item 定义。&lt;/p&gt;
+
+&lt;p&gt;假如对于发现的 pg 服务，有一个监控项是连接数，比如 {% raw %}{#PG_PORT}.conn.cnt{% endraw %}，此时你会发现在 zabbix 新建 item 的 &lt;code&gt;Key&lt;/code&gt; 那个设置里面，这么写无法提交。需要使用假装类似 userParameter 的方式来写，比如 {% raw %}pg.[{#PG.PORT}.conn.cnt]{% endraw %}，假装那个 &lt;code&gt;pg.&lt;/code&gt; 是个 userParameter 命令，{% raw %}[{#PG.PORT}.conn.cnt]{% endraw %} 里面的内容是他的参数。当然，这个 pg. 可以基本可以是任何字符串，比如 abc，你自己觉得有意义就好了。&lt;/p&gt;
+
+&lt;p&gt;那么这个时候对于发现那块，我们基本不用动，需要动的是被发送的服务的监控项的命名上面。&lt;/p&gt;
+
+&lt;p&gt;比如以那个 ssh 的监控为例，原来发送的数据如下&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;22.conn.cnt&amp;quot;: 4,
+    &amp;quot;22.conf.md5&amp;quot;: &amp;quot;18492113fb263c9d0a33c9fea403eea1&amp;quot;,
+    &amp;quot;8022.conn.cnt&amp;quot;: 9,
+    &amp;quot;8022.conf.md5&amp;quot;: &amp;quot;6cab272daa07202ccb57c4064c0dcfb8&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我们只需要修改成这样&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;ssh[22.conn.cnt]&amp;quot;: 4,
+    &amp;quot;ssh[22.conf.md5]&amp;quot;: &amp;quot;18492113fb263c9d0a33c9fea403eea1&amp;quot;,
+    &amp;quot;ssh[8022.conn.cnt]&amp;quot;: 9,
+    &amp;quot;ssh[8022.conf.md5]&amp;quot;: &amp;quot;6cab272daa07202ccb57c4064c0dcfb8&amp;quot;
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;对应的 2 个 item prototype，key 分别修改为 {% raw %}ssh[{#SSH_PORT}.cnn.cnt]{% endraw %} 和 {% raw %}ssh[{#SSH_PORT}.conf.md5]{% endraw %}。那个 ssh 可以随意起。并且其实并不一定就得是这种模式，比如叫做 {% raw %}ssh.conf.md5[{#SSH_PORT}]{% endraw %} 应该也可以，当然需要你发送的数据也做对应修改。&lt;/p&gt;
+
+&lt;h2 id=&#34;如何发送监控数据&#34;&gt;如何发送监控数据&lt;/h2&gt;
+
+&lt;p&gt;咦？好像说过一次了？这次和上面不一样，呵呵。&lt;/p&gt;
+
+&lt;p&gt;设计好并写好监控之后，选择什么方式发送监控数据呢。我选择的是 discovery 数据通过 agent 方式获取，也就是在各服务器上面定义相同的一个 key，然后执行这个 key 的时候发送发现的服务信息。&lt;/p&gt;
+
+&lt;p&gt;而对于监控项数据则通过 trapper 方式发送。通过 trapper 方式发送，需要定时执行，可以通过 crontab 发送。我选择的是建立了一个 agent 类型的 item，执行这个 item 的时候发送监控数据。这样一方面可以针对这个发送动作建立一个监控，另外一方面调整很方便，zabbix 界面修改就可以。并且我把这个 item 建立到了模板上面，只要修改应用模板就可以了。&lt;/p&gt;
+
+&lt;p&gt;监控数据也可以用 agent 方式发送，如果用 agent 方式发送，对于上面的 ssh 服务，就需要真的建立那个 ssh 的 userParameter 了，然后接受比如 &lt;code&gt;22.conf.md5&lt;/code&gt; 这样的参数，去返回对应的监控数据。我没有用这种方式，是因为这样做等于有多少个 item 就需要在监控周期内执行多少次那个命令，给服务器增加负担（虽然没多少）。而使用 trapper 方式的话，就可以一次把所有的监控数据都发过去了，命令只需要执行一次。&lt;/p&gt;
+
+&lt;h2 id=&#34;如何应对不同的部分&#34;&gt;如何应对不同的部分&lt;/h2&gt;
+
+&lt;p&gt;到此为止，应该可以很完美的发现服务，并且监控了。但是会发现其实并不是所有服务器的服务都是一样的，比如对于 pgsql，slow query 的界定对于不同的业务可能不一样。而因为 trigger 也是自动发现添加的，这样也有可能需要不同的机器上面的服务有不同的阈值，怎么解决呢？&lt;/p&gt;
+
+&lt;p&gt;先说监控项的阈值。因为我的监控数据其实是通过建立一个 agent 类型的 item 定期发送 trapper 数据来实现的，所以只需要在调用那个 item 的时候传送不同的阈值就可以了。实际上面我的 itme key 定义是这样的 &lt;code&gt;pg.sendtrap[{$PG.DISCOVER.SETTINGS}]&lt;/code&gt; 。那个 pg.sendtrap 是对应到一个 userParameter 的 &lt;code&gt;UserParameter=pg.sendtrap[*],/etc/zabbix/bin/zabbix_pg.py --check --sendtrap --settings $1&lt;/code&gt;，在 zabbix_pg.py 里面，会处理 settings 参数。如果有阈值，那就定义好 &lt;code&gt;{$PG.DISCOVER.SETTINGS}&lt;/code&gt; 这个宏就可以了。template 上面可以定义默认的阈值，当然默认阈值在程序里面定义也可以。然后不同 host 可以定义 host 的阈值，会覆盖模板的配置。&lt;/p&gt;
+
+&lt;p&gt;其实 trigger 的阈值和这个思路类似，也是 template 里面定义一个宏，trigger 里面使用这个宏就可以了。如果 host 有不同的阈值，那就定义一个 host 的宏覆盖他就可以了。&lt;/p&gt;
+
+&lt;h2 id=&#34;目前的情况&#34;&gt;目前的情况&lt;/h2&gt;
+
+&lt;p&gt;配合 zabbix 的 auto registration 这个 action，可以做到新机器只需要执行一个 saltstack state，安装好我们的 zabbix agent，就可以自动注册 host，自动添加监控报警。&lt;/p&gt;
+
+&lt;p&gt;相当完美。&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
