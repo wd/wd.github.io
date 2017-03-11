@@ -100,6 +100,182 @@
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/redmine-a-good-project-tracker/">redmine-a-good-project-tracker</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2012-12-11T14:53:00.000&#43;08:00' itemprop="datePublished">2012-12-11</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/linux">linux</a>
+
+
+</div>
+    </div>
+        
+
+<p>其实很早，大概2，3年前就听说了 redmine 了，不过他环境是 ruby 的，一直没有勇气去搭一个环境。现在项目人多了，bug 阿 feature 阿，就需要记录一下了，因为有些事情不记录下来总是会忘记。之前是尝试通过 wiki ＋ bugfree 来记录的，bugfree 记录在提测之后的一些问题，wiki 记录一些 feature request 什么的。bugfree 我们没权限管理，wiki 记录又不方便，然后我就又想起来 redmine 了。</p>
+
+<p>哦对，其实公司还提供了一个 jira 给大家用，我用了几次我觉得那玩意太难用了，和那个 confluence 的 wiki 一样难用。</p>
+
+<p>本身搭建没什么难度，编译一个 ruby，然后 gem 安装几个包，下载 redmine，使用 rake 命令操作就好了。启动他的 server 之后，就可以访问了。下面几个东西是我花了一些时间配置的。</p>
+
+<h2 id="和-ldap-集成">和 ldap 集成</h2>
+
+<p>在 redmine 的设置里面，本身是有一项和 redmine 集成的功能的，设置 basedn，和下面的 attributes 内容（sAMAccountName,givenName,sN,mail)就可以了。点测试，得能通过。</p>
+
+<p>在我这里，光设置这个还不行，还需要 hack 一段代码。注意下面的那个 <code>@xxxx.com</code>，这个对应你自己的。</p>
+
+<pre><code class="language-diff">ndex: app/models/auth_source_ldap.rb
+===================================================================
+--- app/models/auth_source_ldap.rb	(版本 10947)
++++ app/models/auth_source_ldap.rb	(工作副本)
+@@ -135,11 +135,12 @@
+   # Get the user's dn and any attributes for them, given their login
+   def get_user_dn(login, password)
+     ldap_con = nil
+-    if self.account &amp;&amp; self.account.include?(&quot;$login&quot;)
+-      ldap_con = initialize_ldap_con(self.account.sub(&quot;$login&quot;, Net::LDAP::DN.escape(login)), password)
+-    else
+-      ldap_con = initialize_ldap_con(self.account, self.account_password)
+-    end
++    ldap_con = initialize_ldap_con(login + '@xxxxx.com', password)
++    #if self.account &amp;&amp; self.account.include?(&quot;$login&quot;)
++    #  ldap_con = initialize_ldap_con(self.account.sub(&quot;$login&quot;, Net::LDAP::DN.escape(login)), password)
++    #else
++    #  ldap_con = initialize_ldap_con(self.account, self.account_password)
++    #end
+     login_filter = Net::LDAP::Filter.eq( self.attr_login, login )
+     object_filter = Net::LDAP::Filter.eq( &quot;objectClass&quot;, &quot;*&quot; )
+     attrs = {}
+@@ -149,6 +150,8 @@
+       search_filter = search_filter &amp; f
+     end
+ 
++    logger.debug &quot;------------get_user_dn #{login} #{self.base_dn} #{search_filter} #{search_attributes}&quot; if logger &amp;&amp; logger.debug?
++
+     ldap_con.search( :base =&gt; self.base_dn,
+                      :filter =&gt; search_filter,
+                      :attributes=&gt; search_attributes) do |entry|
+</code></pre>
+
+<p>总之登陆验证的代码关键就在这里了，可以自己做尝试，建议先写最简单的代码测试。比如</p>
+
+<pre><code class="language-ruby">require 'rubygems'
+require 'net/ldap'
+
+ldap = Net::LDAP.new :host =&gt; 'qunarldap.corp.qunar.com',
+     :port =&gt; 389,
+     :auth =&gt; {
+           :method =&gt; :simple,
+           :username =&gt; &quot;wd@xxxx.com&quot;,
+           :password =&gt; &quot;pwd&quot;
+     }
+
+filter = Net::LDAP::Filter.eq(&quot;sAMAccountName&quot;,&quot;wd*&quot;)
+object_filter = Net::LDAP::Filter.eq( &quot;objectClass&quot;, &quot;*&quot; )
+search_filter = filter &amp; object_filter
+
+treebase = &quot;你的 basedn&quot; #
+
+attr = [&quot;dn&quot;, &quot;givenName&quot;, &quot;sN&quot;, &quot;mail&quot;]
+
+ldap.search(:base =&gt; treebase, :filter =&gt; search_filter, :attributes =&gt; attr ) do |entry|
+  puts &quot;DN: #{entry.dn}&quot;
+  entry.each do |attribute, values|
+    puts &quot;   #{attribute}:&quot;
+    values.each do |value|
+      puts &quot;      ---&gt;#{value}&quot;
+    end
+  end
+end
+
+p ldap.get_operation_result
+</code></pre>
+
+<p>搞定这块，就可以通过 ldap 用户直接登陆了，登陆会自动创建用户。</p>
+
+<h2 id="通过回复邮件自动创建和更新-issue">通过回复邮件自动创建和更新 issue</h2>
+
+<p>用过 bugzilla 的都知道，可以通过邮件回复的方式来 comment issue。redmine 也提供了这个功能。我这种对 mail 服务器无权的用户，只能申请一个邮箱专门做这个事情了。公司邮箱是 exchange 的，没有打开 imap。redmine 只提供了 imap，pop 之类的方式。好在还有 davmail。先配置好一个 davmail，然后通过 imap 来做这个事情，imap 比 pop 好处多很多，比如可以指定 inbox，可以 move 到 read 之类，就不多说了。</p>
+
+<p>crontab 指令大概如下。</p>
+
+<pre><code class="language-bash">#!/bin/bash
+
+LOG=/export/redmine/log/mail_recieve.log
+
+echo &quot;start $(date)&quot; &gt;&gt; $LOG
+
+/usr/local/ruby/bin/rake --silent -f /export/redmine/Rakefile redmine:email:receive_imap RAILS_ENV=&quot;production&quot; host=localhost username=abc password=def port=1143 move_on_success=read move_on_failure=failed unknown_user=accept &gt;&gt; $LOG 2&gt;&amp;1
+
+echo &quot;end $(date)&quot; &gt;&gt; $LOG
+</code></pre>
+
+<p>不过如果 redmine 就这么简单就搞定的话，那我也没必要单独拿出来掰了。关键是，通过 imap 死活就是不行。只好又看了一下代码。</p>
+
+<pre><code class="language-diff">Index: lib/redmine/imap.rb
+===================================================================
+--- lib/redmine/imap.rb	(版本 10947)
++++ lib/redmine/imap.rb	(工作副本)
+@@ -30,8 +30,9 @@
+         imap.login(imap_options[:username], imap_options[:password]) unless imap_options[:username].nil?
+         imap.select(folder)
+         imap.search(['NOT', 'SEEN']).each do |message_id|
+-          msg = imap.fetch(message_id,'RFC822')[0].attr['RFC822']
+-          logger.debug &quot;Receiving message #{message_id}&quot; if logger &amp;&amp; logger.debug?
++          #msg = imap.fetch(message_id,'RFC822')[0].attr['RFC822']
++          msg = imap.fetch(message_id,'BODY[]')[0].attr['BODY[]']
++          logger.debug &quot;Receiving message #{message_id}, msg:\n#{msg}&quot; if logger &amp;&amp; logger.debug?
+           if MailHandler.receive(msg, options)
+             logger.debug &quot;Message #{message_id} successfully received&quot; if logger &amp;&amp; logger.debug?
+             if imap_options[:move_on_success]
+</code></pre>
+
+<p>这里把那个 RFC822 改成 BODY[] 就好了，入丝般润滑。。。</p>
+
+<h2 id="过滤掉邮件回复的垃圾内容">过滤掉邮件回复的垃圾内容</h2>
+
+<p>邮件回复 ok 之后，紧跟着问题就是，他会把整封邮件都作为回复记录进去，这个太恶心了。还好他提供了设置，在 email notification 选项里面，配置一个 email header <code>--Reply above this line--</code>，在 incoming mail 里面配置一个 Truncate emails after one of these lines <code>--Reply above this line--</code>，他就会截取这个字符前面的内容了。</p>
+
+<p>不过还有问题就是，一般邮件回复都开头都是个 <code>On xxxx xxx wrote:</code>，这个他不会截掉，那就再 hack 一下。。</p>
+
+<pre><code class="language-diff">--- app/models/mail_handler.rb	(版本 10947)
++++ app/models/mail_handler.rb	(工作副本)
+@@ -463,9 +464,12 @@
+ 
+   # Removes the email body of text after the truncation configurations.
+   def cleanup_body(body)
+-    delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map {|s| Regexp.escape(s)}
++    #delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map {|s| Regexp.escape(s)}
++    delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map {|s| s}
++
+     unless delimiters.empty?
+       regex = Regexp.new(&quot;^[&gt; ]*(#{ delimiters.join('|') })\s*[\r\n].*&quot;, Regexp::MULTILINE)
++      #regex = Regexp.new(&quot;(^[&gt; ]*(#{ delimiters.join('|') })\s*[\r\n].*)|(On (.*)wrote:[\r\n].*)&quot;, Regexp::MULTILINE)
+       body = body.gsub(regex, '')
+     end
+     body.strip
+</code></pre>
+
+<p>这里搞定之后，在那个 Truncate emails after one of these lines 里面就可以写正则了，增加一行 <code>On (.*)wrote:</code>，然后就可以了。</p>
+
+<h2 id="code-review">code review</h2>
+
+<p>增加了一个 code review 插件，已有项目需要在项目的模块里面启用。并且需要 admin 在角色配置里面，给相应角色增加 code review 的权限。不过貌似这插件不太好用，只能一行一行来。</p>
+
+    </div>
+
+<div class="meta">
+    
+    <span class="comments"><a href="/redmine-a-good-project-tracker/#disqus_thread">Comments</a></span>
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/some-tips-on-bash-scripting/">Some tips for bash scripting</a>
     </h2>
     <div class="entry-content">
@@ -880,46 +1056,6 @@ ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不�
 <div class="meta">
     
     <span class="comments"><a href="/analyse-and-vacuum-in-postgres/#disqus_thread">Comments</a></span>
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/emacs-in-mac/">总算是将就同步好了 gentoo 和 mac 的 emacs</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2012-02-20T00:00:00.000&#43;00:00' itemprop="datePublished">2012-02-20</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="/tags/heart">heart</a>
-
-
-</div>
-    </div>
-        mac 里面居然自带了一个 emacs，，版本是 22.1.1，有够老的反正是。因为 gentoo 用的是 emacs24，所以按照不知道哪里推荐的，去下载了一个 emacs24。然后就是尝试在 mac 下面配置好我的 emacs 了，配置好才好通过 org2blog 写 blog。。。<br />
-
-老早就随大流把 .emacs.d 放到了 github，所以这部分比较简单，只要 clone 一下就可以了。<br />
-
-之前没想到的是我的一部分 elisp 包是通过 gentoo 管理的，这样只有 .emacs.d 显然是不行的。然后使用了 dropbox 这个方案，把 gentoo 里面的 site-lisp 部分也同步过来。主要是 <em>usr/share/emacs/etc</em> 和 <em>usr/share/emacs/site-lisp</em> 两个目录。把 gentoo里面的这两个目录转移到 dropbox 里面，然后做个软链。mac 里面也从 dropbox 里面做好软链，要注意路径位置不能变化，变化的话 gentoo 里面的 site-gentoo.el 里面写死的路径就不能用了。不过不变化那个路径的话，其实是会影响系统自带的 emacs22.1.1 的使用的，不过不管了，爱咋匝地吧，反正我也不用那个。<br />
-
-接下来就是在 .emacs 里面加 load-path 就可以了。gentoo 是不需要的，所以用下面的代码<br />
-<pre class="prettyprint lang-lisp">
-    (setq load-path
-        (cons "/usr/share/emacs/site-lisp/" load-path)))</pre>
-mac 里面用 emacs 一个郁闷的问题是，command 键挤在了 alt 和 space 中间，和普通键盘不一样，导致习惯了普通键盘的我经常按错。很郁闷，不知道能不能把那个 command 弄成 alt，反正好像 command 在 emacs 里面没用。。。
-
-可以用上面类似的方法处理一些两个系统的特例。
-
-顺便再吐槽下 mac 的输入法，装了个 sogou，发现这小子启动慢，经常切换过去后打了几个字母了都，他还没反应，字母就上屏了。fit的词库又不行，词频调整也有问题。‘在’我这半天输入 n 个了都，还是处在‘再’的后面，很讨厌。不知道有没有其他靠谱的。。。
-
-    </div>
-
-<div class="meta">
-    
-    <span class="comments"><a href="/emacs-in-mac/#disqus_thread">Comments</a></span>
     
 </div>
 </article>
