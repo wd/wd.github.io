@@ -1,0 +1,80 @@
++++
+title = "我的第一个perl脚本"
+tags = ["other"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2006-12-16"
+description = ""
++++
+
+是给irssi写的，只不过通过他和irssi接口，所有功能都是bash脚本实现的，回头看看如何转到perl。<br />
+<pre class="prettyprint lang-perl">
+use vars qw($VERSION %IRSSI);
+
+use Irssi;
+$VERSION = '1.00';
+%IRSSI = (
+authors     => 'wd',
+contact     => 'wd@wdicc.com',
+name        => 'My First Script',
+description => 'This script allows ' .
+'you to query weather and other info ' .
+'using some command.',
+license     => 'Public Domain',
+);
+
+sub send_msg {
+my ($server, $who, @result) = @_;
+my $count;
+$count = 1;
+while ($count <= @result) {
+$server->command("msg $who $result[$count-1]");
+$count++;
+}
+}
+
+sub pre_send {
+my ($server, $who) =@_;
+$server->command("msg $who 0I'm working,Waiting me...");
+}
+
+sub end_send {
+my ($server, $who) =@_;
+$server->command("msg $who 0...The end.");
+}
+
+sub msg_public {
+my ($server, $msg, $nick, $address, $target) = @_;
+my @result;my $who;
+
+$who = $target;
+if ($target eq "") { $who = $nick; }
+
+if ($msg =~ /^!([Dd]ict|[Ww]eather|[Gg]oogle|[Hh]elp|nslookup|rss).*$/) {
+&pre_send($server,$who);
+$msg =~ s/!//;
+if ($msg =~ /^[Hh]elp.*$/) {
+@result = ("Usage:",
+"!dict ur_word",
+"   eg: !dict license",
+"!weather location [today|tomorrow]",
+"   eg: !weather beijing",
+"!google sth.",
+"   eg: !google archlinux",
+"!nslookup domin_name",
+"   eg: !nslookup archlinux.org",
+"!rss feed_url",
+"   eg: !rss http://blog.wdicc.com/wordpress/feed/");
+} else {
+@result = `/home/stef/get $msg`;
+}
+#$server->print("#arch-cn", "$nick, $target, $who");
+&send_msg($server, $who, @result);
+&end_send($server, $who);
+}
+}
+
+Irssi::signal_add_first('message public', 'msg_public');
+Irssi::signal_add_first('message private', 'msg_public');</pre>

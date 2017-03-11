@@ -1,0 +1,25 @@
++++
+title = "为resin配置oracle连接池"
+tags = ["linux", "oracle", "other", "resin"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2007-06-27"
+description = ""
++++
+
+<p>resin 2.x 的配置方法和 3.x 的方法有区别。按照<a href="http://www.caucho.com/resin-3.1/doc/db-thirdparty.xtp">官方文档</a>，做下面的配置。</p> <p><pre lang="txt"><database><br />
+  <jndi-name>oraPool</jndi-name><br />
+  <driver><br />
+    <type>oracle.jdbc.pool.OracleConnectionPoolDataSource</type><br />
+    <url>jdbc:oracle:thin:@localhost:1521:dbname</url><br />
+    <user>username</user><br />
+    <password>password</password><br />
+  </driver><br />
+#....<br />
+</database></pre><br />
+<p>&nbsp;在上面的 <font color="#ff0000">.... </font>这里还可以添加<a href="http://www.caucho.com/resin-3.1/doc/database-tags.xtp">其他的</a>配置信息。配置好之后启动resin，会发现提示类似下面的信息。</p><br />
+<p><pre lang="txt">conf/resin.conf:218: java.lang.ClassNotFoundException: oracle.jdbc.pool.OracleConnectionPoolDataSource</pre><br />
+<p>提示没有找到连接oracle数据库的jdbc驱动。这个驱动在oracle的安装目录里面有。比如我这里是在 /db/oracle/10.1.0/product/10g/jdbc/lib/ 。里面好多文件，具体都什么作用可以看<a href="http://www.oracle.com/technology/tech/java/sqlj_jdbc/htdocs/jdbc_faq.htm#02_07">这里</a>。</p><br />
+<p>复制这个目录里面的 classes12.jar 和 nls_charset12.jar 到resin的 lib 目录下面，重新启动 resin 就可以了。本文完成过程中参考了<a href="http://dev.csdn.net/article/29/29762.shtm">这篇</a>文章。如何使用这个pool，官方文档也有<a href="http://www.caucho.com/resin-3.1/doc/config-database.xtp#usage/lookup">说明</a>。</p><br />

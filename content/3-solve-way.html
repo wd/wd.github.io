@@ -1,0 +1,28 @@
++++
+title = "一个简单问题的三种实现方法"
+tags = ["other"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2006-12-21"
+description = ""
++++
+
+#arch-cn irc上面rock提出了一个需求，将一行太长的文字让他自动按照要求换行。<br />
+
+刚开始拿到这个问题的时候，感觉sed或者awk好像实现不了亚，没那么智能的，可是简单分析一下，“按照要求” 我们假定要求是 “每5个字符” 就换行一次。这样这个问题就明朗了。再换句话说，需求就是 “每5个字符插入一个换行符”。<br />
+
+第一种方法，用sed：<br />
+<pre class="prettyprint lang-bash">
+第二种方法，用gawk（sssslang提供）：
+<pre class="prettyprint lang-bash">cat $content | gawk --re-interval '{gsub(/(.){2}/,"&n">
+第三种方法，好像有点bt，用perl：
+<pre class="prettyprint lang-perl">
+@content = `tail /var/log/postfix.log`;
+foreach (@content) {
+for ($i=0; $i < length($_); $i+=$cut) {
+                print substr("$_",$i,$cut)."\n";
+        }
+}</pre>
+反斜杠\都被过滤掉了，不知道咋回事，自己看着加上。。

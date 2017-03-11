@@ -1,0 +1,28 @@
++++
+title = "debian下面的防火墙设置"
+tags = ["debian"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2006-04-17"
+description = ""
++++
+
+<p>rh下面的防火墙设置是保存在/etc/sysconfig/iptables文件中的，这样每次重启都会恢复防火墙设置。<br />
+
+debian木有这个文件，但是他提供了更加灵活的方式。<br />
+<a href="http://www.debian.org/doc/manuals/securing-debian-howto/ch-sec-services.en.html#s-firewall-setup">http://www.debian.org/doc/manuals/securing-debian-howto/ch-sec-services.en.html#s-firewall-setup</a><br />
+
+看了下，似乎比较简单的就是设置interfaces文件了。<br />
+
+5.14.3.3 Configuring firewall rules through ifup<br />
+You can use also the network configuration in /etc/network/interfaces to setup your firewall rules. For this you will need to: </p><p>Create your firewalling ruleset for when the interface is active. <br />
+Save your ruleset with iptables-save to a file in /etc, for example /etc/iptables.up.rules <br />
+Configure etc/network/interfaces to use the configured ruleset: <br />
+ &nbsp; &nbsp; iface eth0 inet static<br />
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; address x.x.x.x<br />
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; [.. interface configuration ..]<br />
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; pre-up iptables-restore &lt; /etc/iptables.up.rules<br />
+You can optionally also setup a set of rules to be applied when the network interface is down creating a set of rules, saving it in /etc/iptables.down.rules and adding this directive to the interface configuration: </p><p> &nbsp; &nbsp; &nbsp; &nbsp; post-down iptables-restore &lt; /etc/iptables.down.rules<br />
+For more advanced firewall configuration scripts through ifupdown you can use the hooks available to each interface as in the *.d/ directories called with run-parts (see run-parts(8)). </p><p>可以去<a href="http://easyfwgen.morizot.net/gen/">http://easyfwgen.morizot.net/gen/</a> 在线生成一个防火墙脚本，然后pre-up指定一下。</p><br />

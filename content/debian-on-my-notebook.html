@@ -1,0 +1,80 @@
++++
+title = "给本本装了个debian"
+tags = ["debian"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2005-04-19"
+description = ""
++++
+
+重装了一下。<br />
+
+安装了一个kde，觉得太慢了，换了xfce4，挺快得，呵呵。<br />
+
+＃cat .xinitrc <br />
+export LANG=zh_CN<br />
+export LC_CTYPE=zh_CN<br />
+export XMODIFIERS=@im=fcitx<br />
+export XIM=fcitx<br />
+export XIM_PROGRAM=fcitx<br />
+export BROWSER="mozilla-firefox"<br />
+export TERMCMD="mrxvt"<br />
+fcitx &<br />
+startxfce4<br />
+
+这样就可以调用fcitx输入法了。<br />
+
+<br><!--more-->mrxvt支持多tab，是国产得软件，呵呵。不过还得设置才能正常显示输入中文。<br />
+
+#cat ~/.mrxvtrc<br />
+mrxvt*mfont:              hanzigb16st<br />
+mrxvt*xftmfont:           simsun<br />
+mrxvt*xftSize:            14<br />
+mrxvt*multichar_encoding: GB<br />
+mrxvt*inputMethod:        fcitx<br />
+
+这样就ok了。<br />
+
+
+看到xfce4.2出来了，可是debian还没有包含，找到一个安装方法:http://www.os-works.com/view/debian/<br />
+
+To start the installation of the Debian packages, add the following two lines to the file /etc/apt/sources.list on your system: <br />
+
+
+deb http://www.os-works.com/debian testing main<br />
+deb-src http://www.os-works.com/debian testing main<br />
+You&#39;ll have to update your package cache afterwards, using the command (as user root): <br />
+
+
+apt-get update<br />
+This may take some time dependeing on your bandwidth. <br />
+
+Now, if you want to install the whole Xfld desktop - including the Terminal emulator, the ROX file manager, the Xfmedia media player and several additional panel plugins - you should run the command <br />
+
+
+apt-get install -t testing xfld-desktop<br />
+as user root. This will download all required packages and install them on your computer. The parameter -t testing should not be needed in most cases, but it doesn&#39;t hurt either. It tells apt-get to use packages from the testing release - which is the release name we use for our repository - even if your system defaults to another release (e.g. unstable). See this introduction to APT Pinning for further details on how to manage multiple APT sources. For example, if you are using Debian unstable (aka sid), you may need to add the following lines to the file /etc/apt/preferences/ (create the file if its not already present on your system) to ensure that you will actually install Xfce 4.2 and not Xfce 4.0 from Debian unstable: <br />
+
+
+Package: *<br />
+Pin: origin www.os-works.com<br />
+Pin-Priority: 999<br />
+These three lines will make sure that APT assigns a higher priority to the Xfce 4.2, when installing or upgrading software on your system. Once you have added these lines, you don&#39;t need to use the -t testing option to apt-get any longer. <br />
+
+In case you want to use only the core components of the Xfce 4.2 Desktop Environment, the command <br />
+
+
+apt-get install -t testing xfce4<br />
+will install the window manager, session manager, panel, file manager and the various utilities that ship with Xfce, but not the additional software that completes the Xfld Desktop. <br />
+
+If you have Xfce 4.0.x currently installed on your system, you can try to upgrade to the Xfce 4.2 packages using the command <br />
+
+
+apt-get dist-upgrade<br />
+If you have trouble upgrading from the Xfce packages in the official Debian repository, you could try to uninstall the official packages first: <br />
+
+
+apt-get remove libxfce4util-1<br />
+will remove all Xfce packages from your system. Afterwards, you should retry with the installation as described above.<br />

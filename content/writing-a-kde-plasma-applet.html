@@ -1,0 +1,85 @@
++++
+title = "写了一个 kde plasma applet"
+tags = ["linux", "plasma", "pyqt4", "python"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2009-01-23"
+description = ""
++++
+
+用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。<br />
+
+第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。<br />
+
+这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。<br />
+
+昨天花了一个下午，总算弄好了。参考的文档 <a href="http://www.qtopia.org.cn/doc/qiliang.net/qt/classes.html">qt的类</a>, <a href="http://www.zetcode.com/tutorials/pyqt4/">pyqt4 turtorial</a>,<a href="http://techbase.kde.org/Development/Tutorials/Plasma/Python/GettingStarted">plasma python</a> .<br />
+
+效果就这样。电池旁边那个就是。<br />
+
+<a href="http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png" target="_blank"><img src="http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png" alt="" width="300" /></a><br />
+
+代码<br />
+<pre class="prettyprint lang-python">
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+from PyKDE4.plasma import Plasma
+from PyKDE4 import plasmascript
+import time                                      
+
+class Cpuinfo(plasmascript.Applet):
+        def __init__(self,parent,args=None):
+                plasmascript.Applet.__init__(self,parent)
+
+        def init(self):
+                self.freqnow = ''
+                self.freqmax = ''
+                self.temp = ''
+                self.text = ''   
+
+                self.getCurrentFreq()
+                self.getMaxFreq()
+                self.getTemp()       
+
+                self.setHasConfigurationInterface(False)
+                self.setMinimumWidth(100)
+                self.setAspectRatioMode(Plasma.Square)
+                self.startTimer(1000)
+
+        def getCurrentFreq (self):
+                line = open ('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqnow = line
+
+        def getMaxFreq (self):
+                line = file('/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqmax = line
+
+        def getTemp (self):
+                line = file('/proc/acpi/thermal_zone/TZ1/temperature', 'r').read().rstrip('\n')
+                line = " ".join(line.split()[1:])
+                self.temp = line
+
+        def timerEvent(self, event):
+                self.getCurrentFreq()
+                self.getTemp()
+                self.text = "%s\n%.2f %d%%" % (self.temp, self.freqnow, self.freqnow / self.freqmax * 100)
+                self.update() 
+
+        def paintInterface(self, painter, option, rect):
+                painter.save()
+                painter.setPen(Qt.white)
+                #painter.setFont(QFont('Consolas',11))
+                painter.drawText(rect, Qt.AlignVCenter | Qt.AlignHCenter, self.text)
+                painter.restore()
+
+def CreateApplet(parent):
+                return Cpuinfo(parent)
+
+if __name__ == '__main__':
+        a = Cpuinfo(None)
+        a.init()
+        print a.freqnow</pre>

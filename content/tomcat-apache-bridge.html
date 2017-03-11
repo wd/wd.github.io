@@ -1,0 +1,46 @@
++++
+title = "tomcat和apache桥接"
+tags = ["apache", "tomcat", "web", "桥接"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2006-08-23"
+description = ""
++++
+
+1 下载，安装tomcat，jdk和mod_jk<br />
+
+下载jdk  <a href="http://java.sun.com/javase/downloads/index.jsp">http://java.sun.com/javase/downloads/index.jsp</a><br />
+tomcat 5.5 需要jre 1.5才可以。下载之后是一个bin文件<br />
+<pre class="prettyprint lang-bash">
+$chmod +x xx.bin
+$./xx.bin</pre>
+
+他会将jdk解压到当前目录下面，然后作一个链接
+<pre class="prettyprint lang-bash">
+
+以后访问jdk文件夹即可，此处我们用JAVA_HOME来表示jdk文件夹的路径。
+
+下载tomcat <a href="http://tomcat.apache.org/download-55.cgi">http://tomcat.apache.org/download-55.cgi</a>
+下载 Core 那个版本就可以，下载之后解压，选择放置地方之后，做一个链接
+<pre class="prettyprint lang-bash">
+
+以后访问tomcat文件夹即可，此处我们用TOMCAT_HOME来表示tomcat的安装路径。
+
+下载 mod_jk ，这个是用来完成apache和tomcat桥接的模块，<a href="http://www.apache.org/dist/tomcat/tomcat-connectors/jk/"> http://www.apache.org/dist/tomcat/tomcat-connectors/jk/</a> 。
+可以下载已经编译好的模块，不过要注意要和自己的apache版本对应才行。也可以下载source自己编译，这里我们自己编译。
+
+下载source之后，解压，进入解压后的目录，然后
+<pre class="prettyprint lang-bash">
+$./configure --with-apxs=/usr/local/apache/bin/apxs #后面是apxs的目录
+也可以
+$./configure --with-apache=/usr/local/apache #apache的目录
+$make
+</pre><br />
+编译完成之后，复制桥接模块到apache的modules目录<br />
+<pre class="prettyprint lang-bash">
+
+2 配置
+
+jdk的环境需要配置一个系统变量JAVA_HOME，可以写到/etc/profile中，或者修改tomcat的启动停止脚本来设置java环境也可以（这

@@ -1,0 +1,12 @@
++++
+title = "ssh 之穿越与反穿越"
+tags = ["linux", "proxy", "ssh"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2010-01-21"
+description = ""
++++
+
+<p>有时候我们不得不和网管对着干，去想办法去穿越某些防火墙，访问到我们要访问的资源。例如下面的情况，A 和 C 之间是有个墙的，不通。可有个 B 能访问到 C，而 A 又能访问到 B ，那我们可以通过你 ssh 做代理穿越那个墙。</p><p>A -&gt; | -&gt; C<br /> \-&gt; B -&gt; C</p><p>在A 上面执行下面的命令</p><p>ssh -f -N -g -L 8888:C_ip:80 B_ip<br />参数的含义：-f 放到后台<br />-N 不在对方机器请求 shell<br />-g 能使得别的机器能连接 A 的那个端口<br />-L 就是代理，具体看 man </p><p>这样，在 A 上面访问 8888 端口，就能访问到 C 的 80 端口了。</p><p>那如果是下面的网络情况，那怎么办？A 能访问到 C，但是 C 不能直接访问 A。</p><p>A -&gt; C<br />C-&gt; | -&gt; A</p><p>在 A 上面执行下面的命令</p><p>ssh -f -N -R 9999:A_ip:80 C_ip<br />-R 是反向代理, -g 在这里好像不好用不知道为什么</p><p>从 C 上面访问自己的 9999 端口，就会访问到 A 的 80 端口。</p><br />

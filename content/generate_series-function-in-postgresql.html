@@ -1,0 +1,17 @@
++++
+title = "postgresql 里面的 generate_series"
+tags = ["linux", "postgresql"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2011-10-14"
+description = ""
++++
+
+
+<p>有个报表需要把几天的记录按照小时 join 起来，最开始的作法是通过 js 来 join 数据。后来遇到了问题，就是某天某个小时可能会没有记录，然后想破头了，在 js 里面循环的时候设置每天循环到的当前的小时。可崩溃的是还会出现有的是这两小时没有，有的是另外的，用 js 搞不定了，就尝试用 sql 搞定。<br />
+</p><br />
+<p><br />
+sql 开始的方法是简单的使用 full join。然后发现没法保证主表在所有的小时都有记录。后来就发现了这个 generate_series 函数，发现很有意思。地址在这里 <a href="http://www.postgresql.org/docs/9.0/static/functions-srf.html">http://www.postgresql.org/docs/9.0/static/functions-srf.html</a> 。这里还有个 generate_scripts 的函数，可以用来遍历数组产生一个表格的。<br />
+</p><br />

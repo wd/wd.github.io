@@ -1,0 +1,72 @@
++++
+title = "vim的一些有用的咚咚"
+tags = ["other"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2005-10-26"
+description = ""
++++
+
+<pre class="prettyprint lang-bash">
+# cat .bashrc.vim
+# .bashrc
+# Source default definitions
+if [ -f ~/.bashrc ]; then
+    . ~/.bashrc
+fi
+export PS1="[VIM]$PS1"
+</pre><br />
+<br><!--more--><pre lang="bash"># cat .vimrc<br />
+" multi-encoding setting<br />
+if has("multi_byte")<br />
+  "set bomb<br />
+  set fileencodings=ucs-bom,utf-8,cp936,big5,euc-jp,euc-kr,latin1<br />
+  " CJK environment detection and corresponding setting<br />
+  if v:lang =~ "^zh_CN"<br />
+    " Use cp936 to support GBK, euc-cn == gb2312<br />
+    set encoding=cp936<br />
+    set termencoding=cp936<br />
+    set fileencoding=cp936<br />
+  elseif v:lang =~ "^zh_TW"<br />
+    " cp950, big5 or euc-tw<br />
+    " Are they equal to each other?<br />
+    set encoding=big5<br />
+    set termencoding=big5<br />
+    set fileencoding=big5<br />
+  elseif v:lang =~ "^ko"<br />
+    " Copied from someone&#39;s dotfile, untested<br />
+    set encoding=euc-kr<br />
+    set termencoding=euc-kr<br />
+    set fileencoding=euc-kr<br />
+  elseif v:lang =~ "^ja_JP"<br />
+    " Copied from someone&#39;s dotfile, untested<br />
+    set encoding=euc-jp<br />
+    set termencoding=euc-jp<br />
+    set fileencoding=euc-jp<br />
+  endif<br />
+  " Detect UTF-8 locale, and replace CJK setting if needed<br />
+  if v:lang =~ "utf8$" || v:lang =~ "UTF-8$"<br />
+    set encoding=utf-8<br />
+    set termencoding=utf-8<br />
+    set fileencoding=utf-8<br />
+  endif<br />
+else<br />
+  echoerr "Sorry, this version of (g)vim was not compiled with multi_byte"<br />
+endif<br />
+set shell=bash\ --rcfile\ ~/.bashrc.vim<br />
+nnoremap j gj<br />
+nnoremap k gk<br />
+vnoremap j gj<br />
+vnoremap k gk<br />
+nnoremap <Down> gj<br />
+nnoremap <Up> gk<br />
+vnoremap <Down> gj<br />
+vnoremap <Up> gk<br />
+inoremap <Down> <C-o>gj<br />
+inoremap <Up> <C-o>gk<br />
+</pre><br />
+<pre class="prettyprint lang-bash">
+set tabstop=4
+set shiftwidth=4</pre>

@@ -1,0 +1,97 @@
++++
+title = "我來編譯 nVidia 顯卡驅動zz"
+tags = []
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2005-04-19"
+description = ""
++++
+
+＜我來編譯 nVidia 顯卡驅動＞<br />
+原文来自(但不是直译)：http://home.comcast.net/~andrex/Debian-nVidia/<br />
+
+nVidia 顯卡驅動程式是中兩個部份組成： 一是系統核心模塊(kernle module)，二是用戶層的庫(user-space libraries)。<br />
+用戶層的庫是不開源的，也叫(GLX庫），由nVidia廠商直接發佈的己編譯包。 核心模塊是以源碼形式（內仍有一個己編譯組件），在Debian下的包是 nvidia-kernel-source 和 nvidia-kernel-common。 兩個包都只是要安裝一次就可以了，而核心模塊就要在每次你重建或更改系統核心時重新編譯。<br />
+
+主要有以下三個步驟：<br />
+
+1。 編譯及安裝 nVidia的核心模塊<br />
+2。 安裝用戶層庫<br />
+3。 更新你的系統配置<br />
+
+<br><!--more-->*因為我安裝的是 kernel 2.6.8-2-686-smp，但沒有這個核心的nVidia驅動，所以我自己來！*<br />
+
+步驟0： 準備編譯環境<br />
+=================<br />
+
+Code.0.1 安裝系統核心版本的庫頭文件包<br />
+
+# apt-get install kernel-headers-$KVERS<br />
+
+Code.0.2 當source還是sarge的時候安裝debian的打包工具<br />
+
+# apt-get install debconf-utils debhelper dpatch gettext html2text intltool-debian po-debconf<br />
+
+步驟1： 編譯及安裝 nVidia的核心模塊<br />
+=================<br />
+
+Code.1.1 設置一些方便的環境參數<br />
+
+# export KVERS=$(uname -r)<br />
+# export KSRC=/usr/src/kernel-headers-$KVERS<br />
+
+* 改source為unstable，再更新<br />
+Code.1.2 安裝nVidia 顯卡驅動程式系統核心模塊包<br />
+
+# apt-get install nvidia-kernel-source nvidia-kernel-common<br />
+
+這樣便會在/usr/src內找到剛安裝的模塊包<br />
+Code.1.3 解包<br />
+
+# cd /usr/src<br />
+# tar -zxf nvidia-kernel-source.tar.gz<br />
+
+Code.1.4 重建（編譯）模組<br />
+
+# cd /usr/src/modules/nvidia-kernel<br />
+# debian/rules binary_modules<br />
+
+好！完成編譯，編譯完的debian包可以在/usr/src/modules/(或/usr/src/ ??)內找到。<br />
+
+Code.1.5 把編譯完成的驅動包安裝到系統<br />
+
+# dpkg -i /usr/src/modules/nvidia-kernel-*.deb<br />
+
+*如果你有多於一個nvidia-kernel包在這目錄下，就要指明用哪個包啦！<br />
+
+步驟2：安裝用戶層庫<br />
+=================<br />
+
+* 改source回來為sarge，再更新<br />
+
+Code.2.1 安裝nVidia的用戶層庫<br />
+
+# apt-get install nvidia-glx<br />
+
+步驟3： 更新系統配置<br />
+=================<br />
+
+Code.3.1 修改 X 伺服器配置，看下方引用<br />
+
+# nano -w /etc/X11/XF86Config-4<br />
+
+Code.3.2 重要/etc/X11/XF86Config-4更改部份<br />
+
+...Module Section<br />
+Load "glx"<br />
+#Load "dri"<br />
+#Load "GLCore"<br />
+...Device Section<br />
+Driver "nvidia" #本來都是 "nv"或"vesa"吧？<br />
+
+Code. 把nvidia列入系統自動載入的模塊配置列表吧。<br />
+
+# grep -q ^nvidia /etc/modules ||echo nvidia>>/etc/modules<br />
+引用网址：http://linux.hiweed.com/node/1843<br />

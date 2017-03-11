@@ -1,0 +1,13 @@
++++
+title = "稍微深入了解了一下cacti的thold插件的邮件通知"
+tags = ["cacti", "linux", "other", "thold", "trigger"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2007-06-28"
+description = ""
++++
+
+<p>通过cacti的thold插件，可以做到snmp抓取到的数值低于你规定的值的时候进行邮件通知，例如我用他来监控磁盘空间，当磁盘空间低于某个数的时候就会给指定的email发邮件。但是有一点郁闷的是，有时候，可能是由于网络原因，抓取会超时，这样就会导致触发trigger，给你发送邮件。5分钟抓取一次，我这里的情况是几乎每个小时总会有2，3封这种邮件，很烦人，而且根本没意义。早就想屏蔽掉这种情况了，看了代码挺复杂就懒得弄，今天实在受不了了，深入了解了一下。</p> <p>其实thold本身已经考虑到了这种情况，在 thold 的设置里面，就有一项 Default Trigger Count （Number of consecutive times the data source must be in breach of the threshold for an alert to be raised），就是连续触发几次才认为他真的低于 thold 了，才发送邮件。我尝试过修改这个设置，发现不管用。看了代码才了解，每个 <strong>Thresholds</strong>&nbsp;都有自己的 trigger 值，那个 default trigger count 只对新建的 thresholds 才有用。所以针对现有的，需要逐个去修改才行。如果不设置这个选项，那么使用的就是上面设置的那个默认的，所以没特殊需要，还是不要针对每个 thresholds 设置自己的 trigger 值比较好，这样方便修改。我通过修改数据库的方法，直接把这些都修改了。</p> <p><pre lang="sql">update thold_data set thold_fail_trigger = NULL;</pre><br />
+<p>修改了之后还没有收到，这下应该清净了吧？</p><br />

@@ -1,0 +1,39 @@
++++
+title = "通过mod_limitipconn模块来限制apache的并发连接数"
+tags = ["web"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2005-12-29"
+description = ""
++++
+
+http://bbs.chinaunix.net/viewthread.php?tid=3129<br />
+
+<b>下载mod_limitipconn.c</b><br />
+
+http://dominia.org/djao/limitipconn.html<br />
+
+<b>修改httpd.conf</b><br />
+<pre class="prettyprint lang-txt">
+LoadModule limitipconn_module modules/mod_limitipconn.so
+
+ExtendedStatus On
+
+<IfModule mod_limitipconn.c>
+    <Location /somewhere>
+	MaxConnPerIP 3
+	# exempting images from the connection limit is often a good
+	# idea if your web page has lots of inline images, since these
+	# pages often generate a flurry of concurrent image requests
+	NoIPLimit image/*
+    </Location>
+#需要注意的是，路径应该是相对服务器的路径。
+    <Location /mp3>
+	MaxConnPerIP 1
+	# In this case, all MIME types other than audio/mpeg and video*
+	# are exempt from the limit check
+	OnlyIPLimit audio/mpeg video
+    </Location>
+</IfModule></pre>

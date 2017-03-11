@@ -1,0 +1,28 @@
++++
+title = "awk 数组的一个应用"
+tags = ["awk", "bash", "linux", "other"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2007-05-17"
+description = ""
++++
+
+sed和awk这本书看了好久了，sed部分将就看完了，awk部分基本没怎么看。上次有人问起一个比较文件的问题，发现awk来解决非常的简单。<br />
+
+比较两个文件A、B，打印出包含在A中的，但是不包含在B中的所有行。<br />
+
+根据题目要求，awk的解决方法如下:<br />
+<pre class="prettyprint lang-bash">
+
+里面NR表示行号，FNR表示当前文件中的行号。NR==FNR的时候，表示此时正在读取B文件，以B中的$0为索引，建立一个数组，并且都赋值为1。
+当NR>FNR 的时候，表示此时在读取A文件，如果a[$0]为1，那么就表示这个$0是在B里面也存在的，是吧？所以，如果要B里面不存在的，那么就得是a[$0]不为1的，就是没做过赋值的。所以了，就是这个了。
+
+进阶一下，比较两个文件A、B，打印包含在A中第一列，但是不包含在B中第二列的整行。
+
+类似的：
+<pre class="prettyprint lang-bash">
+
+比较文件内容还可以用comm命令，还有人提出了grep命令，例如第一个问题：
+<pre class="prettyprint lang-bash">

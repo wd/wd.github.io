@@ -1,0 +1,31 @@
++++
+title = "NB 的 ssh proxycommand"
+tags = ["linux", "proxycommand", "ssh"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2009-12-09"
+description = ""
++++
+
+是从水木上面学来的。还参考了<a href="http://benno.id.au/blog/2006/06/08/ssh_proxy_command">这个</a>。<br />
+
+如果你工作的环境是下面这样的，那 ssh 的 proxycommand 对你会很有用。<br />
+
+your pc -> gw server -> work server<br />
+
+一般公司的服务器的网络都会设置安全级别，防止出现安全问题。那个 gw 也叫跳板机。需要在 gw 机器上面有 nc 。<br />
+
+修改 .ssh/config 文件，加上 <br />
+Host gw<br />
+  Hostname gw.abc.com<br />
+
+Host work<br />
+  Hostname work.abc.com<br />
+  User wd<br />
+  ProxyCommand ssh gw nc -q 0 %h %p 2>/dev/null<br />
+
+这样直接 ssh work 就好了。<br />
+
+那个 -q 0 可能有些版本的 nc 不支持。去掉就好了。那个 %h 表示 hostname，那个 %p 表示 port，可以直接写死。其它的 man ssh_config 吧。<br />

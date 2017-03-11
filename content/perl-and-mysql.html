@@ -1,0 +1,42 @@
++++
+title = "使用perl操作mysql数据库"
+tags = ["other"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2007-01-04"
+description = ""
++++
+
+东抄西抄拼凑的代码。关于perl dbi的文档可以查看<a href="http://search.cpan.org/~timb/DBI/DBI.pm">这里</a>。<br />
+<pre class="prettyprint lang-perl">
+use DBI;
+use strict;
+#use Data::Dumper;
+
+my $mobile = @ARGV[0];
+my $msg = @ARGV[1];
+my $db = "gnokii";
+my $host = 'localhost';
+my $user = 'gnokii';
+my $password = 'pwd';
+my $in = 'inbox';
+my $out = 'outbox';
+
+my $dbh = DBI->connect("DBI:mysql:database=$db;host=$host",$user, $password, {RaiseError => 1});
+
+print "$msgn";
+my $sql = qq{ insert into $out (number,text) values ("$mobile","$msg")};
+
+#my $sql = qq{ SELECT * from $out };
+my $sth = $dbh->prepare( $sql );
+$sth->execute();
+#my @result;
+
+#while (@result = $sth->fetchrow_array){
+#       print "$result[0],$result[1],$result[4]n";
+# }
+
+$sth->finish();
+$dbh->disconnect();</pre>

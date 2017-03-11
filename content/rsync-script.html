@@ -1,0 +1,28 @@
++++
+title = "rsync脚本的一个例子"
+tags = ["other", "rsync"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2006-05-09"
+description = ""
++++
+
+<pre class="prettyprint lang-bash">
+
+SYNCLOGFILE="/var/log/rsync-201.log"
+SYNCLOCKFILE="/var/lock/rsync-201.lock"
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n ">>> Sync log for " >> $SYNCLOGFILE
+date >> $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
+rm -f $SYNCLOCKFILE
+</pre><br />

@@ -1,0 +1,27 @@
++++
+title = "将 gnome 换成 kde 4.2"
+tags = ["gentoo", "kde", "linux"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2009-01-23"
+description = ""
++++
+
+下面的步骤一定要明白干的是什么再操作，否则后果自负 :)。<br />
+
+1 修改 make.conf 里面的 use 为 kde4 -kde -gnome qt4 -qt3 -avahi -esd 这样。把 gnome 相关的 use 都 - 掉。我还有 -arts，看需要。使用 kde 这个use有时会导致安装 kde3，所以如果要使用最好在 /etc/portage/package.use 里面单独指定。如果不介意 kde + gnome 共存，那么 1,2 不是必须的。<br />
+
+2 emerge -uDN world<br />
+
+3 修改 /etc/portage/package.unmask ,加入 &gt;sys-apps/portage-2.1, unmask portage 2.2 ，2.2 才支持 set<br />
+
+4 layman -a kde-testing<br />
+
+5 emerge -av @kdebase-4.2<br />
+其他想装的东西可以去 /usr/local/portage/layman/kde-testing/sets 里面看。比如 emerge -av @kdepim-4.2，或者装里面的某个包，emerge kde-base/kmail:4.2<br />
+
+6 修改 /var/lib/portage/world ，删掉里面的 gnome 的包，当然不介意 gnome 和 kde 共存的话后面的就不需要做了。<br />
+
+7 emerge --depclean -p 清理 gnome 的包。<br />

@@ -1,0 +1,22 @@
++++
+title = "oracle 里面 kill session"
+tags = ["linux", "oracle", "session"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2008-10-07"
+description = ""
++++
+
+eygle <a href="http://www.eygle.com/faq/Kill_Session.htm" target="_blank">有篇文章</a>讲了这个，之前也看过。昨天实际操作了一下。<br />
+
+因为如 eygle 所讲，kill 了 session 之后，操作系统里面的进程资源有时候不一定会立即释放，所以最好在 kill 之前就找到系统的进程 id，这样，如果不释放的时候，可以直接kill。省的之后找起来麻烦。<br />
+
+昨天操作的时候有这么几个步骤<br />
+<ol><br />
+	<li>select * from v$session where username like 'UP' --先找到这个用户的 session。</li><br />
+	<li>select * from v$sql a, v$session b where b.username = 'UP' and a.sql_id = b.sql_id --找出来这个用户这些 session 对应的 sql 语句，好确认 session 的 id。</li><br />
+	<li>select * from v$process a, v$session b where a.addr = b.paddr and b.username like 'UP' and b.sid = xxx --找出来他的系统进程id，就是那个 spid。</li><br />
+	<li>ALTER SYSTEM KILL SESSION 'sid, serial#' --可以实施kill了，可能会提示你marked for kill，有必要的话，在os级别kill前面找出来的 spid。</li><br />
+</ol><br />

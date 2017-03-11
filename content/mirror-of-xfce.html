@@ -1,0 +1,28 @@
++++
+title = "做xfce4.2得mirror"
+tags = ["other"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2005-04-28"
+description = ""
++++
+
+Mirroring <br />
+If you want to use our Debian packages on multiple systems in a networked environment, it might be a good idea to establish a local mirror of our Debian repository, so you don&#39;t need to fetch the packages from the internet for every system. You can use the utility debmirror to create a mirror of the packages and keep it up to date. <br />
+
+For example, to mirror the i386 binary packages into the directory /ftp/mirror/debian, use the command: <br />
+
+
+debmirror -a i386 -s main -h www.os-works.com \<br />
+          -d testing -r /debian --progress \<br />
+          -e http --ignore-release-gpg \<br />
+          /ftp/mirror/debian<br />
+
+Say, for example, the directory /ftp/mirror/debian is accessible via ftp as ftp://mymirror/debian/, then you&#39;d put the line <br />
+
+
+deb ftp://mymirror/debian/ testing main<br />
+
+in the /etc/apt/sources.list file on every system in your network.<br />

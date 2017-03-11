@@ -1,0 +1,44 @@
++++
+title = "内核的 shmall 和 shmmax 参数"
+tags = ["kernel", "linux"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2009-03-02"
+description = ""
++++
+
+shmall 是全部允许使用的共享内存大小，shmmax 是单个段允许使用的大小。这两个可以设置为内存的 90%。例如 16G 内存，16*1024*1024*1024*90% = 15461882265，shmall 的大小为 15461882265/4k(getconf PAGESIZE可得到) = 3774873。<br />
+
+修改 /etc/sysctl.conf。<br />
+
+<pre class="prettyprint lang-text">
+kernel.shmmax=15461882265
+kernel.shmall=3774873
+kernel.msgmax=65535
+kernel.msgmnb=65535
+执行 sudo sysctl -p
+</pre><br />
+
+可以使用 ipcs -l 看结果。ipcs -u 可以看到实际使用的情况。<br />
+
+<pre class="prettyprint lang-text">
+------ Shared Memory Limits --------
+max number of segments = 4096
+max seg size (kbytes) = 15099494
+max total shared memory (kbytes) = 15097856
+min seg size (bytes) = 1
+ 
+------ Semaphore Limits --------
+max number of arrays = 128
+max semaphores per array = 250
+max semaphores system wide = 32000
+max ops per semop call = 32
+semaphore max value = 32767
+ 
+------ Messages: Limits --------
+max queues system wide = 16
+max size of message (bytes) = 8192
+DEFAULT max size of queue (bytes) = 16384
+</pre><br />

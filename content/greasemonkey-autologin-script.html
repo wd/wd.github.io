@@ -1,0 +1,64 @@
++++
+title = "自动登录网站的 greasemonkey 脚本"
+tags = ["firefox", "greasemonkey", "linux"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2008-06-22"
+description = ""
++++
+
+自动登录 gmail 的 greasemonkey 脚本，可以根据需要修改 formElement.name=="Email" 为别的，来登录别的网站。注意修改 name, include 这些相关的东东<br />
+<pre class="prettyprint lang-javascript">
+// (c) 2007, Yabin Guo
+// To install, you need Greasemonkey: http://greasemonkey.mozdev.org/
+//
+// --------------------------------------------------------------------
+// ==UserScript==
+// @name          gmail Login
+// @description   Auto-login of gmail
+// @include       https://www.google.com/a/wdicc.com/*
+// ==/UserScript==
+
+//replace your seraph username and password in the following expression;
+userName="wd";
+passWord="*******";
+
+function submitFirstPasswordForm() {
+	var form=document.forms[0];
+    var submitButton = null;
+	var passwordElem;
+	var accountElem;
+	var submitButton;
+    for (i=0; formElement=form[i]; ++i){
+		if(formElement.type=="password"){
+			passwordElem=formElement;
+		}else if(formElement.name=="Email"){
+			accountElem=formElement;
+		}else if(formElement.type=="submit"){
+			submitButton=formElement;
+		}
+	}
+
+	accountElem.value=userName;
+	passwordElem.value=passWord;
+
+    if (submitButton) {
+        submitButton.focus();
+        submitButton.style.MozOutline = "2px solid purple";
+        // Submit the form by calling click() on the submit button.
+        submitButton.click();
+        // Break out of both loops.
+        return; 
+      }
+}
+
+window.addEventListener(
+  "load", 
+  function() { 
+    setTimeout(submitFirstPasswordForm, 0); 
+  }, 
+  false
+);
+</pre><br />

@@ -1,0 +1,179 @@
++++
+title = "远程安装oracle"
+tags = ["oracle", "other"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2006-07-11"
+description = ""
++++
+
+找了很久总算找到了方法。<br />
+
+参考 <a href="http://www.oracle.com/technology/global/cn/pub/articles/saternos_kickstart.html">这里</a><br />
+
+<!--more--><br />
+
+主要是下面这段<br />
+
+<span class="parahead1" /><span style="padding: 3px 1px 0px; color: #202020; background-color: #e4e4e4"><span class="parahead1">使 Oracle 安装自动化</span>Oracle Universal Installer 拥有很多自动化过程中可以利用的特性。它采用一个基于 XML的中央信息库，允许第三方应用程序识别安装了那些产品。除了简单安装之外，它还允许将现有 Oracle主目录复制到新的位置。有关该产品的更多信息，请参见 <a class="bodylink" href="http://download.oracle.com/docs/cd/B14117_01/em.101/b12140/toc.htm"><em>Oracle Universal Installer 概念指南</em></a>。Oracle 关于软件安装和配置甚至数据库本身的自动化解决方案涉及到一个<em>响应文件</em> 的使用。该文件的用途与 RedHat 的 kickstart 文件相似。用户不是对交互式对话所提出的问题进行交互式回答，而是将回答存储在一个文本文件中，随后 OracleUniversal Installer (OUI) 在运行安装程序时使用该文件。这样的安装称为“静默安装”。OUI用于安装各种应用程序，因此响应文件不限于安装数据库。<br />
+
+可以通过在记录模式中运行软件或通过手动编辑示例响应文件来创建响应文件。以下是一个基本演示：<br />
+<ol><br />
+<li class="bodycopy">用此命令启动 OUI 来创建响应文件：</li><br />
+<pre class="prettyprint">
+<li class="bodycopy">选择您需要的所有部分（源目标目录、主目录、主目录名、产品）。</li>
+<li class="bodycopy">当您看到 Summary 屏幕时，不要单击 <strong>Install</strong>，而是单击 <strong>Cancel</strong>。</li>
+<li class="bodycopy">仔细查看在 tmp/recorded.rsp 中创建的结果响应文件。如果需要，可以手动编辑该文件，只要您遵守使用规定的格式即可（请参见<a class="bodylink" href="http://download.oracle.com/docs/cd/B14117_01/em.101/b12140/4_oui_response_files.htm#sthref131">文档</a>）。</li>
+<li class="bodycopy">现在如下执行静默安装：
+<pre class="prettyprint">
+在运行脚本时将会报告安装的进度。</li>
+</ol>
+如果您由于响应文件中的条目不正确而遇到安装故障，安装将失败并显示一条诊断消息。详细信息可在 oraInventory/logs目录中找到。在每次使用响应文件运行 OUI 时，会创建具有 installActions-<时间戳>.log 和silentInstall<时间戳>.log 格式名称的日志。
+
+</span>
+
+还有关于runinstaller的使用参数
+
+<span style="padding: 3px 1px 0px; color: #202020; background-color: #e4e4e4">Usage:
+runInstaller  [-options] [(<CommandLineVariable=Value>)*]</span>
+
+Where options include:
+-clusterware oracle.crs,<crs version>
+Version of Cluster ready services installed.
+
+-crsLocation <Path>
+Used only for cluster installs, specifies the path to the crs home location. Specifying this overrides CRS information obtained from central inventory.
+
+-invPtrLoc <full path of oraInst.loc>
+Unix only. To point to a different inventory location. The orainst.loc file contains:
+inventory_loc=<location of central inventory>
+inst_group=<>
+
+-jreLoc <location>
+Path where Java Runtime Environment is installed. OUI cannot be run without it.
+
+-logLevel <level>
+To filter log messages that have a lesser priority level than <level>. Valid options are: severe, warning, info, config, fine, finer, finest, basic, general, detailed, trace. The use of basic, general, detailed, trace is deprecated.
+
+-paramFile <location of file>
+Specify location of oraparam.ini file to be used by OUI.
+
+-responseFile <Path>
+Specifies the response file and path to use.
+
+-sourceLoc  <location of products.xml>
+To specify the shiphome location.
+
+-addLangs
+To add new languages to an already installed product.
+
+-addNode
+For adding node(s) to the installation.
+
+-attachHome
+For attaching homes to the OUI inventory.
+
+-cfs
+Indicates that the Oracle home specified is on cluster file system (shared). This is mandatory when '-local' is specified so that Oracle Universal Installer can register the home appropriately into the inventory.
+
+-clone
+For making an Oracle Home copy match its current environment.
+
+-debug
+For getting the debug information from OUI.
+
+-deinstall
+For deinstall operations.
+
+-detachHome
+For detaching homes from the OUI inventory without deleting inventory directory inside Oracle home.
+
+-enableRollingUpgrade
+Used in cluster environment, to enable upgrade of a product on a subset of nodes (on which the product was installed).
+
+-executeSysPrereqs
+Execute system pre-requisite checks and exit.
+
+-force
+Allowing silent mode installation into a non-empty directory.
+
+-help
+Displays above usage.
+
+-ignorePatchConflicts
+Ignore all conflicts with existing interim patches during an upgrade. The conflicting interim patches are removed from the home.
+
+-ignoreSysPrereqs
+For ignoring the results of the system pre-requisite checks.
+
+-local
+Performs the operation on the local node irrespective of the cluster nodes specified.
+
+-printdiskusage
+Log debug information for disk usage.
+
+-printmemory
+Log debug information for memory usage.
+
+-printtime
+Log debug information for time usage.
+
+-record -destinationFile <Path>
+For record mode operation, information is recorded in the destination file path.
+
+-removeallfiles
+For removing the home directory after deinstallation of all the components.
+
+-removeAllPatches
+Remove all interim patches from the home
+
+-silent
+For silent mode operations, the inputs can be a response file or a list of command line variable value pairs.
+
+-updateNodeList
+For updating node list for this home in the OUI inventory.
+
+-waitforcompletion
+For windows. setup.exe will wait for completion instead of spawning the java engine and exiting.
+
+-nobackground
+Do not show background image
+
+-noclusterEnabled
+No cluster nodes specified.
+
+-noconsole
+For suppressing display of messages to console. Console is not allocated.
+
+-nowarningonremovefiles
+To disable the warning message before removal of home directory.
+
+-nowait
+For windows. Do not wait for user to hit Enter on the console after the task (install etc.) is complete.
+
+-formCluster
+To install the Oracle clusterware in order to form the cluster.
+
+-remotecp <Path>
+Unix specific option. Used only for cluster installs, specifies the path to the remote copy program on the local cluster node.
+
+-remoteshell <Path>
+Unix specific option. Used only for cluster installs, specifies the path to the remote shell program on the local cluster node.
+
+Command Line Variables Usage
+Command line variables are specified using <name=value>; for example:
+[ session: | compName: | compName:version: ]variableName=" valueOfVariable"]
+
+Session/Installer variables are specified using:
+[session:]varName=value
+Ex 1: session:ORACLE_HOME_NAME="OraHome"
+Ex 2: ORACLE_HOME_NAME="OraHome"
+The lookup order is session:varName then just varName. The session prefix is used to avoid ambiguity.
+
+Component variables are specified using:
+[compInternalName:[Version:]]varName
+Ex 1: oracle.comp1:1.0.1:varName="VarValue"
+Ex 2: oracle.comp1:varName="VarValue"
+The lookup order is compInternalName:Version:varName, then compInternalName:varName, then just varName.

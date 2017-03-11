@@ -1,0 +1,42 @@
++++
+title = "为debian unstable做镜像"
+tags = ["debian"]
+status = "publish"
+type = "post"
+published = true
+comments = true
+date = "2005-12-14"
+description = ""
++++
+
+#HOST=opensource.nchc.org.tw<br />
+HOST=debian.nctu.edu.tw<br />
+#HOST_NONUS=opensource.nchc.org.tw<br />
+#HOST_NONUS=debian.cn99.com<br />
+HOST_NONUS=debian.nctu.edu.tw<br />
+
+DISTS="unstable"<br />
+DISTS_NONUS="unstable/non-US"<br />
+DISTS_SEC="unstable/updates"<br />
+
+ARCHS="i386"<br />
+
+MIRROR_ROOT='/data/debian/debian'<br />
+MIRROR_ROOT_NONUS='/data/debian/debian-non-US'<br />
+
+OPTIONS="--getcontents --progress --nosource --method=http -s main,contrib,non-free --ignore-release-gpg"<br />
+
+
+#ADDDIRS="dists/unstable/main/disks-i386" <br />
+
+
+echo "Processing standard using $HOST" <br />
+/usr/bin/debmirror --host=$HOST --dist=$DISTS --arch=$ARCHS $OPTIONS -r /debian $MIRROR_ROOT<br />
+
+echo "Processing non-US using $HOST_NONUS" <br />
+/usr/bin/debmirror --host=$HOST_NONUS --dist=$DISTS_NONUS --arch=$ARCHS $OPTIONS -r /debian-non-US $MIRROR_ROOT_NONUS<br />
+
+echo "Processing xfce4.2 using www.os-works.com"<br />
+
+/usr/bin/debmirror -a i386 -s main -h www.os-works.com -d testing -r /debian --progress -e http --ignore-release-gpg /data/debian/xf<br />
+ce4.2<br />
