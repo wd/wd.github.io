@@ -100,6 +100,74 @@
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/perl-and-fork/">perl and fork</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2009-03-07T00:00:00.000&#43;00:00' itemprop="datePublished">2009-03-07</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/fork">fork</a>
+
+<a href="/tags/linux">linux</a>
+
+<a href="/tags/perl">perl</a>
+
+
+</div>
+    </div>
+        最近写程序用到了 fork ，记一下。<br />
+
+我在 perl 里面某个地方开始，fork 多个进程去操作 db，主进程等子进程完事后，再继续后面的操作。<br />
+
+<pre class="prettyprint lang-perl">
+use POSIX ":sys_wait_h";
+my $thread_num = 5;
+my %pids = ();
+
+# $dbi->{InactiveDestroy} = 1 用到 dbi 的话还要设置这个，要不子进程exit后，dbi
+# 连接就断了
+
+# .....前面的程序
+for ( 1..$thread_num ) {
+	my $pid = fork;
+	if (not $pid) { # 子进程
+		$pids{$pid} = 1;
+		# blalbalbla... 子进程去干活
+		eixt 0; # 要记得 exit ，要不子进程还会继续执行后面的。
+	} else { # 主进程
+		# balbalbal ... 如果没事做也可以不写
+	}
+}
+
+while( keys( %pids ) ) {
+	my $kid = waitpid(-1,WNOHANG);
+	if ($kid >0) {
+		delete $pids{$kid};
+		print "$kid end.\n";
+	} else {
+		sleep 1; # 继续等，如果有时间限制，可以在这里去 kill 子进程
+	}
+}
+
+# ....继续后面的程序
+
+</pre><br />
+
+还可以参考这个 http://www.perlmonks.org/?node_id=619722<br />
+
+    </div>
+
+<div class="meta">
+    
+    <span class="comments"><a href="/perl-and-fork/#disqus_thread">Comments</a></span>
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/shmall-and-shmmax-kernel-paramaters/">内核的 shmall 和 shmmax 参数</a>
     </h2>
     <div class="entry-content">
@@ -606,68 +674,6 @@ gentoo-souces 也是支持的休眠的。想要在 gnome 下面休眠的话，�
 <div class="meta">
     
     <span class="comments"><a href="/monkey-test/#disqus_thread">Comments</a></span>
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/send-mail-with-attachment/">命令行发送有附件的邮件</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2008-12-01T00:00:00.000&#43;00:00' itemprop="datePublished">2008-12-01</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="/tags/mail">Mail</a>
-
-<a href="/tags/sendmail">sendmail</a>
-
-
-</div>
-    </div>
-        命令行下面发送邮件比较简单，恐怕都会使用。<br />
-
-<pre class="prettyprint lang-bash">
-$ echo "hello .. " | mail -s subject xxx@abc.com
-$ cat /path/to/file | mail -s subject xxx@abc.com
-$ mail -s subject xxx@abc.com << EOF
-hi
-the end..
-EOF
-</pre><br />
-
-上面这些方法都可以发送邮件。还有一种方法。<br />
-
-<pre class="prettyprint lang-bash">
-$ cat a.txt
-Subject: test
-From: xxx@abc.com
-To: xxx@abc.com
-
-hi
-sdfsdfsdf
-the end.
-$ cat a.txt | sendmail -t
-</pre><br />
-
-这样可以把邮件头信息写到文件里面的，你也可以用 php，perl 来打印类似的信息给 sendmail -t ，让他来发。<br />
-
-那么如果有附件应该怎么办？可以使用 uuencode。<br />
-
-<pre class="prettyprint lang-bash">
-$ uuencode a.txt a.txt | mail -s test xxx@abc.com
-$ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t
-</pre><br />
-
-应该说的很明白了吧？<br />
-
-    </div>
-
-<div class="meta">
-    
-    <span class="comments"><a href="/send-mail-with-attachment/#disqus_thread">Comments</a></span>
     
 </div>
 </article>

@@ -100,6 +100,51 @@
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/about-svn-merge/">svn merge</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2011-05-08T00:00:00.000&#43;00:00' itemprop="datePublished">2011-05-08</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/linux">linux</a>
+
+<a href="/tags/svn">svn</a>
+
+
+</div>
+    </div>
+        <p>svn merge 的 help 信息<br />
+<pre class="prettyprint">
+usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
+       2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH]
+       3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH]
+</pre><br />
+
+svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。<br />
+</p><br />
+<p><br />
+所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。<br />
+</p><br />
+<p><br />
+一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。<br />
+</p><br />
+<p><br />
+最好在 merge 之前加一个 &ndash;dry-run 看看他会修改哪些文件。 <br />
+</p><br />
+
+    </div>
+
+<div class="meta">
+    
+    <span class="comments"><a href="/about-svn-merge/#disqus_thread">Comments</a></span>
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/cant-drop-table-in-hive/">hive 里面不能 drop table</a>
     </h2>
     <div class="entry-content">
@@ -641,69 +686,6 @@ dbca 配置好后，oracle 应该就启动了。你可以连上去看看了。<b
 <div class="meta">
     
     <span class="comments"><a href="/oracle-install-guide/#disqus_thread">Comments</a></span>
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/autossh-and-auto-enter-password/">自动连接 ssh 并输入密码</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2010-10-13T00:00:00.000&#43;00:00' itemprop="datePublished">2010-10-13</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="/tags/expect">expect</a>
-
-<a href="/tags/linux">linux</a>
-
-<a href="/tags/ssh">ssh</a>
-
-
-</div>
-    </div>
-        这年头不翻墙就看不到真像了，前几天整了个 ssh 代理，就研究了下自动登录。<br />
-
-ssh 自动登录首选就是使用 key 了，可对方不干，那就只能使用密码了。自动输入密码可以用 expect。查这个的时候发现了一个 expect-lite，发现也挺有意思的，他把写 expect 脚本简单化了，比如想 send xxx，那就用 >xxxx 就行了，想 expect yyy 那就 <yyy 就好了，等等这些，呵呵。不过我后来没用这个，还是用的标准的 expect，代码如下。<br />
-
-<pre class="prettyprint lang-expect">
-spawn autossh -M 20000 -p SSH_PORT -N -D 7070 YOUR_NAME@YOUR_SERVER
-set timeout 60
-expect {
-     assword: {
-         stty -echo
-         send "YOUR_PASS\r"
-         stty echo
-         #exp_continue
-     }
-    incorrect {
-         send_user "invalid password or account\n"
-         exit
-     }
-    timeout {
-         send_user "connection to host timed out\n"
-         exit
-     }
-    eof {
-         send_user "connection to host failed\n"
-         exit
-     }
-}
-if {[fork]!=0} exit
-disconnect
-</pre><br />
-
-那里面那个 autossh 能自动给你重连，没仔细研究。那个 20000 后面的参数都是给 ssh 的，具体含意可以看 ssh 的 man。<br />
-
-最主要是最后那两行，能做到连接上之后主程序就退出了，不占用你的终端，而不影响 ssh 的连接。<br />
-
-    </div>
-
-<div class="meta">
-    
-    <span class="comments"><a href="/autossh-and-auto-enter-password/#disqus_thread">Comments</a></span>
     
 </div>
 </article>
