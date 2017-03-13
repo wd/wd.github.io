@@ -100,6 +100,65 @@
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/broadcom-wireless-card-on-gentoo/">broadcom BCM wireless card on gentoo</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2013-05-24T17:28:00.000&#43;08:00' itemprop="datePublished">2013-05-24</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/linux">linux</a>
+
+
+</div>
+    </div>
+        <p>昨天又折腾了一下我的无线，是 dell 的本子，broadcom 的卡 BCM4313，准备写一下的时候，发现之前居然折腾过 <a href="/bcm4312broadcom-stawpa_supplicantkernel2-6-33/">BCM4312</a>。。感觉真蛋疼。。</p>
+
+<pre><code class="language-bash">$ lspci -vnn -d 14e4:
+02:00.0 Network controller [0280]: Broadcom Corporation BCM4313 802.11b/g/n Wireless LAN Controller [14e4:4727] (rev 01)
+        Subsystem: Dell Inspiron M5010 / XPS 8300 [1028:0010]
+        Flags: fast devsel, IRQ 17
+        Memory at e5300000 (64-bit, non-prefetchable) [size=16K]
+        Capabilities: &lt;access denied&gt;
+        Kernel modules: bcma
+</code></pre>
+
+<p>根据 <a href="http://wireless.kernel.org/en/users/Drivers/b43#bcm43xx.2C_b43legacy.2C_b43.2C_softmac.2C..._the_full_story">这里</a> ， BCM 的网卡有三种可用驱动</p>
+
+<ul>
+<li>b43，kernel 自带，源自 broadcom linux 驱动的逆向工程</li>
+<li>brcmsmac, kernel 自带，似乎源自 broadcom 某个开源的驱动</li>
+<li>wl, broadcom 发布的 linux 驱动</li>
+</ul>
+
+<p>另外，kernel 自带的 b43 和 brcmsmac 支持标准的 802.11 栈，可以通过 iw iwconfig 之类的工具来配置，获取状态。wl 就不行了。</p>
+
+<p>如果想使用 b43 或者 brcmsmac，需要选择下面的 kernel 选项，要注意都选择成 module，因为还需要加载 firmware，如果编译进内核那需要把 firmware 也编译到内核才可以。</p>
+
+<pre><code>Networking support  ---&gt;  Wireless  ---&gt; Generic IEEE 802.11 Networking Stack (mac80211)
+Device Drivers  ---&gt; Broadcom specific AMBA  ---&gt;  BCMA support
+</code></pre>
+
+<p>针对 b43 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom 43xx wireless support (mac80211 stack)</code>, 还需要安装 <code>sys-firmware/b43-firmware</code>。</p>
+
+<p>针对 brcmsmac 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom IEEE802.11n PCIe SoftMAC WLAN driver</code>，还需要安装 <code>sys-kernel/linux-firmware</code>。</p>
+
+<p>对于 wl，需要安装 <code>net-wireless/broadcom-sta</code>，安装的时候会自动检查必要的内核选项，按照提示选择好就可以了。主要是要注意去掉上面的 kernel 的选项，另外可能还需要一个 ipw2100 来提供某一个隐藏的 kernel 选项。此外还有个 PREEMPT_RCU 检查，需要选择下面的内核选项 <code>Processor type and features  ---&gt;  Preemption Model (Voluntary Kernel Preemption (Desktop))  ---&gt;  Voluntary Kernel Preemption (Desktop)</code>。</p>
+
+<p>如此之后编译安装重启就可以了。</p>
+
+    </div>
+
+<div class="meta">
+    
+    <span class="comments"><a href="/broadcom-wireless-card-on-gentoo/#disqus_thread">Comments</a></span>
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/postgresql-explain/">PostgreSQL Explain</a>
     </h2>
     <div class="entry-content">
@@ -1336,88 +1395,6 @@ org-mode 本身提供了 remember 来创建 todo list。<br />
 <div class="meta">
     
     <span class="comments"><a href="/about-interview/#disqus_thread">Comments</a></span>
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/emacs-settings-in-mac/">mac 里面的 emacs 的几个设置</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2012-03-06T00:00:00.000&#43;00:00' itemprop="datePublished">2012-03-06</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="/tags/emacs">emacs</a>
-
-<a href="/tags/linux">linux</a>
-
-<a href="/tags/macos">macos</a>
-
-
-</div>
-    </div>
-        <p>刚开始在 mac 里面使用 emacs 简直就是自虐，因为那个反人类的 command 按键。一般 pc 上面的 alt 是在 space 旁边的，macbook 的 space 旁边是 command，对于一个需要经常在 mac 里面按的键，不是一般的郁闷。这个问题有两个方法解决。<br />
-</p><br />
-
-<div id="outline-container-1" class="outline-2"><br />
-<h2 id="sec-1">mac 自带的解决方法</h2><br />
-<div class="outline-text-2" id="text-1"><br />
-
-
-<p><br />
-就是在键盘设置里面，把修饰键里面的 command 和 alt 替换一下。这个方法会很不爽，因为 mac 里面的复制粘贴是 command + c/v，以后要按 alt + c/v 的话，距离有点远。<br />
-</p><br />
-</div><br />
-
-</div><br />
-
-<div id="outline-container-2" class="outline-2"><br />
-<h2 id="sec-2">KeyRemap4MacBook</h2><br />
-<div class="outline-text-2" id="text-2"><br />
-
-
-<p><br />
-这个是个 mac 上面的软件，地址在 <a href="http://pqrs.org/macosx/keyremap4macbook/document.html">这里</a> 。里面的设置实在太多了，这里要用到的一个就是只在 emacs 里面把 command 和 alt 替换一下，这样就解决了上面提到的问题，还算完美。可是这个时候会发现，在 emacs 界面激活的情况下，command 开头的系统级别的快捷键都不好用了，比如 command + tab，这也很郁闷。<br />
-</p><br />
-</div><br />
-
-</div><br />
-
-<div id="outline-container-3" class="outline-2"><br />
-<h2 id="sec-3">emacs 自带的完美解决方法</h2><br />
-<div class="outline-text-2" id="text-3"><br />
-
-
-<p><br />
-只说 emacs23，emacs24。早期的好像有 mac-pass-command-to-system 之类的设置，可我在 emacs24 里面没看到这个变量。<br />
-</p><br />
-<p><br />
-具体设置参考<a href="http://www.emacswiki.org/emacs/EmacsForMacOS#toc23">这里</a> ，主要是下面这些设置。<br />
-</p><br />
-
-
-<pre class="prettyprint lang-lisp">
-;; key bindings
-(when (eq system-type 'darwin) ;; mac specific settings
-  (setq mac-option-modifier 'alt)
-  (setq mac-command-modifier 'meta)
-  (global-set-key [kp-delete] 'delete-char) ;; sets fn-delete to be right-delete
-  )
-</pre><br />
-
-<p><br />
-现在就很爽了，按 command + x 和 alt + x 效果一样，按 command + tab 也能切换窗口。算是完美了。<br />
-</p></div><br />
-</div><br />
-
-    </div>
-
-<div class="meta">
-    
-    <span class="comments"><a href="/emacs-settings-in-mac/#disqus_thread">Comments</a></span>
     
 </div>
 </article>

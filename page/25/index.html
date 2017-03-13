@@ -100,6 +100,62 @@
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/oracle-text-install/">oracle 文本界面的安装</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2007-03-14T00:00:00.000&#43;00:00' itemprop="datePublished">2007-03-14</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/linux">linux</a>
+
+<a href="/tags/oracle">oracle</a>
+
+<a href="/tags/other">other</a>
+
+
+</div>
+    </div>
+        oracle 的手册里面讲的通常都是图形界面下面的安装，就是用oracle登录桌面，然后运行安装程序的方法。可实际上维护服务器的时候，大多用的还是<font color="#3333ff">远程</font>文本界面。这样很有必要看看如何通过文本界面来安装oracle。<br />
+
+oracle本身的安装程序也提供了这个方法，就是使用 responseFile 。这个 responseFile 其实就是在图形界面安装的时候的一些选择，保存到文件之后，直接告诉安装程序从这里读取设置就好了。将oracle的安装文件 ship.db.lnx32.cpio.gz 解压：<br />
+
+<pre class="prettyprint lang-bash">
+cpio -idmv < ship.db.cpio</pre>
+
+这样可以看到有个Disk1的文件夹，里面有个response目录，里面好多response文件，不过我还不知道这些有什么区别，里面设置项也很多，还没弄明白。我使用的不是这里的response文件。是通过下面的方法获取的rsp文件。
+
+可以通过在记录模式中运行软件或通过手动编辑示例响应文件来创建响应文件。以下是一个基本演示：
+
+   1. 用此命令启动 OUI 来创建响应文件：
+
+      ./runInstaller -record -destinationFile /tmp/recorded.rsp
+       
+   2. 选择您需要的所有部分（源目标目录、主目录、主目录名、产品）。
+   3. 当您看到 Summary 屏幕时，不要单击 Install，而是单击 Cancel。
+   4. 仔细查看在 tmp/recorded.rsp 中创建的结果响应文件。如果需要，可以手动编辑该文件，只要您遵守使用规定的格式即可（请参见文档）。
+   5. 现在如下执行静默安装：
+
+      ./runInstaller -silent -responseFile /tmp/recorded.rsp
+
+      在运行脚本时将会报告安装的进度。
+
+如果您由于响应文件中的条目不正确而遇到安装故障，安装将失败并显示一条诊断消息。详细信息可在 oraInventory/logs 目录中找到。在每次使用响应文件运行 OUI 时，会创建具有 installActions-<时间戳>.log 和 silentInstall<时间戳>.log 格式名称的日志。
+
+这样，只需要找台机器在图形界面下面运行一下安装程序，生成一个rsp文件，然后放到真正需要安装的服务器上面，修改一下安装路径，设置一下sys密码，就可以开始安装了。
+
+    </div>
+
+<div class="meta">
+    
+    <span class="comments"><a href="/oracle-text-install/#disqus_thread">Comments</a></span>
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/install-oracle-in-rh/">oracle在rh里面的安装流程</a>
     </h2>
     <div class="entry-content">
@@ -965,40 +1021,6 @@ lvm的配置在 /etc/lvm/backup 下面。
 <div class="meta">
     
     <span class="comments"><a href="/study-blog/#disqus_thread">Comments</a></span>
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/i-am-back/">过年归来</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2007-02-26T00:00:00.000&#43;00:00' itemprop="datePublished">2007-02-26</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="/tags/heart">heart</a>
-
-<a href="/tags/%E8%BF%87%E5%B9%B4">过年</a>
-
-
-</div>
-    </div>
-        年很快就过完了，又老了一岁，而且发现自己快30了，天哪。现在在舅舅们面前，总觉得自己还是以前的那个小孩子，看着弟弟妹妹们也总觉得他们还是小孩子。可是一想就恐怖，都快30了。。。天那<br />
-
-过年回家基本也就吃了睡睡了玩了，亲戚家逛了好几天，天天麻将。老婆倒是打麻将打爽了，那天在我们家还打了个通宵， 不过就是没赢钱，输了几十，呵呵。说实话，她技术太差，嗯。嘿嘿<br />
-
-昨天在北京家自己包了一顿饺子，第一次的结果还不错，就是时间长点，弄了一个下午。下次弄就有经验了，应该会快。拌馅的时候都没有尝一下咸淡，到了一些酱油，倒了一些盐，结果最后出来味道刚好，哈哈，真是太牛了。面有点软，回头研究研究怎么弄。<br />
-
-blog好像有问题了，打开写日志的页面的时候速度太慢了，回头得修理修理他。<br />
-
-    </div>
-
-<div class="meta">
-    
-    <span class="comments"><a href="/i-am-back/#disqus_thread">Comments</a></span>
     
 </div>
 </article>

@@ -100,6 +100,75 @@
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/cpufreq-turning/">Linux下面动态调整cpu频率</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-11-14T00:00:00.000&#43;00:00' itemprop="datePublished">2006-11-14</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/cpufreqd">cpufreqd</a>
+
+<a href="/tags/other">other</a>
+
+<a href="/tags/%E9%99%8D%E9%A2%91">降频</a>
+
+
+</div>
+    </div>
+        笔记本的cpu的频率是可调整的，一般用电池的时候，就会降频使用，延长电池使用时间。上周末忘记把笔记本的电源带回来了，用电池在linux下工作，发现降频真是个好东东，用了一个小时，电池显示还能用3个多小时，并且cpu温度从20多度才涨到40来度。为了让本本更凉一点，就看了看cpufreqd的工作原理。<br />
+
+cpufreqd采用的是打分制，每条rule的总分是100分，比如有个rule里面有4条规则，如果满足了其中3条，那么总分就是75分，以此类推 。使用分数最多的规则，如果两条规则的分数相同，使用当前正在使用的规则，或者使用位置靠前的规则。下面来说说看这个东西怎么玩。<br />
+
+比如按照我的工作情况，我有下面的需求：<br />
+1 如果使用了mplayer,gcc等，那么用最高频率。<br />
+2 如果使用了firefox，那么用中间频率。<br />
+3 如果没有满足上面两条，那么用最低频率。<br />
+
+这样就相当于设置了三个运行级别，你可以按照自己的需求来定义运行的程序。<br />
+
+从上面的需求可以看出来，我们设置1这种情况下分数为100，那么没有mplayer的时候，1的分数应该是50。这样其他的两个要至少在50以上才行。而且3还得是在2匹配和不匹配的分数的中间。我的设置如下：<br />
+
+[Rule]<br />
+name=firefox<br />
+ac=on<br />
+programs=firefox-bin<br />
+programs=sss<br />
+acpi_temperature=0-60<br />
+profile=Performance Low<br />
+[/Rule]<br />
+
+[Rule]<br />
+name=Movie Watcher<br />
+ac=on<br />
+programs=xine,mplayer,gmplayer,wdmplayer,gcc<br />
+profile=Performance High<br />
+[/Rule]<br />
+
+[Rule]<br />
+name=AC Rule<br />
+ac=on                    # (on/off)<br />
+programs=aaa<br />
+acpi_temperature=0-60<br />
+profile=On Demand Low<br />
+[/Rule]<br />
+
+这样，基本可以实现我上面的需求。条目是可以多次出现的，所以比如可以多加几条programs=gcc，让gcc在使用的时候和不在使用的时 候得分差很多，这样方便安排其他的情况。<br />
+
+windows下面可没这么灵活的设置亚，呵呵。<br />
+
+    </div>
+
+<div class="meta">
+    
+    <span class="comments"><a href="/cpufreq-turning/#disqus_thread">Comments</a></span>
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/nice-weekend/">悠闲的周末</a>
     </h2>
     <div class="entry-content">
@@ -444,44 +513,6 @@ send-hook '~t .*@bbb\.com\.cn$' 'set sendmail="/usr/bin/msmtp -a bbb"'<br />
 <div class="meta">
     
     <span class="comments"><a href="/change-bike/#disqus_thread">Comments</a></span>
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/long-way/">长途跋涉</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-10-25T00:00:00.000&#43;00:00' itemprop="datePublished">2006-10-25</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="/tags/heart">heart</a>
-
-<a href="/tags/%E9%AA%91%E8%BD%A6">骑车</a>
-
-
-</div>
-    </div>
-        昨天早上6点多爬起来，赶往老大那里骑车。从他那里8点多又骑车去上班，一路快骑，好容易8:50到了公司，没有迟到。不过就这么半个小时，屁股已经开始疼了，想想晚上还要骑回去，就一阵郁闷。<br />
-
-下午下班，先骑车去菜市口打印了手机花费的发票，然后就开始一路往家走了。路线如下：<br />
-
-菜市口->西单->长安街往东->天安门->王府井->东二环->东三环->东四环->转北->朝阳北路往东->青年路口->东五环->常营路口->到家<br />
-
-到家的时候大概是8点半不到，如果除去菜市口开发票，那么应该是2个小时到家。其间推着车走了两次。幸好一路有手机收音机可听，要不铁定坚持不下来了。自行车的车座实在太硬了，不知道比赛的那种公路赛车的车座是不是也是这样的，反正我得换一个了，哪怕换一个及其老土的。<br />
-
-路上走了多少公里不知道了，不过路上还在想，如果我刷刷的话， 可能还会比骑车轻松一些吧。<br />
-
-<img align="middle" alt="回家路线" title="回家路线" src="http://static.flickr.com/115/278786104_e525d77539_o.png" /><br />
-
-    </div>
-
-<div class="meta">
-    
-    <span class="comments"><a href="/long-way/#disqus_thread">Comments</a></span>
     
 </div>
 </article>

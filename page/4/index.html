@@ -100,6 +100,128 @@
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/libmcrypt-ffi-module/">基于 ffi 的 libmcrypt 加密模块</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2015-07-05T20:55:11.000&#43;08:00' itemprop="datePublished">2015-07-05</time>
+</div>
+        <div class="tags">Tags: 
+</div>
+    </div>
+        <p>openresty 提供了 luajit 的支持，luajit 又提供了 ffi 库的支持。通过 ffi 可以很方便的调用 c 库的一些方法。</p>
+
+<p>我在项目里面用到了加解密，因为需要各语言支持，使用了 libmcrypt 库。之前通过 c 模块完成了在 lua 里面加密，在 perl 里面解密。有了 ffi 就可以使用纯 lua 模块搞定了。</p>
+
+<p>代码写的比较丑，有使用加解密的需求的可以参考下，另外计划写其他模块的也可以参考下。如下</p>
+
+<pre><code>local ffi = require 'ffi'
+local ffi_new = ffi.new
+local ffi_str = ffi.string
+local ffi_copy = ffi.copy
+local setmetatable = setmetatable
+
+local _M = { }
+local mt = { __index = _M }
+
+ffi.cdef[[
+struct CRYPT_STREAM;
+typedef struct CRYPT_STREAM *MCRYPT;
+
+MCRYPT mcrypt_module_open(char *algorithm,
+                          char *a_directory, char *mode,
+                          char *m_directory);
+
+int mcrypt_generic_init(const MCRYPT td, void *key, int lenofkey,
+                        void *IV);
+
+int mcrypt_generic_deinit(const MCRYPT td);
+int mcrypt_generic_end(const MCRYPT td);
+int mdecrypt_generic(MCRYPT td, void *plaintext, int len);
+int mcrypt_generic(MCRYPT td, void *plaintext, int len);
+int mcrypt_module_close(MCRYPT td);
+
+]]
+
+local mcrypt = ffi.load('libmcrypt.so.4')
+
+_M.new = function (self)
+    local cipher = 'blowfish'
+    local mode = 'cbc'
+
+    local c_cipher = ffi_new(&quot;char[9]&quot;, cipher)
+    local c_mode = ffi_new(&quot;char[4]&quot;, mode)
+
+    local td = mcrypt.mcrypt_module_open(c_cipher, nil, c_mode, nil)
+    return setmetatable( { _td = td }, mt )
+end
+
+_M.encrypt = function(self, key, raw)
+    local iv_len = 8
+    local td = self._td
+
+    local c_key = ffi_new(&quot;char[?]&quot;, #key+1, key)
+    local c_iv = ffi_new(&quot;char[9]&quot;, key)
+    local c_raw = ffi_new(&quot;char[?]&quot;, #raw+1, raw)
+
+    mcrypt.mcrypt_generic_init(td, c_key, #key, c_iv)
+    mcrypt.mcrypt_generic(td, c_raw, #raw )
+    mcrypt.mcrypt_generic_deinit(td)
+
+    return ffi_str(c_raw, ffi.sizeof(c_raw)-1)
+end
+
+_M.decrypt = function(self, key, raw)
+    local iv_len = 8
+    local td = self._td
+
+    local c_key = ffi_new(&quot;char[?]&quot;, #key+1, key)
+    local c_iv = ffi_new(&quot;char[9]&quot;, key)
+    local c_raw = ffi_new(&quot;char[?]&quot;, #raw+1, raw)
+
+    mcrypt.mcrypt_generic_init(td, c_key, #key, c_iv)
+    mcrypt.mdecrypt_generic(td, c_raw, #raw )
+    mcrypt.mcrypt_generic_deinit(td)
+
+    return ffi_str(c_raw, ffi.sizeof(c_raw)-1)
+end
+
+_M.close = function(self)
+    local td = self._td
+    if td then
+        mcrypt.mcrypt_module_close(td)
+     end
+end
+
+return _M
+
+</code></pre>
+
+<p>使用方法比较简单，代码里面写死了是 <code>blowfish</code> 的 <code>cbc</code> 模式，并且 iv 使用 key 的前 8 个字符</p>
+
+<pre><code>local mcrypt = require &quot;mcrypt&quot;
+local m = mcrypt:new()
+
+-- 一系列加解密
+local en = m:encrypt('xxx','yyyy')
+...
+local de = m:decrypt('xxx', yyyy')
+
+-- 最后关闭
+m:close()
+</code></pre>
+
+    </div>
+
+<div class="meta">
+    
+    <span class="comments"><a href="/libmcrypt-ffi-module/#disqus_thread">Comments</a></span>
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/postgresql-transaction-isolation/">postgresql transaction isolation</a>
     </h2>
     <div class="entry-content">
@@ -910,65 +1032,6 @@ index 53072e5..62061e0 100644
 <div class="meta">
     
     <span class="comments"><a href="/octopress-and-gitcafe/#disqus_thread">Comments</a></span>
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/broadcom-wireless-card-on-gentoo/">broadcom BCM wireless card on gentoo</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2013-05-24T17:28:00.000&#43;08:00' itemprop="datePublished">2013-05-24</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="/tags/linux">linux</a>
-
-
-</div>
-    </div>
-        <p>昨天又折腾了一下我的无线，是 dell 的本子，broadcom 的卡 BCM4313，准备写一下的时候，发现之前居然折腾过 <a href="/bcm4312broadcom-stawpa_supplicantkernel2-6-33/">BCM4312</a>。。感觉真蛋疼。。</p>
-
-<pre><code class="language-bash">$ lspci -vnn -d 14e4:
-02:00.0 Network controller [0280]: Broadcom Corporation BCM4313 802.11b/g/n Wireless LAN Controller [14e4:4727] (rev 01)
-        Subsystem: Dell Inspiron M5010 / XPS 8300 [1028:0010]
-        Flags: fast devsel, IRQ 17
-        Memory at e5300000 (64-bit, non-prefetchable) [size=16K]
-        Capabilities: &lt;access denied&gt;
-        Kernel modules: bcma
-</code></pre>
-
-<p>根据 <a href="http://wireless.kernel.org/en/users/Drivers/b43#bcm43xx.2C_b43legacy.2C_b43.2C_softmac.2C..._the_full_story">这里</a> ， BCM 的网卡有三种可用驱动</p>
-
-<ul>
-<li>b43，kernel 自带，源自 broadcom linux 驱动的逆向工程</li>
-<li>brcmsmac, kernel 自带，似乎源自 broadcom 某个开源的驱动</li>
-<li>wl, broadcom 发布的 linux 驱动</li>
-</ul>
-
-<p>另外，kernel 自带的 b43 和 brcmsmac 支持标准的 802.11 栈，可以通过 iw iwconfig 之类的工具来配置，获取状态。wl 就不行了。</p>
-
-<p>如果想使用 b43 或者 brcmsmac，需要选择下面的 kernel 选项，要注意都选择成 module，因为还需要加载 firmware，如果编译进内核那需要把 firmware 也编译到内核才可以。</p>
-
-<pre><code>Networking support  ---&gt;  Wireless  ---&gt; Generic IEEE 802.11 Networking Stack (mac80211)
-Device Drivers  ---&gt; Broadcom specific AMBA  ---&gt;  BCMA support
-</code></pre>
-
-<p>针对 b43 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom 43xx wireless support (mac80211 stack)</code>, 还需要安装 <code>sys-firmware/b43-firmware</code>。</p>
-
-<p>针对 brcmsmac 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom IEEE802.11n PCIe SoftMAC WLAN driver</code>，还需要安装 <code>sys-kernel/linux-firmware</code>。</p>
-
-<p>对于 wl，需要安装 <code>net-wireless/broadcom-sta</code>，安装的时候会自动检查必要的内核选项，按照提示选择好就可以了。主要是要注意去掉上面的 kernel 的选项，另外可能还需要一个 ipw2100 来提供某一个隐藏的 kernel 选项。此外还有个 PREEMPT_RCU 检查，需要选择下面的内核选项 <code>Processor type and features  ---&gt;  Preemption Model (Voluntary Kernel Preemption (Desktop))  ---&gt;  Voluntary Kernel Preemption (Desktop)</code>。</p>
-
-<p>如此之后编译安装重启就可以了。</p>
-
-    </div>
-
-<div class="meta">
-    
-    <span class="comments"><a href="/broadcom-wireless-card-on-gentoo/#disqus_thread">Comments</a></span>
     
 </div>
 </article>
