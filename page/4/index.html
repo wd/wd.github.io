@@ -100,6 +100,65 @@
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/use-ivy-to-replace-isearch/">use ivy to replace isearch</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2016-01-10T19:22:20.000&#43;08:00' itemprop="datePublished">2016-01-10</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/emacs">emacs</a>
+
+
+</div>
+    </div>
+        <p>之前习惯使用 <code>isearch</code> 来搜索了，最近看别人使用 <code>ivy</code> 看着心痒痒的，就想试试看。其实 ivy 的效果和 <code>swoop</code> 很像，不过区别是 ivy 是在 minibuffer 来显示可选信息的，swoop 是在一个 buffer 显示的。有洁癖的可能稍微计较一下。</p>
+
+<pre><code>;; ivy swiper
+(defun wd-swiper-at-point ()
+  &quot;Pull next word from buffer into search string.&quot;
+  (interactive)
+  (let (query)
+    (with-ivy-window
+      (let ((tmp (symbol-at-point)))
+        (setq query tmp)))
+    (when query
+      (insert (format &quot;%s&quot; query))
+      )))
+
+(use-package ivy
+  :config
+  (ivy-mode 1)
+  (setq ivy-use-virtual-buffers t)
+  (set-variable 'ivy-on-del-error-function '(lambda()))
+  )
+
+(use-package swiper
+  :config
+  (global-set-key &quot;\C-s&quot; 'swiper)
+  (define-key swiper-map (kbd &quot;C-w&quot;) 'wd-swiper-at-point)
+  (define-key swiper-map (kbd &quot;C-f&quot;) 'swiper-avy)
+  )
+</code></pre>
+
+<p>我大致做了上面几个设定，<code>\C-s</code> 绑定了 swiper，启动 swiper 之后用 <code>\C-w</code> 可以快速把光标位置的 symbol 放到 minibuffer 来搜索。然后 swiper 和 isearch 有个区别是，默认情况下，swiper 如果 minibuffer 没有内容，按 backspace 会退出，这个和 isearch 的习惯不一样，把 <code>ivy-on-del-error-function</code> 重新绑定一下就可以了。</p>
+
+<p>ivy 默认会绑定一个快捷键是在你 minibuffer 输入一些内容之后，会出来很多匹配结果，这个时候可以按 <code>C-'</code> 调用 <code>swiper-avy</code> 方便你快速定位，也挺好用的。不过我这里不好用，不知道怎么回事，只好重新绑定了一下。</p>
+
+<p>还可以在 swiper 查询阶段按 <code>M-q</code> 进入替换模式。</p>
+
+    </div>
+
+<div class="meta">
+    
+    <span class="comments"><a href="/use-ivy-to-replace-isearch/#disqus_thread">Comments</a></span>
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/libmcrypt-ffi-module/">基于 ffi 的 libmcrypt 加密模块</a>
     </h2>
     <div class="entry-content">
@@ -932,106 +991,6 @@ k= 49/30 = 1.63
 <div class="meta">
     
     <span class="comments"><a href="/octopress-and-jeklly-1-dot-0-1/#disqus_thread">Comments</a></span>
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/octopress-and-gitcafe/">octopress and gitcafe</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2013-06-12T21:30:00.000&#43;08:00' itemprop="datePublished">2013-06-12</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="/tags/linux">linux</a>
-
-
-</div>
-    </div>
-        <p>ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。</p>
-
-<pre><code class="language-diff">diff --git a/.gitignore b/.gitignore
-index 85ed25d..5858b25 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -12,3 +12,4 @@ source/stylesheets/screen.css
- vendor
- node_modules
- .themes/fabric/
-+gitcafe
-diff --git a/Rakefile b/Rakefile
-index 53072e5..62061e0 100644
---- a/Rakefile
-+++ b/Rakefile
-@@ -27,6 +27,9 @@ new_post_ext    = &quot;markdown&quot;  # default new post file extension when using the n
- new_page_ext    = &quot;markdown&quot;  # default new page file extension when using the new_page task
- server_port     = &quot;4000&quot;      # port for preview server eg. localhost:4000
-
-+gitcafe_dir      = &quot;gitcafe&quot;
-+gitcafe_branch   = &quot;gitcafe-pages&quot;
-+
-
- desc &quot;Initial setup for Octopress: copies the default theme into the path of Jekyll's generator. Rake install defaults to rake install[classic] to install a different them
- task :install, :theme do |t, args|
-@@ -219,7 +214,7 @@ end
- ##############
-
- desc &quot;Default deploy task&quot;
--task :deploy do
-+task :deploy_old do
-   # Check if preview posts exist, which should not be published
-   if File.exists?(&quot;.preview-mode&quot;)
-     puts &quot;## Found posts in preview mode, regenerating files ...&quot;
-@@ -231,6 +226,31 @@ task :deploy do
-   Rake::Task[&quot;#{deploy_default}&quot;].execute
- end
-
-+desc &quot;deploy gitcafe&quot;
-+task :deploy do
-+  # Check if preview posts exist, which should not be published
-+  if File.exists?(&quot;.preview-mode&quot;)
-+    puts &quot;## Found posts in preview mode, regenerating files ...&quot;
-+    File.delete(&quot;.preview-mode&quot;)
-+    #Rake::Task[:generate].execute # 这个地方每次都会 generate 我一般喜欢先 generate 本地看好没问题之后再 deploy，所以就注释掉了
-+  end
-+
-+  puts &quot;## Deploying branch to Gitcafe Pages &quot;
-+  puts &quot;\n## copying #{public_dir} to #{gitcafe_dir}&quot;
-+  cp_r &quot;#{public_dir}/.&quot;, gitcafe_dir
-+  cd &quot;#{gitcafe_dir}&quot; do
-+    system &quot;git add .&quot;
-+    system &quot;git add -u&quot;
-+    puts &quot;\n## Commiting: Site updated at #{Time.now.utc}&quot;
-+    message = &quot;Site updated at #{Time.now.utc}&quot;
-+    system &quot;git commit -m \&quot;#{message}\&quot;&quot;
-+    puts &quot;\n## Pushing generated #{gitcafe_dir} website&quot;
-+    system &quot;git push origin #{gitcafe_branch} --force&quot;
-+    puts &quot;\n## Gcafe Pages deploy complete&quot;
-+  end
-+end
-+
-+
- desc &quot;Generate website and deploy&quot;
- task :gen_deploy =&gt; [:integrate, :generate, :deploy] do
- end
-</code></pre>
-
-<p>然后需要在 octopus 根目录 clone 一下你的 gitcafe 项目到 gitcafe 目录</p>
-
-<pre><code class="language-bash">$ git clone git@gitcafe.com:wd/wd gitcafe
-....
-</code></pre>
-
-<p>然后就可以试试看 <code>rake generate</code> , <code>rake preview</code>, <code>rake deploy</code> 了。</p>
-
-    </div>
-
-<div class="meta">
-    
-    <span class="comments"><a href="/octopress-and-gitcafe/#disqus_thread">Comments</a></span>
     
 </div>
 </article>

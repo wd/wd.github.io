@@ -100,6 +100,305 @@
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/ati-dual-head/">ATI 显卡双头显示配置</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2008-09-08T00:00:00.000&#43;00:00' itemprop="datePublished">2008-09-08</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/bigdesktop">bigdesktop</a>
+
+<a href="/tags/dual-head">dual-head</a>
+
+<a href="/tags/linux">linux</a>
+
+<a href="/tags/twinview">twinview</a>
+
+<a href="/tags/%E5%8F%8C%E5%A4%B4">双头</a>
+
+
+</div>
+    </div>
+        参考自<a href="http://gentoo-wiki.com/HOWTO_Dual_Monitors#ATI" target="_blank">这里</a> 。<br />
+
+双头就是接第二个显示器，或者接投影仪什么的，ati 里面叫做 bigdesktop，nvidia 叫做 twinview ，intel 的不太清楚，我记得好像也有个自己的名字。<br />
+
+Nvidia 的官方驱动有 twinview 的支持，图形界面下面配置起来似乎也不是很难。 ATI 的官方驱动支持的是 bigdesktop ，也有图形界面，不过那个界面很恶心，经常出现问题，不过可以试着删除 <a href="http://wdicc.cn/howto-reset-ati-fglrx-settings/" target="_blank">/etc/ati/amdpcsdb</a> 文件试试看。<br />
+
+下面是一个 bigdesktop 的 xorg.conf 文件。<br />
+<pre class="prettyprint lang-conf">Section "ServerLayout">
+	Identifier     "Default Layout"
+	Screen         "Default Screen" 0 0
+	InputDevice    "Generic Keyboard"
+	InputDevice    "Configured Mouse"
+	InputDevice    "Synaptics Touchpad"
+EndSection
+
+Section "ServerFlags"
+	Option	    "AIGLX" "off"
+	#Option	    "AIGLX" "true"
+EndSection
+
+Section "Module"
+	load "dbe"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Generic Keyboard"
+	Driver      "kbd"
+	Option	    "CoreKeyboard"
+	Option	    "XkbRules" "xorg"
+	Option	    "XkbModel" "pc104"
+	Option	    "XkbLayout" "us"
+	#Option "XkbOptions" "ctrl:nocaps"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Configured Mouse"
+	Driver      "mouse"
+	Option	    "CorePointer"
+	Option	    "Device" "/dev/input/mice"
+	Option	    "Protocol" "ImPS/2"
+	Option	    "Emulate3Buttons" "true"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Synaptics Touchpad"
+	Driver      "synaptics"
+	Option	    "SendCoreEvents" "true"
+	Option	    "Device" "/dev/psaux"
+#	Option	    "Protocol" "auto-dev"
+	Option	    "HorizScrollDelta" "0"
+EndSection
+
+Section "Monitor"
+	Identifier   "Generic Monitor"
+	HorizSync    28.0 - 51.0
+	VertRefresh  43.0 - 60.0
+	Option	    "DPMS"
+EndSection
+
+Section "Device"
+	Option	    "DesktopSetup" "horizontal" #Enable Big Desktop
+	Option	    "Mode2" "1280x1024" #Resolution for second monitor
+	Option	    "VideoOverlay" "on"
+	Option	    "OpenGLOverlay" "off"
+	Identifier  "Generic Video Card"
+	Option "XAANoOffscreenPixmaps" "true"
+	Driver      "fglrx"
+	Option		"DRI" "true"
+EndSection
+
+Section "Screen"
+	Identifier "Default Screen"
+	Device     "Generic Video Card"
+	Monitor    "Generic Monitor"
+	DefaultDepth     24
+	SubSection "Display"
+		Modes    "1024x768"
+	EndSubSection
+EndSection
+
+Section "Extensions"
+	Option	    "Composite" "Disable"
+	#Option	    "Composite" "enable"
+EndSection
+
+Section "DRI"
+	Group 0
+	Mode 0666
+EndSection</pre>
+比较简单，只需要在 device 里面设置好就行了。
+
+用 ati 的开源驱动，也可以双头显示。用下面的 xorg.conf 。
+<pre class="prettyprint lang-conf">Section "ServerLayout">
+	Identifier     "Default Layout"
+	Screen         "Default Screen"
+	InputDevice    "Generic Keyboard"
+	InputDevice    "Configured Mouse"
+	InputDevice    "Synaptics Touchpad"
+EndSection
+
+Section "ServerFlags"
+	Option	    "AIGLX" "off"
+	#Option	    "AIGLX" "true"
+EndSection
+
+Section "Module"
+	load "dbe"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Generic Keyboard"
+	Driver      "kbd"
+	Option	    "CoreKeyboard"
+	Option	    "XkbRules" "xorg"
+	Option	    "XkbModel" "pc104"
+	Option	    "XkbLayout" "us"
+	#Option "XkbOptions" "ctrl:nocaps"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Configured Mouse"
+	Driver      "mouse"
+	Option	    "CorePointer"
+	Option	    "Device" "/dev/input/mice"
+	Option	    "Protocol" "ImPS/2"
+	Option	    "Emulate3Buttons" "true"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Synaptics Touchpad"
+	Driver      "synaptics"
+	Option	    "SendCoreEvents" "true"
+	Option	    "Device" "/dev/psaux"
+#	Option	    "Protocol" "auto-dev"
+	Option	    "HorizScrollDelta" "0"
+EndSection
+
+Section "Monitor"
+    	Identifier      "Integrated LCD"
+	 Option      "DPMS"
+EndSection
+
+Section "Monitor"
+	Identifier      "External VGA"
+	Option "RightOf" "Integrated LCD"
+	 Option      "DPMS"
+EndSection
+
+Section "Device"
+	Identifier  "Generic Video Card"
+	Driver		"radeon"
+#	# accelration
+	Option          "AGPMode" "4"
+	Option          "EnablePageFlip" "on"
+	Option          "RenderAccel" "on"
+	Option          "AccelMethod"   "EXA" # or XXA
+	Option          "DynamicClocks" "on"
+	Option		"DRI" "true"
+        # Color Tiling
+        Option          "ColorTiling"   "on"
+    Option          "Monitor-VGA-0" "External VGA"
+    Option          "Monitor-LVDS"  "Integrated LCD"
+    # Option "XAANoOffscreenPixmaps" "true" # for composit
+EndSection
+
+Section "Screen"
+	Identifier "Default Screen"
+	Device     "Generic Video Card"
+	Monitor    "Integrated LCD"
+	DefaultDepth     24
+	SubSection "Display"
+		Modes    "1280x1024" "1024x768"
+		Virtual 2304 1024
+	EndSubSection
+EndSection
+
+Section "Extensions"
+	Option	    "Composite" "Disable"
+	#Option	    "Composite" "enable"
+EndSection
+
+Section "DRI"
+	Group 0
+	Mode 0666
+EndSection</pre>
+可以看到改动也不是很大，主要增加了两个显示器，device里面增加了这两个显示器的设置。另外 screen 里面增加了那个 virtual，这个的参数就是将来两个显示器总共的屏幕大小，我的是 1024+1280 x 1024 ，横向相加，竖向的取最大的。
+
+ok，这样就可以了。注意这里没有用到最上面那个链接里面说的 MergedFB。似乎最新的 xorg 用 xrandr 实现了这个，所以 MergedFB 就不需要了。这有个好处，可以随时调整分辨率什么的。例如 xrandr --output VGA --off ，去掉第二个显示器。 xrandr --output VGA --right-of LVDS ，设置 bigdesktop等等。xrandr 的方法还可以参考<a href="http://wiki.debian.org/XStrikeForce/HowToRandR12" target="_blank">这里</a>。
+
+升级到 xorg 1.5.3 以后，鼠标键盘的设置可以不在这里了，所以更加简单。
+<pre class="prettyprint lang-text">
+
+# xorg.conf (xorg X Window System server configuration file)
+#
+# This file was generated by dexconf, the Debian X Configuration tool, using
+# values from the debconf database.
+#
+# Edit this file with caution, and see the xorg.conf manual page.
+# (Type "man xorg.conf" at the shell prompt.)
+#
+# This file is automatically updated on xserver-xorg package upgrades *only*
+# if it has not been modified since the last upgrade of the xserver-xorg
+# package.
+#
+# If you have edited this file but would like it to be automatically updated
+# again, run the following command:
+#   sudo dpkg-reconfigure -phigh xserver-xorg
+
+Section "ServerFlags"
+	#Option	    "AIGLX" "off"
+	Option	    "AIGLX" "true"
+EndSection
+
+Section "Module"
+	load "dri"
+EndSection
+
+Section "Monitor"
+    	Identifier      "Integrated LCD"
+	Option      "DPMS"
+EndSection
+
+Section "Monitor"
+	Identifier      "External VGA"
+	Option "RightOf" "Integrated LCD"
+	Option      "DPMS"
+EndSection
+
+Section "Device"
+	Identifier  "Generic Video Card"
+	Driver		"radeon"
+#	# accelration
+	Option          "AGPMode" "8"
+	Option          "EnablePageFlip" "on"
+	Option          "RenderAccel" "on"
+	Option          "AccelMethod"   "EXA" # or XXA
+	Option          "DynamicClocks" "on"
+	Option		"DRI" "true"
+        # Color Tiling
+        Option          "ColorTiling"   "on"
+    Option          "Monitor-VGA-0" "External VGA"
+    Option          "Monitor-LVDS"  "Integrated LCD"
+EndSection
+
+Section "Screen"
+	Identifier "Default Screen"
+	Device     "Generic Video Card"
+	Monitor    "Integrated LCD"
+	DefaultDepth     24
+	SubSection "Display"
+		Modes    "1280x1024" "1024x768"
+		#Modes    "1024x768"
+		Virtual 2048 1024
+		Virtual 2304 1024
+	EndSubSection
+EndSection
+
+Section "Extensions"
+	#Option	    "Composite" "Disable"
+	Option	    "Composite" "enable"
+EndSection
+
+Section "DRI"
+	Group 0
+	Mode 0666
+EndSection</pre>
+
+    </div>
+
+<div class="meta">
+    
+    <span class="comments"><a href="/ati-dual-head/#disqus_thread">Comments</a></span>
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/ora-00257-and-ora-19815/">ORA-00257 和 ORA-19815</a>
     </h2>
     <div class="entry-content">
@@ -707,40 +1006,6 @@ window.addEventListener(
 <div class="meta">
     
     <span class="comments"><a href="/guanggaoguanggao/#disqus_thread">Comments</a></span>
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/doing-exercise/">开始锻炼第二天</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2008-05-06T00:00:00.000&#43;00:00' itemprop="datePublished">2008-05-06</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="/tags/heart">heart</a>
-
-<a href="/tags/%E5%81%A5%E8%BA%AB">健身</a>
-
-
-</div>
-    </div>
-        从昨天早上开始，就早早爬起来来公司附近的健身中心跑步了。<br />
-
-说起来，去年也曾经跑了2个月，不过体重下去2斤，汗... 昨天去了之后称了一下，已经比去年冬天又重了2，3公斤，日阿，长的真快。<br />
-
-昨天去了之后，基本就是恢复一下体力，两条杆的那个跑步机上面跑了25分钟左右，累的不行了。就去器械做了20多个走人。今天先去那里搞了 15 分钟热身，然后去跑步机上面跑了 15 分钟，本来打算是10分钟完事的，结果咬着呀跑了15分钟。希望明天能直接在跑步机上面跑30分钟。<br />
-
-事实证明，跑步的时候有个好看的片子来分散注意力的话，还是很容易坚持的。<br />
-
-    </div>
-
-<div class="meta">
-    
-    <span class="comments"><a href="/doing-exercise/#disqus_thread">Comments</a></span>
     
 </div>
 </article>

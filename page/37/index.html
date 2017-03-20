@@ -100,6 +100,50 @@
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/rsync-script/">rsync脚本的一个例子</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-05-09T00:00:00.000&#43;00:00' itemprop="datePublished">2006-05-09</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="/tags/other">other</a>
+
+<a href="/tags/rsync">rsync</a>
+
+
+</div>
+    </div>
+        <pre class="prettyprint lang-bash">
+
+SYNCLOGFILE="/var/log/rsync-201.log"
+SYNCLOCKFILE="/var/lock/rsync-201.lock"
+
+if [[ -f $SYNCLOCKFILE ]]; then
+  # lock file already present, bail
+  exit 1
+fi
+
+echo -n ">>> Sync log for " >> $SYNCLOGFILE
+date >> $SYNCLOGFILE
+
+touch $SYNCLOCKFILE
+rsync -vzrtopg  --delete 192.168.0.201::www /backup  >> $SYNCLOGFILE 2>&1
+rm -f $SYNCLOCKFILE
+</pre><br />
+
+    </div>
+
+<div class="meta">
+    
+    <span class="comments"><a href="/rsync-script/#disqus_thread">Comments</a></span>
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/stop-and-start-script-for-apache-and-weblogic/">启动停止weblogic和apache的脚本</a>
     </h2>
     <div class="entry-content">
@@ -638,37 +682,6 @@ For more advanced firewall configuration scripts through ifupdown you can use th
 <div class="meta">
     
     <span class="comments"><a href="/iptables-in-debian/#disqus_thread">Comments</a></span>
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/manage-route/">添加删除路由</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-04-17T00:00:00.000&#43;00:00' itemprop="datePublished">2006-04-17</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="/tags/other">other</a>
-
-
-</div>
-    </div>
-        #route add -net 192.168.0.0/24<br />
-#route add -host 192.168.0.23<br />
-#route del -net 192.168.0.0/24<br />
-
-#route add default gw 192.168.0.1<br />
-#route del default gw 192.168.0.1<br />
-
-    </div>
-
-<div class="meta">
-    
-    <span class="comments"><a href="/manage-route/#disqus_thread">Comments</a></span>
     
 </div>
 </article>
