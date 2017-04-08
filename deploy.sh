@@ -2,7 +2,7 @@
 
 set -e
 cd ~/blog/
-rm -rf public/*
+#rm -rf public/*
 hugo
 cd public/
 git add .
