@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Session on wd and cc</title>
-    <link>https://wdicc.com/tags/session/atom/index.xml</link>
+    <link>https://wdicc.com/tags/session/</link>
     <description>Recent content in Session on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/session/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 07 Oct 2008 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/session/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>oracle 里面 kill session</title>
@@ -14,18 +17,14 @@
       <pubDate>Tue, 07 Oct 2008 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/kill-session-in-oracle/</guid>
-      <description>eygle &lt;a href=&#34;http://www.eygle.com/faq/Kill_Session.htm&#34; target=&#34;_blank&#34;&gt;有篇文章&lt;/a&gt;讲了这个，之前也看过。昨天实际操作了一下。&lt;br /&gt;
+      <description>eygle 有篇文章讲了这个，之前也看过。昨天实际操作了一下。
+因为如 eygle 所讲，kill 了 session 之后，操作系统里面的进程资源有时候不一定会立即释放，所以最好在 kill 之前就找到系统的进程 id，这样，如果不释放的时候，可以直接kill。省的之后找起来麻烦。
+昨天操作的时候有这么几个步骤
 
-因为如 eygle 所讲，kill 了 session 之后，操作系统里面的进程资源有时候不一定会立即释放，所以最好在 kill 之前就找到系统的进程 id，这样，如果不释放的时候，可以直接kill。省的之后找起来麻烦。&lt;br /&gt;
-
-昨天操作的时候有这么几个步骤&lt;br /&gt;
-&lt;ol&gt;&lt;br /&gt;
-	&lt;li&gt;select * from v$session where username like &#39;UP&#39; --先找到这个用户的 session。&lt;/li&gt;&lt;br /&gt;
-	&lt;li&gt;select * from v$sql a, v$session b where b.username = &#39;UP&#39; and a.sql_id = b.sql_id --找出来这个用户这些 session 对应的 sql 语句，好确认 session 的 id。&lt;/li&gt;&lt;br /&gt;
-	&lt;li&gt;select * from v$process a, v$session b where a.addr = b.paddr and b.username like &#39;UP&#39; and b.sid = xxx --找出来他的系统进程id，就是那个 spid。&lt;/li&gt;&lt;br /&gt;
-	&lt;li&gt;ALTER SYSTEM KILL SESSION &#39;sid, serial#&#39; --可以实施kill了，可能会提示你marked for kill，有必要的话，在os级别kill前面找出来的 spid。&lt;/li&gt;&lt;br /&gt;
-&lt;/ol&gt;&lt;br /&gt;
-</description>
+select * from v$session where username like &#39;UP&#39; --先找到这个用户的 session。
+select * from v$sql a, v$session b where b.username = &#39;UP&#39; and a.sql_id = b.sql_id --找出来这个用户这些 session 对应的 sql 语句，好确认 session 的 id。
+select * from v$process a, v$session b where a.addr = b.paddr and b.username like &#39;UP&#39; and b.sid = xxx --找出来他的系统进程id，就是那个 spid。
+ALTER SYSTEM KILL SESSION &#39;sid, serial#&#39; --可以实施kill了，可能会提示你marked for kill，有必要的话，在os级别kill前面找出来的 spid。</description>
     </item>
     
   </channel>

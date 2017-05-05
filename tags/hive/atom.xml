@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Hive on wd and cc</title>
-    <link>https://wdicc.com/tags/hive/atom/index.xml</link>
+    <link>https://wdicc.com/tags/hive/</link>
     <description>Recent content in Hive on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/hive/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 03 May 2011 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/hive/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>hive 里面不能 drop table</title>
@@ -14,21 +17,15 @@
       <pubDate>Tue, 03 May 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/cant-drop-table-in-hive/</guid>
-      <description>&lt;p&gt;之前部署 hive 0.6 的时候，发现用 postgress 存 metadb 的时候，不能 drop table，一执行就卡住了。当时试过 mysql，好像是有个什么问题，就没用了，后来只好用 hive 0.5 完事。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-前几天有个别的事情工作不正常，以为可能是版本的问题，毕竟现在都 0.7 了。所以尝试了下直接升级到 0.7。在 0.6 版本的 hive 里面，自带了一个 postgress 用的升级 sql，但是 0.7 的没有。执行这个 sql 后，hive 0.7 能查询，但是同样的，也遇到了不能 drop table 的问题。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-后来发现 drop table 的时候，hive 在尝试去查一个不存在的表，然后就卡在了这个 sql 上面，也不报错，也不超时，不知道是不是 jdbc 的问题。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-然后把 mysql 用的升级 sql 迁移到了 postgress，这样 hive 0.7 在 postgress 里面也没问题了。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-升级 sql 和邮件列表的主题在 &lt;a href=&#34;http://www.mail-archive.com/user@hive.apache.org/msg01293.html&#34;&gt;http://www.mail-archive.com/user@hive.apache.org/msg01293.html&lt;/a&gt; 。升级的时候要注意，新建的表的 owner 需要是 hive 使用的用户。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-</description>
+      <description>之前部署 hive 0.6 的时候，发现用 postgress 存 metadb 的时候，不能 drop table，一执行就卡住了。当时试过 mysql，好像是有个什么问题，就没用了，后来只好用 hive 0.5 完事。
+
+前几天有个别的事情工作不正常，以为可能是版本的问题，毕竟现在都 0.7 了。所以尝试了下直接升级到 0.7。在 0.6 版本的 hive 里面，自带了一个 postgress 用的升级 sql，但是 0.7 的没有。执行这个 sql 后，hive 0.7 能查询，但是同样的，也遇到了不能 drop table 的问题。
+
+后来发现 drop table 的时候，hive 在尝试去查一个不存在的表，然后就卡在了这个 sql 上面，也不报错，也不超时，不知道是不是 jdbc 的问题。
+
+然后把 mysql 用的升级 sql 迁移到了 postgress，这样 hive 0.7 在 postgress 里面也没问题了。
+
+升级 sql 和邮件列表的主题在 http://www.mail-archive.com/user@hive.apache.org/msg01293.html 。升级的时候要注意，新建的表的 owner 需要是 hive 使用的用户。</description>
     </item>
     
     <item>
@@ -37,150 +34,11 @@
       <pubDate>Sun, 24 Apr 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/udf-in-hive/</guid>
-      <description>hive 支持 UDF， UDAF， UDTF，这几个让你使用 hive 更加便捷。&lt;br /&gt;
-&lt;div id=&#34;outline-container-1&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-1&#34;&gt;UDF&lt;/h2&gt;&lt;br /&gt;
-&lt;div id=&#34;text-1&#34; class=&#34;outline-text-2&#34;&gt;&lt;br /&gt;
-
-udf 就是一个自定义的 function，输入一个或多个参数，返回一个返回值，类似 substr/trim 之类。写起来比较简单，重构 UDF 类的 evaluate 方法就可以了。可以参考 &lt;a href=&#34;http://richiehu.blog.51cto.com/2093113/386112&#34;&gt;http://richiehu.blog.51cto.com/2093113/386112&lt;/a&gt; 。&lt;br /&gt;
-
-这是一个 urldecode 函数。&lt;br /&gt;
-&lt;pre class=&#34;prettyprint lang-java&#34;&gt;
-
-import org.apache.hadoop.hive.ql.exec.UDF;
-import java.net.URLDecoder;
-
-public final class urldecode extends UDF {
-
-    public String evaluate(final String s) {
-        if (s == null) { return null; }
-        return getString(s);
-    }
-
-    public static String getString(String s) {
-        String a;
-        try {
-            a = URLDecoder.decode(s);
-        } catch ( Exception e) {
-            a = &#34;&#34;;
-        }
-        return a;
-    }
-
-    public static void main(String args[]) {
-        String t = &#34;%E5%A4%AA%E5%8E%9F-%E4%B8%89%E4%BA%9A&#34;;
-        System.out.println( getString(t) );
-    }
-}&lt;/pre&gt;
-&lt;div id=&#34;outline-container-2&#34; class=&#34;outline-2&#34;&gt;
-&lt;h2 id=&#34;sec-2&#34;&gt;UDAF&lt;/h2&gt;
-&lt;div id=&#34;text-2&#34; class=&#34;outline-text-2&#34;&gt;
-
-udaf 就是自定义的聚合函数，类似 sum/avg 这类，输入多行的一个或多个参数，返回一个返回值。这个还没写过，可以参考 &lt;a href=&#34;http://richiehu.blog.51cto.com/2093113/386113&#34;&gt;http://richiehu.blog.51cto.com/2093113/386113&lt;/a&gt; 。
-
-&amp;nbsp;
-
-&lt;/div&gt;
-&amp;nbsp;
-
-&lt;/div&gt;
-&lt;div id=&#34;outline-container-3&#34; class=&#34;outline-2&#34;&gt;
-&lt;h2 id=&#34;sec-3&#34;&gt;UDTF&lt;/h2&gt;
-&lt;div id=&#34;text-3&#34; class=&#34;outline-text-2&#34;&gt;
-
-udtf 是针对输入一行，输出多行的需求来的，类似 explode 函数。可以参考 &lt;a href=&#34;http://www.linezing.com/blog/?p=323&#34;&gt;http://www.linezing.com/blog/?p=323&lt;/a&gt; 。
-
-这个是输入数组字段，输出两列，一列是数组元素的位置，一列是数组元素。比 explode 多了一列位置，不过数组元素只能是 String 类型的。
-&lt;pre class=&#34;prettyprint lang-java&#34;&gt;
-
-import java.util.ArrayList;
-import java.util.List;
-
-//import org.apache.hadoop.io.Text;
-
-import org.apache.hadoop.hive.ql.udf.generic.GenericUDTF;
-
-import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
-import org.apache.hadoop.hive.ql.exec.description;
-import org.apache.hadoop.hive.ql.metadata.HiveException;
-import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
-import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
-import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
-
-import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
-
-@description(
-        name = &#34;explodeWithPos&#34;,
-        value = &#34;_FUNC_(a) - separates the elements of array a into multiple rows with pos as first col &#34;
-        )
-
-public class explodeWithPos extends GenericUDTF {
-
-    ListObjectInspector listOI = null;
-
-    @Override
-        public void close() throws HiveException{
-        }
-
-    @Override
-        public StructObjectInspector initialize(ObjectInspector [] args) throws UDFArgumentException {
-
-            if (args.length != 1) {
-                throw new UDFArgumentException(&#34;explodeWithPos() takes only one argument&#34;);
-            }
-
-            if (args[0].getCategory() != ObjectInspector.Category.LIST) {
-                throw new UDFArgumentException(&#34;explodeWithPos() takes an array as a parameter&#34;);
-            }
-
-            listOI = (ListObjectInspector)args[0];
-
-            ArrayList fieldNames = new ArrayList();
-            ArrayList fieldOIs = new ArrayList();
-
-            fieldNames.add(&#34;col1&#34;);
-            //fieldOIs.add(listOI.getListElementObjectInspector());
-            fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
-
-            fieldNames.add(&#34;col2&#34;);
-            //fieldOIs.add(listOI.getListElementObjectInspector());
-            fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
-
-            return ObjectInspectorFactory.getStandardStructObjectInspector(fieldNames, fieldOIs);
-        }
-
-        //Object forwardObj[] = new Object[2];
-        Object forwardObj[] = new String[2];
-
-    @Override
-        public void process(Object [] o) throws HiveException {
-
-            List list = listOI.getList(o[0]);
-
-            if ( list == null ) {
-                return;
-            }
-
-            int i =0;
-            for (Object r : list) {
-                forwardObj[0] = String.valueOf(i);
-                forwardObj[1] = r.toString();
-                this.forward(forwardObj);
-                i++;
-            }
-        }
-
-    @Override
-        public String toString() {
-            return &#34;explodeWithPos&#34;;
-        }
-}&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-</description>
+      <description>hive 支持 UDF， UDAF， UDTF，这几个让你使用 hive 更加便捷。
+UDF
+udf 就是一个自定义的 function，输入一个或多个参数，返回一个返回值，类似 substr/trim 之类。写起来比较简单，重构 UDF 类的 evaluate 方法就可以了。可以参考 http://richiehu.blog.51cto.com/2093113/386112 。
+这是一个 urldecode 函数。
+import org.apache.hadoop.hive.ql.exec.UDF; import java.net.URLDecoder; public final class urldecode extends UDF { public String evaluate(final String s) { if (s == null) { return null; } return getString(s); } public static String getString(String s) { String a; try { a = URLDecoder.decode(s); } catch ( Exception e) { a = &#34;</description>
     </item>
     
   </channel>

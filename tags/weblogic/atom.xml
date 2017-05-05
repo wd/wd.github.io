@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Weblogic on wd and cc</title>
-    <link>https://wdicc.com/tags/weblogic/atom/index.xml</link>
+    <link>https://wdicc.com/tags/weblogic/</link>
     <description>Recent content in Weblogic on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/weblogic/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 05 Aug 2006 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/weblogic/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Weblogic服务器性能调优</title>
@@ -14,130 +17,35 @@
       <pubDate>Sat, 05 Aug 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/weblogic-turning/</guid>
-      <description>来源 &lt;a target=&#34;_blank&#34; href=&#34;http://www.mikecat.net/BlogView.asp?logID=1489&#34;&gt;这里&lt;/a&gt;&lt;br /&gt;
+      <description>来源 这里
+注：在下面做的介绍都是以Weblogic8.1为例的，其它版本的Weblogic可能会有些许不同。
+1) 设置JAVA参数；
+a) 编辑Weblogic Server启动脚本文件；
+BEA_HOME\user_projects\domains\domain-name\startWebLogic.cmd(startWebLogic.sh on Unix)
+BEA_HOME\user_projects\domains\domain-name\startManagedWebLogic.cmd(startManagedWebLogic.sh on Unix)
+b) 编辑set JAVA_OPTIONS命令，如：set JAVA_OPTIONS=-Xms256m –Xmx256m；
+c) 保存，重启即可。
+注：在WebLogic中，为了获得更好的性能，BEA公司推荐最小Java堆等于最大Java堆。
 
-注：在下面做的介绍都是以Weblogic8.1为例的，其它版本的Weblogic可能会有些许不同。&lt;br /&gt;
-
-1) 设置JAVA参数；&lt;br /&gt;
-
-a) 编辑Weblogic Server启动脚本文件；&lt;br /&gt;
-
-BEA_HOME\user_projects\domains\domain-name\startWebLogic.cmd(startWebLogic.sh on Unix)&lt;br /&gt;
-
-BEA_HOME\user_projects\domains\domain-name\startManagedWebLogic.cmd(startManagedWebLogic.sh on Unix)&lt;br /&gt;
-
-b) 编辑set JAVA_OPTIONS命令，如：set JAVA_OPTIONS=-Xms256m –Xmx256m；&lt;br /&gt;
-
-c) 保存，重启即可。&lt;br /&gt;
-
-注：在WebLogic中，为了获得更好的性能，BEA公司推荐最小Java堆等于最大Java堆。&lt;br /&gt;
-&lt;!--more--&gt;&lt;br /&gt;
-2) 开发模式 vs. 产品模式；&lt;br /&gt;
-
-开发模式和产品模式的一些参数的默认值不同，可能会对性能造成影响，下面是对性能有影响的参数列表：&lt;br /&gt;
-
-参数&lt;br /&gt;
-
-开发模式默认值&lt;br /&gt;
-
-产品模式默认值&lt;br /&gt;
-
-Execute Queue: Thread Count&lt;br /&gt;
-
-15 threads&lt;br /&gt;
-
-25 threads&lt;br /&gt;
-
-JDBC Connection Pool: MaxCapacity&lt;br /&gt;
-
-15 connnections&lt;br /&gt;
-
-25 connections&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 配置 &gt; 常规选择产品模式。&lt;br /&gt;
-
-3) 尽量开启本地I/O；&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt; 配置 &gt; 调整选择启用本地I/O。&lt;br /&gt;
-
-注：此值也可通过手动的修改config.xml配置文件。&lt;br /&gt;
-
-4) 调优执行队列线程；&lt;br /&gt;
-
-a) 修改默认执行线程数&lt;br /&gt;
-
-在这里，执行队列的线程数表示执行队列能够同时执行的操作的数量。但此值不是设的越大越好，应该恰到好处的去设置它，太小了，执行队列中将会积累很多待处理的任务，太大了，则会消耗大量的系统资源从而影响整体的性能。在产品模式下默认为25个执行线程。&lt;br /&gt;
-
-为了设置理想的执行队列的线程数，我们可以启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt; 监视 &gt; 性能中监控最大负载时执行队列的吞吐量和队列中的等待请求数，据此确定理想的数值。&lt;br /&gt;
-
-理想的默认执行线程数是由多方面的因素决定的，比如机器CPU性能、总体体系架构、I/O、操作系统的进程调度机制、JVM的线程调度机制。随着CPU个数的增加，WebLogic可以近乎线性地提高线程数。线程数越多，花费在线程切换的时间也就越多；线程数越小，CPU可能无法得到充分的利用。为获取一个理想的线程数，需要经过反复的测试。在测试中，可以以25*CPU个数为基准进行调整。当空闲线程较少，CPU利用率较低时，可以适当增加线程数的大小（每五个递增）。对于PC Server和Windows 2000，则最好每个CPU小于50个线程，以CPU利用率为90%左右为最佳。&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt; Execute Queue &gt; weblogic.kernel.Defalt &gt; 配置中修改线程计数。&lt;br /&gt;
-
-b) 设定执行队列的溢出条件；&lt;br /&gt;
-
-Weblogic Server提供给默认的执行队列或用户自定义的执行队列自定义溢出条件的功能，当满足此溢出条件时，服务器改变其状态为“警告”状态，并且额外的再分配一些线程去处理在队列中的请求，而达到降低队列长度的目的。&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt; Execute Queue &gt; weblogic.kernel.Defalt &gt; 配置下面几项：&lt;br /&gt;
-
-l         队列长度：此值表示执行队列中可容纳的最大请求数，默认值是65536，最后不要手动改变此值。&lt;br /&gt;
-
-l         队列长度阈值百分比：此值表示溢出条件，在此服务器指出队列溢出之前可以达到的队列长度大小的百分比。&lt;br /&gt;
-
-l         线程数增加：当检测到溢出条件时，将增加到执行队列中的线程数量。如果CPU和内存不是足够的高，尽量不要改变默认值“0”。因为Weblogic一旦增加后不会自动缩减，虽然最终可能确实起到了降低请求的作用，但在将来的运行中将影响程序的性能。&lt;br /&gt;
-
-l         最大线程数：为了防止创建过多的线程数量，可以通过设定最大的线程数进行控制。&lt;br /&gt;
-
-在实际的应用场景中，应根据具体情况适当的调整以上参数。&lt;br /&gt;
-
-c) 设定执行队列监测行为&lt;br /&gt;
-
-Weblogic Server 能够自动监测到当一个执行线程变为“阻塞”。变为“阻塞”状态的执行线程将无法完成当前的工作，也无法再执行新请求。如果执行队列中的所有执行线程都变为 “阻塞”状态，Weblogic server可能改变状态为“警告”或“严重”状态。如果Weblogic server变为“严重”状态，可以通过 Node Manager来自动关闭此服务器并重新启动它。具体请参考：Node Manager Capabilities文档。&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt;配置 &gt; 调整下可配置下面几项：&lt;br /&gt;
-
-l         阻塞线程最长时间：在此服务器将线程诊断为阻塞线程之前，线程必须连续工作的时间长度(秒)。默认情况下，WebLogic Server 认为线程在连续工作 600 秒后成为阻塞线程。&lt;br /&gt;
-
-l         阻塞线程计时器间隔：WebLogic Server 定期扫描线程以查看它们是否已经连续工作了 &#34;阻塞线程最长时间&#34; 字段中指定的时间长度的间隔时间(秒)。默认情况下，WebLogic Server 将此时间间隔设置为 600 秒。&lt;br /&gt;
-
-5) 调优TCP连接缓存数；&lt;br /&gt;
-
-WebLogic Server 用Accept Backlog参数规定服务器向操作系统请求的队列大小，默认值为50。当系统重载负荷时,这个值可能过小,日志中报 Connection Refused,导致有效连接请求遭到拒绝,此时可以提高Accept Backlog 25%直到连接拒绝错误消失。对于 Portal类型的应用,默认值往往是不够的。Login Timeout和SSL Login Timeout参数表示普通连接和SSL连接的超时时间,如果客户连接被服务器中断或者SSL容量大,可以尝试增加该值。&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt;配置 &gt; 调整下可配置“接受预备连接”。&lt;br /&gt;
-
-6) 改变Java编译器；&lt;br /&gt;
-
-标准的Java编译器是javac，但编译JSP servlets速度太慢，为了提高编译速度，可以使用sj或jikes编译器取代javac编译器。下面说说更改Java编译器：&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt;配置 &gt; 常规下改变Java 编译器，默认为javac。输入完整路径，如：c:\visualcafe31\bin\sj.exe。然后打开高级选项，在预规划到类路径填写编译 Java 代码时为 Java 编译器类路径预规划的选项，如：BEA_HOME\jdk141_02\jre\lib\rt.jar。&lt;br /&gt;
-
-7) 使用Webogic Server集群提高性能；&lt;br /&gt;
-
-具体关于如何配置Weblogic集群，我就不细说了。详情可参考：Introduction to WebLogic Server Clustering。&lt;br /&gt;
-
-8) Weblogic EJB调优&lt;br /&gt;
-
-由于EJB2.0已经很少项目在用了，EJB3.0再成熟一点，我再补充这一部分吧！&lt;br /&gt;
-
-9) JDBC应用调优&lt;br /&gt;
-
-JDBC Connection Pool 的调优受制于WebLogic Server线程数的设置和数据库进程数,游标的大小。通常我们在一个线程中使用一个连接,所以连接数并不是越多越好,为避免两边的资源消耗，建议设置连接池的最大值等于或者略小于线程数。同时为了减少新建连接的开销,将最小值和最大值设为一致。&lt;br /&gt;
-
-增加 Statement Cache Size对于大量使用PreparedStatement对象的应用程序很有帮助,WebLogic能够为每一个连接缓存这些对象,此值默认为10。在保证数据库游标大小足够的前提下,可以根据需要提高Statement Cache Size。比如当你设置连接数为 25,Cache Size为10时,数据库可能需要打开25*10=250个游标。不幸的是,当遇到与PreparedStatement Cache 有关的应用程序错误时,你需要将Cache Size设置为0。&lt;br /&gt;
-
-尽管JDBC Connection Pool提供了很多高级参数,在开发模式下比较有用,但大部分在生产环境下不需调整。这里建议最好不要设置测试表, 同时Test Reserved Connections和 Test Released Connections也无需勾上。 当然如果你的数据库不稳定,时断时续,你就可能需要上述的参数打开。&lt;br /&gt;
-
-最后提一下驱动程序类型的选择,以Oracle为例,Oracle提供thin驱动和oci驱动,从性能上来讲,oci驱动强于thin驱动,特别是大数据量的操作。但在简单的数据库操作中,性能相差不大,随着thin驱动的不断改进,这一弱势将得到弥补。而thin驱动的移植性明显强于oci驱动。所以在通常情况下建议使用thin驱动。而最新驱动器由于WebLogic server/bin目录下的类包可能不是最新的,请以Oracle网站为准: http://www.oracle.com/technology/software ... jdbc/htdocs/jdbc9201.html。&lt;br /&gt;
-
-10) JSP调优&lt;br /&gt;
-
-设置jsp-param pageCheckSeconds=-1；&lt;br /&gt;
-
-设置serlet-reload-check=-1或ServletReloadCheckSecs=-1；&lt;br /&gt;
-
-设置jsp-param precompile=true，关闭JSP预编译选项。&lt;br /&gt;
-</description>
+2) 开发模式 vs. 产品模式；
+开发模式和产品模式的一些参数的默认值不同，可能会对性能造成影响，下面是对性能有影响的参数列表：
+参数
+开发模式默认值
+产品模式默认值
+Execute Queue: Thread Count
+15 threads
+25 threads
+JDBC Connection Pool: MaxCapacity
+15 connnections
+25 connections
+通过启动管理控制台，在域（如：mydomain） 配置  常规选择产品模式。
+3) 尽量开启本地I/O；
+通过启动管理控制台，在域（如：mydomain） 服务器  server实例（如：myserver） 配置  调整选择启用本地I/O。
+注：此值也可通过手动的修改config.xml配置文件。
+4) 调优执行队列线程；
+a) 修改默认执行线程数
+在这里，执行队列的线程数表示执行队列能够同时执行的操作的数量。但此值不是设的越大越好，应该恰到好处的去设置它，太小了，执行队列中将会积累很多待处理的任务，太大了，则会消耗大量的系统资源从而影响整体的性能。在产品模式下默认为25个执行线程。
+为了设置理想的执行队列的线程数，我们可以启动管理控制台，在域（如：mydomain） 服务器  server实例（如：myserver） 监视  性能中监控最大负载时执行队列的吞吐量和队列中的等待请求数，据此确定理想的数值。</description>
     </item>
     
     <item>
@@ -146,338 +54,22 @@ JDBC Connection Pool 的调优受制于WebLogic Server线程数的设置和数�
       <pubDate>Sat, 05 Aug 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/install-weblogic/</guid>
-      <description>WebLogic Server (LINUX平台)简明安装手册&lt;br /&gt;
-
-首先下载weblogic。在公司的fs服务器上面有已经下载好的版本。&lt;br /&gt;
-
-将要安装的版本（以813为例）上传到服务器，然后下面都用root用户操作。这里讲解的都是远程安装，没有使用图形界面。&lt;br /&gt;
-
-#chmod   +x   server81x_linux32.bin&lt;br /&gt;
-#./ server813_linux32.bin&lt;br /&gt;
-
-稍等片刻会出来weblogic的安装界面。&lt;br /&gt;
-
-&lt;!--more--&gt;&lt;br /&gt;
-Extracting 0%....................................................................................................100%&lt;br /&gt;
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-Welcome:&lt;br /&gt;
---------&lt;br /&gt;
-This installer will guide you through the installation of WebLogic Server 8.1 SP3. Type &#34;Next&#34; or enter to proceed to the next prompt.  If you want to change data entered previously, type &#34;Previous&#34;.  You may quit the installer at any time by typing &#34;Exit&#34;.&lt;br /&gt;
-Enter [Exit][Next]&gt;Next&lt;br /&gt;
-
-直接按回车。&lt;br /&gt;
-
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-BEA Systems License Agreement:&lt;br /&gt;
-------------------------------&lt;br /&gt;
-BEA SYSTEMS, INC. SOFTWARE LICENSE AGREEMENT&lt;br /&gt;
-USE OF SOFTWARE ORDERED FROM BEA SYSTEMS, INC. (&#34;BEA&#34;) IS PROVIDED ONLY UNDER LICENSE FROM BEA. PLEASE&lt;br /&gt;
-READ THE FOLLOWING LICENSE CAREFULLY AND INDICATE YOUR ACCEPTANCE BY CLICKING THE ACCEPTANCE BOX. CERTAIN&lt;br /&gt;
-CAPITALIZED TERMS ARE DEFINED IN SECTION  11.&lt;br /&gt;
-1.      LICENSE TERMS&lt;br /&gt;
-a.      Workshop Free Use.  The terms of this Section 1(a) are applicable to you if you have registered as a Workshop Free customer. Subject to the terms of this Agreement, BEA grants to you a non-exclusive,&lt;br /&gt;
-non-transferable, royalty-free license to use Workshop Free solely for Development Use and Scale-Limited&lt;br /&gt;
-Personal Use for the number of users and/or developers and the number of CPU&#39;s, Servers and/or at the&lt;br /&gt;
-Sites, as specified at the time of registration. Third party software products or modules supplied by BEA, if any, may be used solely with the Software. All rights not specifically granted to you herein are&lt;br /&gt;
-retained by BEA.&lt;br /&gt;
-b.      Workshop Pro Use.  The terms of this Section 1(b) are applicable to you if you have registered as&lt;br /&gt;
-a Workshop Pro customer. Subject to the terms of this Agreement, BEA grants to you a non-exclusive,&lt;br /&gt;
-non-transferable, fee-bearing license to use Workshop Pro solely for Development Use and Scale-Limited&lt;br /&gt;
-Commercial Use for the number of users and/or developers and the number of CPU&#39;s, Servers and/or at the&lt;br /&gt;
-Sites, as specified on BEA&#39;s invoice. Third party software products or modules supplied by BEA, if any,&lt;br /&gt;
-may be used solely with the Software. All rights not specifically granted to you herein are retained by&lt;br /&gt;
-Select Option:&lt;br /&gt;
-1 - Yes, I agree with the terms of the license&lt;br /&gt;
-2 - No, I do not agree with the terms of the license&lt;br /&gt;
-Enter option number to select OR [Down][Exit][Previous]&gt;1&lt;br /&gt;
-
-这里问是否同意weblogic的协议，输入1回车。&lt;br /&gt;
-
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-Choose BEA Home Directory:&lt;br /&gt;
---------------------------&lt;br /&gt;
-*BEA home choice&lt;br /&gt;
-1|Create a new BEA Home [/root/bea]&lt;br /&gt;
--&gt;2|Use an existing BEA Home [/usr/local/bea]&lt;br /&gt;
-Enter index number to select OR [Exit][Previous][Next]&gt;1&lt;br /&gt;
-
-让选择一个bea的目录，这里我们要设置为/usr/local/wls813/bea。先选1，会出来下面的界面。&lt;br /&gt;
-
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-Choose BEA Home Directory:&lt;br /&gt;
---------------------------&lt;br /&gt;
-&#34;BEA Home&#34; = [/root/bea]&lt;br /&gt;
-Input new BEA Home OR [Exit][Previous][Next]&gt; /usr/local/wls813/bea&lt;br /&gt;
-
-输入bea的目录，也就是/usr/local/wls813/bea。&lt;br /&gt;
-
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-Choose BEA Home Directory:&lt;br /&gt;
---------------------------&lt;br /&gt;
-*BEA home choice&lt;br /&gt;
--&gt;1|Yes, Use this BEA home directory [/usr/local/wls813/bea]&lt;br /&gt;
-2|No, return to BEA home directory selection&lt;br /&gt;
-Enter index number to select OR [Exit][Previous][Next]&gt; 1&lt;br /&gt;
-
-让确认一下。选1确认。&lt;br /&gt;
-
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-Choose Install Type:&lt;br /&gt;
---------------------&lt;br /&gt;
--&gt;1|Complete&lt;br /&gt;
-|Install the complete BEA WebLogic Platform.&lt;br /&gt;
-2|Custom Installation&lt;br /&gt;
-|Choose software components to install and perform optional configuration.&lt;br /&gt;
-Enter index number to select OR [Exit][Previous][Next]&gt; 2&lt;br /&gt;
-
-选择安装类型，我们选择2，自定义安装。&lt;br /&gt;
-
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-Choose Components to install:&lt;br /&gt;
------------------------------&lt;br /&gt;
-Release 8.1.3.0&lt;br /&gt;
-|_____WebLogic Server [1]&lt;br /&gt;
-|    |_____Server [1.1]&lt;br /&gt;
-|    |_____Server Examples [1.2]&lt;br /&gt;
-|_____WebLogic Workshop [2]&lt;br /&gt;
-|_____Workshop Runtime Framework [2.1]&lt;br /&gt;
-|_____WebLogic Workshop Application Developer Edition [2.2]&lt;br /&gt;
-|_____Workshop Samples [2.3]&lt;br /&gt;
-Enter number exactly as it appears in brackets to toggle selection OR [Exit][Previous][Next]&gt; 1&lt;br /&gt;
-
-选择要安装的组件，选1，只安装weblogic server。&lt;br /&gt;
-
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-Choose Components to install:&lt;br /&gt;
------------------------------&lt;br /&gt;
-Release 8.1.3.0&lt;br /&gt;
-|_____WebLogic Server [1] x&lt;br /&gt;
-|    |_____Server [1.1] x&lt;br /&gt;
-|    |_____Server Examples [1.2] x&lt;br /&gt;
-|_____WebLogic Workshop [2]&lt;br /&gt;
-|_____Workshop Runtime Framework [2.1]&lt;br /&gt;
-|_____WebLogic Workshop Application Developer Edition [2.2]&lt;br /&gt;
-|_____Workshop Samples [2.3]&lt;br /&gt;
-Enter number exactly as it appears in brackets to toggle selection OR [Exit][Previous][Next]&gt; Next&lt;br /&gt;
-
-选好之后按回车继续&lt;br /&gt;
-
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-Choose Components to install:&lt;br /&gt;
------------------------------&lt;br /&gt;
--&gt;1|Yes, use these component selections&lt;br /&gt;
-2|No, return to component selection&lt;br /&gt;
-Enter index number to select OR [Exit][Next]&gt; 1&lt;br /&gt;
-
-选1确认组件选择。&lt;br /&gt;
-
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-Choose Product Directory:&lt;br /&gt;
--------------------------&lt;br /&gt;
-&#34;Product Installation Directory&#34; = [/usr/local/wls813/weblogic81]&lt;br /&gt;
-Input new Product Installation Directory OR [Exit][Previous][Next]&gt;/usr/local/wls813&lt;br /&gt;
-
-选择安装路径，这里要输入/usr/local/wls813。此后还有一个确认。&lt;br /&gt;
-
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-Installing files..&lt;br /&gt;
-0%          25%          50%          75%          100%&lt;br /&gt;
-[------------|------------|------------|------------]&lt;br /&gt;
-[***************************************************]&lt;br /&gt;
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-Installing JDK....&lt;br /&gt;
-0%          25%          50%          75%          100%&lt;br /&gt;
-[------------|------------|------------|------------]&lt;br /&gt;
-[***************************************************]&lt;br /&gt;
-&lt;-------------------------------- BEA Installer - WebLogic Server 8.1 SP3 -------------------------------&gt;&lt;br /&gt;
-
-开始安装，此时会出现一个模拟的进度条，耐心等待，直到100%。&lt;br /&gt;
-
-Installation Complete&lt;br /&gt;
-Congratulations! WebLogic Server 8.1 SP3 has been successfully installed to /usr/local/wls813.&lt;br /&gt;
-Press any key to continue OR [Exit]&gt;&lt;br /&gt;
-
-至此，Weblogic8.1 sp3已成功安装到目录/usr/local/wls813下。&lt;br /&gt;
-
-安装完之后，还需要新建一个域。新建域的方法是使用/usr/local/wls813/common/bin/config.sh命令。&lt;br /&gt;
-
--------------------------------------------- BEA WebLogic Configuration Wizard -------------------------------------------&gt;&lt;br /&gt;
-
-Create or Extend a Configuration:&lt;br /&gt;
----------------------------------&lt;br /&gt;
-
-Choose between creating and extending a configuration. Based on your selection, the Configuration Wizard guides you through&lt;br /&gt;
-the steps to generate a new or extend an existing configuration.&lt;br /&gt;
-
--&gt;1|Create a new WebLogic configuration&lt;br /&gt;
-|    Start here to create a WebLogic configuration in your projects directory.&lt;br /&gt;
-
-2|Extend an existing WebLogic configuration&lt;br /&gt;
-|    Start here to extend an existing WebLogic configuration.  Use this option to add applications and services,&lt;br /&gt;
-|including Database access (JDBC) and Messaging (JMS). This option also enables you to extend functionality by enabling&lt;br /&gt;
-|WebLogic Workshop.&lt;br /&gt;
-
-Enter index number to select OR [Exit][Next]&gt;&lt;br /&gt;
-
-选1，新建一个域。&lt;br /&gt;
-
-&lt;-------------------------------------------- BEA WebLogic Configuration Wizard -------------------------------------------&gt;&lt;br /&gt;
-
-Select a Domain Template:&lt;br /&gt;
--------------------------&lt;br /&gt;
-
-Please select a template from the list or select another directory of templates.&lt;br /&gt;
-
-* [/usr/local/wls813/common/templates/domains]&lt;br /&gt;
-
--&gt;1|Basic WebLogic Server Domain 8.1.3.0&lt;br /&gt;
-|  BEA Systems, Inc.&lt;br /&gt;
-|  Create a basic WebLogic Server domain without installing sample applications.&lt;br /&gt;
-
-2|WebLogic Server Examples Domain 8.1.3.0&lt;br /&gt;
-|  BEA Systems, Inc.&lt;br /&gt;
-|  Create the WebLogic Server Examples domain in a directory outside of the installed kit.  The Examples domain contains     |a collection of examples to show best practices for coding individual J2EE APIs.&lt;br /&gt;
-
-3|Avitek Medical Records Sample Domain 8.1.3.0&lt;br /&gt;
-|  BEA Systems, Inc.&lt;br /&gt;
-|  Create the Avitek Medical Records domain in a directory outside of the installed kit.  The Avitek Medical Records is&lt;br /&gt;
-|a WebLogic Server sample application suite that concisely demonstrates all aspects of the J2EE platform.&lt;br /&gt;
-
-4|Select another directory location&lt;br /&gt;
-
-Enter index number to select OR [Exit][Previous][Next]&gt;&lt;br /&gt;
-
-选1，基本的wls域。&lt;br /&gt;
-
-&lt;-------------------------------------------- BEA WebLogic Configuration Wizard -------------------------------------------&gt;&lt;br /&gt;
-
-Choose Configuration Option:&lt;br /&gt;
-----------------------------&lt;br /&gt;
-
-*Do you want to run the wizard in express mode?&lt;br /&gt;
-
--&gt;1|Yes&lt;br /&gt;
-
-2|No&lt;br /&gt;
-
-Enter index number to select OR [Exit][Previous][Next]&gt;&lt;br /&gt;
-
-选1。&lt;br /&gt;
-
-&lt;-------------------------------------------- BEA WebLogic Configuration Wizard -------------------------------------------&gt;&lt;br /&gt;
-
-Configure Administrative Username and Password:&lt;br /&gt;
------------------------------------------------&lt;br /&gt;
-
-Create a user automatically assigned to the Administrative Role. This user is the default administrator used to start&lt;br /&gt;
-development mode servers.&lt;br /&gt;
-
-|          Name           |              Value              |&lt;br /&gt;
-_|_________________________|_________________________________|&lt;br /&gt;
-1|       *User name:       |            weblogic             |&lt;br /&gt;
-2|     *User password:     |                                 |&lt;br /&gt;
-3| *Confirm user password: |                                 |&lt;br /&gt;
-4|      Description:       | The default administration user |&lt;br /&gt;
-
-Select Option:&lt;br /&gt;
-1 - Modify &#34;User name&#34;&lt;br /&gt;
-2 - Modify &#34;User password&#34;&lt;br /&gt;
-3 - Modify &#34;Confirm user password&#34;&lt;br /&gt;
-4 - Modify &#34;Description&#34;&lt;br /&gt;
-
-Enter option number to select OR [Exit][Previous][Next]&gt;&lt;br /&gt;
-
-在这个界面设置user name为system，并设置密码。&lt;br /&gt;
-
-&lt;-------------------------------------------- BEA WebLogic Configuration Wizard -------------------------------------------&gt;&lt;br /&gt;
-
-Configure Administrative Username and Password:&lt;br /&gt;
------------------------------------------------&lt;br /&gt;
-
-Create a user automatically assigned to the Administrative Role. This user is the default administrator used to start&lt;br /&gt;
-development mode servers.&lt;br /&gt;
-
-|          Name           |              Value              |&lt;br /&gt;
-_|_________________________|_________________________________|&lt;br /&gt;
-1|       *User name:       |             system              |&lt;br /&gt;
-2|     *User password:     |            ********             |&lt;br /&gt;
-3| *Confirm user password: |            ********             |&lt;br /&gt;
-4|      Description:       | The default administration user |&lt;br /&gt;
-
-Select Option:&lt;br /&gt;
-1 - Modify &#34;User name&#34;&lt;br /&gt;
-2 - Modify &#34;User password&#34;&lt;br /&gt;
-3 - Modify &#34;Confirm user password&#34;&lt;br /&gt;
-4 - Modify &#34;Description&#34;&lt;br /&gt;
-5 - Discard Changes&lt;br /&gt;
-
-Enter option number to select OR [Exit][Previous][Next]&gt;&lt;br /&gt;
-
-都设置好之后，回车继续。&lt;br /&gt;
-
-&lt;-------------------------------------------- BEA WebLogic Configuration Wizard -------------------------------------------&gt;&lt;br /&gt;
-
-Domain Mode Configuration:&lt;br /&gt;
---------------------------&lt;br /&gt;
-
-Enable Development or Production Mode for this domain.&lt;br /&gt;
-
--&gt;1|Development Mode&lt;br /&gt;
-
-2|Production Mode&lt;br /&gt;
-
-Enter index number to select OR [Exit][Previous][Next]&gt;&lt;br /&gt;
-
-这里选择1，使用开发模式。因为我们经常需要重新启动weblogic，而使用产品模式的话，停止weblogic的时候是需要输入用户名密码的。&lt;br /&gt;
-
-&lt;-------------------------------------------- BEA WebLogic Configuration Wizard -------------------------------------------&gt;&lt;br /&gt;
-
-Java SDK Selection:&lt;br /&gt;
--------------------&lt;br /&gt;
-
--&gt;1|JRockit SDK 1.4.2_04-8130 @ /usr/local/wls813/bea/jrockit81sp3_142_04&lt;br /&gt;
-2|Sun SDK 1.4.2_04 @ /usr/local/wls813/bea/jdk142_04&lt;br /&gt;
-3|Other Java SDK&lt;br /&gt;
-
-Enter index number to select OR [Exit][Previous][Next]&gt;&lt;br /&gt;
-
-根据应用需要选择sdk，通常选择1。&lt;br /&gt;
-
-&lt;-------------------------------------------- BEA WebLogic Configuration Wizard -------------------------------------------&gt;&lt;br /&gt;
-
-Select the target domain directory for this configuration:&lt;br /&gt;
-----------------------------------------------------------&lt;br /&gt;
-
-&#34;Target Location&#34; = [/usr/local/wls813/user_projects/domains]&lt;br /&gt;
-
-Input new Target Location OR [Exit][Previous][Next]&gt;&lt;br /&gt;
-
-选择域的安装位置，这里我们选择/usr/local/wls813/。&lt;br /&gt;
-
-&lt;-------------------------------------------- BEA WebLogic Configuration Wizard -------------------------------------------&gt;&lt;br /&gt;
-
-Edit Domain Information:&lt;br /&gt;
-------------------------&lt;br /&gt;
-
-|  Name  |  Value   |&lt;br /&gt;
-_|________|__________|&lt;br /&gt;
-1| *Name: | mydomain |&lt;br /&gt;
-
-Enter value for &#34;Name&#34; OR [Exit][Previous][Next]&gt;&lt;br /&gt;
-
-设置域名，，具体是anymusic还是xstyle，看需要。在下一步确认。然后就会出现安装的进度条，等待片刻即可安装完毕。&lt;br /&gt;
-
-域安装完毕之后，要为域做一个链接&lt;br /&gt;
-ln -s /usr/local/wls813/anymusic /usr/local/wls&lt;br /&gt;
-
-这样，以后访问/usr/local/wls就可以访问到域目录。&lt;br /&gt;
-
-接下来还需要给安装的weblogic添加license，否则只能接收3个ip的连接。fs上面有相关文件，解压之后将weblogic_sp.jar放到/usr/local/wls813/server/lib/下面，将license.bea放到/usr/local/wls813/bea下面。&lt;br /&gt;
-
-启动weblogic的命令为&lt;br /&gt;
-/usr/local/wls/startWebLogic.sh&lt;br /&gt;
-第一次启动可能需要用户名密码。启动时看到&lt;br /&gt;
-</description>
+      <description>WebLogic Server (LINUX平台)简明安装手册
+首先下载weblogic。在公司的fs服务器上面有已经下载好的版本。
+将要安装的版本（以813为例）上传到服务器，然后下面都用root用户操作。这里讲解的都是远程安装，没有使用图形界面。
+#chmod +x server81x_linux32.bin
+#./ server813_linux32.bin
+稍等片刻会出来weblogic的安装界面。
+
+Extracting 0%....................................................................................................100%
+Welcome:
+--------
+This installer will guide you through the installation of WebLogic Server 8.1 SP3. Type &#34;Next&#34; or enter to proceed to the next prompt. If you want to change data entered previously, type &#34;Previous&#34;. You may quit the installer at any time by typing &#34;Exit&#34;.
+Enter [Exit][Next]Next
+直接按回车。
+BEA Systems License Agreement:
+------------------------------
+BEA SYSTEMS, INC.</description>
     </item>
     
     <item>
@@ -486,13 +78,10 @@ ln -s /usr/local/wls813/anymusic /usr/local/wls&lt;br /&gt;
       <pubDate>Fri, 07 Jul 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/reset-weblogic-password/</guid>
-      <description>参考网址：&lt;a href=&#34;http://support.bea.com/application_content/product_portlets/support_patterns/wls/startWLSPattern.html&#34;&gt;这里&lt;/a&gt;&lt;br /&gt;
-
-weblogic得密码忘记了怎么办呢？总算让我找到除了重建域之外得方法了。&lt;br /&gt;
-
-首先假设你得weblogic是在运行中，并且boot.properties中已经保存了加密得用户名密码。这样你除了不能登录控制台外，启动停止weblogic是没问题得。&lt;br /&gt;
-&lt;ol&gt;&lt;li&gt;备份boot.properties文件和DefaultAuthenticatorInit.ldift文件。后面操作不能实现得时候，还可以恢复。&lt;/li&gt;&lt;li&gt;停止weblogic。&lt;/li&gt;&lt;li&gt;切换到你得域目录（就是域得启动停止脚本所在得目录）。&lt;/li&gt;&lt;li&gt;java -cp &lt;BEA_HOME&gt;\server\lib\weblogic.jar weblogic.security.utils.AdminAccount adminuser weblogic .（要注意最后有个点）&lt;/li&gt;&lt;li&gt;rm myserver/ldap/DefaultAuthenticatormyrealmInit.initialized&lt;/li&gt;&lt;li&gt;rm boot.properties&lt;/li&gt;&lt;li&gt;启动weblogic，记得不要在后台启动，因为你需要输入用来启动得用户名密码，用户名是adminuser，密码是weblogic，应该是可以启动得。&lt;/li&gt;&lt;li&gt;上面这步没问题得话，你就可以用adminuser登录控制台修改原来用户得密码了。&lt;/li&gt;&lt;li&gt;改好之后，新建一个boot.properties，写上你原来得用户名和新得密码。重启一下weblogic试试看。&lt;/li&gt;&lt;/ol&gt;除去上面得假设，如果你得服务器因为没有密码已经起不来了，或许你也可以试试看从2开始能不能设置一个新得密码。&lt;br /&gt;
-</description>
+      <description>参考网址：这里
+weblogic得密码忘记了怎么办呢？总算让我找到除了重建域之外得方法了。
+首先假设你得weblogic是在运行中，并且boot.properties中已经保存了加密得用户名密码。这样你除了不能登录控制台外，启动停止weblogic是没问题得。
+备份boot.properties文件和DefaultAuthenticatorInit.ldift文件。后面操作不能实现得时候，还可以恢复。停止weblogic。切换到你得域目录（就是域得启动停止脚本所在得目录）。java -cp \server\lib\weblogic.jar weblogic.security.utils.AdminAccount adminuser weblogic .（要注意最后有个点）rm myserver/ldap/DefaultAuthenticatormyrealmInit.initializedrm boot.properties启动weblogic，记得不要在后台启动，因为你需要输入用来启动得用户名密码，用户名是adminuser，密码是weblogic，应该是可以启动得。上面这步没问题得话，你就可以用adminuser登录控制台修改原来用户得密码了。改好之后，新建一个boot.properties，写上你原来得用户名和新得密码。重启一下weblogic试试看。除去上面得假设，如果你得服务器因为没有密码已经起不来了，或许你也可以试试看从2开始能不能设置一个新得密码。</description>
     </item>
     
     <item>
@@ -501,34 +90,20 @@ weblogic得密码忘记了怎么办呢？总算让我找到除了重建域之外
       <pubDate>Wed, 14 Jun 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/apache-rewrite/</guid>
-      <description>apache这里有一些奇怪的日志。&lt;br /&gt;
-
-&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;211.90.119.118 - - [12/Apr/2006:00:00:12 +0800] &#34;GET http://abc.com.cn/www/x.jsp HTTP/1.1&#34; 200 2994 &#34;-&#34; &#34;SEC-schx639 UP.Browser/4.1.26l&#34;&lt;/span&gt;&lt;br /&gt;
-
-通常GET这里都是“/www/x.jsp”的，可是这个是怎么产生的呢？通过浏览器访问http://abc.com.cn/http://abc.com.cn/www/x.jsp，也不能产生这种请求，后来查看apache手册，这个引号里面表示的是“请求的第一条信息”，google了一下才知道，可以用下面的方式产生这种日志。&lt;br /&gt;
-
-&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;telnet abc.com.cn 80&lt;/span&gt;&lt;br style=&#34;color: rgb(0, 0, 255)&#34; /&gt;&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;GET http://abc.com.cn/www/x.jsp HTTP/1.1&lt;/span&gt;&lt;br /&gt;
-
-&lt;br&gt;&lt;!--more--&gt;这样看来，这个请求应该是不正确的，“get /www/x.jsp HTTP/1.1”才对。这个请求被转发给weblogic之后，weblogic会处理不了，因为他会去找“http://abc.com.cn/http://abc.com.cn/www/x.jsp”这个文件，显然是找不到的。&lt;br /&gt;
-
-不过幸好，weblogic有个PathTrim设置，将请求路径种的“http://abc.com.cn”给他去掉就可以了。&lt;br /&gt;
-
-&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;&amp;lt;IfModule mod_weblogic.c&amp;gt;&lt;/span&gt;&lt;br style=&#34;color: rgb(0, 0, 255)&#34; /&gt;&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;WebLogicHost 192.168.0.252&lt;/span&gt;&lt;br style=&#34;color: rgb(0, 0, 255)&#34; /&gt;&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;WebLogicPort 7050&lt;/span&gt;&lt;br style=&#34;color: rgb(0, 0, 255)&#34; /&gt;&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;PathTrim http://abc.com.cn&lt;/span&gt;&lt;br style=&#34;color: rgb(0, 0, 255)&#34; /&gt;&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;MatchExpression *.jsp&lt;/span&gt;&lt;br style=&#34;color: rgb(0, 0, 255)&#34; /&gt;&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;&amp;lt;/IfModule&amp;gt;&lt;/span&gt;&lt;br /&gt;
-
-问题似乎解决了。不过此后又发现我们的域名不止这一个，还有def.com.cn和dfg.com.cn，解决方法似乎也很简单，多添加几个PathTrim呗，但是此后你就会发现，weblogic似乎比较弱智，只有最后一个PathTrim设置会生效……，查看了weblogic的文档也没有找到解决方法，他那里也没有说可以写几个。&lt;br /&gt;
-
-这样就需要从apache这里解决，幸好apache这里还有虚拟主机。针对各个域名分别配置几个虚拟主机，建立基于域名的虚拟主机。文档可以参考&lt;a href=&#34;http://www.douzhe.com/apm/ApacheManual/zh-cn/vhosts/name-based.html&#34;&gt;这里&lt;/a&gt;&amp;nbsp; 。&lt;br /&gt;
-
-需要注意的是，基于域名的虚拟主机配置好之后，如果用虚拟主机里面没有的域名访问的时候，他会去匹配第一个虚拟主机，同样，用ip访问也会如此。&lt;br /&gt;
-
-当一个请求到达的时候，服务器会首先检查它是否使用了一个能和 NameVirtualHost相匹配的IP地址。如果能够匹配， 它就会查找每个与这个IP地址相对应的&amp;lt;VirtualHost&amp;gt;配置段， 并尝试找出一个ServerName或ServerAlias配置项与请求的主机名相同的。 如果找到了，它就会使用这个服务器的配置。 否则，将使用符合这个IP地址的第一个列出的虚拟主机。&lt;br /&gt;
-
-配置好虚拟主机之后，上面的问题就解决了。接着就发现有些终端不能正常访问业务了。查看全局的配置，有些rewrite rule的配置，想当然认为虚拟主机会继承全局设置。其实不是这样的，全局的对虚拟主机的没有任何影响。还需要在虚拟主机中单独设置。&lt;br /&gt;
-
-&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;RewriteEngine on&lt;/span&gt;&lt;br style=&#34;color: rgb(0, 0, 255)&#34; /&gt;&lt;br style=&#34;color: rgb(0, 0, 255)&#34; /&gt;&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;RewriteLog /usr/local/apache/apache_rewrite_log.log&lt;/span&gt;&lt;br style=&#34;color: rgb(0, 0, 255)&#34; /&gt;&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;RewriteLogLevel 2&lt;/span&gt;&lt;br style=&#34;color: rgb(0, 0, 255)&#34; /&gt;&lt;br style=&#34;color: rgb(0, 0, 255)&#34; /&gt;&lt;span style=&#34;color: rgb(0, 0, 255)&#34;&gt;RewriteRule&amp;nbsp; xx&lt;/span&gt;&lt;br /&gt;
-
-建议加上log的设置，这样可以很好的检查rewrite有没有起作用。此外，也一定要加上RewriteEngine on，否则任何rewrite rule都不会起作用。&lt;br /&gt;
-</description>
+      <description>apache这里有一些奇怪的日志。
+211.90.119.118 - - [12/Apr/2006:00:00:12 +0800] &#34;GET http://abc.com.cn/www/x.jsp HTTP/1.1&#34; 200 2994 &#34;-&#34; &#34;SEC-schx639 UP.Browser/4.1.26l&#34;
+通常GET这里都是“/www/x.jsp”的，可是这个是怎么产生的呢？通过浏览器访问http://abc.com.cn/http://abc.com.cn/www/x.jsp，也不能产生这种请求，后来查看apache手册，这个引号里面表示的是“请求的第一条信息”，google了一下才知道，可以用下面的方式产生这种日志。
+telnet abc.com.cn 80GET http://abc.com.cn/www/x.jsp HTTP/1.1
+这样看来，这个请求应该是不正确的，“get /www/x.jsp HTTP/1.1”才对。这个请求被转发给weblogic之后，weblogic会处理不了，因为他会去找“http://abc.com.cn/http://abc.com.cn/www/x.jsp”这个文件，显然是找不到的。
+不过幸好，weblogic有个PathTrim设置，将请求路径种的“http://abc.com.cn”给他去掉就可以了。
+&amp;lt;IfModule mod_weblogic.c&amp;gt;WebLogicHost 192.168.0.252WebLogicPort 7050PathTrim http://abc.com.cnMatchExpression *.jsp&amp;lt;/IfModule&amp;gt;
+问题似乎解决了。不过此后又发现我们的域名不止这一个，还有def.com.cn和dfg.com.cn，解决方法似乎也很简单，多添加几个PathTrim呗，但是此后你就会发现，weblogic似乎比较弱智，只有最后一个PathTrim设置会生效……，查看了weblogic的文档也没有找到解决方法，他那里也没有说可以写几个。
+这样就需要从apache这里解决，幸好apache这里还有虚拟主机。针对各个域名分别配置几个虚拟主机，建立基于域名的虚拟主机。文档可以参考这里&amp;nbsp; 。
+需要注意的是，基于域名的虚拟主机配置好之后，如果用虚拟主机里面没有的域名访问的时候，他会去匹配第一个虚拟主机，同样，用ip访问也会如此。
+当一个请求到达的时候，服务器会首先检查它是否使用了一个能和 NameVirtualHost相匹配的IP地址。如果能够匹配， 它就会查找每个与这个IP地址相对应的&amp;lt;VirtualHost&amp;gt;配置段， 并尝试找出一个ServerName或ServerAlias配置项与请求的主机名相同的。 如果找到了，它就会使用这个服务器的配置。 否则，将使用符合这个IP地址的第一个列出的虚拟主机。
+配置好虚拟主机之后，上面的问题就解决了。接着就发现有些终端不能正常访问业务了。查看全局的配置，有些rewrite rule的配置，想当然认为虚拟主机会继承全局设置。其实不是这样的，全局的对虚拟主机的没有任何影响。还需要在虚拟主机中单独设置。
+RewriteEngine onRewriteLog /usr/local/apache/apache_rewrite_log.logRewriteLogLevel 2RewriteRule&amp;nbsp; xx
+建议加上log的设置，这样可以很好的检查rewrite有没有起作用。此外，也一定要加上RewriteEngine on，否则任何rewrite rule都不会起作用。</description>
     </item>
     
     <item>
@@ -537,31 +112,18 @@ weblogic得密码忘记了怎么办呢？总算让我找到除了重建域之外
       <pubDate>Tue, 30 May 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/too-many-open-files/</guid>
-      <description>weblogic和apache桥接之后，访问量大的时候，遇到了weblogic报下面的错误：&lt;br /&gt;
+      <description>weblogic和apache桥接之后，访问量大的时候，遇到了weblogic报下面的错误：
+####     rnel   ####     Kernel   oo many open files ####     rnel   ####     Kernel   oo many open files 
 
-&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;####&lt;2006-5-30 ÏÂÎç12Ê±38·Ö19Ãë CST&gt; &lt;Notice&gt; &lt;WebLogicServer&gt; &lt;myapp.vivaful.com&gt; &lt;myserver&gt; &lt;ListenThread.Default&gt; &lt;&lt;WLS Ke&lt;/span&gt;&lt;br style=&#34;color: rgb(255, 0, 0)&#34; /&gt;&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;rnel&gt;&gt; &lt;&gt; &lt;BEA-000205&gt; &lt;After having failed to listen, the server is now listening on port 7001.&gt; &lt;/span&gt;&lt;br style=&#34;color: rgb(255, 0, 0)&#34; /&gt;&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;####&lt;2006-5-30 ÏÂÎç12Ê±38·Ö19Ãë CST&gt; &lt;Critical&gt; &lt;WebLogicServer&gt; &lt;myapp.vivaful.com&gt; &lt;myserver&gt; &lt;ListenThread.Default&gt; &lt;&lt;WLS &lt;/span&gt;&lt;br style=&#34;color: rgb(255, 0, 0)&#34; /&gt;&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;Kernel&gt;&gt; &lt;&gt; &lt;BEA-000204&gt; &lt;Failed to listen on port 7001, failure count: 1, failing for 0 seconds, java.net.SocketException: T&lt;/span&gt;&lt;br style=&#34;color: rgb(255, 0, 0)&#34; /&gt;&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;oo many open files&gt; &lt;/span&gt;&lt;br style=&#34;color: rgb(255, 0, 0)&#34; /&gt;&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;####&lt;2006-5-30 ÏÂÎç12Ê±38·Ö20Ãë CST&gt; &lt;Notice&gt; &lt;WebLogicServer&gt; &lt;myapp.vivaful.com&gt; &lt;myserver&gt; &lt;ListenThread.Default&gt; &lt;&lt;WLS Ke&lt;/span&gt;&lt;br style=&#34;color: rgb(255, 0, 0)&#34; /&gt;&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;rnel&gt;&gt; &lt;&gt; &lt;BEA-000205&gt; &lt;After having failed to listen, the server is now listening on port 7001.&gt; &lt;/span&gt;&lt;br style=&#34;color: rgb(255, 0, 0)&#34; /&gt;&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;####&lt;2006-5-30 ÏÂÎç12Ê±38·Ö20Ãë CST&gt; &lt;Critical&gt; &lt;WebLogicServer&gt; &lt;myapp.vivaful.com&gt; &lt;myserver&gt; &lt;ListenThread.Default&gt; &lt;&lt;WLS &lt;/span&gt;&lt;br style=&#34;color: rgb(255, 0, 0)&#34; /&gt;&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;Kernel&gt;&gt; &lt;&gt; &lt;BEA-000204&gt; &lt;Failed to listen on port 7001, failure count: 1, failing for 0 seconds, java.net.SocketException: T&lt;/span&gt;&lt;br style=&#34;color: rgb(255, 0, 0)&#34; /&gt;&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;oo many open files&gt; &lt;/span&gt;&lt;br /&gt;
-&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;&lt;/span&gt;&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;&lt;/span&gt;&lt;br /&gt;
-weblogic产生这个错误以后，就会拒绝服务，这时通过IE已经访问不了了。所以接下来就会出现apache报下面的错误：&lt;br /&gt;
+weblogic产生这个错误以后，就会拒绝服务，这时通过IE已经访问不了了。所以接下来就会出现apache报下面的错误：
+[Tue May 30 13:00:57 2006] [error] CONNECTION_REFUSED [os error=0, line 1600 of ../nsapi/URL.cpp]: 218.206.70.193:7001 errno= 0
 
-&lt;span style=&#34;color: rgb(255, 0, 0)&#34;&gt;[Tue May 30 13:00:57 2006] [error] CONNECTION_REFUSED [os error=0, line 1600 of ../nsapi/URL.cpp]: 218.206.70.193:7001 errno= 0&lt;br /&gt;
-&lt;/span&gt;&lt;br&gt;&lt;!--more--&gt;这时访问apache会提示和weblogic的桥出了问题。&lt;br /&gt;
-
-这个问题已经遇到很多次了，但通常都是夜间，第二天查看日志的时候，会发现那个时候确实访问量比较大。查看当时的连接情况可以看到，apache和java连接都700多。看了网上的说明，调整了系统参数、调整了weblogic的设置等，都不见效。&lt;br /&gt;
-http://www.bea.com.cn/support_pattern/Too_Many_Open_Files_Pattern.html&lt;br /&gt;
-http://e-docs.bea.com/wls/docs81/perform/index.html&lt;br /&gt;
-
-今天又出现这个情况了，不过是白天，和web应用的作者一起对weblogic的情况进行了观察。&lt;br /&gt;
-
-通过weblogic控制台，可以看到&lt;span class=&#34;dialog-label&#34; id=&#34;wl_control_weblogic_management_configuration_ServerMBean_lookupServerRuntime_ExecuteQueueRuntime_ServicedRequestTotalCount_label&#34;&gt;Throughput这里大都是在处理1左右的访问，&lt;/span&gt;&lt;span class=&#34;dialog-label&#34; id=&#34;wl_control_weblogic_management_configuration_ServerMBean_lookupServerRuntime_ExecuteQueueRuntime_PendingRequestCurrentCount_label&#34;&gt;Queue Length这里却在不停的涨，开始就对&lt;/span&gt;&lt;a href=&#34;http://218.206.70.193:7001/console/actions/mbean/ListMBeansAction?wl_sort_domain_ExecuteQueueTable_config=0300&amp;reloadNav=false&amp;tab=config&amp;MBeanClassName=weblogic.management.configuration.ExecuteQueueMBean&amp;MBeanClass=weblogic.management.configuration.ExecuteQueueMBean&amp;scopeMBean=anymusic%3AName%3Dmyserver%2CType%3DServer&#34;&gt;&lt;span class=&#34;column-header&#34;&gt;&lt;/span&gt;&lt;/a&gt;&lt;span style=&#34;text-decoration: underline&#34;&gt;T&lt;/span&gt;hread  count做了修改，从50调整到了400，但是还是可以看到Thread会用完，一会&lt;span class=&#34;dialog-label&#34; id=&#34;wl_control_weblogic_management_configuration_ServerMBean_lookupServerRuntime_ExecuteQueueRuntime_PendingRequestCurrentCount_label&#34;&gt;Queue Length就又涨起来了。&lt;br /&gt;
-
-分析一下就可以知道，情况应该是Queue的线程对访问的处理速度太慢，导致需要处理的队列越来越多。需要处理队列的增长速度比队列的处理速度慢，这样不管有多少线程，肯定最后都会导致不够用。&lt;br /&gt;
-
-现在大家就开始考虑问题是不是出在应用这里了，应用执行速度慢，weblogic线程就会一直占着，就会导致线程用尽。而实际上确实是应用这里的问题。&lt;br /&gt;
-
-应用对访问的处理速度很快，有访问进来就先放到队列，而队列的处理速度却是500ms处理一下，这样一秒也就处理2个。这样问题的原因就很明确了，1s内外部访问应用可能有10来次，而应用才处理2个，所以自然会将线程占满了。&lt;br /&gt;
-
-调整队列处理速度之后问题就解决了，空闲线程一直是400。&lt;/span&gt;&lt;span class=&#34;dialog-label&#34; id=&#34;wl_control_weblogic_management_configuration_ServerMBean_lookupServerRuntime_ExecuteQueueRuntime_PendingRequestCurrentCount_label&#34;&gt;&lt;/span&gt;&lt;br /&gt;
-</description>
+这时访问apache会提示和weblogic的桥出了问题。
+这个问题已经遇到很多次了，但通常都是夜间，第二天查看日志的时候，会发现那个时候确实访问量比较大。查看当时的连接情况可以看到，apache和java连接都700多。看了网上的说明，调整了系统参数、调整了weblogic的设置等，都不见效。
+http://www.bea.com.cn/support_pattern/Too_Many_Open_Files_Pattern.html
+http://e-docs.bea.com/wls/docs81/perform/index.html
+今天又出现这个情况了，不过是白天，和web应用的作者一起对weblogic的情况进行了观察。
+通过weblogic控制台，可以看到Throughput这里大都是在处理1左右的访问，Queue Length这里却在不停的涨，开始就对Thread count做了修改，从50调整到了400，但是还是可以看到Thread会用完，一会Queue Length就又涨起来了。</description>
     </item>
     
     <item>
@@ -570,10 +132,8 @@ http://e-docs.bea.com/wls/docs81/perform/index.html&lt;br /&gt;
       <pubDate>Mon, 22 May 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/apache-weblogic-error/</guid>
-      <description>http://edocs.bea.com/wls/docs81/plugins/apache.html#113649&lt;br /&gt;
-
-主要是调整&lt;code style=&#34;font-family: courier&#34;&gt;weblogic的AcceptBackLog参数。&lt;/code&gt;&lt;br /&gt;
-</description>
+      <description>http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
+主要是调整weblogic的AcceptBackLog参数。</description>
     </item>
     
     <item>
@@ -582,10 +142,8 @@ http://e-docs.bea.com/wls/docs81/perform/index.html&lt;br /&gt;
       <pubDate>Mon, 22 May 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/weblogic-apache-bridge/</guid>
-      <description>Using Web Server Plug-Ins with WebLogic Server&lt;br /&gt;
-
-http://edocs.bea.com/wls/docs90/plugins/apache.html&lt;br /&gt;
-</description>
+      <description>Using Web Server Plug-Ins with WebLogic Server
+http://edocs.bea.com/wls/docs90/plugins/apache.html</description>
     </item>
     
   </channel>

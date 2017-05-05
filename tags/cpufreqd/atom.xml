@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Cpufreqd on wd and cc</title>
-    <link>https://wdicc.com/tags/cpufreqd/atom/index.xml</link>
+    <link>https://wdicc.com/tags/cpufreqd/</link>
     <description>Recent content in Cpufreqd on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/cpufreqd/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Tue, 14 Nov 2006 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/cpufreqd/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Linux下面动态调整cpu频率</title>
@@ -14,47 +17,37 @@
       <pubDate>Tue, 14 Nov 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/cpufreq-turning/</guid>
-      <description>笔记本的cpu的频率是可调整的，一般用电池的时候，就会降频使用，延长电池使用时间。上周末忘记把笔记本的电源带回来了，用电池在linux下工作，发现降频真是个好东东，用了一个小时，电池显示还能用3个多小时，并且cpu温度从20多度才涨到40来度。为了让本本更凉一点，就看了看cpufreqd的工作原理。&lt;br /&gt;
-
-cpufreqd采用的是打分制，每条rule的总分是100分，比如有个rule里面有4条规则，如果满足了其中3条，那么总分就是75分，以此类推 。使用分数最多的规则，如果两条规则的分数相同，使用当前正在使用的规则，或者使用位置靠前的规则。下面来说说看这个东西怎么玩。&lt;br /&gt;
-
-比如按照我的工作情况，我有下面的需求：&lt;br /&gt;
-1 如果使用了mplayer,gcc等，那么用最高频率。&lt;br /&gt;
-2 如果使用了firefox，那么用中间频率。&lt;br /&gt;
-3 如果没有满足上面两条，那么用最低频率。&lt;br /&gt;
-
-这样就相当于设置了三个运行级别，你可以按照自己的需求来定义运行的程序。&lt;br /&gt;
-
-从上面的需求可以看出来，我们设置1这种情况下分数为100，那么没有mplayer的时候，1的分数应该是50。这样其他的两个要至少在50以上才行。而且3还得是在2匹配和不匹配的分数的中间。我的设置如下：&lt;br /&gt;
-
-[Rule]&lt;br /&gt;
-name=firefox&lt;br /&gt;
-ac=on&lt;br /&gt;
-programs=firefox-bin&lt;br /&gt;
-programs=sss&lt;br /&gt;
-acpi_temperature=0-60&lt;br /&gt;
-profile=Performance Low&lt;br /&gt;
-[/Rule]&lt;br /&gt;
-
-[Rule]&lt;br /&gt;
-name=Movie Watcher&lt;br /&gt;
-ac=on&lt;br /&gt;
-programs=xine,mplayer,gmplayer,wdmplayer,gcc&lt;br /&gt;
-profile=Performance High&lt;br /&gt;
-[/Rule]&lt;br /&gt;
-
-[Rule]&lt;br /&gt;
-name=AC Rule&lt;br /&gt;
-ac=on                    # (on/off)&lt;br /&gt;
-programs=aaa&lt;br /&gt;
-acpi_temperature=0-60&lt;br /&gt;
-profile=On Demand Low&lt;br /&gt;
-[/Rule]&lt;br /&gt;
-
-这样，基本可以实现我上面的需求。条目是可以多次出现的，所以比如可以多加几条programs=gcc，让gcc在使用的时候和不在使用的时 候得分差很多，这样方便安排其他的情况。&lt;br /&gt;
-
-windows下面可没这么灵活的设置亚，呵呵。&lt;br /&gt;
-</description>
+      <description>笔记本的cpu的频率是可调整的，一般用电池的时候，就会降频使用，延长电池使用时间。上周末忘记把笔记本的电源带回来了，用电池在linux下工作，发现降频真是个好东东，用了一个小时，电池显示还能用3个多小时，并且cpu温度从20多度才涨到40来度。为了让本本更凉一点，就看了看cpufreqd的工作原理。
+cpufreqd采用的是打分制，每条rule的总分是100分，比如有个rule里面有4条规则，如果满足了其中3条，那么总分就是75分，以此类推 。使用分数最多的规则，如果两条规则的分数相同，使用当前正在使用的规则，或者使用位置靠前的规则。下面来说说看这个东西怎么玩。
+比如按照我的工作情况，我有下面的需求：
+1 如果使用了mplayer,gcc等，那么用最高频率。
+2 如果使用了firefox，那么用中间频率。
+3 如果没有满足上面两条，那么用最低频率。
+这样就相当于设置了三个运行级别，你可以按照自己的需求来定义运行的程序。
+从上面的需求可以看出来，我们设置1这种情况下分数为100，那么没有mplayer的时候，1的分数应该是50。这样其他的两个要至少在50以上才行。而且3还得是在2匹配和不匹配的分数的中间。我的设置如下：
+[Rule]
+name=firefox
+ac=on
+programs=firefox-bin
+programs=sss
+acpi_temperature=0-60
+profile=Performance Low
+[/Rule]
+[Rule]
+name=Movie Watcher
+ac=on
+programs=xine,mplayer,gmplayer,wdmplayer,gcc
+profile=Performance High
+[/Rule]
+[Rule]
+name=AC Rule
+ac=on # (on/off)
+programs=aaa
+acpi_temperature=0-60
+profile=On Demand Low
+[/Rule]
+这样，基本可以实现我上面的需求。条目是可以多次出现的，所以比如可以多加几条programs=gcc，让gcc在使用的时候和不在使用的时 候得分差很多，这样方便安排其他的情况。
+windows下面可没这么灵活的设置亚，呵呵。</description>
     </item>
     
   </channel>

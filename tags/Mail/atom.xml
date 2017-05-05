@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Mail on wd and cc</title>
-    <link>https://wdicc.com/tags/mail/atom/index.xml</link>
+    <link>https://wdicc.com/tags/mail/</link>
     <description>Recent content in Mail on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/mail/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 01 Dec 2008 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/mail/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>命令行发送有附件的邮件</title>
@@ -14,42 +17,12 @@
       <pubDate>Mon, 01 Dec 2008 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/send-mail-with-attachment/</guid>
-      <description>命令行下面发送邮件比较简单，恐怕都会使用。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-$ echo &#34;hello .. &#34; | mail -s subject xxx@abc.com
-$ cat /path/to/file | mail -s subject xxx@abc.com
-$ mail -s subject xxx@abc.com &lt;&lt; EOF
-hi
-the end..
-EOF
-&lt;/pre&gt;&lt;br /&gt;
-
-上面这些方法都可以发送邮件。还有一种方法。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-$ cat a.txt
-Subject: test
-From: xxx@abc.com
-To: xxx@abc.com
-
-hi
-sdfsdfsdf
-the end.
-$ cat a.txt | sendmail -t
-&lt;/pre&gt;&lt;br /&gt;
-
-这样可以把邮件头信息写到文件里面的，你也可以用 php，perl 来打印类似的信息给 sendmail -t ，让他来发。&lt;br /&gt;
-
-那么如果有附件应该怎么办？可以使用 uuencode。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-$ uuencode a.txt a.txt | mail -s test xxx@abc.com
-$ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t
-&lt;/pre&gt;&lt;br /&gt;
-
-应该说的很明白了吧？&lt;br /&gt;
-</description>
+      <description>命令行下面发送邮件比较简单，恐怕都会使用。
+$ echo &#34;hello .. &#34; | mail -s subject xxx@abc.com $ cat /path/to/file | mail -s subject xxx@abc.com $ mail -s subject xxx@abc.com 上面这些方法都可以发送邮件。还有一种方法。
+$ cat a.txt Subject: test From: xxx@abc.com To: xxx@abc.com hi sdfsdfsdf the end. $ cat a.txt | sendmail -t 
+这样可以把邮件头信息写到文件里面的，你也可以用 php，perl 来打印类似的信息给 sendmail -t ，让他来发。
+那么如果有附件应该怎么办？可以使用 uuencode。
+$ uuencode a.txt a.txt | mail -s test xxx@abc.com $ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t</description>
     </item>
     
     <item>
@@ -58,155 +31,9 @@ $ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t
       <pubDate>Sat, 06 Sep 2008 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/ora-00257-and-ora-19815/</guid>
-      <description>这几天遇到了这两个错误，记录一下。&lt;br /&gt;
-
-使用 perl 的 DBI 连接的时候，会提示 ora-00257 错误，这个用 三qlplus 估计也是一样的错误，注意时远程连接才出错。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
-CRITICAL : Can&#39;t connect &#34;db8.sds.cnb.yahoo.com&#34;&lt;/pre&gt;
-
-同时，数据库的alert 里面有下面的信息
-
-&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
-ORA-19815: WARNING: db_recovery_file_dest_size of 268435456000 bytes is 100.00% used, and has 0 remaining bytes available.
-************************************************************************
-You have following choices to free up space from flash recovery area:
-1. Consider changing RMAN RETENTION POLICY. If you are using Data Guard,
-   then consider changing RMAN ARCHIVELOG DELETION POLICY.
-2. Back up files to tertiary device such as tape using RMAN
-   BACKUP RECOVERY AREA command.
-3. Add disk space and increase db_recovery_file_dest_size parameter to
-   reflect the new space.
-4. Delete unnecessary files using RMAN DELETE command. If an operating
-   system command was used to delete files, then use RMAN CROSSCHECK and
-   DELETE EXPIRED commands.
-************************************************************************
-ARCH: Archival stopped, error occurred. Will continue retrying
-ORACLE Instance nirv3 - Archival Error&lt;/pre&gt;
-
-登陆上数据库看看
-
-&lt;pre class=&#34;prettyprint lang-txt&#34;&gt;
-
-NAME                                 TYPE                   VALUE
------------------------------------- ---------------------- ------------------------------
-archive_lag_target                   integer                0
-log_archive_config                   string                 dg_config=(stb1)
-log_archive_dest                     string
-log_archive_dest_1                   string                 location=&#34;USE_DB_RECOVERY_FILE
-log_archive_dest_10                  string
-log_archive_dest_2                   string
-log_archive_dest_3                   string
-log_archive_dest_4                   string
-log_archive_dest_5                   string
-log_archive_dest_6                   string
-log_archive_dest_7                   string
-
-NAME                                 TYPE                   VALUE
------------------------------------- ---------------------- ------------------------------
-log_archive_dest_8                   string
-log_archive_dest_9                   string
-log_archive_dest_state_1             string                 ENABLE
-log_archive_dest_state_10            string                 enable
-log_archive_dest_state_2             string                 ENABLE
-log_archive_dest_state_3             string                 enable
-log_archive_dest_state_4             string                 enable
-log_archive_dest_state_5             string                 enable
-log_archive_dest_state_6             string                 enable
-log_archive_dest_state_7             string                 enable
-log_archive_dest_state_8             string                 enable
-
-NAME                                 TYPE                   VALUE
------------------------------------- ---------------------- ------------------------------
-log_archive_dest_state_9             string                 enable
-log_archive_duplex_dest              string
-log_archive_format                   string                 %s_%t_%r_%a.arc
-log_archive_local_first              boolean                TRUE
-log_archive_max_processes            integer                4
-log_archive_min_succeed_dest         integer                1
-log_archive_start                    boolean                FALSE
-log_archive_trace                    integer                0
-standby_archive_dest                 string                 ?/dbs/arch
-
-SQL&amp;gt; select * from v$log;
-
-    GROUP#    THREAD#  SEQUENCE#      BYTES    MEMBERS ARCHIV STATUS                           FIRST_CHANGE# FIRST_TIME
----------- ---------- ---------- ---------- ---------- ------ -------------------------------- ------------- ------------
-         1          1     221250   52428800          1 YES    INACTIVE                            5082709437 05-SEP-08
-         2          1     221252   52428800          1 NO     INACTIVE                            5082713458 05-SEP-08
-         3          2     270972   52428800          1 YES    INACTIVE                            5082699510 05-SEP-08
-         4          2     270975   52428800          1 NO     CURRENT                             5082713581 05-SEP-08
-         9          1     221251   52428800          1 NO     INACTIVE                            5082712943 05-SEP-08
-        10          2     270973   52428800          1 YES    INACTIVE                            5082705151 05-SEP-08
-        11          1     221253   52428800          1 NO     CURRENT                             5082713765 05-SEP-08
-        12          2     270974   52428800          1 NO     INACTIVE                            5082711887 05-SEP-08
-        13          3     275581   52428800          1 NO     INACTIVE                            5082712519 05-SEP-08
-        14          3     275582   52428800          1 NO     CURRENT                             5082713078 05-SEP-08
-        15          3     275579   52428800          1 NO     INACTIVE                            5082710114 05-SEP-08
-
-    GROUP#    THREAD#  SEQUENCE#      BYTES    MEMBERS ARCHIV STATUS                           FIRST_CHANGE# FIRST_TIME
----------- ---------- ---------- ---------- ---------- ------ -------------------------------- ------------- ------------
-        16          3     275580   52428800          1 NO     INACTIVE                            5082711321 05-SEP-08
-
-12 rows selected.
-
-SQL&amp;gt; ????select value from v$diag_info where name =&#39;Diag Trace&#39;;
-
-VALUE
-------------------------------------------------------------------------------------------------------------------------------------------------------
-/home/oracle/app/diag/rdbms/nirv/nirv3/trace
-
-SQL&amp;gt; select * from V$FLASH_RECOVERY_AREA_USAGE;
-
-FILE_TYPE                                PERCENT_SPACE_USED PERCENT_SPACE_RECLAIMABLE NUMBER_OF_FILES
----------------------------------------- ------------------ ------------------------- ---------------
-CONTROL FILE                                              0                         0               0
-REDO LOG                                                  0                         0               0
-ARCHIVED LOG                                            100                         0           13109
-BACKUP PIECE                                              0                         0               0
-IMAGE COPY                                                0                         0               0
-FLASHBACK LOG                                             0                         0               0
-FOREIGN ARCHIVED LOG                                      0                         0               0
-
-7 rows selected.
-
-SQL&amp;gt; show parameter db_recovery_file_dest_size
-
-NAME                                 TYPE                   VALUE
------------------------------------- ---------------------- ------------------------------
-db_recovery_file_dest_size           big integer            250G
-SQL&amp;gt; show parameter DB_RECOVERY_FILE_DEST
-
-NAME                                 TYPE                   VALUE
------------------------------------- ---------------------- ------------------------------
-db_recovery_file_dest                string                 /sds/oradata
-db_recovery_file_dest_size           big integer            250G
-SQL&amp;gt; alter system set db_recovery_file_dest_size=300G;  
-
-System altered.
-
-SQL&amp;gt; show parameter DB_RECOVERY_FILE_DEST
-
-NAME                                 TYPE                   VALUE
------------------------------------- ---------------------- ------------------------------
-db_recovery_file_dest                string                 /sds/oradata
-db_recovery_file_dest_size           big integer            300G
-SQL&amp;gt; select * from V$FLASH_RECOVERY_AREA_USAGE;
-
-FILE_TYPE                                PERCENT_SPACE_USED PERCENT_SPACE_RECLAIMABLE NUMBER_OF_FILES
----------------------------------------- ------------------ ------------------------- ---------------
-CONTROL FILE                                              0                         0               0
-REDO LOG                                                  0                         0               0
-ARCHIVED LOG                                          83.41                         0           13115
-BACKUP PIECE                                              0                         0               0
-IMAGE COPY                                                0                         0               0
-FLASHBACK LOG                                             0                         0               0
-FOREIGN ARCHIVED LOG                                      0                         0               0
-
-7 rows selected.&lt;/pre&gt;
-
-可以看到空间是 83% 了，数据库应该就好了。不过这个是治标不治本的操作，需要把archive log删掉才行，具体怎么搞我也不会。。。汗。。
-</description>
+      <description>这几天遇到了这两个错误，记录一下。
+使用 perl 的 DBI 连接的时候，会提示 ora-00257 错误，这个用 三qlplus 估计也是一样的错误，注意时远程连接才出错。
+CRITICAL : Can&#39;t connect &#34;db8.sds.cnb.yahoo.com&#34; 同时，数据库的alert 里面有下面的信息 ORA-19815: WARNING: db_recovery_file_dest_size of 268435456000 bytes is 100.00% used, and has 0 remaining bytes available. ************************************************************************ You have following choices to free up space from flash recovery area: 1. Consider changing RMAN RETENTION POLICY. If you are using Data Guard, then consider changing RMAN ARCHIVELOG DELETION POLICY. 2. Back up files to tertiary device such as tape using RMAN BACKUP RECOVERY AREA command.</description>
     </item>
     
     <item>
@@ -215,35 +42,31 @@ FOREIGN ARCHIVED LOG                                      0                     
       <pubDate>Tue, 26 Jun 2007 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/howto-cc-an-email-to-others-in-sendmail/</guid>
-      <description>&lt;p&gt;sendmail有个 /etc/aliases 配置文件，在里面可以给某个帐号设置alias，这样给这个alias发的邮件，都会给设置好的用户转发过去。要知道sendmail的帐号是和系统帐号联系在一起的，添加mail帐号得给系统添加帐号（qmail可以实现虚拟用户，或许sendmail也可以，而我不知道罢了）。而这个alias帐号却不是必须有得有系统帐号的，只要设置了alias，就可以给alias用户发邮件，就好像系统真有这么一个帐号一样。&lt;/p&gt; &lt;p&gt;关于 /etc/aliases 文件，&lt;a href=&#34;http://www.feep.net/sendmail/tutorial/intro/aliases.html&#34;&gt;这里&lt;/a&gt;有个文章有说明。下面复制几个例子。&lt;/p&gt; &lt;p&gt;&lt;pre lang=&#34;conf&#34;&gt;# RFC 822 规定每个域名都需要有一个 &#34;postmaster&#34; &lt;br /&gt;
-postmaster      : root&lt;br /&gt;
+      <description>sendmail有个 /etc/aliases 配置文件，在里面可以给某个帐号设置alias，这样给这个alias发的邮件，都会给设置好的用户转发过去。要知道sendmail的帐号是和系统帐号联系在一起的，添加mail帐号得给系统添加帐号（qmail可以实现虚拟用户，或许sendmail也可以，而我不知道罢了）。而这个alias帐号却不是必须有得有系统帐号的，只要设置了alias，就可以给alias用户发邮件，就好像系统真有这么一个帐号一样。
+关于 /etc/aliases 文件，这里有个文章有说明。下面复制几个例子。
+# RFC 822 规定每个域名都需要有一个 &#34;postmaster&#34; postmaster : root
+# 将 postmaster 的邮件都转发给 root 帐号，当然你下面还可以将root帐号的邮件在转发给别人。
+# 转发也可以转发到文件
+# 比如这个，都说了nobody了还给发邮件，邮件都丢掉
+nobody : /dev/null
+# 也可以通过管道作为另一个程序的输入
+# 比如给procmail，它能实现的功能可就多了，比如可以根据邮件大小转发到不同的用户，或者调用spamassian、clamav来查垃圾邮件和病毒等
+# 一个自动的bug跟踪程序
+program-bugs: |/usr/local/bin/program-bug-tracker
+# 也可以转发到多个帐号，用逗号分隔就可以
+project-list: johndoe@host1.uiuc.edu,jsmith@host2.uiuc.edu,someone@host.purdue.edu
 
-# 将 postmaster 的邮件都转发给 root 帐号，当然你下面还可以将root帐号的邮件在转发给别人。&lt;br /&gt;
-
-# 转发也可以转发到文件&lt;br /&gt;
-# 比如这个，都说了nobody了还给发邮件，邮件都丢掉&lt;br /&gt;
-nobody          : /dev/null&lt;br /&gt;
-
-# 也可以通过管道作为另一个程序的输入&lt;br /&gt;
-# 比如给procmail，它能实现的功能可就多了，比如可以根据邮件大小转发到不同的用户，或者调用spamassian、clamav来查垃圾邮件和病毒等&lt;br /&gt;
-# 一个自动的bug跟踪程序&lt;br /&gt;
-program-bugs: |/usr/local/bin/program-bug-tracker&lt;br /&gt;
-
-# 也可以转发到多个帐号，用逗号分隔就可以&lt;br /&gt;
-project-list: johndoe@host1.uiuc.edu,jsmith@host2.uiuc.edu,someone@host.purdue.edu&lt;br /&gt;
-&lt;/pre&gt;&lt;br /&gt;
-&lt;p&gt;可以看到功能还是很强悍的，尤其是可以 pipe 到程序，procmail、maildrop都是很不错的过滤程序，能实现很多其他的功能。&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;标题的要求是“抄送”某个帐号的邮件给别的用户，有点类似监控的意思。怎么实现呢？可能第一个想到的就是类似下面这种方法：&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;pre lang=&#34;conf&#34;&gt;somebody:other1,other2,somebody&lt;/pre&gt;&lt;br /&gt;
-&lt;p&gt;这样是不是就能实现抄送呢？这样会造成死循环，呵呵。&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;看样子似乎只能通过pipe到程序实现了，看procmail、maildrop的文档还不够头疼的。其实还有个简单的方法，就是 &lt;a href=&#34;http://www.feep.net/sendmail/tutorial/intro/forward.html&#34;&gt;.forward&lt;/a&gt; 文件。&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;.forward 文件位于用户的 home 下面，权限是 600 。他的功能和 /etc/aliases 文件类似，不过是 aliases 文件只能由root用户来修改，而 .forward 文件用户自己就可以修改。除了上面aliases能做到的事情外，他还多了一个功能，就是标题要求的功能。&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;按照标题的要求，只需要在 somebody 用户的 .forward 文件中放入下面的内容就可以了。&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;pre lang=&#34;conf&#34;&gt;\\somebody&lt;br /&gt;
-other1&lt;br /&gt;
-other2&lt;/pre&gt;&lt;br /&gt;
-&lt;p&gt;要注意 somebody 前面的那个\，就是用来防止转发死循环的。加了\之后，给somebody转发的时候会忽略该用户的 .forward 文件。&lt;/p&gt;&lt;br /&gt;
-</description>
+可以看到功能还是很强悍的，尤其是可以 pipe 到程序，procmail、maildrop都是很不错的过滤程序，能实现很多其他的功能。
+标题的要求是“抄送”某个帐号的邮件给别的用户，有点类似监控的意思。怎么实现呢？可能第一个想到的就是类似下面这种方法：
+somebody:other1,other2,somebody
+这样是不是就能实现抄送呢？这样会造成死循环，呵呵。
+看样子似乎只能通过pipe到程序实现了，看procmail、maildrop的文档还不够头疼的。其实还有个简单的方法，就是 .forward 文件。
+.forward 文件位于用户的 home 下面，权限是 600 。他的功能和 /etc/aliases 文件类似，不过是 aliases 文件只能由root用户来修改，而 .forward 文件用户自己就可以修改。除了上面aliases能做到的事情外，他还多了一个功能，就是标题要求的功能。
+按照标题的要求，只需要在 somebody 用户的 .forward 文件中放入下面的内容就可以了。
+\\somebody
+other1
+other2
+要注意 somebody 前面的那个\，就是用来防止转发死循环的。加了\之后，给somebody转发的时候会忽略该用户的 .</description>
     </item>
     
     <item>
@@ -252,22 +75,16 @@ other2&lt;/pre&gt;&lt;br /&gt;
       <pubDate>Wed, 01 Nov 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/2-problems-in-mutt/</guid>
-      <description>mutt&lt;a target=&#34;_blank&#34; href=&#34;http://blog.wdicc.com/wordpress/2006/09/03/242/&#34;&gt;用了一段时间&lt;/a&gt;之后发现对方发过来的附件的名字都是乱码，多次之后就觉得比较郁闷，每次都得自己修改名字，还得猜文件类型，很郁闷。google了一下，发现了&lt;a target=&#34;_blank&#34; title=&#34;gnus/mutt 邮件乱码问题&#34; href=&#34;http://learn.tsinghua.edu.cn:8080/2002315162/muttpatched.html&#34;&gt;解决办法&lt;/a&gt;，是因为mutt默认使用的是rfc2331来解码的，所以添加一个set rfc2047_parameters=yes就可以了，这样对方发过来的邮件就可以正常显示文件名称了。但是同时从那个网址得知，我发出去的附件，也是用rfc2331来编码的，这样到了对方那里，显然会乱码了。测试了一下，outlook里面提示有附件，可是打开是乱码，并且附件名称也不是实际的附件名称。foxmail里面不提示有附件，内容后面会显示几个乱码。&lt;br /&gt;
-
-按照前面那个网址，找到了&lt;a target=&#34;_blank&#34; title=&#34;mutt的rfc2047补丁&#34; href=&#34;http://www.emaillab.org/mutt/download1510.html.en&#34;&gt;mutt的补丁&lt;/a&gt;，尝试了半天，不能在muttng上面正常使用，没办法只好不用muttng用mutt了。打上补丁之后，设置了 set create_rfc2047_parameters=yes  发出去的邮件就正常了。在mutt的&lt;a target=&#34;_blank&#34; title=&#34;mutt patch list&#34; href=&#34;http://wiki.mutt.org/index.cgi?PatchList&#34;&gt;patch list&lt;/a&gt;列表里面找到&lt;a target=&#34;_blank&#34; title=&#34;mutt的sidebar补丁&#34; href=&#34;http://lunar-linux.org/index.php?page=mutt-sidebar&#34;&gt;sidebar补丁&lt;/a&gt;，给mutt打了sidebar的补丁，用起来也还行了。同时，也把我的mutt升级到了1.5.13，比源里面的都新了。呵呵。&lt;br /&gt;
-
-此外，还有一个问题就是如何对应不同的账号使用不同的smtp server。 本来从网上找了一个文章说到了这个操作如何实现，我也照搬了，发现似乎可以实现这个功能。可是最近才发现，我完全错了，实际上用的总是msmtp里面设置的那个default smtp server，郁闷坏啦，给头以及同事发了好多邮件了，用的都是我的gmail邮箱。&lt;br /&gt;
-
-现在我已经解决了这个问题，用的是send-hook，如下。&lt;br /&gt;
-send-hook . &#39;my_hdr from:wd@aaa.com&#39;&lt;br /&gt;
-send-hook . &#39;set sendmail=&#34;/usr/bin/msmtp -a gmail&#34;&#39;&lt;br /&gt;
-send-hook &#39;~t .*@bbb\.com\.cn$&#39; &#39;my_hdr from:stef@bbb.com.cn&#39;&lt;br /&gt;
-send-hook &#39;~t .*@bbb\.com\.cn$&#39; &#39;set sendmail=&#34;/usr/bin/msmtp -a bbb&#34;&#39;&lt;br /&gt;
-
-这样，针对不同的mail，使用不同的sendmail程序。&lt;br /&gt;
-
-发现mutt发送邮件的时候使用的是我的gmail邮箱的时候，我很郁闷，再加上发现他发送的附件在别人那里居然不认，让我就更郁闷了。立刻安装了thunderbird，并且设置好了他，打算以后就用他了。但是发现我已经习惯了mutt了，所以还是回头来给mutt打了补丁，做了修改，让他按照我的习惯来了。 用thunderbird后发现，很多事情不能按照我的意思来，很郁闷。&lt;br /&gt;
-</description>
+      <description>mutt用了一段时间之后发现对方发过来的附件的名字都是乱码，多次之后就觉得比较郁闷，每次都得自己修改名字，还得猜文件类型，很郁闷。google了一下，发现了解决办法，是因为mutt默认使用的是rfc2331来解码的，所以添加一个set rfc2047_parameters=yes就可以了，这样对方发过来的邮件就可以正常显示文件名称了。但是同时从那个网址得知，我发出去的附件，也是用rfc2331来编码的，这样到了对方那里，显然会乱码了。测试了一下，outlook里面提示有附件，可是打开是乱码，并且附件名称也不是实际的附件名称。foxmail里面不提示有附件，内容后面会显示几个乱码。
+按照前面那个网址，找到了mutt的补丁，尝试了半天，不能在muttng上面正常使用，没办法只好不用muttng用mutt了。打上补丁之后，设置了 set create_rfc2047_parameters=yes 发出去的邮件就正常了。在mutt的patch list列表里面找到sidebar补丁，给mutt打了sidebar的补丁，用起来也还行了。同时，也把我的mutt升级到了1.5.13，比源里面的都新了。呵呵。
+此外，还有一个问题就是如何对应不同的账号使用不同的smtp server。 本来从网上找了一个文章说到了这个操作如何实现，我也照搬了，发现似乎可以实现这个功能。可是最近才发现，我完全错了，实际上用的总是msmtp里面设置的那个default smtp server，郁闷坏啦，给头以及同事发了好多邮件了，用的都是我的gmail邮箱。
+现在我已经解决了这个问题，用的是send-hook，如下。
+send-hook . &#39;my_hdr from:wd@aaa.com&#39;
+send-hook . &#39;set sendmail=&#34;/usr/bin/msmtp -a gmail&#34;&#39;
+send-hook &#39;~t .*@bbb\.com\.cn$&#39; &#39;my_hdr from:stef@bbb.com.cn&#39;
+send-hook &#39;~t .*@bbb\.com\.cn$&#39; &#39;set sendmail=&#34;/usr/bin/msmtp -a bbb&#34;&#39;
+这样，针对不同的mail，使用不同的sendmail程序。
+发现mutt发送邮件的时候使用的是我的gmail邮箱的时候，我很郁闷，再加上发现他发送的附件在别人那里居然不认，让我就更郁闷了。立刻安装了thunderbird，并且设置好了他，打算以后就用他了。但是发现我已经习惯了mutt了，所以还是回头来给mutt打了补丁，做了修改，让他按照我的习惯来了。 用thunderbird后发现，很多事情不能按照我的意思来，很郁闷。</description>
     </item>
     
     <item>
@@ -276,31 +93,21 @@ send-hook &#39;~t .*@bbb\.com\.cn$&#39; &#39;set sendmail=&#34;/usr/bin/msmtp -a
       <pubDate>Thu, 30 Mar 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/qmail-queue/</guid>
-      <description>http://www.gbunix.com/htmldata/2005_06/15/25/article_1223_1.html&lt;br /&gt;
-
-以下是qmail的数据流简图&lt;br /&gt;
-
- qmail-smtpd --- &amp;gt;&amp;gt;qmail-queue ---&amp;gt;&amp;gt; qmail-send &amp;lt;&amp;lt;--- qmail-rspawn &amp;lt;&amp;lt;--- qmail-remote&lt;br /&gt;
- &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; / &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; | &lt;br /&gt;
- &amp;nbsp; &amp;nbsp; &amp;nbsp; qmail-inject _/ qmail-clean \_ qmail-lspawn &amp;lt;&amp;lt;--- qmail-local&lt;br /&gt;
-
- &amp;nbsp; &amp;nbsp;qmail中，每一条消息都发送到中央队列等待发送，由qmail-queue进程控制。它在以下情况被调用：&lt;br /&gt;
- &amp;nbsp; &amp;nbsp;1、当产生本地消息时，qmail-inject进程调用qmail-queue。&lt;br /&gt;
- &amp;nbsp; &amp;nbsp;2、qmail-smtpd准备SMTP协议下的投递邮件任务时调用它。&lt;br /&gt;
- &amp;nbsp; &amp;nbsp;3、向前（forwarded）发送邮件时，qmail－local调用它。&lt;br /&gt;
- &amp;nbsp; &amp;nbsp;4、退回邮件时，qmail－send调用它。&lt;br /&gt;
-
- &amp;nbsp; &amp;nbsp;每封邮件接着由qmail-lspawn 和qmail-rspawn协助qmail－sned进程完成投递，最后由qmail－clean清除邮件队列。这四个进程是系统由始至终都在运行的，十分重要。&lt;br /&gt;
-
-由smtpd从域外接受邮件之后，会交给queue处理（也就是2），之后转到qmal-send，然后看是域内还是域外，域内用qmail-lspawn，域外用qmail-rspawn。域内邮件调用qmail-local处理，如果遇到.qmail文件转发邮件（也就是上面的3），还会交给queue处理，如果没有，就直接投递给用户（？）。域外邮件调用qmail-remote处理，如果对方拒收邮件，他就会产生一个新的邮件（bounce），交给qmail-send，然后交给queue（也就是4？）。&lt;br /&gt;
-
-本地用户发送mail的时候调用qmail-inject，然后交给queue（也就是1）。&lt;br /&gt;
-
-有几个问题。&lt;br /&gt;
-1&amp;nbsp; 收到域外邮件之后，判断本机是否有这个用户后才接受邮件呢，还是先接受进来放到queue里等qmail-local处理的时候再说？&lt;br /&gt;
-
-2&amp;nbsp; qmail-clean这个程序是怎么工作的？实时扫描queue的文件夹？&lt;br /&gt;
-</description>
+      <description>http://www.gbunix.com/htmldata/2005_06/15/25/article_1223_1.html
+以下是qmail的数据流简图
+qmail-smtpd --- &amp;gt;&amp;gt;qmail-queue ---&amp;gt;&amp;gt; qmail-send &amp;lt;&amp;lt;--- qmail-rspawn &amp;lt;&amp;lt;--- qmail-remote
+&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; / &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; | &amp;nbsp; &amp;nbsp; &amp;nbsp; qmail-inject _/ qmail-clean \_ qmail-lspawn &amp;lt;&amp;lt;--- qmail-local
+&amp;nbsp; &amp;nbsp;qmail中，每一条消息都发送到中央队列等待发送，由qmail-queue进程控制。它在以下情况被调用：
+&amp;nbsp; &amp;nbsp;1、当产生本地消息时，qmail-inject进程调用qmail-queue。
+&amp;nbsp; &amp;nbsp;2、qmail-smtpd准备SMTP协议下的投递邮件任务时调用它。
+&amp;nbsp; &amp;nbsp;3、向前（forwarded）发送邮件时，qmail－local调用它。
+&amp;nbsp; &amp;nbsp;4、退回邮件时，qmail－send调用它。
+&amp;nbsp; &amp;nbsp;每封邮件接着由qmail-lspawn 和qmail-rspawn协助qmail－sned进程完成投递，最后由qmail－clean清除邮件队列。这四个进程是系统由始至终都在运行的，十分重要。
+由smtpd从域外接受邮件之后，会交给queue处理（也就是2），之后转到qmal-send，然后看是域内还是域外，域内用qmail-lspawn，域外用qmail-rspawn。域内邮件调用qmail-local处理，如果遇到.qmail文件转发邮件（也就是上面的3），还会交给queue处理，如果没有，就直接投递给用户（？）。域外邮件调用qmail-remote处理，如果对方拒收邮件，他就会产生一个新的邮件（bounce），交给qmail-send，然后交给queue（也就是4？）。
+本地用户发送mail的时候调用qmail-inject，然后交给queue（也就是1）。
+有几个问题。
+1&amp;nbsp; 收到域外邮件之后，判断本机是否有这个用户后才接受邮件呢，还是先接受进来放到queue里等qmail-local处理的时候再说？
+2&amp;nbsp; qmail-clean这个程序是怎么工作的？实时扫描queue的文件夹？</description>
     </item>
     
     <item>
@@ -309,12 +116,10 @@ send-hook &#39;~t .*@bbb\.com\.cn$&#39; &#39;set sendmail=&#34;/usr/bin/msmtp -a
       <pubDate>Thu, 30 Mar 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/how-mail-from-a-to-b/</guid>
-      <description>&lt;p&gt;当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. &lt;/p&gt;  &lt;p&gt;假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com,     下面是发送接收过程: &lt;/p&gt;  &lt;p&gt;1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题,     加上邮件本身的文本部分. 整个邮件看起来是下面这样的: &lt;/p&gt;&lt;pre&gt;    To: bob@beta&lt;br /&gt;
-    Subject: lunch&lt;br /&gt;
-
-    How about pizza?&lt;br /&gt;
-&lt;/pre&gt;  &lt;p&gt;2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. &lt;/p&gt;  &lt;p&gt;3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta     替换为&#34;Bob &amp;lt;bob@beta.example.com&amp;gt;&#34;) 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入:     MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给     MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA     可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序. &lt;/p&gt;  &lt;p&gt;4. 如果注入成功--邮件句法正确, 并且 sendmail 调用适当--那么现在邮件已经在 MTA 的职责内了. 不同的 MTA 细节是完全不同的,     通常MTA首先检查邮件头决定邮件将发往何处. 然后建立一个到主机beta的SMTP连接, 转发邮件给 beta 系统上的MTA. SMTP对话要求邮件被分成两部分发送:     信封, 这个部分确定了接收者的地址(bob@beta.example.com)和返回地址(alice@alpha.example.com), 以及邮件本身,     包括邮件头和邮件主体. &lt;/p&gt;  &lt;p&gt;5. 如果beta主机的MTA拒绝这个邮件, 可能原因是在beta系统上没有这个bob用户, 在alpha 上的MTA发送一个反弹邮件给返回地址, 也就是     alice@alpha, 通知她邮件发送出现了问题. &lt;/p&gt;  &lt;p&gt;6. 如果 beta主机上的 MTA接收了邮件, 它查看接收者地址, 决定是发送给本地local 还是远程 remote系统的邮件. 这个例子里面,     接收者是本地用户, 然后MTA或者传送邮件给 mail delivery agent (MDA), 比如 /bin/mail或者传送给 procmail.   &lt;/p&gt;  &lt;p&gt;7. 如果传输失败了, 可能是Bob的邮箱超过了使用限额, beta 主机上的 MTA 将发送一个反弹信息给信封上的返回地址, 即 alice@alpha.   &lt;/p&gt;  &lt;p&gt;8. 如果传输成功, 邮件将在Bob的邮箱中等待, 直到他使用MUA来阅读和显示邮件. &lt;/p&gt;&lt;br /&gt;
-</description>
+      <description>当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. 假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com, 下面是发送接收过程: 1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题, 加上邮件本身的文本部分. 整个邮件看起来是下面这样的:  To: bob@beta
+Subject: lunch
+How about pizza?
+ 2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. 3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta 替换为&#34;Bob &amp;lt;bob@beta.example.com&amp;gt;&#34;) 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入: MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给 MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA 可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序.</description>
     </item>
     
     <item>
@@ -323,156 +128,16 @@ send-hook &#39;~t .*@bbb\.com\.cn$&#39; &#39;set sendmail=&#34;/usr/bin/msmtp -a
       <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/howto-qmail-with-spamassassin/</guid>
-      <description>http://sylvestre.ledru.info/howto/howto_qmail_spamassassin.php&lt;br /&gt;
-
-By Sylvestre Ledru June 2003&lt;br /&gt;
-Version francaise&lt;br /&gt;
-Return to the linux page&lt;br /&gt;
-
-(02/04/2002), Bug fix :&lt;br /&gt;
-I just add a little bug fix for some OS which remove the +x on qmail-queue (the qmail-scanner is not concerned)&lt;br /&gt;
-(01/11/2003), Qmail-scanner :&lt;br /&gt;
-I had a new way of calling spamassassin client using qmail-scanner.&lt;br /&gt;
-(23/07/2003), Preferences :&lt;br /&gt;
-Matthew Francis sent me a quite good howto explaining how to get user preferences for spamassassin. It is available here.&lt;br /&gt;
-(08/06/2003), Localisation :&lt;br /&gt;
-If you want to change the language of the spam report (ie why the email has been tagged as a spam), just change the locales to your language (dpkg-reconfigure locales under debian) and install gettext (apt-get install gettext) and you will have the appropriate version (french for example)...&lt;br /&gt;
-(11/03/2005), Update :&lt;br /&gt;
-After almost two years without updates, my other howto about qmail is much more complet and uptodate, I clean this one :&lt;br /&gt;
-- first method deprecated&lt;br /&gt;
-- new version of spamassassin 3.0.X&lt;br /&gt;
-- use of netqmail instead of qmail&lt;br /&gt;
-- new version of qmail-scanner with the q-s-st patch (activation of Spamassassin just for a domain)&lt;br /&gt;
-
-If you like this howto and you want to thank me for my work : here is my wishlist on Amazon - France or my Amazon US wishlist :)&lt;br /&gt;
-If you are a corporation and you make some business thanks to my howto, we&#39;ll love to have a present from you (or just tell me who is using my howto).&lt;br /&gt;
-Thank to Scott Kinkade for his cash donation. I really do appreciate.&lt;br /&gt;
-
-If you want more informations about the intallation of qmail, I wrote a long howto about.&lt;br /&gt;
-I wrote this howto because there is a lack of documentation about qmail with spamassassin.&lt;br /&gt;
-
-This howto has been designed for qmail with vpopmail but it should work without a lot of modifications with something else than vpopmail.&lt;br /&gt;
-
-Spamassassin is a very powerfull program which checks if the receveid email is a spam or not. The analys is based on a list of mark. If the sum of all the mark exceed a specified amount (for example 5), the email will be tagged (****SPAM**** in the topic).&lt;br /&gt;
-With this, it is very easy to create a rule which will move all emails into a specific directory (i.e. trash:)&lt;br /&gt;
-
-If you want to link Qmail with spamassassin, it is quite easy.&lt;br /&gt;
-First, install spamassassin and install razor and pyzor if you want to use it.&lt;br /&gt;
-Under debian :&lt;br /&gt;
-apt-get install spamassassin You should use the &#34;debian unstable or testing&#34; version of spamassassin which, most of the time, will find more spam.&lt;br /&gt;
-
-Under other system (Redhat, Suse, Solaris ...) : The latest version of spamassassin today is the version 3.0.2. The installation is almost the same, only a few directives changed.&lt;br /&gt;
-wget http://useast.spamassassin.org/released/Mail-SpamAssassin-2.55.tar.gz&lt;br /&gt;
-tar -zxvf Mail-SpamAssassin-2.55.tar.gz&lt;br /&gt;
-cd Mail-SpamAssassin-2.55&lt;br /&gt;
-perl Makefile.PL&lt;br /&gt;
-make&lt;br /&gt;
-make install&lt;br /&gt;
-cp spamd/debian-rc-script.sh /etc/init.d/spamassassin You can replace debian by redhat, solaris, netbsd, suse ...&lt;br /&gt;
-chmod +x /etc/init.d/spamassassin&lt;br /&gt;
-
-Then, edit /etc/spamassassin/local.cf&lt;br /&gt;
-Version 2.5X :&lt;br /&gt;
-required_hits 6.0&lt;br /&gt;
-rewrite_subject 1&lt;br /&gt;
-report_header 1&lt;br /&gt;
-use_terse_report 1&lt;br /&gt;
-defang_mime 1&lt;br /&gt;
-dns_available yes&lt;br /&gt;
-dcc_add_header 1&lt;br /&gt;
-use_pyzor 1 (Only if you have installed pyzor)&lt;br /&gt;
-use_razor2 (Only if you have installed razor2)&lt;br /&gt;
-use_dcc 1&lt;br /&gt;
-Version 3 :&lt;br /&gt;
-#Number of points to tag the spam required_hits 5.0 # Add the result in the header always_add_headers 1 # change the subject rewrite_subject 1 report_safe 1 use_terse_report 1 # dns checks (warning : increase the process length) dns_available yes dcc_add_header 0 # Don&#39;t skip the relay black list skip_rbl_checks 0 use_dcc 1 dcc_timeout 10 # Remote verification use_pyzor 1 pyzor_timeout 10 pyzor_add_header 1 # Never from the previous results auto_learn 1 # use the bayes filter use_bayes 1 # Where spamassassin must store these informations : bayes_path /var/qmail/spamassassin/ # Where he stores the auto white list results : auto_whitelist_path /var/qmail/spamassassin/auto_whitelist&lt;br /&gt;
-If you want to have detailled information about spamassassin processing, add the line in the local.cf file : timelog_path /var/log/spamassassin, run the daemon with the -D option (so, specify it in the /etc/default/spamassassin file under debian), create the directory with appropriate rights (should be vpopmail). In the directory, you will have for each email a file which sum up the spamassassin process (it is a debug option !).&lt;br /&gt;
-
-I use these rules. Feel free to change ! Documentation about this is available here : perldoc Mail::SpamAssassin::Conf&lt;br /&gt;
-
-In /etc/default/spamassassin (if this file does not exist, create it)&lt;br /&gt;
-Change ENABLED to 1, then add these options : - &#34;-m 10 -v --auto-whitelist&#34; for the version 2.5X.&lt;br /&gt;
-- &#34;-v -m 10 -u vpopmail --nouser-config&#34; for the version 3&lt;br /&gt;
-With that stuff, you can launch spamd which is bascilly a spamassassin deamon (provide great performances).&lt;br /&gt;
--m 10 =&amp;gt; 10 childs&lt;br /&gt;
--v =&amp;gt; vpopmail config&lt;br /&gt;
---auto-whitelist =&amp;gt; Use auto whitelist (friend list)&lt;br /&gt;
-Instead of spamassassin, you have to use spamc in order to test email.&lt;br /&gt;
-There are some options &#34;-c -u vpopmail&#34; which enabled the creation of preferences for a domain or a user but it does not work very well for me.&lt;br /&gt;
-/etc/init.d/spamassassin start&lt;br /&gt;
-
-Next, the modification of qmail in order to check emails.&lt;br /&gt;
-Basically, there are two kind of configuration for qmail :&lt;br /&gt;
-- the fastest/easiest way is to change the qmail-queue in order to &#34;introduce&#34; the spamasssin check.Deprecated&lt;br /&gt;
-- the cleanest way is to use qmail-scanner.&lt;br /&gt;
-Changing the qmail-queue program&lt;br /&gt;
-cp /var/qmail/bin/qmail-queue /var/qmail/bin/qmail-queue.orig&lt;br /&gt;
-chown qmailq:qmail qmail-queue&lt;br /&gt;
-chown qmailq:qmail qmail-queue.orig&lt;br /&gt;
-chmod u+s qmail-queue.orig&lt;br /&gt;
-chmod o+r,+x qmail-queue.orig qmail-queue Not fundamental but sometime it is necessary (depends the system)&lt;br /&gt;
-
-mkdir /home/vpopmail/.spamassassin&lt;br /&gt;
-cd /home/vpopmail&lt;br /&gt;
-chmod 777 /home/vpopmail/.spamassassin&lt;br /&gt;
-
-chown -R qmailq:qmail .spamassassin&lt;br /&gt;
-chmod u=rwx,g=rx,o= /home/vpopmail/.spamassassin&lt;br /&gt;
-Now, delete the content of the executable which manage the queue.&lt;br /&gt;
-echo -n &amp;gt; /var/qmail/bin/qmail-queue&lt;br /&gt;
-Then, edit the qmail-queue file and add this inside :&lt;br /&gt;
-#!/bin/sh&lt;br /&gt;
-/usr/bin/spamc | /var/qmail/bin/qmail-queue.orig&lt;br /&gt;
-I agree that it is a quick/dirty method. It causes some issues with the injection of a bounce in the queue. (qmail-queue is not planned to work this way).&lt;br /&gt;
-With qmail-scanner - Visit http://sylvestre.ledru.info/howto/howto_qmail_vpopmail.php for more informations&lt;br /&gt;
-First, you have to patch qmail with the qmailqueue-patch or install netqmail which has already this plugin.&lt;br /&gt;
-Qmail with the patch :&lt;br /&gt;
-wget http://qmail.agarik.com/qmail-1.03.tar.gz&lt;br /&gt;
-tar -zxvf qmail-1.03.tar.gz&lt;br /&gt;
-cd qmail-1.03&lt;br /&gt;
-wget http://qmail.mirrored.ca/moni.csi.hu/pub/glibc-2.3.1/qmail-1.03.errno.patch&lt;br /&gt;
-wget http://sylvestre.ledru.info/howto/qmail/qmailqueue-patch&lt;br /&gt;
-patch -p1 &amp;lt; qmail-1.03.errno.patch&lt;br /&gt;
-patch -p1 &amp;lt; qmailqueue-patch&lt;br /&gt;
-With netqmail :&lt;br /&gt;
-wget http://qmail.agarik.com/netqmail-1.05.tar.gz&lt;br /&gt;
-tar -zxvf netqmail-1.05.tar.gz&lt;br /&gt;
-cd netqmail-1.05/&lt;br /&gt;
-./collate.sh&lt;br /&gt;
-cd netqmail-1.05&lt;br /&gt;
-Add the QMAILQUEUE parameter to the /etc/tcp.smtp file :&lt;br /&gt;
-127.0.0.1:allow,RELAYCLIENT=&#34;&#34;,QMAILQUEUE=&#34;/var/qmail/bin/qmail-scanner-queue.pl&#34;&lt;br /&gt;
-198.168.1.:allow,RELAYCLIENT=&#34;&#34;,QMAILQUEUE=&#34;/var/qmail/bin/qmail-scanner-queue.pl&#34;&lt;br /&gt;
-:allow,QMAILQUEUE=&#34;/var/qmail/bin/qmail-scanner-queue.pl&#34;&lt;br /&gt;
-Rehash tcpserver :&lt;br /&gt;
-/usr/local/bin/tcprules /etc/tcp.smtp.cdb /etc/tcp.smtp.tmp &amp;lt; /etc/tcp.smtp&lt;br /&gt;
-chmod 644 /etc/tcp.smtp.cdb&lt;br /&gt;
-And then, install qmail-scanner with qmail-scanner-st&lt;br /&gt;
-. qmail-scanner-st is a patched version a qmail-scanner which enabled great features like auto delete/reject/quarantine spam over a specified score but also to select which scanners will be used for a domain and even for a user, then, it is possible to configure the spamassassin / antivirus just for one domain/user.&lt;br /&gt;
-wget http://unc.dl.sourceforge.net/sourceforge/qmail-scanner/qmail-scanner-1.25.tgz wget http://xoomer.virgilio.it/j.toribio/qmail-scanner/download/q-s-1.25st-20050207.patch.gz&lt;br /&gt;
-gunzip q-s-1.25st-20050207.patch.gz&lt;br /&gt;
-tar -zxvf qmail-scanner-1.25.tgz&lt;br /&gt;
-cd qmail-scanner-1.25/&lt;br /&gt;
-patch -p1 &amp;lt; ../q-s-1.25st-20050207.patch&lt;br /&gt;
-groupadd qscand&lt;br /&gt;
-useradd -c &#34;Qmail-Scanner Account&#34; -g qscand -s /bin/false qscand&lt;br /&gt;
-./configure --qs-user qscand --qs-group qscand --spooldir /var/spool/qmailscan --qmaildir /var/qmail --bindir /var/qmail/bin --qmail-queue-binary /var/qmail/bin/qmail-queue --admin-fromname &#34;Mail admin&#34; --admin postmaster --domain vladimir.avence.info --notify sender,admin,recips --local-domains `cat /var/qmail/control/rcpthosts | tr &#34;\n&#34; &#34; &#34;` --silent-viruses auto --unzip 1 --add-dscr-hdrs 1 --archive 0 --redundant yes --log-crypto 0 --scanners &#34;fast_spamassassin&#34; --scanners-per-domain yes --sa-subject &#34;*****SPAM*****&#34; --sa-delete 5 --install 1&lt;br /&gt;
-After the installation, if you want to change your preferences, you have to edit the /var/qmail/bin/qmail-scanner-queue.pl file. In this file, you can also add option for the spamassassin client.&lt;br /&gt;
-If you want to enable/disable some scanners, edit the /var/spool/qmailscan/scanners_per_domain.txt&lt;br /&gt;
-To rehash the scanner per domain file : /var/qmail/bin/qmail-scanner-queue.pl -p&lt;br /&gt;
-To rehash the quarantine attachement file : /var/qmail/bin/qmail-scanner-queue.pl -g&lt;br /&gt;
-trunks.ecranbleu.org:sa,ps,clamdscan_scanner&lt;br /&gt;
-
-# sa = spamassassin&lt;br /&gt;
-# ps = perl scanner&lt;br /&gt;
-
-This should be enough to use SpamAssassin on the whole system.&lt;br /&gt;
-I have to try to find how it can be linked with vpopmail in order to create preference for a specific domain or a specific user. (if someone knows : sylvestre@ecranbleu.org)&lt;br /&gt;
-
-Problems :&lt;br /&gt;
-- link with vpopmail&lt;br /&gt;
-This howto is inspired and corrected from :&lt;br /&gt;
-http://www.euronet.nl/users/erhnam/linux/qmail/qmail.htm.&lt;br /&gt;
-</description>
+      <description>http://sylvestre.ledru.info/howto/howto_qmail_spamassassin.php
+By Sylvestre Ledru June 2003
+Version francaise
+Return to the linux page
+(02/04/2002), Bug fix :
+I just add a little bug fix for some OS which remove the +x on qmail-queue (the qmail-scanner is not concerned)
+(01/11/2003), Qmail-scanner :
+I had a new way of calling spamassassin client using qmail-scanner.
+(23/07/2003), Preferences :
+Matthew Francis sent me a quite good howto explaining how to get user preferences for spamassassin.</description>
     </item>
     
     <item>
@@ -481,171 +146,68 @@ http://www.euronet.nl/users/erhnam/linux/qmail/qmail.htm.&lt;br /&gt;
       <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/qmail-conf-file/</guid>
-      <description>1．Qmail的主要配置文件&lt;br /&gt;
-
-    qmail的配置文件是由多个文件组成的，不是集中在一个文件中，每个文件控制相应&lt;br /&gt;
-部分的功能和属性，一个可执行程序可能有多个配置文件控制，所有的配置文件共同决&lt;br /&gt;
-定了qmail运行的实现和模式。这些配置文件都在qmail的control目录中，本文的配置文&lt;br /&gt;
-件位于/var/qmail/control目录中&lt;br /&gt;
-
-    1.1、badmailfrom&lt;br /&gt;
-
-    这个配置文件是控制邮件系统拒绝接收的邮件地址和邮件域，主要是为了防止垃圾&lt;br /&gt;
-邮件。如果一个邮件地址或者邮件域被列入到这个文件中，系统就会拒绝接收这个邮件&lt;br /&gt;
-地址发来的邮件，或者拒绝邮件域下所有邮件地址发来的邮件。不过这个配置文件只是&lt;br /&gt;
-一般的垃圾邮件防范手段，对于比较全面的垃圾邮件过滤技术还要靠第三方软件来实现&lt;br /&gt;
-。该文件的格式如下：&lt;br /&gt;
-
-    11@11.com //拒绝这个地址发来的邮件&lt;br /&gt;
-    22@2w.com&lt;br /&gt;
-    @33.com //拒绝这个邮件域下的所有帐号发来的邮件&lt;br /&gt;
-    @44.com&lt;br /&gt;
-&lt;br&gt;&lt;!--more--&gt;1.2、boucefrom&lt;br /&gt;
-
-    bouceform是定义当邮件投递失败时系统返回给发送者一个包含失败信息的邮件时的&lt;br /&gt;
-发送者。如果不存在这个文件，默认的发送者是MAILER-DAEMON。比如本文的&lt;br /&gt;
-
-    echo postmaster &gt; /var/qmail/control/bouncefrom&lt;br /&gt;
-
-    就是定义投递者为postmaster，这样所有投递失败的返回邮件的发送者就成了postm&lt;br /&gt;
-aster。&lt;br /&gt;
-
-    1.3、concurrencylocal&lt;br /&gt;
-
-     这个文件定义了qmail可以同时投递的本地邮件的个数。这个参数的缺省值是10，&lt;br /&gt;
-也就是说系统允许同时有10个邮件在本地投递。concurrencylocal这个参数的最大值是&lt;br /&gt;
-由编译时的conf-spawn参数来决定的，缺省值是120，最大值是255。&lt;br /&gt;
-
-    1.4、concurrencyremote&lt;br /&gt;
-
-    这个参数定义了qmail可以同时投递的远端邮件的个数，这个参数的缺省值是20。这&lt;br /&gt;
-个参数的最大值也是由conf-spawn来决定的。&lt;br /&gt;
-
-    1.5、defaultdomain&lt;br /&gt;
-
-    它主要用于邮件用户在投递给同一邮件服务器的邮件用户时的邮件投递处理，比如&lt;br /&gt;
-邮件服务器cnunix.com.cn用户user发送邮件给另一个邮件用户user1@cnunix，这实qmai&lt;br /&gt;
-l-inject会将defaultdomain中定义的邮件域名加入到这个邮件的目标地址中，qmail会&lt;br /&gt;
-自动认为这个邮件的目标地址是user1@cnunix.com.cn，并按照这个地址进行投递。当这&lt;br /&gt;
-个文件不存在的时候，qmail会从配置文件me中读取这个参数。如果系统变量DEFAULTDOM&lt;br /&gt;
-AIN已经设置，defaultdomain定义的参数将被忽略。&lt;br /&gt;
-
-    1.6、defaulthost&lt;br /&gt;
-
-    它和defaultdomain类似，当邮件系统接收到没有目标主机名的邮件时，这个设置文&lt;br /&gt;
-件定义了系统往这个邮件中加入的目标主机名名称。在缺省情况下，qmail-inject会将d&lt;br /&gt;
-efaulthost中定义的名称加入到没有定义投递邮件地址的邮件的目标主机名中，如果def&lt;br /&gt;
-aulthost不存在，加入的目标主机名将时字符串“defaulthost”，defaulthost主要用&lt;br /&gt;
-于邮件用户在投递给同一邮件服务器的邮件进行投递处理。如果系统变量QMAILDEFAULTH&lt;br /&gt;
-OST已经设置，defaulthost定义的参数将被忽略。&lt;br /&gt;
-
-    1.7、databyes&lt;br /&gt;
-
-    它定义了qmail-smtpd所允许接收的邮件的最大字节数。这个参数的缺省值为0，表&lt;br /&gt;
-示对接收邮件的字节数没有限制。如果要限制最大的接收为10M，操作如下：&lt;br /&gt;
-
-    echo 10485760 &gt; /var/qmail/control/databytes&lt;br /&gt;
-
-    这是任何大于10M的邮件都会被拒绝。这个参数最好设置上，以避免恶意的对你服务&lt;br /&gt;
-器发送大量的超大邮件，产生邮件服务器负荷过大，甚至系统崩溃的危险。&lt;br /&gt;
-
-    1.8、doublebouncehost&lt;br /&gt;
-
-    这个配置文件定义了出现“双重反弹”的时候，系统转发的邮件的主机名称。“双&lt;br /&gt;
-重反弹”就是当系统因为投递失败将邮件返回给发送者时，发送者又将此邮件返回，这&lt;br /&gt;
-个时候qmail将会把这个邮件转发到另一个邮件地址，一般这个地址就是管理员的地址。&lt;br /&gt;
-doublebouncehost就是定义这个转发的邮件地址的主机名部分，而这个邮件地址的用户&lt;br /&gt;
-名部分是由doublebouceto来定义的，因此这两个配置文件一般都是结合起来使用的。当&lt;br /&gt;
-doublebouncehost不存在的时候，系统将会从配置文件me中读取这个参数。&lt;br /&gt;
-
-    1.9、doublebounceto&lt;br /&gt;
-
-    这个参说是结合blebouncehost来使用的，当这个参数不存在的时候，系统缺省值是&lt;br /&gt;
-postmaster用户。&lt;br /&gt;
-
-    1.10、helohost&lt;br /&gt;
-
-    这个配置文件定义了当程序qmail-remote和远程邮件系统建立连接时所使用的主机&lt;br /&gt;
-名。如果这个配置文件不存在，系统将会从配置文件me中读取这个参数值，如果me不存&lt;br /&gt;
-在，qmail-remote将不能正常运行工作。&lt;br /&gt;
-
-    1.11、locals&lt;br /&gt;
-
-    这个配置文件是定义本地邮件域的，在qmail-send处理邮件投递时，将会使用local&lt;br /&gt;
-s定义的值和邮件的目标地址进行比较，如果相同，系统就会将这个邮件投递到本地交给&lt;br /&gt;
-qmail-lspawn来处理。如果一个邮件的目标主机名在locals找不到，系统将会把这个邮&lt;br /&gt;
-件投递到远端邮件服务器系统，即使这个邮件的目标地址可能是本地邮件系统的。如果l&lt;br /&gt;
-ocals不存在，系统将会从配置文件me中读取这个参数，如果me不存在，qmail-send将不&lt;br /&gt;
-能正常运行。&lt;br /&gt;
-
-    1.12、me&lt;br /&gt;
-
-    这个配置文件是qmail系统十分重要的一个文件，如果这个文件不存在，qmail系统&lt;br /&gt;
-将无法运行。me是用来定义本地邮件服务器的主机名的，上面已经介绍到了，有多个配&lt;br /&gt;
-置文件是和me有关联的，如果那些配置文件不存在系统默认会从me中读取参数值的。me&lt;br /&gt;
-这个配置文件一般都是在qmail系统安装时使用configure-fast来创建的，在上面qmail&lt;br /&gt;
-系统安装的时候已经使用过了这个参数。&lt;br /&gt;
-
-    1.13、queuelifetime&lt;br /&gt;
-
-    这个配置文件是定义一个邮件在邮件队列中存活的时间，缺省值为7天(604800s)，&lt;br /&gt;
-这个期限掉了以后qmail-send将会进行最后一次的投递尝试，如果投递失败，该邮件将&lt;br /&gt;
-会从邮件队列中删除。&lt;br /&gt;
-
-    1.14、rcphosts&lt;br /&gt;
-
-     这个配置文件也是qmail一个十分重要的文件，这个文件是定义系统允许转发邮件&lt;br /&gt;
-的邮件域，如果这个文件不存在或者为空，你的系统将会接收Internet上所有的域的邮&lt;br /&gt;
-件转发，即你的系统是Open relay。配置文件rcpthosts最多可以支持50个主机名和域名&lt;br /&gt;
-，如果超个这个数字，就需要保存到他的扩充配置文件morercphosts中，然后使用qmail&lt;br /&gt;
-的命令程序qmail-newmrh(在本系统中，该文件在/var/qmail/bin目录下)来生成二进制&lt;br /&gt;
-的morercpthosts.cdb文件，这样qmail-smtpd才可以从这个二进制文件中读取信息。&lt;br /&gt;
-
-    1.15、virtualdomains&lt;br /&gt;
-
-    这也是qmail的一个非常重要的配置文件，它定义了qmail的虚拟邮件域，qmail结合&lt;br /&gt;
-vpopmail的虚拟域管理功能可以定义多个虚拟邮件域。&lt;br /&gt;
-
-    1.16、smtproutes&lt;br /&gt;
-
-    这个配置文件是定义qmail邮件系统的静态SMTP路由表信息的，他的格式应该是：&lt;br /&gt;
-
-     HOST: targetHOST    //HOST可以是主机名或者域名。这行所表示的是意思是将所&lt;br /&gt;
-有目标是HOST的邮件转发到targetHOST邮件服务器中，这个是最常规的表示方式。&lt;br /&gt;
-
-      下面给一些例子和一些特殊的表示方法：&lt;br /&gt;
-
-       cnunix.com.cn:cnunix.com   //这行表示的意思是将所有发往cnunix.com.cn的&lt;br /&gt;
-邮件全部转发到cnunix.com这个邮件服务器。qmail不会在cnunix.com.cn邮件服务器中&lt;br /&gt;
-投递时查询DNS中的MX记录，直接投递到cnunix.com邮件服务器中，加快了投递的速度。&lt;br /&gt;
-
-
-     .cnunix.net:     //这行表示强迫qmail对DNS的MX记录进行查询，因为没有定义&lt;br /&gt;
-转发的主机名，qmail将在DNS中查询任何以.cnunix.net结尾的邮件服务器&lt;br /&gt;
-
-     :mail.cnunix.com.cn:2525    //这行定义表示所有发往该机器的所有邮件都将会&lt;br /&gt;
-转发到mail.cnunix.com.cn这个邮件服务器，并且转发到对方的2525端口，这个方式一&lt;br /&gt;
-般都是做邮件网关时用的到的。&lt;br /&gt;
-
-    注意：smtproutes如果设置不正确或者DNS的变动会产生邮件的循环投递。&lt;br /&gt;
-
-    1.17、timeoutconnect&lt;br /&gt;
-
-    这个配置文件定义了qmail-remote在和远端SMTP服务器在SMTP连接断开以前接受一&lt;br /&gt;
-个新的连接等待的最大时间(单位为秒s),默认值为一分钟(60s)。如果你的网络连接速率&lt;br /&gt;
-比较低，就需要相应的调整这个参数到一个适合的值。&lt;br /&gt;
-
-    1.18、timeoutremote&lt;br /&gt;
-
-    这个配置文件定义了qmail-remote等待远端的SMTP服务器相应时等待的最大时间，&lt;br /&gt;
-默认值为20分钟(1200s),如果到达这个最大值没有相应，qmail才和对方断开连接并且把&lt;br /&gt;
-失败的记录写到qmail的日志中。&lt;br /&gt;
-
-    1.19、smtpgreeting&lt;br /&gt;
-
-     这个配置文件定义了用户在登录SMTP服务时显示的系统欢迎信息。修改这个信息可&lt;br /&gt;
-以掩盖一些你的系统的本身的信息，可以相对的迷惑一下登录者:)&lt;br /&gt;
-</description>
+      <description>1．Qmail的主要配置文件
+qmail的配置文件是由多个文件组成的，不是集中在一个文件中，每个文件控制相应
+部分的功能和属性，一个可执行程序可能有多个配置文件控制，所有的配置文件共同决
+定了qmail运行的实现和模式。这些配置文件都在qmail的control目录中，本文的配置文
+件位于/var/qmail/control目录中
+1.1、badmailfrom
+这个配置文件是控制邮件系统拒绝接收的邮件地址和邮件域，主要是为了防止垃圾
+邮件。如果一个邮件地址或者邮件域被列入到这个文件中，系统就会拒绝接收这个邮件
+地址发来的邮件，或者拒绝邮件域下所有邮件地址发来的邮件。不过这个配置文件只是
+一般的垃圾邮件防范手段，对于比较全面的垃圾邮件过滤技术还要靠第三方软件来实现
+。该文件的格式如下：
+11@11.com //拒绝这个地址发来的邮件
+22@2w.com
+@33.com //拒绝这个邮件域下的所有帐号发来的邮件
+@44.com
+1.2、boucefrom
+bouceform是定义当邮件投递失败时系统返回给发送者一个包含失败信息的邮件时的
+发送者。如果不存在这个文件，默认的发送者是MAILER-DAEMON。比如本文的
+echo postmaster  /var/qmail/control/bouncefrom
+就是定义投递者为postmaster，这样所有投递失败的返回邮件的发送者就成了postm
+aster。
+1.3、concurrencylocal
+这个文件定义了qmail可以同时投递的本地邮件的个数。这个参数的缺省值是10，
+也就是说系统允许同时有10个邮件在本地投递。concurrencylocal这个参数的最大值是
+由编译时的conf-spawn参数来决定的，缺省值是120，最大值是255。
+1.4、concurrencyremote
+这个参数定义了qmail可以同时投递的远端邮件的个数，这个参数的缺省值是20。这
+个参数的最大值也是由conf-spawn来决定的。
+1.5、defaultdomain
+它主要用于邮件用户在投递给同一邮件服务器的邮件用户时的邮件投递处理，比如
+邮件服务器cnunix.com.cn用户user发送邮件给另一个邮件用户user1@cnunix，这实qmai
+l-inject会将defaultdomain中定义的邮件域名加入到这个邮件的目标地址中，qmail会
+自动认为这个邮件的目标地址是user1@cnunix.com.cn，并按照这个地址进行投递。当这
+个文件不存在的时候，qmail会从配置文件me中读取这个参数。如果系统变量DEFAULTDOM
+AIN已经设置，defaultdomain定义的参数将被忽略。
+1.6、defaulthost
+它和defaultdomain类似，当邮件系统接收到没有目标主机名的邮件时，这个设置文
+件定义了系统往这个邮件中加入的目标主机名名称。在缺省情况下，qmail-inject会将d
+efaulthost中定义的名称加入到没有定义投递邮件地址的邮件的目标主机名中，如果def
+aulthost不存在，加入的目标主机名将时字符串“defaulthost”，defaulthost主要用
+于邮件用户在投递给同一邮件服务器的邮件进行投递处理。如果系统变量QMAILDEFAULTH
+OST已经设置，defaulthost定义的参数将被忽略。
+1.7、databyes
+它定义了qmail-smtpd所允许接收的邮件的最大字节数。这个参数的缺省值为0，表
+示对接收邮件的字节数没有限制。如果要限制最大的接收为10M，操作如下：
+echo 10485760  /var/qmail/control/databytes
+这是任何大于10M的邮件都会被拒绝。这个参数最好设置上，以避免恶意的对你服务
+器发送大量的超大邮件，产生邮件服务器负荷过大，甚至系统崩溃的危险。
+1.8、doublebouncehost
+这个配置文件定义了出现“双重反弹”的时候，系统转发的邮件的主机名称。“双
+重反弹”就是当系统因为投递失败将邮件返回给发送者时，发送者又将此邮件返回，这
+个时候qmail将会把这个邮件转发到另一个邮件地址，一般这个地址就是管理员的地址。
+doublebouncehost就是定义这个转发的邮件地址的主机名部分，而这个邮件地址的用户
+名部分是由doublebouceto来定义的，因此这两个配置文件一般都是结合起来使用的。当
+doublebouncehost不存在的时候，系统将会从配置文件me中读取这个参数。
+1.9、doublebounceto
+这个参说是结合blebouncehost来使用的，当这个参数不存在的时候，系统缺省值是
+postmaster用户。
+1.10、helohost
+这个配置文件定义了当程序qmail-remote和远程邮件系统建立连接时所使用的主机
+名。如果这个配置文件不存在，系统将会从配置文件me中读取这个参数值，如果me不存
+在，qmail-remote将不能正常运行工作。</description>
     </item>
     
     <item>
@@ -654,366 +216,37 @@ vpopmail的虚拟域管理功能可以定义多个虚拟邮件域。&lt;br /&gt;
       <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/caphit-qmail-conf/</guid>
-      <description>参考网址&lt;br /&gt;
-http://lifewithqmail.org(中文版http://lifewithqmail.org/LWQ-CN.html)&lt;br /&gt;
-http://qmail.te8.com/rpms/glibc-2.3.1/(patch下载地址)&lt;br /&gt;
-http://www.fehcom.de/qmail/qmail.html&lt;br /&gt;
-http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-mysql.htm&lt;br /&gt;
-http://bbs.chinaunix.net/forum/viewtopic.php?t=254662&lt;br /&gt;
-
-ucspi-tcp&lt;br /&gt;
-http://cr.yp.to/ucspi-tcp.html&lt;br /&gt;
-ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nodefaultrbl.patch&lt;br /&gt;
-（或者）ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nobase.patch&lt;br /&gt;
-patch -d ucspi-tcp.xxx -p1 &amp;lt; ucspi-tcp-xxx.patch&lt;br /&gt;
-make&amp;amp;&amp;amp;make setup check&lt;br /&gt;
-
-daemontools&lt;br /&gt;
-http://cr.yp.to/daemontools.html&lt;br /&gt;
-daemontools-0.76.errno.patch&lt;br /&gt;
-package/install&lt;br /&gt;
-Adding svscanboot to inittab...init should start svscan now.&lt;br /&gt;
-
-cmd5checkpw&lt;br /&gt;
-http://www.fehcom.de/qmail/auth/cmd5checkpw-030_tgz.bin&lt;br /&gt;
-make&amp;amp;&amp;amp;make setup&lt;br /&gt;
-
-qmail 1.03&lt;br /&gt;
-http://cr.yp.to/qmail.html&lt;br /&gt;
-http://www.fehcom.de/qmail/qmail.html&lt;br /&gt;
-http://www.fehcom.de/qmail/spamcontrol/spamcontrol-2311_tgz.bin&lt;br /&gt;
-tar zxvf spamcontrol-2311_tgz.bin&lt;br /&gt;
-编辑conf-spamcontrol&lt;br /&gt;
-建立用户组&lt;br /&gt;
-groupadd nofiles&lt;br /&gt;
-useradd -g nofiles -d /var/qmail qmaild -s /sbin/nologin&lt;br /&gt;
-useradd -g nofiles -d /var/qmail qmaill -s /sbin/nologin&lt;br /&gt;
-useradd -g nofiles -d /var/qmail qmailp -s /sbin/nologin&lt;br /&gt;
-useradd -g nofiles -d /var/qmail/alias alias -s /sbin/nologin&lt;br /&gt;
-groupadd qmail&lt;br /&gt;
-useradd -g qmail -d /var/qmail qmailq -s /sbin/nologin&lt;br /&gt;
-useradd -g qmail -d /var/qmail qmailr -s /sbin/nologin&lt;br /&gt;
-useradd -g qmail -d /var/qmail qmails -s /sbin/nologin&lt;br /&gt;
-./install_spamcontrol.sh&lt;br /&gt;
-make setup check&lt;br /&gt;
-./config-fast xxxx.com&lt;br /&gt;
-
-vpopmail&lt;br /&gt;
-http://sourceforge.net/projects/vpopmail/&lt;br /&gt;
-groupadd vchkpw;useradd vpopmail&lt;br /&gt;
-CREATE DATABASE vpopmail;&lt;br /&gt;
-GRANT select,insert,update,delete,create,drop ON vpopmail.* TO vpopmailuser@localhost IDENTIFIED BY &#39;vpoppasswd&#39;;&lt;br /&gt;
-配置(用igenus需要enable-many-domains)&lt;br /&gt;
-./configure   --enable-logging=p&lt;br /&gt;
---enable-domain-quotas=y&lt;br /&gt;
---enable-auth-module=mysql&lt;br /&gt;
---enable-tcprules-prog=/usr/local/bin/tcprules&lt;br /&gt;
---enable-tcpserver-file=/etc/tcp.smtp&lt;br /&gt;
---disable-mysql-limits&lt;br /&gt;
---enable-mysql-logging&lt;br /&gt;
---enable-many-domains&lt;br /&gt;
-make&amp;amp;&amp;amp;make install-strip&lt;br /&gt;
-vi vpopmail.mysql&lt;br /&gt;
-vi vlimits.default&lt;br /&gt;
-echo &#34;xxxx.com&#34; &amp;gt; /home/vpopmail/etc/defaultdomain&lt;br /&gt;
-vi /home/vpopmail/domains/.quotawarn.msg&lt;br /&gt;
-From: CAPH Postmaster&lt;br /&gt;
-&lt;postmaster@xxx.com&gt; Reply-To: postmaster@xxx.com&lt;br /&gt;
-To: SomeCompany User:;&lt;br /&gt;
-Subject: Mail quota warning&lt;br /&gt;
-Mime-Version: 1.0&lt;br /&gt;
-Content-Type: text/plain; charset=iso-8859-1&lt;br /&gt;
-Content-Transfer-Encoding: 7bit&lt;/postmaster@xxx.com&gt;&lt;br /&gt;
-
-Your mailbox on the server is now more than 90% full.&lt;br /&gt;
-
-So that you can continue to receive mail,&lt;br /&gt;
-you need to remove some messages from your mailbox.&lt;br /&gt;
-
-If you require assistance with this,&lt;br /&gt;
-please contact our support department :&lt;br /&gt;
-
-email : postmaster@xxx.com&lt;br /&gt;
-Tel   : 010 68372647&lt;br /&gt;
-echo &#34;Message rejected. Not enough storage space in user&#39;s mailbox to accept message.&#34; &amp;gt; /home/vpopmail/domains/.over-quota.msg&lt;br /&gt;
-
-/var/qmail/rc&lt;br /&gt;
-vi /var/qmail/rc&lt;br /&gt;
-#!/bin/sh&lt;br /&gt;
-
-# Using stdout for logging&lt;br /&gt;
-# Using control/defaultdelivery from qmail-local to deliver messages by default&lt;br /&gt;
-
-exec env - PATH=&#34;/var/qmail/bin:$PATH&#34;&lt;br /&gt;
-qmail-start &#34;`cat /var/qmail/control/defaultdelivery`&#34;&lt;br /&gt;
-
-echo ./Maildir/ &amp;gt;/var/qmail/control/defaultdelivery&lt;br /&gt;
-chmod 755 /var/qmail/rc&lt;br /&gt;
-mkdir /var/log/qmail&lt;br /&gt;
-
-/var/qmail/bin/qmailctl&lt;br /&gt;
-
-vi /var/qmail/bin/qmailctl&lt;br /&gt;
-#!/bin/sh&lt;br /&gt;
-
-# description: the qmail MTA&lt;br /&gt;
-
-PATH=/var/qmail/bin:/bin:/usr/bin:/usr/local/bin:/usr/local/sbin&lt;br /&gt;
-export PATH&lt;br /&gt;
-LOG_AUTH=1&lt;br /&gt;
-export LOG_AUTH&lt;br /&gt;
-
-QMAILDUID=`id -u qmaild`&lt;br /&gt;
-NOFILESGID=`id -g qmaild`&lt;br /&gt;
-
-case &#34;$1&#34; in&lt;br /&gt;
-start)&lt;br /&gt;
-echo &#34;Starting qmail&#34;&lt;br /&gt;
-if svok /service/qmail-send ; then&lt;br /&gt;
-svc -u /service/qmail-send /service/qmail-send/log&lt;br /&gt;
-else&lt;br /&gt;
-echo &#34;qmail-send supervise not running&#34;&lt;br /&gt;
-fi&lt;br /&gt;
-if svok /service/qmail-smtpd ; then&lt;br /&gt;
-svc -u /service/qmail-smtpd /service/qmail-smtpd/log&lt;br /&gt;
-else&lt;br /&gt;
-echo &#34;qmail-smtpd supervise not running&#34;&lt;br /&gt;
-fi&lt;br /&gt;
-if svok /service/qmail-pop3d ; then&lt;br /&gt;
-svc -u /service/qmail-pop3d /service/qmail-pop3d/log&lt;br /&gt;
-else&lt;br /&gt;
-echo qmail-pop3d supervise not running&lt;br /&gt;
-fi&lt;br /&gt;
-if [ -d /var/lock/subsys ]; then&lt;br /&gt;
-touch /var/lock/subsys/qmail&lt;br /&gt;
-fi&lt;br /&gt;
-;;&lt;br /&gt;
-stop)&lt;br /&gt;
-echo &#34;Stopping qmail...&#34;&lt;br /&gt;
-echo &#34;  qmail-smtpd&#34;&lt;br /&gt;
-svc -d /service/qmail-smtpd /service/qmail-smtpd/log&lt;br /&gt;
-echo &#34;  qmail-smtpd&#34;&lt;br /&gt;
-svc -d /service/qmail-smtpd /service/qmail-smtpd/log&lt;br /&gt;
-echo &#34;  qmail-send&#34;&lt;br /&gt;
-svc -d /service/qmail-send /service/qmail-send/log&lt;br /&gt;
-echo &#34;  qmail-pop3d&#34;&lt;br /&gt;
-svc -d /service/qmail-pop3d /service/qmail-pop3d/log&lt;br /&gt;
-if [ -f /var/lock/subsys/qmail ]; then&lt;br /&gt;
-rm /var/lock/subsys/qmail&lt;br /&gt;
-fi&lt;br /&gt;
-;;&lt;br /&gt;
-stat)&lt;br /&gt;
-svstat /service/qmail-send&lt;br /&gt;
-svstat /service/qmail-send/log&lt;br /&gt;
-svstat /service/qmail-smtpd&lt;br /&gt;
-svstat /service/qmail-smtpd/log&lt;br /&gt;
-svstat /service/qmail-pop3d&lt;br /&gt;
-svstat /service/qmail-pop3d/log&lt;br /&gt;
-qmail-qstat&lt;br /&gt;
-;;&lt;br /&gt;
-doqueue|alrm|flush)&lt;br /&gt;
-echo &#34;Flushing timeout table and sending ALRM signal to qmail-send.&#34;&lt;br /&gt;
-/var/qmail/bin/qmail-tcpok&lt;br /&gt;
-svc -a /service/qmail-send&lt;br /&gt;
-;;&lt;br /&gt;
-queue)&lt;br /&gt;
-qmail-qstat&lt;br /&gt;
-qmail-qread&lt;br /&gt;
-;;&lt;br /&gt;
-reload|hup)&lt;br /&gt;
-echo &#34;Sending HUP signal to qmail-send.&#34;&lt;br /&gt;
-svc -h /service/qmail-send&lt;br /&gt;
-;;&lt;br /&gt;
-pause)&lt;br /&gt;
-echo &#34;Pausing qmail-send&#34;&lt;br /&gt;
-svc -p /service/qmail-send&lt;br /&gt;
-echo &#34;Pausing qmail-smtpd&#34;&lt;br /&gt;
-svc -p /service/qmail-smtpd&lt;br /&gt;
-echo &#34;Pausing qmail-pop3d&#34;&lt;br /&gt;
-svc -p /service/qmail-smtpd&lt;br /&gt;
-echo &#34;Pausing qmail-pop3d&#34;&lt;br /&gt;
-svc -p /service/qmail-pop3d&lt;br /&gt;
-;;&lt;br /&gt;
-cont)&lt;br /&gt;
-echo &#34;Continuing qmail-send&#34;&lt;br /&gt;
-svc -c /service/qmail-send&lt;br /&gt;
-echo &#34;Continuing qmail-smtpd&#34;&lt;br /&gt;
-svc -c /service/qmail-smtpd&lt;br /&gt;
-echo &#34;Continuing qmail-pop3d&#34;&lt;br /&gt;
-svc -c /service/qmail-pop3d&lt;br /&gt;
-;;&lt;br /&gt;
-restart)&lt;br /&gt;
-echo &#34;Restarting qmail:&#34;&lt;br /&gt;
-echo &#34;* Stopping qmail-smtpd.&#34;&lt;br /&gt;
-svc -d /service/qmail-smtpd /service/qmail-smtpd/log&lt;br /&gt;
-echo &#34;* Sending qmail-send SIGTERM and restarting.&#34;&lt;br /&gt;
-svc -t /service/qmail-send /service/qmail-send/log&lt;br /&gt;
-echo &#34;* Restarting qmail-smtpd.&#34;&lt;br /&gt;
-svc -u /service/qmail-smtpd /service/qmail-smtpd/log&lt;br /&gt;
-echo &#34;* Restarting qmail-pop3d.&#34;&lt;br /&gt;
-svc -t /service/qmail-pop3d /service/qmail-pop3d/log&lt;br /&gt;
-;;&lt;br /&gt;
-cdb)&lt;br /&gt;
-tcprules /etc/tcp.smtp.cdb /etc/tcp.smtp.tmp &amp;lt; /etc/tcp.smtp&lt;br /&gt;
-tcprules /etc/tcp.pop3.cdb /etc/tcp.pop3.tmp &amp;lt; /etc/tcp.pop3&lt;br /&gt;
-chmod 644 /etc/tcp.smtp.cdb&lt;br /&gt;
-chmod 644 /etc/tcp.pop3.cdb&lt;br /&gt;
-echo &#34;Reloaded /etc/tcp.smtp.&#34;&lt;br /&gt;
-echo &#34;Reloaded /etc/tcp.pop3.&#34;&lt;br /&gt;
-;;&lt;br /&gt;
-help)&lt;br /&gt;
-cat &amp;lt;   stop -- stops mail service (smtp connections refused, nothing goes out)&lt;br /&gt;
-start -- starts mail service (smtp connection accepted, mail can go out)&lt;br /&gt;
-pause -- temporarily stops mail service (connections accepted, nothing leaves)&lt;br /&gt;
-cont -- continues paused mail service&lt;br /&gt;
-stat -- displays status of mail service&lt;br /&gt;
-cont -- continues paused mail service&lt;br /&gt;
-stat -- displays status of mail service&lt;br /&gt;
-cdb -- rebuild the tcpserver cdb file for smtp&lt;br /&gt;
-restart -- stops and restarts smtp, sends qmail-send a TERM &amp;amp; restarts it&lt;br /&gt;
-doqueue -- schedules queued messages for immediate delivery&lt;br /&gt;
-reload -- sends qmail-send HUP, rereading locals and virtualdomains&lt;br /&gt;
-queue -- shows status of queue&lt;br /&gt;
-alrm -- same as doqueue&lt;br /&gt;
-flush -- same as doqueue&lt;br /&gt;
-hup -- same as reload&lt;br /&gt;
-HELP&lt;br /&gt;
-;;&lt;br /&gt;
-*)&lt;br /&gt;
-echo &#34;Usage: $0 {start|stop|restart|doqueue|flush|reload|stat|pause|cont|cdb|queue|help}&#34;&lt;br /&gt;
-exit 1&lt;br /&gt;
-;;&lt;br /&gt;
-esac&lt;br /&gt;
-
-exit 0&lt;br /&gt;
-
-chmod 755 /var/qmail/bin/qmailctl&lt;br /&gt;
-ln -s /var/qmail/bin/qmailctl /usr/bin&lt;br /&gt;
-echo 20 &amp;gt; /var/qmail/control/concurrencyincoming&lt;br /&gt;
-chmod 644 /var/qmail/control/concurrencyincoming&lt;br /&gt;
-
-supervise 脚本&lt;br /&gt;
-mkdir -p /var/qmail/supervise/qmail-send/log&lt;br /&gt;
-mkdir -p /var/qmail/supervise/qmail-smtpd/log&lt;br /&gt;
-mkdir -p /var/qmail/supervise/qmail-pop3d/log&lt;br /&gt;
-
-qmail-send&lt;br /&gt;
-
-/var/qmail/supervise/qmail-send/run&lt;br /&gt;
-
-#!/bin/sh&lt;br /&gt;
-exec /var/qmail/rc&lt;br /&gt;
-
-/var/qmail/supervise/qmail-send/log/run&lt;br /&gt;
-
-#!/bin/sh&lt;br /&gt;
-exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t /var/log/qmail&lt;br /&gt;
-
-qmail-smtpd&lt;br /&gt;
-
-/var/qmail/supervise/qmail-smtpd/run&lt;br /&gt;
-
-#!/bin/sh&lt;br /&gt;
-
-#QMAILDUID=`id -u qmaild`&lt;br /&gt;
-NOFILESGID=`id -g qmaild`&lt;br /&gt;
-QMAILDUID=`id -u vpopmail`&lt;br /&gt;
-QMAILDGID=`id -g vpopmail`&lt;br /&gt;
-
-MAXSMTPD=`cat /var/qmail/control/concurrencyincoming`&lt;br /&gt;
-LOCAL=`head -1 /var/qmail/control/me`&lt;br /&gt;
-if [ -z &#34;$QMAILDUID&#34; -o -z &#34;$NOFILESGID&#34; -o -z &#34;$MAXSMTPD&#34; -o -z &#34;$LOCAL&#34; ]; then&lt;br /&gt;
-echo QMAILDUID, NOFILESGID, MAXSMTPD, or LOCAL is unset in&lt;br /&gt;
-echo /var/qmail/supervise/qmail-smtpd/run&lt;br /&gt;
-exit 1&lt;br /&gt;
-fi&lt;br /&gt;
-if [ ! -f /var/qmail/control/rcpthosts ]; then&lt;br /&gt;
-echo &#34;No /var/qmail/control/rcpthosts!&#34;&lt;br /&gt;
-echo &#34;Refusing to start SMTP listener because it&#39;ll create an open relay&#34;&lt;br /&gt;
-exit 1&lt;br /&gt;
-fi&lt;br /&gt;
-exec /usr/local/bin/softlimit -m 30000000&lt;br /&gt;
-/usr/local/bin/tcpserver -v -H -R -l &#34;$LOCAL&#34; -x /etc/tcp.smtp.cdb -c &#34;$MAXSMTPD&#34;&lt;br /&gt;
--u &#34;$QMAILDUID&#34; -g &#34;$QMAILDGID&#34; 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org&lt;br /&gt;
-/var/qmail/bin/qmail-smtpd&lt;br /&gt;
-/home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2&amp;gt;&amp;amp;1&lt;br /&gt;
-
-/var/qmail/supervise/qmail-smtpd/log/run&lt;br /&gt;
-
-#!/bin/sh&lt;br /&gt;
-exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t&lt;br /&gt;
-/var/log/qmail/smtpd&lt;br /&gt;
-
-qmail-pop3d&lt;br /&gt;
-
-/var/qmail/supervise/qmail-pop3d/run&lt;br /&gt;
-
-#!/bin/sh&lt;br /&gt;
-
-LOCAL=`head -1 /var/qmail/control/me`&lt;br /&gt;
-
-exec /usr/local/bin/softlimit -m 30000000&lt;br /&gt;
-/usr/local/bin/tcpserver -x /etc/tcp.pop3.cdb&lt;br /&gt;
--H -l $LOCAL&lt;br /&gt;
--v -c 20 -R 0 pop3&lt;br /&gt;
-/var/qmail/bin/qmail-popup $LOCAL&lt;br /&gt;
-/home/vpopmail/bin/vchkpw /var/qmail/bin/qmail-pop3d Maildir 2&amp;gt;&amp;amp;1&lt;br /&gt;
-
-/var/qmail/supervise/qmail-pop3d/log/run&lt;br /&gt;
-
-#!/bin/sh&lt;br /&gt;
-exec /usr/local/bin/setuidgid qmaill /usr/local/bin/multilog t&lt;br /&gt;
-/var/log/qmail/pop3d&lt;br /&gt;
-
-chmod 755 /var/qmail/supervise/qmail-send/run;chmod 755 /var/qmail/supervise/qmail-send/log/run&lt;br /&gt;
-chmod 755 /var/qmail/supervise/qmail-smtpd/run;chmod 755 /var/qmail/supervise/qmail-smtpd/log/run&lt;br /&gt;
-chmod 755 /var/qmail/supervise/qmail-pop3d/run;chmod 755 /var/qmail/supervise/qmail-pop3d/log/run&lt;br /&gt;
-mkdir -p /var/log/qmail/smtpd;chown qmaill /var/log/qmail /var/log/qmail/smtpd&lt;br /&gt;
-ln -s /var/qmail/supervise/qmail-send /var/qmail/supervise/qmail-smtpd /var/qmail/supervise/qmail-pop3d /service&lt;br /&gt;
-touch .qmail-root .qmail-postmaster&lt;br /&gt;
-ln -s .qmail-postmaster /var/qmail/alias/.qmail-mailer-daemon&lt;br /&gt;
-chmod 644 /var/qmail/alias/.qmail-root /var/qmail/alias/.qmail-postmaster&lt;br /&gt;
-
-clamav&lt;br /&gt;
-http://www.clamav.net/&lt;br /&gt;
-groupadd clamav&lt;br /&gt;
-useradd -g clamav -s /sbin/nologin clamav -d /tmp&lt;br /&gt;
-./configure&lt;br /&gt;
-make check&lt;br /&gt;
-make install&lt;br /&gt;
-
-maildrop&lt;br /&gt;
-
-./configure&lt;br /&gt;
-make;make install-strip;make install-man&lt;br /&gt;
-
-spamassassin&lt;br /&gt;
-
-perl Makefile.PL&lt;br /&gt;
-make&lt;br /&gt;
-make install&lt;br /&gt;
-cp spamd/redhat-rc-script.sh /etc/init.d/spamd&lt;br /&gt;
-
-qmail-scanner&lt;br /&gt;
-
-groupadd qscand;useradd -g qscand -s /sbin/nologin qscand -d /tmp&lt;br /&gt;
-./configure --spooldir /var/qmailscan --qmaildir /var/qmail --bindir /var/qmail/bin --qmail-queue-binary&lt;br /&gt;
-/var/qmail/bin/qmail-queue  --admin postmaster --domain xxx.com --notify sender,admin --local-domains &#34;xxx.com,xxx.com.cn,xxx.com.cn&#34; --silent-viruses auto --debug yes --unzip 1&lt;br /&gt;
---block-password-protected 0 --add-dscr-hdrs 0 --archive 0 --redundant yes --log-details syslog --log-crypto 0&lt;br /&gt;
---fix-mime 2  --ignore-eol-check 0 --scanners &#34;clamscan,fast_spamassassin&#34;&lt;br /&gt;
-
-cp qmail-scanner-queue.pl /var/qmail/bin&lt;br /&gt;
-chown qscand:qscand /var/qmail/bin/qmail-scanner-queue.pl&lt;br /&gt;
-chmod 4755 /var/qmail/bin/qmail-scanner-queue.pl&lt;br /&gt;
-vi /etc/tcp.smtp&lt;br /&gt;
-
-127.:allow,RELAYCLIENT=&#34;&#34;,MFDNSCHECK=&#34;&#34;,BADMIMETYPE=&#34;&#34;,RBLSMTPD=&#34;&#34;,QMAILQUEUE=&#34;/var/&lt;br /&gt;
-qmail/bin/qmail-scanner-queue.pl&#34;&lt;br /&gt;
-
-qmailctl cdb&lt;br /&gt;
-qmailctl restart&lt;br /&gt;
-contrib/test_installation.sh -doit测试&lt;br /&gt;
-</description>
+      <description>参考网址
+http://lifewithqmail.org(中文版http://lifewithqmail.org/LWQ-CN.html)
+http://qmail.te8.com/rpms/glibc-2.3.1/(patch下载地址)
+http://www.fehcom.de/qmail/qmail.html
+http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-mysql.htm
+http://bbs.chinaunix.net/forum/viewtopic.php?t=254662
+ucspi-tcp
+http://cr.yp.to/ucspi-tcp.html
+ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nodefaultrbl.patch
+（或者）ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nobase.patch
+patch -d ucspi-tcp.xxx -p1 &amp;lt; ucspi-tcp-xxx.patch
+make&amp;amp;&amp;amp;make setup check
+daemontools
+http://cr.yp.to/daemontools.html
+daemontools-0.76.errno.patch
+package/install
+Adding svscanboot to inittab...init should start svscan now.
+cmd5checkpw
+http://www.fehcom.de/qmail/auth/cmd5checkpw-030_tgz.bin
+make&amp;amp;&amp;amp;make setup
+qmail 1.03
+http://cr.yp.to/qmail.html
+http://www.fehcom.de/qmail/qmail.html
+http://www.fehcom.de/qmail/spamcontrol/spamcontrol-2311_tgz.bin
+tar zxvf spamcontrol-2311_tgz.bin
+编辑conf-spamcontrol
+建立用户组
+groupadd nofiles
+useradd -g nofiles -d /var/qmail qmaild -s /sbin/nologin
+useradd -g nofiles -d /var/qmail qmaill -s /sbin/nologin
+useradd -g nofiles -d /var/qmail qmailp -s /sbin/nologin</description>
     </item>
     
     <item>
@@ -1022,8 +255,7 @@ contrib/test_installation.sh -doit测试&lt;br /&gt;
       <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/igenus/</guid>
-      <description>igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。&lt;br /&gt;
-</description>
+      <description>igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。</description>
     </item>
     
     <item>
@@ -1032,66 +264,31 @@ contrib/test_installation.sh -doit测试&lt;br /&gt;
       <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/solve-qmail-error/</guid>
-      <description>deferral: Unable_to_chdir_to_maildir._(#4.2.1)&lt;br /&gt;
-
-   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。&lt;br /&gt;
-
-如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。&lt;br /&gt;
-
-deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)&lt;br /&gt;
-
-   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。&lt;br /&gt;
-
-454 oops, unable to write pipe and I can&amp;#39;t auth (#4.3.0)&lt;br /&gt;
-
-  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。&lt;br /&gt;
-
-[root@caph qmail-smtpd]# telnet localhost 25&lt;br /&gt;
-Trying 127.0.0.1...&lt;br /&gt;
-Connected to localhost.&lt;br /&gt;
-Escape character is &amp;#39;^]&amp;#39;.&lt;br /&gt;
-220 xxx.com ESMTP&lt;br /&gt;
-ehlo&lt;br /&gt;
-250-xxx.com&lt;br /&gt;
-250-PIPELINING&lt;br /&gt;
-250-8BITMIME&lt;br /&gt;
-250-SIZE 104857600&lt;br /&gt;
-250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。&lt;br /&gt;
-auth login&lt;br /&gt;
-334 VXNlcm5hbWU6&lt;br /&gt;
-awefaq23rasdf&lt;br /&gt;
-334 UGFzc3dvcmQ6&lt;br /&gt;
-awefwaef&lt;br /&gt;
-454 oops, unable to write pipe and I can&amp;#39;t auth (#4.3.0)&lt;br /&gt;
-quit&lt;br /&gt;
-221 xxx.com&lt;br /&gt;
-Connection closed by foreign host.&lt;br /&gt;
-
-出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。&lt;br /&gt;
-
-QMAILDUID=`id -u vpopmail`&lt;br /&gt;
-QMAILDGID=`id -g vpopmail`&lt;br /&gt;
-
-/usr/local/bin/tcpserver -v -H -R -l &#34;$LOCAL&#34; -x /etc/tcp.smtp.cdb -c &#34;$MAXSMTPD&#34;&lt;br /&gt;
-        -u &#34;$QMAILDUID&#34; -g &#34;$QMAILDGID&#34; 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org&lt;br /&gt;
-        /var/qmail/bin/qmail-smtpd&lt;br /&gt;
-        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2&gt;&amp;1&lt;br /&gt;
-
-不需要修改~vpopmail/bin/vchkpw的属性。&lt;br /&gt;
-
-451 qq write error or disk full (#4.3.0)&lt;br /&gt;
-
-通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。&lt;br /&gt;
-
-qq temporary problem (#4.3.0)&lt;br /&gt;
-
-看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。&lt;br /&gt;
--rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl&lt;br /&gt;
-
-vchkpw-smtp: vpopmail user not found&lt;br /&gt;
-
-查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。&lt;br /&gt;
-</description>
+      <description>deferral: Unable_to_chdir_to_maildir._(#4.2.1)
+这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
+如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
+deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
+这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
+454 oops, unable to write pipe and I can&amp;#39;t auth (#4.3.0)
+这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
+[root@caph qmail-smtpd]# telnet localhost 25
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is &amp;#39;^]&amp;#39;.
+220 xxx.com ESMTP
+ehlo
+250-xxx.com
+250-PIPELINING
+250-8BITMIME
+250-SIZE 104857600
+250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
+auth login
+334 VXNlcm5hbWU6
+awefaq23rasdf
+334 UGFzc3dvcmQ6
+awefwaef
+454 oops, unable to write pipe and I can&amp;#39;t auth (#4.3.0)
+quit</description>
     </item>
     
     <item>
@@ -1100,46 +297,38 @@ vchkpw-smtp: vpopmail user not found&lt;br /&gt;
       <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/a-bug-of-qss/</guid>
-      <description>1 php3.x版本以上不正常显示&lt;br /&gt;
+      <description>1 php3.x版本以上不正常显示
+设置php.ini的register_globals = On
+或者
+修改getGraph.php添加
+$data=$_GET[&amp;#39;data&amp;#39;];
+$t=$_GET[&amp;#39;t&amp;#39;];
+修改getGraph1.php添加
+$data=$_GET[&amp;#39;data&amp;#39;];
+$s=$_GET[&amp;#39;s&amp;#39;];
+2 还不能正常显示
+那可能你的qmail-scanner的版本是1.2以上的，此版本以上的log文件格式有些变化，qss却没有做相应更新，所以会有问题。你可以看看你的log文件的日期是不是下面这种格式
+Mon, 03 Jan 2005 04:01:57 CST
+如果是，那么差不多就是这个问题了。
+解决方法是在index.php里面查找
+# Calc the date timestamp
+把他下面的5行语句用下面的替换
+if ( eregi(&#34;(^[0-9]+)&#34;, $val[0]) )
+{
+# Calc the date timestamp
+$date = explode(&#34;/&#34;,$val[0]);
+$dateT = $date[0];
+$date[0] = $date[1];
+$date[1] = $dateT;
+$date = strtotime(implode(&#34;/&#34;,$date));
+}
+else
+{
+$date = strtotime ($val[0]);
+};
 
-设置php.ini的&lt;font color=&#34;#FF0000&#34;&gt;register_globals = On&lt;/font&gt;&lt;br /&gt;
-
-或者&lt;br /&gt;
-
-修改getGraph.php添加&lt;br /&gt;
-&lt;font color=&#34;#FF0000&#34;&gt;$data=$_GET[&amp;#39;data&amp;#39;];&lt;br /&gt;
-$t=$_GET[&amp;#39;t&amp;#39;];&lt;br /&gt;
-修改getGraph1.php添加&lt;br /&gt;
-$data=$_GET[&amp;#39;data&amp;#39;];&lt;br /&gt;
-$s=$_GET[&amp;#39;s&amp;#39;];&lt;/font&gt;&lt;br /&gt;
-
-2 还不能正常显示&lt;br /&gt;
-
-那可能你的qmail-scanner的版本是1.2以上的，此版本以上的log文件格式有些变化，qss却没有做相应更新，所以会有问题。你可以看看你的log文件的日期是不是下面这种格式&lt;br /&gt;
-Mon, 03 Jan 2005 04:01:57 CST&lt;br /&gt;
-如果是，那么差不多就是这个问题了。&lt;br /&gt;
-
-解决方法是在index.php里面查找&lt;br /&gt;
-&lt;font color=&#34;#FF0000&#34;&gt;# Calc the date timestamp&lt;/font&gt;&lt;br /&gt;
-把他下面的5行语句用下面的替换&lt;br /&gt;
-&lt;font color=&#34;#FF0000&#34;&gt;   if ( eregi(&#34;(^[0-9]+)&#34;, $val[0]) )&lt;br /&gt;
-   {&lt;br /&gt;
-      # Calc the date timestamp&lt;br /&gt;
-      $date = explode(&#34;/&#34;,$val[0]);&lt;br /&gt;
-      $dateT = $date[0];&lt;br /&gt;
-      $date[0] = $date[1];&lt;br /&gt;
-      $date[1] = $dateT;&lt;br /&gt;
-      $date = strtotime(implode(&#34;/&#34;,$date));&lt;br /&gt;
-   }&lt;br /&gt;
-   else&lt;br /&gt;
-   {&lt;br /&gt;
-      $date = strtotime ($val[0]);&lt;br /&gt;
-   };&lt;br /&gt;
-&lt;/font&gt;&lt;br /&gt;
-
-参考网址&lt;br /&gt;
-&lt;a href=&#34;http://www.tnpi.biz/internet/mail/toaster/faq.shtml#how_do_i_get_qmailscanner_statistics_to_work&#34; target=&#34;_blank&#34;&gt;here&lt;/a&gt;&lt;br /&gt;
-</description>
+参考网址
+here</description>
     </item>
     
   </channel>

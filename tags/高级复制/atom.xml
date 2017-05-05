@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>高级复制 on wd and cc</title>
-    <link>https://wdicc.com/tags/%E9%AB%98%E7%BA%A7%E5%A4%8D%E5%88%B6/atom/index.xml</link>
+    <link>https://wdicc.com/tags/%E9%AB%98%E7%BA%A7%E5%A4%8D%E5%88%B6/</link>
     <description>Recent content in 高级复制 on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/%E9%AB%98%E7%BA%A7%E5%A4%8D%E5%88%B6/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 29 Jun 2007 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/%E9%AB%98%E7%BA%A7%E5%A4%8D%E5%88%B6/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>oracle 的 job 又遇到问题了</title>
@@ -14,81 +17,20 @@
       <pubDate>Fri, 29 Jun 2007 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/oracle-jobs/</guid>
-      <description>&lt;p&gt;还是高级复制的问题，这次可能是因为job执行过程中，对方机器刚好重启导致的。反正job是卡在那里了，都10多天了。&lt;/p&gt; &lt;p&gt;查看 dba_jobs_running 表，可以看到卡住的job的 job_id 和 sid 。查看 dba_jobs 表，可以看到相应 job 的信息，this_date 如果有数据的话，表示的是 job 开始执行的时间，next_date 是下次执行 job 的时间，如果 job 正常执行完毕，那么 this_date 应该是空的。根据 sid 还可以查看 v$session_wait 和 v$session 里面的这个 job 的一些状态。&lt;/p&gt; &lt;p&gt;尝试了下面的方法来重新运行job，当时好像不好用，不过今天来看的时候，job是执行了。现在也不清楚是不是我这个操作起作用了，真晕。&lt;/p&gt; &lt;p&gt;&lt;pre lang=&#34;txt&#34;&gt;SQL&amp;gt; exec dbms_job.broken(109,true);&lt;br /&gt;
-
-PL/SQL procedure successfully completed.&lt;br /&gt;
-
-SQL&amp;gt; commit;&lt;br /&gt;
-
-Commit complete.&lt;br /&gt;
-
-SQL&amp;gt; select job,sid from dba_jobs_running;&lt;br /&gt;
-
-       JOB        SID&lt;br /&gt;
----------- ----------&lt;br /&gt;
-       109        656&lt;br /&gt;
-
-SQL&amp;gt; select saddr,sid,serial#,paddr,username,status from v$session where username = &#39;REPADMIN&#39;;&lt;br /&gt;
-
-SADDR           SID    SERIAL# PADDR    USERNAME                       STATUS&lt;br /&gt;
--------- ---------- ---------- -------- ------------------------------ --------&lt;br /&gt;
-973CF8C4        626         27 98F96BB8 REPADMIN                       ACTIVE&lt;br /&gt;
-973D2E7C        629         10 98F88670 REPADMIN                       ACTIVE&lt;br /&gt;
-973F11F4        656         10 98F88174 REPADMIN                       ACTIVE&lt;br /&gt;
-
-SQL&amp;gt; alter system kill session &#39;656,10&#39;;&lt;br /&gt;
-
-System altered.&lt;br /&gt;
-
-SQL&amp;gt; select saddr,sid,serial#,paddr,username,status from v$session where username = &#39;REPADMIN&#39;;&lt;br /&gt;
-
-no rows selected&lt;br /&gt;
-
-SQL&amp;gt; select job,sid from dba_jobs_running;&lt;br /&gt;
-
-no rows selected&lt;br /&gt;
-
-SQL&amp;gt; select job,log_user,last_date,next_date from dba_jobs where log_user=&#39;REPADMIN&#39;;&lt;br /&gt;
-
-       JOB LOG_USER                       LAST_DATE&lt;br /&gt;
----------- ------------------------------ -------------------&lt;br /&gt;
-NEXT_DATE&lt;br /&gt;
--------------------&lt;br /&gt;
-       106 REPADMIN                       2007-06-28 16:25:43&lt;br /&gt;
-2007-06-28 16:35:43&lt;br /&gt;
-
-       109 REPADMIN                       2007-06-28 16:07:38&lt;br /&gt;
-4000-01-01 00:00:00&lt;br /&gt;
-
-       110 REPADMIN                       2007-06-28 16:25:43&lt;br /&gt;
-2007-06-28 16:35:43&lt;br /&gt;
-
-
-SQL&amp;gt; exec dbms_job.broken(109,false,sysdate);&lt;br /&gt;
-
-PL/SQL procedure successfully completed.&lt;br /&gt;
-
-SQL&amp;gt; commit;&lt;br /&gt;
-
-Commit complete.&lt;br /&gt;
-
-SQL&amp;gt; select job,log_user,last_date,next_date from dba_jobs where log_user=&#39;REPADMIN&#39;;&lt;br /&gt;
-
-       JOB LOG_USER                       LAST_DATE&lt;br /&gt;
----------- ------------------------------ -------------------&lt;br /&gt;
-NEXT_DATE&lt;br /&gt;
--------------------&lt;br /&gt;
-       106 REPADMIN                       2007-06-28 16:25:43&lt;br /&gt;
-2007-06-28 16:35:43&lt;br /&gt;
-
-       109 REPADMIN                       2007-06-28 16:07:38&lt;br /&gt;
-2007-06-28 16:28:40&lt;br /&gt;
-
-       110 REPADMIN                       2007-06-28 16:25:43&lt;br /&gt;
-2007-06-28 16:35:43&lt;br /&gt;
-&lt;/pre&gt;&lt;br /&gt;
-&lt;p&gt;此后就我所知道的，就只能等着了。dbms_job.run(job_id) 也可以让 job 立即执行。关键是看 this_date ，他的值就是开始执行 job 的时间，job 如果执行时间太长，而下次执行又太快的话，可能也会导致问题。所以还可以尝试手动执行 job 看看。 dba_jobs 的 waht 字段就是对于的语句。&lt;/p&gt;&lt;br /&gt;
-</description>
+      <description>还是高级复制的问题，这次可能是因为job执行过程中，对方机器刚好重启导致的。反正job是卡在那里了，都10多天了。
+查看 dba_jobs_running 表，可以看到卡住的job的 job_id 和 sid 。查看 dba_jobs 表，可以看到相应 job 的信息，this_date 如果有数据的话，表示的是 job 开始执行的时间，next_date 是下次执行 job 的时间，如果 job 正常执行完毕，那么 this_date 应该是空的。根据 sid 还可以查看 v$session_wait 和 v$session 里面的这个 job 的一些状态。
+尝试了下面的方法来重新运行job，当时好像不好用，不过今天来看的时候，job是执行了。现在也不清楚是不是我这个操作起作用了，真晕。
+SQL&amp;gt; exec dbms_job.broken(109,true);
+PL/SQL procedure successfully completed.
+SQL&amp;gt; commit;
+Commit complete.
+SQL&amp;gt; select job,sid from dba_jobs_running;
+JOB SID
+---------- ----------
+109 656
+SQL&amp;gt; select saddr,sid,serial#,paddr,username,status from v$session where username = &#39;REPADMIN&#39;;
+SADDR SID SERIAL# PADDR USERNAME STATUS
+-------- ---------- ---------- -------- ------------------------------ --------</description>
     </item>
     
   </channel>

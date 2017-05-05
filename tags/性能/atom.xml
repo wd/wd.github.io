@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>性能 on wd and cc</title>
-    <link>https://wdicc.com/tags/%E6%80%A7%E8%83%BD/atom/index.xml</link>
+    <link>https://wdicc.com/tags/%E6%80%A7%E8%83%BD/</link>
     <description>Recent content in 性能 on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/%E6%80%A7%E8%83%BD/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sat, 05 Aug 2006 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/%E6%80%A7%E8%83%BD/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Weblogic服务器性能调优</title>
@@ -14,130 +17,35 @@
       <pubDate>Sat, 05 Aug 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/weblogic-turning/</guid>
-      <description>来源 &lt;a target=&#34;_blank&#34; href=&#34;http://www.mikecat.net/BlogView.asp?logID=1489&#34;&gt;这里&lt;/a&gt;&lt;br /&gt;
+      <description>来源 这里
+注：在下面做的介绍都是以Weblogic8.1为例的，其它版本的Weblogic可能会有些许不同。
+1) 设置JAVA参数；
+a) 编辑Weblogic Server启动脚本文件；
+BEA_HOME\user_projects\domains\domain-name\startWebLogic.cmd(startWebLogic.sh on Unix)
+BEA_HOME\user_projects\domains\domain-name\startManagedWebLogic.cmd(startManagedWebLogic.sh on Unix)
+b) 编辑set JAVA_OPTIONS命令，如：set JAVA_OPTIONS=-Xms256m –Xmx256m；
+c) 保存，重启即可。
+注：在WebLogic中，为了获得更好的性能，BEA公司推荐最小Java堆等于最大Java堆。
 
-注：在下面做的介绍都是以Weblogic8.1为例的，其它版本的Weblogic可能会有些许不同。&lt;br /&gt;
-
-1) 设置JAVA参数；&lt;br /&gt;
-
-a) 编辑Weblogic Server启动脚本文件；&lt;br /&gt;
-
-BEA_HOME\user_projects\domains\domain-name\startWebLogic.cmd(startWebLogic.sh on Unix)&lt;br /&gt;
-
-BEA_HOME\user_projects\domains\domain-name\startManagedWebLogic.cmd(startManagedWebLogic.sh on Unix)&lt;br /&gt;
-
-b) 编辑set JAVA_OPTIONS命令，如：set JAVA_OPTIONS=-Xms256m –Xmx256m；&lt;br /&gt;
-
-c) 保存，重启即可。&lt;br /&gt;
-
-注：在WebLogic中，为了获得更好的性能，BEA公司推荐最小Java堆等于最大Java堆。&lt;br /&gt;
-&lt;!--more--&gt;&lt;br /&gt;
-2) 开发模式 vs. 产品模式；&lt;br /&gt;
-
-开发模式和产品模式的一些参数的默认值不同，可能会对性能造成影响，下面是对性能有影响的参数列表：&lt;br /&gt;
-
-参数&lt;br /&gt;
-
-开发模式默认值&lt;br /&gt;
-
-产品模式默认值&lt;br /&gt;
-
-Execute Queue: Thread Count&lt;br /&gt;
-
-15 threads&lt;br /&gt;
-
-25 threads&lt;br /&gt;
-
-JDBC Connection Pool: MaxCapacity&lt;br /&gt;
-
-15 connnections&lt;br /&gt;
-
-25 connections&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 配置 &gt; 常规选择产品模式。&lt;br /&gt;
-
-3) 尽量开启本地I/O；&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt; 配置 &gt; 调整选择启用本地I/O。&lt;br /&gt;
-
-注：此值也可通过手动的修改config.xml配置文件。&lt;br /&gt;
-
-4) 调优执行队列线程；&lt;br /&gt;
-
-a) 修改默认执行线程数&lt;br /&gt;
-
-在这里，执行队列的线程数表示执行队列能够同时执行的操作的数量。但此值不是设的越大越好，应该恰到好处的去设置它，太小了，执行队列中将会积累很多待处理的任务，太大了，则会消耗大量的系统资源从而影响整体的性能。在产品模式下默认为25个执行线程。&lt;br /&gt;
-
-为了设置理想的执行队列的线程数，我们可以启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt; 监视 &gt; 性能中监控最大负载时执行队列的吞吐量和队列中的等待请求数，据此确定理想的数值。&lt;br /&gt;
-
-理想的默认执行线程数是由多方面的因素决定的，比如机器CPU性能、总体体系架构、I/O、操作系统的进程调度机制、JVM的线程调度机制。随着CPU个数的增加，WebLogic可以近乎线性地提高线程数。线程数越多，花费在线程切换的时间也就越多；线程数越小，CPU可能无法得到充分的利用。为获取一个理想的线程数，需要经过反复的测试。在测试中，可以以25*CPU个数为基准进行调整。当空闲线程较少，CPU利用率较低时，可以适当增加线程数的大小（每五个递增）。对于PC Server和Windows 2000，则最好每个CPU小于50个线程，以CPU利用率为90%左右为最佳。&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt; Execute Queue &gt; weblogic.kernel.Defalt &gt; 配置中修改线程计数。&lt;br /&gt;
-
-b) 设定执行队列的溢出条件；&lt;br /&gt;
-
-Weblogic Server提供给默认的执行队列或用户自定义的执行队列自定义溢出条件的功能，当满足此溢出条件时，服务器改变其状态为“警告”状态，并且额外的再分配一些线程去处理在队列中的请求，而达到降低队列长度的目的。&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt; Execute Queue &gt; weblogic.kernel.Defalt &gt; 配置下面几项：&lt;br /&gt;
-
-l         队列长度：此值表示执行队列中可容纳的最大请求数，默认值是65536，最后不要手动改变此值。&lt;br /&gt;
-
-l         队列长度阈值百分比：此值表示溢出条件，在此服务器指出队列溢出之前可以达到的队列长度大小的百分比。&lt;br /&gt;
-
-l         线程数增加：当检测到溢出条件时，将增加到执行队列中的线程数量。如果CPU和内存不是足够的高，尽量不要改变默认值“0”。因为Weblogic一旦增加后不会自动缩减，虽然最终可能确实起到了降低请求的作用，但在将来的运行中将影响程序的性能。&lt;br /&gt;
-
-l         最大线程数：为了防止创建过多的线程数量，可以通过设定最大的线程数进行控制。&lt;br /&gt;
-
-在实际的应用场景中，应根据具体情况适当的调整以上参数。&lt;br /&gt;
-
-c) 设定执行队列监测行为&lt;br /&gt;
-
-Weblogic Server 能够自动监测到当一个执行线程变为“阻塞”。变为“阻塞”状态的执行线程将无法完成当前的工作，也无法再执行新请求。如果执行队列中的所有执行线程都变为 “阻塞”状态，Weblogic server可能改变状态为“警告”或“严重”状态。如果Weblogic server变为“严重”状态，可以通过 Node Manager来自动关闭此服务器并重新启动它。具体请参考：Node Manager Capabilities文档。&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt;配置 &gt; 调整下可配置下面几项：&lt;br /&gt;
-
-l         阻塞线程最长时间：在此服务器将线程诊断为阻塞线程之前，线程必须连续工作的时间长度(秒)。默认情况下，WebLogic Server 认为线程在连续工作 600 秒后成为阻塞线程。&lt;br /&gt;
-
-l         阻塞线程计时器间隔：WebLogic Server 定期扫描线程以查看它们是否已经连续工作了 &#34;阻塞线程最长时间&#34; 字段中指定的时间长度的间隔时间(秒)。默认情况下，WebLogic Server 将此时间间隔设置为 600 秒。&lt;br /&gt;
-
-5) 调优TCP连接缓存数；&lt;br /&gt;
-
-WebLogic Server 用Accept Backlog参数规定服务器向操作系统请求的队列大小，默认值为50。当系统重载负荷时,这个值可能过小,日志中报 Connection Refused,导致有效连接请求遭到拒绝,此时可以提高Accept Backlog 25%直到连接拒绝错误消失。对于 Portal类型的应用,默认值往往是不够的。Login Timeout和SSL Login Timeout参数表示普通连接和SSL连接的超时时间,如果客户连接被服务器中断或者SSL容量大,可以尝试增加该值。&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt;配置 &gt; 调整下可配置“接受预备连接”。&lt;br /&gt;
-
-6) 改变Java编译器；&lt;br /&gt;
-
-标准的Java编译器是javac，但编译JSP servlets速度太慢，为了提高编译速度，可以使用sj或jikes编译器取代javac编译器。下面说说更改Java编译器：&lt;br /&gt;
-
-通过启动管理控制台，在域（如：mydomain）&gt; 服务器 &gt; server实例（如：myserver）&gt;配置 &gt; 常规下改变Java 编译器，默认为javac。输入完整路径，如：c:\visualcafe31\bin\sj.exe。然后打开高级选项，在预规划到类路径填写编译 Java 代码时为 Java 编译器类路径预规划的选项，如：BEA_HOME\jdk141_02\jre\lib\rt.jar。&lt;br /&gt;
-
-7) 使用Webogic Server集群提高性能；&lt;br /&gt;
-
-具体关于如何配置Weblogic集群，我就不细说了。详情可参考：Introduction to WebLogic Server Clustering。&lt;br /&gt;
-
-8) Weblogic EJB调优&lt;br /&gt;
-
-由于EJB2.0已经很少项目在用了，EJB3.0再成熟一点，我再补充这一部分吧！&lt;br /&gt;
-
-9) JDBC应用调优&lt;br /&gt;
-
-JDBC Connection Pool 的调优受制于WebLogic Server线程数的设置和数据库进程数,游标的大小。通常我们在一个线程中使用一个连接,所以连接数并不是越多越好,为避免两边的资源消耗，建议设置连接池的最大值等于或者略小于线程数。同时为了减少新建连接的开销,将最小值和最大值设为一致。&lt;br /&gt;
-
-增加 Statement Cache Size对于大量使用PreparedStatement对象的应用程序很有帮助,WebLogic能够为每一个连接缓存这些对象,此值默认为10。在保证数据库游标大小足够的前提下,可以根据需要提高Statement Cache Size。比如当你设置连接数为 25,Cache Size为10时,数据库可能需要打开25*10=250个游标。不幸的是,当遇到与PreparedStatement Cache 有关的应用程序错误时,你需要将Cache Size设置为0。&lt;br /&gt;
-
-尽管JDBC Connection Pool提供了很多高级参数,在开发模式下比较有用,但大部分在生产环境下不需调整。这里建议最好不要设置测试表, 同时Test Reserved Connections和 Test Released Connections也无需勾上。 当然如果你的数据库不稳定,时断时续,你就可能需要上述的参数打开。&lt;br /&gt;
-
-最后提一下驱动程序类型的选择,以Oracle为例,Oracle提供thin驱动和oci驱动,从性能上来讲,oci驱动强于thin驱动,特别是大数据量的操作。但在简单的数据库操作中,性能相差不大,随着thin驱动的不断改进,这一弱势将得到弥补。而thin驱动的移植性明显强于oci驱动。所以在通常情况下建议使用thin驱动。而最新驱动器由于WebLogic server/bin目录下的类包可能不是最新的,请以Oracle网站为准: http://www.oracle.com/technology/software ... jdbc/htdocs/jdbc9201.html。&lt;br /&gt;
-
-10) JSP调优&lt;br /&gt;
-
-设置jsp-param pageCheckSeconds=-1；&lt;br /&gt;
-
-设置serlet-reload-check=-1或ServletReloadCheckSecs=-1；&lt;br /&gt;
-
-设置jsp-param precompile=true，关闭JSP预编译选项。&lt;br /&gt;
-</description>
+2) 开发模式 vs. 产品模式；
+开发模式和产品模式的一些参数的默认值不同，可能会对性能造成影响，下面是对性能有影响的参数列表：
+参数
+开发模式默认值
+产品模式默认值
+Execute Queue: Thread Count
+15 threads
+25 threads
+JDBC Connection Pool: MaxCapacity
+15 connnections
+25 connections
+通过启动管理控制台，在域（如：mydomain） 配置  常规选择产品模式。
+3) 尽量开启本地I/O；
+通过启动管理控制台，在域（如：mydomain） 服务器  server实例（如：myserver） 配置  调整选择启用本地I/O。
+注：此值也可通过手动的修改config.xml配置文件。
+4) 调优执行队列线程；
+a) 修改默认执行线程数
+在这里，执行队列的线程数表示执行队列能够同时执行的操作的数量。但此值不是设的越大越好，应该恰到好处的去设置它，太小了，执行队列中将会积累很多待处理的任务，太大了，则会消耗大量的系统资源从而影响整体的性能。在产品模式下默认为25个执行线程。
+为了设置理想的执行队列的线程数，我们可以启动管理控制台，在域（如：mydomain） 服务器  server实例（如：myserver） 监视  性能中监控最大负载时执行队列的吞吐量和队列中的等待请求数，据此确定理想的数值。</description>
     </item>
     
   </channel>

@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Irssi on wd and cc</title>
-    <link>https://wdicc.com/tags/irssi/atom/index.xml</link>
+    <link>https://wdicc.com/tags/irssi/</link>
     <description>Recent content in Irssi on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/irssi/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Wed, 21 Mar 2007 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/irssi/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Irssi script howto</title>
@@ -14,90 +17,14 @@
       <pubDate>Wed, 21 Mar 2007 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/irssi-script-howto/</guid>
-      <description>为 irssi 写一些简单的脚本其实不是很难。我大概讲解一下如何写作。&lt;br /&gt;
-
-&lt;b&gt;== 理解 signal ==&lt;/b&gt;&lt;br /&gt;
-
-写过 vb 程序的都应该知道，vb 都是按照事件来触发执行程序的。例如你给某个窗体的 单击事件 写了代码，那么当这个窗体被单击的时候，就会执行你写的代码。&lt;br /&gt;
-
-在 irssi 也是类似，不过他的不是事件，是 signal 。你所要做的就是针对不同的 signal 写不同代码即可。&lt;br /&gt;
-
-irssi 的 signal 在这个 &lt;a href=&#34;http://irssi.org/documentation/signals&#34;&gt;文档&lt;/a&gt; 里面都写的很全了，此外安装 irssi 的时候也会安装 irssi 的一些文档，里面也有 signal 的相关文档。&lt;br /&gt;
-
-&lt;b&gt;== 一个简单脚本 ==&lt;/b&gt;&lt;br /&gt;
-
-脚本头部要包含一些脚本的信息，例如下面。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-perl&#34;&gt;
-use vars qw($VERSION %IRSSI);
-use Irssi;
-
-$VERSION = &#39;1.00&#39;;
-%IRSSI = (
-    authors     =&gt; &#39;wd&#39;,
-    contact     =&gt; &#39;wd#wdicc.com&#39;,
-    name        =&gt; &#39;My first Script&#39;,
-    description =&gt; &#39;This script notify &#39; .
-                   &#39;you when recive msg.&#39;,
-    license     =&gt; &#39;Public Domain&#39;,
-);
-
-sub recive_msg{
-    my ($server, $msg, $nick, $address, $target) = @_;
-    #do nothing 
-
-}
-
-Irssi::signal_add_first(&#39;message public&#39;,  &#39;recive_msg&#39;);&lt;/pre&gt;
-
-最下面那行就是截获 irssi 的 signal 了。“message public”这个 signal 是在 irssi 接收到 public message 的时候产生，上面的脚本截获这个 signal 之后，执行后面的 revice_msg 函数 。查一下上面的 signal 文档可以找到下面的内容。
-
- &#34;message public&#34;, SERVER_REC, char *msg, char *nick, char *address, char *target
-
-这表示 irssi 在产生 message public 这个 signal 之后，还会同时传递后面的那些信息。上面那个脚本里面，这些信息都传递给了 recive_msg 函数。这样 recive_msg 函数的第一行就是设置一些变量来接收这些信息。
-
-这就是一个简单的 signal 的处理过程，当然，上面的这个脚本在截获 signal 之后其实什么都没有做。那么怎么让脚本和 irssi 交互呢？
-
-&lt;b&gt;== 和 irssi 交互 ==&lt;/b&gt;
-
-按照上面的例子，可以用 $server-&gt;command() 或者 $server-&gt;print() 来和 irssi 交互。
-
-$server-&gt;command 可以在 irssi 里面执行一个 irssi 命令。例如
-
- $server-&gt;command(&#34;msg wd hi&#34;);
-
-这样相当于在 irssi 里面输入 &#34;/msg wd hi&#34; 这个命令。其他命令类推一下。
-
-$server-&gt;print 可以在 irssi 里面打印一些信息，这些信息别人是看不到的，这些信息类似于 irssi 给你的消息。例如
-
- $server-&gt;print(&#34;$server&#34;,&#34;a test msg&#34;);
-
-这些信息会在1号窗口（这个不一定，看连接了几个server）里面显示。
-
-有了 print 就可以在 irssi 里面测试 recive_msg 函数接收的信息都是什么意义了。试试看下面的命令
-
- $server-&gt;print(&#34;$server&#34;,&#34;$nick send you a msg : $msg&#34;);
-
-&lt;b&gt;== 设置一些选项 ==&lt;/b&gt;
-
-可以为脚本设置一些选项，这样也可以让脚本适合更多人使用。
-
- Irssi::settings_add_str(&#34;wd&#34;,&#34;test&#34;,&#34;just for test&#34;);
- Irssi::settings_add_bool(&#39;blah&#39;, &#39;blah_color&#39;, 1);;
-
-上面这两行设置了两个变量，一个是字符串 test，初始值为 &#34;just for test&#34;，另一个是布尔变量 blah_color ，初始值是1。第一个参数是设置将变量显示在哪个段，用 /set 命令查看的时候会看到。
-
-使用下面的命令可以获取设置。
-
- $a = Irssi::settings_get_str(&#34;test&#34;);
- $b = Irssi::settings_get_bool(&#39;blah_color&#39;);
-
-这样按照上面的设置， $a 的值就是 &#34;just for test&#34; ， $b 的值就是 1。当然，用户如果用 /set 命令来设置了这些参数，那么取回的信息就不一定是这些了。
-
-&lt;b&gt;== 参考资料 ==&lt;/b&gt;
-
-&lt;a href=&#34;http://juerd.nl/site.plp/irssiscripttut&#34;&gt;Scripting Irssi&lt;/a&gt;
-</description>
+      <description>为 irssi 写一些简单的脚本其实不是很难。我大概讲解一下如何写作。
+== 理解 signal ==
+写过 vb 程序的都应该知道，vb 都是按照事件来触发执行程序的。例如你给某个窗体的 单击事件 写了代码，那么当这个窗体被单击的时候，就会执行你写的代码。
+在 irssi 也是类似，不过他的不是事件，是 signal 。你所要做的就是针对不同的 signal 写不同代码即可。
+irssi 的 signal 在这个 文档 里面都写的很全了，此外安装 irssi 的时候也会安装 irssi 的一些文档，里面也有 signal 的相关文档。
+== 一个简单脚本 ==
+脚本头部要包含一些脚本的信息，例如下面。
+use vars qw($VERSION %IRSSI); use Irssi; $VERSION = &#39;1.00&#39;; %IRSSI = ( authors = &#39;wd&#39;, contact = &#39;wd#wdicc.com&#39;, name = &#39;My first Script&#39;, description = &#39;This script notify &#39; . &#39;you when recive msg.&#39;, license = &#39;Public Domain&#39;, ); sub recive_msg{ my ($server, $msg, $nick, $address, $target) = @_; #do nothing } Irssi::signal_add_first(&#39;message public&#39;, &#39;recive_msg&#39;); 最下面那行就是截获 irssi 的 signal 了。“message public”这个 signal 是在 irssi 接收到 public message 的时候产生，上面的脚本截获这个 signal 之后，执行后面的 revice_msg 函数 。查一下上面的 signal 文档可以找到下面的内容。 &#34;</description>
     </item>
     
     <item>
@@ -106,136 +33,10 @@ $server-&gt;print 可以在 irssi 里面打印一些信息，这些信息别人�
       <pubDate>Tue, 20 Mar 2007 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/irssi-how-to/</guid>
-      <description>&lt;a href=&#34;http://irssi.org&#34;&gt;irssi&lt;/a&gt; 是一款 linux 下面的 irc 聊天软件，它是基于console下面的，所以不需要 x 界面的支持，并且支持 &lt;a href=&#34;http://irssi.org/scripts&#34;&gt;plugin&lt;/a&gt; 扩展功能，在 irc 软件里面，它用起来感觉还是很不错的。&lt;br /&gt;
-
-&lt;b&gt;== 安装 irssi ==&lt;/b&gt;&lt;br /&gt;
-
-在 &lt;a href=&#34;http://www.archlinux.org/&#34;&gt;ArchLinux&lt;/a&gt; 下面，使用下面得命令即可安装 irssi 。如果需要使用 nicklist 插件，那么同时需要安装 screen 这个软件。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-
-&lt;b&gt;== 启动、退出 irssi ==&lt;/b&gt;
-
-启动 irssi 的方法也很简单，执行下面的命令即可。启动之后会看到一些提示内容。
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-
-如果要退出 irssi ，可以在下面的输入框输入 &#34;/quit [退出原因]&#34; 命令，其中退出原因可以不写。
-
-&lt;b&gt;== 删除内置的一些 server 和 network 列表 ==&lt;/b&gt;
-
-默认情况下， irssi 会给你设置一些 server 和 network 列表，可以使用下面的命令来查看。
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-/server list
-/channel list&lt;/pre&gt;
-
-这些都可以先删掉，如果你想保留的话，可以跳过这一步。
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-/server remove [server_name]
-/channel remove [chan_name]&lt;/pre&gt;
-
-删掉之后比较清爽，呵呵。我喜欢这样。
-
-&lt;b&gt;== 添加自己的 server 和 network 列表 ==&lt;/b&gt;
-
-这里以 linuxsir 的 archlinux 的 irc 频道为例来介绍一下。服务器是  irc.oftc.net ，端口是6667，频道是 #arch-cn。
-
-先添加 network 。 oftc 可以注册用户名，方法后面再说。下面命令中的  autosendcmd 后面的内容就是和服务器验证用户名的命令，如果你没这个需求，可以直接删掉那些内容。
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;/network add -autosendcmd &#34;/^msg nickserv identify passwd;wait 2000&#34;&gt;
-
-接下来添加 server 。其中的 -auto 选项可以让 irssi 启动的时候就自动连接这个 server 。
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-
-接下来添加自动加入的 channel 。 auto 参数同上。
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-
-ok ，这就都添加完了，可以使用前面提到的list命令来查看添加的列表是否正确。退出 irssi 之后，重新启动， irssi 应该已经在自动连接 server ，并且连接之后还能自动加入刚才添加的频道了。
-
-irssi 里面切换标签用的是 alt+数字 ，界面下面会提示哪个 window 是 active 的，按 alt+那个数字就可以切换过去。
-
-&lt;b&gt;== 注册用户名 ==&lt;/b&gt;
-
-irc 里面修改昵称的命令是 “/nick new_nick”，设置好自己的 nick 之后，还可以在 oftc 注册，这样以后别人使用你这个昵称的时候，你可以抢回来。:)
-
-注册昵称的命令如下。 password 改成密码， e-mail 改成邮箱。
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-
-注册之后，以后可以使用下面的命令来告诉 oftc 你是谁。可以看到这个命令在前面出现过，就是添加 network 的时候，如果按照本文提示的那样做了的话，每次启动 irssi 连接到这个 network 所属的 server 之后，会自动执行这个命令。
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-
-其他的一些注册用户名相关的信息可以通过 &#34;/msg nickserv help&#34; 来查看。
-
-作了上面这些操作之后， irssi 用起来已经基本很顺手了。其他的一些 irc 命令可以自己去发现，或者上 irc 问其他的用户。
-
-&lt;b&gt;== 显示 nicklist 列表 ==&lt;/b&gt;
-
-用一段时间会发现， irssi 里面查看当前有哪些用户在聊天不是很方便。这里需要安装一个 nicklist 插件，地址是&lt;a href=&#34;http://irssi.org/scripts/scripts/nicklist.pl&#34;&gt;这里&lt;/a&gt;，保存到 ~/.irssi/scripts 目录下面，然后在这个目录下面新建一个 autorun 目录，然后将 nicklist.pl 在那个目录下做一个链接，这么做的目的是使得 irssi 启动的时候就可以加载 nicklist.pl 这个插件。
-
-ok ，重新启动 irssi ，然后在频道里面执行一下“/nicklist screen&#34; 命令，右边是不是出来 nicklist 了？
-
-&lt;b&gt;== 消息通知 ==&lt;/b&gt;
-
-使用一段时间就会发现，有时候 irc 里面有人和你说话的时候没有提示，不像即时通讯软件那样会弹出一个窗口提醒你。 irssi 通过插件可以来实现这个。
-
-下载 &lt;a href=&#34;http://irssi.org/scripts/scripts/beep_beep.pl&#34;&gt;beep&lt;/a&gt; 插件，放到 .irssi/scripts 目录下面，然后在 irssi 中使用下面的命令加载这个插件。
-
- /script load beep_beep.pl
-
-执行之后会在1号窗口看到加载成功与否的提示。加载之后 irssi 就多了两个参数可以设置， beep_flood 和 beep_cmd ，可以使用 /set 命令来设置他们。 beep_flood 的单位是毫秒，所以1000表示1秒。
-
-设置完毕这些之后，还需要设置一下哪些情况下通知你，就是  beep_msg_level 这个参数。这个参数可以设置的内容可以用 /help levels 来查看。
-&lt;pre class=&#34;prettyprint lang-text&#34;&gt;
-    CRAP          - ?
-    MSGS          - Match messages privately sent to you.
-    PUBLIC        - Match messages sent to public channels.
-    NOTICES       - Match NOTICE messages.
-    SNOTES        - Match server notices.
-    CTCPS         - Match CTCP messages.
-    ACTIONS       - Match CTCP actions.
-    JOINS         - Match join messages.
-    PARTS         - Match part messages.
-    QUITS         - Match quit messages.
-    KICKS         - Match kick messages.
-    MODES         - Match mode changes.
-    TOPICS        - Match topic changes.
-    WALLOPS       - Match wallops.
-    INVITES       - Match invite requests.
-    NICKS         - Match nickname changes.
-    DCC           - DCC related messages.
-    DCCMSGS       - Match DCC chat messages.
-    CLIENTNOTICE  - Irssi&#39;s notices.
-    CLIENTCRAP    - Miscellaneous irssi messages.
-    CLIENTERROR   - Irssi&#39;s error messages.
-    ALL           - All previous message levels combined.
-    HILIGHT       - Match highlighted messages.
-    NOHILIGHT     - Don&#39;t check a message&#39;s highlighting.
-    NO_ACT        - Don&#39;t trigger channel activity.
-    NEVER         - Never ignore, never log.
-    LASTLOG       - Never ignore, never log.&lt;/pre&gt;
-
-我的设置是  &#34;MSGS DCC INVITES HILIGHT&#34; 。设置好之后也可以把它放到 autorun 里面去自动加载。
-
-如果单纯设置 beep_cmd 这种方式你不满足的话，可以自己修改那个脚本，这里有我写的一篇 irssi_script_howto。
-
-&lt;b&gt;== 其他的一些设定 ==&lt;/b&gt;
-
-使用&#34;/ctcp user_name version&#34;命令可以查看对方的一些信息，各个软件返回的信息不太一样，例如 xchat 自己的版本，还会返回操作系统的一些信息， chatzllia 也会返回自己的版本信息。默认情况下， irssi 也是返回自己的版本，但是我们可以自己定制一下 :)
-
-执行 &#34;/set&#34; 命令，你会看到会返回很多信息，这些都是 irssi 的设置项，可以设置 theme 什么的，要设置 ctcp version 的返回信息，需要设置 ctcp_version_reply 这个选项， &#34;/set ctcp_version_reply :)&#34; 就可以了。对方查看的时候，只能看到:)这个返回信息。
-
-在 irssi 里面，如果用 screen 启动的话，翻页使用的是 page down/page up 按键。
-
-&lt;b&gt;== 参考资料 ==&lt;/b&gt;
-
-irssi的官方网站上面的 &lt;a href=&#34;http://irssi.org/documentation&#34;&gt;文档&lt;/a&gt; 很详细，建议去看看。本文就是参考 &lt;a href=&#34;http://irssi.org/documentation/startup&#34;&gt;Startup HOWTO&lt;/a&gt; 里面的 &lt;b&gt;Server and channel automation&lt;/b&gt; 而写。
-</description>
+      <description>irssi 是一款 linux 下面的 irc 聊天软件，它是基于console下面的，所以不需要 x 界面的支持，并且支持 plugin 扩展功能，在 irc 软件里面，它用起来感觉还是很不错的。
+== 安装 irssi ==
+在 ArchLinux 下面，使用下面得命令即可安装 irssi 。如果需要使用 nicklist 插件，那么同时需要安装 screen 这个软件。
+== 启动、退出 irssi == 启动 irssi 的方法也很简单，执行下面的命令即可。启动之后会看到一些提示内容。 如果要退出 irssi ，可以在下面的输入框输入 &#34;/quit [退出原因]&#34; 命令，其中退出原因可以不写。 == 删除内置的一些 server 和 network 列表 == 默认情况下， irssi 会给你设置一些 server 和 network 列表，可以使用下面的命令来查看。 /server list /channel list 这些都可以先删掉，如果你想保留的话，可以跳过这一步。 /server remove [server_name] /channel remove [chan_name] 删掉之后比较清爽，呵呵。我喜欢这样。 == 添加自己的 server 和 network 列表 == 这里以 linuxsir 的 archlinux 的 irc 频道为例来介绍一下。服务器是 irc.</description>
     </item>
     
     <item>
@@ -244,14 +45,11 @@ irssi的官方网站上面的 &lt;a href=&#34;http://irssi.org/documentation&#34
       <pubDate>Sat, 09 Sep 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/login-in-irc-use-irssi/</guid>
-      <description>/SERVER ADD -auto -network oftc irc.oftc.net 6667&lt;br /&gt;
-/NETWORK ADD -autosendcmd &#34;/^msg nickserv identify pass;wait 2000&#34; OFTC&lt;br /&gt;
-/CHANNEL ADD -auto #arch-cn OFTC&lt;br /&gt;
-
-这样可以实现起动irc自动登录，并且加入频道&lt;br /&gt;
-
-&lt;a target=&#34;_blank&#34; href=&#34;http://www.irssi.org&#34;&gt;irssi&lt;/a&gt; 的 &lt;a target=&#34;_blank&#34; href=&#34;http://www.irssi.org/documentation/manual&#34;&gt;manual&lt;/a&gt; 以及一个&lt;a target=&#34;_blank&#34; href=&#34;http://www.irssi.org/documentation/startup&#34;&gt;Howto&lt;/a&gt; 。&lt;br /&gt;
-</description>
+      <description>/SERVER ADD -auto -network oftc irc.oftc.net 6667
+/NETWORK ADD -autosendcmd &#34;/^msg nickserv identify pass;wait 2000&#34; OFTC
+/CHANNEL ADD -auto #arch-cn OFTC
+这样可以实现起动irc自动登录，并且加入频道
+irssi 的 manual 以及一个Howto 。</description>
     </item>
     
   </channel>

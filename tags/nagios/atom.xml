@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Nagios on wd and cc</title>
-    <link>https://wdicc.com/tags/nagios/atom/index.xml</link>
+    <link>https://wdicc.com/tags/nagios/</link>
     <description>Recent content in Nagios on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/nagios/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Mon, 18 Jan 2016 15:14:36 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/nagios/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>use gearman to distribute you nagios check</title>
@@ -14,65 +17,13 @@
       <pubDate>Mon, 18 Jan 2016 15:14:36 +0800</pubDate>
       
       <guid>https://wdicc.com/use-gearman-to-distribute-you-nagios-check/</guid>
-      <description>
-
-&lt;h1 id=&#34;安装&#34;&gt;安装&lt;/h1&gt;
-
-&lt;h2 id=&#34;gearman&#34;&gt;gearman&lt;/h2&gt;
-
-&lt;p&gt;需要 boost &amp;gt; 1.39, libevent-devel, libuuid-devel, gperf
-需要 gcc &amp;gt;= 4.2&lt;/p&gt;
-
-&lt;p&gt;export CC=gcc44
-export CC=g++44&lt;/p&gt;
-
-&lt;h2 id=&#34;mod-gearman&#34;&gt;mod-gearman&lt;/h2&gt;
-
-&lt;p&gt;libtool-ltdl-devel ncurses-devel
-&amp;ndash;with-gearman&lt;/p&gt;
-
-&lt;h1 id=&#34;配置&#34;&gt;配置&lt;/h1&gt;
-
-&lt;p&gt;gearman 分为几个模块
-* mod_gearman: 负责把 nagios 中的检查任务发给 gearmand job server
-* gearmand: 负责接收任务，分配给 worker 执行。这个是个通用的队列管理服务。
-* gearman_workder: 负责消费 gearmand 中的 job。&lt;/p&gt;
-
-&lt;p&gt;其中 &lt;code&gt;mod_gearman&lt;/code&gt; 的代码里面包括了上面提到的 mod_gearman 和 gearman_workder。&lt;/p&gt;
-
-&lt;p&gt;所以规划好 gearmand 启动的机器，以及你的 worker 机器。其中要注意 worker 机器上面是会执行所有[1] nagios 监控&lt;/p&gt;
-
-&lt;p&gt;需要配置的文件有几个
-* nagios.cfg 增加 broker
-* mod-gearman/etc/mod_gearman/mod_gearman_neb.conf broker 的配置文件
-* mod-gearman/etc/mod_gearman/mod_gearman_worker.conf workder 的配置文件&lt;/p&gt;
-
-&lt;h1 id=&#34;启动&#34;&gt;启动&lt;/h1&gt;
-
-&lt;ul&gt;
-&lt;li&gt;先启动 gearmand 使用 mod-gearman/etc/init.d/gearmand 这个脚本。&lt;/li&gt;
-&lt;li&gt;启动 worker 使用 mod-gearman/etc/init.d/mod_gearman_worker 这个脚本。启动之后可以用 gearman_top 看到多了一些队列。&lt;/li&gt;
-&lt;li&gt;重启 nagios&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;确认 nagios.log 里面正常加载了 gearman，然后看 gearman_top 里面开始有一些 run 的 job 了。&lt;/p&gt;
-
-&lt;h1 id=&#34;注意事项&#34;&gt;注意事项&lt;/h1&gt;
-
-&lt;p&gt;基本上使用 gearman 还算是对用户透明，需要配置的东西不多，默认配置就可以跑。&lt;/p&gt;
-
-&lt;p&gt;一般使用 gearman 的时候都是现有 nagios 遇到瓶颈了，这个时候扩展的时候需要注意下，第一步可以在 nagios 机器上面（或者弄一台新的机器）做 gearman 的 job server，然后在 nagios 的机器上面跑一个 worker，这样基本就是 0 配置都可以跑起来，不会有任何问题。&lt;/p&gt;
-
-&lt;p&gt;第一步完成之后就会需要增加 worker，这个时候就要注意了，新的 worker 机器上面，需要在相同的路径下面包括所有你用到的 nagios plugin（包括自己写的，也包括这些 plugin 依赖的其他内容，比如临时文件路径，配置文件等），否则分发过来的 job 会执行不成功。&lt;/p&gt;
-
-&lt;p&gt;这个时候有个办法，就是把原来机器的 nagios 相关目录通过 nfs 共享给其他机器（但是得注意二进制程序是兼容的）。&lt;/p&gt;
-
-&lt;p&gt;另外如果需要测试一下新的 worker，也可以通过配置只让 worker 执行某些 servicegroup 或者 hostgroup 的任务。要注意这个时候需要配置 service, eventhandler, host 都为 no，然后配置 servicegroups 或者 hostgroups。&lt;/p&gt;
-
-&lt;h1 id=&#34;footnotes&#34;&gt;Footnotes&lt;/h1&gt;
-
-&lt;p&gt;[1] 其实 worker 是可以被配置为只处理某些监控的，这个后面会讲。&lt;/p&gt;
-</description>
+      <description>安装 gearman 需要 boost &amp;gt; 1.39, libevent-devel, libuuid-devel, gperf 需要 gcc &amp;gt;= 4.2
+export CC=gcc44 export CC=g++44
+mod-gearman libtool-ltdl-devel ncurses-devel &amp;ndash;with-gearman
+配置 gearman 分为几个模块 * mod_gearman: 负责把 nagios 中的检查任务发给 gearmand job server * gearmand: 负责接收任务，分配给 worker 执行。这个是个通用的队列管理服务。 * gearman_workder: 负责消费 gearmand 中的 job。
+其中 mod_gearman 的代码里面包括了上面提到的 mod_gearman 和 gearman_workder。
+所以规划好 gearmand 启动的机器，以及你的 worker 机器。其中要注意 worker 机器上面是会执行所有[1] nagios 监控
+需要配置的文件有几个 * nagios.cfg 增加 broker * mod-gearman/etc/mod_gearman/mod_gearman_neb.conf broker 的配置文件 * mod-gearman/etc/mod_gearman/mod_gearman_worker.conf workder 的配置文件</description>
     </item>
     
     <item>
@@ -81,27 +32,12 @@ export CC=g++44&lt;/p&gt;
       <pubDate>Mon, 16 Apr 2007 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/nagios-conf/</guid>
-      <description>&lt;b&gt;Host and Service Dependencies&lt;/b&gt;&lt;br /&gt;
-
-当监控的host或者service之间有依赖关系的时候，可以通过定义dependence来让nagios知道应该通知什么。&lt;br /&gt;
-
-比如我这里的服务器都在idc托管，而我的nagios却是运行在公司的一台服务器上面。这样，有时候可能就需要考虑依赖关系了。比如当公司的网络出问题的时候（事实上经常出现），比如断网，总不能让他也认为是idc托管的服务器出问题了而给你发通知吧。host dependence正好可以解决这个问题。&lt;br /&gt;
-
-比如 A 是idc的，B 是公司的网关（或者某个应该一直在线的服务器，比如sina.com.cn）。当nagios检测到A连不上的时候，他会根据dependence来检测B，如果B也连不上了，那么就只通知你B连不上了。&lt;br /&gt;
-
-大概的配置如下&lt;br /&gt;
-&lt;pre class=&#34;prettyprint lang-text&#34;&gt;
-        host_name                       B
-        dependent_host_name             A
-        notification_failure_criteria   d,u
-        }&lt;/pre&gt;
-
-&lt;b&gt;Notification Escalations&lt;/b&gt;
-
-escalations 的意思就是扩大。整个这个的意思应该就是扩大通知范围。之前一直没理解是什么意思，今天看了才明白。其实就是定义出问题的时候，什么时候扩大通知。
-
-比如A服务器挂了，他对应的contactgroup就会立刻得到通知。但是，如果这个组里面的人在睡觉或者在做什么事情忽略了这个通知，怎么办呢？当然nagios会通知多次，但是如果这些都忽略掉了或者没有收到怎么办？这样这个escalations就有作用了，他可以定义几次通知contatgroup之后就开始通知别的人。还有一些别的功能，就不多说了。
-</description>
+      <description>Host and Service Dependencies
+当监控的host或者service之间有依赖关系的时候，可以通过定义dependence来让nagios知道应该通知什么。
+比如我这里的服务器都在idc托管，而我的nagios却是运行在公司的一台服务器上面。这样，有时候可能就需要考虑依赖关系了。比如当公司的网络出问题的时候（事实上经常出现），比如断网，总不能让他也认为是idc托管的服务器出问题了而给你发通知吧。host dependence正好可以解决这个问题。
+比如 A 是idc的，B 是公司的网关（或者某个应该一直在线的服务器，比如sina.com.cn）。当nagios检测到A连不上的时候，他会根据dependence来检测B，如果B也连不上了，那么就只通知你B连不上了。
+大概的配置如下
+host_name B dependent_host_name A notification_failure_criteria d,u } Notification Escalations escalations 的意思就是扩大。整个这个的意思应该就是扩大通知范围。之前一直没理解是什么意思，今天看了才明白。其实就是定义出问题的时候，什么时候扩大通知。 比如A服务器挂了，他对应的contactgroup就会立刻得到通知。但是，如果这个组里面的人在睡觉或者在做什么事情忽略了这个通知，怎么办呢？当然nagios会通知多次，但是如果这些都忽略掉了或者没有收到怎么办？这样这个escalations就有作用了，他可以定义几次通知contatgroup之后就开始通知别的人。还有一些别的功能，就不多说了。 </description>
     </item>
     
     <item>
@@ -110,21 +46,12 @@ escalations 的意思就是扩大。整个这个的意思应该就是扩大通�
       <pubDate>Mon, 14 Aug 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/software-for-nagios/</guid>
-      <description>&lt;a href=&#34;http://sourceforge.net/projects/ntrayc&#34;&gt;ntrayc&lt;/a&gt; 和 &lt;a href=&#34;http://sourceforge.net/projects/nagiostrayicon&#34;&gt;nagiostrayicon&lt;/a&gt;&lt;br /&gt;
-
-都是在tray那里显示nagios是否报错得。到时会有声音或者窗口弹出来。&lt;br /&gt;
-
-前者不需要安装，后者需要安装。界面功能来看都差不多。&lt;br /&gt;
-
-刚装上有台服务器就down了，呵呵。比较了一下，觉得ntrayc比较好。下面是他们得设置界面。&lt;br /&gt;
-
-ntrayc如下，两幅图，后面那个是他得console，可以同时得到服务得大概信息。不知道他哪里设置声音，下载得安装包里面没有声音文件。每次检测到问题都会弹出窗口。&lt;br /&gt;
-
-&lt;img alt=&#34;ntrayc2.png&#34; id=&#34;image233&#34; src=&#34;http://blog.wdicc.com/wordpress/wp-content/uploads/2006/08/ntrayc2.png&#34; /&gt;&lt;br /&gt;
-&lt;img alt=&#34;ntrayc.png&#34; id=&#34;image232&#34; src=&#34;http://blog.wdicc.com/wordpress/wp-content/uploads/2006/08/ntrayc.png&#34; /&gt;&lt;br /&gt;
-nagios tray icon得设置界面如下，出问题得时候他不会弹出窗口，会出声叫。不过第二次检测就不叫了，icon变红色。&lt;br /&gt;
-&lt;img alt=&#34;trayicon.png&#34; id=&#34;image231&#34; src=&#34;http://blog.wdicc.com/wordpress/wp-content/uploads/2006/08/trayicon.png&#34; /&gt;&lt;br /&gt;
-</description>
+      <description>ntrayc 和 nagiostrayicon
+都是在tray那里显示nagios是否报错得。到时会有声音或者窗口弹出来。
+前者不需要安装，后者需要安装。界面功能来看都差不多。
+刚装上有台服务器就down了，呵呵。比较了一下，觉得ntrayc比较好。下面是他们得设置界面。
+ntrayc如下，两幅图，后面那个是他得console，可以同时得到服务得大概信息。不知道他哪里设置声音，下载得安装包里面没有声音文件。每次检测到问题都会弹出窗口。
+nagios tray icon得设置界面如下，出问题得时候他不会弹出窗口，会出声叫。不过第二次检测就不叫了，icon变红色。</description>
     </item>
     
   </channel>

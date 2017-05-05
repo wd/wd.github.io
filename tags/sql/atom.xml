@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Sql on wd and cc</title>
-    <link>https://wdicc.com/tags/sql/atom/index.xml</link>
+    <link>https://wdicc.com/tags/sql/</link>
     <description>Recent content in Sql on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/sql/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 05 Aug 2012 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/sql/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Join 后面跟两个表</title>
@@ -14,44 +17,10 @@
       <pubDate>Sun, 05 Aug 2012 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/two-table-after-join/</guid>
-      <description>&lt;p&gt;发现 sql 的写法真是千奇百怪，经常遇到没见过的写法。前几天就遇到了一个 sql 在 join 后写两个表，用逗号分隔。类似下面。&lt;/p&gt;
-
-&lt;pre class=&#34;prettyprint lang-sql&#34;&gt;
-select a.a, b.f from t1 a left join ( b, c ) on ( b.id = c.id and b.a = a.a )
-&lt;/pre&gt;
-
-&lt;p&gt;看到 sql 的这些用法我一般都是去 pgsql 的文档里面去查，因为 pg 的文档里面一般会指明一种用法是否标准 sql，多写标准 sql 可以避免知识不能转移。不过去查了发现 pg 不支持这种写法，也去 pg 里面执行了，确实不支持。&lt;/p&gt;
-
-&lt;p&gt;然后就去看 mysql 的文档，里面有对于这种写法的&lt;a href=&#34;http://dev.mysql.com/doc/refman/5.1/en/join.html&#34;&gt;支持&lt;/a&gt;。&lt;/p&gt;
-
-&lt;pre class=&#34;prettyprint lang-text&#34;&gt;
- The syntax of table_factor is extended in comparison with the SQL Standard. The latter accepts only table_reference, not a list of them inside a pair of parentheses.
-
-This is a conservative extension if we consider each comma in a list of table_reference items as equivalent to an inner join. For example:
-
-SELECT * FROM t1 LEFT JOIN (t2, t3, t4)
-                 ON (t2.a=t1.a AND t3.b=t1.b AND t4.c=t1.c)
-
-is equivalent to:
-
-SELECT * FROM t1 LEFT JOIN (t2 CROSS JOIN t3 CROSS JOIN t4)
-                 ON (t2.a=t1.a AND t3.b=t1.b AND t4.c=t1.c)
-
-In MySQL, JOIN, CROSS JOIN, and INNER JOIN are syntactic equivalents (they can replace each other). In standard SQL, they are not equivalent. INNER JOIN is used with an ON clause, CROSS JOIN is used otherwise. 
-&lt;/pre&gt;
-
-&lt;p&gt;可以看到，这种写法就是等于是让括号里面的 b,c 使用 inner join 的方式连接，当然如果 on 里面没有指定 join 方式，最后就是个笛卡尔集。然后&lt;a href=&#34;http://dev.mysql.com/doc/refman/5.1/en/nested-join-optimization.html&#34;&gt;这里&lt;/a&gt; 有更多的一些说明，还有下面这种写法。&lt;/p&gt;
-
-&lt;pre class=&#34;prettyprint lang-sql&#34;&gt;
-t1 LEFT JOIN t2 ON t1.a=t2.a, t3
-&lt;/pre&gt;
-
-&lt;p&gt;这些写法都有各自的含义。&lt;/p&gt;
-
-&lt;p&gt;其实这么看来，这个方式好像是比较方便的，不过是对于不明白的人如果乱用，这玩意出的错也是很诡异很难排查的。&lt;/p&gt;
-
-&lt;p&gt;另外注意上面的语句里面写了，mysql 里面的 join, inner join, cross join 是完全同样的东西。&lt;/p&gt;
-</description>
+      <description>发现 sql 的写法真是千奇百怪，经常遇到没见过的写法。前几天就遇到了一个 sql 在 join 后写两个表，用逗号分隔。类似下面。
+select a.a, b.f from t1 a left join ( b, c ) on ( b.id = c.id and b.a = a.a )  看到 sql 的这些用法我一般都是去 pgsql 的文档里面去查，因为 pg 的文档里面一般会指明一种用法是否标准 sql，多写标准 sql 可以避免知识不能转移。不过去查了发现 pg 不支持这种写法，也去 pg 里面执行了，确实不支持。
+然后就去看 mysql 的文档，里面有对于这种写法的支持。
+The syntax of table_factor is extended in comparison with the SQL Standard. The latter accepts only table_reference, not a list of them inside a pair of parentheses.</description>
     </item>
     
     <item>
@@ -60,83 +29,12 @@ t1 LEFT JOIN t2 ON t1.a=t2.a, t3
       <pubDate>Sat, 03 Mar 2012 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/analyse-and-vacuum-in-postgres/</guid>
-      <description>&lt;p&gt;前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
+      <description>前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。
 
+所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。
 
-&lt;pre class=&#34;prettyprint lang-text&#34;&gt;
- Nested Loop Left Join  (cost=447.90..1003.43 rows=2 width=620)
-   Join Filter: (team.id = team_arrive_city.team_id)
-   -&gt;  Nested Loop  (cost=77.62..85.98 rows=1 width=588)
-         -&gt;  HashAggregate  (cost=77.62..77.68 rows=1 width=71)
-               -&gt;  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..77.60 rows=1 width=71)
-                     Index Cond: ((thedate &gt;= &#39;2012-02-25&#39;::date) AND (thedate &lt;= &#39;2012-02-27&#39;::date))
-                     Filter: (((source)::text ~~ &#39;%team%&#39;::text) AND ((source)::text !~~ &#39;%today%&#39;::text) AND ((source)::text !~~ &#39;%ongoing%&#39;::text) AND ((s
-ource)::text !~~ &#39;%special%&#39;::text))
-         -&gt;  Index Scan using team_pkey on team  (cost=0.00..8.28 rows=1 width=32)
-               Index Cond: (team.id = fact_tuan_rank_detail.team_id)
-               Filter: ((to_timestamp((team.end_time)::double precision))::date &gt; &#39;2012-02-27&#39;::date)
-   -&gt;  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
-         -&gt;  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
-(12 rows)
-&lt;/pre&gt;&lt;br /&gt;
-
-&lt;p&gt;&lt;br /&gt;
-仔细研究之后，发现了 rows=1 这个信息。这就是为什么查询分析器先对这个表做查询了，因为他认为这个表最小。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-此后对这个表执行了一下 &lt;a href=&#34;http://www.postgresql.org/docs/9.1/static/sql-analyze.html&#34;&gt;analyse&lt;/a&gt; 命令，更新了一些统计信息。然后再看执行计划如下。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-
-
-&lt;pre class=&#34;prettyprint lang-text&#34;&gt;
- Hash Join  (cost=1210761.12..1326052.45 rows=2282704 width=620)
-   Hash Cond: (fact_tuan_rank_detail.team_id = team.id)
-   -&gt;  HashAggregate  (cost=1203912.40..1265555.26 rows=1027381 width=71)
-         -&gt;  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..1075489.81 rows=10273807 width=71)
-               Index Cond: ((thedate &gt;= &#39;2012-02-25&#39;::date) AND (thedate &lt;= &#39;2012-02-27&#39;::date))
-               Filter: (((source)::text ~~ &#39;%team%&#39;::text) AND ((source)::text !~~ &#39;%today%&#39;::text) AND ((source)::text !~~ &#39;%ongoing%&#39;::text) AND ((source)
-::text !~~ &#39;%special%&#39;::text))
-   -&gt;  Hash  (cost=6666.33..6666.33 rows=14591 width=64)
-         -&gt;  Merge Left Join  (cost=6414.63..6666.33 rows=14591 width=64)
-               Merge Cond: (team.id = b.team_id)
-               -&gt;  Sort  (cost=4670.40..4686.82 rows=6567 width=32)
-                     Sort Key: team.id
-                     -&gt;  Seq Scan on team  (cost=0.00..4254.02 rows=6567 width=32)
-                           Filter: ((to_timestamp((end_time)::double precision))::date &gt; &#39;2012-02-27&#39;::date)
-               -&gt;  Sort  (cost=1744.23..1780.71 rows=14591 width=40)
-                     Sort Key: b.team_id
-                     -&gt;  Subquery Scan on b  (cost=370.29..735.06 rows=14591 width=40)
-                           -&gt;  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
-                                 -&gt;  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
-(18 rows)
-&lt;/pre&gt;&lt;br /&gt;
-
-&lt;p&gt;&lt;br /&gt;
-可以看到执行计划已经变了，先做其他表的 join，最后再和大表 join。并且提示的执行时间也大致靠谱。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-从这里面引申一下，时常会听到有人说 explain 命令执行后得出的执行时间不靠谱，需要使用 explain analyse。可是为什么不靠谱呢，其实 explain analyse 需要的时间和实际执行时间一样，explain 不靠谱的原因是因为数据库对那个表的统计信息不及时导致的。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-再进一步了解，postgres 里面这个统计信息为什么不靠谱呢？难道还总是需要我维护这些信息啊？&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-其实 postgres 里面有个 autovacuum 进程就是做这个事情的。autovacuum 进程默认是启用的。他会在数据库空闲的时候，对数据库做 vavcuum 和 analyse。具体多久执行一次，&lt;a href=&#34;http://www.postgresql.org/docs/9.1/static/routine-vacuuming.html&#34;&gt;文档&lt;/a&gt; 里面都有写，建议多看看这个页面里面的信息。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-此外，还发现 postgres 还提供了很多 &lt;a href=&#34;http://www.postgresql.org/docs/9.1/static/monitoring-stats.html&#34;&gt;数据库状态查询函数&lt;/a&gt; ，使用这里面函数可以查到每个表最后一次 analyse 的时间，vacuum 的时&lt;br /&gt;
-间，里面索引被使用的情况等等，好多信息。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-
-ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不行了，查看 explain select * from t1 好像没问题，那怎么回事呢？开始没想明白，只好继续 analyse 一下，又好了。可过了两天又不行了。这次得细看了。最后发现是因为真实的 sql 是有 where 条件的，日期条件限定的那部分数据查询分析器认为很少导致了问题。没办法后面只好每次导数都 analyse 一下了。发现 pg_bulkload 导数的方式有点问题。&lt;br /&gt;
-</description>
+能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。
+Nested Loop Left Join (cost=447.90..1003.43 rows=2 width=620) Join Filter: (team.id = team_arrive_city.team_id) - Nested Loop (cost=77.62..85.98 rows=1 width=588) - HashAggregate (cost=77.62..77.68 rows=1 width=71) - Index Scan using date_idx on fact_tuan_rank_detail (cost=0.00..77.60 rows=1 width=71) Index Cond: ((thedate = &#39;2012-02-25&#39;::date) AND (thedate Index Scan using team_pkey on team (cost=0.00..8.28 rows=1 width=32) Index Cond: (team.</description>
     </item>
     
   </channel>

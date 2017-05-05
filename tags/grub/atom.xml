@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Grub on wd and cc</title>
-    <link>https://wdicc.com/tags/grub/atom/index.xml</link>
+    <link>https://wdicc.com/tags/grub/</link>
     <description>Recent content in Grub on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/grub/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 24 Jul 2009 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/grub/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>使用 grub2</title>
@@ -14,79 +17,10 @@
       <pubDate>Fri, 24 Jul 2009 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/how-to-use-grub2/</guid>
-      <description>看到 ub 要默认用 grub2 了，看来这个东西够稳定了，就折腾了下。过程还有点头大，呵呵。这个东西最大的问题就是文档怎么那么少？。。。&lt;br /&gt;
-
-国内的大都是抄的 &lt;a href=&#39;http://linuxtoy.org/archives/grub-2-installation-and-configuration.html&#39;&gt;这个&lt;/a&gt; ，里面不知道为什么没有排版，那个样例用的是 debian，我用的 gentoo，有点小区别。&lt;br /&gt;
-
-gentoo 里面先 keyword unmask grub 1.96，然后安装他。&lt;br /&gt;
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;echo &#34;=sys-boot/grub-1.96 **&#34;&gt;
-
-安装之后，先重新生成 device.map。然后执行 update-grub 生成 grub 的一些配置文件，这个生成是根据的 /etc/grub.d 下面的文件，如果有兴趣可以去配置，我反正没配置，我手动修改的配置文件。
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-sudo update-grub # 不是必须，可以手动生成配置文件&lt;/pre&gt;
-
-现在去看看 /boot/grub/grub.cfg 文件，里面应该会根据你的系统生成了一些东西。再改巴改巴，下面是我的。对了这个文件是只读的，改一下属性就好了。
-&lt;pre class=&#34;prettyprint lang-conf&#34;&gt;
-set default=0
-set timeout=5
-set root=(hd0,1)
-
-insmod terminal
-insmod gfxterm
-insmod vbe
-insmod font
-insmod png
-
-font /boot/grub/unifont.pff
-set gfxmode=1024x768
-terminal gfxterm
-
-set menu_color_normal=white/black
-set menu_color_highlight=white/dark-gray
-
-#background_image /boot/grub/bg.tga
-background_image /boot/grub/dev2.png
-
-
-### END /etc/grub.d/00_header ###
-
-### BEGIN /etc/grub.d/10_hurd ###
-### END /etc/grub.d/10_hurd ###
-
-### BEGIN /etc/grub.d/10_linux ###
-menuentry &#34;无敌Gentoo&#34; {
-	linux	/vmlinuz root=/dev/hda5 ro video=uvesafb:1024x768-32,mtrr:3,ywrap
-}
-
-menuentry &#34;Gentoo (old kernel)&#34; {
-	linux /vmlinuz-old root=/dev/hda5 ro video=uvesafb:1024x768-32,mtrr:3,ywrap
-}
-
-menuentry &#34;测试JPEG背景图片&#34; {
-  background_image /boot/grub/dev.tga
-}
-
-
-#title		Gentoo bootchartd
-#root		(hd0,0)
-#kernel		/vmlinuz root=/dev/hda5 video=uvesafb:1024x768-32,mtrr:3,ywrap init=/sbin/bootchartd
-#savedefault
-#
-#
-#title		Gentoo (rescue)
-#root		(hd0,0)
-#kernel		/vmlinuz root=/dev/hda5 init=/bin/bb
-#savedefault
-&lt;/pre&gt;&lt;br /&gt;
-
-注意后面两个注释，其实就是老的 grub 用的，对照一下就应该知道怎么改了。原来的 hd0,0 变成了 hd0,1 ，这个是需要注意的。&lt;br /&gt;
-
-那个背景图片是有要求的，我的用 file 查看是这样的 &#34;dev.png: PNG image, 800 x 600, 8-bit/color RGBA, non-interlaced&#34;，具体对 png jpg tga 的要求，还是去看 &lt;a href=&#34;http://grub.enbug.org/FranklinPiat/grub.cfg.manpage&#34;&gt;man&lt;/a&gt; 吧。我试了 tga 文件，好像有点慢，我那个 png 速度还行。&lt;br /&gt;
-
-那个 font 是从 &lt;a href=&#34;http://grub4dos.sourceforge.net/grub2/unifont.pff&#34;&gt;这里&lt;/a&gt; 下的，支持中文。&lt;br /&gt;
-
-配置好之后执行 sudo grub-install /dev/hda 就安装好了，没什么错误的话就可以重启看效果了。&lt;br /&gt;
-</description>
+      <description>看到 ub 要默认用 grub2 了，看来这个东西够稳定了，就折腾了下。过程还有点头大，呵呵。这个东西最大的问题就是文档怎么那么少？。。。
+国内的大都是抄的 这个 ，里面不知道为什么没有排版，那个样例用的是 debian，我用的 gentoo，有点小区别。
+gentoo 里面先 keyword unmask grub 1.96，然后安装他。
+echo &#34;=sys-boot/grub-1.96 **&#34; 安装之后，先重新生成 device.map。然后执行 update-grub 生成 grub 的一些配置文件，这个生成是根据的 /etc/grub.d 下面的文件，如果有兴趣可以去配置，我反正没配置，我手动修改的配置文件。 sudo update-grub # 不是必须，可以手动生成配置文件 现在去看看 /boot/grub/grub.cfg 文件，里面应该会根据你的系统生成了一些东西。再改巴改巴，下面是我的。对了这个文件是只读的，改一下属性就好了。 set default=0 set timeout=5 set root=(hd0,1) insmod terminal insmod gfxterm insmod vbe insmod font insmod png font /boot/grub/unifont.pff set gfxmode=1024x768 terminal gfxterm set menu_color_normal=white/black set menu_color_highlight=white/dark-gray #background_image /boot/grub/bg.tga background_image /boot/grub/dev2.png ### END /etc/grub.d/00_header ### ### BEGIN /etc/grub.</description>
     </item>
     
     <item>
@@ -95,21 +29,10 @@ menuentry &#34;测试JPEG背景图片&#34; {
       <pubDate>Sat, 30 Dec 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/recover-grub/</guid>
-      <description>安装双系统的时候，如果后安装的 win ，那么就会把mbr的grub信息干掉。通常的建议是先安装win后安装linux。&lt;br /&gt;
-
-今天遇到的情况是通过 vmware  安装 suse 到物理硬盘的时候，没有将 grub 安装到 mbr，这样需要重新安装一下grub。&lt;br /&gt;
-
-我的方法是找了一个 knoppix ，然后启动到 level 2 ，启动之后执行下面的命令先。&lt;br /&gt;
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-mount -o proc none /mnt/hdax/proc
-mount --bind /dev/ /mnt/hdax/dev&lt;/pre&gt;
-这样操作之后，就可以chroot到硬盘上面的系统了。
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-然后自己修改 /boot/grub/menu.1st 文件。之后执行 grub 命令。
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-grub&gt; setup (hd0)&lt;/pre&gt;
-我这里操作的时候遇到一个问题，suse好像往grub的map.xxx.gz里面写了关于fd0的信息，这样运行grub命令的时候会尝试去读取软驱。我在bios里面禁用了软驱才ok。
-</description>
+      <description>安装双系统的时候，如果后安装的 win ，那么就会把mbr的grub信息干掉。通常的建议是先安装win后安装linux。
+今天遇到的情况是通过 vmware 安装 suse 到物理硬盘的时候，没有将 grub 安装到 mbr，这样需要重新安装一下grub。
+我的方法是找了一个 knoppix ，然后启动到 level 2 ，启动之后执行下面的命令先。
+mount -o proc none /mnt/hdax/proc mount --bind /dev/ /mnt/hdax/dev 这样操作之后，就可以chroot到硬盘上面的系统了。 然后自己修改 /boot/grub/menu.1st 文件。之后执行 grub 命令。 grub setup (hd0) 我这里操作的时候遇到一个问题，suse好像往grub的map.xxx.gz里面写了关于fd0的信息，这样运行grub命令的时候会尝试去读取软驱。我在bios里面禁用了软驱才ok。 </description>
     </item>
     
   </channel>

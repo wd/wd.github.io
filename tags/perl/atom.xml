@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Perl on wd and cc</title>
-    <link>https://wdicc.com/tags/perl/atom/index.xml</link>
+    <link>https://wdicc.com/tags/perl/</link>
     <description>Recent content in Perl on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/perl/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 08 May 2011 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/perl/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>alarm 使用不当遇到的问题</title>
@@ -14,100 +17,13 @@
       <pubDate>Sun, 08 May 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/alarm-signal-in-perl/</guid>
-      <description>&lt;p&gt;前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-大概流程是有个 perl 程序 a.pl&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
+      <description>前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。
 
-&lt;pre class=&#34;prettyprint&#34;&gt;
-.....
-my $pid = fork();
-if ( !$pid ) {
-   my $cmdRet = `b.pl 2&gt;&amp;1`;
-   print FILE $cmdRet;
-   if ( $status ) {
-       warn &#34;task failed&#34;;
-   } else {
-      warn &#34;task success&#34;;
-   }
-   exit;
-}
+大概流程是有个 perl 程序 a.pl
+..... my $pid = fork(); if ( !$pid ) { my $cmdRet = `b.pl 2&amp;1`; print FILE $cmdRet; if ( $status ) { warn &#34;task failed&#34;; } else { warn &#34;task success&#34;; } exit; } waitpid ........ 
 
-waitpid ........
-&lt;/pre&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-b.pl 里面会执行 rsync 去获取一些文件，他会循环到几个机器上面去 rsync&lt;br /&gt;
-&lt;pre class=&#34;prettyprint&#34;&gt;
-for ( @hosts ) {
-    my $result = `rsync xxxxx 2&gt;&amp;1`;
-    if ( $? ) {
-        log($result);
-        log(&#34;failed&#34;);
-    } else {
-        log($result);
-        log(&#34;success&#34;);
-    }
-}
-
-sub log {
-    my $msg = shift;
-    print $msg;
-    # 然后通过 IO::Socket::INET 发送给另外一个 server  a
-}
-&lt;/pre&gt;&lt;br /&gt;
-
-现象是，时不时的， b.pl 会只 rsync 了某几台(不确定是几台)机器上面的文件，然后就不继续了，从 server a 上面能收到他发日志，最后一条是 success 的信息&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-从 a.pl 记录的日志那里看, FILE 里面记录的内容丢失了 server a 收到的最后一部分的数据，多少数据不一定，不过肯定是没有那个 success 信息。 这个文件里面也没有任何的错误信息。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-程序代码啥的都不动，rsync 的文件数不是总是一样的，也有文件多的时候没出错的时候,同时也设置了打开文件数为 65536.&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-后来发现问题就在 b.pl 里面的 log 里面。因为要发送到其他机器，怕挂住影响后续程序，所以设置了一个 alarm。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint&#34;&gt;
-eval {
-    alarm 5;
-    xxxxxxx;
-    alarm 0;
-};
-
-if ( $@ ) {
-    print &#34;error when send&#34;;
-}
-&lt;/pre&gt;&lt;br /&gt;
-
-&lt;p&gt;&lt;br /&gt;
-这个 alarm 没有设置 handle 的函数，这样就会导致 alarm 到期的时候，会直接让整个 perl 程序挂掉，并显示 &#34;Alarm clock&#34;，而且这个输出不在标准错误和标准输出里面。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-修复也简单，alarm 前设置一个 handler 就好了。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-另外，还有个问题，一个 alarm 会中断前一个 alarm，所以类似 sleep 的使用，可以这样&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint&#34;&gt;
-my $previousAlarm = 0;
-eval {
-    local $SIG{ALRM} = sub { die &#39;alarm&#39;; };
-    $previousAlarm = alarm 5;
-     xxxx
-     alarm 0;
-};
-alarm 0;
-
-if ( $@ ) {
-    xxxxx;
-}
-
-alarm $previousAlarm;
-&lt;/pre&gt;&lt;br /&gt;
-</description>
+b.pl 里面会执行 rsync 去获取一些文件，他会循环到几个机器上面去 rsync
+for ( @hosts ) { my $result = `rsync xxxxx 2&amp;1`; if ( $? ) { log($result); log(&#34;failed&#34;); } else { log($result); log(&#34;</description>
     </item>
     
     <item>
@@ -116,14 +32,10 @@ alarm $previousAlarm;
       <pubDate>Thu, 10 Mar 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/parse-qqwry-dat/</guid>
-      <description>纯真的 ip 库应用比较广泛，就那个 qqwry.dat。以前尝试过解析，死活弄不明白那写地址和 pack/unpack 啥的，晕的不行。这两天需要解析下，就尝试用 perl 写一个。&lt;br /&gt;
-
-开始用 sysread/sysseek 很多都读不出来，看了n遍程序，没觉得有啥问题。后来全部改成了 read/seek 就好了，也不知道怎么回事。画了一个图说明下，参考了 http://lumaqq.linuxsir.org/article/qqwry_format_detail.html 。&lt;br /&gt;
-
-&lt;table style=&#34;width:auto;&#34;&gt;&lt;tr&gt;&lt;td&gt;&lt;a href=&#34;https://picasaweb.google.com/lh/photo/f83_NZhjf6QchgG9gGRueg?feat=embedwebsite&#34;&gt;&lt;img src=&#34;https://lh6.googleusercontent.com/_7OB6ilikjVs/TXie-yreH2I/AAAAAAAAAKY/fTPMq-pkuqU/s640/qqwry.png&#34; height=&#34;640&#34; width=&#34;269&#34; /&gt;&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;&lt;tr&gt;&lt;td style=&#34;font-family:arial,sans-serif; font-size:11px; text-align:right&#34;&gt;发件人 &lt;a href=&#34;https://picasaweb.google.com/wdicc0/2011310?feat=embedwebsite&#34;&gt;2011-3-10&lt;/a&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;&lt;br /&gt;
-
-读来的3字节地址需要加 &#34;\0&#34; 才能 unpack，不知道怎么回事，对这些问题弄不明白。对了，网上还有个 perl 版的，也能用，需要的话可以搜一下。&lt;br /&gt;
-</description>
+      <description>纯真的 ip 库应用比较广泛，就那个 qqwry.dat。以前尝试过解析，死活弄不明白那写地址和 pack/unpack 啥的，晕的不行。这两天需要解析下，就尝试用 perl 写一个。
+开始用 sysread/sysseek 很多都读不出来，看了n遍程序，没觉得有啥问题。后来全部改成了 read/seek 就好了，也不知道怎么回事。画了一个图说明下，参考了 http://lumaqq.linuxsir.org/article/qqwry_format_detail.html 。
+发件人 2011-3-10
+读来的3字节地址需要加 &#34;\0&#34; 才能 unpack，不知道怎么回事，对这些问题弄不明白。对了，网上还有个 perl 版的，也能用，需要的话可以搜一下。</description>
     </item>
     
     <item>
@@ -132,38 +44,12 @@ alarm $previousAlarm;
       <pubDate>Sat, 01 Jan 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/signal-in-perl/</guid>
-      <description>perl 里面的信号处理很简单，就是给 %SIG 这个 hash 赋值就好了。前几天遇到个问题，处理 SIG{CHLD} 的时候，我本来只起一个 child 进程，可是发现这个信号会被触发多次，开始弄不明白，后来偶然想到是不是 system，exec 之类的函数弄出来的，搜了下果然。&lt;br /&gt;
-
-perl 里面调用外部命令是会 fork 一个子进程的，所以也会触发那个信号，想避免可以设置局部变量，例如&lt;br /&gt;
-&lt;pre class=&#34;prettyprint&#34;&gt;
-$SIG{CHLD} = sub {
-    print &#34;main\n&#34;;
-};
-
-.....
-{
-    local $SIG{CHLD} = undef; # 注意调用外部命令的时候，如果 IGNORE 就捕捉不了结果了
-    `mv xxx yyy`;
-    system(xxxxx);
-}
-
-.....
-&lt;/pre&gt;&lt;br /&gt;
-
-使用 {} 来构造局部变量的方法有时候会让问题变的非常简单。&lt;br /&gt;
-
-另外，信号触发的时候，会把 sleep 中断，这个在 sleep 的 doc 里面说的很明白。如果还是想 sleep 到足够的时间，可以用下面的方法。&lt;br /&gt;
-&lt;pre class=&#34;prettyprint&#34;&gt;
-my $timeLeft = 10;
-while ( 1 ) {
-    last if $timeLeft &lt;= 0;
-    my $actTime = sleep($timeLeft);
-    $timeLeft = $timeLeft - $actTime;
-}
-&lt;/pre&gt;&lt;br /&gt;
-
-越来越感觉写 perl 还是很给力的，很多的奇技淫巧，不过我现在也是属于没弄明白多少，瞎写。&lt;br /&gt;
-</description>
+      <description>perl 里面的信号处理很简单，就是给 %SIG 这个 hash 赋值就好了。前几天遇到个问题，处理 SIG{CHLD} 的时候，我本来只起一个 child 进程，可是发现这个信号会被触发多次，开始弄不明白，后来偶然想到是不是 system，exec 之类的函数弄出来的，搜了下果然。
+perl 里面调用外部命令是会 fork 一个子进程的，所以也会触发那个信号，想避免可以设置局部变量，例如
+$SIG{CHLD} = sub { print &#34;main\n&#34;; }; ..... { local $SIG{CHLD} = undef; # 注意调用外部命令的时候，如果 IGNORE 就捕捉不了结果了 `mv xxx yyy`; system(xxxxx); } ..... 
+使用 {} 来构造局部变量的方法有时候会让问题变的非常简单。
+另外，信号触发的时候，会把 sleep 中断，这个在 sleep 的 doc 里面说的很明白。如果还是想 sleep 到足够的时间，可以用下面的方法。
+my $timeLeft = 10; while ( 1 ) { last if $timeLeft 越来越感觉写 perl 还是很给力的，很多的奇技淫巧，不过我现在也是属于没弄明白多少，瞎写。</description>
     </item>
     
     <item>
@@ -172,158 +58,10 @@ while ( 1 ) {
       <pubDate>Fri, 09 Jul 2010 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/sendmail-pm/</guid>
-      <description>继使用 perl 发&lt;a href=&#39;http://wdicc.com/sendmail-use-perl/&#39;&gt;中文标题邮件&lt;/a&gt;，和&lt;a href=&#39;http://wdicc.com/sned-mail-with-attachment/&#39;&gt;中文附件邮件&lt;/a&gt;后，又把他们整合了一下写了一个 pm 干这个事。&lt;br /&gt;
-
-其实发带附件的邮件应该是有现成的 pm 干这个事的，比如 MIME::Lite 之类，没特殊需求还是用那个吧，这个纯属无聊写的。&lt;br /&gt;
-
-文件前面有使用方法。。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint&#34;&gt;
-package SendMail;
-
-use strict;
-use warnings;
-use Data::Dumper;
-use Encode;
-use MIME::Base64;
-
-=head1 Examples
-use SendMail;
-
-my $sm = SendMail-&gt;new( {
-    To =&gt; &#39;you@foo.com, other@bar.com&#39;,
-    Subject =&gt; &#39;just a test 中文&#39;,
-    });
-
--- or --
-
-my $sm = SendMail-&gt;new( {
-    From =&gt; &#39;me@abc.com&#39;,
-    To =&gt; &#39;you@foo.com, other@bar.com&#39;,
-    Subject =&gt; &#39;just a test 中文&#39;,
-    } );
-
--- or --
-
-my $sm = SendMail-&gt;new( {
-    From =&gt; &#39;me@abc.com&#39;,
-    To =&gt; &#39;you@foo.com, other@bar.com&#39;,
-    Cc =&gt; &#39;cc@foobar.com&#39;,
-    Subject =&gt; &#39;just a test 中文&#39;,
-    } );
-
-
-$sm-&gt;attach( {
-    Type =&gt; &#34;text/plain&#34;,
-    Data =&gt; &#34;只是一个测试..a test&#34;
-    });
-
-$sm-&gt;attach( {
-    Type =&gt; &#39;application/octet-stream&#39;,
-    Filename =&gt; &#39;test 中文.txt&#39;,
-    Data =&gt; &#34;只是一个 test ...&#34;
-    });
-
-$sm-&gt;test;
-
--- or --
-
-$sm-&gt;send;
-
-=cut
-
-
-
-use vars qw($VERSION);
-$VERSION = &#39;0.01&#39;;
-
-our $boundary = &#34;FFFFFFFFKKKKKK&#34;;
-our $from = &#39;no-reply@abc.com&#39;;
-our $subject = &#34;No subject&#34;;
-
-our $to;
-our $cc;
-our @body;
-
-
-sub new {
-    my $package = shift;
-    my $info = shift;
-
-    $subject = $info-&gt;{Subject} || $subject;
-    $subject = encode(&#39;MIME-B&#39;, decode(&#39;utf8&#39;, $subject));
-    $from = $info-&gt;{From} || $from;
-    $to = $info-&gt;{To} || die &#34;Need to set MailTo &#39;To&#39;!&#34;;
-    $cc = $info-&gt;{Cc} || &#34;&#34;;
-
-    push @body, &#34;MIME-Version: 1.0&#34;;
-    push @body, &#34;Content-Type: multipart/mixed; boundary=\&#34;$boundary\&#34;&#34;;
-    push @body, &#34;&#34;;
-
-    return bless( {}, $package);
-}
-
-sub attach {
-    my $self = shift;
-    my $f_hash = shift;
-
-    die &#34;Need data when attach!&#34; if ( not defined $f_hash-&gt;{Data} );
-
-    my $type = &#34;text/plain&#34;;
-    $type = $f_hash-&gt;{Type} if defined $f_hash-&gt;{Type};
-
-    my @t;
-    push @t, &#34;--$boundary&#34;;
-    if ( $type eq &#34;text/plain&#34; ) {
-        push @t, &#34;Content-Type: $type; charset=utf-8&#34;;
-    } else {
-        my $filename = &#34;file1.txt&#34;;
-        $filename = encode(&#39;MIME-B&#39;, decode(&#39;utf8&#39;, $f_hash-&gt;{Filename})) if defined $f_hash-&gt;{Filename};
-        push @t, &#34;Content-Type: $type&#34;;
-        push @t, &#34;Content-Disposition: attachment; filename=$filename&#34;;
-    }
-    push @t, &#34;Content-Transfer-Encoding: base64&#34;;
-    push @t, &#34;&#34;;
-    push @t, encode_base64($f_hash-&gt;{Data});
-
-    push @body, @t;
-}
-
-sub send {
-    my $self = shift;
-
-    open(my $fh, &#39;|/usr/sbin/sendmail -t&#39;);
-    $self-&gt;print_to($fh);
-    close($fh);
-}
-
-sub print_to {
-    my $self = shift;
-    my $fh = shift;
-
-    push @body, &#34;--$boundary--&#34;;
-
-    print $fh &#34;From: $from\r\n&#34;;
-    print $fh &#34;To: $to\r\n&#34;;
-    print $fh &#34;Cc: $cc\r\n&#34; if $cc;
-    print $fh &#34;Subject: $subject\r\n&#34;;
-
-    for ( @body ) {
-        print $fh &#34;$_\r\n&#34;;
-    }
-}
-
-sub test {
-    my $self = shift;
-
-    open ( my $fh, &#39;&gt;-&#39;);
-    $self-&gt;print_to($fh);
-    close($fh);
-}
-
-1;
-&lt;/pre&gt;&lt;br /&gt;
-</description>
+      <description>继使用 perl 发中文标题邮件，和中文附件邮件后，又把他们整合了一下写了一个 pm 干这个事。
+其实发带附件的邮件应该是有现成的 pm 干这个事的，比如 MIME::Lite 之类，没特殊需求还是用那个吧，这个纯属无聊写的。
+文件前面有使用方法。。
+package SendMail; use strict; use warnings; use Data::Dumper; use Encode; use MIME::Base64; =head1 Examples use SendMail; my $sm = SendMail-new( { To = &#39;you@foo.com, other@bar.com&#39;, Subject = &#39;just a test 中文&#39;, }); -- or -- my $sm = SendMail-new( { From = &#39;me@abc.com&#39;, To = &#39;you@foo.com, other@bar.com&#39;, Subject = &#39;just a test 中文&#39;, } ); -- or -- my $sm = SendMail-new( { From = &#39;me@abc.</description>
     </item>
     
     <item>
@@ -332,43 +70,9 @@ sub test {
       <pubDate>Mon, 05 Jul 2010 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/sned-mail-with-attachment/</guid>
-      <description>继 &lt;a href=&#34;http://wdicc.com/sendmail-use-perl/&#34;&gt;上篇&lt;/a&gt; 使用 perl 发带中文标题的邮件后，又研究了下发带附件的。&lt;br /&gt;
-
-基本差别不大，主要是那个 Content-type 要变一下。那个 boundary 可以自己随便写，和后面的统一就行了。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-perl&#34;&gt;
-my $title = encode_base64(&#34;标题&#34;, &#34;&#34;);
-my $body = encode_base64(&#34;邮件正文&#34;);
-my $attach = encode_base64(&#34;附件内容&#34;);
-my $filename = encode(&#39;MIME-B&#39;, decode(&#39;utf8&#39;, &#34;文件中文.txt&#34;))
-
-open(MAIL, &#39;|/usr/sbin/sendmail -t&#39;);
- 
-print MAIL &#34;From: test\@abs.com\r\n&#34;;
-print MAIL &#34;To: test\@abs.com\r\n&#34;;
-print MAIL &#34;Subject: =?UTF-8?B?$title?=\r\n&#34;;
-print MAIL &#34;MIME-Version: 1.0\r\n&#34;;
-# print MAIL &#34;Content-type: text/plain; charset=utf-8\r\n&#34;;
-print MAIL &lt;&lt;EOF;
-Content-Type: multipart/mixed; boundary=\&#34;FFFFFFFFKKKKKK\&#34;
-
---FFFFFFFFKKKKKK
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-
-$body
---FFFFFFFFKKKKKK
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=$filename.csv
-Content-Transfer-Encoding: base64
-
-$attach
---FFFFFFFFKKKKKK--
-EOF
-    close(MAIL); 
-
-&lt;/pre&gt;&lt;br /&gt;
-</description>
+      <description>继 上篇 使用 perl 发带中文标题的邮件后，又研究了下发带附件的。
+基本差别不大，主要是那个 Content-type 要变一下。那个 boundary 可以自己随便写，和后面的统一就行了。
+my $title = encode_base64(&#34;标题&#34;, &#34;&#34;); my $body = encode_base64(&#34;邮件正文&#34;); my $attach = encode_base64(&#34;附件内容&#34;); my $filename = encode(&#39;MIME-B&#39;, decode(&#39;utf8&#39;, &#34;文件中文.txt&#34;)) open(MAIL, &#39;|/usr/sbin/sendmail -t&#39;); print MAIL &#34;From: test\@abs.com\r\n&#34;; print MAIL &#34;To: test\@abs.com\r\n&#34;; print MAIL &#34;Subject: =?UTF-8?B?$title?=\r\n&#34;; print MAIL &#34;MIME-Version: 1.0\r\n&#34;; # print MAIL &#34;Content-type: text/plain; charset=utf-8\r\n&#34;; print MAIL </description>
     </item>
     
     <item>
@@ -377,34 +81,8 @@ EOF
       <pubDate>Wed, 30 Jun 2010 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/sendmail-use-perl/</guid>
-      <description>代码如下面，解决乱码的方法是使用 base64 编码。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-perl&#34;&gt;
-use MIME::Base64::Perl;
-
-open(MAIL, &#39;|/usr/sbin/sendmail -t&#39;);
-
-my $recver = &#39;wangdong@abc.com&#39;;
-my $alertTitle = &#34;中文 asdfsdf sdfsdf sdf sdf s df sd fsd f sd fsd f sdf sdf sdf&#34;;
-my $alertText = &#34;body &#34;;
-
-my $encoded = encode_base64($alertTitle, &#34;&#34;);
-
-print MAIL &#34;From: alert\@abc.com\r\n&#34;;
-print MAIL &#34;To: $recver\r\n&#34;;
-print MAIL &#34;Subject: =?UTF-8?B?&#34; . $encoded . &#34;?=\r\n&#34;;
-print MAIL &#34;MIME-Version: 1.0\r\n&#34;;
-print MAIL &#34;Content-type: text/plain; charset=utf-8\r\n&#34;;
-print MAIL &#34;\n&#34;;
-print MAIL &#34;$alertText&#34;;
-
-close(MAIL);
-&lt;/pre&gt;&lt;br /&gt;
-
-这里面 encode_base64 可以把文本做 base64 编码，要注意的是这个方法的第二个参数，是用来把编码结果进行格式化的，会每 76 个字符插入一个这个参数，默认是换行。&lt;br /&gt;
-
-如果不是 utf8 的文本，那把里面的 utf8 改一下就好了。&lt;br /&gt;
-</description>
+      <description>代码如下面，解决乱码的方法是使用 base64 编码。
+use MIME::Base64::Perl; open(MAIL, &#39;|/usr/sbin/sendmail -t&#39;); my $recver = &#39;wangdong@abc.com&#39;; my $alertTitle = &#34;中文 asdfsdf sdfsdf sdf sdf s df sd fsd f sd fsd f sdf sdf sdf&#34;; my $alertText = &#34;body &#34;; my $encoded = encode_base64($alertTitle, &#34;&#34;); print MAIL &#34;From: alert\@abc.com\r\n&#34;; print MAIL &#34;To: $recver\r\n&#34;; print MAIL &#34;Subject: =?UTF-8?B?&#34; . $encoded . &#34;?=\r\n&#34;; print MAIL &#34;MIME-Version: 1.0\r\n&#34;; print MAIL &#34;Content-type: text/plain; charset=utf-8\r\n&#34;; print MAIL &#34;\n&#34;; print MAIL &#34;</description>
     </item>
     
     <item>
@@ -413,46 +91,9 @@ close(MAIL);
       <pubDate>Sat, 07 Mar 2009 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/perl-and-fork/</guid>
-      <description>最近写程序用到了 fork ，记一下。&lt;br /&gt;
-
-我在 perl 里面某个地方开始，fork 多个进程去操作 db，主进程等子进程完事后，再继续后面的操作。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-perl&#34;&gt;
-use POSIX &#34;:sys_wait_h&#34;;
-my $thread_num = 5;
-my %pids = ();
-
-# $dbi-&gt;{InactiveDestroy} = 1 用到 dbi 的话还要设置这个，要不子进程exit后，dbi
-# 连接就断了
-
-# .....前面的程序
-for ( 1..$thread_num ) {
-	my $pid = fork;
-	if (not $pid) { # 子进程
-		$pids{$pid} = 1;
-		# blalbalbla... 子进程去干活
-		eixt 0; # 要记得 exit ，要不子进程还会继续执行后面的。
-	} else { # 主进程
-		# balbalbal ... 如果没事做也可以不写
-	}
-}
-
-while( keys( %pids ) ) {
-	my $kid = waitpid(-1,WNOHANG);
-	if ($kid &gt;0) {
-		delete $pids{$kid};
-		print &#34;$kid end.\n&#34;;
-	} else {
-		sleep 1; # 继续等，如果有时间限制，可以在这里去 kill 子进程
-	}
-}
-
-# ....继续后面的程序
-
-&lt;/pre&gt;&lt;br /&gt;
-
-还可以参考这个 http://www.perlmonks.org/?node_id=619722&lt;br /&gt;
-</description>
+      <description>最近写程序用到了 fork ，记一下。
+我在 perl 里面某个地方开始，fork 多个进程去操作 db，主进程等子进程完事后，再继续后面的操作。
+use POSIX &#34;:sys_wait_h&#34;; my $thread_num = 5; my %pids = (); # $dbi-{InactiveDestroy} = 1 用到 dbi 的话还要设置这个，要不子进程exit后，dbi # 连接就断了 # .....前面的程序 for ( 1..$thread_num ) { my $pid = fork; if (not $pid) { # 子进程 $pids{$pid} = 1; # blalbalbla... 子进程去干活 eixt 0; # 要记得 exit ，要不子进程还会继续执行后面的。 } else { # 主进程 # balbalbal ... 如果没事做也可以不写 } } while( keys( %pids ) ) { my $kid = waitpid(-1,WNOHANG); if ($kid 0) { delete $pids{$kid}; print &#34;</description>
     </item>
     
     <item>
@@ -461,48 +102,11 @@ while( keys( %pids ) ) {
       <pubDate>Tue, 06 Jan 2009 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/perl-cookie/</guid>
-      <description>应该不能用。。。只是为了记录&lt;br /&gt;
-
-使用 LWP::UserAgent 可以简单的去访问网页，获取页面内容。例如&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-perl&#34;&gt;
-use LWP::UserAgent;
-
-my $ua = LWP::UserAgent-&gt;new();
-$ua-&gt;timeout(10);
-$ua-&gt;agent(&#39;mozilla&#39;);
-
-my $r = $ua-&gt;get(&#39;http::/www.google.com&#39;);
-print $r-&gt;content; # or $r-&gt;decoded-&gt;content
-&lt;/pre&gt;&lt;br /&gt;
-
-$r 的其它属性可以去 cpan 看看。这样就获取到了内容。但是，如果一个网页是需要登录的怎么办？可以用保存 cookie 的方式。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-perl&#34;&gt;
-use LWP::UserAgent;
-use HTTP::Cookies;
-use Digest::MD5 qw(md5 md5_hex); # 用来生成 md5 的
-use JSON; # 用来在 json 串和 perl 的 hash 串之间转换
-use Data::Dumper;
-
-my $cookie_jar = HTTP::Cookies-&gt;new(
-	file =&gt; &#34;lw.dat&#34;,
-	autosave =&gt; 1
-);
-
-my $ua = LWP::UserAgent-&gt;new();
-$ua-&gt;timeout(10);
-$ua-&gt;agent(&#39;mozilla&#39;);
-
-my(@rest) = (&#34;/&#34;, &#34;.yahoo.com&#34;, undef, 0, 0, 60*60, 0);
-$cookie_jar-&gt;set_cookie(0, &#39;session&#39;, $session, @rest);
-
-$ua-&gt;cookie_jar($cookie_jar);
-
-$o = $ua-&gt;get($url);
-........
-&lt;/pre&gt;&lt;br /&gt;
-</description>
+      <description>应该不能用。。。只是为了记录
+使用 LWP::UserAgent 可以简单的去访问网页，获取页面内容。例如
+use LWP::UserAgent; my $ua = LWP::UserAgent-new(); $ua-timeout(10); $ua-agent(&#39;mozilla&#39;); my $r = $ua-get(&#39;http::/www.google.com&#39;); print $r-content; # or $r-decoded-content 
+$r 的其它属性可以去 cpan 看看。这样就获取到了内容。但是，如果一个网页是需要登录的怎么办？可以用保存 cookie 的方式。
+use LWP::UserAgent; use HTTP::Cookies; use Digest::MD5 qw(md5 md5_hex); # 用来生成 md5 的 use JSON; # 用来在 json 串和 perl 的 hash 串之间转换 use Data::Dumper; my $cookie_jar = HTTP::Cookies-new( file = &#34;lw.dat&#34;, autosave = 1 ); my $ua = LWP::UserAgent-new(); $ua-timeout(10); $ua-agent(&#39;mozilla&#39;); my(@rest) = (&#34;</description>
     </item>
     
   </channel>

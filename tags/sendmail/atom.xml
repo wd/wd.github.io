@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Sendmail on wd and cc</title>
-    <link>https://wdicc.com/tags/sendmail/atom/index.xml</link>
+    <link>https://wdicc.com/tags/sendmail/</link>
     <description>Recent content in Sendmail on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/sendmail/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 09 Jul 2010 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/sendmail/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>无聊又写一个用来发邮件的 pm..</title>
@@ -14,158 +17,10 @@
       <pubDate>Fri, 09 Jul 2010 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/sendmail-pm/</guid>
-      <description>继使用 perl 发&lt;a href=&#39;http://wdicc.com/sendmail-use-perl/&#39;&gt;中文标题邮件&lt;/a&gt;，和&lt;a href=&#39;http://wdicc.com/sned-mail-with-attachment/&#39;&gt;中文附件邮件&lt;/a&gt;后，又把他们整合了一下写了一个 pm 干这个事。&lt;br /&gt;
-
-其实发带附件的邮件应该是有现成的 pm 干这个事的，比如 MIME::Lite 之类，没特殊需求还是用那个吧，这个纯属无聊写的。&lt;br /&gt;
-
-文件前面有使用方法。。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint&#34;&gt;
-package SendMail;
-
-use strict;
-use warnings;
-use Data::Dumper;
-use Encode;
-use MIME::Base64;
-
-=head1 Examples
-use SendMail;
-
-my $sm = SendMail-&gt;new( {
-    To =&gt; &#39;you@foo.com, other@bar.com&#39;,
-    Subject =&gt; &#39;just a test 中文&#39;,
-    });
-
--- or --
-
-my $sm = SendMail-&gt;new( {
-    From =&gt; &#39;me@abc.com&#39;,
-    To =&gt; &#39;you@foo.com, other@bar.com&#39;,
-    Subject =&gt; &#39;just a test 中文&#39;,
-    } );
-
--- or --
-
-my $sm = SendMail-&gt;new( {
-    From =&gt; &#39;me@abc.com&#39;,
-    To =&gt; &#39;you@foo.com, other@bar.com&#39;,
-    Cc =&gt; &#39;cc@foobar.com&#39;,
-    Subject =&gt; &#39;just a test 中文&#39;,
-    } );
-
-
-$sm-&gt;attach( {
-    Type =&gt; &#34;text/plain&#34;,
-    Data =&gt; &#34;只是一个测试..a test&#34;
-    });
-
-$sm-&gt;attach( {
-    Type =&gt; &#39;application/octet-stream&#39;,
-    Filename =&gt; &#39;test 中文.txt&#39;,
-    Data =&gt; &#34;只是一个 test ...&#34;
-    });
-
-$sm-&gt;test;
-
--- or --
-
-$sm-&gt;send;
-
-=cut
-
-
-
-use vars qw($VERSION);
-$VERSION = &#39;0.01&#39;;
-
-our $boundary = &#34;FFFFFFFFKKKKKK&#34;;
-our $from = &#39;no-reply@abc.com&#39;;
-our $subject = &#34;No subject&#34;;
-
-our $to;
-our $cc;
-our @body;
-
-
-sub new {
-    my $package = shift;
-    my $info = shift;
-
-    $subject = $info-&gt;{Subject} || $subject;
-    $subject = encode(&#39;MIME-B&#39;, decode(&#39;utf8&#39;, $subject));
-    $from = $info-&gt;{From} || $from;
-    $to = $info-&gt;{To} || die &#34;Need to set MailTo &#39;To&#39;!&#34;;
-    $cc = $info-&gt;{Cc} || &#34;&#34;;
-
-    push @body, &#34;MIME-Version: 1.0&#34;;
-    push @body, &#34;Content-Type: multipart/mixed; boundary=\&#34;$boundary\&#34;&#34;;
-    push @body, &#34;&#34;;
-
-    return bless( {}, $package);
-}
-
-sub attach {
-    my $self = shift;
-    my $f_hash = shift;
-
-    die &#34;Need data when attach!&#34; if ( not defined $f_hash-&gt;{Data} );
-
-    my $type = &#34;text/plain&#34;;
-    $type = $f_hash-&gt;{Type} if defined $f_hash-&gt;{Type};
-
-    my @t;
-    push @t, &#34;--$boundary&#34;;
-    if ( $type eq &#34;text/plain&#34; ) {
-        push @t, &#34;Content-Type: $type; charset=utf-8&#34;;
-    } else {
-        my $filename = &#34;file1.txt&#34;;
-        $filename = encode(&#39;MIME-B&#39;, decode(&#39;utf8&#39;, $f_hash-&gt;{Filename})) if defined $f_hash-&gt;{Filename};
-        push @t, &#34;Content-Type: $type&#34;;
-        push @t, &#34;Content-Disposition: attachment; filename=$filename&#34;;
-    }
-    push @t, &#34;Content-Transfer-Encoding: base64&#34;;
-    push @t, &#34;&#34;;
-    push @t, encode_base64($f_hash-&gt;{Data});
-
-    push @body, @t;
-}
-
-sub send {
-    my $self = shift;
-
-    open(my $fh, &#39;|/usr/sbin/sendmail -t&#39;);
-    $self-&gt;print_to($fh);
-    close($fh);
-}
-
-sub print_to {
-    my $self = shift;
-    my $fh = shift;
-
-    push @body, &#34;--$boundary--&#34;;
-
-    print $fh &#34;From: $from\r\n&#34;;
-    print $fh &#34;To: $to\r\n&#34;;
-    print $fh &#34;Cc: $cc\r\n&#34; if $cc;
-    print $fh &#34;Subject: $subject\r\n&#34;;
-
-    for ( @body ) {
-        print $fh &#34;$_\r\n&#34;;
-    }
-}
-
-sub test {
-    my $self = shift;
-
-    open ( my $fh, &#39;&gt;-&#39;);
-    $self-&gt;print_to($fh);
-    close($fh);
-}
-
-1;
-&lt;/pre&gt;&lt;br /&gt;
-</description>
+      <description>继使用 perl 发中文标题邮件，和中文附件邮件后，又把他们整合了一下写了一个 pm 干这个事。
+其实发带附件的邮件应该是有现成的 pm 干这个事的，比如 MIME::Lite 之类，没特殊需求还是用那个吧，这个纯属无聊写的。
+文件前面有使用方法。。
+package SendMail; use strict; use warnings; use Data::Dumper; use Encode; use MIME::Base64; =head1 Examples use SendMail; my $sm = SendMail-new( { To = &#39;you@foo.com, other@bar.com&#39;, Subject = &#39;just a test 中文&#39;, }); -- or -- my $sm = SendMail-new( { From = &#39;me@abc.com&#39;, To = &#39;you@foo.com, other@bar.com&#39;, Subject = &#39;just a test 中文&#39;, } ); -- or -- my $sm = SendMail-new( { From = &#39;me@abc.</description>
     </item>
     
     <item>
@@ -174,43 +29,9 @@ sub test {
       <pubDate>Mon, 05 Jul 2010 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/sned-mail-with-attachment/</guid>
-      <description>继 &lt;a href=&#34;http://wdicc.com/sendmail-use-perl/&#34;&gt;上篇&lt;/a&gt; 使用 perl 发带中文标题的邮件后，又研究了下发带附件的。&lt;br /&gt;
-
-基本差别不大，主要是那个 Content-type 要变一下。那个 boundary 可以自己随便写，和后面的统一就行了。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-perl&#34;&gt;
-my $title = encode_base64(&#34;标题&#34;, &#34;&#34;);
-my $body = encode_base64(&#34;邮件正文&#34;);
-my $attach = encode_base64(&#34;附件内容&#34;);
-my $filename = encode(&#39;MIME-B&#39;, decode(&#39;utf8&#39;, &#34;文件中文.txt&#34;))
-
-open(MAIL, &#39;|/usr/sbin/sendmail -t&#39;);
- 
-print MAIL &#34;From: test\@abs.com\r\n&#34;;
-print MAIL &#34;To: test\@abs.com\r\n&#34;;
-print MAIL &#34;Subject: =?UTF-8?B?$title?=\r\n&#34;;
-print MAIL &#34;MIME-Version: 1.0\r\n&#34;;
-# print MAIL &#34;Content-type: text/plain; charset=utf-8\r\n&#34;;
-print MAIL &lt;&lt;EOF;
-Content-Type: multipart/mixed; boundary=\&#34;FFFFFFFFKKKKKK\&#34;
-
---FFFFFFFFKKKKKK
-Content-Type: text/plain; charset=utf-8
-Content-Transfer-Encoding: base64
-
-$body
---FFFFFFFFKKKKKK
-Content-Type: application/octet-stream
-Content-Disposition: attachment; filename=$filename.csv
-Content-Transfer-Encoding: base64
-
-$attach
---FFFFFFFFKKKKKK--
-EOF
-    close(MAIL); 
-
-&lt;/pre&gt;&lt;br /&gt;
-</description>
+      <description>继 上篇 使用 perl 发带中文标题的邮件后，又研究了下发带附件的。
+基本差别不大，主要是那个 Content-type 要变一下。那个 boundary 可以自己随便写，和后面的统一就行了。
+my $title = encode_base64(&#34;标题&#34;, &#34;&#34;); my $body = encode_base64(&#34;邮件正文&#34;); my $attach = encode_base64(&#34;附件内容&#34;); my $filename = encode(&#39;MIME-B&#39;, decode(&#39;utf8&#39;, &#34;文件中文.txt&#34;)) open(MAIL, &#39;|/usr/sbin/sendmail -t&#39;); print MAIL &#34;From: test\@abs.com\r\n&#34;; print MAIL &#34;To: test\@abs.com\r\n&#34;; print MAIL &#34;Subject: =?UTF-8?B?$title?=\r\n&#34;; print MAIL &#34;MIME-Version: 1.0\r\n&#34;; # print MAIL &#34;Content-type: text/plain; charset=utf-8\r\n&#34;; print MAIL </description>
     </item>
     
     <item>
@@ -219,34 +40,8 @@ EOF
       <pubDate>Wed, 30 Jun 2010 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/sendmail-use-perl/</guid>
-      <description>代码如下面，解决乱码的方法是使用 base64 编码。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-perl&#34;&gt;
-use MIME::Base64::Perl;
-
-open(MAIL, &#39;|/usr/sbin/sendmail -t&#39;);
-
-my $recver = &#39;wangdong@abc.com&#39;;
-my $alertTitle = &#34;中文 asdfsdf sdfsdf sdf sdf s df sd fsd f sd fsd f sdf sdf sdf&#34;;
-my $alertText = &#34;body &#34;;
-
-my $encoded = encode_base64($alertTitle, &#34;&#34;);
-
-print MAIL &#34;From: alert\@abc.com\r\n&#34;;
-print MAIL &#34;To: $recver\r\n&#34;;
-print MAIL &#34;Subject: =?UTF-8?B?&#34; . $encoded . &#34;?=\r\n&#34;;
-print MAIL &#34;MIME-Version: 1.0\r\n&#34;;
-print MAIL &#34;Content-type: text/plain; charset=utf-8\r\n&#34;;
-print MAIL &#34;\n&#34;;
-print MAIL &#34;$alertText&#34;;
-
-close(MAIL);
-&lt;/pre&gt;&lt;br /&gt;
-
-这里面 encode_base64 可以把文本做 base64 编码，要注意的是这个方法的第二个参数，是用来把编码结果进行格式化的，会每 76 个字符插入一个这个参数，默认是换行。&lt;br /&gt;
-
-如果不是 utf8 的文本，那把里面的 utf8 改一下就好了。&lt;br /&gt;
-</description>
+      <description>代码如下面，解决乱码的方法是使用 base64 编码。
+use MIME::Base64::Perl; open(MAIL, &#39;|/usr/sbin/sendmail -t&#39;); my $recver = &#39;wangdong@abc.com&#39;; my $alertTitle = &#34;中文 asdfsdf sdfsdf sdf sdf s df sd fsd f sd fsd f sdf sdf sdf&#34;; my $alertText = &#34;body &#34;; my $encoded = encode_base64($alertTitle, &#34;&#34;); print MAIL &#34;From: alert\@abc.com\r\n&#34;; print MAIL &#34;To: $recver\r\n&#34;; print MAIL &#34;Subject: =?UTF-8?B?&#34; . $encoded . &#34;?=\r\n&#34;; print MAIL &#34;MIME-Version: 1.0\r\n&#34;; print MAIL &#34;Content-type: text/plain; charset=utf-8\r\n&#34;; print MAIL &#34;\n&#34;; print MAIL &#34;</description>
     </item>
     
     <item>
@@ -255,42 +50,12 @@ close(MAIL);
       <pubDate>Mon, 01 Dec 2008 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/send-mail-with-attachment/</guid>
-      <description>命令行下面发送邮件比较简单，恐怕都会使用。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-$ echo &#34;hello .. &#34; | mail -s subject xxx@abc.com
-$ cat /path/to/file | mail -s subject xxx@abc.com
-$ mail -s subject xxx@abc.com &lt;&lt; EOF
-hi
-the end..
-EOF
-&lt;/pre&gt;&lt;br /&gt;
-
-上面这些方法都可以发送邮件。还有一种方法。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-$ cat a.txt
-Subject: test
-From: xxx@abc.com
-To: xxx@abc.com
-
-hi
-sdfsdfsdf
-the end.
-$ cat a.txt | sendmail -t
-&lt;/pre&gt;&lt;br /&gt;
-
-这样可以把邮件头信息写到文件里面的，你也可以用 php，perl 来打印类似的信息给 sendmail -t ，让他来发。&lt;br /&gt;
-
-那么如果有附件应该怎么办？可以使用 uuencode。&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-$ uuencode a.txt a.txt | mail -s test xxx@abc.com
-$ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t
-&lt;/pre&gt;&lt;br /&gt;
-
-应该说的很明白了吧？&lt;br /&gt;
-</description>
+      <description>命令行下面发送邮件比较简单，恐怕都会使用。
+$ echo &#34;hello .. &#34; | mail -s subject xxx@abc.com $ cat /path/to/file | mail -s subject xxx@abc.com $ mail -s subject xxx@abc.com 上面这些方法都可以发送邮件。还有一种方法。
+$ cat a.txt Subject: test From: xxx@abc.com To: xxx@abc.com hi sdfsdfsdf the end. $ cat a.txt | sendmail -t 
+这样可以把邮件头信息写到文件里面的，你也可以用 php，perl 来打印类似的信息给 sendmail -t ，让他来发。
+那么如果有附件应该怎么办？可以使用 uuencode。
+$ uuencode a.txt a.txt | mail -s test xxx@abc.com $ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t</description>
     </item>
     
     <item>
@@ -299,35 +64,31 @@ $ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t
       <pubDate>Tue, 26 Jun 2007 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/howto-cc-an-email-to-others-in-sendmail/</guid>
-      <description>&lt;p&gt;sendmail有个 /etc/aliases 配置文件，在里面可以给某个帐号设置alias，这样给这个alias发的邮件，都会给设置好的用户转发过去。要知道sendmail的帐号是和系统帐号联系在一起的，添加mail帐号得给系统添加帐号（qmail可以实现虚拟用户，或许sendmail也可以，而我不知道罢了）。而这个alias帐号却不是必须有得有系统帐号的，只要设置了alias，就可以给alias用户发邮件，就好像系统真有这么一个帐号一样。&lt;/p&gt; &lt;p&gt;关于 /etc/aliases 文件，&lt;a href=&#34;http://www.feep.net/sendmail/tutorial/intro/aliases.html&#34;&gt;这里&lt;/a&gt;有个文章有说明。下面复制几个例子。&lt;/p&gt; &lt;p&gt;&lt;pre lang=&#34;conf&#34;&gt;# RFC 822 规定每个域名都需要有一个 &#34;postmaster&#34; &lt;br /&gt;
-postmaster      : root&lt;br /&gt;
+      <description>sendmail有个 /etc/aliases 配置文件，在里面可以给某个帐号设置alias，这样给这个alias发的邮件，都会给设置好的用户转发过去。要知道sendmail的帐号是和系统帐号联系在一起的，添加mail帐号得给系统添加帐号（qmail可以实现虚拟用户，或许sendmail也可以，而我不知道罢了）。而这个alias帐号却不是必须有得有系统帐号的，只要设置了alias，就可以给alias用户发邮件，就好像系统真有这么一个帐号一样。
+关于 /etc/aliases 文件，这里有个文章有说明。下面复制几个例子。
+# RFC 822 规定每个域名都需要有一个 &#34;postmaster&#34; postmaster : root
+# 将 postmaster 的邮件都转发给 root 帐号，当然你下面还可以将root帐号的邮件在转发给别人。
+# 转发也可以转发到文件
+# 比如这个，都说了nobody了还给发邮件，邮件都丢掉
+nobody : /dev/null
+# 也可以通过管道作为另一个程序的输入
+# 比如给procmail，它能实现的功能可就多了，比如可以根据邮件大小转发到不同的用户，或者调用spamassian、clamav来查垃圾邮件和病毒等
+# 一个自动的bug跟踪程序
+program-bugs: |/usr/local/bin/program-bug-tracker
+# 也可以转发到多个帐号，用逗号分隔就可以
+project-list: johndoe@host1.uiuc.edu,jsmith@host2.uiuc.edu,someone@host.purdue.edu
 
-# 将 postmaster 的邮件都转发给 root 帐号，当然你下面还可以将root帐号的邮件在转发给别人。&lt;br /&gt;
-
-# 转发也可以转发到文件&lt;br /&gt;
-# 比如这个，都说了nobody了还给发邮件，邮件都丢掉&lt;br /&gt;
-nobody          : /dev/null&lt;br /&gt;
-
-# 也可以通过管道作为另一个程序的输入&lt;br /&gt;
-# 比如给procmail，它能实现的功能可就多了，比如可以根据邮件大小转发到不同的用户，或者调用spamassian、clamav来查垃圾邮件和病毒等&lt;br /&gt;
-# 一个自动的bug跟踪程序&lt;br /&gt;
-program-bugs: |/usr/local/bin/program-bug-tracker&lt;br /&gt;
-
-# 也可以转发到多个帐号，用逗号分隔就可以&lt;br /&gt;
-project-list: johndoe@host1.uiuc.edu,jsmith@host2.uiuc.edu,someone@host.purdue.edu&lt;br /&gt;
-&lt;/pre&gt;&lt;br /&gt;
-&lt;p&gt;可以看到功能还是很强悍的，尤其是可以 pipe 到程序，procmail、maildrop都是很不错的过滤程序，能实现很多其他的功能。&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;标题的要求是“抄送”某个帐号的邮件给别的用户，有点类似监控的意思。怎么实现呢？可能第一个想到的就是类似下面这种方法：&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;pre lang=&#34;conf&#34;&gt;somebody:other1,other2,somebody&lt;/pre&gt;&lt;br /&gt;
-&lt;p&gt;这样是不是就能实现抄送呢？这样会造成死循环，呵呵。&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;看样子似乎只能通过pipe到程序实现了，看procmail、maildrop的文档还不够头疼的。其实还有个简单的方法，就是 &lt;a href=&#34;http://www.feep.net/sendmail/tutorial/intro/forward.html&#34;&gt;.forward&lt;/a&gt; 文件。&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;.forward 文件位于用户的 home 下面，权限是 600 。他的功能和 /etc/aliases 文件类似，不过是 aliases 文件只能由root用户来修改，而 .forward 文件用户自己就可以修改。除了上面aliases能做到的事情外，他还多了一个功能，就是标题要求的功能。&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;按照标题的要求，只需要在 somebody 用户的 .forward 文件中放入下面的内容就可以了。&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;pre lang=&#34;conf&#34;&gt;\\somebody&lt;br /&gt;
-other1&lt;br /&gt;
-other2&lt;/pre&gt;&lt;br /&gt;
-&lt;p&gt;要注意 somebody 前面的那个\，就是用来防止转发死循环的。加了\之后，给somebody转发的时候会忽略该用户的 .forward 文件。&lt;/p&gt;&lt;br /&gt;
-</description>
+可以看到功能还是很强悍的，尤其是可以 pipe 到程序，procmail、maildrop都是很不错的过滤程序，能实现很多其他的功能。
+标题的要求是“抄送”某个帐号的邮件给别的用户，有点类似监控的意思。怎么实现呢？可能第一个想到的就是类似下面这种方法：
+somebody:other1,other2,somebody
+这样是不是就能实现抄送呢？这样会造成死循环，呵呵。
+看样子似乎只能通过pipe到程序实现了，看procmail、maildrop的文档还不够头疼的。其实还有个简单的方法，就是 .forward 文件。
+.forward 文件位于用户的 home 下面，权限是 600 。他的功能和 /etc/aliases 文件类似，不过是 aliases 文件只能由root用户来修改，而 .forward 文件用户自己就可以修改。除了上面aliases能做到的事情外，他还多了一个功能，就是标题要求的功能。
+按照标题的要求，只需要在 somebody 用户的 .forward 文件中放入下面的内容就可以了。
+\\somebody
+other1
+other2
+要注意 somebody 前面的那个\，就是用来防止转发死循环的。加了\之后，给somebody转发的时候会忽略该用户的 .</description>
     </item>
     
   </channel>

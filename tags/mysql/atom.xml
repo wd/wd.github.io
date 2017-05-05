@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Mysql on wd and cc</title>
-    <link>https://wdicc.com/tags/mysql/atom/index.xml</link>
+    <link>https://wdicc.com/tags/mysql/</link>
     <description>Recent content in Mysql on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/mysql/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 05 Aug 2012 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/mysql/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Join 后面跟两个表</title>
@@ -14,44 +17,10 @@
       <pubDate>Sun, 05 Aug 2012 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/two-table-after-join/</guid>
-      <description>&lt;p&gt;发现 sql 的写法真是千奇百怪，经常遇到没见过的写法。前几天就遇到了一个 sql 在 join 后写两个表，用逗号分隔。类似下面。&lt;/p&gt;
-
-&lt;pre class=&#34;prettyprint lang-sql&#34;&gt;
-select a.a, b.f from t1 a left join ( b, c ) on ( b.id = c.id and b.a = a.a )
-&lt;/pre&gt;
-
-&lt;p&gt;看到 sql 的这些用法我一般都是去 pgsql 的文档里面去查，因为 pg 的文档里面一般会指明一种用法是否标准 sql，多写标准 sql 可以避免知识不能转移。不过去查了发现 pg 不支持这种写法，也去 pg 里面执行了，确实不支持。&lt;/p&gt;
-
-&lt;p&gt;然后就去看 mysql 的文档，里面有对于这种写法的&lt;a href=&#34;http://dev.mysql.com/doc/refman/5.1/en/join.html&#34;&gt;支持&lt;/a&gt;。&lt;/p&gt;
-
-&lt;pre class=&#34;prettyprint lang-text&#34;&gt;
- The syntax of table_factor is extended in comparison with the SQL Standard. The latter accepts only table_reference, not a list of them inside a pair of parentheses.
-
-This is a conservative extension if we consider each comma in a list of table_reference items as equivalent to an inner join. For example:
-
-SELECT * FROM t1 LEFT JOIN (t2, t3, t4)
-                 ON (t2.a=t1.a AND t3.b=t1.b AND t4.c=t1.c)
-
-is equivalent to:
-
-SELECT * FROM t1 LEFT JOIN (t2 CROSS JOIN t3 CROSS JOIN t4)
-                 ON (t2.a=t1.a AND t3.b=t1.b AND t4.c=t1.c)
-
-In MySQL, JOIN, CROSS JOIN, and INNER JOIN are syntactic equivalents (they can replace each other). In standard SQL, they are not equivalent. INNER JOIN is used with an ON clause, CROSS JOIN is used otherwise. 
-&lt;/pre&gt;
-
-&lt;p&gt;可以看到，这种写法就是等于是让括号里面的 b,c 使用 inner join 的方式连接，当然如果 on 里面没有指定 join 方式，最后就是个笛卡尔集。然后&lt;a href=&#34;http://dev.mysql.com/doc/refman/5.1/en/nested-join-optimization.html&#34;&gt;这里&lt;/a&gt; 有更多的一些说明，还有下面这种写法。&lt;/p&gt;
-
-&lt;pre class=&#34;prettyprint lang-sql&#34;&gt;
-t1 LEFT JOIN t2 ON t1.a=t2.a, t3
-&lt;/pre&gt;
-
-&lt;p&gt;这些写法都有各自的含义。&lt;/p&gt;
-
-&lt;p&gt;其实这么看来，这个方式好像是比较方便的，不过是对于不明白的人如果乱用，这玩意出的错也是很诡异很难排查的。&lt;/p&gt;
-
-&lt;p&gt;另外注意上面的语句里面写了，mysql 里面的 join, inner join, cross join 是完全同样的东西。&lt;/p&gt;
-</description>
+      <description>发现 sql 的写法真是千奇百怪，经常遇到没见过的写法。前几天就遇到了一个 sql 在 join 后写两个表，用逗号分隔。类似下面。
+select a.a, b.f from t1 a left join ( b, c ) on ( b.id = c.id and b.a = a.a )  看到 sql 的这些用法我一般都是去 pgsql 的文档里面去查，因为 pg 的文档里面一般会指明一种用法是否标准 sql，多写标准 sql 可以避免知识不能转移。不过去查了发现 pg 不支持这种写法，也去 pg 里面执行了，确实不支持。
+然后就去看 mysql 的文档，里面有对于这种写法的支持。
+The syntax of table_factor is extended in comparison with the SQL Standard. The latter accepts only table_reference, not a list of them inside a pair of parentheses.</description>
     </item>
     
     <item>
@@ -60,14 +29,10 @@ t1 LEFT JOIN t2 ON t1.a=t2.a, t3
       <pubDate>Sat, 28 Jul 2007 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/move-blog-to-paangood/</guid>
-      <description>因为要从这边离职了，不能蹭公司的服务器了，所以得找个新的地方。看来看去，dreamhost肯定是很爽的，可是也太贵了，咱现在还没这个资本去买这个空间，后来还是买了盘古的空间了。150一年，100M空间。不过北京网通访问起来速度不是很快。凑合用了，反正也就100多块钱。而刚好我在&lt;a href=&#34;http://blog.wdicc.com/wordpress/about-mycity/&#34;&gt;博邻&lt;/a&gt;的奖金也是150.。。。这就给这边花了，呵呵。老婆还说奖金可以去吃好多顿火锅呢，看来没戏了，哈哈。&lt;br /&gt;
-
-我原来的数据库用的是　mysql 4.1.x ，新的是 4.0.x ，版本看起来差别不大，可是变化挺大。4.1支持每个库，每个表设置  charset，4.0还没有。4.0导入4.1好多人都乱码了。我从4.1 导入 4.0 开始也乱码了。后来搜了一下，找到一个方法，4.1 的mysqldump  有个 compactable 选项，指定是 mysql40 就行了。现在 phpmyadmin 里面看，中文也正常了。&lt;br /&gt;
-
-迁移的时候顺手就换了一个  theme，弄了一天才弄好。不太喜欢这种用ftp上传的方法，都习惯用vim直接编辑文件了，本地没有环境，只能修改一下上传一次。盘古的ftp发呆时间还比较短，隔一会就得重新连接一下。感觉好墨迹。&lt;br /&gt;
-
-老婆这几天一定要我写写她，可是写什么呢，她一天到晚都呆在家里，我觉得都要发霉了，让她去晒晒太阳好茁壮成长都懒得去，没办法。不过前几天她突发奇想写了一首改编自《小白兔，白又白》那个儿歌的儿歌，我贴到水木上面，加了好多个x，还是被不可re了，就看到有人发了一个帖子说“我靠，那个儿歌太x了。。。”，不过此文也被立刻删掉啦。不能re了肯定上不了十大了，也挺郁闷的，呵呵。&lt;br /&gt;
-</description>
+      <description>因为要从这边离职了，不能蹭公司的服务器了，所以得找个新的地方。看来看去，dreamhost肯定是很爽的，可是也太贵了，咱现在还没这个资本去买这个空间，后来还是买了盘古的空间了。150一年，100M空间。不过北京网通访问起来速度不是很快。凑合用了，反正也就100多块钱。而刚好我在博邻的奖金也是150.。。。这就给这边花了，呵呵。老婆还说奖金可以去吃好多顿火锅呢，看来没戏了，哈哈。
+我原来的数据库用的是　mysql 4.1.x ，新的是 4.0.x ，版本看起来差别不大，可是变化挺大。4.1支持每个库，每个表设置 charset，4.0还没有。4.0导入4.1好多人都乱码了。我从4.1 导入 4.0 开始也乱码了。后来搜了一下，找到一个方法，4.1 的mysqldump 有个 compactable 选项，指定是 mysql40 就行了。现在 phpmyadmin 里面看，中文也正常了。
+迁移的时候顺手就换了一个 theme，弄了一天才弄好。不太喜欢这种用ftp上传的方法，都习惯用vim直接编辑文件了，本地没有环境，只能修改一下上传一次。盘古的ftp发呆时间还比较短，隔一会就得重新连接一下。感觉好墨迹。
+老婆这几天一定要我写写她，可是写什么呢，她一天到晚都呆在家里，我觉得都要发霉了，让她去晒晒太阳好茁壮成长都懒得去，没办法。不过前几天她突发奇想写了一首改编自《小白兔，白又白》那个儿歌的儿歌，我贴到水木上面，加了好多个x，还是被不可re了，就看到有人发了一个帖子说“我靠，那个儿歌太x了。。。”，不过此文也被立刻删掉啦。不能re了肯定上不了十大了，也挺郁闷的，呵呵。</description>
     </item>
     
     <item>
@@ -76,58 +41,22 @@ t1 LEFT JOIN t2 ON t1.a=t2.a, t3
       <pubDate>Sat, 05 Aug 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/install-mysql-2/</guid>
-      <description>1 download mysql5.0&lt;br /&gt;
-2&lt;br /&gt;
-shell&gt; groupadd mysql&lt;br /&gt;
-shell&gt; useradd -g mysql mysql&lt;br /&gt;
-shell&gt; cd /usr/local&lt;br /&gt;
-shell&gt; gunzip &lt; /PATH/TO/MYSQL-VERSION-OS.tar.gz | tar xvf -&lt;br /&gt;
-shell&gt; ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql&lt;br /&gt;
-shell&gt; cd mysql&lt;br /&gt;
-shell&gt; scripts/mysql_install_db --user=mysql&lt;br /&gt;
-&lt;!--more--&gt;&lt;br /&gt;
-如下提示信息:&lt;br /&gt;
+      <description>1 download mysql5.0
+2
+shell groupadd mysql
+shell useradd -g mysql mysql
+shell cd /usr/local
+shell gunzip ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql
+shell cd mysql
+shell scripts/mysql_install_db --user=mysql
 
-Installing all prepared tables&lt;br /&gt;
-Fill help tables&lt;br /&gt;
-
-To start mysqld at boot time you have to copy support-files/mysql.server&lt;br /&gt;
-to the right place for your system&lt;br /&gt;
-
-PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !&lt;br /&gt;
-To do so, start the server, then issue the following commands:&lt;br /&gt;
-./bin/mysqladmin -u root password &#39;new-password&#39;&lt;br /&gt;
-./bin/mysqladmin -u root -h czhand password &#39;new-password&#39;&lt;br /&gt;
-See the manual for more instructions.&lt;br /&gt;
-
-You can start the MySQL daemon with:&lt;br /&gt;
-cd . ; ./bin/mysqld_safe &amp;&lt;br /&gt;
-
-You can test the MySQL daemon with the benchmarks in the &#39;sql-bench&#39; directory:&lt;br /&gt;
-cd sql-bench ; perl run-all-tests&lt;br /&gt;
-
-Please report any problems with the ./bin/mysqlbug script!&lt;br /&gt;
-
-The latest information about MySQL is available on the web at&lt;br /&gt;
-http://www.mysql.com&lt;br /&gt;
-Support MySQL by buying support/licenses at https://order.mysql.com&lt;br /&gt;
-
-shell&gt; chown -R root  .&lt;br /&gt;
-shell&gt; chown -R mysql data&lt;br /&gt;
-shell&gt; chgrp -R mysql .&lt;br /&gt;
-
-/home/my.cnf&lt;br /&gt;
-
-basedir=/usr/local/mysql&lt;br /&gt;
-datadir=/usr/local/mysql/data&lt;br /&gt;
-socket=/usr/local/mysql/data/mysql.sock&lt;br /&gt;
-#err-log=/var/log/mysqld.log&lt;br /&gt;
-pid-file=/usr/local/mysql/data/mysqld.pid&lt;br /&gt;
-
-shell&gt; bin/mysqld_safe --user=mysql &amp;&lt;br /&gt;
-
-事实上，mysql.sock放到data目录是会出现问题的，因为data目录只有mysql用户可读，用php连接数据库的时候就会出现问题。所以，上面的最好修改一下。&lt;br /&gt;
-</description>
+如下提示信息:
+Installing all prepared tables
+Fill help tables
+To start mysqld at boot time you have to copy support-files/mysql.server
+to the right place for your system
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !
+To do so, start the server, then issue the following commands:</description>
     </item>
     
     <item>
@@ -136,58 +65,22 @@ shell&gt; bin/mysqld_safe --user=mysql &amp;&lt;br /&gt;
       <pubDate>Tue, 09 May 2006 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/install-mysql/</guid>
-      <description>下面的内容大部分来自mysql的readme&lt;br /&gt;
-
-1 download mysql5.0&lt;br /&gt;
-2&lt;br /&gt;
-shell&amp;gt; groupadd mysql&lt;br /&gt;
-shell&amp;gt; useradd -g mysql mysql&lt;br /&gt;
-shell&amp;gt; cd /usr/local&lt;br /&gt;
-shell&amp;gt; gunzip &amp;lt; /PATH/TO/MYSQL-VERSION-OS.tar.gz | tar xvf -&lt;br /&gt;
-shell&amp;gt; ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql&lt;br /&gt;
-shell&amp;gt; cd mysql&lt;br /&gt;
-shell&amp;gt; scripts/mysql_install_db --user=mysql&lt;br /&gt;
-
-如下提示信息:&lt;br /&gt;
-
-Installing all prepared tables&lt;br /&gt;
-Fill help tables&lt;br /&gt;
-
-To start mysqld at boot time you have to copy support-files/mysql.server&lt;br /&gt;
-to the right place for your system&lt;br /&gt;
-
-PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !&lt;br /&gt;
-To do so, start the server, then issue the following commands:&lt;br /&gt;
-./bin/mysqladmin -u root password &#39;new-password&#39;&lt;br /&gt;
-./bin/mysqladmin -u root -h czhand password &#39;new-password&#39;&lt;br /&gt;
-See the manual for more instructions.&lt;br /&gt;
-
-You can start the MySQL daemon with:&lt;br /&gt;
-cd . ; ./bin/mysqld_safe &amp;amp;&lt;br /&gt;
-
-You can test the MySQL daemon with the benchmarks in the &#39;sql-bench&#39; directory:&lt;br /&gt;
-cd sql-bench ; perl run-all-tests&lt;br /&gt;
-
-Please report any problems with the ./bin/mysqlbug script!&lt;br /&gt;
-
-The latest information about MySQL is available on the web at&lt;br /&gt;
-http://www.mysql.com&lt;br /&gt;
-Support MySQL by buying support/licenses at https://order.mysql.com&lt;br /&gt;
-
-shell&amp;gt; chown -R root  .&lt;br /&gt;
-shell&amp;gt; chown -R mysql data&lt;br /&gt;
-shell&amp;gt; chgrp -R mysql .&lt;br /&gt;
-
-/home/my.cnf&lt;br /&gt;
-
-basedir=/usr/local/mysql&lt;br /&gt;
-datadir=/usr/local/mysql/data&lt;br /&gt;
-socket=/usr/local/mysql/data/mysql.sock&lt;br /&gt;
-#err-log=/var/log/mysqld.log&lt;br /&gt;
-pid-file=/usr/local/mysql/data/mysqld.pid&lt;br /&gt;
-
-shell&amp;gt; bin/mysqld_safe --user=mysql &amp;amp;&lt;br /&gt;
-</description>
+      <description>下面的内容大部分来自mysql的readme
+1 download mysql5.0
+2
+shell&amp;gt; groupadd mysql
+shell&amp;gt; useradd -g mysql mysql
+shell&amp;gt; cd /usr/local
+shell&amp;gt; gunzip &amp;lt; /PATH/TO/MYSQL-VERSION-OS.tar.gz | tar xvf -
+shell&amp;gt; ln -s FULL-PATH-TO-MYSQL-VERSION-OS mysql
+shell&amp;gt; cd mysql
+shell&amp;gt; scripts/mysql_install_db --user=mysql
+如下提示信息:
+Installing all prepared tables
+Fill help tables
+To start mysqld at boot time you have to copy support-files/mysql.server
+to the right place for your system
+PLEASE REMEMBER TO SET A PASSWORD FOR THE MySQL root USER !</description>
     </item>
     
   </channel>

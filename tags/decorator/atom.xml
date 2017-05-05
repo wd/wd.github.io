@@ -2,11 +2,14 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Decorator on wd and cc</title>
-    <link>https://wdicc.com/tags/decorator/atom/index.xml</link>
+    <link>https://wdicc.com/tags/decorator/</link>
     <description>Recent content in Decorator on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/decorator/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Fri, 21 Oct 2016 18:50:59 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/decorator/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>python 的 decorator 学习</title>
@@ -14,149 +17,10 @@
       <pubDate>Fri, 21 Oct 2016 18:50:59 +0800</pubDate>
       
       <guid>https://wdicc.com/decorator-in-python/</guid>
-      <description>&lt;p&gt;最近学习了一下 python 的 decorator（装饰器），看的是这篇，&lt;a href=&#34;http://coolshell.cn/articles/11265.html&#34;&gt;Python修饰器的函数式编程&lt;/a&gt;， 觉得挺有意思的，写点东西记录一下。&lt;/p&gt;
-
-&lt;p&gt;装饰器简单讲就是返回一个函数的函数/类。看个简单的例子。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-
-def dec1(fn):
-    print(&#39;inside dec1&#39;)
-
-    def wrapper():
-        print(&#39;inside wrapper&#39;)
-        return fn()
-    return wrapper
-
-
-@dec1
-def f1():
-    print(&#39;inside f1&#39;)
-
-if __name__ == &#39;__main__&#39;:
-    print(&#39;begin exec&#39;)
-    f1()
-    print(&#39;end exec&#39;)
-
-# 执行结果:
-# inside dec1
-# begin exec
-# inside wrapper
-# inside f1
-# end exec
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;看上面例子能看到，装饰器生效有 2 个步骤，第一个是装饰，第二个是执行。上面装饰器的效果，和下面的代码的效果是一样。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-
-def dec1(fn):
-    print(&#39;inside dec1&#39;)
-
-    def wrapper():
-        print(&#39;inside wrapper&#39;)
-        return fn()
-    return wrapper
-
-
-# @dec1
-def f1():
-    print(&#39;inside f1&#39;)
-
-if __name__ == &#39;__main__&#39;:
-    print(&#39;begin exec&#39;)
-    dec1(f1)()
-    print(&#39;end exec&#39;)
-
-# 执行结果:
-# begin exec
-# inside dec1
-# inside wrapper
-# inside f1
-# end exec
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;可以看到除了 「begin/end exec」，其他部分执行结果是一样的。所以理解装饰器，就把 &lt;code&gt;@dec1&lt;/code&gt; 换成 &lt;code&gt;dec1(fn)()&lt;/code&gt; 这么理解就可以了。&lt;/p&gt;
-
-&lt;p&gt;有时候会看到类也可以作为装饰器使用。其实理解起来也类似。举个例子。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-
-class dec1(object):
-    def __init__(self, fn):
-        print(&#39;inside dec1&#39;)
-        self.fn = fn
-
-    def __call__(self):
-        print(&#39;inside wrapper&#39;)
-        return self.fn()
-
-
-@dec1
-def f1():
-    print(&#39;inside f1&#39;)
-
-if __name__ == &#39;__main__&#39;:
-    print(&#39;begin exec&#39;)
-    f1()
-    print(&#39;end exec&#39;)
-
-# 执行结果:
-# inside dec1
-# begin exec
-# inside wrapper
-# inside f1
-# end exec
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这里和上面类似，把 &lt;code&gt;@dec1&lt;/code&gt; 理解成 &lt;code&gt;dec1(fn)()&lt;/code&gt;，不过是这里的 &lt;code&gt;dec1&lt;/code&gt; 是个类，那么 &lt;code&gt;dec1(fn)&lt;/code&gt; 其实是调用的 &lt;code&gt;dec1.__init__(fn)&lt;/code&gt;，那么后续的 &lt;code&gt;dec1(fn)()&lt;/code&gt; 就是调用产生的对象的 &lt;code&gt;dec1.__call__()&lt;/code&gt; 了。&lt;/p&gt;
-
-&lt;p&gt;有时候还能看到加了参数的装饰器。加了参数的是怎么回事呢。再看下面的例子。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;#!/usr/bin/python
-# -*- coding: utf-8 -*-
-
-
-def dec1(name):
-    print(&#39;inside dec1&#39;)
-
-    def real_dec1(fn):
-        def wrapper():
-            print(&#39;inside wrapper&#39;)
-            return fn()
-        return wrapper
-    return real_dec1
-
-
-@dec1(name=&#39;1&#39;)
-def f1():
-    print(&#39;inside f1&#39;)
-
-if __name__ == &#39;__main__&#39;:
-    print(&#39;begin exec&#39;)
-    f1()
-    print(&#39;end exec&#39;)
-
-# 执行结果:
-# inside dec1
-# begin exec
-# inside wrapper
-# inside f1
-# end exec
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;看懂了没有，就是多了个嵌套而已。遇到加了参数的，那就是把之前的没有参数的部分返回回来就可以了。等价的例子就不贴了，这个等价于 &lt;code&gt;dec1(name=&#39;1&#39;)(fn)()&lt;/code&gt;。&lt;/p&gt;
-
-&lt;p&gt;如果是类装饰器，并且有参数，那等价于 &lt;code&gt;dec1(name=&#39;1&#39;)(fn)()&lt;/code&gt;，其中 &lt;code&gt;__init__(self, name)&lt;/code&gt; 先处理第一层参数，然后 &lt;code&gt;__call__(fn)&lt;/code&gt; 处理第二层，然后需要在 &lt;code&gt;__call__&lt;/code&gt; 里面再定义一个 wrapper 返回。&lt;/p&gt;
-
-&lt;p&gt;说明白没有？呵呵。&lt;/p&gt;
-</description>
+      <description>最近学习了一下 python 的 decorator（装饰器），看的是这篇，Python修饰器的函数式编程， 觉得挺有意思的，写点东西记录一下。
+装饰器简单讲就是返回一个函数的函数/类。看个简单的例子。
+#!/usr/bin/python # -*- coding: utf-8 -*- def dec1(fn): print(&#39;inside dec1&#39;) def wrapper(): print(&#39;inside wrapper&#39;) return fn() return wrapper @dec1 def f1(): print(&#39;inside f1&#39;) if __name__ == &#39;__main__&#39;: print(&#39;begin exec&#39;) f1() print(&#39;end exec&#39;) # 执行结果: # inside dec1 # begin exec # inside wrapper # inside f1 # end exec  看上面例子能看到，装饰器生效有 2 个步骤，第一个是装饰，第二个是执行。上面装饰器的效果，和下面的代码的效果是一样。
+#!/usr/bin/python # -*- coding: utf-8 -*- def dec1(fn): print(&#39;inside dec1&#39;) def wrapper(): print(&#39;inside wrapper&#39;) return fn() return wrapper # @dec1 def f1(): print(&#39;inside f1&#39;) if __name__ == &#39;__main__&#39;: print(&#39;begin exec&#39;) dec1(f1)() print(&#39;end exec&#39;) # 执行结果: # begin exec # inside dec1 # inside wrapper # inside f1 # end exec  可以看到除了 「begin/end exec」，其他部分执行结果是一样的。所以理解装饰器，就把 @dec1 换成 dec1(fn)() 这么理解就可以了。</description>
     </item>
     
   </channel>

@@ -2,146 +2,28 @@
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
     <title>Linux on wd and cc</title>
-    <link>https://wdicc.com/tags/linux/atom/index.xml</link>
+    <link>https://wdicc.com/tags/linux/</link>
     <description>Recent content in Linux on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <atom:link href="https://wdicc.com/tags/linux/atom/index.xml" rel="self" type="application/rss+xml" />
+    <lastBuildDate>Sun, 27 Mar 2016 11:50:38 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/linux/atom.xml" rel="self" type="application/rss+xml" />
+    
     
     <item>
       <title>Custom Netgear r6300v2 wireless router</title>
-      <link>https://wdicc.com/Custom-Netgear-r6300v2-wireless-router/</link>
+      <link>https://wdicc.com/custom-netgear-r6300v2-wireless-router/</link>
       <pubDate>Sun, 27 Mar 2016 11:50:38 +0800</pubDate>
       
-      <guid>https://wdicc.com/Custom-Netgear-r6300v2-wireless-router/</guid>
-      <description>&lt;p&gt;接 &lt;a href=&#34;https://wdicc.com/Across-the-Great-Wall-we-can-reach-every-corner-in-the-world&#34;&gt;科学上网&lt;/a&gt;。买了群晖之后，一直通过群晖上面跑一个 haproxy 来做转发。不过心里总觉得有点不爽，毕竟一方面多转发了一次，另外群晖在不使用的时候，还会休眠，又或多或少担心影响休眠（经过测试应该是不影响的，但是..）。所以买了 r6300v2 之后，就琢磨通过路由器做这个事情。&lt;/p&gt;
-
-&lt;p&gt;路由器上面搞就有两个选择，一是从 iptables 入手，直接转发出去，另外一个是从软件层面做。&lt;/p&gt;
-
-&lt;p&gt;开始搞了几天的 iptables，发现原有系统 iptables 条目还是挺多的，加上路由器翻墙的功能也需要加一些条目，导致尝试了好几天之后总算能够转发过去链接了，但是数据包过不去，为了调试就开始打算在路由器安装 tcpdump。然后找到了 &lt;a href=&#34;https://github.com/Entware/entware&#34;&gt;https://github.com/Entware/entware&lt;/a&gt; ，配置好之后可以使用 opkg 来安装包。包列表可以参考这里 &lt;a href=&#34;http://pkg.entware.net/binaries/armv7/Packages.html&#34;&gt;http://pkg.entware.net/binaries/armv7/Packages.html&lt;/a&gt; ，这个路由器是 armv7 版本的 cpu。&lt;/p&gt;
-
-&lt;p&gt;安装 opkg 之前先得了解下，梅林固件分两部分存储，一部分是系统区，一部分是自定义区。系统区应该是你刷的固件所在的地方，是不能修改的，自定义区是可以存放一些自己定义的脚本的。每次系统启动的时候，你的一些自定义的东西都是存在自定义区加载的。自定义区就是 /jffs 分区。想要使用，得在 系统管理 -&amp;gt; 系统设置 里面，打开 JFFS 的配置，允许执行上面的脚本。&lt;/p&gt;
-
-&lt;p&gt;因为系统自带的 /jffs 分区只有 60M 左右，而我们装包的时候很容易就超过这个限制了，我现在已经用了 8xM 空间。所以最好还是用一个 u 盘来做这个事情。每次想要自动加载 u 盘，启动 u 盘里面的程序的话，还需要一些自定义的脚本来做这个事情。&lt;/p&gt;
-
-&lt;p&gt;先把 opkg 配置好，需要先准备好 /opt 目录。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;mkdir -p /tmp/opt
-mount -t ext4 -o rw,noatime /dev/sda1 /opt
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。&lt;/p&gt;
-
-&lt;p&gt;然后参考 &lt;a href=&#34;https://github.com/Entware/entware&#34;&gt;https://github.com/Entware/entware&lt;/a&gt; 操作就可以了，可以看到他会在 /opt 给你安装一陀东西。因为这个是 u 盘，所以东西重启也不会丢失。&lt;/p&gt;
-
-&lt;p&gt;然后参考&lt;a href=&#34;https://github.com/RMerl/asuswrt-merlin/wiki/User-scripts&#34;&gt;梅林的 wiki&lt;/a&gt;，它允许用户在 &lt;code&gt;/jffs/scripts&lt;/code&gt; 自定义一些启动脚本，来支持我们自动挂载和启动 u 盘上面的程序。&lt;/p&gt;
-
-&lt;p&gt;post-mount 内容如下，前面几个注释的是调试用的。最后一个 if 里面内容是执行一些 opkg 安装的程序的启动脚本，这个后面说。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;#!/bin/sh
-
-#echo $(date) &amp;gt; /tmp/000service-start
-#echo &amp;quot;$1&amp;quot; &amp;gt;&amp;gt; /tmp/000service-start
-#ls /dev/sda* &amp;gt;&amp;gt; /tmp/000service-start
-
-if [ -b /dev/sda1 ];then
-        mkdir -p /tmp/opt
-        mount -t ext4 -o rw,noatime /dev/sda1 /opt
-fi
-
-if [ -x /opt/bin/opkg ];then
-        /opt/etc/init.d/rc.unslung start
-fi
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;要记得 &lt;code&gt;sudo chmod +x post-mount&lt;/code&gt;，然后可以重启路由器看看是不是启动之后就能看到 /opt 有了你上次安装的程序了。&lt;/p&gt;
-
-&lt;p&gt;上面一阶段搞定之后，就可以装一些软件了，比如我装了 vim, tcpdump，bind-dig, haproxy。opkg 的命令使用可以参考这里 &lt;a href=&#34;https://wiki.openwrt.org/doc/techref/opkg&#34;&gt;https://wiki.openwrt.org/doc/techref/opkg&lt;/a&gt; 。&lt;/p&gt;
-
-&lt;p&gt;接着上面的话题，本来打算装好 tcpdump 来调试的，然后发现可以比较方便的启动 haproxy 之后，就打算用 haproxy 弄了，路由表太多，分析比较麻烦，还是走简单的吧。。&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;/opt/etc/haproxy.cfg&lt;/code&gt; 如下，把 IP 和 PORT 改成你自己的。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;global
-        ulimit-n  331071
-
-defaults
-        log global
-        mode    tcp
-        option  dontlognull
-        timeout connect 1000
-        timeout client 150000
-        timeout server 150000
-
-frontend ss-in
-        bind *:本机PORT
-        default_backend ss-out
-
-backend ss-out
-        server server1 IP:远端PORT maxconn 20480
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;code&gt;/opt/etc/init.d/S001haproxy.sh&lt;/code&gt; 如下，&lt;code&gt;sudo chmod +x /etc/init.d/S001haproxy.sh&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;#!/bin/sh
-
-haproxy_bin=/opt/sbin/haproxy
-haproxy_cfg=/opt/etc/haproxy.cfg
-pid=/opt/var/run/haproxy.pid
-
-action=$1
-
-if [ -z &amp;quot;$action&amp;quot; ];then
-        printf &amp;quot;Usage: $0 {start|stop|restart}\n&amp;quot; &amp;gt;&amp;amp;2
-        exit 1
-fi
-
-case &amp;quot;$action&amp;quot; in
-        start)
-                $haproxy_bin -f $haproxy_cfg -p $pid -D
-                ;;
-        stop)
-                kill $(cat $pid)
-                ;;
-        restart)
-                kill $(cat $pid)
-                $haproxy_bin -f $haproxy_cfg -p $pid -D
-                ;;
-esac
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;因为前面在 post-mount 最后一个 if 里面的语句，这样启动路由器就会自动启动 haproxy 了。&lt;/p&gt;
-
-&lt;p&gt;想使用这个端口转发，还需要在路由器配置界面里面增加一个到路由器 ip 的映射，然后还需要一个 &lt;code&gt;/jffs/scripts/firewall-start&lt;/code&gt; 如下&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;#!/bin/sh
-
-iptables -I INPUT -i ppp0 -p tcp --destination-port PORT -j ACCEPT
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;我使用的过程中还发现一个问题，pkg.entware.net 貌似被墙了。。虽然配置了翻墙但是不太明白为什么路由器上面时好时坏，而我局域网内的 mac 访问总是 ok 的，很奇怪。路由器上面不能访问有个办法是通过 mac 代理一下。&lt;/p&gt;
-
-&lt;p&gt;mac 上面启动一个 ngx，配置如下，使用 nginx -p ./ -c nginx.conf 启动。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;events {
-  worker_connections 1024;
-}
-
-
-http {
-  server {
-      listen 0.0.0.0:8000;
-      location / {
-           proxy_pass http://pkg.entware.net;
-      }
-  }
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;然后修改路由器上面 /opt/etc/opkg.conf &lt;code&gt;src/gz packages http://MAC_IP:8000/binaries/armv7&lt;/code&gt;，然后就可以了。&lt;/p&gt;
-
-&lt;p&gt;写完自己看发现这不是一份操作指南，只能算是一些提示，如果有人照着做能不能成功可能还是得看自己。。。&lt;/p&gt;
-</description>
+      <guid>https://wdicc.com/custom-netgear-r6300v2-wireless-router/</guid>
+      <description>接 科学上网。买了群晖之后，一直通过群晖上面跑一个 haproxy 来做转发。不过心里总觉得有点不爽，毕竟一方面多转发了一次，另外群晖在不使用的时候，还会休眠，又或多或少担心影响休眠（经过测试应该是不影响的，但是..）。所以买了 r6300v2 之后，就琢磨通过路由器做这个事情。
+路由器上面搞就有两个选择，一是从 iptables 入手，直接转发出去，另外一个是从软件层面做。
+开始搞了几天的 iptables，发现原有系统 iptables 条目还是挺多的，加上路由器翻墙的功能也需要加一些条目，导致尝试了好几天之后总算能够转发过去链接了，但是数据包过不去，为了调试就开始打算在路由器安装 tcpdump。然后找到了 https://github.com/Entware/entware ，配置好之后可以使用 opkg 来安装包。包列表可以参考这里 http://pkg.entware.net/binaries/armv7/Packages.html ，这个路由器是 armv7 版本的 cpu。
+安装 opkg 之前先得了解下，梅林固件分两部分存储，一部分是系统区，一部分是自定义区。系统区应该是你刷的固件所在的地方，是不能修改的，自定义区是可以存放一些自己定义的脚本的。每次系统启动的时候，你的一些自定义的东西都是存在自定义区加载的。自定义区就是 /jffs 分区。想要使用，得在 系统管理 -&amp;gt; 系统设置 里面，打开 JFFS 的配置，允许执行上面的脚本。
+因为系统自带的 /jffs 分区只有 60M 左右，而我们装包的时候很容易就超过这个限制了，我现在已经用了 8xM 空间。所以最好还是用一个 u 盘来做这个事情。每次想要自动加载 u 盘，启动 u 盘里面的程序的话，还需要一些自定义的脚本来做这个事情。
+先把 opkg 配置好，需要先准备好 /opt 目录。
+mkdir -p /tmp/opt mount -t ext4 -o rw,noatime /dev/sda1 /opt  上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</description>
     </item>
     
     <item>
@@ -150,33 +32,10 @@ http {
       <pubDate>Wed, 12 Jun 2013 21:45:00 +0800</pubDate>
       
       <guid>https://wdicc.com/octopress-and-jeklly-1-dot-0-1/</guid>
-      <description>&lt;p&gt;自从 jeklly 1.0.x 发布之后，我的 octopress 站点就在 github，gitcafe 上面更新不了了，写了新帖子然后 push 之后，会收到个邮件，说 generate site faild。&lt;/p&gt;
-
-&lt;p&gt;等等。。这个不是静态站点吗？generate 你妹阿！！然后就找阿找阿找解决办法，尝试过下面这些&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;touch 一个 .nojeklly 不让它 generate&lt;/li&gt;
-&lt;li&gt;找 octopress 支持 jeklly 1.0.1 的新版本&lt;/li&gt;
-&lt;li&gt;google 之，怎么可能就我遇到问题了呢&lt;/li&gt;
-&lt;li&gt;使用 jeklly 1.0.1 单独搭一个，不用 octopress 了&lt;/li&gt;
-&lt;li&gt;&amp;hellip;其他忘记了的。。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;悲剧的是，以上这些方法没一个搞定了&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;某处搜到的这个 .nojeklly 完全不管用&lt;/li&gt;
-&lt;li&gt;octopress 2.1 这个 branch 支持 jeklly 1.0.1，可惜没能让他运转起来。。具体 release 日期似乎还没看到。。。&lt;/li&gt;
-&lt;li&gt;google 不到有用的信息，唯一有用的就是有人给 octopress 提的 pull request，可惜被 merge 到 2.1 了&lt;/li&gt;
-&lt;li&gt;这个倒是简单，可惜的是 octopress 其实背后做了很多事情，单纯的拿弄 post 过去发现有些文件解析不了，我遇到的是 ` 这个标记，是 octopress 支持的，可惜我的 post 里面好多都是这个。另外还有主题阿等等这些。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;综上，就觉得，nnd，这破玩意怎么这么复杂？！&lt;/p&gt;
-
-&lt;p&gt;后来不知道哪天突然想到，我之前测试 hexo 的时候，它没有 jeklly 一说，不是也可以么？另外，github pages 的例子里面，也就是 echo 了一个文件呀，也没有 jeklly 阿，不是也可以么？然后就觉得豁然开朗，github 之流肯定是默认会给你处理 jeklly 的代码，然后产生一个 site，而不是直接使用你产生的 html 文件。回想之前每次 deploy github pages，都会收到一个邮件提醒说 site generate success 之类，那就应该是猜的没错了。&lt;/p&gt;
-
-&lt;p&gt;然后就开始尝试只 push html（octopress 的结果文件在 public 里面）上去，结果确实如所料，毛问题都没有了，gitcafe 和 github 都可以了。总算舒服了。。另外还写了一个使用 octopress deploy 到 gitcafe 的&lt;a href=&#34;http://wdicc.om/octopress-and-gitcafe/&#34;&gt;帖子&lt;/a&gt;，有需要可以参考。&lt;/p&gt;
-</description>
+      <description>自从 jeklly 1.0.x 发布之后，我的 octopress 站点就在 github，gitcafe 上面更新不了了，写了新帖子然后 push 之后，会收到个邮件，说 generate site faild。
+等等。。这个不是静态站点吗？generate 你妹阿！！然后就找阿找阿找解决办法，尝试过下面这些
+ touch 一个 .nojeklly 不让它 generate 找 octopress 支持 jeklly 1.0.1 的新版本 google 之，怎么可能就我遇到问题了呢 使用 jeklly 1.0.1 单独搭一个，不用 octopress 了 &amp;hellip;其他忘记了的。。  悲剧的是，以上这些方法没一个搞定了
+ 某处搜到的这个 .nojeklly 完全不管用 octopress 2.1 这个 branch 支持 jeklly 1.0.1，可惜没能让他运转起来。。具体 release 日期似乎还没看到。。。 google 不到有用的信息，唯一有用的就是有人给 octopress 提的 pull request，可惜被 merge 到 2.1 了 这个倒是简单，可惜的是 octopress 其实背后做了很多事情，单纯的拿弄 post 过去发现有些文件解析不了，我遇到的是 ` 这个标记，是 octopress 支持的，可惜我的 post 里面好多都是这个。另外还有主题阿等等这些。  综上，就觉得，nnd，这破玩意怎么这么复杂？！</description>
     </item>
     
     <item>
@@ -185,82 +44,8 @@ http {
       <pubDate>Wed, 12 Jun 2013 21:30:00 +0800</pubDate>
       
       <guid>https://wdicc.com/octopress-and-gitcafe/</guid>
-      <description>&lt;p&gt;ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-diff&#34;&gt;diff --git a/.gitignore b/.gitignore
-index 85ed25d..5858b25 100644
---- a/.gitignore
-+++ b/.gitignore
-@@ -12,3 +12,4 @@ source/stylesheets/screen.css
- vendor
- node_modules
- .themes/fabric/
-+gitcafe
-diff --git a/Rakefile b/Rakefile
-index 53072e5..62061e0 100644
---- a/Rakefile
-+++ b/Rakefile
-@@ -27,6 +27,9 @@ new_post_ext    = &amp;quot;markdown&amp;quot;  # default new post file extension when using the n
- new_page_ext    = &amp;quot;markdown&amp;quot;  # default new page file extension when using the new_page task
- server_port     = &amp;quot;4000&amp;quot;      # port for preview server eg. localhost:4000
-
-+gitcafe_dir      = &amp;quot;gitcafe&amp;quot;
-+gitcafe_branch   = &amp;quot;gitcafe-pages&amp;quot;
-+
-
- desc &amp;quot;Initial setup for Octopress: copies the default theme into the path of Jekyll&#39;s generator. Rake install defaults to rake install[classic] to install a different them
- task :install, :theme do |t, args|
-@@ -219,7 +214,7 @@ end
- ##############
-
- desc &amp;quot;Default deploy task&amp;quot;
--task :deploy do
-+task :deploy_old do
-   # Check if preview posts exist, which should not be published
-   if File.exists?(&amp;quot;.preview-mode&amp;quot;)
-     puts &amp;quot;## Found posts in preview mode, regenerating files ...&amp;quot;
-@@ -231,6 +226,31 @@ task :deploy do
-   Rake::Task[&amp;quot;#{deploy_default}&amp;quot;].execute
- end
-
-+desc &amp;quot;deploy gitcafe&amp;quot;
-+task :deploy do
-+  # Check if preview posts exist, which should not be published
-+  if File.exists?(&amp;quot;.preview-mode&amp;quot;)
-+    puts &amp;quot;## Found posts in preview mode, regenerating files ...&amp;quot;
-+    File.delete(&amp;quot;.preview-mode&amp;quot;)
-+    #Rake::Task[:generate].execute # 这个地方每次都会 generate 我一般喜欢先 generate 本地看好没问题之后再 deploy，所以就注释掉了
-+  end
-+
-+  puts &amp;quot;## Deploying branch to Gitcafe Pages &amp;quot;
-+  puts &amp;quot;\n## copying #{public_dir} to #{gitcafe_dir}&amp;quot;
-+  cp_r &amp;quot;#{public_dir}/.&amp;quot;, gitcafe_dir
-+  cd &amp;quot;#{gitcafe_dir}&amp;quot; do
-+    system &amp;quot;git add .&amp;quot;
-+    system &amp;quot;git add -u&amp;quot;
-+    puts &amp;quot;\n## Commiting: Site updated at #{Time.now.utc}&amp;quot;
-+    message = &amp;quot;Site updated at #{Time.now.utc}&amp;quot;
-+    system &amp;quot;git commit -m \&amp;quot;#{message}\&amp;quot;&amp;quot;
-+    puts &amp;quot;\n## Pushing generated #{gitcafe_dir} website&amp;quot;
-+    system &amp;quot;git push origin #{gitcafe_branch} --force&amp;quot;
-+    puts &amp;quot;\n## Gcafe Pages deploy complete&amp;quot;
-+  end
-+end
-+
-+
- desc &amp;quot;Generate website and deploy&amp;quot;
- task :gen_deploy =&amp;gt; [:integrate, :generate, :deploy] do
- end
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;然后需要在 octopus 根目录 clone 一下你的 gitcafe 项目到 gitcafe 目录&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ git clone git@gitcafe.com:wd/wd gitcafe
-....
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;然后就可以试试看 &lt;code&gt;rake generate&lt;/code&gt; , &lt;code&gt;rake preview&lt;/code&gt;, &lt;code&gt;rake deploy&lt;/code&gt; 了。&lt;/p&gt;
-</description>
+      <description>ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。
+diff --git a/.gitignore b/.gitignore index 85ed25d..5858b25 100644 --- a/.gitignore +++ b/.gitignore @@ -12,3 +12,4 @@ source/stylesheets/screen.css vendor node_modules .themes/fabric/ +gitcafe diff --git a/Rakefile b/Rakefile index 53072e5..62061e0 100644 --- a/Rakefile +++ b/Rakefile @@ -27,6 +27,9 @@ new_post_ext = &amp;quot;markdown&amp;quot; # default new post file extension when using the n new_page_ext = &amp;quot;markdown&amp;quot; # default new page file extension when using the new_page task server_port = &amp;quot;4000&amp;quot; # port for preview server eg.</description>
     </item>
     
     <item>
@@ -269,41 +54,9 @@ index 53072e5..62061e0 100644
       <pubDate>Fri, 24 May 2013 17:28:00 +0800</pubDate>
       
       <guid>https://wdicc.com/broadcom-wireless-card-on-gentoo/</guid>
-      <description>&lt;p&gt;昨天又折腾了一下我的无线，是 dell 的本子，broadcom 的卡 BCM4313，准备写一下的时候，发现之前居然折腾过 &lt;a href=&#34;https://wdicc.com/bcm4312broadcom-stawpa_supplicantkernel2-6-33/&#34;&gt;BCM4312&lt;/a&gt;。。感觉真蛋疼。。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ lspci -vnn -d 14e4:
-02:00.0 Network controller [0280]: Broadcom Corporation BCM4313 802.11b/g/n Wireless LAN Controller [14e4:4727] (rev 01)
-        Subsystem: Dell Inspiron M5010 / XPS 8300 [1028:0010]
-        Flags: fast devsel, IRQ 17
-        Memory at e5300000 (64-bit, non-prefetchable) [size=16K]
-        Capabilities: &amp;lt;access denied&amp;gt;
-        Kernel modules: bcma
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;根据 &lt;a href=&#34;http://wireless.kernel.org/en/users/Drivers/b43#bcm43xx.2C_b43legacy.2C_b43.2C_softmac.2C..._the_full_story&#34;&gt;这里&lt;/a&gt; ， BCM 的网卡有三种可用驱动&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;b43，kernel 自带，源自 broadcom linux 驱动的逆向工程&lt;/li&gt;
-&lt;li&gt;brcmsmac, kernel 自带，似乎源自 broadcom 某个开源的驱动&lt;/li&gt;
-&lt;li&gt;wl, broadcom 发布的 linux 驱动&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;另外，kernel 自带的 b43 和 brcmsmac 支持标准的 802.11 栈，可以通过 iw iwconfig 之类的工具来配置，获取状态。wl 就不行了。&lt;/p&gt;
-
-&lt;p&gt;如果想使用 b43 或者 brcmsmac，需要选择下面的 kernel 选项，要注意都选择成 module，因为还需要加载 firmware，如果编译进内核那需要把 firmware 也编译到内核才可以。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Networking support  ---&amp;gt;  Wireless  ---&amp;gt; Generic IEEE 802.11 Networking Stack (mac80211)
-Device Drivers  ---&amp;gt; Broadcom specific AMBA  ---&amp;gt;  BCMA support
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;针对 b43 选择 &lt;code&gt;Device Drivers  ---&amp;gt; Network device support  ---&amp;gt;  Wireless LAN  ---&amp;gt;  Broadcom 43xx wireless support (mac80211 stack)&lt;/code&gt;, 还需要安装 &lt;code&gt;sys-firmware/b43-firmware&lt;/code&gt;。&lt;/p&gt;
-
-&lt;p&gt;针对 brcmsmac 选择 &lt;code&gt;Device Drivers  ---&amp;gt; Network device support  ---&amp;gt;  Wireless LAN  ---&amp;gt;  Broadcom IEEE802.11n PCIe SoftMAC WLAN driver&lt;/code&gt;，还需要安装 &lt;code&gt;sys-kernel/linux-firmware&lt;/code&gt;。&lt;/p&gt;
-
-&lt;p&gt;对于 wl，需要安装 &lt;code&gt;net-wireless/broadcom-sta&lt;/code&gt;，安装的时候会自动检查必要的内核选项，按照提示选择好就可以了。主要是要注意去掉上面的 kernel 的选项，另外可能还需要一个 ipw2100 来提供某一个隐藏的 kernel 选项。此外还有个 PREEMPT_RCU 检查，需要选择下面的内核选项 &lt;code&gt;Processor type and features  ---&amp;gt;  Preemption Model (Voluntary Kernel Preemption (Desktop))  ---&amp;gt;  Voluntary Kernel Preemption (Desktop)&lt;/code&gt;。&lt;/p&gt;
-
-&lt;p&gt;如此之后编译安装重启就可以了。&lt;/p&gt;
-</description>
+      <description>昨天又折腾了一下我的无线，是 dell 的本子，broadcom 的卡 BCM4313，准备写一下的时候，发现之前居然折腾过 BCM4312。。感觉真蛋疼。。
+$ lspci -vnn -d 14e4: 02:00.0 Network controller [0280]: Broadcom Corporation BCM4313 802.11b/g/n Wireless LAN Controller [14e4:4727] (rev 01) Subsystem: Dell Inspiron M5010 / XPS 8300 [1028:0010] Flags: fast devsel, IRQ 17 Memory at e5300000 (64-bit, non-prefetchable) [size=16K] Capabilities: &amp;lt;access denied&amp;gt; Kernel modules: bcma  根据 这里 ， BCM 的网卡有三种可用驱动
+ b43，kernel 自带，源自 broadcom linux 驱动的逆向工程 brcmsmac, kernel 自带，似乎源自 broadcom 某个开源的驱动 wl, broadcom 发布的 linux 驱动  另外，kernel 自带的 b43 和 brcmsmac 支持标准的 802.</description>
     </item>
     
     <item>
@@ -312,158 +65,12 @@ Device Drivers  ---&amp;gt; Broadcom specific AMBA  ---&amp;gt;  BCMA support
       <pubDate>Tue, 11 Dec 2012 14:53:00 +0800</pubDate>
       
       <guid>https://wdicc.com/redmine-a-good-project-tracker/</guid>
-      <description>
-
-&lt;p&gt;其实很早，大概2，3年前就听说了 redmine 了，不过他环境是 ruby 的，一直没有勇气去搭一个环境。现在项目人多了，bug 阿 feature 阿，就需要记录一下了，因为有些事情不记录下来总是会忘记。之前是尝试通过 wiki ＋ bugfree 来记录的，bugfree 记录在提测之后的一些问题，wiki 记录一些 feature request 什么的。bugfree 我们没权限管理，wiki 记录又不方便，然后我就又想起来 redmine 了。&lt;/p&gt;
-
-&lt;p&gt;哦对，其实公司还提供了一个 jira 给大家用，我用了几次我觉得那玩意太难用了，和那个 confluence 的 wiki 一样难用。&lt;/p&gt;
-
-&lt;p&gt;本身搭建没什么难度，编译一个 ruby，然后 gem 安装几个包，下载 redmine，使用 rake 命令操作就好了。启动他的 server 之后，就可以访问了。下面几个东西是我花了一些时间配置的。&lt;/p&gt;
-
-&lt;h2 id=&#34;和-ldap-集成&#34;&gt;和 ldap 集成&lt;/h2&gt;
-
-&lt;p&gt;在 redmine 的设置里面，本身是有一项和 redmine 集成的功能的，设置 basedn，和下面的 attributes 内容（sAMAccountName,givenName,sN,mail)就可以了。点测试，得能通过。&lt;/p&gt;
-
-&lt;p&gt;在我这里，光设置这个还不行，还需要 hack 一段代码。注意下面的那个 &lt;code&gt;@xxxx.com&lt;/code&gt;，这个对应你自己的。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-diff&#34;&gt;ndex: app/models/auth_source_ldap.rb
-===================================================================
---- app/models/auth_source_ldap.rb	(版本 10947)
-+++ app/models/auth_source_ldap.rb	(工作副本)
-@@ -135,11 +135,12 @@
-   # Get the user&#39;s dn and any attributes for them, given their login
-   def get_user_dn(login, password)
-     ldap_con = nil
--    if self.account &amp;amp;&amp;amp; self.account.include?(&amp;quot;$login&amp;quot;)
--      ldap_con = initialize_ldap_con(self.account.sub(&amp;quot;$login&amp;quot;, Net::LDAP::DN.escape(login)), password)
--    else
--      ldap_con = initialize_ldap_con(self.account, self.account_password)
--    end
-+    ldap_con = initialize_ldap_con(login + &#39;@xxxxx.com&#39;, password)
-+    #if self.account &amp;amp;&amp;amp; self.account.include?(&amp;quot;$login&amp;quot;)
-+    #  ldap_con = initialize_ldap_con(self.account.sub(&amp;quot;$login&amp;quot;, Net::LDAP::DN.escape(login)), password)
-+    #else
-+    #  ldap_con = initialize_ldap_con(self.account, self.account_password)
-+    #end
-     login_filter = Net::LDAP::Filter.eq( self.attr_login, login )
-     object_filter = Net::LDAP::Filter.eq( &amp;quot;objectClass&amp;quot;, &amp;quot;*&amp;quot; )
-     attrs = {}
-@@ -149,6 +150,8 @@
-       search_filter = search_filter &amp;amp; f
-     end
- 
-+    logger.debug &amp;quot;------------get_user_dn #{login} #{self.base_dn} #{search_filter} #{search_attributes}&amp;quot; if logger &amp;amp;&amp;amp; logger.debug?
-+
-     ldap_con.search( :base =&amp;gt; self.base_dn,
-                      :filter =&amp;gt; search_filter,
-                      :attributes=&amp;gt; search_attributes) do |entry|
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;总之登陆验证的代码关键就在这里了，可以自己做尝试，建议先写最简单的代码测试。比如&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-ruby&#34;&gt;require &#39;rubygems&#39;
-require &#39;net/ldap&#39;
-
-ldap = Net::LDAP.new :host =&amp;gt; &#39;qunarldap.corp.qunar.com&#39;,
-     :port =&amp;gt; 389,
-     :auth =&amp;gt; {
-           :method =&amp;gt; :simple,
-           :username =&amp;gt; &amp;quot;wd@xxxx.com&amp;quot;,
-           :password =&amp;gt; &amp;quot;pwd&amp;quot;
-     }
-
-filter = Net::LDAP::Filter.eq(&amp;quot;sAMAccountName&amp;quot;,&amp;quot;wd*&amp;quot;)
-object_filter = Net::LDAP::Filter.eq( &amp;quot;objectClass&amp;quot;, &amp;quot;*&amp;quot; )
-search_filter = filter &amp;amp; object_filter
-
-treebase = &amp;quot;你的 basedn&amp;quot; #
-
-attr = [&amp;quot;dn&amp;quot;, &amp;quot;givenName&amp;quot;, &amp;quot;sN&amp;quot;, &amp;quot;mail&amp;quot;]
-
-ldap.search(:base =&amp;gt; treebase, :filter =&amp;gt; search_filter, :attributes =&amp;gt; attr ) do |entry|
-  puts &amp;quot;DN: #{entry.dn}&amp;quot;
-  entry.each do |attribute, values|
-    puts &amp;quot;   #{attribute}:&amp;quot;
-    values.each do |value|
-      puts &amp;quot;      ---&amp;gt;#{value}&amp;quot;
-    end
-  end
-end
-
-p ldap.get_operation_result
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;搞定这块，就可以通过 ldap 用户直接登陆了，登陆会自动创建用户。&lt;/p&gt;
-
-&lt;h2 id=&#34;通过回复邮件自动创建和更新-issue&#34;&gt;通过回复邮件自动创建和更新 issue&lt;/h2&gt;
-
-&lt;p&gt;用过 bugzilla 的都知道，可以通过邮件回复的方式来 comment issue。redmine 也提供了这个功能。我这种对 mail 服务器无权的用户，只能申请一个邮箱专门做这个事情了。公司邮箱是 exchange 的，没有打开 imap。redmine 只提供了 imap，pop 之类的方式。好在还有 davmail。先配置好一个 davmail，然后通过 imap 来做这个事情，imap 比 pop 好处多很多，比如可以指定 inbox，可以 move 到 read 之类，就不多说了。&lt;/p&gt;
-
-&lt;p&gt;crontab 指令大概如下。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/bash
-
-LOG=/export/redmine/log/mail_recieve.log
-
-echo &amp;quot;start $(date)&amp;quot; &amp;gt;&amp;gt; $LOG
-
-/usr/local/ruby/bin/rake --silent -f /export/redmine/Rakefile redmine:email:receive_imap RAILS_ENV=&amp;quot;production&amp;quot; host=localhost username=abc password=def port=1143 move_on_success=read move_on_failure=failed unknown_user=accept &amp;gt;&amp;gt; $LOG 2&amp;gt;&amp;amp;1
-
-echo &amp;quot;end $(date)&amp;quot; &amp;gt;&amp;gt; $LOG
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;不过如果 redmine 就这么简单就搞定的话，那我也没必要单独拿出来掰了。关键是，通过 imap 死活就是不行。只好又看了一下代码。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-diff&#34;&gt;Index: lib/redmine/imap.rb
-===================================================================
---- lib/redmine/imap.rb	(版本 10947)
-+++ lib/redmine/imap.rb	(工作副本)
-@@ -30,8 +30,9 @@
-         imap.login(imap_options[:username], imap_options[:password]) unless imap_options[:username].nil?
-         imap.select(folder)
-         imap.search([&#39;NOT&#39;, &#39;SEEN&#39;]).each do |message_id|
--          msg = imap.fetch(message_id,&#39;RFC822&#39;)[0].attr[&#39;RFC822&#39;]
--          logger.debug &amp;quot;Receiving message #{message_id}&amp;quot; if logger &amp;amp;&amp;amp; logger.debug?
-+          #msg = imap.fetch(message_id,&#39;RFC822&#39;)[0].attr[&#39;RFC822&#39;]
-+          msg = imap.fetch(message_id,&#39;BODY[]&#39;)[0].attr[&#39;BODY[]&#39;]
-+          logger.debug &amp;quot;Receiving message #{message_id}, msg:\n#{msg}&amp;quot; if logger &amp;amp;&amp;amp; logger.debug?
-           if MailHandler.receive(msg, options)
-             logger.debug &amp;quot;Message #{message_id} successfully received&amp;quot; if logger &amp;amp;&amp;amp; logger.debug?
-             if imap_options[:move_on_success]
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这里把那个 RFC822 改成 BODY[] 就好了，入丝般润滑。。。&lt;/p&gt;
-
-&lt;h2 id=&#34;过滤掉邮件回复的垃圾内容&#34;&gt;过滤掉邮件回复的垃圾内容&lt;/h2&gt;
-
-&lt;p&gt;邮件回复 ok 之后，紧跟着问题就是，他会把整封邮件都作为回复记录进去，这个太恶心了。还好他提供了设置，在 email notification 选项里面，配置一个 email header &lt;code&gt;--Reply above this line--&lt;/code&gt;，在 incoming mail 里面配置一个 Truncate emails after one of these lines &lt;code&gt;--Reply above this line--&lt;/code&gt;，他就会截取这个字符前面的内容了。&lt;/p&gt;
-
-&lt;p&gt;不过还有问题就是，一般邮件回复都开头都是个 &lt;code&gt;On xxxx xxx wrote:&lt;/code&gt;，这个他不会截掉，那就再 hack 一下。。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-diff&#34;&gt;--- app/models/mail_handler.rb	(版本 10947)
-+++ app/models/mail_handler.rb	(工作副本)
-@@ -463,9 +464,12 @@
- 
-   # Removes the email body of text after the truncation configurations.
-   def cleanup_body(body)
--    delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;amp;:blank?).map {|s| Regexp.escape(s)}
-+    #delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;amp;:blank?).map {|s| Regexp.escape(s)}
-+    delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;amp;:blank?).map {|s| s}
-+
-     unless delimiters.empty?
-       regex = Regexp.new(&amp;quot;^[&amp;gt; ]*(#{ delimiters.join(&#39;|&#39;) })\s*[\r\n].*&amp;quot;, Regexp::MULTILINE)
-+      #regex = Regexp.new(&amp;quot;(^[&amp;gt; ]*(#{ delimiters.join(&#39;|&#39;) })\s*[\r\n].*)|(On (.*)wrote:[\r\n].*)&amp;quot;, Regexp::MULTILINE)
-       body = body.gsub(regex, &#39;&#39;)
-     end
-     body.strip
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这里搞定之后，在那个 Truncate emails after one of these lines 里面就可以写正则了，增加一行 &lt;code&gt;On (.*)wrote:&lt;/code&gt;，然后就可以了。&lt;/p&gt;
-
-&lt;h2 id=&#34;code-review&#34;&gt;code review&lt;/h2&gt;
-
-&lt;p&gt;增加了一个 code review 插件，已有项目需要在项目的模块里面启用。并且需要 admin 在角色配置里面，给相应角色增加 code review 的权限。不过貌似这插件不太好用，只能一行一行来。&lt;/p&gt;
-</description>
+      <description>其实很早，大概2，3年前就听说了 redmine 了，不过他环境是 ruby 的，一直没有勇气去搭一个环境。现在项目人多了，bug 阿 feature 阿，就需要记录一下了，因为有些事情不记录下来总是会忘记。之前是尝试通过 wiki ＋ bugfree 来记录的，bugfree 记录在提测之后的一些问题，wiki 记录一些 feature request 什么的。bugfree 我们没权限管理，wiki 记录又不方便，然后我就又想起来 redmine 了。
+哦对，其实公司还提供了一个 jira 给大家用，我用了几次我觉得那玩意太难用了，和那个 confluence 的 wiki 一样难用。
+本身搭建没什么难度，编译一个 ruby，然后 gem 安装几个包，下载 redmine，使用 rake 命令操作就好了。启动他的 server 之后，就可以访问了。下面几个东西是我花了一些时间配置的。
+和 ldap 集成 在 redmine 的设置里面，本身是有一项和 redmine 集成的功能的，设置 basedn，和下面的 attributes 内容（sAMAccountName,givenName,sN,mail)就可以了。点测试，得能通过。
+在我这里，光设置这个还不行，还需要 hack 一段代码。注意下面的那个 @xxxx.com，这个对应你自己的。
+ndex: app/models/auth_source_ldap.rb =================================================================== --- app/models/auth_source_ldap.rb	(版本 10947) +++ app/models/auth_source_ldap.rb	(工作副本) @@ -135,11 +135,12 @@ # Get the user&#39;s dn and any attributes for them, given their login def get_user_dn(login, password) ldap_con = nil - if self.</description>
     </item>
     
     <item>
@@ -472,44 +79,10 @@ echo &amp;quot;end $(date)&amp;quot; &amp;gt;&amp;gt; $LOG
       <pubDate>Sun, 05 Aug 2012 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/two-table-after-join/</guid>
-      <description>&lt;p&gt;发现 sql 的写法真是千奇百怪，经常遇到没见过的写法。前几天就遇到了一个 sql 在 join 后写两个表，用逗号分隔。类似下面。&lt;/p&gt;
-
-&lt;pre class=&#34;prettyprint lang-sql&#34;&gt;
-select a.a, b.f from t1 a left join ( b, c ) on ( b.id = c.id and b.a = a.a )
-&lt;/pre&gt;
-
-&lt;p&gt;看到 sql 的这些用法我一般都是去 pgsql 的文档里面去查，因为 pg 的文档里面一般会指明一种用法是否标准 sql，多写标准 sql 可以避免知识不能转移。不过去查了发现 pg 不支持这种写法，也去 pg 里面执行了，确实不支持。&lt;/p&gt;
-
-&lt;p&gt;然后就去看 mysql 的文档，里面有对于这种写法的&lt;a href=&#34;http://dev.mysql.com/doc/refman/5.1/en/join.html&#34;&gt;支持&lt;/a&gt;。&lt;/p&gt;
-
-&lt;pre class=&#34;prettyprint lang-text&#34;&gt;
- The syntax of table_factor is extended in comparison with the SQL Standard. The latter accepts only table_reference, not a list of them inside a pair of parentheses.
-
-This is a conservative extension if we consider each comma in a list of table_reference items as equivalent to an inner join. For example:
-
-SELECT * FROM t1 LEFT JOIN (t2, t3, t4)
-                 ON (t2.a=t1.a AND t3.b=t1.b AND t4.c=t1.c)
-
-is equivalent to:
-
-SELECT * FROM t1 LEFT JOIN (t2 CROSS JOIN t3 CROSS JOIN t4)
-                 ON (t2.a=t1.a AND t3.b=t1.b AND t4.c=t1.c)
-
-In MySQL, JOIN, CROSS JOIN, and INNER JOIN are syntactic equivalents (they can replace each other). In standard SQL, they are not equivalent. INNER JOIN is used with an ON clause, CROSS JOIN is used otherwise. 
-&lt;/pre&gt;
-
-&lt;p&gt;可以看到，这种写法就是等于是让括号里面的 b,c 使用 inner join 的方式连接，当然如果 on 里面没有指定 join 方式，最后就是个笛卡尔集。然后&lt;a href=&#34;http://dev.mysql.com/doc/refman/5.1/en/nested-join-optimization.html&#34;&gt;这里&lt;/a&gt; 有更多的一些说明，还有下面这种写法。&lt;/p&gt;
-
-&lt;pre class=&#34;prettyprint lang-sql&#34;&gt;
-t1 LEFT JOIN t2 ON t1.a=t2.a, t3
-&lt;/pre&gt;
-
-&lt;p&gt;这些写法都有各自的含义。&lt;/p&gt;
-
-&lt;p&gt;其实这么看来，这个方式好像是比较方便的，不过是对于不明白的人如果乱用，这玩意出的错也是很诡异很难排查的。&lt;/p&gt;
-
-&lt;p&gt;另外注意上面的语句里面写了，mysql 里面的 join, inner join, cross join 是完全同样的东西。&lt;/p&gt;
-</description>
+      <description>发现 sql 的写法真是千奇百怪，经常遇到没见过的写法。前几天就遇到了一个 sql 在 join 后写两个表，用逗号分隔。类似下面。
+select a.a, b.f from t1 a left join ( b, c ) on ( b.id = c.id and b.a = a.a )  看到 sql 的这些用法我一般都是去 pgsql 的文档里面去查，因为 pg 的文档里面一般会指明一种用法是否标准 sql，多写标准 sql 可以避免知识不能转移。不过去查了发现 pg 不支持这种写法，也去 pg 里面执行了，确实不支持。
+然后就去看 mysql 的文档，里面有对于这种写法的支持。
+The syntax of table_factor is extended in comparison with the SQL Standard. The latter accepts only table_reference, not a list of them inside a pair of parentheses.</description>
     </item>
     
     <item>
@@ -518,55 +91,28 @@ t1 LEFT JOIN t2 ON t1.a=t2.a, t3
       <pubDate>Sun, 06 May 2012 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/fdw-in-postgresql/</guid>
-      <description>&lt;p&gt;PG 9.x 引入了 fdw，可以通过 pg 去连接其他 db，不仅限于其他 pg，还可以是 mysql，oracle，文件等。按照设计，fdw 还应该提供给查询规划器一些对方 db 的索引等信息，这样在查询过程中可以提升查询速度。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
+      <description>PG 9.x 引入了 fdw，可以通过 pg 去连接其他 db，不仅限于其他 pg，还可以是 mysql，oracle，文件等。按照设计，fdw 还应该提供给查询规划器一些对方 db 的索引等信息，这样在查询过程中可以提升查询速度。
+dbi_link
 
-&lt;div id=&#34;outline-container-1&#34; class=&#34;outline-3&#34;&gt;&lt;br /&gt;
-&lt;h3 id=&#34;sec-1&#34;&gt;dbi_link&lt;/h3&gt;&lt;br /&gt;
-&lt;div class=&#34;outline-text-3&#34; id=&#34;text-1&#34;&gt;&lt;br /&gt;
+dbi 就是 perl 的 dbi，总的思想就是通过 plperl 写一些 function（所以也给了调试修改的便利），通过 dbi 去连接其他数据库，可以连接的 db 和 dbi 的支持一样。
 
+测试了一下，第一次连接的时候会 cache 对方 db 的信息，对于复杂库没测试成功，只有一个表的库连接成功，并且可以查询。查询的时候就和查询本地库没有区别。
 
-&lt;p&gt;&lt;br /&gt;
-dbi 就是 perl 的 dbi，总的思想就是通过 plperl 写一些 function（所以也给了调试修改的便利），通过 dbi 去连接其他数据库，可以连接的 db 和 dbi 的支持一样。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-测试了一下，第一次连接的时候会 cache 对方 db 的信息，对于复杂库没测试成功，只有一个表的库连接成功，并且可以查询。查询的时候就和查询本地库没有区别。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-效率上面看，不是很高，每次查询都必然需要获取对方全部数据。就算是有 where 条件，也不会试用到对方 db 的索引。所以综合来看，只是提供了一个简单的方法来获取数据，最好是一次性的。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
-
-&lt;/div&gt;&lt;br /&gt;
-
-&lt;div id=&#34;outline-container-2&#34; class=&#34;outline-3&#34;&gt;&lt;br /&gt;
-&lt;h3 id=&#34;sec-2&#34;&gt;db_link&lt;/h3&gt;&lt;br /&gt;
-&lt;div class=&#34;outline-text-3&#34; id=&#34;text-2&#34;&gt;&lt;br /&gt;
+效率上面看，不是很高，每次查询都必然需要获取对方全部数据。就算是有 where 条件，也不会试用到对方 db 的索引。所以综合来看，只是提供了一个简单的方法来获取数据，最好是一次性的。
 
 
-&lt;p&gt;&lt;br /&gt;
-db_link 本身是 pg 自带的，contrib 里面的。db_link 只支持 pg，建立连接之后，后续查询可以只指定使用哪个连接即可。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-相对 dbi_link，使用起来稍微复杂一点，需要特定的格式。效率上面看，查全表数据比 dbi_link 快。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-他有个优势是每次查询对方库的时候都需要指定一个 sql，而如果只需要少量数据的时候，可以在 sql 里面直接使用 where 来过滤数据，这样就能使用对方 db 的索引了，速度快很多。不过就是稍微有点繁琐。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
+db_link
 
-&lt;/div&gt;&lt;br /&gt;
+db_link 本身是 pg 自带的，contrib 里面的。db_link 只支持 pg，建立连接之后，后续查询可以只指定使用哪个连接即可。
 
-&lt;div id=&#34;outline-container-3&#34; class=&#34;outline-3&#34;&gt;&lt;br /&gt;
-&lt;h3 id=&#34;sec-3&#34;&gt;fdw&lt;/h3&gt;&lt;br /&gt;
-&lt;div class=&#34;outline-text-3&#34; id=&#34;text-3&#34;&gt;&lt;br /&gt;
+相对 dbi_link，使用起来稍微复杂一点，需要特定的格式。效率上面看，查全表数据比 dbi_link 快。
+
+他有个优势是每次查询对方库的时候都需要指定一个 sql，而如果只需要少量数据的时候，可以在 sql 里面直接使用 where 来过滤数据，这样就能使用对方 db 的索引了，速度快很多。不过就是稍微有点繁琐。
 
 
-&lt;p&gt;&lt;br /&gt;
-&lt;a href=&#34;http://www.postgresonline.com/journal/archives/250-File-FDW-Family-Part-1-file_fdw.html&#34;&gt;http://www.postgresonline.com/journal/archives/250-File-FDW-Family-Part-1-file\_fdw.html&lt;/a&gt; 这里有个链接，讲了 file fdw。其他 fdw 还没有试过。我理解 fdw 是否能使用对方 db 的索引，还需要看 fdw 的实现。file fdw 提供了类似 oracle 外部表一样的东西。实际上早年间 yahoo 的兄弟写过一个外部表的 pg 扩展的，不知道是不是这个 file fdw 就是从那来的。&lt;br /&gt;
-&lt;/p&gt;&lt;/div&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
-</description>
+fdw
+
+http://www.postgresonline.com/journal/archives/250-File-FDW-Family-Part-1-file\_fdw.html 这里有个链接，讲了 file fdw。其他 fdw 还没有试过。我理解 fdw 是否能使用对方 db 的索引，还需要看 fdw 的实现。file fdw 提供了类似 oracle 外部表一样的东西。实际上早年间 yahoo 的兄弟写过一个外部表的 pg 扩展的，不知道是不是这个 file fdw 就是从那来的。</description>
     </item>
     
     <item>
@@ -575,50 +121,16 @@ db_link 本身是 pg 自带的，contrib 里面的。db_link 只支持 pg，建�
       <pubDate>Sun, 06 May 2012 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/controlmaster-in-ssh/</guid>
-      <description>&lt;p&gt;我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-大意是通过设置 proxycommand 来实现，我也写过一个 &lt;a href=&#34;http://wdicc.com/cow-ssh-proxycommand/&#34;&gt;http://wdicc.com/cow-ssh-proxycommand/&lt;/a&gt; 。配置如下&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
+      <description>我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。
 
+大意是通过设置 proxycommand 来实现，我也写过一个 http://wdicc.com/cow-ssh-proxycommand/ 。配置如下
+# gateways Host abc Hostname abc.com # servers Host *.xxx ProxyCommand ssh abc exec nc %h %p 2/dev/null 
 
-&lt;pre class=&#34;prettyprint lang-conf&#34;&gt;
-# gateways
-Host abc
-     Hostname abc.com
+这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。
 
-# servers
-Host *.xxx
-     ProxyCommand ssh abc exec nc %h %p 2&gt;/dev/null
-&lt;/pre&gt;&lt;br /&gt;
+倒霉的是，我厂有些 gateway 机器还需要使用 token，并不能使用 key 验证。虽然有了上面设置，如果从某个机器 cp 数据的时候，还得来回输入哪个 token，真他妈的 2b。
 
-&lt;p&gt;&lt;br /&gt;
-这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-倒霉的是，我厂有些 gateway 机器还需要使用 token，并不能使用 key 验证。虽然有了上面设置，如果从某个机器 cp 数据的时候，还得来回输入哪个 token，真他妈的 2b。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-还好 ssh 还提供了一个 controlmaster，很好的解决了这个问题。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-
-
-&lt;pre class=&#34;prettyprint lang-conf&#34;&gt;
-Host *
-     User dong.wang
-     ServerAliveInterval 30
-     ControlMaster auto
-     ControlPath /tmp/ssh/master-%r@%h:%p
-     ControlPersist yes
-&lt;/pre&gt;&lt;br /&gt;
-
-&lt;p&gt;&lt;br /&gt;
-上面这个设置是所有服务器启用 controlmaster，哪个 /tmp/ssh 目录可以自己设置，没有就创建一个。哪个 ControlPersist 可以是个时间。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-这样设置之后，第一次连接的时候，会启动一个 master。后续连接都会走这个，连接速度很快不说，还完全不需要输入什么 token。并且因为只有 gateway 需要输入 token，所以一个 gateway 只需要输入一次。实在是爽大了，真是居家旅行必备啊。就冲着连接速度快这一点也值了。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-</description>
+还好 ssh 还提供了一个 controlmaster，很好的解决了这个问题。</description>
     </item>
     
     <item>
@@ -627,98 +139,15 @@ Host *
       <pubDate>Sun, 08 Apr 2012 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/auto-archive-task-for-org-mode/</guid>
-      <description>&lt;p&gt;我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-org-mode 本身提供了 remember 来创建 todo list。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-新建一个 org 文件 ~/org/todo.org，包含两行内容如下&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
+      <description>我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
 
+org-mode 本身提供了 remember 来创建 todo list。
 
-&lt;pre class=&#34;prettyprint lang-text&#34;&gt;
-* Tasks
-* Done
-&lt;/pre&gt;&lt;br /&gt;
+新建一个 org 文件 ~/org/todo.org，包含两行内容如下
+* Tasks * Done 
 
-&lt;p&gt;&lt;br /&gt;
-然后设置下面的内容&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-
-
-&lt;pre class=&#34;prettyprint lang-lisp&#34;&gt;
-(define-key global-map &#34;\C-ca&#34; &#39;org-agenda)
-(global-set-key (kbd &#34;C-c m r&#34;) &#39;org-capture)
-(setq org-capture-templates
-      &#39;((&#34;t&#34; &#34;Todo&#34; entry (file+headline &#34;~/org/todo.org&#34; &#34;Tasks&#34;)
-         &#34;* TODO %?\nCREATED: %U&#34;)
-        (&#34;j&#34; &#34;Journal&#34; entry (file+datetree &#34;~/org/journal.org&#34;)
-         &#34;* %?\nEntered on %U\n  %i\n  %a&#34;)))
-(defun wd-move-done-task-to-done-cats ( task-pos )
-  &#34;move done task to *DONE cats&#34;
-  (let* ((entry (org-get-entry))
-        (title (org-get-heading))
-        (task (format &#34;** %s\n%s\n&#34; title entry))
-        )
-    (goto-char (point-min))
-    (when (search-forward-regexp &#34;^* Tasks$latex &#34;)
-      (goto-char (point-min))
-      (when (search-forward-regexp &#34;^* Done$&#34;)
-        (goto-char (match-beginning 0))
-        (forward-line)      
-        (insert task)
-        (goto-char task-pos)
-        (delete-region (org-entry-beginning-position) (org-entry-end-position))      
-        )
-      )
-    )
-  )
-
-(defun wd-track-task-status ( changes-plist )
-   &#34;Track task status, and move it to &#39;* Done&#39; cats if it is stats change from to to done
-1 TODO 文件至少需要包含两个标题 * Tasks 和 * Done
-2 * Tasks 里面的 TODO 内容变成 DONE 的时候，会自动把这个条目移动到 * Done
-3 org-todo-keywords 的设置里面不能包含自动增加时间等的设置，否则增加的内容不能正确加到这个条目
-&#34;
-   ;; (interactive)
-   (let ((type (plist-get change-plist :type))
-          (pos (plist-get change-plist :position))
-          (from (plist-get change-plist :from))
-          (to (plist-get change-plist :to))
-          )
-     (when (and (string= from &#34;TODO&#34;)
-                (string= to &#34;DONE&#34;))
-       ;; (let ((answer (read-char &#34;Move this entry to *DONE ? Y/N (Y)&#34;)))
-       ;;   (when (or (= answer (string-to-char &#34;y&#34;))
-       ;;             (= answer (string-to-char &#34;Y&#34;))
-       ;;             (= answer (string-to-char &#34;
-&#34;))
-       ;;             )
-           (wd-move-done-task-to-done-cats pos)
-         ;; ))
-       )
-     )
-   )
-
-(add-hook &#39;org-trigger-hook &#39;wd-track-task-status)
-
-;; (setq org-todo-keywords
-;;       &#39;((sequence &#34;TODO(t)&#34; &#34;WAIT(w@/!)&#34; &#34;|&#34; &#34;DONE(d!)&#34; &#34;CANCELED(c@)&#34;)))
-(setq org-todo-keywords
-      &#39;((sequence &#34;TODO(t)&#34; &#34;WAIT(w)&#34; &#34;|&#34; &#34;DONE(d)&#34; &#34;CANCELED(c)&#34;)))
-&lt;/pre&gt;&lt;br /&gt;
-
-&lt;p&gt;&lt;br /&gt;
-在任何地方按一下 C-c m r，会出来一个 window 让你选择要创建 todo 还是 journal。选 t，然后输入内容就会自动插入到 ~/org/todo.org 的 * Tasks 里面。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-此后，如果任务完成的时候，打开 todo.org，然后在任务上面 C-c C-t，会提示输入状态。如果是从 TODO 变成了 DONE，那这条任务会被转移到 * Done 里面。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-因为里面都有时间，所以在 agenda list 里面，可以用 L 看到任务完成时间等。也将就用了。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-</description>
+然后设置下面的内容
+(define-key global-map &#34;\C-ca&#34; &#39;org-agenda) (global-set-key (kbd &#34;C-c m r&#34;) &#39;org-capture) (setq org-capture-templates &#39;((&#34;t&#34; &#34;Todo&#34; entry (file+headline &#34;~/org/todo.org&#34; &#34;Tasks&#34;) &#34;* TODO %?\nCREATED: %U&#34;) (&#34;j&#34; &#34;Journal&#34; entry (file+datetree &#34;~/org/journal.org&#34;) &#34;* %?\nEntered on %U\n %i\n %a&#34;))) (defun wd-move-done-task-to-done-cats ( task-pos ) &#34;move done task to *DONE cats&#34;</description>
     </item>
     
     <item>
@@ -727,60 +156,22 @@ org-mode 本身提供了 remember 来创建 todo list。&lt;br /&gt;
       <pubDate>Tue, 06 Mar 2012 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/emacs-settings-in-mac/</guid>
-      <description>&lt;p&gt;刚开始在 mac 里面使用 emacs 简直就是自虐，因为那个反人类的 command 按键。一般 pc 上面的 alt 是在 space 旁边的，macbook 的 space 旁边是 command，对于一个需要经常在 mac 里面按的键，不是一般的郁闷。这个问题有两个方法解决。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
+      <description>刚开始在 mac 里面使用 emacs 简直就是自虐，因为那个反人类的 command 按键。一般 pc 上面的 alt 是在 space 旁边的，macbook 的 space 旁边是 command，对于一个需要经常在 mac 里面按的键，不是一般的郁闷。这个问题有两个方法解决。
+mac 自带的解决方法
 
-&lt;div id=&#34;outline-container-1&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-1&#34;&gt;mac 自带的解决方法&lt;/h2&gt;&lt;br /&gt;
-&lt;div class=&#34;outline-text-2&#34; id=&#34;text-1&#34;&gt;&lt;br /&gt;
+就是在键盘设置里面，把修饰键里面的 command 和 alt 替换一下。这个方法会很不爽，因为 mac 里面的复制粘贴是 command + c/v，以后要按 alt + c/v 的话，距离有点远。
 
 
-&lt;p&gt;&lt;br /&gt;
-就是在键盘设置里面，把修饰键里面的 command 和 alt 替换一下。这个方法会很不爽，因为 mac 里面的复制粘贴是 command + c/v，以后要按 alt + c/v 的话，距离有点远。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
+KeyRemap4MacBook
 
-&lt;/div&gt;&lt;br /&gt;
-
-&lt;div id=&#34;outline-container-2&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-2&#34;&gt;KeyRemap4MacBook&lt;/h2&gt;&lt;br /&gt;
-&lt;div class=&#34;outline-text-2&#34; id=&#34;text-2&#34;&gt;&lt;br /&gt;
+这个是个 mac 上面的软件，地址在 这里 。里面的设置实在太多了，这里要用到的一个就是只在 emacs 里面把 command 和 alt 替换一下，这样就解决了上面提到的问题，还算完美。可是这个时候会发现，在 emacs 界面激活的情况下，command 开头的系统级别的快捷键都不好用了，比如 command + tab，这也很郁闷。
 
 
-&lt;p&gt;&lt;br /&gt;
-这个是个 mac 上面的软件，地址在 &lt;a href=&#34;http://pqrs.org/macosx/keyremap4macbook/document.html&#34;&gt;这里&lt;/a&gt; 。里面的设置实在太多了，这里要用到的一个就是只在 emacs 里面把 command 和 alt 替换一下，这样就解决了上面提到的问题，还算完美。可是这个时候会发现，在 emacs 界面激活的情况下，command 开头的系统级别的快捷键都不好用了，比如 command + tab，这也很郁闷。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
+emacs 自带的完美解决方法
 
-&lt;/div&gt;&lt;br /&gt;
+只说 emacs23，emacs24。早期的好像有 mac-pass-command-to-system 之类的设置，可我在 emacs24 里面没看到这个变量。
 
-&lt;div id=&#34;outline-container-3&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-3&#34;&gt;emacs 自带的完美解决方法&lt;/h2&gt;&lt;br /&gt;
-&lt;div class=&#34;outline-text-2&#34; id=&#34;text-3&#34;&gt;&lt;br /&gt;
-
-
-&lt;p&gt;&lt;br /&gt;
-只说 emacs23，emacs24。早期的好像有 mac-pass-command-to-system 之类的设置，可我在 emacs24 里面没看到这个变量。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-具体设置参考&lt;a href=&#34;http://www.emacswiki.org/emacs/EmacsForMacOS#toc23&#34;&gt;这里&lt;/a&gt; ，主要是下面这些设置。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-
-
-&lt;pre class=&#34;prettyprint lang-lisp&#34;&gt;
-;; key bindings
-(when (eq system-type &#39;darwin) ;; mac specific settings
-  (setq mac-option-modifier &#39;alt)
-  (setq mac-command-modifier &#39;meta)
-  (global-set-key [kp-delete] &#39;delete-char) ;; sets fn-delete to be right-delete
-  )
-&lt;/pre&gt;&lt;br /&gt;
-
-&lt;p&gt;&lt;br /&gt;
-现在就很爽了，按 command + x 和 alt + x 效果一样，按 command + tab 也能切换窗口。算是完美了。&lt;br /&gt;
-&lt;/p&gt;&lt;/div&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
-</description>
+具体设置参考这里 ，主要是下面这些设置。</description>
     </item>
     
     <item>
@@ -789,83 +180,12 @@ org-mode 本身提供了 remember 来创建 todo list。&lt;br /&gt;
       <pubDate>Sat, 03 Mar 2012 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/analyse-and-vacuum-in-postgres/</guid>
-      <description>&lt;p&gt;前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
+      <description>前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。
 
+所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。
 
-&lt;pre class=&#34;prettyprint lang-text&#34;&gt;
- Nested Loop Left Join  (cost=447.90..1003.43 rows=2 width=620)
-   Join Filter: (team.id = team_arrive_city.team_id)
-   -&gt;  Nested Loop  (cost=77.62..85.98 rows=1 width=588)
-         -&gt;  HashAggregate  (cost=77.62..77.68 rows=1 width=71)
-               -&gt;  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..77.60 rows=1 width=71)
-                     Index Cond: ((thedate &gt;= &#39;2012-02-25&#39;::date) AND (thedate &lt;= &#39;2012-02-27&#39;::date))
-                     Filter: (((source)::text ~~ &#39;%team%&#39;::text) AND ((source)::text !~~ &#39;%today%&#39;::text) AND ((source)::text !~~ &#39;%ongoing%&#39;::text) AND ((s
-ource)::text !~~ &#39;%special%&#39;::text))
-         -&gt;  Index Scan using team_pkey on team  (cost=0.00..8.28 rows=1 width=32)
-               Index Cond: (team.id = fact_tuan_rank_detail.team_id)
-               Filter: ((to_timestamp((team.end_time)::double precision))::date &gt; &#39;2012-02-27&#39;::date)
-   -&gt;  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
-         -&gt;  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
-(12 rows)
-&lt;/pre&gt;&lt;br /&gt;
-
-&lt;p&gt;&lt;br /&gt;
-仔细研究之后，发现了 rows=1 这个信息。这就是为什么查询分析器先对这个表做查询了，因为他认为这个表最小。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-此后对这个表执行了一下 &lt;a href=&#34;http://www.postgresql.org/docs/9.1/static/sql-analyze.html&#34;&gt;analyse&lt;/a&gt; 命令，更新了一些统计信息。然后再看执行计划如下。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-
-
-&lt;pre class=&#34;prettyprint lang-text&#34;&gt;
- Hash Join  (cost=1210761.12..1326052.45 rows=2282704 width=620)
-   Hash Cond: (fact_tuan_rank_detail.team_id = team.id)
-   -&gt;  HashAggregate  (cost=1203912.40..1265555.26 rows=1027381 width=71)
-         -&gt;  Index Scan using date_idx on fact_tuan_rank_detail  (cost=0.00..1075489.81 rows=10273807 width=71)
-               Index Cond: ((thedate &gt;= &#39;2012-02-25&#39;::date) AND (thedate &lt;= &#39;2012-02-27&#39;::date))
-               Filter: (((source)::text ~~ &#39;%team%&#39;::text) AND ((source)::text !~~ &#39;%today%&#39;::text) AND ((source)::text !~~ &#39;%ongoing%&#39;::text) AND ((source)
-::text !~~ &#39;%special%&#39;::text))
-   -&gt;  Hash  (cost=6666.33..6666.33 rows=14591 width=64)
-         -&gt;  Merge Left Join  (cost=6414.63..6666.33 rows=14591 width=64)
-               Merge Cond: (team.id = b.team_id)
-               -&gt;  Sort  (cost=4670.40..4686.82 rows=6567 width=32)
-                     Sort Key: team.id
-                     -&gt;  Seq Scan on team  (cost=0.00..4254.02 rows=6567 width=32)
-                           Filter: ((to_timestamp((end_time)::double precision))::date &gt; &#39;2012-02-27&#39;::date)
-               -&gt;  Sort  (cost=1744.23..1780.71 rows=14591 width=40)
-                     Sort Key: b.team_id
-                     -&gt;  Subquery Scan on b  (cost=370.29..735.06 rows=14591 width=40)
-                           -&gt;  HashAggregate  (cost=370.29..589.15 rows=14591 width=15)
-                                 -&gt;  Seq Scan on team_arrive_city  (cost=0.00..288.19 rows=16419 width=15)
-(18 rows)
-&lt;/pre&gt;&lt;br /&gt;
-
-&lt;p&gt;&lt;br /&gt;
-可以看到执行计划已经变了，先做其他表的 join，最后再和大表 join。并且提示的执行时间也大致靠谱。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-从这里面引申一下，时常会听到有人说 explain 命令执行后得出的执行时间不靠谱，需要使用 explain analyse。可是为什么不靠谱呢，其实 explain analyse 需要的时间和实际执行时间一样，explain 不靠谱的原因是因为数据库对那个表的统计信息不及时导致的。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-再进一步了解，postgres 里面这个统计信息为什么不靠谱呢？难道还总是需要我维护这些信息啊？&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-其实 postgres 里面有个 autovacuum 进程就是做这个事情的。autovacuum 进程默认是启用的。他会在数据库空闲的时候，对数据库做 vavcuum 和 analyse。具体多久执行一次，&lt;a href=&#34;http://www.postgresql.org/docs/9.1/static/routine-vacuuming.html&#34;&gt;文档&lt;/a&gt; 里面都有写，建议多看看这个页面里面的信息。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-此外，还发现 postgres 还提供了很多 &lt;a href=&#34;http://www.postgresql.org/docs/9.1/static/monitoring-stats.html&#34;&gt;数据库状态查询函数&lt;/a&gt; ，使用这里面函数可以查到每个表最后一次 analyse 的时间，vacuum 的时&lt;br /&gt;
-间，里面索引被使用的情况等等，好多信息。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-
-ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不行了，查看 explain select * from t1 好像没问题，那怎么回事呢？开始没想明白，只好继续 analyse 一下，又好了。可过了两天又不行了。这次得细看了。最后发现是因为真实的 sql 是有 where 条件的，日期条件限定的那部分数据查询分析器认为很少导致了问题。没办法后面只好每次导数都 analyse 一下了。发现 pg_bulkload 导数的方式有点问题。&lt;br /&gt;
-</description>
+能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。
+Nested Loop Left Join (cost=447.90..1003.43 rows=2 width=620) Join Filter: (team.id = team_arrive_city.team_id) - Nested Loop (cost=77.62..85.98 rows=1 width=588) - HashAggregate (cost=77.62..77.68 rows=1 width=71) - Index Scan using date_idx on fact_tuan_rank_detail (cost=0.00..77.60 rows=1 width=71) Index Cond: ((thedate = &#39;2012-02-25&#39;::date) AND (thedate Index Scan using team_pkey on team (cost=0.00..8.28 rows=1 width=32) Index Cond: (team.</description>
     </item>
     
     <item>
@@ -874,66 +194,27 @@ ps: 使用 analyse 之后，那个 sql 好用了，可是发现过两天又不�
       <pubDate>Wed, 01 Feb 2012 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/use-davmail-to-access-exchange-server-better-in-thunderbird/</guid>
-      <description>&lt;p&gt;exchange 是个恶心玩意，虽然提供了 imap 接口，但是速度巨慢，发送接收都慢。davmail 可以解决这个问题。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
+      <description>exchange 是个恶心玩意，虽然提供了 imap 接口，但是速度巨慢，发送接收都慢。davmail 可以解决这个问题。
+davmail 能干啥
 
-&lt;div id=&#34;outline-container-1&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-1&#34;&gt;davmail 能干啥&lt;/h2&gt;&lt;br /&gt;
-&lt;div class=&#34;outline-text-2&#34; id=&#34;text-1&#34;&gt;&lt;br /&gt;
-
-
-&lt;p&gt;&lt;br /&gt;
-&lt;a href=&#34;http://davmail.sourceforge.net/&#34;&gt;davmail&lt;/a&gt; 可以理解为就是一个 proxy，他负责和 exchange 通讯，其他邮件客户端连接 davmail 来获取邮件什么的。网站上面有图，看&lt;br /&gt;
-着更加直观一点。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
-
-&lt;/div&gt;&lt;br /&gt;
-
-&lt;div id=&#34;outline-container-2&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-2&#34;&gt;安装配置 davmail&lt;/h2&gt;&lt;br /&gt;
-&lt;div class=&#34;outline-text-2&#34; id=&#34;text-2&#34;&gt;&lt;br /&gt;
+davmail 可以理解为就是一个 proxy，他负责和 exchange 通讯，其他邮件客户端连接 davmail 来获取邮件什么的。网站上面有图，看
+着更加直观一点。
 
 
-&lt;p&gt;&lt;br /&gt;
-ubuntu 里面好像直接就有，apt-get 安装就可以了。gentoo 里面没有，我在 overlay 里面找到一个 ebuild，自己修了一下，放到我的&lt;br /&gt;
-&lt;a href=&#34;https://github.com/wd/overlay&#34;&gt;overlay&lt;/a&gt; 了，在 net-mail/davmail-bin 下面。启用 server 这个 use。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-安装后会创建一个 davmail 用户，需要建立一个 /var/log/davmail 的目录，给 davmail 写权限。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-然后手动运行 &lt;i&gt;opt/davmail/davmail.sh，有界面，配置好 exchange owa 的地址，保存，会生成 ~&lt;/i&gt;.davmail.properties 文件。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-这里有个问题，如果 owa 地址是 http 的，那直接继续下面的就可以了，如果是 https 的，那还需要配置对应的 ssl 相关参数。我是&lt;br /&gt;
-直接在 thunderbird 里面配置好之后，收了一下邮件，然后会提示一个什么证书的东西，这之后再继续下面的事情就可以了，这个时候&lt;br /&gt;
-他会给你配置好里面 ssl 相关的东西。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-复制到 /etc/davmail.properties，把里面的 davmail.server=fales 改成 true，设置好 log 为 /var/log/davmail/davmail.log，级&lt;br /&gt;
-别先使用 debug，测试好了之后改成 warn。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
+安装配置 davmail
 
-&lt;/div&gt;&lt;br /&gt;
+ubuntu 里面好像直接就有，apt-get 安装就可以了。gentoo 里面没有，我在 overlay 里面找到一个 ebuild，自己修了一下，放到我的
+overlay 了，在 net-mail/davmail-bin 下面。启用 server 这个 use。
 
-&lt;div id=&#34;outline-container-3&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-3&#34;&gt;配置 thunderbird&lt;/h2&gt;&lt;br /&gt;
-&lt;div class=&#34;outline-text-2&#34; id=&#34;text-3&#34;&gt;&lt;br /&gt;
+安装后会创建一个 davmail 用户，需要建立一个 /var/log/davmail 的目录，给 davmail 写权限。
 
+然后手动运行 opt/davmail/davmail.sh，有界面，配置好 exchange owa 的地址，保存，会生成 ~.davmail.properties 文件。
 
-&lt;p&gt;&lt;br /&gt;
-参考 davmail 网站上面关于 thunderbird 的配置就好了。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-可配置的有接收，发送，地址簿，日历。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-排错就看看 /var/log/davmail/davmail.log 把，信息很详细。  &lt;br /&gt;
-&lt;/p&gt;&lt;/div&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
-</description>
+这里有个问题，如果 owa 地址是 http 的，那直接继续下面的就可以了，如果是 https 的，那还需要配置对应的 ssl 相关参数。我是
+直接在 thunderbird 里面配置好之后，收了一下邮件，然后会提示一个什么证书的东西，这之后再继续下面的事情就可以了，这个时候
+他会给你配置好里面 ssl 相关的东西。
+
+复制到 /etc/davmail.properties，把里面的 davmail.</description>
     </item>
     
     <item>
@@ -942,100 +223,15 @@ ubuntu 里面好像直接就有，apt-get 安装就可以了。gentoo 里面没�
       <pubDate>Mon, 24 Oct 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/about-org2blog/</guid>
-      <description>&lt;div id=&#34;outline-container-1&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-1&#34;&gt;org2blog 是什么&lt;/h2&gt;&lt;br /&gt;
-&lt;div id=&#34;text-1&#34; class=&#34;outline-text-2&#34;&gt;&lt;br /&gt;
+      <description>org2blog 是什么
+org2blog 是用来把 org-mode 格式的文章发布到 wordpress 的工具。其实之前使用 webloger.el 也可以发布到 wordpress，不过是
+webloger.el 已经基本没人维护了，这个 org2blog 作者支持还很积极，另外 org-mode 还提供了一些额外的方便编辑的方法，所以其实
+是个不错的东东。
 
-&lt;a href=&#34;https://github.com/punchagan/org2blog&#34;&gt;org2blog&lt;/a&gt; 是用来把 org-mode 格式的文章发布到 wordpress 的工具。其实之前使用 webloger.el 也可以发布到 wordpress，不过是&lt;br /&gt;
-webloger.el 已经基本没人维护了，这个 org2blog 作者支持还很积极，另外 org-mode 还提供了一些额外的方便编辑的方法，所以其实&lt;br /&gt;
-是个不错的东东。&lt;br /&gt;
 
-&lt;/div&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
-&lt;div id=&#34;outline-container-2&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-2&#34;&gt;安装&lt;/h2&gt;&lt;br /&gt;
-&lt;div id=&#34;text-2&#34; class=&#34;outline-text-2&#34;&gt;&lt;br /&gt;
-
-其实按照上面地址的内容，安装很简单。&lt;br /&gt;
-&lt;pre class=&#34;prettyprint&#34;&gt;
-(setq load-path (cons &#34;~/.emacs.d/org2blog/&#34; load-path))
-(require &#39;org2blog-autoloads)&lt;/pre&gt;
-&lt;ol&gt;
-	&lt;li&gt;依赖 &lt;a href=&#34;http://launchpad.net/xml-rpc-el&#34;&gt;xml-rpc&lt;/a&gt; ，添加到 load-path&lt;/li&gt;
-	&lt;li&gt;需要最新版本的 org-mode，我使用的是 emacs 24 里面的 7.7，之前使用 7.5(?) 的时候，遇到了发布的时候会在文章结尾附加
-&amp;lt;/body&amp;gt;&amp;lt;/html&amp;gt; 导致 blog 的展现挂掉的问题。&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id=&#34;outline-container-3&#34; class=&#34;outline-2&#34;&gt;
-&lt;h2 id=&#34;sec-3&#34;&gt;使用&lt;/h2&gt;
-&lt;div id=&#34;outline-container-3-1&#34; class=&#34;outline-3&#34;&gt;
-&lt;h3 id=&#34;sec-3-1&#34;&gt;配置&lt;/h3&gt;
-&lt;div id=&#34;text-3-1&#34; class=&#34;outline-text-3&#34;&gt;
-&lt;pre class=&#34;prettyprint&#34;&gt;
-;; org2blog
-;;
-
-(require &#39;org2blog-autoloads)
-(setq org2blog/wp-blog-alist
-      `((&#34;abc&#34;
-         :url &#34;http://abc.com/xmlrpc.php&#34;
-         :username &#34;admin&#34;
-         :password PWD
-         :keep-new-lines t
-         :confirm t
-         :wp-code nil
-         :tags-as-categories nil)
-        ))
-
-(setq org2blog/wp-buffer-template
-  &#34;#+DATE: %s
-#+OPTIONS: toc:nil num:nil todo:nil pri:nil tags:nil ^:nil TeX:nil 
-#+CATEGORY: Heart
-#+TAGS: 
-#+PERMALINK: 
-#+TITLE:
-\n&#34;)&lt;/pre&gt;
-我不使用 wordpress 的 code 格式，所以设置了 wp-code 为 nil。可以定义多个 blog。
-
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id=&#34;outline-container-3-2&#34; class=&#34;outline-3&#34;&gt;
-&lt;h3 id=&#34;sec-3-2&#34;&gt;登陆，发帖&lt;/h3&gt;
-&lt;div id=&#34;text-3-2&#34; class=&#34;outline-text-3&#34;&gt;
-
-M-x org2blog/wp-login 会提示你要登陆哪个 blog
-M-x org2blog/wp-new-entry 会使用设置的 template 打开一个 buffer
-M-x org2blog/wp-post-buffer 保存成 draft
-M-x org2blog/wp-post-buffer-and-publish 真实发布
-
-另外，还可以发布一个 tree 而不是整个 org 文件，以及一些其他的操作就不多说了。
-
-发布源代码可以使用 BEGIN_SRC END_SRC 块，或者冒号开头的行会被当作源代码。
-
-我使用的是 wp-syntax，所以发布源代码使用 BEGIN_HTML 在里面使用 pre 标签
-&lt;pre class=&#34;prettyprint&#34;&gt;
-&amp;lt;pre lang=&#34;lisp&#34;&amp;gt;
-(setq a 1)
-&amp;lt;/pre&amp;gt;
-#+END_HTML&lt;/pre&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id=&#34;outline-container-3-3&#34; class=&#34;outline-3&#34;&gt;
-&lt;h3 id=&#34;sec-3-3&#34;&gt;其他&lt;/h3&gt;
-&lt;div id=&#34;text-3-3&#34; class=&#34;outline-text-3&#34;&gt;
-
-使用 org2blog 只能从 org 发布到 wordpress，不能从 wordpress 回到 org 文件再进行编辑，不过我看到有人已经提供了一个解决方
-法，或许将来也会支持这个功能。
-
-使用 org2blog 发布很讨厌的一点是，他会把你的 org 加上很多的 html 代码，再编辑的时候比较讨厌。
-
-org2blog 在 github 的页面 &lt;a href=&#34;https://github.com/punchagan/org2blog&#34;&gt;https://github.com/punchagan/org2blog&lt;/a&gt; 上面有不少有用的东西，建议看看。
-
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-</description>
+安装
+其实按照上面地址的内容，安装很简单。
+(setq load-path (cons &#34;~/.emacs.d/org2blog/&#34; load-path)) (require &#39;org2blog-autoloads)  依赖 xml-rpc ，添加到 load-path 需要最新版本的 org-mode，我使用的是 emacs 24 里面的 7.7，之前使用 7.5(?) 的时候，遇到了发布的时候会在文章结尾附加 &amp;lt;/body&amp;gt;&amp;lt;/html&amp;gt; 导致 blog 的展现挂掉的问题。    使用 配置 ;; org2blog ;; (require &#39;org2blog-autoloads) (setq org2blog/wp-blog-alist `((&#34;abc&#34; :url &#34;http://abc.com/xmlrpc.php&#34; :username &#34;admin&#34; :password PWD :keep-new-lines t :confirm t :wp-code nil :tags-as-categories nil) )) (setq org2blog/wp-buffer-template &#34;</description>
     </item>
     
     <item>
@@ -1044,185 +240,20 @@ org2blog 在 github 的页面 &lt;a href=&#34;https://github.com/punchagan/org2b
       <pubDate>Sun, 23 Oct 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/intro-openresty/</guid>
-      <description>一直没有时间使用 ngx_lua，上周算是真正使用了下，总结下，也算是帮忙推广下 openresty。&lt;br /&gt;
-&lt;div id=&#34;outline-container-1&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-1&#34;&gt;什么是 openresty&lt;/h2&gt;&lt;br /&gt;
-&lt;div id=&#34;text-1&#34; class=&#34;outline-text-2&#34;&gt;&lt;br /&gt;
+      <description>一直没有时间使用 ngx_lua，上周算是真正使用了下，总结下，也算是帮忙推广下 openresty。
+什么是 openresty
+openresty 的主力作者是 @agentzh 它的网页在 这里，上面有介绍。按我的理解，他是介于客户端浏览器 js 和数据库之间的一层。
+在 ajex 还没有盛行的时代，数据库的数据需要展现在浏览器的时候，一般都是使用 php/jsp 之类读取数据，然后拼表格/图表这些。在客户端机器越来越牛逼之后，把部分运算放在浏览器里面开始盛行，ajex 也越来越流行。这个时候通常还需要有个服务器端的程序来配合从数据库获取并提供数据，应该也有不少类似的程序来提供这个数据。
+老版本的 openresty 是基于 perl 做的，可以上 cpan 上面 搜到 (不知道为啥这页面我打不开了)。agentzh 还专门为他写了一个 admin site，纯 js + oprensty 来实现的，可以直接在上面配置接口，很方便。目前老版本应该没人用了。
+新版本的 openresty 基本上等于是 nginx 和一些 nginx 模块的集合，大部分模块都是 agentzh 和 chaoslawful 完成的，目前 agentzh 离职在家全职开发 openresty 相关，chaoslawful 还在淘宝 量子统计 。
+这大概就是我了解的 openresty 的起源和目前的情况。写的比较简单，里面的曲折就不多说了，可以找上面提到的大牛聊天。
 
-openresty 的主力作者是 &lt;a href=&#34;http://weibo.com/agentzh&#34;&gt;@agentzh&lt;/a&gt; 它的网页在 &lt;a href=&#34;http://openresty.org&#34;&gt;这里&lt;/a&gt;，上面有介绍。按我的理解，他是介于客户端浏览器 js 和数据库之间的一层。&lt;br /&gt;
 
-在 ajex 还没有盛行的时代，数据库的数据需要展现在浏览器的时候，一般都是使用 php/jsp 之类读取数据，然后拼表格/图表这些。在客户端机器越来越牛逼之后，把部分运算放在浏览器里面开始盛行，ajex 也越来越流行。这个时候通常还需要有个服务器端的程序来配合从数据库获取并提供数据，应该也有不少类似的程序来提供这个数据。&lt;br /&gt;
+怎么使用 openresty
+我下面用一个简单的例子来描述下，我是怎么使用 openresty 的，从中应该能看出来 openresty 能干啥，怎么用。
 
-老版本的 openresty 是基于 perl 做的，可以上 cpan 上面 &lt;a href=&#34;http://search.cpan.org/~agent/OpenResty-0.5.12/lib/OpenResty/Spec/REST_cn.pod&#34;&gt;搜到&lt;/a&gt; (不知道为啥这页面我打不开了)。agentzh 还专门为他写了一个 admin site，纯 js + oprensty 来实现的，可以直接在上面配置接口，很方便。目前老版本应该没人用了。&lt;br /&gt;
-
-新版本的 openresty 基本上等于是 nginx 和一些 nginx 模块的集合，大部分模块都是 agentzh 和 &lt;a href=&#34;https://github.com/chaoslawful&#34;&gt;chaoslawful&lt;/a&gt; 完成的，目前 agentzh 离职在家全职开发 openresty 相关，chaoslawful 还在淘宝 &lt;a href=&#34;http://linezing.com&#34;&gt;量子统计&lt;/a&gt; 。&lt;br /&gt;
-
-这大概就是我了解的 openresty 的起源和目前的情况。写的比较简单，里面的曲折就不多说了，可以找上面提到的大牛聊天。&lt;br /&gt;
-
-&lt;/div&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
-&lt;div id=&#34;outline-container-2&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-2&#34;&gt;怎么使用 openresty&lt;/h2&gt;&lt;br /&gt;
-&lt;div id=&#34;text-2&#34; class=&#34;outline-text-2&#34;&gt;&lt;br /&gt;
-
-我下面用一个简单的例子来描述下，我是怎么使用 openresty 的，从中应该能看出来 openresty 能干啥，怎么用。&lt;br /&gt;
-
-&lt;/div&gt;&lt;br /&gt;
-&lt;div id=&#34;outline-container-2-1&#34; class=&#34;outline-3&#34;&gt;&lt;br /&gt;
-&lt;h3 id=&#34;sec-2-1&#34;&gt;需求&lt;/h3&gt;&lt;br /&gt;
-&lt;div id=&#34;text-2-1&#34; class=&#34;outline-text-3&#34;&gt;&lt;br /&gt;
-
-在 postgresql 数据库有张网站日访问流量表，包含两个字段 thedate 和 pv。需要把里面的数据展现出来，画出来流量曲线。&lt;br /&gt;
-
-&lt;dl&gt;&lt;dt&gt;注意&lt;/dt&gt;&lt;dd&gt;下面的代码大都从现有程序里面扒出来的，所以不一定直接就能用，只是个示意而已。&lt;/dd&gt;&lt;/dl&gt;&lt;/div&gt;&lt;br /&gt;
-&lt;/div&gt;&lt;br /&gt;
-&lt;div id=&#34;outline-container-2-2&#34; class=&#34;outline-3&#34;&gt;&lt;br /&gt;
-&lt;h3 id=&#34;sec-2-2&#34;&gt;安装 openresty&lt;/h3&gt;&lt;br /&gt;
-&lt;div id=&#34;text-2-2&#34; class=&#34;outline-text-3&#34;&gt;&lt;br /&gt;
-
-首先需要安装 openresty。从 &lt;a href=&#34;http://openresty.org&#34;&gt;openresty.org&lt;/a&gt; 下载当前的 stable 版本 ngx_openresty-1.0.6.22.tar.gz。&lt;br /&gt;
-&lt;pre class=&#34;prettyprint lang-bash&#34;&gt;
-$ cd ngx_openresty-1.0.6.22
-$ ./configure --with-http_drizzle_module --with-http_postgres_module --with-pg_config=/opt/pg90/bin/pg_config --prefix=/usr/local/openresty --with-libdrizzle=/usr/local/libdrizzle/ --with-luajit --with-http_iconv_module # 这是我用到的参数，按照需要加减
-$ make
-# make install&lt;/pre&gt;
-configure 的时候 postgres_module 是必须的，其他的 drizzle_module 是用来支持从 mysql 获取数据的，iconv_module 是用来做编码转换的，luajit 据说可以提升不少性能。
-
-不出问题的话，在 /usr/local/openresty 目录下面就安装好了。其实更合理的方式应该是提供一个 rpm 或者 deb 包的。
-
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id=&#34;outline-container-2-3&#34; class=&#34;outline-3&#34;&gt;
-&lt;h3 id=&#34;sec-2-3&#34;&gt;启动 nginx&lt;/h3&gt;
-&lt;div id=&#34;text-2-3&#34; class=&#34;outline-text-3&#34;&gt;
-
-openresty 给提供了简单可用的 nginx.conf，所以现在可以先尝试启动下 /usr/local/openresty/nginx/sbin/nginx 了，如果启动没问题，那就 ok 了。
-
-配置文件在 /usr/local/openresty/nginx/conf/nginx.conf。
-
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id=&#34;outline-container-2-4&#34; class=&#34;outline-3&#34;&gt;
-&lt;h3 id=&#34;sec-2-4&#34;&gt;配置 nginx&lt;/h3&gt;
-&lt;div id=&#34;text-2-4&#34; class=&#34;outline-text-3&#34;&gt;
-
-主要就是配置 /usr/local/openresty/nginx/conf/nginx.conf，以后很多事情都会在这里面来完成，说是 nginx.conf 编程也不为过，呵呵。
-
-增加下面的配置
-&lt;pre class=&#34;prettyprint lang-conf&#34;&gt;
-
-    upstream pgsql {
-        postgres_server server_ip:5432 dbname=test password=123 user=test;
-        #postgres_keepalive  max=2 mode=single overflow=reject;
-        postgres_keepalive off;
-    }
-
-# server 里面增加一个 location
-
-       location /=/pv {
-            postgres_query &#39;select thedate, pv from pv&#39;;
-            postgres_pass pgsql;
-
-            rds_json on;
-            rds_json_format compact;
-
-            xss_get on;
-            xss_callback_arg &#39;_c&#39;;
-        }&lt;/pre&gt;
-&lt;ol&gt;
-	&lt;li&gt;其中关于 upstream postgres 用来定义需要连接的数据库信息，和发送 sql 到数据库，可以参考 &lt;a href=&#34;https://github.com/FRiCKLE/ngx_postgres/&#34;&gt;这里&lt;/a&gt;。&lt;/li&gt;
-	&lt;li&gt;rds_json 用来将数据库的输出变成 json 格式，可以参考 &lt;a href=&#34;https://github.com/agentzh/rds-json-nginx-module&#34;&gt;这里&lt;/a&gt; 。&lt;/li&gt;
-	&lt;li&gt;xss_get 用来支持跨域，jquery 默认使用的 callback 参数是 _c，可以参考 &lt;a href=&#34;https://github.com/agentzh/xss-nginx-module&#34;&gt;这里&lt;/a&gt;。&lt;/li&gt;
-&lt;/ol&gt;
-这样配置好之后，重启下。结果应该很清晰了，请求 &lt;a href=&#34;http://your_ip/=/pv&#34;&gt;http://your\_ip/=/pv&lt;/a&gt; 应该就可以得到数据库里面的数据了，可以使用 curl 看看结果，应该类似下面的
-&lt;pre class=&#34;prettyprint lang-json&#34;&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id=&#34;outline-container-2-5&#34; class=&#34;outline-3&#34;&gt;
-&lt;h3 id=&#34;sec-2-5&#34;&gt;js 画图&lt;/h3&gt;
-&lt;div id=&#34;text-2-5&#34; class=&#34;outline-text-3&#34;&gt;
-
-挑一个画图程序，比如我用过的 &lt;a href=&#34;http://highcharts.com&#34;&gt;highcharts&lt;/a&gt;, &lt;a href=&#34;http://www.amcharts.com/&#34;&gt;amcharts&lt;/a&gt; 这些都不错，amcharts 是使用 flash 画图，兼容各种浏览器，highcharts 号称也支持，不过我弄出来的图在 chrome/firefox 下面没问题，ie 不支持，他用的是 svg 标签。
-
-就写几行代码来示意下吧
-&lt;pre class=&#34;prettyprint lang-javascript&#34;&gt;
-    $.ajax({
-        url : &#39;http://your_ip/=/pv&#39;,
-        success: function (data) {
-            renderPvCharts(data);
-        }
-    });
-
-    function renderPvCharts(data) {
-        $(&#39;body&#39;).append(&#39;&lt;/pre&gt;
-&lt;pre class=&#34;prettyprint lang-javascript&#34;&gt;
-        var result = Utils.getSplineChartSeries( data ); # 将 nginx 返回的 json 格式数据转化为 highcharts 需要的格式
-        var options = {
-			chart: {
-                zoomType: &#39;xy&#39;,
-				renderTo: &#39;pv&#39;, # div 的 id
-				defaultSeriesType: &#39;spline&#39;
-			},
-			title: {
-                text: &#39;每日 pv&#39;
-            },
-			xAxis: {
-                type: &#39;datetime&#39;
-			},
-			tooltip: {
-				formatter: function() {
-			        return &#39;&lt;strong&gt;&#39;+ this.series.name +&#39;&lt;/strong&gt;
-&#39;+
-						Highcharts.dateFormat(&#39;%e. %b&#39;, this.x) +&#39;: &#39;+ this.y;
-				}
-			},
-			legend: {
-				layout: &#39;vertical&#39;,
-				align: &#39;right&#39;,
-				verticalAlign: &#39;top&#39;,
-				x: -10,
-				y: 100,
-				borderWidth: 0
-			},
-            series : result.y
-        };
-
-        var chart = new Highcharts.Chart( options );
-    };
-
-} );&lt;/pre&gt;
-简单解释下
-&lt;ol&gt;
-	&lt;li&gt;在页面 readay 的时候，使用 ajex 设置回调函数并请求接口。&lt;/li&gt;
-	&lt;li&gt;回调函数里面使用 Utils.getSplineChartSeries 转换一下数据，方便直接给 options 里面数据赋值，具体需要的数据格式，看 highcharts 的 spline 的 demo 就可以。&lt;/li&gt;
-	&lt;li&gt;回调函数里面显示图表。&lt;/li&gt;
-&lt;/ol&gt;
-这样就完事了，数据就展现出来了。
-
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id=&#34;outline-container-2-6&#34; class=&#34;outline-3&#34;&gt;
-&lt;h3 id=&#34;sec-2-6&#34;&gt;其他&lt;/h3&gt;
-&lt;div id=&#34;text-2-6&#34; class=&#34;outline-text-3&#34;&gt;
-
-从上面可以看到整个数据流是怎么回事。openresty 可以做的事情远比上面描述的复杂，上面只是个最简单的应用了。
-&lt;ol&gt;
-	&lt;li&gt;比如使用 &lt;a href=&#34;https://github.com/agentzh/rds-csv-nginx-module&#34;&gt;rds_csv&lt;/a&gt; 来直接得到 csv 格式的数据提供给用户，而不是 json。&lt;/li&gt;
-	&lt;li&gt;可以使用 &lt;a href=&#34;https://github.com/chaoslawful/lua-nginx-module&#34;&gt;ngx_lua&lt;/a&gt; 在 nginx.conf 里面使用 lua 来在服务器端对数据做一些处理再丢给浏览器。
-大家都知道 js 处理的数据太大的时候，会导致浏览器卡死，所以如果不方便通过 sql 控制输出的时候，可以使用 lua 来处理下。当然 这只是其中一个应用，使用 ngx_lua 你可以干很多事情，比如上面那个使用 js 来生成 spline 数据的函数就可以用 lua 来实现，lua 还可以和 c 结合来做一些事情。对于 location 的参数，在 ngx_lua 里面也是可以访问的，比如 ngx.var.arg_c 这样。具体还是看 wiki 吧，写不完的。
-&lt;ol&gt;
-	&lt;li&gt;openresty 还能直接访问 redis 和 memcached。&lt;/li&gt;
-&lt;/ol&gt;
-本篇只能算是一个入门而已，openresty 在淘宝量子统计的应用非常广泛。另外在 &lt;a href=&#34;http://qunar.com&#34;&gt;去哪网&lt;/a&gt; 也有不少应用，比如我知道的安全过滤模块，和一些数据报表，都是基于 openresty 的。
-
-附一个 highcarts 画的图
-
-&lt;img class=&#34;alignnone&#34; title=&#34;流量情况&#34; src=&#34;http://wdicc.com/images/2011-10-24-171245_1100x312_scrot.png&#34; alt=&#34;&#34; width=&#34;1100&#34; height=&#34;312&#34; /&gt;&lt;/li&gt;
-&lt;/ol&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-</description>
+需求
+在 postgresql 数据库有张网站日访问流量表，包含两个字段 thedate 和 pv。需要把里面的数据展现出来，画出来流量曲线。</description>
     </item>
     
     <item>
@@ -1231,12 +262,9 @@ openresty 给提供了简单可用的 nginx.conf，所以现在可以先尝试�
       <pubDate>Fri, 14 Oct 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/generate_series-function-in-postgresql/</guid>
-      <description>&lt;p&gt;有个报表需要把几天的记录按照小时 join 起来，最开始的作法是通过 js 来 join 数据。后来遇到了问题，就是某天某个小时可能会没有记录，然后想破头了，在 js 里面循环的时候设置每天循环到的当前的小时。可崩溃的是还会出现有的是这两小时没有，有的是另外的，用 js 搞不定了，就尝试用 sql 搞定。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-sql 开始的方法是简单的使用 full join。然后发现没法保证主表在所有的小时都有记录。后来就发现了这个 generate_series 函数，发现很有意思。地址在这里 &lt;a href=&#34;http://www.postgresql.org/docs/9.0/static/functions-srf.html&#34;&gt;http://www.postgresql.org/docs/9.0/static/functions-srf.html&lt;/a&gt; 。这里还有个 generate_scripts 的函数，可以用来遍历数组产生一个表格的。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-</description>
+      <description>有个报表需要把几天的记录按照小时 join 起来，最开始的作法是通过 js 来 join 数据。后来遇到了问题，就是某天某个小时可能会没有记录，然后想破头了，在 js 里面循环的时候设置每天循环到的当前的小时。可崩溃的是还会出现有的是这两小时没有，有的是另外的，用 js 搞不定了，就尝试用 sql 搞定。
+
+sql 开始的方法是简单的使用 full join。然后发现没法保证主表在所有的小时都有记录。后来就发现了这个 generate_series 函数，发现很有意思。地址在这里 http://www.postgresql.org/docs/9.0/static/functions-srf.html 。这里还有个 generate_scripts 的函数，可以用来遍历数组产生一个表格的。</description>
     </item>
     
     <item>
@@ -1245,34 +273,19 @@ sql 开始的方法是简单的使用 full join。然后发现没法保证主表
       <pubDate>Tue, 02 Aug 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/intro-hbase/</guid>
-      <description>&lt;p&gt;很早就知道 hbase 了，但是一直没有仔细去了解 hbase 是怎么回事。今天了解了下他的表结构。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-这篇文章 &lt;a href=&#34;http://www.searchtb.com/2011/01/understanding-hbase.html&#34;&gt;http://www.searchtb.com/2011/01/understanding-hbase.html&lt;/a&gt; 其实写的挺清楚，下面这个是个例子&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-&lt;pre class=&#34;prettyprint&#34;&gt;
-hbase(main):007:0&amp;gt; scan &#39;test&#39;                         
-ROW                                 COLUMN+CELL                                                                                            
- row1                               column=cf:a, timestamp=1312258784360, value=value3                                                     
- row1                               column=cf:b, timestamp=1312258795425, value=value3                                                     
- row2                               column=cf:b, timestamp=1312257616099, value=value2                                                     
- row3                               column=cf:c, timestamp=1312257621344, value=value3
-&lt;/pre&gt;&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-在 hbase 里面访问数据都是通过 row key + column，其实也就是哪行哪列，不过不是通过数字定位。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-在 hbase 里面看不到传统数据库的表格形式的数据列表，可以看到上面这种。传统数据库里面，每行的列数是一样的，如果那列没值，那也得填一个 null 之类。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，而 row2，row3 就只有一列。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-所以 hbase 作为 key-value 系统的时候，row key + column 就是所谓的 key。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-</description>
+      <description>很早就知道 hbase 了，但是一直没有仔细去了解 hbase 是怎么回事。今天了解了下他的表结构。
+
+这篇文章 http://www.searchtb.com/2011/01/understanding-hbase.html 其实写的挺清楚，下面这个是个例子
+
+hbase(main):007:0&amp;gt; scan &#39;test&#39; ROW COLUMN+CELL row1 column=cf:a, timestamp=1312258784360, value=value3 row1 column=cf:b, timestamp=1312258795425, value=value3 row2 column=cf:b, timestamp=1312257616099, value=value2 row3 column=cf:c, timestamp=1312257621344, value=value3 
+
+在 hbase 里面访问数据都是通过 row key + column，其实也就是哪行哪列，不过不是通过数字定位。
+
+在 hbase 里面看不到传统数据库的表格形式的数据列表，可以看到上面这种。传统数据库里面，每行的列数是一样的，如果那列没值，那也得填一个 null 之类。
+
+hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，而 row2，row3 就只有一列。
+
+所以 hbase 作为 key-value 系统的时候，row key + column 就是所谓的 key。</description>
     </item>
     
     <item>
@@ -1281,100 +294,13 @@ hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，
       <pubDate>Sun, 08 May 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/alarm-signal-in-perl/</guid>
-      <description>&lt;p&gt;前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-大概流程是有个 perl 程序 a.pl&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
+      <description>前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。
 
-&lt;pre class=&#34;prettyprint&#34;&gt;
-.....
-my $pid = fork();
-if ( !$pid ) {
-   my $cmdRet = `b.pl 2&gt;&amp;1`;
-   print FILE $cmdRet;
-   if ( $status ) {
-       warn &#34;task failed&#34;;
-   } else {
-      warn &#34;task success&#34;;
-   }
-   exit;
-}
+大概流程是有个 perl 程序 a.pl
+..... my $pid = fork(); if ( !$pid ) { my $cmdRet = `b.pl 2&amp;1`; print FILE $cmdRet; if ( $status ) { warn &#34;task failed&#34;; } else { warn &#34;task success&#34;; } exit; } waitpid ........ 
 
-waitpid ........
-&lt;/pre&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-b.pl 里面会执行 rsync 去获取一些文件，他会循环到几个机器上面去 rsync&lt;br /&gt;
-&lt;pre class=&#34;prettyprint&#34;&gt;
-for ( @hosts ) {
-    my $result = `rsync xxxxx 2&gt;&amp;1`;
-    if ( $? ) {
-        log($result);
-        log(&#34;failed&#34;);
-    } else {
-        log($result);
-        log(&#34;success&#34;);
-    }
-}
-
-sub log {
-    my $msg = shift;
-    print $msg;
-    # 然后通过 IO::Socket::INET 发送给另外一个 server  a
-}
-&lt;/pre&gt;&lt;br /&gt;
-
-现象是，时不时的， b.pl 会只 rsync 了某几台(不确定是几台)机器上面的文件，然后就不继续了，从 server a 上面能收到他发日志，最后一条是 success 的信息&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-从 a.pl 记录的日志那里看, FILE 里面记录的内容丢失了 server a 收到的最后一部分的数据，多少数据不一定，不过肯定是没有那个 success 信息。 这个文件里面也没有任何的错误信息。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-程序代码啥的都不动，rsync 的文件数不是总是一样的，也有文件多的时候没出错的时候,同时也设置了打开文件数为 65536.&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-后来发现问题就在 b.pl 里面的 log 里面。因为要发送到其他机器，怕挂住影响后续程序，所以设置了一个 alarm。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint&#34;&gt;
-eval {
-    alarm 5;
-    xxxxxxx;
-    alarm 0;
-};
-
-if ( $@ ) {
-    print &#34;error when send&#34;;
-}
-&lt;/pre&gt;&lt;br /&gt;
-
-&lt;p&gt;&lt;br /&gt;
-这个 alarm 没有设置 handle 的函数，这样就会导致 alarm 到期的时候，会直接让整个 perl 程序挂掉，并显示 &#34;Alarm clock&#34;，而且这个输出不在标准错误和标准输出里面。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-修复也简单，alarm 前设置一个 handler 就好了。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-另外，还有个问题，一个 alarm 会中断前一个 alarm，所以类似 sleep 的使用，可以这样&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-
-&lt;pre class=&#34;prettyprint&#34;&gt;
-my $previousAlarm = 0;
-eval {
-    local $SIG{ALRM} = sub { die &#39;alarm&#39;; };
-    $previousAlarm = alarm 5;
-     xxxx
-     alarm 0;
-};
-alarm 0;
-
-if ( $@ ) {
-    xxxxx;
-}
-
-alarm $previousAlarm;
-&lt;/pre&gt;&lt;br /&gt;
-</description>
+b.pl 里面会执行 rsync 去获取一些文件，他会循环到几个机器上面去 rsync
+for ( @hosts ) { my $result = `rsync xxxxx 2&amp;1`; if ( $? ) { log($result); log(&#34;failed&#34;); } else { log($result); log(&#34;</description>
     </item>
     
     <item>
@@ -1383,25 +309,15 @@ alarm $previousAlarm;
       <pubDate>Sun, 08 May 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/about-svn-merge/</guid>
-      <description>&lt;p&gt;svn merge 的 help 信息&lt;br /&gt;
-&lt;pre class=&#34;prettyprint&#34;&gt;
-usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH]
-       2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH]
-       3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH]
-&lt;/pre&gt;&lt;br /&gt;
+      <description>svn merge 的 help 信息
+usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH] 2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH] 3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH] 
+svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。
 
-svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-最好在 merge 之前加一个 &amp;ndash;dry-run 看看他会修改哪些文件。 &lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-</description>
+所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。
+
+一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。
+
+最好在 merge 之前加一个 &amp;ndash;dry-run 看看他会修改哪些文件。 </description>
     </item>
     
     <item>
@@ -1410,21 +326,15 @@ svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把�
       <pubDate>Tue, 03 May 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/cant-drop-table-in-hive/</guid>
-      <description>&lt;p&gt;之前部署 hive 0.6 的时候，发现用 postgress 存 metadb 的时候，不能 drop table，一执行就卡住了。当时试过 mysql，好像是有个什么问题，就没用了，后来只好用 hive 0.5 完事。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-前几天有个别的事情工作不正常，以为可能是版本的问题，毕竟现在都 0.7 了。所以尝试了下直接升级到 0.7。在 0.6 版本的 hive 里面，自带了一个 postgress 用的升级 sql，但是 0.7 的没有。执行这个 sql 后，hive 0.7 能查询，但是同样的，也遇到了不能 drop table 的问题。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-后来发现 drop table 的时候，hive 在尝试去查一个不存在的表，然后就卡在了这个 sql 上面，也不报错，也不超时，不知道是不是 jdbc 的问题。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-然后把 mysql 用的升级 sql 迁移到了 postgress，这样 hive 0.7 在 postgress 里面也没问题了。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-&lt;p&gt;&lt;br /&gt;
-升级 sql 和邮件列表的主题在 &lt;a href=&#34;http://www.mail-archive.com/user@hive.apache.org/msg01293.html&#34;&gt;http://www.mail-archive.com/user@hive.apache.org/msg01293.html&lt;/a&gt; 。升级的时候要注意，新建的表的 owner 需要是 hive 使用的用户。&lt;br /&gt;
-&lt;/p&gt;&lt;br /&gt;
-</description>
+      <description>之前部署 hive 0.6 的时候，发现用 postgress 存 metadb 的时候，不能 drop table，一执行就卡住了。当时试过 mysql，好像是有个什么问题，就没用了，后来只好用 hive 0.5 完事。
+
+前几天有个别的事情工作不正常，以为可能是版本的问题，毕竟现在都 0.7 了。所以尝试了下直接升级到 0.7。在 0.6 版本的 hive 里面，自带了一个 postgress 用的升级 sql，但是 0.7 的没有。执行这个 sql 后，hive 0.7 能查询，但是同样的，也遇到了不能 drop table 的问题。
+
+后来发现 drop table 的时候，hive 在尝试去查一个不存在的表，然后就卡在了这个 sql 上面，也不报错，也不超时，不知道是不是 jdbc 的问题。
+
+然后把 mysql 用的升级 sql 迁移到了 postgress，这样 hive 0.7 在 postgress 里面也没问题了。
+
+升级 sql 和邮件列表的主题在 http://www.mail-archive.com/user@hive.apache.org/msg01293.html 。升级的时候要注意，新建的表的 owner 需要是 hive 使用的用户。</description>
     </item>
     
     <item>
@@ -1433,51 +343,10 @@ svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把�
       <pubDate>Sat, 16 Apr 2011 00:00:00 +0000</pubDate>
       
       <guid>https://wdicc.com/rsync-files-from-option/</guid>
-      <description>&lt;div id=&#34;outline-container-1&#34; class=&#34;outline-2&#34;&gt;&lt;br /&gt;
-&lt;h2 id=&#34;sec-1&#34;&gt;rsync&lt;/h2&gt;&lt;br /&gt;
-&lt;div id=&#34;outline-container-1_1&#34; class=&#34;outline-3&#34;&gt;&lt;br /&gt;
-&lt;h3 id=&#34;sec-1_1&#34;&gt;include/exclude&lt;/h3&gt;&lt;br /&gt;
-&lt;div id=&#34;text-1_1&#34; class=&#34;outline-text-3&#34;&gt;&lt;br /&gt;
-
-rsync 支持使用 include/exclude 来过滤要同步的文件，使用这两个参数的时候，需要注意下面的这个问题&lt;br /&gt;
-&lt;pre class=&#34;prettyprint&#34;&gt;
-Note that, when using the –recursive (-r) option (which is implied by -a), every subcomponent of every path  is  vis‐
-        ited  from the top down, so include/exclude patterns get applied recursively to each subcomponent’s full name (e.g. to
-        include &#34;/foo/bar/baz&#34; the subcomponents &#34;/foo&#34; and &#34;/foo/bar&#34; must not be excluded).  The exclude  patterns  actually
-        short-circuit  the  directory  traversal stage when rsync finds the files to send.  If a pattern excludes a particular
-        parent directory, it can render a deeper include pattern ineffectual  because  rsync  did  not  descend  through  that
-        excluded section of the hierarchy.  This is particularly important when using a trailing ’*’ rule.  For instance, this
-        won’t work: 
-
-/some/path/this-file-will-not-be-found
-/file-is-included 
-*&lt;/pre&gt;
-rsync 使用 -r 来遍历子目录的时候，如果还想用 exclude include 来过滤文件，那么要注意 一个目录如果满足了 exclude，而且还没有对应的 include，那这个目录下面的子目录也会被 exclude，就算你对这个子目录写了 include 。
-
-虽然能解决问题，可实在很费劲，直到无意中发现了 files-from 参数。
-
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id=&#34;outline-container-1_2&#34; class=&#34;outline-3&#34;&gt;
-&lt;h3 id=&#34;sec-1_2&#34;&gt;files-from&lt;/h3&gt;
-&lt;div id=&#34;text-1_2&#34; class=&#34;outline-text-3&#34;&gt;
-
-files-from 是通过指定一个本地/远程的文件来定义需要同步的文件。这个文件生成方法可就多了，你可以用 find/sed/awk/xxxxx 等搭配来得到你这个文件，一行命令不够还可以多行，是不是爽多了？
-&lt;pre class=&#34;prettyprint&#34;&gt;
-如果是远程文件，那就 –files-from=:/path/to/files。
-
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;div id=&#34;outline-container-2&#34; class=&#34;outline-2&#34;&gt;
-&lt;h2 id=&#34;sec-2&#34;&gt;写在后面&lt;/h2&gt;
-&lt;div id=&#34;text-2&#34; class=&#34;outline-text-2&#34;&gt;
-
-顺便测试一下 org2blog，这帖子是用 org2blog 写的，给作者提了个建议，加上 permlink 的支持，没几天居然给加上了，刚好测试一下，呵呵。
-
-&lt;/div&gt;
-&lt;/div&gt;
-&lt;/div&gt;
-</description>
+      <description>rsync
+include/exclude
+rsync 支持使用 include/exclude 来过滤要同步的文件，使用这两个参数的时候，需要注意下面的这个问题
+Note that, when using the –recursive (-r) option (which is implied by -a), every subcomponent of every path is vis‐ ited from the top down, so include/exclude patterns get applied recursively to each subcomponent’s full name (e.g. to include &#34;/foo/bar/baz&#34; the subcomponents &#34;/foo&#34; and &#34;/foo/bar&#34; must not be excluded). The exclude patterns actually short-circuit the directory traversal stage when rsync finds the files to send.</description>
     </item>
     
   </channel>
