@@ -4221,6 +4221,83 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/add-some-feature-to-blog/">给blog的后台发文章添了一点功能</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-11-22T00:00:00.000&#43;00:00' itemprop="datePublished">2006-11-22</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/web">web</a>
+
+
+</div>
+    </div>
+        给blog加了一个插件 <a href="http://trac.labnotes.org/cgi-bin/trac.cgi/wiki/WPPlugin/AdvancedWysiwyg">Advanced WYSIWYG Editor</a> ，可以打开wp使用的tinymce编辑器的一些功能。例如他网站上面列出来的那些：<br />
+<ul><br />
+	<li>Format selection: paragraph, formatted, headers, etc.</li><br />
+	<li>Underline.</li><br />
+	<li>Full justification.</li><br />
+	<li>Anchor.</li><br />
+	<li>Horizontal line.</li><br />
+	<li>Copy, cut, paste.</li><br />
+	<li>Insert table.</li><br />
+	<li>Subscript, superscript.</li><br />
+	<li>Foreground color, background color.</li><br />
+	<li>Character map.</li><br />
+	<li>Full screen editing.</li><br />
+</ul><br />
+<!--more-->吸引我的功能是那个insert table。按照其它插件的安装方法，激活之后，再看发表文章的编辑器，发现确实多了很多按钮。不过多了太多了，工具栏一行都显示不下啦，怎么分行呢？wp还是很牛的，好像就已经预料到这种问题了，直接修改<font color="#ff00ff">advanced-wysiwyg.php</font>就可以了。例如我的：<br />
+<pre class="prettyprint lang-php">
+return array(
+"formatselect", "bold", "italic", "underline", "strikethrough", "separator",
+"bullist", "numlist", "indent", "outdent", "separator",
+"justifyleft", "justifycenter", "justifyright", "justifyfull","separator",
+"link", "unlink", "anchor", "image", "hr");
+}function extended_editor_mce_buttons_2($buttons) {
+// Add buttons on the second toolbar line
+//    return $buttons;
+return array(
+"cut", "copy", "paste", "undo", "redo", "separator",
+"sub", "sup", "forecolor", "backcolor", "charmap", "separator",
+"code", "fullscreen", "wordpress", "wphelp","separator","tablecontrols");
+}</pre>
+这样就分两行了，当然还可以编辑<font color="#ff00ff">extended_editor_mce_buttons_3</font>函数让他出来第三行。
+
+好了，看着是不是挺爽的？可是发现我要的insert table功能怎么没出来？再仔细看作者的网页，有个提示”需要去tinymce的网站上面下载关于table等的plugin，默认的wp 2.0版本没有包括这些“。这样去下载了，将其中的plugin里面的东西放出来，找到table和fullscreen文件夹，放到服务器的tinymce的plugin下面，再访问一下发帖页面，是不是发现工具栏都变巨丑的按钮了？呵呵。
+
+用Firefox的话，打开错误控制台，可以看到刚加的tinymce的plugin出错了。提示是：
+
+tinyMCE.addPlugin is not a function
+
+找到plugin里面的js文件看看，和其它比较一下，确实是多了这么一个函数调用。删掉之后工具栏能出来了，可是还是没有这个按钮，是啥问题呢？上作者<a href="http://blog.labnotes.org">blog</a>看了一下，原来是tinymce的版本太高了。
+<blockquote>eduo Says: March 19th, 2006 at 5:08 pm
+
+To all having issues with the rich editor disappearing:
+Yes, the version of TinyMCE changed. I’ve been checking the versions and it’s possible to download the latest one that works with this plug-in (which in reality just extends the stock WP-included TinyMCE, itself a very good thing) from the “older versions” page of the TinyMCE SF site included as part of the 2.02 files:
+<a href="http://sourceforge.net/project/showfiles.php?group_id=103281&package_id=11143">http://sourceforge.net/project/showfiles.php?group_id=103281&package_id=11143</a>0
+
+The page for direct download is: <a href="http://prdownloads.sourceforge.net/tinymce/tinymce_1_45.tgz?download">http://prdownloads.sourceforge.net/tinymce/tinymce_1_45.tgz?download</a>
+
+Using the “table” and “fullscreen” from this file is all that’s needed. Other plug-ins from this same package should work as well.</blockquote>
+除了使用上面的版本，还可以使用一个<a href="http://prdownloads.sourceforge.net/tinymce/tinymce_2_0RC4.tgz">2.0 RC4</a>这个版本。
+<blockquote>PS: The table controls and full screen editing rely on additional TinyMCE plugins. So if you want these two features as well, you’ll have to download TinyMCE plugins and install those separately. For WordPress 2.0.4 users, try the TinyMCE 2.0 RC4 plugins. Or check the comments to find out what works for other people.</blockquote>
+这个版本的table功能更加高级一点，推荐使用这个。
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/add-some-feature-to-blog/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/filesystems-comparison/">Filesystems (ext3, reiser, xfs, jfs) comparison on Debian Etch（翻译）</a>
     </h2>
     <div class="entry-content">
@@ -4917,40 +4994,6 @@ send-hook '~t .*@bbb\.com\.cn$' 'set sendmail="/usr/bin/msmtp -a bbb"'<br />
     
     
     <span class="comments"><a href="/2-problems-in-mutt/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/happy-weekend/">这周末让人高兴的两件事情</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-10-29T00:00:00.000&#43;00:00' itemprop="datePublished">2006-10-29</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/heart">heart</a>
-
-<a href="https://wdicc.com//tags/%E5%91%A8%E6%9C%AB">周末</a>
-
-
-</div>
-    </div>
-        一就是有线弄好了。之前一直不清楚，昨天朝阳电视台的过来给看了看，拿他们那个仪器测了一下，结果发现经过我那个线之后，信号衰减的很厉害。然后用他们自己带的线测试了一下，发现原来不清楚的台变清楚了。这样，所有的问题都出在这根线上面了。他们那里没有线，只能自己去买。他们据说免费给了开发商好多线，结果物业20块钱一条，都给卖完了。我这里刚好有很多线，找了一根看着还不错的，自己做了一根，有线立刻清楚了。现在60多个台，只有1,2个还有问题，不过不影响了。呵呵。<br />
-
-然后就是煤气通了。入住一个多月以来，最让人郁闷的就是煤气不通了。电磁炉用起来怪怪的，不习惯。昨天终于通煤气了，不过足足花了一天事件来做这个事情。通煤气是一条竖线上面的一起通的，不能只通一户两户，所以必须全部业主到场才能通。这样，时间都花在等这些业主上面去了。不过还好，通了，不用今天再等一天了。楼下看到通知说别的楼今天还得继续等，因为昨天人没来齐。昨天晚上用煤气热的饭，感觉舒服多了，看着淡蓝色的火焰，感觉好爽。呵呵。<br />
-
-今天早上还出去刷了一圈，技术严重下降。出门有个斜坡都不敢走了，真丢人。以后要多刷刷才行。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/happy-weekend/#disqus_thread">Comments</a></span>
     
     
 </div>

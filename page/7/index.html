@@ -4221,6 +4221,217 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/intro-openresty/">介绍下 openresty</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2011-10-23T00:00:00.000&#43;00:00' itemprop="datePublished">2011-10-23</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/javascript">javascript</a>
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+<a href="https://wdicc.com//tags/openresty">openresty</a>
+
+<a href="https://wdicc.com//tags/web">web</a>
+
+
+</div>
+    </div>
+        一直没有时间使用 ngx_lua，上周算是真正使用了下，总结下，也算是帮忙推广下 openresty。<br />
+<div id="outline-container-1" class="outline-2"><br />
+<h2 id="sec-1">什么是 openresty</h2><br />
+<div id="text-1" class="outline-text-2"><br />
+
+openresty 的主力作者是 <a href="http://weibo.com/agentzh">@agentzh</a> 它的网页在 <a href="http://openresty.org">这里</a>，上面有介绍。按我的理解，他是介于客户端浏览器 js 和数据库之间的一层。<br />
+
+在 ajex 还没有盛行的时代，数据库的数据需要展现在浏览器的时候，一般都是使用 php/jsp 之类读取数据，然后拼表格/图表这些。在客户端机器越来越牛逼之后，把部分运算放在浏览器里面开始盛行，ajex 也越来越流行。这个时候通常还需要有个服务器端的程序来配合从数据库获取并提供数据，应该也有不少类似的程序来提供这个数据。<br />
+
+老版本的 openresty 是基于 perl 做的，可以上 cpan 上面 <a href="http://search.cpan.org/~agent/OpenResty-0.5.12/lib/OpenResty/Spec/REST_cn.pod">搜到</a> (不知道为啥这页面我打不开了)。agentzh 还专门为他写了一个 admin site，纯 js + oprensty 来实现的，可以直接在上面配置接口，很方便。目前老版本应该没人用了。<br />
+
+新版本的 openresty 基本上等于是 nginx 和一些 nginx 模块的集合，大部分模块都是 agentzh 和 <a href="https://github.com/chaoslawful">chaoslawful</a> 完成的，目前 agentzh 离职在家全职开发 openresty 相关，chaoslawful 还在淘宝 <a href="http://linezing.com">量子统计</a> 。<br />
+
+这大概就是我了解的 openresty 的起源和目前的情况。写的比较简单，里面的曲折就不多说了，可以找上面提到的大牛聊天。<br />
+
+</div><br />
+</div><br />
+<div id="outline-container-2" class="outline-2"><br />
+<h2 id="sec-2">怎么使用 openresty</h2><br />
+<div id="text-2" class="outline-text-2"><br />
+
+我下面用一个简单的例子来描述下，我是怎么使用 openresty 的，从中应该能看出来 openresty 能干啥，怎么用。<br />
+
+</div><br />
+<div id="outline-container-2-1" class="outline-3"><br />
+<h3 id="sec-2-1">需求</h3><br />
+<div id="text-2-1" class="outline-text-3"><br />
+
+在 postgresql 数据库有张网站日访问流量表，包含两个字段 thedate 和 pv。需要把里面的数据展现出来，画出来流量曲线。<br />
+
+<dl><dt>注意</dt><dd>下面的代码大都从现有程序里面扒出来的，所以不一定直接就能用，只是个示意而已。</dd></dl></div><br />
+</div><br />
+<div id="outline-container-2-2" class="outline-3"><br />
+<h3 id="sec-2-2">安装 openresty</h3><br />
+<div id="text-2-2" class="outline-text-3"><br />
+
+首先需要安装 openresty。从 <a href="http://openresty.org">openresty.org</a> 下载当前的 stable 版本 ngx_openresty-1.0.6.22.tar.gz。<br />
+<pre class="prettyprint lang-bash">
+$ cd ngx_openresty-1.0.6.22
+$ ./configure --with-http_drizzle_module --with-http_postgres_module --with-pg_config=/opt/pg90/bin/pg_config --prefix=/usr/local/openresty --with-libdrizzle=/usr/local/libdrizzle/ --with-luajit --with-http_iconv_module # 这是我用到的参数，按照需要加减
+$ make
+# make install</pre>
+configure 的时候 postgres_module 是必须的，其他的 drizzle_module 是用来支持从 mysql 获取数据的，iconv_module 是用来做编码转换的，luajit 据说可以提升不少性能。
+
+不出问题的话，在 /usr/local/openresty 目录下面就安装好了。其实更合理的方式应该是提供一个 rpm 或者 deb 包的。
+
+</div>
+</div>
+<div id="outline-container-2-3" class="outline-3">
+<h3 id="sec-2-3">启动 nginx</h3>
+<div id="text-2-3" class="outline-text-3">
+
+openresty 给提供了简单可用的 nginx.conf，所以现在可以先尝试启动下 /usr/local/openresty/nginx/sbin/nginx 了，如果启动没问题，那就 ok 了。
+
+配置文件在 /usr/local/openresty/nginx/conf/nginx.conf。
+
+</div>
+</div>
+<div id="outline-container-2-4" class="outline-3">
+<h3 id="sec-2-4">配置 nginx</h3>
+<div id="text-2-4" class="outline-text-3">
+
+主要就是配置 /usr/local/openresty/nginx/conf/nginx.conf，以后很多事情都会在这里面来完成，说是 nginx.conf 编程也不为过，呵呵。
+
+增加下面的配置
+<pre class="prettyprint lang-conf">
+
+    upstream pgsql {
+        postgres_server server_ip:5432 dbname=test password=123 user=test;
+        #postgres_keepalive  max=2 mode=single overflow=reject;
+        postgres_keepalive off;
+    }
+
+# server 里面增加一个 location
+
+       location /=/pv {
+            postgres_query 'select thedate, pv from pv';
+            postgres_pass pgsql;
+
+            rds_json on;
+            rds_json_format compact;
+
+            xss_get on;
+            xss_callback_arg '_c';
+        }</pre>
+<ol>
+	<li>其中关于 upstream postgres 用来定义需要连接的数据库信息，和发送 sql 到数据库，可以参考 <a href="https://github.com/FRiCKLE/ngx_postgres/">这里</a>。</li>
+	<li>rds_json 用来将数据库的输出变成 json 格式，可以参考 <a href="https://github.com/agentzh/rds-json-nginx-module">这里</a> 。</li>
+	<li>xss_get 用来支持跨域，jquery 默认使用的 callback 参数是 _c，可以参考 <a href="https://github.com/agentzh/xss-nginx-module">这里</a>。</li>
+</ol>
+这样配置好之后，重启下。结果应该很清晰了，请求 <a href="http://your_ip/=/pv">http://your\_ip/=/pv</a> 应该就可以得到数据库里面的数据了，可以使用 curl 看看结果，应该类似下面的
+<pre class="prettyprint lang-json">
+</div>
+</div>
+<div id="outline-container-2-5" class="outline-3">
+<h3 id="sec-2-5">js 画图</h3>
+<div id="text-2-5" class="outline-text-3">
+
+挑一个画图程序，比如我用过的 <a href="http://highcharts.com">highcharts</a>, <a href="http://www.amcharts.com/">amcharts</a> 这些都不错，amcharts 是使用 flash 画图，兼容各种浏览器，highcharts 号称也支持，不过我弄出来的图在 chrome/firefox 下面没问题，ie 不支持，他用的是 svg 标签。
+
+就写几行代码来示意下吧
+<pre class="prettyprint lang-javascript">
+    $.ajax({
+        url : 'http://your_ip/=/pv',
+        success: function (data) {
+            renderPvCharts(data);
+        }
+    });
+
+    function renderPvCharts(data) {
+        $('body').append('</pre>
+<pre class="prettyprint lang-javascript">
+        var result = Utils.getSplineChartSeries( data ); # 将 nginx 返回的 json 格式数据转化为 highcharts 需要的格式
+        var options = {
+			chart: {
+                zoomType: 'xy',
+				renderTo: 'pv', # div 的 id
+				defaultSeriesType: 'spline'
+			},
+			title: {
+                text: '每日 pv'
+            },
+			xAxis: {
+                type: 'datetime'
+			},
+			tooltip: {
+				formatter: function() {
+			        return '<strong>'+ this.series.name +'</strong>
+'+
+						Highcharts.dateFormat('%e. %b', this.x) +': '+ this.y;
+				}
+			},
+			legend: {
+				layout: 'vertical',
+				align: 'right',
+				verticalAlign: 'top',
+				x: -10,
+				y: 100,
+				borderWidth: 0
+			},
+            series : result.y
+        };
+
+        var chart = new Highcharts.Chart( options );
+    };
+
+} );</pre>
+简单解释下
+<ol>
+	<li>在页面 readay 的时候，使用 ajex 设置回调函数并请求接口。</li>
+	<li>回调函数里面使用 Utils.getSplineChartSeries 转换一下数据，方便直接给 options 里面数据赋值，具体需要的数据格式，看 highcharts 的 spline 的 demo 就可以。</li>
+	<li>回调函数里面显示图表。</li>
+</ol>
+这样就完事了，数据就展现出来了。
+
+</div>
+</div>
+<div id="outline-container-2-6" class="outline-3">
+<h3 id="sec-2-6">其他</h3>
+<div id="text-2-6" class="outline-text-3">
+
+从上面可以看到整个数据流是怎么回事。openresty 可以做的事情远比上面描述的复杂，上面只是个最简单的应用了。
+<ol>
+	<li>比如使用 <a href="https://github.com/agentzh/rds-csv-nginx-module">rds_csv</a> 来直接得到 csv 格式的数据提供给用户，而不是 json。</li>
+	<li>可以使用 <a href="https://github.com/chaoslawful/lua-nginx-module">ngx_lua</a> 在 nginx.conf 里面使用 lua 来在服务器端对数据做一些处理再丢给浏览器。
+大家都知道 js 处理的数据太大的时候，会导致浏览器卡死，所以如果不方便通过 sql 控制输出的时候，可以使用 lua 来处理下。当然 这只是其中一个应用，使用 ngx_lua 你可以干很多事情，比如上面那个使用 js 来生成 spline 数据的函数就可以用 lua 来实现，lua 还可以和 c 结合来做一些事情。对于 location 的参数，在 ngx_lua 里面也是可以访问的，比如 ngx.var.arg_c 这样。具体还是看 wiki 吧，写不完的。
+<ol>
+	<li>openresty 还能直接访问 redis 和 memcached。</li>
+</ol>
+本篇只能算是一个入门而已，openresty 在淘宝量子统计的应用非常广泛。另外在 <a href="http://qunar.com">去哪网</a> 也有不少应用，比如我知道的安全过滤模块，和一些数据报表，都是基于 openresty 的。
+
+附一个 highcarts 画的图
+
+<img class="alignnone" title="流量情况" src="http://wdicc.com/images/2011-10-24-171245_1100x312_scrot.png" alt="" width="1100" height="312" /></li>
+</ol>
+</div>
+</div>
+</div>
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/intro-openresty/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/generate_series-function-in-postgresql/">postgresql 里面的 generate_series</a>
     </h2>
     <div class="entry-content">
@@ -4841,53 +5052,6 @@ M-x twittering-switch-to-unread-timeline 切换到未读的 timeline，可以绑
     
     
     <span class="comments"><a href="/parse-qqwry-dat/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/days-in-2010/">总结 2010</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2011-02-13T00:00:00.000&#43;00:00' itemprop="datePublished">2011-02-13</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/heart">heart</a>
-
-<a href="https://wdicc.com//tags/life">life</a>
-
-<a href="https://wdicc.com//tags/work">work</a>
-
-
-</div>
-    </div>
-        这都 2011 年的 2 月份了才写 2010 年的总结，好像晚了点，呵呵。不过其实这不是才过年了，还不算晚。<br />
-
-翻翻看 2009 年的，比对一下。 http://wdicc.com/2009/<br />
-
-写程序方面应该是更熟悉了，perl 里面的 pm 啥的也写了几个，甭管好不好用吧，反正是也算是用上了。另外就是 js 也写了不少，不过都是瞎写。<br />
-
-2010 年开年就不利，投资错误损失了 2 万多。换了工作，并有了第一辆车，在还没来得及开一个长途之前，车就又没了。还赶上悲催的北京限车令，现在还没的开。车没了也导致直接损失 1 万多，还好有保险。一年到头本来也没多少钱。<br />
-
-2010 还真有一次自驾游，去了平谷，庆祝刷版 10 周年，一帮人玩了两天。<br />
-
-开源上面好像没什么特别的贡献，自从用上 gentoo，懒的不行了。英语也没什么长进.... 2011 年努力吧。<br />
-
-2011 年希望能来一次远一点旅游，出国最好了。实在去不了，国内也行。这几年都没有出去玩过了。<br />
-
-2011 年也希望工作上面能有成就，每天上班的时候能有激情。<br />
-
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/days-in-2010/#disqus_thread">Comments</a></span>
     
     
 </div>

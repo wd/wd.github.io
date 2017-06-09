@@ -4221,6 +4221,90 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/greasemonkey-autologin-script/">自动登录网站的 greasemonkey 脚本</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2008-06-22T00:00:00.000&#43;00:00' itemprop="datePublished">2008-06-22</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/firefox">firefox</a>
+
+<a href="https://wdicc.com//tags/greasemonkey">greasemonkey</a>
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+
+</div>
+    </div>
+        自动登录 gmail 的 greasemonkey 脚本，可以根据需要修改 formElement.name=="Email" 为别的，来登录别的网站。注意修改 name, include 这些相关的东东<br />
+<pre class="prettyprint lang-javascript">
+// (c) 2007, Yabin Guo
+// To install, you need Greasemonkey: http://greasemonkey.mozdev.org/
+//
+// --------------------------------------------------------------------
+// ==UserScript==
+// @name          gmail Login
+// @description   Auto-login of gmail
+// @include       https://www.google.com/a/wdicc.com/*
+// ==/UserScript==
+
+//replace your seraph username and password in the following expression;
+userName="wd";
+passWord="*******";
+
+function submitFirstPasswordForm() {
+	var form=document.forms[0];
+    var submitButton = null;
+	var passwordElem;
+	var accountElem;
+	var submitButton;
+    for (i=0; formElement=form[i]; ++i){
+		if(formElement.type=="password"){
+			passwordElem=formElement;
+		}else if(formElement.name=="Email"){
+			accountElem=formElement;
+		}else if(formElement.type=="submit"){
+			submitButton=formElement;
+		}
+	}
+
+	accountElem.value=userName;
+	passwordElem.value=passWord;
+
+    if (submitButton) {
+        submitButton.focus();
+        submitButton.style.MozOutline = "2px solid purple";
+        // Submit the form by calling click() on the submit button.
+        submitButton.click();
+        // Break out of both loops.
+        return; 
+      }
+}
+
+window.addEventListener(
+  "load", 
+  function() { 
+    setTimeout(submitFirstPasswordForm, 0); 
+  }, 
+  false
+);
+</pre><br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/greasemonkey-autologin-script/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/guanggaoguanggao/">张贴小广告~</a>
     </h2>
     <div class="entry-content">
@@ -4601,52 +4685,6 @@ gnome 下面有 gnome-volume-manager &amp; gnome-mount &amp; gnome-vfs 和自动
     
     
     <span class="comments"><a href="/jianlongxiejia-so-bad-movie/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/use-mplayer-in-gnome/">在gnome下面使用mplayer</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2008-04-05T00:00:00.000&#43;00:00' itemprop="datePublished">2008-04-05</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/gnome">gnome</a>
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-<a href="https://wdicc.com//tags/mplayer">mplayer</a>
-
-<a href="https://wdicc.com//tags/screensaver">screensaver</a>
-
-
-</div>
-    </div>
-        使用mplayer其实没必要用什么前端了，多简洁，不过可能是因为我很少看有字幕的视频的缘故。smplayer是基于qt的，有兴趣可以试试看，我觉得速度有点慢。此外还有gnome-mplayer，有选项可以stop gnome的screensaver。<br />
-
-今天忽然兴起就想看看smplayer的最新版是否能在播放的时候屏蔽gnome screensaver，结果在他们论坛上面找到了方法。其实smplayer本身是没那个功能的，作为前端，他只是负责把 stop-xscreensaver 参数传递给mplayer而已。不过却发现了一个mpalyer的设置：<br />
-<pre class="prettyprint lang-text">heartbeat-cmd="gnome-screensaver-command -p">
-这个设置不知道是从什么时候出现的，可以用来停止gnome的screensaver，放到 .mplayer/config 里面就行了。
-
-这下子gnome-screensaver 也可以干掉了，这玩意不支持mplayer的一些快捷键，例如osd切换。在播放一些有问题的文件的时候，还经常 cpu 100% 死掉。
-
-另外，gnome里面的文件，在nautilus里面双击默认的打开方式是由 /usr/share/applications 里面的那些desktop文件决定的，这些文件里面定义了可以打开什么类型的文件。gnome的菜单也是从这里生成的。当然，在文件上面右键-&gt;属性-&gt;打开方式也可以自定义一个。
-
-此外，~/.local/share/applications 里面也有一些 desktop，这些是你自定义的。比如系统经过判断，rmvb的文件使用 realplayer 来打开，但是你又想用 mplayer 来打开，那么就会在这个目录下面的文件里面记录下来。
-
-mplayer 的那个 desktop 文件里面指定的是 gmplayer 来打开文件的，我可不喜欢这个gmplayer，所以修改一下这个文件就好了。这样比自己添加自定义命令的好处是，有个图标。。。还有可以打开 smb:// 的文件。
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/use-mplayer-in-gnome/#disqus_thread">Comments</a></span>
     
     
 </div>

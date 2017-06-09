@@ -6,10 +6,23 @@
     <description>Recent content on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 08 Apr 2017 15:16:49 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 09 Jun 2017 10:55:44 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Run ssserver on VPS</title>
+      <link>https://wdicc.com/run-ssserver-on-vps/</link>
+      <pubDate>Fri, 09 Jun 2017 10:55:44 +0800</pubDate>
+      
+      <guid>https://wdicc.com/run-ssserver-on-vps/</guid>
+      <description>VPS 上面好早以前用过 docker 跑了一个 container 运行了一个 ssserver, 是从 debian 基本系统创建, 然后手动安装各种软件弄好的. 最近朋友升级了 docker, 那个工作有点问题了,就重新搞了一下, 发现现在好方便.
+我用的是这里提供的 dockerfile https://github.com/EasyPi/docker-shadowsocks-libev, 他的例子里面使用了 docker-compose 来创建, 发现很简单, 不过遇到了一个问题, 说一下解决办法.
+这个 docker 本地监听的端口是固定的 8388 不能修改, 例如 docker-compose.yml 里面
+ server: image: easypi/shadowsocks-libev container_name: wd-ss ports: - &amp;quot;HOST_PORT:8388/tcp&amp;quot; - &amp;quot;HOST_PORT:8388/udp&amp;quot; environment: - METHOD=aes-256-cfb - PASSWORD=5ouMnqPyzseL restart: always  需要配置的是 HOST_PORT METHOD PASSWORD 这三个变量, 然后我还指定了 container_name 方便以后的操作, 不指定会自动产生一个.
+启动服务之后,可以使用 docker logs wd-ss 来看 log, 类似于下面, 这个 docker 启用了 udp relay 和 tcp fast open, 差不多也就够了.</description>
+    </item>
     
     <item>
       <title>Meetings and meetings</title>
@@ -280,18 +293,6 @@ Enhance Existing Features  已完成？提升 FDW 的基础设计和 postgres_fd
 台湾夜市里面也经常能碰见那种几十年的老店，那真的是几十年一直在做那个生意。几十年价格也没有变化太多。想起来前门的那个面馆前段时间关门了，没有办法，涨价没法涨，收入基本不变的情况下，地价变化太大，只好关门了。
 就目前这个房地产的情况，北京还能有多少真正的老字号，有多少真正的老街，估计基本不会有了。后面估计会有更加多人工的景区了，费用估计还不能便宜了。
 想起来凤凰古城了，大家不愿意拆，那就某天一把火烧了，这下都同意了吧，这可是天意。</description>
-    </item>
-    
-    <item>
-      <title>python 的 decorator 学习</title>
-      <link>https://wdicc.com/decorator-in-python/</link>
-      <pubDate>Fri, 21 Oct 2016 18:50:59 +0800</pubDate>
-      
-      <guid>https://wdicc.com/decorator-in-python/</guid>
-      <description>最近学习了一下 python 的 decorator（装饰器），看的是这篇，Python修饰器的函数式编程， 觉得挺有意思的，写点东西记录一下。
-装饰器简单讲就是返回一个函数的函数/类。看个简单的例子。
-#!/usr/bin/python # -*- coding: utf-8 -*- def dec1(fn): print(&#39;inside dec1&#39;) def wrapper(): print(&#39;inside wrapper&#39;) return fn() return wrapper @dec1 def f1(): print(&#39;inside f1&#39;) if __name__ == &#39;__main__&#39;: print(&#39;begin exec&#39;) f1() print(&#39;end exec&#39;) # 执行结果: # inside dec1 # begin exec # inside wrapper # inside f1 # end exec  看上面例子能看到，装饰器生效有 2 个步骤，第一个是装饰，第二个是执行。上面装饰器的效果，和下面的代码的效果是一样。
-#!/usr/bin/python # -*- coding: utf-8 -*- def dec1(fn): print(&#39;inside dec1&#39;) def wrapper(): print(&#39;inside wrapper&#39;) return fn() return wrapper # @dec1 def f1(): print(&#39;inside f1&#39;) if __name__ == &#39;__main__&#39;: print(&#39;begin exec&#39;) dec1(f1)() print(&#39;end exec&#39;) # 执行结果: # begin exec # inside dec1 # inside wrapper # inside f1 # end exec  可以看到除了 「begin/end exec」，其他部分执行结果是一样的。所以理解装饰器，就把 @dec1 换成 dec1(fn)() 这么理解就可以了。</description>
     </item>
     
   </channel>

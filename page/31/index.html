@@ -4221,6 +4221,57 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/account-locking/">Account Locking</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-09-14T00:00:00.000&#43;00:00' itemprop="datePublished">2006-09-14</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/other">other</a>
+
+
+</div>
+    </div>
+        <a href="http://download-west.oracle.com/docs/cd/B19306_01/network.102/b14266/policies.htm#i1012688">这里</a><br />
+
+7.4.1 Account Locking<br />
+
+When a particular user exceeds a designated number of failed login attempts, the server automatically locks that user account. You specify the permissible number of failed login attempts using the CREATE PROFILE statement. You can also specify the amount of time accounts remain locked.<br />
+
+In the following example, the maximum number of failed login attempts for the user johndoe is four, and the amount of time the account will remain locked is 30 days. The account will unlock automatically after the passage of 30 days.<br />
+
+CREATE PROFILE prof LIMIT<br />
+FAILED_LOGIN_ATTEMPTS 4<br />
+PASSWORD_LOCK_TIME 30;<br />
+ALTER USER johndoe PROFILE prof;<br />
+
+
+If you do not specify a time interval for unlocking the account, then PASSWORD_LOCK_TIME assumes the value specified in a default profile. If you specify PASSWORD_LOCK_TIME as UNLIMITED, then the account must be explicitly unlocked using an ALTER USER statement. For example, assuming that PASSWORD_LOCK_TIME UNLIMITED is specified for johndoe, then the following statement must be used to unlock the account:<br />
+
+ALTER USER johndoe ACCOUNT UNLOCK;<br />
+
+
+After a user successfully logs into an account, the unsuccessful login attempt count for the user, if it exists, is reset to 0.<br />
+
+The security officer can also explicitly lock user accounts. When this occurs, the account cannot be unlocked automatically, and only the security officer should unlock the account. The CREATE USER or ALTER USER statements are used to explicitly lock or unlock user accounts. For example, the following statement locks the user account, susan:<br />
+
+ALTER USER susan ACCOUNT LOCK;<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/account-locking/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/hijack-dns/">dns劫持</a>
     </h2>
     <div class="entry-content">
@@ -4654,74 +4705,6 @@ D:Documents and Settingshx&gt;<br />
     
     
     <span class="comments"><a href="/test-for-live-write/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/tomcat-apache-bridge/">tomcat和apache桥接</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-08-23T00:00:00.000&#43;00:00' itemprop="datePublished">2006-08-23</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/apache">apache</a>
-
-<a href="https://wdicc.com//tags/tomcat">tomcat</a>
-
-<a href="https://wdicc.com//tags/web">web</a>
-
-<a href="https://wdicc.com//tags/%E6%A1%A5%E6%8E%A5">桥接</a>
-
-
-</div>
-    </div>
-        1 下载，安装tomcat，jdk和mod_jk<br />
-
-下载jdk  <a href="http://java.sun.com/javase/downloads/index.jsp">http://java.sun.com/javase/downloads/index.jsp</a><br />
-tomcat 5.5 需要jre 1.5才可以。下载之后是一个bin文件<br />
-<pre class="prettyprint lang-bash">
-$chmod +x xx.bin
-$./xx.bin</pre>
-
-他会将jdk解压到当前目录下面，然后作一个链接
-<pre class="prettyprint lang-bash">
-
-以后访问jdk文件夹即可，此处我们用JAVA_HOME来表示jdk文件夹的路径。
-
-下载tomcat <a href="http://tomcat.apache.org/download-55.cgi">http://tomcat.apache.org/download-55.cgi</a>
-下载 Core 那个版本就可以，下载之后解压，选择放置地方之后，做一个链接
-<pre class="prettyprint lang-bash">
-
-以后访问tomcat文件夹即可，此处我们用TOMCAT_HOME来表示tomcat的安装路径。
-
-下载 mod_jk ，这个是用来完成apache和tomcat桥接的模块，<a href="http://www.apache.org/dist/tomcat/tomcat-connectors/jk/"> http://www.apache.org/dist/tomcat/tomcat-connectors/jk/</a> 。
-可以下载已经编译好的模块，不过要注意要和自己的apache版本对应才行。也可以下载source自己编译，这里我们自己编译。
-
-下载source之后，解压，进入解压后的目录，然后
-<pre class="prettyprint lang-bash">
-$./configure --with-apxs=/usr/local/apache/bin/apxs #后面是apxs的目录
-也可以
-$./configure --with-apache=/usr/local/apache #apache的目录
-$make
-</pre><br />
-编译完成之后，复制桥接模块到apache的modules目录<br />
-<pre class="prettyprint lang-bash">
-
-2 配置
-
-jdk的环境需要配置一个系统变量JAVA_HOME，可以写到/etc/profile中，或者修改tomcat的启动停止脚本来设置java环境也可以（这
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/tomcat-apache-bridge/#disqus_thread">Comments</a></span>
     
     
 </div>

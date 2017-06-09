@@ -4221,6 +4221,83 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/setup-proxy-for-emacs/">setup proxy for emacs</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2016-02-27T21:55:20.000&#43;08:00' itemprop="datePublished">2016-02-27</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/emacs">emacs</a>
+
+<a href="https://wdicc.com//tags/osx">osx</a>
+
+
+</div>
+    </div>
+        <p>我在 mac 上面使用 emacs 都是使用 daemon + emacsclient 模式。使用 <code>paradox</code> 包管理(其实就是比 <code>list-package</code> 稍微多了一点功能&rsquo;)，但是因为那些包什么的信息都在国外的网站，还有 github 什么的，导致速度巨慢甚至连不上，关键 emacs 单线程还得卡着别的操作，所以挺讨厌的(其实 paradox 提供了异步更新的方式，不会阻塞现在进程，但是有时候会不知道进度&hellip;)。</p>
+
+<p>思路就是使用 <code>proxychains</code>。</p>
+
+<p>新建一个 <code>/Library/LaunchAgents/gnu.emacs.daemon.plist</code> 文件</p>
+
+<pre><code>&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+&lt;!DOCTYPE plist PUBLIC &quot;-//Apple//DTD PLIST 1.0//EN&quot;
+    &quot;http://www.apple.com/DTDs/PropertyList-1.0.dtd&quot;&gt;
+ &lt;plist version=&quot;1.0&quot;&gt;
+  &lt;dict&gt;
+    &lt;key&gt;Label&lt;/key&gt;
+    &lt;string&gt;gnu.emacs.daemon&lt;/string&gt;
+    &lt;key&gt;ProgramArguments&lt;/key&gt;
+    &lt;array&gt;
+      &lt;string&gt;/usr/local/bin/proxychains4&lt;/string&gt;
+      &lt;string&gt;-f&lt;/string&gt;
+      &lt;string&gt;/Users/wd/.proxychains/proxychains.conf&lt;/string&gt;
+      &lt;string&gt;/usr/local/opt/emacs-mac/bin/emacs&lt;/string&gt;
+      &lt;string&gt;--daemon&lt;/string&gt;
+    &lt;/array&gt;
+   &lt;key&gt;RunAtLoad&lt;/key&gt;
+   &lt;true/&gt;
+   &lt;key&gt;ServiceDescription&lt;/key&gt;
+   &lt;string&gt;Gnu Emacs Daemon&lt;/string&gt;
+   &lt;key&gt;UserName&lt;/key&gt;
+   &lt;string&gt;wd&lt;/string&gt;
+  &lt;/dict&gt;
+&lt;/plist&gt;
+</code></pre>
+
+<p>其中 <code>/Users/wd/.proxychains/proxychains.conf</code> 文件的内容如下</p>
+
+<pre><code>strict_chain
+proxy_dns
+remote_dns_subnet 224
+tcp_read_time_out 15000
+tcp_connect_time_out 8000
+localnet 127.0.0.0/255.0.0.0
+localnet 10.0.0.0/255.0.0.0
+localnet 172.16.0.0/255.240.0.0
+localnet 192.168.0.0/255.255.0.0
+quiet_mode
+
+[ProxyList]
+#socks5 127.0.0.1 1080
+http 127.0.0.1 6152
+</code></pre>
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/setup-proxy-for-emacs/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/use-gearman-to-distribute-you-nagios-check/">use gearman to distribute you nagios check</a>
     </h2>
     <div class="entry-content">
@@ -5124,51 +5201,6 @@ k= 49/30 = 1.63
     
     
     <span class="comments"><a href="/campus-recruiting/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/how-to-finding-a-job-for-graduates/">how to finding a job for graduates</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2013-10-07T15:43:00.000&#43;08:00' itemprop="datePublished">2013-10-07</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/heart">heart</a>
-
-
-</div>
-    </div>
-        <p>昨天晚上胃难受起来翻了会知乎，回答了<a href="http://www.zhihu.com/question/21721705/answer/19228492?utm_source=weibo&amp;utm_medium=weibo_share&amp;utm_content=share_answer&amp;utm_campaign=share_button">一个问题</a>，也算校招的一个总结了。包含了给准备找工作的毕业生的一些建议。好久没写 blog 了，粘贴到这里除除草。</p>
-
-<p>刚好做了几天校招，或许对你有帮助。</p>
-
-<p>非计算机相关专业的同学，一般一些算法基础会稍差（当然也有自学数据结构且弄的比较明白的人），比较偏向实际应用开发方面，但是要注意并不是说做过很多类型的开发就会有很多的加分，而是要注重深入。</p>
-
-<p>招聘一般都会有笔试，笔试考察的是你写代码和解决问题的能力，随便用什么语言，能解决问题就可以。首先你得过笔试这关，写不了代码的，开发肯定是没办法招的。</p>
-
-<p>然后就是面试，比如就针对你做的开发，我会提问几个 python，java，html 相关的技术问题，看你是否确实使用并且掌握了他们的基本原理。开始会是一些非常简单的问题，比如 python 如何打印一个 dict 的所有 key，如何做类继承，如何调用执行外部命令等，就这些简单问题如果能答上来，一般会继续问一些相对深入的，了解下你熟悉的程度。这一关需要你对一些基础问题能答上来，如果后续也能答上来，那这方面的得分会比较高。如果基础问题答不上来，表示经验要么是瞎掰的，要么就是兴趣不在开发没用心研究过，那我基本不会给过。</p>
-
-<p>如果实际使用和学习过的东西都还算明白，那么后续会考察一些算法基础的东西，各种数据结构里面的东西，不过针对这种跨专业的，要求不会特别高，如果实在没了解过，那也没有办法。如果了解过且比较明白，那会有加分。不会也不会减分。</p>
-
-<p>此外还会考察交流沟通能力，思路是否清晰，思维是否敏捷等，这些方面好的话，会有加分。要注意这块如果有严重问题的，也不会给过，因为开发工程师是需要和其他人做配合工作的，如果沟通或者需求理解有问题，那是不行的。</p>
-
-<p>综合上面三块，看最后的结果。可以看出来，非计算机相关专业的，还是多少有点吃亏的。
-哦对了，这是我们公司的要求，可能稍微有点高，就你贴出来的经验看，如果确实都是你做出来的，我感觉你至少找个开发的工作应该是没太大问题的，可能问题是在起点会是在哪里，是在大公司还是二流三流公司，呵呵。</p>
-
-<p>另外对于你想做 android 开发，其实并不是说你有过类似经验就只能找那个方向的工作，主要还是看你的兴趣在哪里，一般大学的那点经验对于一个公司来说，基本没什么用，太浅了。</p>
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/how-to-finding-a-job-for-graduates/#disqus_thread">Comments</a></span>
     
     
 </div>

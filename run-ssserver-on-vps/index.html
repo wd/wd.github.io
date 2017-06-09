@@ -1,17 +1,18 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<meta name="generator" content="Hugo 0.21-DEV" />
 	<meta charset="utf-8">
     
     
-    <title>wd and cc</title>
+    
+    
+    <title>Run ssserver on VPS - wd and cc</title>
     <meta name="author" content="wd">
     <meta name="description" content="">
     <meta name="keywords" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-    <link href="https://wdicc.com/atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+    <link href="" rel="alternate" title="wd and cc" type="application/atom+xml">
     <link href="https://wdicc.com//images/fav.ico" rel="shortcut icon">
     <style>
     @charset "UTF-8";
@@ -4208,526 +4209,119 @@ body {
 
     <div id="content" class="inner">
         
-
-
-
-
-    
-    <script id="dsq-count-scr" src="//wdicc.disqus.com/count.js" async></script>
-    
-
-
-
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/failed-dinner/">昨天晚上饭做砸了</a>
-    </h2>
-    <div class="entry-content">
+<article class="post">
+    <h2 class="title">Run ssserver on VPS</h2>
     <div class="meta">
-        <div class="date">Published on: <time datetime='2005-10-27T00:00:00.000&#43;00:00' itemprop="datePublished">2005-10-27</time>
+        <div class="date">Published on: <time datetime='2017-06-09T10:55:44.000&#43;08:00' itemprop="datePublished">2017-06-09</time>
 </div>
         <div class="tags">Tags: 
 
-<a href="https://wdicc.com//tags/heart">heart</a>
+<a href="https://wdicc.com//tags/vps">vps</a>
+
+<a href="https://wdicc.com//tags/shadowsocks">shadowsocks</a>
 
 
 </div>
     </div>
-        晚上以为老婆不回来了，就想着吃什么。本来想吃烩菜，后来想着太繁了，还是做面条比较简单。<br />
+    <div class="entry-content"><p>VPS 上面好早以前用过 docker 跑了一个 container 运行了一个 ssserver, 是从 debian 基本系统创建, 然后手动安装各种软件弄好的. 最近朋友升级了 docker, 那个工作有点问题了,就重新搞了一下, 发现现在好方便.</p>
 
-从超市出来后，剩5块钱了，不过要了一斤鸡蛋加土豆和青椒西红柿之后，钱差不多刚好。结果老婆打电话过来说晚上要回来吃饭，这下咋办？只能让他吃面条了。<br />
+<p>我用的是这里提供的 dockerfile https://github.com/EasyPi/docker-shadowsocks-libev, 他的例子里面使用了 <code>docker-compose</code> 来创建, 发现很简单, 不过遇到了一个问题, 说一下解决办法.</p>
 
-煮好了面条，去拿碗的时候，发现西红柿忘记放了。。。晕。。<br />
+<p>这个 docker 本地监听的端口是固定的 8388 不能修改, 例如 docker-compose.yml 里面</p>
 
-老婆不喜欢吃面条，剩了老大一碗，只好今天看看是不是继续吃面条了。不过得给老婆热排骨炒蒜苔了。希望能做好 :)<br />
+<pre><code>
+server:
+  image: easypi/shadowsocks-libev
+  container_name: wd-ss
+  ports:
+    - &quot;HOST_PORT:8388/tcp&quot;
+    - &quot;HOST_PORT:8388/udp&quot;
+  environment:
+    - METHOD=aes-256-cfb
+    - PASSWORD=5ouMnqPyzseL
+  restart: always
+</code></pre>
 
-    </div>
+<p>需要配置的是 <code>HOST_PORT</code> <code>METHOD</code> <code>PASSWORD</code> 这三个变量, 然后我还指定了 <code>container_name</code> 方便以后的操作, 不指定会自动产生一个.</p>
+
+<p>启动服务之后,可以使用 <code>docker logs wd-ss</code> 来看 log, 类似于下面, 这个 docker 启用了 udp relay 和 tcp fast open, 差不多也就够了.</p>
+
+<pre><code>
+ 2017-06-09 03:13:17 INFO: using tcp fast open
+ 2017-06-09 03:13:17 INFO: UDP relay enabled
+ 2017-06-09 03:13:17 INFO: initializing ciphers... aes-256-cfb
+ 2017-06-09 03:13:17 INFO: using nameserver: 8.8.8.8
+ 2017-06-09 03:13:17 INFO: tcp server listening at 0.0.0.0:8388
+ 2017-06-09 03:13:17 INFO: udp server listening at 0.0.0.0:8388
+ 2017-06-09 03:13:17 INFO: running from root user
+</code></pre>
+
+<p>如果想要开启更多选项, 可以在 compose 文件里面使用 command 自定义启动命令</p>
+
+<pre><code>
+  command:
+    ss-server -s 0.0.0.0
+              -p 8338
+              -k 5C4D5403-31C9
+              -m aes-256-cfb
+              -t 30
+              --fast-open
+              -u
+              -a nobody
+</code></pre>
+
+<p>自己实验过程中, 如果可以随时删除自己的 container 重建, 将来 ss 升级的话, 只需要把 image 更新一下,然后删除再新建一下 container 就好了.用起来还是相当简单方便的.</p>
+</div>
 
 <div class="meta">
-    
-    
-    <span class="comments"><a href="/failed-dinner/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/wireless-on-dell-d800/">Wireless on Dell D800</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2005-10-26T00:00:00.000&#43;00:00' itemprop="datePublished">2005-10-26</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/archlinux">Archlinux</a>
-
-
-</div>
-    </div>
-        1 Install wireless_tools.<br />
-<pre class="prettyprint lang-txt">
-
-2 Install ipw2100(the wireless modules).
-<pre class="prettyprint lang-txt">
-Then modify /etc/rc.conf ,add ipw2100 to the MODULES line,and eth1 to the INTERFACES line,add eth1="dhcp"(to use dhcp) blow eth0="".
-
-3 Modify /etc/conf.d/wireless as blow
-<pre class="prettyprint lang-txt">
-wlan_eth1="eth1 mode managed essid default"
-WLAN_INTERFACES=(eth1)
-</pre><br />
-Set the firest line to fit your network.<br />
-
-4 Reboot.<br />
-
-想添<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/wireless-on-dell-d800/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/some-usefull-about-vim/">vim的一些有用的咚咚</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2005-10-26T00:00:00.000&#43;00:00' itemprop="datePublished">2005-10-26</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/other">other</a>
-
-
-</div>
-    </div>
-        <pre class="prettyprint lang-bash">
-# cat .bashrc.vim
-# .bashrc
-# Source default definitions
-if [ -f ~/.bashrc ]; then
-    . ~/.bashrc
-fi
-export PS1="[VIM]$PS1"
-</pre><br />
-<br><!--more--><pre lang="bash"># cat .vimrc<br />
-" multi-encoding setting<br />
-if has("multi_byte")<br />
-  "set bomb<br />
-  set fileencodings=ucs-bom,utf-8,cp936,big5,euc-jp,euc-kr,latin1<br />
-  " CJK environment detection and corresponding setting<br />
-  if v:lang =~ "^zh_CN"<br />
-    " Use cp936 to support GBK, euc-cn == gb2312<br />
-    set encoding=cp936<br />
-    set termencoding=cp936<br />
-    set fileencoding=cp936<br />
-  elseif v:lang =~ "^zh_TW"<br />
-    " cp950, big5 or euc-tw<br />
-    " Are they equal to each other?<br />
-    set encoding=big5<br />
-    set termencoding=big5<br />
-    set fileencoding=big5<br />
-  elseif v:lang =~ "^ko"<br />
-    " Copied from someone&#39;s dotfile, untested<br />
-    set encoding=euc-kr<br />
-    set termencoding=euc-kr<br />
-    set fileencoding=euc-kr<br />
-  elseif v:lang =~ "^ja_JP"<br />
-    " Copied from someone&#39;s dotfile, untested<br />
-    set encoding=euc-jp<br />
-    set termencoding=euc-jp<br />
-    set fileencoding=euc-jp<br />
-  endif<br />
-  " Detect UTF-8 locale, and replace CJK setting if needed<br />
-  if v:lang =~ "utf8$" || v:lang =~ "UTF-8$"<br />
-    set encoding=utf-8<br />
-    set termencoding=utf-8<br />
-    set fileencoding=utf-8<br />
-  endif<br />
-else<br />
-  echoerr "Sorry, this version of (g)vim was not compiled with multi_byte"<br />
-endif<br />
-set shell=bash\ --rcfile\ ~/.bashrc.vim<br />
-nnoremap j gj<br />
-nnoremap k gk<br />
-vnoremap j gj<br />
-vnoremap k gk<br />
-nnoremap <Down> gj<br />
-nnoremap <Up> gk<br />
-vnoremap <Down> gj<br />
-vnoremap <Up> gk<br />
-inoremap <Down> <C-o>gj<br />
-inoremap <Up> <C-o>gk<br />
-</pre><br />
-<pre class="prettyprint lang-bash">
-set tabstop=4
-set shiftwidth=4</pre>
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/some-usefull-about-vim/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/encoding-in-vim/">vim里面关于文件编码我的一点经验</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2005-10-26T00:00:00.000&#43;00:00' itemprop="datePublished">2005-10-26</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/other">other</a>
-
-
-</div>
-    </div>
-        发信人: fishy9 (Who dares to love forever?), 信区: VIM<br />
-标  题: vim里面关于文件编码我的一点经验<br />
-发信站: 水木社区 (Tue Jul 19 10:54:22 2005), 站内<br />
-
-        vim里面的编码主要跟三个参数有关：enc(encoding), fenc(fileencoding)和fencs(fileencodings)<br />
-
-<br><!--more-->其中fenc是当前文件的编码，也就是说，一个在vim里面已经正确显示了的文件(前提是你的系统环境跟你的enc设置匹配)，你可以通过改变fenc后再w来将此文件存成不同的编码。比如说，我:set fenc=utf-8然后:w就把文件存成utf-8的了，:set fenc=gb18030再:w就把文件存成gb18030的了。这个值对于打开文件的时候是否能够正确地解码没有任何关系。<br />
-
-        fencs就是用来在打开文件的时候进行解码的猜测列表。文件编码没有百分百正确的判断方法，所以vim只能猜测文件编码。比如我的vimrc里面这个的设置是<br />
-
-set fileencodings=utf-8,gb18030,utf-16,big5<br />
-
-        所以我的vim每打开一个文件，先尝试用utf-8进行解码，如果用utf-8解码到了一半出错(所谓出错的意思是某个地方无法用utf-8正确地解码)，那么就从头来用gb18030重新尝试解码，如果gb18030又出错(注意gb18030并不是像utf-8似的规则编码，所以所谓的出错只是说某个编码没有对应的有意义的字，比如0)，就尝试用utf-16，仍然出错就尝试用big5。这一趟下来，如果中间的某次解码从头到尾都没有出错，那么vim就认为这个文件是这个编码的，不会再进行后面的尝试了。这个时候，fenc的值就会被设为vim最后采用的编码值，可以用:set fenc?来查看具体是什么。<br />
-
-        当然这个也是有可能出错的，比如你的文件是gb18030编码的，但是实际上只有一两个字符是中文，那么有可能他们正好也能被utf-8解码，那么这个文件就会被误认为是utf-8的导致错误解码。<br />
-
-        至于enc，其作用基本只是显示。不管最后的文件是什么编码的，vim都会将其转换为当前系统编码来进行处理，这样才能在当前系统里面正确地显示出来，因此enc就是干这个的。在windows下面，enc默认是cp936，这也就是中文windows的默认编码，所以enc是不需要改的。在linux下，随着你的系统locale可能设为zh_CN.gb18030或者zh_CN.utf-8，你的enc要对应的设为gb18030或者utf-8(或者gbk之类的)。<br />
-
-        最后再来说一下新建空文件的默认编码。看文档好像说会采用fencs里面的第一个编码作为新建文件的默认编码。但是这里有一个问题，就是fencs的顺序跟解码成功率有很大关系，根据我的经验utf-8在前比gb18030在前成功率要高一些，那么如果我新建文件默认想让它是gb18030编码怎么办？一个方法是每次新建文件后都:set fenc=gb18030一下，不过我发现在vimrc里面设置fenc=gb18030也能达到这个效果。<br />
-
-        总结一下，我的vimrc里面的设置是：<br />
-
-set fileencoding=gb18030<br />
-set fileencodings=utf-8,gb18030,utf-16,big5<br />
-
-        另外enc根据环境来设。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/encoding-in-vim/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/wd-love-cc/">wd love cc</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2005-10-26T00:00:00.000&#43;00:00' itemprop="datePublished">2005-10-26</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/heart">heart</a>
-
-<a href="https://wdicc.com//tags/%E8%80%81%E5%A9%86">老婆</a>
-
-
-</div>
-    </div>
-        和cc在故宫的相片 :)<br />
-<center><img src="/wordpress/wp-content/uploads/1353548855.jpg" width="320" height="240"></center><br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/wd-love-cc/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/quick-archlinux-install/">wiki译文：Archlinux 快速安装指南（Quick Archlinux Install）</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2005-10-26T00:00:00.000&#43;00:00' itemprop="datePublished">2005-10-26</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/archlinux">Archlinux</a>
-
-
-</div>
-    </div>
-        原文地址：[url]http://wiki2.archlinux.org/index.php/Quick%20Archlinux%20Install[/url]<br />
-
-Quick Archlinux Install<br />
-Archlinux 快速安装指南<br />
-
-这篇文<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/quick-archlinux-install/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/play-dvd-by-mplayer/">使用mplayer播放dvd</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2005-10-26T00:00:00.000&#43;00:00' itemprop="datePublished">2005-10-26</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-
-</div>
-    </div>
-        从mplayer的web上找到的。<br />
-
-4.2 DVD播放<br />
-
-可用选项的完整列表参见man page。播放<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/play-dvd-by-mplayer/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/feed-cats/">养猫</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2005-10-26T00:00:00.000&#43;00:00' itemprop="datePublished">2005-10-26</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/cats">cats</a>
-
-
-</div>
-    </div>
-        有些人可能想养猫，我也养了1年多了，从1只到2只，也就随便说说养猫。<br />
-
-养猫绝对比养人简单，所以养猫还是比较适合单身。但是你又不可能单身一辈子（可能夸大了一点，猫猫的寿命也就10多年），所以你还是得考虑未来的伴侣是否也喜欢猫，也就要在猫和喜欢的人之间作一个选择，如果对方不喜欢猫，你是选猫，还是选那个让你动心的人？这里我有个建议，普遍认为，不喜欢猫的人通常都缺少爱心，不是说了么，做人就要有一颗慈悲的心，对于没有爱心的，建议还是选择养猫吧，这个人可能不好养。<br />
-
-<br><!--more-->养猫只需要给他猫粮、猫砂、水，必要的时候洗洗澡就可以了，吃饱喝足之后，他就会满足的趴在你怀里呼噜呼噜了。猫粮猫砂这些一个月的消费2只猫可能100以内就足够了，也就是你出去吃喝两次的钱。如果实在困难，你还是可以培养他吃米饭，吃馒头，这个就更加便宜了。<br />
-
-养猫不需要给他买衣服，在你不能忍受他的脏的时候给他洗洗澡就可以了。洗澡也很简单，你洗澡的时候把他拉进去，一起来个淋浴，就ok了。<br />
-
-养猫和养狗比起来，养猫还是比较轻松的。溜猫肯定是不用的，也不用办猫证。但是猫这个动物是不认人的，只要是吃的就行，从来不管是谁给的。狗不一样，你让他蹲下，他就蹲下，让他过来他就会过来。你要是想要猫也能做到，估计最后的结果只能是不是你疯掉就是猫疯掉。<br />
-
-<center><img src="/wordpress/wp-content/uploads/1312758951.jpg" width="600" height="450"></center><br />
-
-养猫要考虑的其实就是下面几个事情：<br />
-
-1 猫的寿命是10多年，你得能保证在这些年里面你对他不离不弃，如果只是想着抱回来养养试试看，那还是算了。很多其他途径的，可以找有猫的朋友借几天，我想他们肯定非常乐意的。<br />
-
-2 养猫对孕妇不好。所以如果家里有这种情况，一定要慎重。我觉得也不是说不能养，比如关另外一个房间，老公帮忙喂养，不养长毛猫什么的，就差不多了。养长毛猫会掉很多毛，要做好准备。<br />
-
-3 如果是单身，最好不要经常出差。出差的时候，就算托了人照顾，除非那人也有养猫经验，否则很难照顾好你的小猫的。<br />
-
-4 猫属于昼伏夜出型。猫猫一般都是白天睡觉，晚上起来捉老鼠的。不过现在的家养猫晚上可没有老鼠可捉，但是他们依然会晚上起来玩，如果是2只以上的话，那难免会追着跑，影响你睡觉是肯定的了。不过如果你有条件，关到另外一个屋子，事情就变得简单多了。<br />
-
-暂时就想到上面几点，等日后想到了再补充吧。其实养猫也没有那么难，每天喂点吃的喝的，清理一下猫砂，基本就可以了。只要关键问题想清楚了，那就去领养一只小猫吧。<br />
-
-<center><img src="/wordpress/wp-content/uploads/1238156937.jpg" width="600" height="450"></center><br />
-
-<center><img src="/wordpress/wp-content/uploads/1275261871.jpg" width="600" height="450"></center><br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/feed-cats/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/add-fonts-for-arch/">给系统添</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2005-10-26T00:00:00.000&#43;00:00' itemprop="datePublished">2005-10-26</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/archlinux">Archlinux</a>
-
-
-</div>
-    </div>
-        原文[url]http://wiki2.archlinux.org/index.php/Adding%20Fonts[/url]<br />
-
-给linux系统添<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/add-fonts-for-arch/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/auto-script/">自动贴星运的脚本</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2005-10-26T00:00:00.000&#43;00:00' itemprop="datePublished">2005-10-26</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/other">other</a>
-
-
-</div>
-    </div>
-        贴星运的脚本，根据别人的修改的。<br />
-<br><!--more-->#!/bin/bash <br />
-
-#星座的名字,抓网页的时候要用的 <br />
-Signs="aries taurus gemini cancer leo virgo libra scorpio sagittarius capricorn aquarius pisces"<br />
-
-#日期,每篇文章标题要用的 <br />
-head=`date --date='1 days' +%Y-%m-%d`<br />
-
-#要贴的BBS站点,都是水木代码的 <br />
-Sites='bbs.buaa.edu.cn'<br />
-
-#用户名密码<br />
-user=horoscope<br />
-pass=*****<br />
-
-#生成每个星座的星运文件 <br />
-i=1;<br />
-for sign in $Signs<br />
-do<br />
-    wget http://mindcity.sina.com.tw/west/MC-12stars/${sign}2.html -O $i.htm<br />
-    sed -n '/<!--START:HORO_TOMORROW-->/,/<!--END:HORO_TOMORROW-->/p' $i.htm | sed -e 's/<br />
-/\n/g' -e 's/&lt;[^&gt;]*&gt;//g'  -e 's/\t//'| sed -n '4,$p' | sed -e '2,4d' -e '15d'|iconv -f BIG5 -t GB2312 &gt; $i.ast<br />
-    rm $i.htm<br />
-    let i=$i+1<br />
-done<br />
-
-
-#out 用户名 密码 文件 <br />
-out(){<br />
-sleep 1<br />
-echo "$1" <br />
-sleep 1<br />
-echo "$2" <br />
-echo<br />
-sleep 1<br />
-echo -n "qqqqqqqqqq" <br />
-sleep 1<br />
-echo "S" <br />
-echo "horoscope" <br />
-echo <br />
-
-sleep 3<br />
-
-j=1 <br />
-while [ $j -lt 13 ] <br />
-do      <br />
-        echo -n $'\cp'<br />
-        ((echo -n $head) &amp;&amp; (head -1 $j.ast))<br />
-        echo<br />
-        echo $head<br />
-        echo<br />
-        cat $j.ast<br />
-        echo<br />
-        echo -n $'\cx'<br />
-        echo<br />
-        let j=$j+1<br />
-    sleep 3<br />
-done<br />
-
-sleep 3<br />
-
-echo "qqqqg" <br />
-echo <br />
-echo <br />
-echo <br />
-}<br />
-
-for site in $Sites<br />
-do  <br />
-    out $user $pass | telnet -8 $site<br />
-done<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/auto-script/#disqus_thread">Comments</a></span>
-    
     
 </div>
 </article>
 
 
+<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_button_google_plusone" g:plusone:size="midum"></a>
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-58da14be28165834"></script>
+</div>
 
-  <nav id="pagenavi">
+
+
     
-        <a href="/page/45/" class="prev">Prev</a>
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = 'https:\/\/wdicc.com\/run-ssserver-on-vps\/';
+            this.page.identifier = 'https:\/\/wdicc.com\/run-ssserver-on-vps\/';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
     
-    
-        <a href="/page/47/" class="next">Next</a>
-    
-    <div class="center"><a href="https://wdicc.com//archives/index.html">Blog Archives</a></div>
-  </nav>
+
+
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
 
 
     </div>
