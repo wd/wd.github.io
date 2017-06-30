@@ -1,0 +1,353 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Linux on wd and cc</title>
+    <link>https://wdicc.com/tags/linux/</link>
+    <description>Recent content in Linux on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 27 Mar 2016 11:50:38 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/linux/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Custom Netgear r6300v2 wireless router</title>
+      <link>https://wdicc.com/custom-netgear-r6300v2-wireless-router/</link>
+      <pubDate>Sun, 27 Mar 2016 11:50:38 +0800</pubDate>
+      
+      <guid>https://wdicc.com/custom-netgear-r6300v2-wireless-router/</guid>
+      <description>接 科学上网。买了群晖之后，一直通过群晖上面跑一个 haproxy 来做转发。不过心里总觉得有点不爽，毕竟一方面多转发了一次，另外群晖在不使用的时候，还会休眠，又或多或少担心影响休眠（经过测试应该是不影响的，但是..）。所以买了 r6300v2 之后，就琢磨通过路由器做这个事情。
+路由器上面搞就有两个选择，一是从 iptables 入手，直接转发出去，另外一个是从软件层面做。
+开始搞了几天的 iptables，发现原有系统 iptables 条目还是挺多的，加上路由器翻墙的功能也需要加一些条目，导致尝试了好几天之后总算能够转发过去链接了，但是数据包过不去，为了调试就开始打算在路由器安装 tcpdump。然后找到了 https://github.com/Entware/entware ，配置好之后可以使用 opkg 来安装包。包列表可以参考这里 http://pkg.entware.net/binaries/armv7/Packages.html ，这个路由器是 armv7 版本的 cpu。
+安装 opkg 之前先得了解下，梅林固件分两部分存储，一部分是系统区，一部分是自定义区。系统区应该是你刷的固件所在的地方，是不能修改的，自定义区是可以存放一些自己定义的脚本的。每次系统启动的时候，你的一些自定义的东西都是存在自定义区加载的。自定义区就是 /jffs 分区。想要使用，得在 系统管理 -&amp;gt; 系统设置 里面，打开 JFFS 的配置，允许执行上面的脚本。
+因为系统自带的 /jffs 分区只有 60M 左右，而我们装包的时候很容易就超过这个限制了，我现在已经用了 8xM 空间。所以最好还是用一个 u 盘来做这个事情。每次想要自动加载 u 盘，启动 u 盘里面的程序的话，还需要一些自定义的脚本来做这个事情。
+先把 opkg 配置好，需要先准备好 /opt 目录。
+mkdir -p /tmp/opt mount -t ext4 -o rw,noatime /dev/sda1 /opt  上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</description>
+    </item>
+    
+    <item>
+      <title>octopress and jeklly 1.0.1</title>
+      <link>https://wdicc.com/octopress-and-jeklly-1-dot-0-1/</link>
+      <pubDate>Wed, 12 Jun 2013 21:45:00 +0800</pubDate>
+      
+      <guid>https://wdicc.com/octopress-and-jeklly-1-dot-0-1/</guid>
+      <description>自从 jeklly 1.0.x 发布之后，我的 octopress 站点就在 github，gitcafe 上面更新不了了，写了新帖子然后 push 之后，会收到个邮件，说 generate site faild。
+等等。。这个不是静态站点吗？generate 你妹阿！！然后就找阿找阿找解决办法，尝试过下面这些
+ touch 一个 .nojeklly 不让它 generate 找 octopress 支持 jeklly 1.0.1 的新版本 google 之，怎么可能就我遇到问题了呢 使用 jeklly 1.0.1 单独搭一个，不用 octopress 了 &amp;hellip;其他忘记了的。。  悲剧的是，以上这些方法没一个搞定了
+ 某处搜到的这个 .nojeklly 完全不管用 octopress 2.1 这个 branch 支持 jeklly 1.0.1，可惜没能让他运转起来。。具体 release 日期似乎还没看到。。。 google 不到有用的信息，唯一有用的就是有人给 octopress 提的 pull request，可惜被 merge 到 2.1 了 这个倒是简单，可惜的是 octopress 其实背后做了很多事情，单纯的拿弄 post 过去发现有些文件解析不了，我遇到的是 ` 这个标记，是 octopress 支持的，可惜我的 post 里面好多都是这个。另外还有主题阿等等这些。  综上，就觉得，nnd，这破玩意怎么这么复杂？！</description>
+    </item>
+    
+    <item>
+      <title>octopress and gitcafe</title>
+      <link>https://wdicc.com/octopress-and-gitcafe/</link>
+      <pubDate>Wed, 12 Jun 2013 21:30:00 +0800</pubDate>
+      
+      <guid>https://wdicc.com/octopress-and-gitcafe/</guid>
+      <description>ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。
+diff --git a/.gitignore b/.gitignore index 85ed25d..5858b25 100644 --- a/.gitignore +++ b/.gitignore @@ -12,3 +12,4 @@ source/stylesheets/screen.css vendor node_modules .themes/fabric/ +gitcafe diff --git a/Rakefile b/Rakefile index 53072e5..62061e0 100644 --- a/Rakefile +++ b/Rakefile @@ -27,6 +27,9 @@ new_post_ext = &amp;quot;markdown&amp;quot; # default new post file extension when using the n new_page_ext = &amp;quot;markdown&amp;quot; # default new page file extension when using the new_page task server_port = &amp;quot;4000&amp;quot; # port for preview server eg.</description>
+    </item>
+    
+    <item>
+      <title>broadcom BCM wireless card on gentoo</title>
+      <link>https://wdicc.com/broadcom-wireless-card-on-gentoo/</link>
+      <pubDate>Fri, 24 May 2013 17:28:00 +0800</pubDate>
+      
+      <guid>https://wdicc.com/broadcom-wireless-card-on-gentoo/</guid>
+      <description>昨天又折腾了一下我的无线，是 dell 的本子，broadcom 的卡 BCM4313，准备写一下的时候，发现之前居然折腾过 BCM4312。。感觉真蛋疼。。
+$ lspci -vnn -d 14e4: 02:00.0 Network controller [0280]: Broadcom Corporation BCM4313 802.11b/g/n Wireless LAN Controller [14e4:4727] (rev 01) Subsystem: Dell Inspiron M5010 / XPS 8300 [1028:0010] Flags: fast devsel, IRQ 17 Memory at e5300000 (64-bit, non-prefetchable) [size=16K] Capabilities: &amp;lt;access denied&amp;gt; Kernel modules: bcma  根据 这里 ， BCM 的网卡有三种可用驱动
+ b43，kernel 自带，源自 broadcom linux 驱动的逆向工程 brcmsmac, kernel 自带，似乎源自 broadcom 某个开源的驱动 wl, broadcom 发布的 linux 驱动  另外，kernel 自带的 b43 和 brcmsmac 支持标准的 802.</description>
+    </item>
+    
+    <item>
+      <title>redmine-a-good-project-tracker</title>
+      <link>https://wdicc.com/redmine-a-good-project-tracker/</link>
+      <pubDate>Tue, 11 Dec 2012 14:53:00 +0800</pubDate>
+      
+      <guid>https://wdicc.com/redmine-a-good-project-tracker/</guid>
+      <description>其实很早，大概2，3年前就听说了 redmine 了，不过他环境是 ruby 的，一直没有勇气去搭一个环境。现在项目人多了，bug 阿 feature 阿，就需要记录一下了，因为有些事情不记录下来总是会忘记。之前是尝试通过 wiki ＋ bugfree 来记录的，bugfree 记录在提测之后的一些问题，wiki 记录一些 feature request 什么的。bugfree 我们没权限管理，wiki 记录又不方便，然后我就又想起来 redmine 了。
+哦对，其实公司还提供了一个 jira 给大家用，我用了几次我觉得那玩意太难用了，和那个 confluence 的 wiki 一样难用。
+本身搭建没什么难度，编译一个 ruby，然后 gem 安装几个包，下载 redmine，使用 rake 命令操作就好了。启动他的 server 之后，就可以访问了。下面几个东西是我花了一些时间配置的。
+和 ldap 集成 在 redmine 的设置里面，本身是有一项和 redmine 集成的功能的，设置 basedn，和下面的 attributes 内容（sAMAccountName,givenName,sN,mail)就可以了。点测试，得能通过。
+在我这里，光设置这个还不行，还需要 hack 一段代码。注意下面的那个 @xxxx.com，这个对应你自己的。
+ndex: app/models/auth_source_ldap.rb =================================================================== --- app/models/auth_source_ldap.rb	(版本 10947) +++ app/models/auth_source_ldap.rb	(工作副本) @@ -135,11 +135,12 @@ # Get the user&#39;s dn and any attributes for them, given their login def get_user_dn(login, password) ldap_con = nil - if self.</description>
+    </item>
+    
+    <item>
+      <title>Join 后面跟两个表</title>
+      <link>https://wdicc.com/two-table-after-join/</link>
+      <pubDate>Sun, 05 Aug 2012 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/two-table-after-join/</guid>
+      <description>发现 sql 的写法真是千奇百怪，经常遇到没见过的写法。前几天就遇到了一个 sql 在 join 后写两个表，用逗号分隔。类似下面。
+select a.a, b.f from t1 a left join ( b, c ) on ( b.id = c.id and b.a = a.a )  看到 sql 的这些用法我一般都是去 pgsql 的文档里面去查，因为 pg 的文档里面一般会指明一种用法是否标准 sql，多写标准 sql 可以避免知识不能转移。不过去查了发现 pg 不支持这种写法，也去 pg 里面执行了，确实不支持。
+然后就去看 mysql 的文档，里面有对于这种写法的支持。
+The syntax of table_factor is extended in comparison with the SQL Standard. The latter accepts only table_reference, not a list of them inside a pair of parentheses.</description>
+    </item>
+    
+    <item>
+      <title>Postgresql 里面连接其他数据库</title>
+      <link>https://wdicc.com/fdw-in-postgresql/</link>
+      <pubDate>Sun, 06 May 2012 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/fdw-in-postgresql/</guid>
+      <description>PG 9.x 引入了 fdw，可以通过 pg 去连接其他 db，不仅限于其他 pg，还可以是 mysql，oracle，文件等。按照设计，fdw 还应该提供给查询规划器一些对方 db 的索引等信息，这样在查询过程中可以提升查询速度。
+dbi_link
+
+dbi 就是 perl 的 dbi，总的思想就是通过 plperl 写一些 function（所以也给了调试修改的便利），通过 dbi 去连接其他数据库，可以连接的 db 和 dbi 的支持一样。
+
+测试了一下，第一次连接的时候会 cache 对方 db 的信息，对于复杂库没测试成功，只有一个表的库连接成功，并且可以查询。查询的时候就和查询本地库没有区别。
+
+效率上面看，不是很高，每次查询都必然需要获取对方全部数据。就算是有 where 条件，也不会试用到对方 db 的索引。所以综合来看，只是提供了一个简单的方法来获取数据，最好是一次性的。
+
+
+db_link
+
+db_link 本身是 pg 自带的，contrib 里面的。db_link 只支持 pg，建立连接之后，后续查询可以只指定使用哪个连接即可。
+
+相对 dbi_link，使用起来稍微复杂一点，需要特定的格式。效率上面看，查全表数据比 dbi_link 快。
+
+他有个优势是每次查询对方库的时候都需要指定一个 sql，而如果只需要少量数据的时候，可以在 sql 里面直接使用 where 来过滤数据，这样就能使用对方 db 的索引了，速度快很多。不过就是稍微有点繁琐。
+
+
+fdw
+
+http://www.postgresonline.com/journal/archives/250-File-FDW-Family-Part-1-file\_fdw.html 这里有个链接，讲了 file fdw。其他 fdw 还没有试过。我理解 fdw 是否能使用对方 db 的索引，还需要看 fdw 的实现。file fdw 提供了类似 oracle 外部表一样的东西。实际上早年间 yahoo 的兄弟写过一个外部表的 pg 扩展的，不知道是不是这个 file fdw 就是从那来的。</description>
+    </item>
+    
+    <item>
+      <title>有跳板机的 ssh 登陆</title>
+      <link>https://wdicc.com/controlmaster-in-ssh/</link>
+      <pubDate>Sun, 06 May 2012 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/controlmaster-in-ssh/</guid>
+      <description>我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。
+
+大意是通过设置 proxycommand 来实现，我也写过一个 http://wdicc.com/cow-ssh-proxycommand/ 。配置如下
+# gateways Host abc Hostname abc.com # servers Host *.xxx ProxyCommand ssh abc exec nc %h %p 2/dev/null 
+
+这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。
+
+倒霉的是，我厂有些 gateway 机器还需要使用 token，并不能使用 key 验证。虽然有了上面设置，如果从某个机器 cp 数据的时候，还得来回输入哪个 token，真他妈的 2b。
+
+还好 ssh 还提供了一个 controlmaster，很好的解决了这个问题。</description>
+    </item>
+    
+    <item>
+      <title>org-mode 里面自动归档任务</title>
+      <link>https://wdicc.com/auto-archive-task-for-org-mode/</link>
+      <pubDate>Sun, 08 Apr 2012 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/auto-archive-task-for-org-mode/</guid>
+      <description>我想应该有不少人在使用 emacs 的 org-mode 来做笔记，任务管理等。我使用 org-mode 比较多的情况是使用他做一些提纲，类似思维导图一样，以及用它来管理 todo list。
+
+org-mode 本身提供了 remember 来创建 todo list。
+
+新建一个 org 文件 ~/org/todo.org，包含两行内容如下
+* Tasks * Done 
+
+然后设置下面的内容
+(define-key global-map &#34;\C-ca&#34; &#39;org-agenda) (global-set-key (kbd &#34;C-c m r&#34;) &#39;org-capture) (setq org-capture-templates &#39;((&#34;t&#34; &#34;Todo&#34; entry (file+headline &#34;~/org/todo.org&#34; &#34;Tasks&#34;) &#34;* TODO %?\nCREATED: %U&#34;) (&#34;j&#34; &#34;Journal&#34; entry (file+datetree &#34;~/org/journal.org&#34;) &#34;* %?\nEntered on %U\n %i\n %a&#34;))) (defun wd-move-done-task-to-done-cats ( task-pos ) &#34;move done task to *DONE cats&#34;</description>
+    </item>
+    
+    <item>
+      <title>mac 里面的 emacs 的几个设置</title>
+      <link>https://wdicc.com/emacs-settings-in-mac/</link>
+      <pubDate>Tue, 06 Mar 2012 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/emacs-settings-in-mac/</guid>
+      <description>刚开始在 mac 里面使用 emacs 简直就是自虐，因为那个反人类的 command 按键。一般 pc 上面的 alt 是在 space 旁边的，macbook 的 space 旁边是 command，对于一个需要经常在 mac 里面按的键，不是一般的郁闷。这个问题有两个方法解决。
+mac 自带的解决方法
+
+就是在键盘设置里面，把修饰键里面的 command 和 alt 替换一下。这个方法会很不爽，因为 mac 里面的复制粘贴是 command + c/v，以后要按 alt + c/v 的话，距离有点远。
+
+
+KeyRemap4MacBook
+
+这个是个 mac 上面的软件，地址在 这里 。里面的设置实在太多了，这里要用到的一个就是只在 emacs 里面把 command 和 alt 替换一下，这样就解决了上面提到的问题，还算完美。可是这个时候会发现，在 emacs 界面激活的情况下，command 开头的系统级别的快捷键都不好用了，比如 command + tab，这也很郁闷。
+
+
+emacs 自带的完美解决方法
+
+只说 emacs23，emacs24。早期的好像有 mac-pass-command-to-system 之类的设置，可我在 emacs24 里面没看到这个变量。
+
+具体设置参考这里 ，主要是下面这些设置。</description>
+    </item>
+    
+    <item>
+      <title>postgres sql 调优一例</title>
+      <link>https://wdicc.com/analyse-and-vacuum-in-postgres/</link>
+      <pubDate>Sat, 03 Mar 2012 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/analyse-and-vacuum-in-postgres/</guid>
+      <description>前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。
+
+所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。
+
+能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。
+Nested Loop Left Join (cost=447.90..1003.43 rows=2 width=620) Join Filter: (team.id = team_arrive_city.team_id) - Nested Loop (cost=77.62..85.98 rows=1 width=588) - HashAggregate (cost=77.62..77.68 rows=1 width=71) - Index Scan using date_idx on fact_tuan_rank_detail (cost=0.00..77.60 rows=1 width=71) Index Cond: ((thedate = &#39;2012-02-25&#39;::date) AND (thedate Index Scan using team_pkey on team (cost=0.00..8.28 rows=1 width=32) Index Cond: (team.</description>
+    </item>
+    
+    <item>
+      <title>thunderbird 和 davmail 配合连接 exchange</title>
+      <link>https://wdicc.com/use-davmail-to-access-exchange-server-better-in-thunderbird/</link>
+      <pubDate>Wed, 01 Feb 2012 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/use-davmail-to-access-exchange-server-better-in-thunderbird/</guid>
+      <description>exchange 是个恶心玩意，虽然提供了 imap 接口，但是速度巨慢，发送接收都慢。davmail 可以解决这个问题。
+davmail 能干啥
+
+davmail 可以理解为就是一个 proxy，他负责和 exchange 通讯，其他邮件客户端连接 davmail 来获取邮件什么的。网站上面有图，看
+着更加直观一点。
+
+
+安装配置 davmail
+
+ubuntu 里面好像直接就有，apt-get 安装就可以了。gentoo 里面没有，我在 overlay 里面找到一个 ebuild，自己修了一下，放到我的
+overlay 了，在 net-mail/davmail-bin 下面。启用 server 这个 use。
+
+安装后会创建一个 davmail 用户，需要建立一个 /var/log/davmail 的目录，给 davmail 写权限。
+
+然后手动运行 opt/davmail/davmail.sh，有界面，配置好 exchange owa 的地址，保存，会生成 ~.davmail.properties 文件。
+
+这里有个问题，如果 owa 地址是 http 的，那直接继续下面的就可以了，如果是 https 的，那还需要配置对应的 ssl 相关参数。我是
+直接在 thunderbird 里面配置好之后，收了一下邮件，然后会提示一个什么证书的东西，这之后再继续下面的事情就可以了，这个时候
+他会给你配置好里面 ssl 相关的东西。
+
+复制到 /etc/davmail.properties，把里面的 davmail.</description>
+    </item>
+    
+    <item>
+      <title>介绍下 org2blog</title>
+      <link>https://wdicc.com/about-org2blog/</link>
+      <pubDate>Mon, 24 Oct 2011 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/about-org2blog/</guid>
+      <description>org2blog 是什么
+org2blog 是用来把 org-mode 格式的文章发布到 wordpress 的工具。其实之前使用 webloger.el 也可以发布到 wordpress，不过是
+webloger.el 已经基本没人维护了，这个 org2blog 作者支持还很积极，另外 org-mode 还提供了一些额外的方便编辑的方法，所以其实
+是个不错的东东。
+
+
+安装
+其实按照上面地址的内容，安装很简单。
+(setq load-path (cons &#34;~/.emacs.d/org2blog/&#34; load-path)) (require &#39;org2blog-autoloads)  依赖 xml-rpc ，添加到 load-path 需要最新版本的 org-mode，我使用的是 emacs 24 里面的 7.7，之前使用 7.5(?) 的时候，遇到了发布的时候会在文章结尾附加 &amp;lt;/body&amp;gt;&amp;lt;/html&amp;gt; 导致 blog 的展现挂掉的问题。    使用 配置 ;; org2blog ;; (require &#39;org2blog-autoloads) (setq org2blog/wp-blog-alist `((&#34;abc&#34; :url &#34;http://abc.com/xmlrpc.php&#34; :username &#34;admin&#34; :password PWD :keep-new-lines t :confirm t :wp-code nil :tags-as-categories nil) )) (setq org2blog/wp-buffer-template &#34;</description>
+    </item>
+    
+    <item>
+      <title>介绍下 openresty</title>
+      <link>https://wdicc.com/intro-openresty/</link>
+      <pubDate>Sun, 23 Oct 2011 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/intro-openresty/</guid>
+      <description>一直没有时间使用 ngx_lua，上周算是真正使用了下，总结下，也算是帮忙推广下 openresty。
+什么是 openresty
+openresty 的主力作者是 @agentzh 它的网页在 这里，上面有介绍。按我的理解，他是介于客户端浏览器 js 和数据库之间的一层。
+在 ajex 还没有盛行的时代，数据库的数据需要展现在浏览器的时候，一般都是使用 php/jsp 之类读取数据，然后拼表格/图表这些。在客户端机器越来越牛逼之后，把部分运算放在浏览器里面开始盛行，ajex 也越来越流行。这个时候通常还需要有个服务器端的程序来配合从数据库获取并提供数据，应该也有不少类似的程序来提供这个数据。
+老版本的 openresty 是基于 perl 做的，可以上 cpan 上面 搜到 (不知道为啥这页面我打不开了)。agentzh 还专门为他写了一个 admin site，纯 js + oprensty 来实现的，可以直接在上面配置接口，很方便。目前老版本应该没人用了。
+新版本的 openresty 基本上等于是 nginx 和一些 nginx 模块的集合，大部分模块都是 agentzh 和 chaoslawful 完成的，目前 agentzh 离职在家全职开发 openresty 相关，chaoslawful 还在淘宝 量子统计 。
+这大概就是我了解的 openresty 的起源和目前的情况。写的比较简单，里面的曲折就不多说了，可以找上面提到的大牛聊天。
+
+
+怎么使用 openresty
+我下面用一个简单的例子来描述下，我是怎么使用 openresty 的，从中应该能看出来 openresty 能干啥，怎么用。
+
+需求
+在 postgresql 数据库有张网站日访问流量表，包含两个字段 thedate 和 pv。需要把里面的数据展现出来，画出来流量曲线。</description>
+    </item>
+    
+    <item>
+      <title>postgresql 里面的 generate_series</title>
+      <link>https://wdicc.com/generate_series-function-in-postgresql/</link>
+      <pubDate>Fri, 14 Oct 2011 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/generate_series-function-in-postgresql/</guid>
+      <description>有个报表需要把几天的记录按照小时 join 起来，最开始的作法是通过 js 来 join 数据。后来遇到了问题，就是某天某个小时可能会没有记录，然后想破头了，在 js 里面循环的时候设置每天循环到的当前的小时。可崩溃的是还会出现有的是这两小时没有，有的是另外的，用 js 搞不定了，就尝试用 sql 搞定。
+
+sql 开始的方法是简单的使用 full join。然后发现没法保证主表在所有的小时都有记录。后来就发现了这个 generate_series 函数，发现很有意思。地址在这里 http://www.postgresql.org/docs/9.0/static/functions-srf.html 。这里还有个 generate_scripts 的函数，可以用来遍历数组产生一个表格的。</description>
+    </item>
+    
+    <item>
+      <title>了解了下 hbase</title>
+      <link>https://wdicc.com/intro-hbase/</link>
+      <pubDate>Tue, 02 Aug 2011 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/intro-hbase/</guid>
+      <description>很早就知道 hbase 了，但是一直没有仔细去了解 hbase 是怎么回事。今天了解了下他的表结构。
+
+这篇文章 http://www.searchtb.com/2011/01/understanding-hbase.html 其实写的挺清楚，下面这个是个例子
+
+hbase(main):007:0&amp;gt; scan &#39;test&#39; ROW COLUMN+CELL row1 column=cf:a, timestamp=1312258784360, value=value3 row1 column=cf:b, timestamp=1312258795425, value=value3 row2 column=cf:b, timestamp=1312257616099, value=value2 row3 column=cf:c, timestamp=1312257621344, value=value3 
+
+在 hbase 里面访问数据都是通过 row key + column，其实也就是哪行哪列，不过不是通过数字定位。
+
+在 hbase 里面看不到传统数据库的表格形式的数据列表，可以看到上面这种。传统数据库里面，每行的列数是一样的，如果那列没值，那也得填一个 null 之类。
+
+hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，而 row2，row3 就只有一列。
+
+所以 hbase 作为 key-value 系统的时候，row key + column 就是所谓的 key。</description>
+    </item>
+    
+    <item>
+      <title>alarm 使用不当遇到的问题</title>
+      <link>https://wdicc.com/alarm-signal-in-perl/</link>
+      <pubDate>Sun, 08 May 2011 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/alarm-signal-in-perl/</guid>
+      <description>前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。
+
+大概流程是有个 perl 程序 a.pl
+..... my $pid = fork(); if ( !$pid ) { my $cmdRet = `b.pl 2&amp;1`; print FILE $cmdRet; if ( $status ) { warn &#34;task failed&#34;; } else { warn &#34;task success&#34;; } exit; } waitpid ........ 
+
+b.pl 里面会执行 rsync 去获取一些文件，他会循环到几个机器上面去 rsync
+for ( @hosts ) { my $result = `rsync xxxxx 2&amp;1`; if ( $? ) { log($result); log(&#34;failed&#34;); } else { log($result); log(&#34;</description>
+    </item>
+    
+    <item>
+      <title>svn merge</title>
+      <link>https://wdicc.com/about-svn-merge/</link>
+      <pubDate>Sun, 08 May 2011 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/about-svn-merge/</guid>
+      <description>svn merge 的 help 信息
+usage: 1. merge sourceURL1[@N] sourceURL2[@M] [WCPATH] 2. merge sourceWCPATH1@N sourceWCPATH2@M [WCPATH] 3. merge [-c M[,N...] | -r N:M ...] SOURCE[@REV] [WCPATH] 
+svn 的 merge 的本质其实就是在两个版本之间生成 diff，然后把这个 diff 再应用到另外一个版本里面。
+
+所以可以看到 merge 和最后的那个 WCPATH 之间，通常都需要指定两个版本。WCPATH 可以是其中的一个，这个没关系。
+
+一般都是把新多出来的部分 merge 到另一个版本，所以通常是 svn merge old_ver new_ver working_ver 其中那个 working_ver 可以是 old_ver。
+
+最好在 merge 之前加一个 &amp;ndash;dry-run 看看他会修改哪些文件。 </description>
+    </item>
+    
+    <item>
+      <title>hive 里面不能 drop table</title>
+      <link>https://wdicc.com/cant-drop-table-in-hive/</link>
+      <pubDate>Tue, 03 May 2011 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/cant-drop-table-in-hive/</guid>
+      <description>之前部署 hive 0.6 的时候，发现用 postgress 存 metadb 的时候，不能 drop table，一执行就卡住了。当时试过 mysql，好像是有个什么问题，就没用了，后来只好用 hive 0.5 完事。
+
+前几天有个别的事情工作不正常，以为可能是版本的问题，毕竟现在都 0.7 了。所以尝试了下直接升级到 0.7。在 0.6 版本的 hive 里面，自带了一个 postgress 用的升级 sql，但是 0.7 的没有。执行这个 sql 后，hive 0.7 能查询，但是同样的，也遇到了不能 drop table 的问题。
+
+后来发现 drop table 的时候，hive 在尝试去查一个不存在的表，然后就卡在了这个 sql 上面，也不报错，也不超时，不知道是不是 jdbc 的问题。
+
+然后把 mysql 用的升级 sql 迁移到了 postgress，这样 hive 0.7 在 postgress 里面也没问题了。
+
+升级 sql 和邮件列表的主题在 http://www.mail-archive.com/user@hive.apache.org/msg01293.html 。升级的时候要注意，新建的表的 owner 需要是 hive 使用的用户。</description>
+    </item>
+    
+    <item>
+      <title>rsync files-from 参数</title>
+      <link>https://wdicc.com/rsync-files-from-option/</link>
+      <pubDate>Sat, 16 Apr 2011 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/rsync-files-from-option/</guid>
+      <description>rsync
+include/exclude
+rsync 支持使用 include/exclude 来过滤要同步的文件，使用这两个参数的时候，需要注意下面的这个问题
+Note that, when using the –recursive (-r) option (which is implied by -a), every subcomponent of every path is vis‐ ited from the top down, so include/exclude patterns get applied recursively to each subcomponent’s full name (e.g. to include &#34;/foo/bar/baz&#34; the subcomponents &#34;/foo&#34; and &#34;/foo/bar&#34; must not be excluded). The exclude patterns actually short-circuit the directory traversal stage when rsync finds the files to send.</description>
+    </item>
+    
+  </channel>
+</rss>

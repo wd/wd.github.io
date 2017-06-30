@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Postgres on wd and cc</title>
+    <link>https://wdicc.com/tags/postgres/</link>
+    <description>Recent content in Postgres on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Thu, 08 Dec 2016 11:55:33 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/postgres/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>使用 pgrepup 跨版本升级 pg</title>
+      <link>https://wdicc.com/use-pgrepup-to-upgrade-your-postgres/</link>
+      <pubDate>Thu, 08 Dec 2016 11:55:33 +0800</pubDate>
+      
+      <guid>https://wdicc.com/use-pgrepup-to-upgrade-your-postgres/</guid>
+      <description>pgrepup 其实是一个支持 pg 跨版本复制的工具。而 pg 大版本升级需要停机是个比较郁闷的事情，如果能通过这个解决就实在太好了。下面测试了一下。
+安装 需要安装 pgrepup 和 pglogical。
+安装 pgrepup pgrepup 官方说是支持 python &amp;gt;= 2.7 的版本，我自己测试的结果，python 3.5 里面执行有点问题，需要修改几个地方。但是在 python 2.7 里面，不需要做任何修改，所以建议使用 python 2.7。安装很简单，执行 pip install pgprepup 就可以了。
+安装 pglogical 需要给你的 pg 安装这个扩展。高版本的和低版本的都需要安装。
+安装也很简单，下载源码，执行 PATH=/opt/pg96/bin:$PATH make USE_PGXS=1 install 就好了。如果是给 pg95 装，那就把路径改成 pg95。
+可以参考这里。
+配置 配置 db 先给几个 db 定义一下角色。db1 假设为 9.5 版本，db2 假设为 9.6 版本。
+pgrepup 允许 db1, db2 和执行 pgrepup 所在的机器分别在不同的机器，也可以在相同的机器，看机器情况。
+对于 db，最小配置的 postgres.conf 修改如下，我测试的时候两个 db 在一台机器上面，只需要修改 port 不一样就可以了。</description>
+    </item>
+    
+    <item>
+      <title>postgres sql 调优一例</title>
+      <link>https://wdicc.com/analyse-and-vacuum-in-postgres/</link>
+      <pubDate>Sat, 03 Mar 2012 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/analyse-and-vacuum-in-postgres/</guid>
+      <description>前几天发现有个 sql 跑的超慢，第一次拿到 sql 大家简单分析了一下，觉得是写的有问题，里面有对一个大表的查询，数据量大概 800 万，结果还和好几个小表做了 join，而且还是 left join，速度可想而知了。单独对那个大表查询，其实也就是几分钟的事情。
+
+所以建议就是先对小表做 join，然后再和大表做一次 join。不过结果并不理想，时间依然还是那么长。这个时候就得仔细看执行计划了，如下。
+
+能看到虽然人肉对 sql 做了一些优化，但是 sql 并没有按照我们的期望去执行，执行计划里面还是首选去查 fact_tuan_rank_detail 这个大表，速度肯定慢了。
+Nested Loop Left Join (cost=447.90..1003.43 rows=2 width=620) Join Filter: (team.id = team_arrive_city.team_id) - Nested Loop (cost=77.62..85.98 rows=1 width=588) - HashAggregate (cost=77.62..77.68 rows=1 width=71) - Index Scan using date_idx on fact_tuan_rank_detail (cost=0.00..77.60 rows=1 width=71) Index Cond: ((thedate = &#39;2012-02-25&#39;::date) AND (thedate Index Scan using team_pkey on team (cost=0.00..8.28 rows=1 width=32) Index Cond: (team.</description>
+    </item>
+    
+  </channel>
+</rss>

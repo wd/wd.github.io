@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Python on wd and cc</title>
+    <link>https://wdicc.com/tags/python/</link>
+    <description>Recent content in Python on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Mon, 16 Jan 2017 15:47:59 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/python/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Python __new__</title>
+      <link>https://wdicc.com/python-new/</link>
+      <pubDate>Mon, 16 Jan 2017 15:47:59 +0800</pubDate>
+      
+      <guid>https://wdicc.com/python-new/</guid>
+      <description>翻译一点 https://www.python.org/download/releases/2.2/descrintro/#__new__ 有些感觉还是挺生硬的，方便自己理解吧。
+__new__ 的一些规则:
+ __new__ 是一个静态方法。定义它的时候并不需要执行 __new__ = staticmethod(__new__)，因为它的名字就包含了这个含义（这个对于类构造方法来说是个特殊的函数） __new__ 的第一个参数，必须是一个类，其余的参数是留给构造方法的。 覆盖了基类的 __new__ 方法的类有可能会调用基类的 __new__ 方法。传递给基类的 __new__ 方法的第一个参数，应该是覆盖基类的 __new__ 方法的类，而不是基类，如果传递了基类，你得到的将是基类的示例。 除非你想要按照后面两条描述的方法来使用，否则 __new__ 方法必须要调用基类的 __new__ 方法，这个是创建你的对象的实例的唯一方法。子类的 __new__ 方法可以从两个方面影响产生的实例：传递不同的参数给基类的 __new__，以及修改基类产生的对象（例如初始化一些实例变量） __new__ 方法必须返回一个对象。并不一定必须返回一个新的对象，虽然通常都那么做。如果你返回一个已经存在的对象，依然会有对于 __init__ 构造函数的调用。如果你返回一个其他函数的对象，那个对象的 __init__ 也会被调用。如果忘记返回，python 会给你返回 None，你程序的调用方也许会觉得很奇怪。 对于不可变对象，__new__ 可以返回一个之前缓存的对象。对于一些比较小的 int, str, tuple 类型就是这么做的。这也是为什么他们的 __init__ 什么都没做：否则之前缓存的对象会被 init 很多次。（另外一个原因是本身页没有东西可以给 __init__ 初始化的了，__new__ 返回的就是一个已经初始化的对象）。 如果你想要给一个内置的不可变类型增加一些可变的状态（例如给 string 类型增加一个默认的转换方法），最好是在 __init__ 方法里面初始化可变状态，而不要在 __new__ 里面。 如果你想要修改构造方法的签名，一般需要覆盖 __new__ 和 __init__ 方法来接受心的签名。然而，大部分内置类型都会忽视自己不用的参数，尤其是不可变类型（int，long，float，complex，str，unicode，tuple）都有一个假的 __init__，而可变类型（dict，list，file，super，classmethod，staticmethd，property）有一个假的 __new__。内置类型 object 有假的 __init__ 和 __new__ （给其他对象继承）。内置类型 type 在很多方面都很特别，请参考 metaclasses。 （这条和 __new__ 没关系，但是页应该了解一下）如果新建一个 type 的子类，实例会自动给 __dict__ 和 __weakrefs__ 预留空间（ __dict__ 在你使用前不会初始化，所以你不需要担心创建的所有实例被一个空的字典所占用的空间）。如果不需要这个多余的空间，可以给你的类设置 __slots__ = []（更多信息可以参考 __slots__。 Factoid: __new__ 是一个静态方法，不是类方法。我开始的时候觉得他应该是一个类方法，and that&amp;rsquo;s why I added the classmethod primitive。不幸的是，对于一个类方法，在这种情况下面 upcalls 不工作，所以我只好把他设计成一个第一个参数是一个 class 的静态方法。讽刺的是，there are now no known uses for class methods in the Python distribution (other than in the test suite).</description>
+    </item>
+    
+    <item>
+      <title>Python inherit and super</title>
+      <link>https://wdicc.com/python-inherit-and-super/</link>
+      <pubDate>Mon, 16 Jan 2017 11:53:04 +0800</pubDate>
+      
+      <guid>https://wdicc.com/python-inherit-and-super/</guid>
+      <description>又学习了一个 python 的继承。有很多帖子都有介绍，比如理解 Python super，python super()。
+先看一个例子，这个是第一个文章里面的。
+class Root(object): def __init__(self): print(&amp;quot;this is Root&amp;quot;) class B(Root): def __init__(self): print(&amp;quot;enter B&amp;quot;) super(B, self).__init__() print(&amp;quot;leave B&amp;quot;) class C(Root): def __init__(self): print(&amp;quot;enter C&amp;quot;) super(C, self).__init__() print(&amp;quot;leave C&amp;quot;) class D(C): def __init__(self): print(&amp;quot;enter D&amp;quot;) super(D, self).__init__() print(&amp;quot;leave D&amp;quot;) class E(D, B): def __init__(self): print(&amp;quot;enter E&amp;quot;) super(E, self).__init__() print(&amp;quot;leave E&amp;quot;) e = E() print(e.__class__.mro()) # results: # enter E # enter D # enter C # enter B # this is Root # leave B # leave C # leave D # leave E # [&amp;lt;class &#39;__main__.</description>
+    </item>
+    
+    <item>
+      <title>Python metaclass</title>
+      <link>https://wdicc.com/python-metaclass/</link>
+      <pubDate>Thu, 12 Jan 2017 18:26:22 +0800</pubDate>
+      
+      <guid>https://wdicc.com/python-metaclass/</guid>
+      <description>又理解了一下 python 的 metaclass 可以做什么，尝试记录一下。
+class Meta(type): register = [] def __new__(cls, class_name, parrent_class, params): print(&amp;quot;In meta new: {}, {}, {}, {}&amp;quot;.format(cls, class_name, parrent_class, params)) cls.register.append(class_name) params[&#39;test_prop&#39;] = True # return super(Meta, cls).__new__(cls, class_name, parrent_class, params) # return type.__new__(cls, class_name, parrent_class, params) # return super(Meta, cls).__new__(type, class_name, parrent_class, params) # return type.__new__(type, class_name, parrent_class, params) return type(class_name, parrent_class, params) def __init__(self, class_name, parrent_class, params): print(&amp;quot;In meta init: {}, {}, {}&amp;quot;.format(class_name, parrent_class, params)) super(Meta, self).</description>
+    </item>
+    
+    <item>
+      <title>python 的 decorator 学习</title>
+      <link>https://wdicc.com/decorator-in-python/</link>
+      <pubDate>Fri, 21 Oct 2016 18:50:59 +0800</pubDate>
+      
+      <guid>https://wdicc.com/decorator-in-python/</guid>
+      <description>最近学习了一下 python 的 decorator（装饰器），看的是这篇，Python修饰器的函数式编程， 觉得挺有意思的，写点东西记录一下。
+装饰器简单讲就是返回一个函数的函数/类。看个简单的例子。
+#!/usr/bin/python # -*- coding: utf-8 -*- def dec1(fn): print(&#39;inside dec1&#39;) def wrapper(): print(&#39;inside wrapper&#39;) return fn() return wrapper @dec1 def f1(): print(&#39;inside f1&#39;) if __name__ == &#39;__main__&#39;: print(&#39;begin exec&#39;) f1() print(&#39;end exec&#39;) # 执行结果: # inside dec1 # begin exec # inside wrapper # inside f1 # end exec  看上面例子能看到，装饰器生效有 2 个步骤，第一个是装饰，第二个是执行。上面装饰器的效果，和下面的代码的效果是一样。
+#!/usr/bin/python # -*- coding: utf-8 -*- def dec1(fn): print(&#39;inside dec1&#39;) def wrapper(): print(&#39;inside wrapper&#39;) return fn() return wrapper # @dec1 def f1(): print(&#39;inside f1&#39;) if __name__ == &#39;__main__&#39;: print(&#39;begin exec&#39;) dec1(f1)() print(&#39;end exec&#39;) # 执行结果: # begin exec # inside dec1 # inside wrapper # inside f1 # end exec  可以看到除了 「begin/end exec」，其他部分执行结果是一样的。所以理解装饰器，就把 @dec1 换成 dec1(fn)() 这么理解就可以了。</description>
+    </item>
+    
+    <item>
+      <title>把 emacs 做为 python ide</title>
+      <link>https://wdicc.com/use-emacs-as-python-ide/</link>
+      <pubDate>Mon, 13 Jul 2009 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/use-emacs-as-python-ide/</guid>
+      <description>emacs 用的其实不是很多，不过他实在是个好东西，各种 mode，用熟了肯定能帮你提升不少工作速度。
+我用 emacs-cvs , ropemacs( dev 版，  0.6 ）, rope (  0.9.2 ), company-mode (  0.4.2 ) 这几个软件在 gentoo 里面都还没有，我自己写了几个 ebuild。
+装好之后，基本就是 require 一下就好，我没做什么设置，效果如下。
+here</description>
+    </item>
+    
+    <item>
+      <title>改良的 fetion.py</title>
+      <link>https://wdicc.com/modified-fetion-py/</link>
+      <pubDate>Mon, 06 Jul 2009 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/modified-fetion-py/</guid>
+      <description>这个 fetion.py 来自 这里。
+不修改的情况下，-t 可以是 sip, uid, mobile_no 这几个。
+我修改了下，不加 -t 参数会打印联系人列表。另外还能用 nickname 来发（没测试，我没几个好友，没好意思发）。
+在这里。</description>
+    </item>
+    
+    <item>
+      <title>asm 和 python的扯淡 zz</title>
+      <link>https://wdicc.com/asm-and-python/</link>
+      <pubDate>Thu, 14 May 2009 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/asm-and-python/</guid>
+      <description>python: 兄弟，最近我手头紧，能借点不？
+asm: 行，不过怎么你以前不是过得还滋润的，怎么现在混这么差，
+python: 不知道啊，现在根本接不到什么项目，听说还有风声要收回我的开发资质。
+asm: 你要改变观念，才会有市场。
+python: 什么观念？
+asm: 现在流行的是软件的要有科学性
+python: 什么是软件的科学性？
+asm: 我自己也不清楚，不知道哪位大神定义的科学的软件就是要有bug，现在的人们认为软件不可能没有bug，
+否则就不是软件，所以bug越多越好，我就非常适合创造bug。搞好点三步一回头，搞不好一步三回头。
+python：我不行啊，我开发的东西bug相对少得很多。
+asm: 难怪别人不找你做项目。通常别人都认为软件这个东西啊就是通过不断消灭bug，不断创造bug，最终走
+向稳定成熟的。你bug要是少了，客户会认为你蒙它，不科学。
+python: 太阳啊，我设计出来就是为了减少软件开发少出bug的，这样不是要我的命？
+那你开发项目时候弄出那么多bug,进度不是很慢，成本也很高？客户能接受？
+asm: 这你不懂,这里的人就是人傻，钱多，你不这样干，他们还认为你是在蒙它，哪里有这么轻易就作出来的东西，
+我的特点就是能把简单的东西弄复杂，而你呢，把复杂的东西简单化，显然不受常人的欢迎，人都是好奇的动物，
+喜欢复杂的事情，越花花绿绿越好。你还不错了，看Lisp兄弟那惨样。
+python: 那项目要是复杂了，规模大了你能应付？
+asm: 管他，我也知道我对付不了大规模的项目，用人堆，人月算得高高的，到那个程度，我自己也糊涂了，
+不知道要怎么整合了，bug比太平洋里头的珊瑚虫还多，根本做不下去。就给客户说目前技术水平只能达到
+这个程度就行了，他们能接受，能将就用就用，不能用就宣告失败。
+python: 不会吧，这种规模的东西在我看来并不难啊，项目失败他们不去告你？
+asm: 也有告的，不过现在法律有规定，只要你能列出你开发时候的所有设计过程和调试信息，能证明你尽力了，
+系统确实复杂到技术是无法解决的，就没事。
+python: 你怎么提供?
+asm: 我开发的特点你还不知道，代码量本身巨大，调试信息非常多，而且清楚得很，动不动就扔N个core出来，上次那个
+破搜索项目我扔了几十T的core给客户，他们还屁颠地当宝一样永久保存
+python: 搜索～～，太阳！这些家伙为什么就是不找我？
+asm: 现在的人不懂你那套，太玄，你的log绝大部分只记录你逻辑上的东西，现在的客户要求太高了，每一步都要知道CPU各寄存器的状态，
+总线电压高低，内存的实时快照，多了。你还自动类型定义，自动类型转换，谁信。什么高阶函数，闭包都冒出来。
+你的设计思想不错，我都想学习，不过很难学，至于客户，他们更搞不懂，云里雾里。上次Lisp大兄弟去接个基因分析项目被
+人轰了出来，说什么一堆乱七八糟的括号太神秘，什么抽象语法树，语法还能自定义，简直胡扯，就是巫术，内存管理更
+不透明。那些客户喜欢看到分配释放内存，很具体，很直观，Python兄弟你这个连内存管理都不给客户看的，也很难混日子。
+pyton: 我自己带了gc，又不要他们考虑。
+asm: 他们不会吃你gc这套的，你不明确给他们说分配多少字节内存出来，什么时候释放，他们不卖帐。
+python: 我太阳，又不是所有项目都要这么控制精细的。
+asm: 看我，我每一段代码都很明确，和机器结合得很紧密，写磁盘发个IO指令，让他们看得实在。你那个write太玄乎，到最后写盘还不知道隔了多少层
+他们不放心。现在的人认死理，一个问题只能有一个答案，一种解决方法。你看你变化多端，谁都能搞得糊。不过不要紧，我做不下去的时候可以介
+绍他们过来给你继续做。
+python: 那真的很感谢，最近真的没米下锅，你是帮了我的大忙了。
+asm: 没什么，不过我要告诉你的就是这类客户的开发经费被我榨得差不多了，到你那可能没多少钱付给你了。
+python: 没关系，再少总比没有好。（哭）
+asm: 最后告诉你一个秘密，人的弱点就是天生有奴性，贱，喜欢复杂的东西，好奇，盲从，注重眼前，捡芝麻丢西瓜。</description>
+    </item>
+    
+    <item>
+      <title>写了一个 kde plasma applet</title>
+      <link>https://wdicc.com/writing-a-kde-plasma-applet/</link>
+      <pubDate>Fri, 23 Jan 2009 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/writing-a-kde-plasma-applet/</guid>
+      <description>用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。
+第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。
+这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。
+昨天花了一个下午，总算弄好了。参考的文档 qt的类, pyqt4 turtorial,plasma python .
+效果就这样。电池旁边那个就是。
+
+代码
+from PyQt4.QtCore import * from PyQt4.QtGui import * from PyKDE4.plasma import Plasma from PyKDE4 import plasmascript import time class Cpuinfo(plasmascript.Applet): def __init__(self,parent,args=None): plasmascript.Applet.__init__(self,parent) def init(self): self.freqnow = &#39;&#39; self.freqmax = &#39;&#39; self.</description>
+    </item>
+    
+  </channel>
+</rss>

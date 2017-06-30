@@ -1,0 +1,335 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Mail on wd and cc</title>
+    <link>https://wdicc.com/tags/mail/</link>
+    <description>Recent content in Mail on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Mon, 01 Dec 2008 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/mail/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>命令行发送有附件的邮件</title>
+      <link>https://wdicc.com/send-mail-with-attachment/</link>
+      <pubDate>Mon, 01 Dec 2008 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/send-mail-with-attachment/</guid>
+      <description>命令行下面发送邮件比较简单，恐怕都会使用。
+$ echo &#34;hello .. &#34; | mail -s subject xxx@abc.com $ cat /path/to/file | mail -s subject xxx@abc.com $ mail -s subject xxx@abc.com 上面这些方法都可以发送邮件。还有一种方法。
+$ cat a.txt Subject: test From: xxx@abc.com To: xxx@abc.com hi sdfsdfsdf the end. $ cat a.txt | sendmail -t 
+这样可以把邮件头信息写到文件里面的，你也可以用 php，perl 来打印类似的信息给 sendmail -t ，让他来发。
+那么如果有附件应该怎么办？可以使用 uuencode。
+$ uuencode a.txt a.txt | mail -s test xxx@abc.com $ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t</description>
+    </item>
+    
+    <item>
+      <title>ORA-00257 和 ORA-19815</title>
+      <link>https://wdicc.com/ora-00257-and-ora-19815/</link>
+      <pubDate>Sat, 06 Sep 2008 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/ora-00257-and-ora-19815/</guid>
+      <description>这几天遇到了这两个错误，记录一下。
+使用 perl 的 DBI 连接的时候，会提示 ora-00257 错误，这个用 三qlplus 估计也是一样的错误，注意时远程连接才出错。
+CRITICAL : Can&#39;t connect &#34;db8.sds.cnb.yahoo.com&#34; 同时，数据库的alert 里面有下面的信息 ORA-19815: WARNING: db_recovery_file_dest_size of 268435456000 bytes is 100.00% used, and has 0 remaining bytes available. ************************************************************************ You have following choices to free up space from flash recovery area: 1. Consider changing RMAN RETENTION POLICY. If you are using Data Guard, then consider changing RMAN ARCHIVELOG DELETION POLICY. 2. Back up files to tertiary device such as tape using RMAN BACKUP RECOVERY AREA command.</description>
+    </item>
+    
+    <item>
+      <title>sendmail 中自动抄送某个用户的邮件给别人</title>
+      <link>https://wdicc.com/howto-cc-an-email-to-others-in-sendmail/</link>
+      <pubDate>Tue, 26 Jun 2007 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/howto-cc-an-email-to-others-in-sendmail/</guid>
+      <description>sendmail有个 /etc/aliases 配置文件，在里面可以给某个帐号设置alias，这样给这个alias发的邮件，都会给设置好的用户转发过去。要知道sendmail的帐号是和系统帐号联系在一起的，添加mail帐号得给系统添加帐号（qmail可以实现虚拟用户，或许sendmail也可以，而我不知道罢了）。而这个alias帐号却不是必须有得有系统帐号的，只要设置了alias，就可以给alias用户发邮件，就好像系统真有这么一个帐号一样。
+关于 /etc/aliases 文件，这里有个文章有说明。下面复制几个例子。
+# RFC 822 规定每个域名都需要有一个 &#34;postmaster&#34; postmaster : root
+# 将 postmaster 的邮件都转发给 root 帐号，当然你下面还可以将root帐号的邮件在转发给别人。
+# 转发也可以转发到文件
+# 比如这个，都说了nobody了还给发邮件，邮件都丢掉
+nobody : /dev/null
+# 也可以通过管道作为另一个程序的输入
+# 比如给procmail，它能实现的功能可就多了，比如可以根据邮件大小转发到不同的用户，或者调用spamassian、clamav来查垃圾邮件和病毒等
+# 一个自动的bug跟踪程序
+program-bugs: |/usr/local/bin/program-bug-tracker
+# 也可以转发到多个帐号，用逗号分隔就可以
+project-list: johndoe@host1.uiuc.edu,jsmith@host2.uiuc.edu,someone@host.purdue.edu
+
+可以看到功能还是很强悍的，尤其是可以 pipe 到程序，procmail、maildrop都是很不错的过滤程序，能实现很多其他的功能。
+标题的要求是“抄送”某个帐号的邮件给别的用户，有点类似监控的意思。怎么实现呢？可能第一个想到的就是类似下面这种方法：
+somebody:other1,other2,somebody
+这样是不是就能实现抄送呢？这样会造成死循环，呵呵。
+看样子似乎只能通过pipe到程序实现了，看procmail、maildrop的文档还不够头疼的。其实还有个简单的方法，就是 .forward 文件。
+.forward 文件位于用户的 home 下面，权限是 600 。他的功能和 /etc/aliases 文件类似，不过是 aliases 文件只能由root用户来修改，而 .forward 文件用户自己就可以修改。除了上面aliases能做到的事情外，他还多了一个功能，就是标题要求的功能。
+按照标题的要求，只需要在 somebody 用户的 .forward 文件中放入下面的内容就可以了。
+\\somebody
+other1
+other2
+要注意 somebody 前面的那个\，就是用来防止转发死循环的。加了\之后，给somebody转发的时候会忽略该用户的 .</description>
+    </item>
+    
+    <item>
+      <title>mutt的两个问题以及解决办法</title>
+      <link>https://wdicc.com/2-problems-in-mutt/</link>
+      <pubDate>Wed, 01 Nov 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/2-problems-in-mutt/</guid>
+      <description>mutt用了一段时间之后发现对方发过来的附件的名字都是乱码，多次之后就觉得比较郁闷，每次都得自己修改名字，还得猜文件类型，很郁闷。google了一下，发现了解决办法，是因为mutt默认使用的是rfc2331来解码的，所以添加一个set rfc2047_parameters=yes就可以了，这样对方发过来的邮件就可以正常显示文件名称了。但是同时从那个网址得知，我发出去的附件，也是用rfc2331来编码的，这样到了对方那里，显然会乱码了。测试了一下，outlook里面提示有附件，可是打开是乱码，并且附件名称也不是实际的附件名称。foxmail里面不提示有附件，内容后面会显示几个乱码。
+按照前面那个网址，找到了mutt的补丁，尝试了半天，不能在muttng上面正常使用，没办法只好不用muttng用mutt了。打上补丁之后，设置了 set create_rfc2047_parameters=yes 发出去的邮件就正常了。在mutt的patch list列表里面找到sidebar补丁，给mutt打了sidebar的补丁，用起来也还行了。同时，也把我的mutt升级到了1.5.13，比源里面的都新了。呵呵。
+此外，还有一个问题就是如何对应不同的账号使用不同的smtp server。 本来从网上找了一个文章说到了这个操作如何实现，我也照搬了，发现似乎可以实现这个功能。可是最近才发现，我完全错了，实际上用的总是msmtp里面设置的那个default smtp server，郁闷坏啦，给头以及同事发了好多邮件了，用的都是我的gmail邮箱。
+现在我已经解决了这个问题，用的是send-hook，如下。
+send-hook . &#39;my_hdr from:wd@aaa.com&#39;
+send-hook . &#39;set sendmail=&#34;/usr/bin/msmtp -a gmail&#34;&#39;
+send-hook &#39;~t .*@bbb\.com\.cn$&#39; &#39;my_hdr from:stef@bbb.com.cn&#39;
+send-hook &#39;~t .*@bbb\.com\.cn$&#39; &#39;set sendmail=&#34;/usr/bin/msmtp -a bbb&#34;&#39;
+这样，针对不同的mail，使用不同的sendmail程序。
+发现mutt发送邮件的时候使用的是我的gmail邮箱的时候，我很郁闷，再加上发现他发送的附件在别人那里居然不认，让我就更郁闷了。立刻安装了thunderbird，并且设置好了他，打算以后就用他了。但是发现我已经习惯了mutt了，所以还是回头来给mutt打了补丁，做了修改，让他按照我的习惯来了。 用thunderbird后发现，很多事情不能按照我的意思来，很郁闷。</description>
+    </item>
+    
+    <item>
+      <title>Qmail邮件队列工作原理zz</title>
+      <link>https://wdicc.com/qmail-queue/</link>
+      <pubDate>Thu, 30 Mar 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/qmail-queue/</guid>
+      <description>http://www.gbunix.com/htmldata/2005_06/15/25/article_1223_1.html
+以下是qmail的数据流简图
+qmail-smtpd --- &amp;gt;&amp;gt;qmail-queue ---&amp;gt;&amp;gt; qmail-send &amp;lt;&amp;lt;--- qmail-rspawn &amp;lt;&amp;lt;--- qmail-remote
+&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; / &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp;&amp;nbsp; | &amp;nbsp; &amp;nbsp; &amp;nbsp; qmail-inject _/ qmail-clean \_ qmail-lspawn &amp;lt;&amp;lt;--- qmail-local
+&amp;nbsp; &amp;nbsp;qmail中，每一条消息都发送到中央队列等待发送，由qmail-queue进程控制。它在以下情况被调用：
+&amp;nbsp; &amp;nbsp;1、当产生本地消息时，qmail-inject进程调用qmail-queue。
+&amp;nbsp; &amp;nbsp;2、qmail-smtpd准备SMTP协议下的投递邮件任务时调用它。
+&amp;nbsp; &amp;nbsp;3、向前（forwarded）发送邮件时，qmail－local调用它。
+&amp;nbsp; &amp;nbsp;4、退回邮件时，qmail－send调用它。
+&amp;nbsp; &amp;nbsp;每封邮件接着由qmail-lspawn 和qmail-rspawn协助qmail－sned进程完成投递，最后由qmail－clean清除邮件队列。这四个进程是系统由始至终都在运行的，十分重要。
+由smtpd从域外接受邮件之后，会交给queue处理（也就是2），之后转到qmal-send，然后看是域内还是域外，域内用qmail-lspawn，域外用qmail-rspawn。域内邮件调用qmail-local处理，如果遇到.qmail文件转发邮件（也就是上面的3），还会交给queue处理，如果没有，就直接投递给用户（？）。域外邮件调用qmail-remote处理，如果对方拒收邮件，他就会产生一个新的邮件（bounce），交给qmail-send，然后交给queue（也就是4？）。
+本地用户发送mail的时候调用qmail-inject，然后交给queue（也就是1）。
+有几个问题。
+1&amp;nbsp; 收到域外邮件之后，判断本机是否有这个用户后才接受邮件呢，还是先接受进来放到queue里等qmail-local处理的时候再说？
+2&amp;nbsp; qmail-clean这个程序是怎么工作的？实时扫描queue的文件夹？</description>
+    </item>
+    
+    <item>
+      <title>邮件如何从A点到达B点zz</title>
+      <link>https://wdicc.com/how-mail-from-a-to-b/</link>
+      <pubDate>Thu, 30 Mar 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/how-mail-from-a-to-b/</guid>
+      <description>当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. 假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com, 下面是发送接收过程: 1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题, 加上邮件本身的文本部分. 整个邮件看起来是下面这样的:  To: bob@beta
+Subject: lunch
+How about pizza?
+ 2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. 3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta 替换为&#34;Bob &amp;lt;bob@beta.example.com&amp;gt;&#34;) 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入: MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给 MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA 可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序.</description>
+    </item>
+    
+    <item>
+      <title>Howto Qmail with spamassassin</title>
+      <link>https://wdicc.com/howto-qmail-with-spamassassin/</link>
+      <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/howto-qmail-with-spamassassin/</guid>
+      <description>http://sylvestre.ledru.info/howto/howto_qmail_spamassassin.php
+By Sylvestre Ledru June 2003
+Version francaise
+Return to the linux page
+(02/04/2002), Bug fix :
+I just add a little bug fix for some OS which remove the +x on qmail-queue (the qmail-scanner is not concerned)
+(01/11/2003), Qmail-scanner :
+I had a new way of calling spamassassin client using qmail-scanner.
+(23/07/2003), Preferences :
+Matthew Francis sent me a quite good howto explaining how to get user preferences for spamassassin.</description>
+    </item>
+    
+    <item>
+      <title>Qmail的主要配置文件</title>
+      <link>https://wdicc.com/qmail-conf-file/</link>
+      <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/qmail-conf-file/</guid>
+      <description>1．Qmail的主要配置文件
+qmail的配置文件是由多个文件组成的，不是集中在一个文件中，每个文件控制相应
+部分的功能和属性，一个可执行程序可能有多个配置文件控制，所有的配置文件共同决
+定了qmail运行的实现和模式。这些配置文件都在qmail的control目录中，本文的配置文
+件位于/var/qmail/control目录中
+1.1、badmailfrom
+这个配置文件是控制邮件系统拒绝接收的邮件地址和邮件域，主要是为了防止垃圾
+邮件。如果一个邮件地址或者邮件域被列入到这个文件中，系统就会拒绝接收这个邮件
+地址发来的邮件，或者拒绝邮件域下所有邮件地址发来的邮件。不过这个配置文件只是
+一般的垃圾邮件防范手段，对于比较全面的垃圾邮件过滤技术还要靠第三方软件来实现
+。该文件的格式如下：
+11@11.com //拒绝这个地址发来的邮件
+22@2w.com
+@33.com //拒绝这个邮件域下的所有帐号发来的邮件
+@44.com
+1.2、boucefrom
+bouceform是定义当邮件投递失败时系统返回给发送者一个包含失败信息的邮件时的
+发送者。如果不存在这个文件，默认的发送者是MAILER-DAEMON。比如本文的
+echo postmaster  /var/qmail/control/bouncefrom
+就是定义投递者为postmaster，这样所有投递失败的返回邮件的发送者就成了postm
+aster。
+1.3、concurrencylocal
+这个文件定义了qmail可以同时投递的本地邮件的个数。这个参数的缺省值是10，
+也就是说系统允许同时有10个邮件在本地投递。concurrencylocal这个参数的最大值是
+由编译时的conf-spawn参数来决定的，缺省值是120，最大值是255。
+1.4、concurrencyremote
+这个参数定义了qmail可以同时投递的远端邮件的个数，这个参数的缺省值是20。这
+个参数的最大值也是由conf-spawn来决定的。
+1.5、defaultdomain
+它主要用于邮件用户在投递给同一邮件服务器的邮件用户时的邮件投递处理，比如
+邮件服务器cnunix.com.cn用户user发送邮件给另一个邮件用户user1@cnunix，这实qmai
+l-inject会将defaultdomain中定义的邮件域名加入到这个邮件的目标地址中，qmail会
+自动认为这个邮件的目标地址是user1@cnunix.com.cn，并按照这个地址进行投递。当这
+个文件不存在的时候，qmail会从配置文件me中读取这个参数。如果系统变量DEFAULTDOM
+AIN已经设置，defaultdomain定义的参数将被忽略。
+1.6、defaulthost
+它和defaultdomain类似，当邮件系统接收到没有目标主机名的邮件时，这个设置文
+件定义了系统往这个邮件中加入的目标主机名名称。在缺省情况下，qmail-inject会将d
+efaulthost中定义的名称加入到没有定义投递邮件地址的邮件的目标主机名中，如果def
+aulthost不存在，加入的目标主机名将时字符串“defaulthost”，defaulthost主要用
+于邮件用户在投递给同一邮件服务器的邮件进行投递处理。如果系统变量QMAILDEFAULTH
+OST已经设置，defaulthost定义的参数将被忽略。
+1.7、databyes
+它定义了qmail-smtpd所允许接收的邮件的最大字节数。这个参数的缺省值为0，表
+示对接收邮件的字节数没有限制。如果要限制最大的接收为10M，操作如下：
+echo 10485760  /var/qmail/control/databytes
+这是任何大于10M的邮件都会被拒绝。这个参数最好设置上，以避免恶意的对你服务
+器发送大量的超大邮件，产生邮件服务器负荷过大，甚至系统崩溃的危险。
+1.8、doublebouncehost
+这个配置文件定义了出现“双重反弹”的时候，系统转发的邮件的主机名称。“双
+重反弹”就是当系统因为投递失败将邮件返回给发送者时，发送者又将此邮件返回，这
+个时候qmail将会把这个邮件转发到另一个邮件地址，一般这个地址就是管理员的地址。
+doublebouncehost就是定义这个转发的邮件地址的主机名部分，而这个邮件地址的用户
+名部分是由doublebouceto来定义的，因此这两个配置文件一般都是结合起来使用的。当
+doublebouncehost不存在的时候，系统将会从配置文件me中读取这个参数。
+1.9、doublebounceto
+这个参说是结合blebouncehost来使用的，当这个参数不存在的时候，系统缺省值是
+postmaster用户。
+1.10、helohost
+这个配置文件定义了当程序qmail-remote和远程邮件系统建立连接时所使用的主机
+名。如果这个配置文件不存在，系统将会从配置文件me中读取这个参数值，如果me不存
+在，qmail-remote将不能正常运行工作。</description>
+    </item>
+    
+    <item>
+      <title>caphit qmail 配置</title>
+      <link>https://wdicc.com/caphit-qmail-conf/</link>
+      <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/caphit-qmail-conf/</guid>
+      <description>参考网址
+http://lifewithqmail.org(中文版http://lifewithqmail.org/LWQ-CN.html)
+http://qmail.te8.com/rpms/glibc-2.3.1/(patch下载地址)
+http://www.fehcom.de/qmail/qmail.html
+http://www.pipeline.com.au/staff/mbowe/isp/vpopmail-mysql.htm
+http://bbs.chinaunix.net/forum/viewtopic.php?t=254662
+ucspi-tcp
+http://cr.yp.to/ucspi-tcp.html
+ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nodefaultrbl.patch
+（或者）ucspi-tcp-0.88.a_record.patch，ucspi-tcp-0.88.errno.patch，ucspi-tcp-0.88.nobase.patch
+patch -d ucspi-tcp.xxx -p1 &amp;lt; ucspi-tcp-xxx.patch
+make&amp;amp;&amp;amp;make setup check
+daemontools
+http://cr.yp.to/daemontools.html
+daemontools-0.76.errno.patch
+package/install
+Adding svscanboot to inittab...init should start svscan now.
+cmd5checkpw
+http://www.fehcom.de/qmail/auth/cmd5checkpw-030_tgz.bin
+make&amp;amp;&amp;amp;make setup
+qmail 1.03
+http://cr.yp.to/qmail.html
+http://www.fehcom.de/qmail/qmail.html
+http://www.fehcom.de/qmail/spamcontrol/spamcontrol-2311_tgz.bin
+tar zxvf spamcontrol-2311_tgz.bin
+编辑conf-spamcontrol
+建立用户组
+groupadd nofiles
+useradd -g nofiles -d /var/qmail qmaild -s /sbin/nologin
+useradd -g nofiles -d /var/qmail qmaill -s /sbin/nologin
+useradd -g nofiles -d /var/qmail qmailp -s /sbin/nologin</description>
+    </item>
+    
+    <item>
+      <title>igenus</title>
+      <link>https://wdicc.com/igenus/</link>
+      <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/igenus/</guid>
+      <description>igenus需要给vpopmail数据库里添加几个表，同时还需要修改vpopmail表。添加了一个pw_id字段。没有这个这个字段，igenus里面不能修改密码（我就遇到这么一个情况）。</description>
+    </item>
+    
+    <item>
+      <title>qmail中的几个error的产生的原因和解决方法</title>
+      <link>https://wdicc.com/solve-qmail-error/</link>
+      <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/solve-qmail-error/</guid>
+      <description>deferral: Unable_to_chdir_to_maildir._(#4.2.1)
+这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
+如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
+deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
+这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
+454 oops, unable to write pipe and I can&amp;#39;t auth (#4.3.0)
+这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
+[root@caph qmail-smtpd]# telnet localhost 25
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is &amp;#39;^]&amp;#39;.
+220 xxx.com ESMTP
+ehlo
+250-xxx.com
+250-PIPELINING
+250-8BITMIME
+250-SIZE 104857600
+250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
+auth login
+334 VXNlcm5hbWU6
+awefaq23rasdf
+334 UGFzc3dvcmQ6
+awefwaef
+454 oops, unable to write pipe and I can&amp;#39;t auth (#4.3.0)
+quit</description>
+    </item>
+    
+    <item>
+      <title>qss不正常显示的问题</title>
+      <link>https://wdicc.com/a-bug-of-qss/</link>
+      <pubDate>Mon, 16 Jan 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/a-bug-of-qss/</guid>
+      <description>1 php3.x版本以上不正常显示
+设置php.ini的register_globals = On
+或者
+修改getGraph.php添加
+$data=$_GET[&amp;#39;data&amp;#39;];
+$t=$_GET[&amp;#39;t&amp;#39;];
+修改getGraph1.php添加
+$data=$_GET[&amp;#39;data&amp;#39;];
+$s=$_GET[&amp;#39;s&amp;#39;];
+2 还不能正常显示
+那可能你的qmail-scanner的版本是1.2以上的，此版本以上的log文件格式有些变化，qss却没有做相应更新，所以会有问题。你可以看看你的log文件的日期是不是下面这种格式
+Mon, 03 Jan 2005 04:01:57 CST
+如果是，那么差不多就是这个问题了。
+解决方法是在index.php里面查找
+# Calc the date timestamp
+把他下面的5行语句用下面的替换
+if ( eregi(&#34;(^[0-9]+)&#34;, $val[0]) )
+{
+# Calc the date timestamp
+$date = explode(&#34;/&#34;,$val[0]);
+$dateT = $date[0];
+$date[0] = $date[1];
+$date[1] = $dateT;
+$date = strtotime(implode(&#34;/&#34;,$date));
+}
+else
+{
+$date = strtotime ($val[0]);
+};
+
+参考网址
+here</description>
+    </item>
+    
+  </channel>
+</rss>
