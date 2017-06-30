@@ -4221,6 +4221,417 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/ldap-samba/">ldap samba实现windows域管理</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-05-14T00:00:00.000&#43;00:00' itemprop="datePublished">2006-05-14</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/other">other</a>
+
+
+</div>
+    </div>
+        0 准备工作<br />
+
+1) 一个全新安装的debian sarge。1台或者多台Win 2k/xp测试电脑。<br />
+2) 至少懂一些LDAP和Samba。<br />
+3) 假设服务器的域名是abc.com，服务器的名称为test-server。<br />
+
+1 安装web服务器<br />
+
+# apt-get install apache2 php4 libapache2-mod-php4<br />
+
+等待安装完毕之后，用浏览器连接服务器的域名或者ip试试看。能显示web页就说明apache2没问题了。apache2的web的根目录在/var/www，配置文件在/etc/apache2。<br />
+
+此后需要验证php4是否安装妥当。在/var/www目录新建一个index.php文件，内容如下。<br />
+
+&lt;?<br />
+ &nbsp; &nbsp;phpinfo();<br />
+?&gt;<br />
+
+保存之后，再次连接服务器的 http://abc.com/index.php ，会看到一个php信息的网页，表示php安装成功。<br />
+<br><!--more-->2 安装Openldap和phpldapadmin<br />
+
+debian里面的openldap的名字是slapd。ldap-utils包里包括了一些ldap有用的命令（都是以ldap开头的）。phpldapadmin是ldap的一个web管理界面。de4.2-util是Berkeley V4.2 数据库工具包，ldap需要用到。<br />
+
+#apt-get install slapd ldap-utils phpldapadmin db4.2-util<br />
+
+下载完毕包之后，开始安装之前，会出来一些设置界面（请注意这里出现问题的数目和安装系统时的某个设置有关系）。<br />
+
+slapd的设置<br />
+1) DNS domain nam填写你的服务器的域名，此后会作为基准DN。例如我输入abc.com，此后的基准DN就是dc=abc,dc=com。<br />
+2) Name of your organization填写你的组织的名称，或者公司的名称。我输入test-org。<br />
+3) Admin password填写管理员的密码，这个用户是ldap最高权限的拥有者。<br />
+4) 确认密码。<br />
+5) Allow LDAPv2 protocol询问你是否允许LDAPv2协议。如果是新装选否就可以了。如果需要兼容以前的系统，选是。<br />
+
+phpldapadmin的设置<br />
+1) LDAP服务器的ip或者主机名。因为是管理本机的LDAP服务器，所以默认的127.0.0.1就可以。<br />
+2) 是否启用TLS，也就是是否使用加密协议。加密的话可能需要apache2也做配置支持。这里选择否。<br />
+3) 基准DN。根据你的情况输入，这里我输入dc=abc,dc=com。<br />
+4) 这一步选择phpldapadmin的认证方式，安装过phpmysqladmin的应该会比较熟悉。选择session是最保险的方式。<br />
+5) 输入登陆服务器的dn，默认即可。这里还要注意，默认的行字也就是最后登陆phpldapadmin的管理员的用户名，比较长。<br />
+6) 需要配置的服务器，这里只需要选择apache2就可以了。<br />
+7) 选择是，重启apache。<br />
+
+此后即开始安装。slapd的配置文件都在/etc/ldap。phpldapadmin的配置文件在/etc/phpldapadmin。用浏览器打开 http://abc.com/phpldapadmin ，会看到phpldapadmin的界面，使用cn=admin,dc=abc,dc=com登陆。<br />
+
+###如果是etch，phpldapadmin 0.8.8.1，登陆的时候会提示用户名或密码错误，不知道是不是phpldapadmin 0.9.8.1版本的bug。此版本还有一个问题就是登陆之后，不能新建entry。0.9.8.2版本就没有这个问题了。所以如果你也是0.9.8.1版本的话，最好还是去http://phpldapadmin.sf.net下载一个新的版本，然后把其中的phpldapadmin/htdocs/template_engine.php覆盖 /usr/share/phpldapadmin/htdocs/template_engine.php 即可，或者也可以直接全部覆盖，要注意保留config/config.php。<br />
+
+如果提示用户名密码错误，不用担心，还可以修改/etc/ldap/slapd.conf文件，在index后面添加两行<br />
+
+rootdn "cn=admin,dc=abc,dc=com"<br />
+rootpw pw<br />
+
+之后重启slapd（/etc/init.d/slapd restart）之后即可用密码pw登陆，登陆之后可以修改密码，修改之后可以去掉上面添加的两行（当然，不删也可以）。<br />
+
+debian中的admin的密码是存储在数据库里面的，而不是/etc/ldap/slapd.conf文件中，所以可以不需要rootdn和rootpw的设置。<br />
+
+使用下面的命令可以查看ldap中所有的条目<br />
+
+#ldapsearch -x -b 'dc=abc,dc=com' '(objectclass=*)'<br />
+
+修改/etc/syslog.conf，增加下面一行。<br />
+
+local4.* &nbsp; &nbsp; &nbsp; &nbsp; /var/log/ldap.log<br />
+
+这样ldap生成的日志就会在/var/log/ldap.log里面出现。此外还需要设置/etc/ldap/slapd.conf的loglevel。<br />
+
+3 安装samba<br />
+
+samba-doc包含了和ldap一起工作的samba schema，这个是我们需要的。<br />
+
+#apt-get install samba samba-doc<br />
+
+samba的设置<br />
+1) Workgroup/Domain Name这里输入工作组名称或者域名称。我这里输入test-domain。<br />
+2) 是否使用加密密码。windows默认都是这个。选是。<br />
+3) 修改smb.conf使用DHCP设置的WINS。选否。<br />
+4) 选daemons。<br />
+5) 是否建立samba密码数据库，选是。<br />
+
+复制ldap需要的samba的schema。<br />
+
+#cp /usr/share/doc/samba-doc/examples/LDAP/samba.schema.gz /etc/ldap/schema<br />
+#cd /etc/ldap/schema/<br />
+#gzip -d samba.schema.gz<br />
+
+修改/etc/ldap/slapd.conf，在include后面加上一行。<br />
+
+include &nbsp; &nbsp; &nbsp; &nbsp; /etc/ldap/schema/samba.schema<br />
+
+重启slapd。配置samba使用ldap来验证。修改/etc/samba/smb.conf文件。<br />
+
+找到passdb backend = tdbsam，将其替换为下面内容。<br />
+
+passdb backend = ldapsam:ldap://127.0.0.1<br />
+ldap suffix = dc=abc,dc=com<br />
+ldap machine suffix = ou=machines<br />
+ldap user suffix = ou=users<br />
+ldap group suffix = ou=groups<br />
+ldap admin dn = cn=admin,dc=abc,dc=com<br />
+ldap delete dn = no<br />
+
+# 服务器配置为主域控制器<br />
+domain logons = yes<br />
+
+# allow user privileges<br />
+enable privileges = yes<br />
+
+
+设置之后可以使用testparm命令测试。<br />
+
+为samba提供LDAP rootdn的密码。<br />
+
+# smbpasswd -w your_passwd<br />
+Setting stored password for "cn=admin,dc=abc,dc=com" in secrets.tdb<br />
+
+重启samba。打开phpldapadmin看看，可以看到dc=abc,dc=com下面已经多出来一个entry。我这里是sambaDomainName=TEST-DOMAIN。查看其属性，可以看到最下面的sambaSID，这个后面的操作会用到。也可以使用net getlocalsid命令得到。<br />
+
+
+4 安装smbldap-tools<br />
+
+perl脚本，用来更加方便管理用户。主要使用他来初始化LDAP中samba中的部分。<br />
+
+#apt-get install smbldap-tools<br />
+
+配置smbldap-tools。<br />
+
+#cd /etc/smbldap-tools<br />
+#cp /usr/share/doc/smbldap-tools/examples/smbldap{.conf.gz,_bind.conf} ./<br />
+#gzip -d smbldap.conf.gz<br />
+
+之后修改下面几个文件以符合你的情况。<br />
+
+/etc/smbldap-tools/smbldap.conf<br />
+
+SID="S-1-5-21-3248317815-3353503310-553435137" <br />
+suffix="dc=abc,dc=com" <br />
+usersdn="ou=users,${suffix}" <br />
+computersdn="ou=machines,${suffix}" <br />
+groupsdn="ou=groups,${suffix}" <br />
+sambaUnixIdPooldn="sambaDomainName=TEST-DOMAIN,${suffix}" <br />
+hash_encrypt="MD5"<br />
+
+/etc/smbldap-tools/smbldap_bind.conf:<br />
+
+slaveDN="cn=admin,dc=abc,dc=com" <br />
+slavePw="password" <br />
+masterDN="cn=admin,dc=abc,dc=com" <br />
+masterPw="password"<br />
+
+要注意这个文件里面的密码要添明文，所以最好为这个文件设置合适的权限。<br />
+
+执行smbldap-populate命令<br />
+
+# smbldap-populate<br />
+Using workgroup name from sambaUnixIdPooldn (smbldap.conf): sambaDomainName=TEST-DOMAIN<br />
+Using builtin directory structure<br />
+entry dc=abc,dc=com already exist.<br />
+adding new entry: ou=Users,dc=abc,dc=com<br />
+adding new entry: ou=Groups,dc=abc,dc=com<br />
+adding new entry: ou=Computers,dc=abc,dc=com<br />
+adding new entry: ou=Idmap,dc=abc,dc=com<br />
+entry sambaDomainName=TEST-DOMAIN,dc=abc,dc=com already exist. Updating it...<br />
+adding new entry: uid=Administrator,ou=Users,dc=abc,dc=com<br />
+adding new entry: uid=nobody,ou=Users,dc=abc,dc=com<br />
+adding new entry: cn=Domain Admins,ou=Groups,dc=abc,dc=com<br />
+adding new entry: cn=Domain Users,ou=Groups,dc=abc,dc=com<br />
+adding new entry: cn=Domain Guests,ou=Groups,dc=abc,dc=com<br />
+adding new entry: cn=Domain Computers,ou=Groups,dc=abc,dc=com<br />
+adding new entry: cn=Administrators,ou=Groups,dc=abc,dc=com<br />
+adding new entry: cn=Print Operators,ou=Groups,dc=abc,dc=com<br />
+adding new entry: cn=Backup Operators,ou=Groups,dc=abc,dc=com<br />
+adding new entry: cn=Replicators,ou=Groups,dc=abc,dc=com<br />
+
+此后，可以查看一下phpldapadmin，已经新加了几个entry。<br />
+
+5 安装mkntpwd<br />
+
+phpldapadmin需要使用这个程序来生成samba的加密密码。debian没有这个包，需要自己编译，编译之前可能需要安装make，gcc和libc-dev包。<br />
+
+#apt-get install make gcc libc-dev<br />
+#wget http://www.nomis52.net/data/mkntpwd.tar.gz <br />
+#tar -zxf mkntpwd.tar.gz<br />
+#cd mkntpwd<br />
+#make<br />
+#cp mkntpwd /usr/local/bin <br />
+
+修改/usr/share/phpldapadmin/templates/template_config.php文件。<br />
+
+查找<br />
+
+// uncomment to set the base dn of posix groups<br />
+// default is set to the base dn of the server<br />
+//$base_posix_groups="ou=People,dc=example,dc=com";<br />
+
+$samba3_domains[] =<br />
+array(&nbsp; 'name' &nbsp; =&gt; 'My Samba domain Name',<br />
+ &nbsp; &nbsp; &nbsp;&nbsp; 'sid' =&gt; 'S-1-5-21-4147564533-719371898-3834029857' );<br />
+
+// The base dn of samba group. (CUSTOMIZE)<br />
+//$samba_base_groups = "ou=Groups,ou=samba,dc=example,dc=org";<br />
+
+修改为<br />
+
+// uncomment to set the base dn of posix groups<br />
+// default is set to the base dn of the server<br />
+$base_posix_groups="ou=groups,dc=nomis52,dc=net";<br />
+
+$samba3_domains[] =<br />
+array(&nbsp; 'name' &nbsp; =&gt; 'TEST-DOMAIN',<br />
+ &nbsp; &nbsp; &nbsp;&nbsp; 'sid' =&gt; 'S-1-5-21-3248317815-3353503310-553435137' );<br />
+
+// The base dn of samba group. (CUSTOMIZE)<br />
+$samba_base_groups = "ou=groups,dc=abc,dc=com"<br />
+
+6 安装libnss-ldap<br />
+
+用来做linux验证。使得LDAP用户就像普通linux帐号一样。<br />
+
+#apt-get install libnss-ldap<br />
+
+libnss-ldap设置<br />
+1) 默认。<br />
+2) 查找基准。输入dc=abc,dc=com。<br />
+3) 选3。<br />
+4) 选否。<br />
+5) 选是。<br />
+6) 确定。<br />
+
+修改/etc/nsswitch.conf。<br />
+
+passwd: &nbsp; &nbsp; &nbsp; &nbsp; compat ldap<br />
+group: &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; compat ldap<br />
+shadow: &nbsp; &nbsp; &nbsp; &nbsp; compat ldap<br />
+
+这样验证密码的时候会先搜索/etc/passwd，然后才是ldap。<br />
+
+使用getent命令查看一下计算机上面的用户组，在最后会看到ldap的。<br />
+
+#getent group<br />
+.....<br />
+Domain Admins:x:512:Administrator<br />
+Domain Users:x:513:<br />
+Domain Guests:x:514:<br />
+Domain Computers:x:515:<br />
+Administrators:x:544:<br />
+Print Operators:x:550:<br />
+Backup Operators:x:551:<br />
+Replicators:x:552:<br />
+
+7 安装libpam-ldap<br />
+
+#apt-get install libpam-ldap<br />
+
+libpam-ldap设置<br />
+1) 使root成为数据库的管理员？选是。<br />
+2) 选否。<br />
+3) 输入admin的dn，cm=admin,dc=abc,dc=com。<br />
+4) 输入root使用的密码，留空使用原来的root密码。<br />
+5) 选md5。<br />
+
+修改 /etc/pam-ldap.conf。<br />
+
+pam_filter !(uidNumber=0)<br />
+
+设置不允许root通过ldap登陆linux。<br />
+
+修改下面文件使得pam使用ldap。<br />
+
+/etc/pam.d/common-account<br />
+
+# 注释掉这行 <br />
+#account &nbsp; &nbsp; &nbsp;&nbsp; required &nbsp; &nbsp; &nbsp;&nbsp; pam_unix.so<br />
+
+# 添加下面两行<br />
+account &nbsp; &nbsp; &nbsp; &nbsp; sufficient &nbsp; &nbsp;&nbsp; pam_ldap.so<br />
+account &nbsp; &nbsp; &nbsp; &nbsp; required &nbsp; &nbsp; &nbsp;&nbsp; pam_unix.so try_first_pass<br />
+
+/etc/pam.d/common-auth<br />
+
+# 注释掉这行 <br />
+#auth &nbsp; required &nbsp; &nbsp; &nbsp;&nbsp; pam_unix.so nullok_secure<br />
+
+# 添加下面两行<br />
+auth &nbsp;&nbsp; sufficient &nbsp; &nbsp;&nbsp; pam_ldap.so<br />
+auth &nbsp;&nbsp; required &nbsp; &nbsp; &nbsp;&nbsp; pam_unix.so nullok_secure use_first_pass<br />
+
+/etc/pam.d/common-password<br />
+
+# 注释掉这行<br />
+#password &nbsp; required &nbsp; pam_unix.so nullok obscure min=4 max=8 md5<br />
+
+# 添加下面两行<br />
+password &nbsp; sufficient pam_ldap.so<br />
+password &nbsp; required &nbsp; pam_unix.so nullok obscure min=4 max=8 md5 use_first_pass<br />
+
+重启ssh和samba。<br />
+
+安装nscd。<br />
+
+#apt-get install nscd<br />
+
+8 添加用户<br />
+
+smbldap-useradd : to add an user account (by default a posixAccount. Using '-a' option for a sambaSAMAccount, '-w' option for a machine sambaAccount), <br />
+smbldap-userdel : to delete an existing user account <br />
+smbldap-usermod : to modify an user account. <br />
+smbldap-userinfo : to allow users to modify some informations themselves<br />
+
+修改/etc/samba/smb.conf。<br />
+
+guest account = nobody<br />
+add user script = /usr/sbin/smbldap-useradd -m "%u"<br />
+#delete user script = /usr/sbin/smbldap-userdel "%u"<br />
+add machine script = /usr/sbin/smbldap-useradd -w "%u"<br />
+add group script = /usr/sbin/smbldap-groupadd -p "%g"<br />
+#delete group script = /usr/sbin/smbldap-groupdel "%g"<br />
+add user to group script = /usr/sbin/smbldap-groupmod -m "%u" "%g"<br />
+delete user from group script = /usr/sbin/smbldap-groupmod -x "%u" "%g"<br />
+set primary group script = /usr/sbin/smbldap-usermod -g "%g" "%u"<br />
+ldap passwd sync = yes<br />
+
+
+添加一个测试用户。<br />
+
+#smbldap-useradd -a -m testuser<br />
+#smbldap-passwd testuser<br />
+#smbldap-passwd Administrator<br />
+
+重启一下电脑，然后使用下面的命令。<br />
+
+#net rpc -U Administrator rights grant testuser SeMachineAccountPrivilege<br />
+
+然后使用这个用户登陆一下域看看。<br />
+
+
+
+$ smbcontrol smbd reload-config<br />
+
+and grant the necessary rights to Administrator:<br />
+
+$ net -U Administrator rpc rights list<br />
+ &nbsp; &nbsp; SeMachineAccountPrivilege&nbsp; Add machines to domain<br />
+ &nbsp; &nbsp;&nbsp; SePrintOperatorPrivilege&nbsp; Manage printers<br />
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; SeAddUsersPrivilege&nbsp; Add users and groups to the domain<br />
+ &nbsp; &nbsp; SeRemoteShutdownPrivilege&nbsp; Force shutdown from a remote system<br />
+ &nbsp; &nbsp; &nbsp; SeDiskOperatorPrivilege&nbsp; Manage disk shares<br />
+
+$ net -U Administrator rpc rights list Administrator<br />
+
+$ net -U Administrator rpc rights grant Administrator SeMachineAccountPrivilege<br />
+Successfully granted rights.<br />
+
+
+
+
+9 登陆脚本<br />
+
+创建网络共享<br />
+# mkdir -p /data/samba/netlogon<br />
+# chgrp "Domain Admins" /data/samba/netlogon<br />
+
+修改/etc/samba/smb.conf<br />
+
+# put this in the main section<br />
+logon script = logon.bat<br />
+
+# share for the logon scripts<br />
+[netlogon]<br />
+ comment = Network logon service<br />
+ path = /data/samba/netlogon<br />
+ write list = "@Domain Admins"<br />
+ guest ok = Yes<br />
+ <br />
+ 下载KiXtart，解压到/data/samba/netlogon。<br />
+ <br />
+ #cd /data/samba/netlogon<br />
+ #wget "http://www.adminscripteditor.com/downloads.asp?act=v&amp;id=39"<br />
+ #apt-get install unzip<br />
+ #unzip KiX2010_451.zip<br />
+ #cp ./KiX2010.451/{KIX32.EXE,KX32.dll} ./<br />
+ <br />
+ 创建logon.bat。<br />
+ <br />
+ \\debian\netlogon\kix32 \\debian\netlogon\logon.kix /f<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/ldap-samba/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/del-30-day-old-file/">find命令查找删除30天之前的文件</a>
     </h2>
     <div class="entry-content">
@@ -4816,50 +5227,6 @@ account&nbsp; required &nbsp; &nbsp; &nbsp; pam_access.so<br />
     
     
     <span class="comments"><a href="/iptables-on-remote-server/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/search-in-vim/">VIM查找替换归纳总结zz</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-04-18T00:00:00.000&#43;00:00' itemprop="datePublished">2006-04-18</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/other">other</a>
-
-<a href="https://wdicc.com//tags/vim">vim</a>
-
-
-</div>
-    </div>
-        <p><a href="http://spaces.msn.com/dingy/blog/cns!2F24B9E66A542581!327.entry">http://spaces.msn.com/dingy/blog/cns!2F24B9E66A542581!327.entry</a><br />
-
-VIM中常用的替换模式总结。</p><p>1，简单替换表达式</p><p>替换命令可以在全文中用一个单词替换另一个单词：</p><p>:%s/four/4/g</p><br><!--more--><p>"%" 范围前缀表示在所有行中执行替换。最后的 "g" 标记表示替换行中的所有匹配点。如果仅仅对当前行进行操作，那么只要去掉%即可</p><p>&nbsp; 如果你有一个象 "thirtyfour" 这样的单词，上面的命令会出错。这种情况下，这个单词会被替换成"thirty4"。要解决这个问题，用 "\&lt;" 来指定匹配单词开头：</p><p>&nbsp; &nbsp; &nbsp;&nbsp; :%s/\&lt;four/4/g</p><br />
-<p>显然，这样在处理 "fourty" 的时候还是会出错。用 "\&gt;" 来解决这个问题：</p><p>&nbsp; &nbsp; &nbsp;&nbsp; :%s/\&lt;four\&gt;/4/g</p><br />
-<p>如果你在编码，你可能只想替换注释中的 "four"，而保留代码中的。由于这很难指定，可以在替换命令中加一个 "c" 标记，这样，Vim 会在每次替换前提示你：</p><p>&nbsp; &nbsp; &nbsp;&nbsp; :%s/\&lt;four\&gt;/4/gc</p><br />
-<p>2，删除多余的空格</p><p>要删除这些每行后面多余的空格，可以执行如下命令：</p><p>&nbsp; &nbsp; &nbsp;&nbsp; :%s/\s\+$//</p><br />
-<p>命令前面指明范围是 "%"，所以这会作用于整个文件。"substitute" 命令的匹配模式是</p><p>"\s\+$"。这表示行末（$）前的一个或者多个（\+）空格（\s）。替换命令的 "to" 部分是空的："//"。这样就会删除那些匹配的空白字符。</p><br />
-<p>3，匹配重复性模式</p><p>星号项 "*" 规定在它前面的项可以重复任意次。因此:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /a*</p><p>匹配 "a"，"aa"，"aaa"，等等。但也匹配 "" (空字串)，因为零次也包含在内。星号 "*" 仅仅应用于那个紧邻在它前面的项。因此 "ab*" 匹配 "a"，"ab"，"abb","abbb"，等等。如要多次重复整个字符串，那么该字符串必须被组成一个项。组成一项的方法就是在它前面加 "\("，后面加 "\)"。因此这个命令:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /\(ab\)*</p><br />
-<p>匹配: "ab"，"abab"，"ababab"，等等。而且也匹配 ""。</p><br />
-<p>要避免匹配空字串，使用 "\+"。这表示前面一项可以被匹配一次或多次。</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /ab\+</p><p>匹配 "ab"，"abb"，"abbb"，等等。它不匹配 后面没有跟随 "b" 的 "a"。</p><br />
-<p>要匹配一个可选项，用 "\="。 例如:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /folders\=</p><p>匹配 "folder" 和 "folders"。</p><br />
-<p>4，指定重复次数</p><p>要匹配某一项的特定次数重复，使用 "\{n,m}" 这样的形式。其中 "n" 和 "m" 都是数字。在它前面的那个项将被重复 "n" 到 "m" 次 (|inclusive| 包含 "n" 和 "m")。例如:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /ab\{3,5}</p><p>匹配 "abbb"，"abbbb" 以及 "abbbbb"。</p><p>&nbsp; 当 "n" 省略时，被默认为零。当 "m" 省略时，被默认为无限大。当 ",m" 省略时，就表示重复正好 "n" 次。例如:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; 模式 &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 匹配次数 </p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{,4} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 0，1，2，3 或 4</p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{3,} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 3，4，5，等等</p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{0,1} &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 0 或 1，同 \=</p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{0,} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 0 或 更多，同 *</p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{1,} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; 1 或 更多，同 \+</p><p>&nbsp; &nbsp; &nbsp;&nbsp; \{3} &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; 3</p><br />
-<p>5，多选一匹配</p><p>在一个查找模式中，"或" 运算符是 "\|"。例如:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /foo\|bar</p><p>这个命令匹配了 "foo" 或 "bar"。更多的抉择可以连在后面:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /one\|two\|three</p><p>匹配 "one"，"two" 或 "three"。</p><br />
-<p>&nbsp; 如要匹配其多次重复，那么整个抉择结构须置于 "\(" 和 "\)" 之间:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /\(foo\|bar\)\+</p><p>这个命令匹配 "foo"，"foobar"，"foofoo"，"barfoobar"，等等。</p><br />
-<p>&nbsp; 再举个例子:</p><p>&nbsp; &nbsp; &nbsp;&nbsp; /end\(if\|while\|for\)</p><p>这个命令匹配 "endif"，"endwhile" 和 "endfor"。</p><br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/search-in-vim/#disqus_thread">Comments</a></span>
     
     
 </div>

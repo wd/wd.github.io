@@ -4221,6 +4221,51 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/eclipse-depends-on-jdk-14/">eclipse 对 jdk 1.4 的依赖</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2009-05-16T00:00:00.000&#43;00:00' itemprop="datePublished">2009-05-16</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/ebuild">ebuild</a>
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+
+</div>
+    </div>
+        首先日一下 bilbo，不小心按了一下 ctrl+z，内容居然都丢了，nnd，刚才都写完了。<br />
+
+言归正传。之前想安装 eclipse 的时候，发现他依赖 jdk 1.4，就没装。这次又想装了，就试着找找看哪个依赖 jdk 1.4.下面就是找的过程。<br />
+<pre class="prettyprint lang-txt">
+:%s/\(\d\)\s\+.*$/\1/g #去掉结尾的没用的东西
+:%s#/\(.*\)\(-\d\)#/\1/\1\2#   #把路径弄好</pre>
+<pre class="prettyprint lang-bash">for l in $(cat ~/b);do echo "######$l">
+下面是结果中的部分。第一个 ebuild 里面这种是不会有问题的。就是第二个造成的依赖 jdk 1.4，给他加一个 java5 的 use 的就好了。
+<pre class="prettyprint lang-txt">
+DEPEND=">=virtual/jdk-1.4
+RDEPEND=">=virtual/jre-1.4"
+######dev-java/tomcat-servlet-api/tomcat-servlet-api-5.5.27.ebuild
+DEPEND="java5? ( >=virtual/jdk-1.5 )
+!java5? ( =virtual/jdk-1.4* )
+RDEPEND="java5? ( >=virtual/jdk-1.5 )
+!java5? ( =virtual/jdk-1.4* )"</pre>
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/eclipse-depends-on-jdk-14/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/asm-and-python/">asm 和 python的扯淡 zz</a>
     </h2>
     <div class="entry-content">
@@ -4770,78 +4815,6 @@ if __name__ == '__main__':
     
     
     <span class="comments"><a href="/use-kde-42-in-gentoo/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/perl-cookie/">使用 perl 来登录网页</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2009-01-06T00:00:00.000&#43;00:00' itemprop="datePublished">2009-01-06</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/cookie">cookie</a>
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-<a href="https://wdicc.com//tags/perl">perl</a>
-
-
-</div>
-    </div>
-        应该不能用。。。只是为了记录<br />
-
-使用 LWP::UserAgent 可以简单的去访问网页，获取页面内容。例如<br />
-
-<pre class="prettyprint lang-perl">
-use LWP::UserAgent;
-
-my $ua = LWP::UserAgent->new();
-$ua->timeout(10);
-$ua->agent('mozilla');
-
-my $r = $ua->get('http::/www.google.com');
-print $r->content; # or $r->decoded->content
-</pre><br />
-
-$r 的其它属性可以去 cpan 看看。这样就获取到了内容。但是，如果一个网页是需要登录的怎么办？可以用保存 cookie 的方式。<br />
-
-<pre class="prettyprint lang-perl">
-use LWP::UserAgent;
-use HTTP::Cookies;
-use Digest::MD5 qw(md5 md5_hex); # 用来生成 md5 的
-use JSON; # 用来在 json 串和 perl 的 hash 串之间转换
-use Data::Dumper;
-
-my $cookie_jar = HTTP::Cookies->new(
-	file => "lw.dat",
-	autosave => 1
-);
-
-my $ua = LWP::UserAgent->new();
-$ua->timeout(10);
-$ua->agent('mozilla');
-
-my(@rest) = ("/", ".yahoo.com", undef, 0, 0, 60*60, 0);
-$cookie_jar->set_cookie(0, 'session', $session, @rest);
-
-$ua->cookie_jar($cookie_jar);
-
-$o = $ua->get($url);
-........
-</pre><br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/perl-cookie/#disqus_thread">Comments</a></span>
     
     
 </div>

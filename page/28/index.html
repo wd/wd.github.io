@@ -4221,6 +4221,102 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/irssi_bot/">我的第一个perl脚本</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-12-16T00:00:00.000&#43;00:00' itemprop="datePublished">2006-12-16</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/other">other</a>
+
+
+</div>
+    </div>
+        是给irssi写的，只不过通过他和irssi接口，所有功能都是bash脚本实现的，回头看看如何转到perl。<br />
+<pre class="prettyprint lang-perl">
+use vars qw($VERSION %IRSSI);
+
+use Irssi;
+$VERSION = '1.00';
+%IRSSI = (
+authors     => 'wd',
+contact     => 'wd@wdicc.com',
+name        => 'My First Script',
+description => 'This script allows ' .
+'you to query weather and other info ' .
+'using some command.',
+license     => 'Public Domain',
+);
+
+sub send_msg {
+my ($server, $who, @result) = @_;
+my $count;
+$count = 1;
+while ($count <= @result) {
+$server->command("msg $who $result[$count-1]");
+$count++;
+}
+}
+
+sub pre_send {
+my ($server, $who) =@_;
+$server->command("msg $who 0I'm working,Waiting me...");
+}
+
+sub end_send {
+my ($server, $who) =@_;
+$server->command("msg $who 0...The end.");
+}
+
+sub msg_public {
+my ($server, $msg, $nick, $address, $target) = @_;
+my @result;my $who;
+
+$who = $target;
+if ($target eq "") { $who = $nick; }
+
+if ($msg =~ /^!([Dd]ict|[Ww]eather|[Gg]oogle|[Hh]elp|nslookup|rss).*$/) {
+&pre_send($server,$who);
+$msg =~ s/!//;
+if ($msg =~ /^[Hh]elp.*$/) {
+@result = ("Usage:",
+"!dict ur_word",
+"   eg: !dict license",
+"!weather location [today|tomorrow]",
+"   eg: !weather beijing",
+"!google sth.",
+"   eg: !google archlinux",
+"!nslookup domin_name",
+"   eg: !nslookup archlinux.org",
+"!rss feed_url",
+"   eg: !rss http://blog.wdicc.com/wordpress/feed/");
+} else {
+@result = `/home/stef/get $msg`;
+}
+#$server->print("#arch-cn", "$nick, $target, $who");
+&send_msg($server, $who, @result);
+&end_send($server, $who);
+}
+}
+
+Irssi::signal_add_first('message public', 'msg_public');
+Irssi::signal_add_first('message private', 'msg_public');</pre>
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/irssi_bot/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/gnokii_howto_chinese_sms/">继续来解决gnokii中文问题</a>
     </h2>
     <div class="entry-content">
@@ -4654,46 +4750,6 @@ http://blog.wdicc.com/wordpress/wp-content/uploads/2006/11/keyword.jpg<br />
     
     
     <span class="comments"><a href="/lunch-and-supper/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/chaffy-dish-weekend/">周末在家吃火锅</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-11-27T00:00:00.000&#43;00:00' itemprop="datePublished">2006-11-27</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/heart">heart</a>
-
-<a href="https://wdicc.com//tags/%E5%91%A8%E6%9C%AB">周末</a>
-
-<a href="https://wdicc.com//tags/%E5%91%B7%E5%93%BA">呷哺</a>
-
-<a href="https://wdicc.com//tags/%E7%81%AB%E9%94%85">火锅</a>
-
-
-</div>
-    </div>
-        上个周末过得比较腐败，没有了其它安排，周六下午睡到了9点，起来玩了会游戏，又继续睡，睡的头都晕了……。周日cc的同学过来，考虑到最简单的吃法，就是吃火锅了。<br />
-
-去超市没有买到小肥羊的锅底，用了一个什么重庆的，挺辣的。想起来上次去双安吃的那个重庆火锅了，吃了半天除了辣就没有别的味道了，真是很没意思。不过我们昨天吃的除了辣还有一个味道，就是咸。刚开始吃还不觉得，后来 cc 说了咸之后，大家才醒悟，开始一直注意辣了，没想到这玩意确实挺咸的。后来想想，可能是因为我们锅比较小的缘故吧。<br />
-
-四个人吃，锅底小料加菜总共花了得有100左右，想想看吧， cc 同学走了之后，就发现剩下的东西还够四个人吃两顿的……，真晕。这几天看样子还得吃一个火锅了。<br />
-
-不过这次火锅比较好的结果就是， cc 对这个的味道感觉还行，当然她一如既往吃的是鸡肉，这样的话，就不用老跑去呷哺吃了，在家解决。 :)<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/chaffy-dish-weekend/#disqus_thread">Comments</a></span>
     
     
 </div>

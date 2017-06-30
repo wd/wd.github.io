@@ -4221,6 +4221,323 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/lvm-note/">lvm 学习笔记</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2007-03-06T00:00:00.000&#43;00:00' itemprop="datePublished">2007-03-06</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+<a href="https://wdicc.com//tags/lvm">LVM</a>
+
+<a href="https://wdicc.com//tags/other">other</a>
+
+
+</div>
+    </div>
+        lvm出来很久了，一直没弄过。当初的了解就是使用他之后就获得动态调整分区的特性。昨天装了一个rh，先尝试了一下使用这个lvm。<br />
+
+<strong>lvm里面用到的一些概念</strong><br />
+
+lvm其实就是将一些“物理”分区，比如 /dev/hda1，/dev/hda6 ，或者“物理”硬盘，比如 /dev/hda，/dev/hdb 这些，都弄到一起，然后在外面看来，他们是一个整体，也就是一个VG（Volume Group，卷组），其实就类似于一块硬盘了。<br />
+
+而这些“物理”分区，或者“物理”硬盘，就是 /dev/hda1，/dev/hdb 这些，就是一个个PV（Physical Volume，物理卷）。可以看到PV可以是一个分区，也可以是一块硬盘。<br />
+
+有了VG我们还不能直接使用他，就和我们还需要给硬盘分区一样，我们也需要给VG分区，也就是创建LV（Logical Volume，逻辑卷）。这样，LV的数据其实就分布到了LV所在的VG里面，也就是所有的PV对应的分区或者硬盘里面。<br />
+
+掌握了VG，PV，LV这些概念之后，操作起来就很容易了。<br />
+
+<!--more--><br />
+
+<strong>lvm的一些操作</strong><br />
+
+首先就是创建PV了，有了PV才能组建VG嘛。创建PV用 pvcreate 命令。<br />
+
+# pvcreate /dev/hda6<br />
+<pre class="prettyprint lang-text">Physical volume "/dev/hda6">
+# pvdisplay
+<pre class="prettyprint lang-text">
+PV Name               /dev/hda6
+VG Name
+PV Size               9.77 GB
+Allocatable           NO
+PE Size (KByte)       0
+Total PE              0
+Free PE               0
+Allocated PE          0
+PV UUID               jGIjyo-lukG-LdRg-tmwe-Mgxf-09ZW-loquUZ</pre>
+这样可以看到，创建了一个PV。同样操作可以创建多个。下面创建VG。
+
+# vgcreate wd /dev/hda6
+<pre class="prettyprint lang-text">Volume group "wd">
+# vgdisplay
+<pre class="prettyprint lang-text">
+VG Name               wd
+System ID
+Format                lvm2
+Metadata Areas        1
+Metadata Sequence No  1
+VG Access             read/write
+VG Status             resizable
+MAX LV                0
+Cur LV                0
+Open LV               0
+Max PV                0
+Cur PV                1
+Act PV                1
+VG Size               9.77 GB
+PE Size               4.00 MB
+Total PE              2500
+Alloc PE / Size       0 / 0
+Free  PE / Size       2500 / 9.77 GB
+VG UUID               NwUlxW-AmAi-LyqA-h39E-zS7q-YRj3-scZucL</pre>
+再看刚才创建的pv。
+
+# pvdisplay
+<pre class="prettyprint lang-text">
+PV Name               /dev/hda6
+VG Name               wd
+PV Size               9.77 GB / not usable 0
+Allocatable           yes
+PE Size (KByte)       4096
+Total PE              2500
+Free PE               2500
+Allocated PE          0
+PV UUID               jGIjyo-lukG-LdRg-tmwe-Mgxf-09ZW-loquUZ</pre>
+可以看到多了一些信息，他已经属于叫做wd的VG了。同时可以看到PE的大小是4096K，也就是4M。下面创建真正可用的LV。
+
+# lvcreate -L 200M -n test wd
+<pre class="prettyprint lang-text">Logical volume "test">
+# lvdisplay
+<pre class="prettyprint lang-text">
+LV Name                /dev/wd/test
+VG Name                wd
+LV UUID                sPy1bM-Nz13-v0x7-bk0V-BKSH-Udzl-7ov5jM
+LV Write Access        read/write
+LV Status              available
+# open                 0
+LV Size                200.00 MB
+Current LE             50
+Segments               1
+Allocation             inherit
+Read ahead sectors     0
+Block device           253:0</pre>
+可以看到，已经创建了一个叫做test的LV，也可以不使用-n参数指定LV的名称，这样系统会给取一个名字。
+再来看看VG和PV的信息。
+
+# vgdisplay
+<pre class="prettyprint lang-text">
+VG Name               wd
+System ID
+Format                lvm2
+Metadata Areas        1
+Metadata Sequence No  4
+VG Access             read/write
+VG Status             resizable
+MAX LV                0
+Cur LV                1
+Open LV               0
+Max PV                0
+Cur PV                1
+Act PV                1
+VG Size               9.77 GB
+PE Size               4.00 MB
+Total PE              2500
+Alloc PE / Size       50 / 200.00 MB
+Free  PE / Size       2450 / 9.57 GB
+VG UUID               NwUlxW-AmAi-LyqA-h39E-zS7q-YRj3-scZucL</pre>
+# pvdisplay
+<pre class="prettyprint lang-text">
+PV Name               /dev/hda6
+VG Name               wd
+PV Size               9.77 GB / not usable 0
+Allocatable           yes
+PE Size (KByte)       4096
+Total PE              2500
+Free PE               2450
+Allocated PE          50
+PV UUID               jGIjyo-lukG-LdRg-tmwe-Mgxf-09ZW-loquUZ</pre>
+可以看到VG已经使用了50个PE，也就是200M空间。PV上面也是，使用了50个PE。
+
+这样LV已经有了，怎么使用他呢？其实和普通分区的使用方法一样。先格式化，创建文件系统，然后挂载。
+
+# mkfs.ext3 /dev/wd/test
+<pre class="prettyprint lang-text">
+max_blocks 209715200, rsv_groups = 25600, rsv_gdb = 256
+Filesystem label=
+OS type: Linux
+Block size=1024 (log=0)
+Fragment size=1024 (log=0)
+51200 inodes, 204800 blocks
+10240 blocks (5.00%) reserved for the super user
+First data block=1
+Maximum filesystem blocks=67371008
+25 block groups
+8192 blocks per group, 8192 fragments per group
+2048 inodes per group
+Superblock backups stored on blocks:
+8193, 24577, 40961, 57345, 73729
+
+Writing inode tables: done
+inode.i_blocks = 3074, i_size = 67383296
+Creating journal (4096 blocks): done
+Writing superblocks and filesystem accounting information: done
+
+This filesystem will be automatically checked every 38 mounts or
+180 days, whichever comes first.  Use tune2fs -c or -i to override.</pre>
+# mount /dev/wd/test /opt
+]# df -h
+<pre class="prettyprint lang-text">
+/dev/hda9             4.0G  148M  3.6G   4% /
+/dev/hda1              99M  8.3M   86M   9% /boot
+/dev/hda3              29G  1.1G   27G   4% /data
+none                  252M     0  252M   0% /dev/shm
+/dev/hda7             9.7G   55M  9.1G   1% /home
+/dev/hda10            3.9G   40M  3.7G   2% /tmp
+/dev/hda5             9.7G  1.9G  7.4G  20% /usr
+/dev/hda8             7.7G   90M  7.3G   2% /var
+/dev/mapper/wd-test   194M  5.6M  179M   4% /opt</pre>
+最后这行就是挂载的LV。下面调整LV的大小。先umount挂载的LV。
+
+# umount /opt
+
+# lvresize -L +100M /dev/wd/test
+<pre class="prettyprint lang-text">
+Logical volume test successfully resized</pre>
+# lvdisplay
+<pre class="prettyprint lang-text">
+LV Name                /dev/wd/test
+VG Name                wd
+LV UUID                sPy1bM-Nz13-v0x7-bk0V-BKSH-Udzl-7ov5jM
+LV Write Access        read/write
+LV Status              available
+# open                 0
+LV Size                300.00 MB
+Current LE             75
+Segments               1
+Allocation             inherit
+Read ahead sectors     0
+Block device           253:0</pre>
+然后需要使用resize2fs命令调整LV分区大小。我这里用的是rh el4，没有这个命令。rh el3里面有这个命令。el4里面用ext2online命令调整，用ext2online命令调整的话，需要把要调整的分区挂载上去。
+
+# mount /dev/wd/test /opt
+# ext2online /dev/wd/test
+<pre class="prettyprint lang-text">
+# df -h
+<pre class="prettyprint lang-text">
+/dev/hda9             4.0G  148M  3.6G   4% /
+/dev/hda1              99M  8.3M   86M   9% /boot
+/dev/hda3              29G  1.1G   27G   4% /data
+none                  252M     0  252M   0% /dev/shm
+/dev/hda7             9.7G   55M  9.1G   1% /home
+/dev/hda10            3.9G   40M  3.7G   2% /tmp
+/dev/hda5             9.7G  1.9G  7.4G  20% /usr
+/dev/hda8             7.7G   90M  7.3G   2% /var
+/dev/mapper/wd-test   291M  6.1M  270M   3% /opt</pre>
+<strong>lvm的恢复</strong>
+
+姑且就叫做恢复吧，因为我其实没有实际测试过。不过是假设我的这台电脑启动不了了，然后用knoppix尝试恢复其中的数据。
+
+# lvmdiskscan
+<pre class="prettyprint lang-text">
+/dev/wd/test [      332.00 MB]
+/dev/ram1    [       97.66 MB]
+/dev/hda1    [      101.94 MB]
+/dev/ram2    [       97.66 MB]
+/dev/hda2    [        1.95 GB]
+/dev/ram3    [       97.66 MB]
+/dev/hda3    [       29.29 GB]
+/dev/ram4    [       97.66 MB]
+/dev/ram5    [       97.66 MB]
+/dev/hda5    [        9.77 GB]
+/dev/ram6    [       97.66 MB]
+/dev/hda6    [        9.77 GB] LVM physical volume
+/dev/ram7    [       97.66 MB]
+/dev/hda7    [        9.77 GB]
+/dev/ram8    [       97.66 MB]
+/dev/hda8    [        7.81 GB]
+/dev/ram9    [       97.66 MB]
+/dev/hda9    [        3.97 GB]
+/dev/ram10   [       97.66 MB]
+/dev/hda10   [        3.91 GB]
+/dev/ram11   [       97.66 MB]
+/dev/ram12   [       97.66 MB]
+/dev/ram13   [       97.66 MB]
+/dev/ram14   [       97.66 MB]
+/dev/ram15   [       97.66 MB]
+1 disk
+24 partitions
+0 LVM physical volume whole disks
+1 LVM physical volume</pre>
+
+# vgdisplay -v
+<pre class="prettyprint lang-text">
+Finding volume group "wd"
+--- Volume group ---
+VG Name               wd
+System ID
+Format                lvm2
+Metadata Areas        1
+Metadata Sequence No  9
+VG Access             read/write
+VG Status             resizable
+MAX LV                0
+Cur LV                1
+Open LV               0
+Max PV                0
+Cur PV                1
+Act PV                1
+VG Size               9.77 GB
+PE Size               4.00 MB
+Total PE              2500
+Alloc PE / Size       83 / 332.00 MB
+Free  PE / Size       2417 / 9.44 GB
+VG UUID               NwUlxW-AmAi-LyqA-h39E-zS7q-YRj3-scZucL
+
+--- Logical volume ---
+LV Name                /dev/wd/test
+VG Name                wd
+LV UUID                sPy1bM-Nz13-v0x7-bk0V-BKSH-Udzl-7ov5jM
+LV Write Access        read/write
+LV Status              available
+# open                 0
+LV Size                332.00 MB
+Current LE             83
+Segments               1
+Allocation             inherit
+Read ahead sectors     0
+Block device           254:0
+
+--- Physical volumes ---
+PV Name               /dev/hda6
+PV UUID               jGIjyo-lukG-LdRg-tmwe-Mgxf-09ZW-loquUZ
+PV Status             allocatable
+Total PE / Free PE    2500 / 2417</pre>
+
+# vgchange -a y wd
+<pre class="prettyprint lang-text">1 logical volume(s) in volume group "wd">
+
+这样之后就可以使用mount命令挂载/dev/wd下面的设备了。
+
+lvm的配置在 /etc/lvm/backup 下面。
+参考自 <a href="http://www.linuxforum.net/books/LVM-HOWTO.html">这里</a>。
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/lvm-note/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/seems-last-snow/">看样子是今年最后一场雪了吧</a>
     </h2>
     <div class="entry-content">
@@ -4553,335 +4870,6 @@ blog好像有问题了，打开写日志的页面的时候速度太慢了，回�
     
     
     <span class="comments"><a href="/too-cold-today/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/my-fvwm2rc/">我的 .fvwm2rc 文件</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2007-01-25T00:00:00.000&#43;00:00' itemprop="datePublished">2007-01-25</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/fvwm">fvwm</a>
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-<a href="https://wdicc.com//tags/other">other</a>
-
-
-</div>
-    </div>
-        ########<br />
-#set Environment variables<br />
-
-SetEnv fvwm_img $[FVWM_USERDIR]/images<br />
-SetEnv fvwm_icon $[FVWM_USERDIR]/icons<br />
-SetEnv fvwm_scrpt $[FVWM_USERDIR]/scripts<br />
-SetEnv fvwm_wallpapers $[FVWM_USERDIR]/wallpaper<br />
-
-SetEnv fvwm_webbrowser /usr/bin/firefox<br />
-SetEnv fvwm_term /usr/bin/urxvtc<br />
-SetEnv fvwm_mail /usr/bin/mutt<br />
-#SetEnv fvwm_media_player /usr/bin/xmms<br />
-SetEnv fvwm_video_player /usr/bin/mplayer<br />
-
-#这部分设置fvwm的一些变量，这样方便以后如果有变化的话，不需要全文去修改，只修改这里就可以了。<br />
-#后面使用 $[var_name] 来引用<br />
-##################################<br />
-<!--more--><br />
-#####<br />
-# Set the image path<br />
-
-#ImagePath +:$HOME/.fvwm/icons:<br />
-ImagePath $[fvwm_icon]:$[fvwm_icon];.png:$[fvwm_wallpapers]:+<br />
-
-#设置图片路径，没有指明路径的图片来这里查找。<br />
-#可以使用变量指定。<br />
-##################################<br />
-
-#####<br />
-# Virtual Desktops<br />
-
-DesktopSize 3x1<br />
-DesktopName 0 Main<br />
-DesktopName 1 Work<br />
-DesktopName 2 Games<br />
-EdgeThickness 1<br />
-EdgeScroll 0 0<br />
-EdgeResistance 250 100<br />
-
-#DesktopSize 设置桌面大小和数目，3x1表示三个桌面，每个桌面1页。水平方向上面切换的是桌面，竖直方向上面是一个桌面内部切换。<br />
-#DesktopName 设置各个桌面的名称。<br />
-#EdgeScroll 设置拖动窗口到桌面左右两边上时，百分之多少的桌面开始滚动切换到下一个。0表示不滚动。<br />
-#EdgeResistance scrolling moving 这是用来设定当滑鼠游标碰触到萤幕的边界的时候，FVWM应该要如何动作。scrolling 是告诉FVWM当滑鼠游标碰触到萤幕边界多少milliseconds之後，才会移动目前的工作桌面。moving则是设定当视窗超出画面多少像点之後，才要切换目前的工作桌面到别的桌面上。<br />
-#EdgeThickness 设置当 EdgeScroll 效果出现的时候，桌面的周围显示的边框线的像素。<br />
-################################<br />
-
-#####<br />
-# Mouse and Focus Behavior<br />
-###########<br />
-ClickTime 350<br />
-MoveThreshold 3<br />
-Style * SloppyFocus,MouseFocusClickRaises<br />
-IgnoreModifiers L25<br />
-
-#ClickTime 设置fvwm认为是单击的按下鼠标和放开鼠标的时间间隔，单位是毫秒。如果超出这个时间，就认为是“hold”。<br />
-#MoveThreshold 设置移动几个像素的时候，fvwm才认为你是在移动窗口。上面这些主要是后面在写函数的时候有用，那里对不同的操作响应不同的动作。<br />
-#style 用来给fvwm里面配置各种各样的风格，比如你想让窗口如何响应动作，窗口显示的内容、外观等。 * 是一个通配符，表示所有窗口。第三个参数是风格参数，用逗号间隔。SloppyFocus 表示当鼠标进入窗口的时候窗口就获得焦点，但是除去root window等一些特殊窗口（比如conky的窗口，你不希望他获得焦点吧）。和他同类的，比如还有ClickFocus，表示当鼠标单击窗口的时候窗口获得焦点，这些都可以查 fvwm 的man page可以看到，同类的属性一般用 / 间隔。<br />
-# style里面的选项很多都可以直接从字面理解其意思，关于style的其他选项的意思就去看看man page吧，后面涉及到这部分的也不多讲了。<br />
-################################<br />
-
-############ default Styles: ####################<br />
-
-Style * BorderWidth 1, HandleWidth 1, DepressableBorder<br />
-Style * MWMFunctions, MWMDecor, MWMButtons, HintOverride<br />
-Style * DecorateTransient, NoPPosition, SmartPlacement<br />
-Style * Font "xft:Sans:Bold:pixelsize=12:minispace=True:encoding=iso10646-1"<br />
-Style * HilightFore black, HilightBack gainsboro<br />
-Style * IconBox 0 0 200 -260, IconFill t l, StickyIcon<br />
-Style * WindowShadeShrinks, WindowShadeSteps 100<br />
-
-#Style "beep*"    Icon bmp.xpm,      MiniIcon i_bmp.xpm<br />
-#Style "Firefox*" Icon firefox.xpm,  MiniIcon i_firefox.xpm<br />
-#Style "Gaim"     Icon gaim.xpm,     MiniIcon i_gaim.xpm<br />
-#Style "gqview"   Icon gqview.xpm,   MiniIcon i_gqview.xpm<br />
-#Style "rox"      Icon rox.xpm,      MiniIcon i_rox.xpm<br />
-#Style "stardict" Icon stardict.xpm  MiniIcon i_stardict.xpm<br />
-#Style "urxvt"    Icon rxvt.xpm,     MiniIcon i_term.xpm<br />
-#Style "gvim"     Icon vim.xpm,      MiniIcon i_vim.xpm<br />
-#Style "Xpdf"     Icon xpdf.xpm,     MiniIcon i_xpdf.xpm<br />
-
-#####<br />
-# Basic Functions<br />
-#<br />
-#fvwm 里面的函数格式类似下面的，先用 DestroyFunc 清除掉可能已经应用的效果，然后用 AddToFunc 来创建新的。<br />
-#在别的地方调用函数的时候可以使用 FuncName "$0" "$1" "$2" "$3" "$4" ，$0-4是传递给这个函数的参数，可以在函数里面引用。<br />
-#<br />
-# DestroyFunc FuncName<br />
-# AddToFunc   FuncName<br />
-# + I (立即执行的动作)<br />
-# + C (鼠标单击时执行的动作)<br />
-# + D (鼠标双击时执行的动作)<br />
-# + H (鼠标 hold 时执行的动作)<br />
-# + M (鼠标 motion 时执行的动作)<br />
-#<br />
-###########<br />
-DestroyFunc FvwmDeleteOrDestroy<br />
-AddToFunc   FvwmDeleteOrDestroy<br />
-+ H Nop<br />
-+ M Nop<br />
-+ C Delete<br />
-+ D Destroy<br />
-
-# 在单击的时候 Delete 窗口，在双击的时候 Destroy 窗口。Nop表示不动作。<br />
-
-DestroyFunc FvwmIconifyOrShade<br />
-AddToFunc   FvwmIconifyOrShade<br />
-+ C Iconify<br />
-+ D WindowShade<br />
-
-DestroyFunc FvwmMaximize<br />
-AddToFunc   FvwmMaximize<br />
-+ H Nop<br />
-+ M Nop<br />
-+ C Maximize $0 $1<br />
-
-# 你可以使用类似 FvwmMaximize 100 100 这种格式来调用这个函数，这样表示在单击的时候，将窗口在水平和垂直方向都100%占用屏幕。100 0 将在水平方向100%，垂直方向保持不变。<br />
-
-DestroyFunc FvwmMoveOrIconify<br />
-AddToFunc   FvwmMoveOrIconify<br />
-+ M Move<br />
-+ D Iconify<br />
-
-DestroyFunc FvwmWindowShade<br />
-AddToFunc   FvwmWindowShade<br />
-+ D WindowShade $0<br />
-
-######################## Initialization Functions ############################<br />
-#当fvwm启动或者退出的时候，会执行下面几个函数<br />
-#<br />
-#<br />
-
-DestroyFunc StartFunction<br />
-AddToFunc StartFunction<br />
-+ I Exec exec fvwm-root $[fvwm_wallpapers]/0.png<br />
-+ I Exec exec conky<br />
-
-DestroyFunc InitFunction<br />
-AddToFunc InitFunction<br />
-+ I Exec exec xscreensaver -no-splash<br />
-
-DestroyFunc ExitFunction<br />
-AddToFunc ExitFunction<br />
-+ I All (conky) Close<br />
-+ I All (xscreensaver) Close<br />
-
-###################### Key bindings ####################<br />
-# 按键绑定，也就是设置快捷键。<br />
-# Key X Context Modifier Action<br />
-# Mouse X Context Modifier Action<br />
-# 上面两行是绑定命令的格式，X 表示是哪个按钮， Context 是指当前鼠标在屏幕或者窗口的哪个位置，这个位置可以参考这个图 http://www.zensites.net/fvwm/guide/window_layout.png。图中 R - the root window, I - Icon, F - frame corners, S - frame sides, T - title bar, W - application window 和 0-9 - buttons 。A 表示所有的地方。<br />
-# Modifier 是指 (A)ny, (C)ontrol, (S)hift, (M)eta, (N)othing, 或者 1-5( X Modifiers mod1-mod5 参看 xmodmap的man)。<br />
-#<br />
-
-Key Tab A M WindowList Root c c CurrentDesk, NoGeometry, CurrentAtEnd, NoIcons<br />
-Key T    A 4    Exec exec urxvtc     # win+t -&gt; run terminal<br />
-
-Key W   A  4    Menu RootMenu root o0 o100    # Win+S -&gt; pop main manu from left-bottom<br />
-Key M    W  4    Menu Window-Ops Nop        # Win+M -&gt; pop win menu<br />
-Key M   WI M    Iconify                 # Alt+M -&gt; Iconfy<br />
-Key F4  A  M    Close                    # Alt+F4 -&gt; close window<br />
-Key X   W  M    Maximize 100 0            # Alt+f3 -&gt; max window in H<br />
-Key R    W  M    Resize                    # Alt+R  -&gt; resize window<br />
-#Key 1     A  M    GotoPage 0 0<br />
-#Key 2     A  M    GotoPage 0 1<br />
-#Key 3     A  M    GotoPage 0 2<br />
-#Key 4     A  M    GotoPage 0 3<br />
-
-Mouse 1    R      A   Menu RootMenu Nop<br />
-Mouse 1 A     M     Menu RootMenu Nop<br />
-
-Mouse 3 WI    SC    CloseOrNot<br />
-Mouse 3 A    S    Move<br />
-Mouse 3 R    N    WindowList CurrentAtEnd, NoIcons Nop<br />
-Mouse 3 A    M    Menu Window-Ops Nop     # Alt+RightMouse -&gt; win ops<br />
-
-DestroyFunc CloseOrNot<br />
-AddToFunc CloseOrNot<br />
-+ C Silent Close<br />
-+ M Nop<br />
-
-DestroyFunc RaiseFocus<br />
-AddToFunc RaiseFocus<br />
-+ I Raise<br />
-+ I Focus<br />
-
-#   for other parts of the window/borders/icons:<br />
-Mouse 1    F    A    Resize-or-Raise<br />
-Mouse 1    TS    A    Move-or-Raise<br />
-Mouse 1    I    A    Move-or-Iconify<br />
-
-######################## Menus ###################<br />
-#<br />
-# Menu Style<br />
-
-Colorset 0 fg black, bg grey, Translucent #c6cbd6 90<br />
-Colorset 1 fg black, bg #6b83b5, hi #dcdcdc, sh #dcdcdc<br />
-MenuStyle * Hilight3DThin, PopupOffset 0 100, PopupDelay 300<br />
-MenuStyle * Font "8x16"<br />
-MenuStyle * MenuColorset 0, HilightBack, ActiveColorset 1<br />
-MenuStyle * BorderWidth 1, TitleUnderlines1, SeparatorsLong, <br />
-TrianglesSolid, Animation<br />
-MenuStyle * ItemFormat "%.2|%.5i%.5l%.5i%2.3&gt;%2|"<br />
-MenuStyle * VerticalItemSpacing 3 4<br />
-
-CopyMenuStyle * WindowList<br />
-MenuStyle WindowList VerticalItemSpacing 1 2<br />
-ChangeMenuStyle WindowList Window-Ops<br />
-
-#####<br />
-# FvwmRootMenu<br />
-###########<br />
-DestroyMenu RootMenu<br />
-AddToMenu   RootMenu "Root Menu" Title<br />
-+ "Programs%menu/programs.png%"  Popup FvwmProgramsMenu<br />
-+ "Console%menu/terminal.png%"  FvwmATerm<br />
-+ "FVWM Console%menu/terminal.png%"  Module FvwmConsole<br />
-+ "" Nop<br />
-+ "Help%menu/help.png%"  Popup FvwmManPagesMenu<br />
-+ "Restart FVWM%menu/restart.png%"  Restart<br />
-+ "Quit FVWM%menu/quit.png%"  Quit<br />
-
-# 这里定义了 menu 之后还需要绑定一个按键调用这个menu才行。<br />
-#<br />
-########################<br />
-
-################ Window Decor ##################<br />
-# 这部分设置窗口标题栏的样式，那些 ButtonStyle n 是设置窗口标题栏那些按钮的样子。<br />
-# FVWM预设了10个按钮的位置。标题栏按扭的排列是 1 3 5 7 9 0 8 6 4 2 ，可以参考上面的那个图。<br />
-# Vector 画如何画图 google 一下吧，我理解的也不是很深刻，或者说就没去理解，呵呵。<br />
-#<br />
-
-DestroyDecor MyDecor<br />
-AddToDecor   MyDecor<br />
-+ TitleStyle LeftJustified Height 18<br />
-+ ButtonStyle 1 ActiveUp Vector 4 30x30@3 60x60@3 60x30@4 30x60@3 -- Flat<br />
-+ ButtonStyle 1 ActiveDown Vector 4 30x30@3 60x60@3 60x30@4 30x60@3 -- Flat<br />
-+ ButtonStyle 1 Inactive Vector 4 30x30@3 60x60@3 60x30@4 30x60@3 -- Flat<br />
-+ ButtonStyle 3 ActiveUp Vector 5 30x60@3 60x60@3 60x50@3 30x50@3 30x60@3 -- Flat<br />
-+ ButtonStyle 3 ActiveDown Vector 5 30x60@3 60x60@3 60x50@3 30x50@3 30x60@3 -- Flat<br />
-+ ButtonStyle 3 Inactive Vector 5 30x60@3 60x60@3 60x50@3 30x50@3 30x60@3 -- Flat<br />
-+ ButtonStyle 5 ActiveUp Vector 7 30x30@3 30x60@3 60x60@3 60x30@3 30x30@3 30x35@3 60x35@3 -- Flat<br />
-+ ButtonStyle 5 ActiveDown Vector 7 30x30@3 30x60@3 60x60@3 60x30@3 30x30@3 30x35@3 60x35@3 -- Flat<br />
-+ ButtonStyle 5 Inactive Vector 7 30x30@3 30x60@3 60x60@3 60x30@3 30x30@3 30x35@3 60x35@3 -- Flat<br />
-+ TitleStyle -- Flat<br />
-+ BorderStyle Simple -- NoInset Flat<br />
-+ ButtonStyle All -- UseTitleStyle<br />
-
-Style "*" UseDecor MyDecor<br />
-
-Mouse 1 1 A FvwmDeleteOrDestroy<br />
-Mouse 1 3 A FvwmIconifyOrShade<br />
-Mouse 1 5 A FvwmMaximize 100 100<br />
-Mouse 2 5 A FvwmMaximize 0 100<br />
-Mouse 3 5 A FvwmMaximize 100 0<br />
-
-#给各个按钮绑定鼠标动作，必须绑定了动作，才会在标题栏显示。<br />
-#<br />
-#############################################<br />
-
-######################## Sample Functions ##########################<br />
-DestroyFunc Move-or-Raise<br />
-AddToFunc Move-or-Raise        I Raise<br />
-+                "M" Move<br />
-+                  "D" WindowShade<br />
-DestroyFunc Move-or-Raise2<br />
-AddToFunc Move-or-Raise2    "M" Raise<br />
-+                "M" Move<br />
-+                  "D" Lower<br />
-DestroyFunc Maximize-Func<br />
-AddToFunc Maximize-Func        "M" Maximize     0 100<br />
-+                "C" Maximize     0 80<br />
-+                "D" Maximize     100 98<br />
-DestroyFunc Maximize-Func2<br />
-AddToFunc Maximize-Func2    "M" Maximize     100 0<br />
-+                "C" Maximize     80 0<br />
-+                "D" Maximize     100 98<br />
-DestroyFunc Move-or-Iconify<br />
-AddToFunc Move-or-Iconify    I Raise<br />
-+                "M" Move<br />
-+                "D" Iconify<br />
-DestroyFunc Resize-or-Raise<br />
-AddToFunc Resize-or-Raise    I Raise<br />
-+                "M" Resize<br />
-+                "D" Lower<br />
-DestroyFunc Resize-or-Raise2<br />
-AddToFunc Resize-or-Raise2    "M" Raise<br />
-+                "M" Resize<br />
-+                "D" Lower<br />
-DestroyFunc Iconify-and-Raise<br />
-AddToFunc Iconify-and-Raise     I Iconify<br />
-+                               I Raise<br />
-
-##########   END   ############<br />
-
-#<br />
-# 到这里就都结束了，这个是基于 http://www.zensites.net/fvwm/guide/index.html 网站的介绍写的。<br />
-# 这个rc文件比网站介绍的还要简单，所以还可以去看看那个网站的内容。<br />
-# 有错误的地方，给我发邮件指出来 wd&lt;at&gt;wdicc.com 。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/my-fvwm2rc/#disqus_thread">Comments</a></span>
     
     
 </div>

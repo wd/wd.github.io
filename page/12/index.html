@@ -4221,6 +4221,51 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/clean-places-sqlite/">清理 firefox places.sqlite 来提速</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2009-07-18T00:00:00.000&#43;00:00' itemprop="datePublished">2009-07-18</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/firefox">firefox</a>
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+
+</div>
+    </div>
+        来自这里 http://forum.moztw.org/viewtopic.php?t=26802<br />
+
+使用前先备份，后悔了还能弄回去。<br />
+
+<pre class="prettyprint lang-sql">
+sqlite3 places.sqlite "DELETE FROM moz_historyvisits WHERE place_id IN (SELECT id FROM moz_places WHERE visit_count <=2 );"
+
+sqlite3 places.sqlite "DELETE FROM moz_places WHERE (visit_count <=2 AND hidden <> 1 AND id NOT IN (SELECT place_id FROM moz_annos UNION SELECT fk FROM moz_bookmarks));"
+
+sqlite3 places.sqlite "DELETE FROM moz_inputhistory WHERE place_id NOT IN (SELECT id FROM moz_places);"
+
+sqlite3 places.sqlite "DELETE FROM moz_favicons WHERE id NOT IN (SELECT
+favicon_id FROM moz_places);"
+
+sqlite3 places.sqlite "VACUUM;"
+</pre><br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/clean-places-sqlite/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/use-emacs-as-python-ide/">把 emacs 做为 python ide</a>
     </h2>
     <div class="entry-content">
@@ -4648,51 +4693,6 @@ xset r rate 180  # keyboard repeat delay <br />
     
     
     <span class="comments"><a href="/twitter-updates-for-2009-05-22/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/eclipse-depends-on-jdk-14/">eclipse 对 jdk 1.4 的依赖</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2009-05-16T00:00:00.000&#43;00:00' itemprop="datePublished">2009-05-16</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/ebuild">ebuild</a>
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-
-</div>
-    </div>
-        首先日一下 bilbo，不小心按了一下 ctrl+z，内容居然都丢了，nnd，刚才都写完了。<br />
-
-言归正传。之前想安装 eclipse 的时候，发现他依赖 jdk 1.4，就没装。这次又想装了，就试着找找看哪个依赖 jdk 1.4.下面就是找的过程。<br />
-<pre class="prettyprint lang-txt">
-:%s/\(\d\)\s\+.*$/\1/g #去掉结尾的没用的东西
-:%s#/\(.*\)\(-\d\)#/\1/\1\2#   #把路径弄好</pre>
-<pre class="prettyprint lang-bash">for l in $(cat ~/b);do echo "######$l">
-下面是结果中的部分。第一个 ebuild 里面这种是不会有问题的。就是第二个造成的依赖 jdk 1.4，给他加一个 java5 的 use 的就好了。
-<pre class="prettyprint lang-txt">
-DEPEND=">=virtual/jdk-1.4
-RDEPEND=">=virtual/jre-1.4"
-######dev-java/tomcat-servlet-api/tomcat-servlet-api-5.5.27.ebuild
-DEPEND="java5? ( >=virtual/jdk-1.5 )
-!java5? ( =virtual/jdk-1.4* )
-RDEPEND="java5? ( >=virtual/jdk-1.5 )
-!java5? ( =virtual/jdk-1.4* )"</pre>
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/eclipse-depends-on-jdk-14/#disqus_thread">Comments</a></span>
     
     
 </div>

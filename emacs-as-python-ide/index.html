@@ -1,17 +1,18 @@
 <!DOCTYPE HTML>
 <html>
 <head>
-	<meta name="generator" content="Hugo 0.23" />
 	<meta charset="utf-8">
     
     
-    <title>wd and cc</title>
+    
+    
+    <title>Emacs as python IDE - wd and cc</title>
     <meta name="author" content="wd">
     <meta name="description" content="">
     <meta name="keywords" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
 
-    <link href="https://wdicc.com/atom.xml" rel="alternate" title="wd and cc" type="application/atom+xml">
+    <link href="" rel="alternate" title="wd and cc" type="application/atom+xml">
     <link href="https://wdicc.com//images/fav.ico" rel="shortcut icon">
     <style>
     @charset "UTF-8";
@@ -4208,672 +4209,185 @@ body {
 
     <div id="content" class="inner">
         
-
-
-
-
-    
-    <script id="dsq-count-scr" src="//wdicc.disqus.com/count.js" async></script>
-    
-
-
-
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/lns-firewall/">LNS防火墙中级使用指南zz</a>
-    </h2>
-    <div class="entry-content">
+<article class="post">
+    <h2 class="title">Emacs as python IDE</h2>
     <div class="meta">
-        <div class="date">Published on: <time datetime='2006-03-26T00:00:00.000&#43;00:00' itemprop="datePublished">2006-03-26</time>
+        <div class="date">Published on: <time datetime='2017-06-30T20:47:56.000&#43;08:00' itemprop="datePublished">2017-06-30</time>
 </div>
         <div class="tags">Tags: 
 
-<a href="https://wdicc.com//tags/windows">Windows</a>
+<a href="https://wdicc.com//tags/emacs">emacs</a>
+
+<a href="https://wdicc.com//tags/python">python</a>
 
 
 </div>
     </div>
-        http://bbs.zol.com.cn/index20060306/index_40_72576.html<br />
+    <div class="entry-content"><p>最近 python 写的比较多，比较了几个编辑器，最后还是留下了 emacs。</p>
 
-<p><span style="font-size: 12px">安装方法： <br />
+<p>主要比较了 emacs 和 pycharm。pycharm 绝对是一个很强的 IDE，几乎可以补全任何东西，写代码各种提示。比如 Django 里面定义一个 model User 之后，就可以 <code>User.</code> 之后提示 <code>objects</code> ，这个是依据 metaclass 来补全的。另外还有比如写 <code>User.objects.get(|)</code> 的时候，光标在竖线那个位置，会提示 <code>User</code> 的字段，这个相当好用。这两个只是皮毛，实在是太好用了。</p>
 
-双击运行LooknStop_Setup_205p2.exe即可！ <br />
+<p>但是为什么还要用 emacs 呢？emacs 的编辑器功能太好用了。比如 <code>&lt;</code> 到页首， <code>&gt;</code> 到页尾， <code>C-x b</code> 切换 buffer，还有切换 frame，等等快捷键非常舒服，完全不用鼠标。不过也可能是我习惯了 emacs 的快捷键了。在 pycharm 里面时不时就不行，比如选择一段文字，纯键盘需要按 <code>-&gt;</code> 配合才可以，那还不如用鼠标算了。</p>
 
-注意：安装时会弹出一个没有通过 Windows 徽标测试的提示窗口，点击仍然继续即可！ <br />
+<p>其实如果一上手就用 pycharm，那绝对会觉得很爽。</p>
 
+<p>emacs 写 python 在原生的 <code>python-mode</code> 基础上有两个好用的选择，一个是 <a href="https://github.com/proofit404/anaconda-mode" title="anaconda-mode">anaconda-mode</a>，一个是 <a href="https://github.com/jorgenschaefer/elpy" title="elpy">elpy</a>。 <code>anaconda-mode</code> 相对来说比较简陋一点，但是补全什么的没问题，缺少重构功能。两个的工作模式都是会启动一个补全用的进程，然后通过 lisp 和这个进程交互获取补全信息。</p>
 
-汉化方法： <br />
+<h2 id="anaconda-mode-遇到的问题和解决">anaconda-mode 遇到的问题和解决</h2>
 
-将汉化补丁文件内的语言文件chinese.lng及语言插件复制到look'n'stop的安装目录下(默认是C:\ProgramFiles\Soft4Ever\looknstop)，然后打开look'n'stop就应该是中文界面了，如果仍是英文界面，可以按下面的步骤操作： <br />
+<p><code>anaconda-mode</code> 我遇到一个问题，为了下载 emacs 的 package 方便，我设置了代理，这个代理导致 <code>anaconda-mode</code> 和补全进程交互的时候，连接不能断开，就会不停的新建连接，一会就打开文件数满了，可以参观这个 <a href="https://github.com/proofit404/anaconda-mode/issues/255" title="issue">issue</a>。主要是设置了 <code>no_proxy</code> 解决。</p>
 
-1) 点击"Options"选项卡的"Advanced Options"按钮； <br />
-2) 点击"Plugins"按钮； <br />
-3) 在"Avilable_plugins"框中打勾"plugin_language.dll"； <br />
-4) 点击"Configure"按钮； <br />
-5) 选中"简体中文"，确定。 <br />
+<pre><code>
+ (setq url-proxy-services
+       '((&quot;no_proxy&quot; . &quot;^\\(127.0.0.1\\|localhost\\|10.*\\)&quot;)
+         (&quot;http&quot; . &quot;127.0.0.1:6152&quot;)
+         (&quot;https&quot; . &quot;127.0.0.1:6152&quot;)))
+</code></pre>
 
-注册方法： <br />
+<h2 id="auto-virtualenv">auto-virtualenv</h2>
 
-切换到"注册"选项卡，然后复制"代码"里的注册代码，接着运行"注册机.exe"即可取得序列号！ <br />
+<p>我的 python 项目使用了 <code>virtualenv</code> ，会在项目目录下面建一个 =.venv= 的目录，把虚拟环境放进去。 <code>anaconda-mode</code> 提供了 <code>pythonic-activate</code> 命令， <code>elpy</code> 提供了 <code>pyvenv-activate</code> 来切换环境。但是每次打开项目都需要搞一下就挺恶心了。</p>
 
-注意： <br />
+<p>然后找到了 <a href="https://github.com/marcwebbie/auto-virtualenv" title="auto-virtualenv">auto-virtualenv</a> 这个工具。安装之后，他会自动查找你的项目里面的可能的虚拟环境。项目根目录识别是通过 =.git= ， =.hg= 等一些逻辑来判定的，具体可以看代码。然后虚拟环境识别是通过根目录下面的 =.python-version= =.venv= 等来识别的。</p>
 
-1.如果安装look'n'stop后无法上网，可以这样解决：切换到主界面的"互联网过滤"，然后双击最后一条规则<a name="3"></a>"All oter packets"，把以"太网 : 类型"的中的"全部"改为"IP"，保存后应用即可！ <br />
-2.该防火墙功能强大，但设置也非常繁多复杂，因此建议一般用户请谨慎使用！ <br />
+<p>我的项目是建了一个 =.venv= 目录，所以每次打开一个 python 文件，会自动配置好 virtualenv 的环境，这样 <code>elpy</code> 在 django 自带的 model 上面也可以查找 defination。</p>
 
-注意：你在使用下述图解时，<span style="color: rgb(255, 0, 0)">请一定先打开“选项”—&gt;选中“高级模式”</span>，切记。 <br />
-</span></p><p><span style="font-size: 12px"><br><!--more--><p><span style="font-size: 12px">1.应用程序过滤----专门对程序进行设定，决定应用程序行为的控制。<br />
-<img style="width: 591px; height: 443px" alt="Click here to open new window" src="http://www.magicwinmail.com/course/looknstop/images/22_96947.jpg" rel="lightbox"/><br />
-先看看红色编号1区，这个区显示是正连接在网络上或者曾经连接过网络目前还没有关闭的软件清单。 <br />
+<pre><code>
+(use-package auto-virtualenv
+  :ensure t
+  :config
+  (add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv)
+)
+</code></pre>
 
-重点是看绝色编号2区，这个区才是重点，有N多的门道在里面。这个区猛一看是已允许的相信的程序，仔细看看，偶已经列出了11种属性，当然也是可能的全部属性了。 <br />
+<h2 id="elpy">elpy</h2>
 
-现在按此区的“列”来开讲^_^，之前必需选中黑色编号13“应用程序过滤已启用”，否则所做的任何设置都不起作用，嘿嘿。 <br />
+<p><code>elpy</code> 其实没有什么好配置的，主要注意的是，因为我们用了 virtualenv 环境，所以需要他依赖的包都装在 =.venv= 环境或者装在 python 自己的目录下面应该都可以。启动 emacs 之后可以使用 <code>M-x elpy-config</code> 看看还有什么没配置好。</p>
 
-第一列只有此二种属性，简而言之就是启用或者禁用该规则，单击实现二种属性之间的切换。见黑色编号1，黑色编号2。 <br />
+<pre><code>
+(use-package elpy
+  :ensure t
+  :init
+  (setq elpy-rpc-backend &quot;jedi&quot;)
+  (elpy-enable)
+  :config
+  (add-hook 'python-mode-hook 'elpy-mode)
+  (with-eval-after-load 'elpy
+  (add-hook 'elpy-mode-hook 'elpy-use-ipython))
+  :bind ((&quot;M-*&quot; . pop-tag-mark))
+  )
+</code></pre>
 
-黑色编号1，是指启用为它所在行的那个程序制定的规则，也就是说让该程序按既定的规则运行，此所谓的应用程序过滤。如果你不想为这个程序设置的规则起作用的话，那么点击一下，就会变成黑色编号2所指的样子。 <br />
+<p><code>elpy-rpc-backend</code> 有两个选择，一个 <code>jedi</code> ，一个 <code>rope</code> ，我试了感觉区别不大，另外 rope 感觉要死了。所以我用了 <code>jedi</code> 。</p>
 
-第二列有三种属性，分别是允许（黑色编号5）、禁止（黑色编号4）、自定义（黑色编号3）。单击则在允许与禁止之间切换，如果有自定义属性，则在三者之间进行切换。 <br />
-黑色编号3：黄色圆饼标志。当你为此程序制定了特殊规则，如指定程序只能连接远程的哪些端口、或者不允许连接哪些端口；允许连接哪些地址、禁止连接哪些地址时，则出现黄色的圆。（功能强大，设置之灵活让人唏嘘。）具体看看如下： <br />
+<h2 id="flycheck">flycheck</h2>
 
-双击某个程序（当然也可以通过点击点击黑色编号12来实现），就会出现如图二所示的“选择端口和IP地址”窗口，此时你可以设置具体的内容了。 <br />
-<img src="http://www.magicwinmail.com/course/looknstop/images/22_96948.jpg" if(this.width="" alt=""/><br />
-比如，偶的TW，偶只允许它连接远程的80端口，不允许连接其它端口，那么就按上面的设置；此时对IP地址没有限制。如果你想让他只连接远程的某个IP地址，那么就在IP地址栏输入。当然没有人会这么对待浏览器。 <br />
+<p><a href="https://github.com/flycheck/flycheck" title="flycheck">flycheck</a> 可以配合 <code>flake8</code> 实时显示出来你的代码有不符合 flake8 要求的地方，很方便。这个工具我也遇到一个坑 <a href="https://github.com/flycheck/flycheck/issues/1228#issuecomment-311706873" title="issue">issue</a>，有兴趣可以看看。主要原因是 flycheck 是使用 <code>flake8 &lt; xxx.py</code> 这种方式检查的，而这种方式下 flake8 不会考虑文件头部的 <code>coding</code> 设置，来识别文件编码，而是根据 <code>LC_CTYPE</code> 环境变量来的，所以只要正确设置这个变量就可以了。 issue 里面提到的设置 emacs 的编码屁用么有的。</p>
 
-这个自定义功能不会只是如此简单吧？当然不是，其实重要的不是允许去什么地方，而是禁止它去什么去什么地方。比如，你的CuteFTP一启动就想去它的主站验证一下它的合法性，那么你就可以在这里设置一下了，而又不影响其它程序（如IE）访问CuteFTP的主站（目前偶还没有发现哪个防火墙能这样设置的，嘿嘿，如果有恕偶无知）。 <br />
+<p>flycheck 可以配合 flake8 和 pylint 来做 python 代码的检查，如果装了前者，就不会考虑后者了。我试过 pylint，这货默认要求有点高，比如 class 和 method 没有 doc string 也会提示，代码一堆问题，我就赶紧换掉了。。。</p>
 
-说了半天，允许和禁止在这里是看不出区别的，该怎么办？其它很简单，允许访问的端口或者IP，则直接输入在上面就行。如果你要禁止某个端口或者地址，呵呵，只要在端口前面加上一个感叹号“！”就行了，是不是真的简单？对了，如果是多个IP或者端口，不要忘记在它们之间加上一个半角的分号“；”哦。 <br />
+<h2 id="python-outline">python outline</h2>
 
-黑色编号4：红色禁止标志。此标志表示禁止该程序连接网络。 <br />
+<p>好处是打开 python 文件的时候，会把代码都折叠起来，按照需要你自己打开就好。elpa 里面没有，网上搜到的。</p>
 
-黑色编号5：绿色允许标志。此标志表示允许该程序连接网络。 <br />
+<pre><code>
+(use-package python-magic
+  :ensure outline-magic
+  :config
+  (add-hook 'python-mode-hook 'my-python-outline-hook)
+  (add-hook 'python-mode-hook
+            (lambda ()
+              (setq outline-regexp &quot;def\\|class &quot;)))
 
-现在来看第三列，此列只有二种属性，单击则实现二种属性之间的切换。见黑色编号7、黑色编号9。这一列是强大功能的一个体现，作用是允许或者禁止此程序调用另一个程序并且使用被调用的这个程序连接网络，也就是说：A程序启动了B程序，B程序有连网企图，此属性就是对这种情况进行控制的。必须打开“高级选项”中的“高级模式”才会出现此列。 <br />
+  )
+</code></pre>
 
-黑色编号7：双箭头标志。当为此标志时则意味着允许当前程序去调用另外一个要使其连接网络的程序。如果发生这种情况，则出现提示窗。 <br />
+<h2 id="indent-tools">indent-tools</h2>
 
-黑色编号9：红色禁止标志。当为此标志时不允许当前程序去调用另外一个要使其连接网络的程序，当然如果被调用的程序没有连接网络的企图，则防火墙是不出现提示的。 <br />
+<p>这个工具是用来锁进 python 代码和浏览代码用的。搜一下有动图，看看就知道了。</p>
 
-第四列，此列有三种属性，其中二种属性与第一列的属性配合才能看到效果。黑色编号6、黑色编号10、黑色编号11。 <br />
+<pre><code>
+(use-package indent-tools
+  :ensure t
+  :init
+  (add-hook 'python-mode-hook
+            (lambda () (define-key python-mode-map (kbd &quot;C-c i&quot;) 'indent-tools-hydra/body))
+            )
+  )
+</code></pre>
 
-黑色编号11：如果是这个标志，则什么也不发生。相当于此属性被禁用。 <br />
+<h2 id="yasnippet-和-company">yasnippet 和 company</h2>
 
-黑色编号10：单感叹号标志。此标志表示在日志中记录该应用程序的连网“企图”，此时要与第一列配合使用，第一列的属性必须是禁止标志才起作用。这个功能的好处太多了，比如：一个被你禁止了的程序，可能也已经关闭了，但频频试图连网，估计它也不是什么好东西，木马常常这么干！ <br />
+<p>elpy 是使用这两个补全的。有几个有用的配置， <code>C-s</code> 那个，可以在补全候选菜单出来的时候，用关键词过滤结果。</p>
 
-黑色编号6： 双感叹号标志。此标志表示无论该程序是禁止还是允许连网，都在日志中记录。 <br />
+<p>我没搞定在 company 里面直接显示出来 yasnippet 可用的 snippet，只好设置了一个快捷键 <code>C-c y</code> 来提示。可以提示出来一大堆。比如我经常写错的 <code>-*- coding:utf8 -*-</code> 有一个 snippet 叫做 <code>utf8</code> ，直接输入之后 tab 就可以了。</p>
 
-好了，应用程序过滤篇到此完毕。可以看出，LNS对程序的控制非常灵活且强大，10个属性有36种不同组合。仅一个页面可以实现允许禁止、记录与否、单程序访问控制、进程调用四种功能的控制。<br />
-<span id="text2" style="font-size: 12px">2.互联网过滤----专门对防火墙规则进行设定，也有少量设定涉及到程序。决定网络连接及数据包行为的控制。 <br />
-
-图三是互联网过滤，继续按“列”进行讲解。此页面部分功能与“选项”时的“消息框”、“声音”、“日志”配合使用。<br />
-
-<img src="http://www.magicwinmail.com/course/looknstop/images/22_96949.jpg" if(this.width="" alt=""/><br />
-第一列，有三种属性。自定义的启动该规则属性、默认的启用该规则属性、不启用该规则属性，分别对应黑色编号3、黑色编号1和黑色编号2。三种属性之间点击进行切换，但如果没有进行自定义，则只在二种属性间切换。 <br />
-
-黑色编号1：绿色带勾标志。此标志表示启用该规则，且该规则没有进行特别的自定义。 <br />
-
-黑色编号2：灰色小圆点标志。此标示表示不使用该规则，也就是说防火墙对网络连接请进行检查时不与该规则进行匹配操作。相当于这条规则只是临时放在这里，并没有什么作用。 <br />
-
-黑色编号3：暗红色带勾标志。此标志表明这条规则只对特定的程序起作用，当此特定的程序启动后，此标志则变为绝色带勾标志，表示规则启用了，否则为暗红色带勾标志，表示这规则暂时未被启用。这种设置方式似乎也没有在其它防火墙中见到，极其特别，也是LNS灵活的一个体现。它的好象是什么呢？显示易见，当该特定程序没有启动时，就相当于少了一条规则，少一条规则多一分安全是主要的；其次可以加快对规则匹配操作的时间。设置特定程序的方法为双击当前规则，出现一个设置窗如图四所示。 <br />
-
-<img style="width: 596px; height: 467px" src="http://www.magicwinmail.com/course/looknstop/images/22_96950.jpg" if(this.width="" alt=""/><br />
-双击一条规则后会出现如红色编号1的窗口，点击些窗口上的“应用程序…”按钮，出现如红色编号2所示的窗口，将此窗口中右侧的程序双击添加到左侧，然后一路确定就可以了。图示是偶为BT添加的自定义规则，只有当BT启动后它才启用，平时这条规则相当于不存在，呵呵，否则会浪费偶的资源的。 <br />
-
-第二列，有二种属性。分别是禁止与允许，对应于黑色编号4。此列主要用途是，允许执行与此规则匹配的连接请求，还是禁止与此规则匹配的连接请求。 <br />
-
-黑色编号4：红色禁止标志。此标志表示，当某个连接请求或者操作与此规则匹配时，则禁止该连接请求或者操作。如果是灰色圆点标志，则表示此允许此连接请求或者操作。此属性的好处是，可以用来限制某些特定的操作而又不产生全局影响，而当你需要时又可以打开这一特定规则。 <br />
-
-第三列，二种属性。记录或者不记录与该规则匹配的操作信息。 <br />
-
-黑色编号6：单感叹号标志。表示当某个连网请求或者操作与此规则匹配时，则记录些操作的信息，这些信息一定会在日志标签的窗口里显示出来。如果你启用了“选项”标签中的日志文件功能，则这些信息保存在日志文件中，如果没有启用日志文件功能，则不保存。另一灰色圆点标志表示不记录也不保存这些信息。本人建议把LNS的记录功能打开，这样一旦某些软件不能正常上网时，可以在日志中发现并生成规则（后面讲到如何用日志生成适用规则）。 <br />
-
-第四列，二种属性。分别对应黑色编号7、黑色编号8。功能比较简单，但却非常的有用啊。 <br />
-
-黑色编号7：黄色下箭头标志。些标志表示，如果某个操作与此规则匹配时，则直接进行相应的操作（即第一列、第二列、第三列所定义的属性及具体规则内容进行操作），不再继续匹配后续的其它规则，因为LNS匹配规则的顺序是自上而下的（故大家最好不要调整那些LNS默认生成的规则的上下顺序，否则可能什么程序也上不了网）。这种属性产生的操作带来的好处是：不用将所有规则匹配一遍，极大地减少了LNS规则匹配操作所用的时间；其次如果你添加了一条过于宽泛自己不知道有没有漏洞的规则，那么你可以关闭此属性，则当有某个操作与此规则匹配后，后续规则继续对其进行检测，以发现问题。 <br />
-
-黑色编号8：灰色圆点标志。此标志表示匹配完此规则后，再继续匹配后续规则。 <br />
-
-第五列，三种属性。对应于黑色编号9、黑色编号10。作用是当有某操作与此规则匹配时，以什么方式来报警。 <br />
-
-黑色编号9：小喇叭标志。此标志表示某操作与此规则匹配时，以发生声音的方式报警。打开此属性必须同时在“选项”标签中选中“声音”功能。 <br />
-
-黑色编号10：双感叹号标志。此标志表示某操作与此规则匹配时，不但发出声音报警，而且跳出消息框报警。也必须同时打开“选项”标签中的“声音”与“消息框”功能，否则不起作用。 <br />
-
-灰色小圆点标志，表示不需要报警。 <br />
-此列的属性建议对系统默认的规则打开，此时能看到一些异常操作，及时采用措施。对于其它的频繁正常操作，如果打开了会不胜其烦的。比如在你为BT设置的规则上设置此属性，消息框会跳满一屏幕，呵呵。 <br />
-
-最后再说一下，如果你取消对图三右下角的“互联网过滤已启用”选中的话，则此规则表中所有规则都相当于不存在，基本上是门户大开啊。切记！<br />
-<span id="text3" style="font-size: 12px">3.规则编辑----定义符号你自己需要的规则。 <br />
-在LNS里定义规则有两种方法，在“互联网过滤”里“添加”规则是最难的一种；另一种方法是从“日志”标签里进行添加，则简单得多了，后面再讲到。 <br />
-
-图五是规则编辑窗的界面，分为8个区域，按“区”讲吧。分别为“规则名称”、“方向”、“规则说明”、“以太网”、“IP”、“标识”、“来源”、“目标”8个区。<br />
-
-
-<img style="width: 587px; height: 440px" alt="Click here to open new window" src="http://www.magicwinmail.com/course/looknstop/images/22_96962.jpg" if(this.width=""/><br />
-首先，LNS防火墙在编辑时规则是中性的，也就是说在编辑界面上，我们不能够确定该规则是禁止了某个操作还是允许了某个操作，一旦“确定”后，LNS默认这个规则是允许与之匹配的操作的；如果你编制规则的目的是想禁止某种操作，那么你只要把规则说清楚，“确定”后再点图四所示的第二列的“红色禁止”标志就行了，此时在该规则也会出现一个禁止标志，意思就是禁止那些与此规则匹配的操作。这一点与任何防火墙都不同。 <br />
-
-LNS防火墙的规则的信任关系是基于IP地址+MAC地址的，这是一种理想的信任关系模式。IP地址是可以欺骗的，MAC地址也同样，但IP+MAC的欺骗就困难得多，所以LNS安全性能可想而知。因此在图五中大家会看到“以太网：类型”和“以太网：地址”区域，使设置显得复杂常常令人困惑。其实了解了它的作用就不感到复杂了。<br />
-
-“规则名称”区 <br />
-黑色编号1：规则名称，不用多说。 <br />
-
-“方向”区 <br />
-黑色编号2：设定此规则的数据方向。你可以定义这条规则只对传入的连接（数据）起作用，或是对传出的生效，或对传入传出都起作用。此设置与“来源”和“目标”区有关联，选中“传入”或者“传出”则“来源”和“目标”内容有变化，此时更直接；但选中“两者”时，“来源”和“目标”区域显得复杂。 <br />
-
-“规则说明”区 <br />
-黑色编号3：可以对该规则进行说明，以便记忆或了解。 <br />
-
-“以太网:类型”区 <br />
-黑色编号4：可能也是让大家头痛的地方，常常不知道如何设置这个地方。“以太网：类型”其实就是告诉防火墙你的机器是局域网中的机器还是独立的一台机器，或者你理解“以太网：类型”就是要告诉LNS此条规则是适用于网域局中的通讯或者适用于互联网中的通讯。在这里就得多唠叨几句。这个类型里有四种选择，分别是“全部”、“IP”、“ARP”、“其它”，“全部”即指包括“IP、ARP、其它”的全部类型。 <br />
-“全部”类型极少用到，除非你的机器处于混合网络（如同时有windows、Linux、Unix、Mac os、VAX、Netware等操作系统的机器）中，可能会同时存在多种不同的局域网协议时。因此不赞成独立PC和单纯局域网选择该类型。 <br />
-"IP”类型，网际协议类型，用于把数据包从源地址发往目的地，多数情况下选择这种类型是合适的，尤其你的机器是通过非代理非网关直接上网时至少得（选择“全部”当然可以，但开放了不必要的协议）选择此类型，制定那些与互联网连接相关的规则时必须选择它，当然如果规则是局域相关的也同样可以选择它。 <br />
-“ARP”类型，地址解析协议，它的作用是把IP地址解析（转换）为与此IP对应的MAC地址，从而找到该机器，只能用于与局域网相关的规则中，用在与互联网相关的规则中会造成该规则不起作用。除非你是在局域网中使用本机，否则不要生成选中此类型的规则；如果你是在局域网中通过代理或者网关上网，那么LNS默认有一条规则使用的此类型，规则名是“ARP : Authorize all ARP packets”，则必须打开并允许此规则，否则你无法上互联网。 <br />
-
-“IP”区 <br />
-黑色编号5：也就是为当前规则指定协议，共有8种类型。最常用的是TCP和UDP，偶一般人用这2个协议足够，其它协议给高手们用。编号右侧的“碎片偏移”和“碎片标志”俺不知道是个啥，所以通常用“全部”没有不良影响，呵呵。如果选择了TCP协议，则右侧的“TCP标志”是可选的；如果选择了ICMP/IGMP，侧“标志”内容也不同。 <br />
-
-“来源”区，我想它后面的一串文字和方向，是造成大家不好理解的重要原因。与其它任何防火墙不同的是：在LNS的这个规则编辑器里，“来源”完全表示本地，“目标”则表示远程，而不管实际的连接请求或者数据包方向，大家在此一定要转变思路。所以，“来源”区所填写的数据都是与本地有关的，比如你要打开或者关闭本机的某个端口、允许或禁止本地的某个IP（当LNS安装在网关或者代理服务器上时有用），都可以把端口、IP地址信息输入在这里，理解了这一点，规则就好编了。 <br />
-
-黑色编号的7、8：用来限定MAC地址的，当编号7选择了“全部”时，后面的不用填任何地址，填了也没用；只有当编号7选择了“等于”或者“不等于”时填MAC地址才有用，而且此时LNS也应该在代理服务器或者网关上才真正有用。它的作用就是限制内网的一个或某些机器的特定操作的，具体是什么特定操作还要看其它设置的配合情况。 <br />
-
-黑色编号9：用来对IP地址进行各种组合和排除的，共10种方法，真是了得！当选择了“全部”时，它下面黑色编号11的地址栏是灰色不能进行输入的，否则要进行输入。但LNS有个BUG，即在此输入的IP地址无法输入3位数，解决方法是先能输入多少输入多少，保存后，用文本工具打开LNS目录的对应的规则文件，按你在此所定义的规则名称，找到你所输入的内容后把IP地址改为3位数保存后，重启LNS就行了，呵呵，这个BUG真不应该。 <br />
-
-黑色编号10：用来定义具体的端口号的，此时建议尽量选择你想要的协议，然后输入端口号。如果不选择协议就输入端口号，则此端口号对所有协议开放，安全性应该会下降。同样黑色编号12有7种方法，以便对端口号进行排除。 <br />
-
-黑色编号13：用来指定程序的。也就是说，当你指定了程序后，该规则只对此程序起作用，当该程序没有启动时，该规则是不执行的，因而也不会影响到其它程序。比如你为BT制定了特殊的<strong>规</strong>规则，那么就可以在这里设置好，当BT启动后该规则也自动加载。有此功能，就既可以定义特殊规则，又不会让此规则影响到全部程序了。 <br />
-
-“目标”区，此区是与“来源”区相对应的，一定要注意，你的本地的信息永远不要出现在这个区，虽然它叫“目标”，但它完全是指远程机器的，那怕你的本地机器被全宇宙的黑客当成“目标”！所以在这个区出现的IP地址、端口号都是批你想要访问或者你不想要访问，再或者你不想让它来访问你的那些远程机器的IP和端口号。我想现在大家知道了“来源”和“目标”的实质，编规则也好办了。那么此区的“以太网：地址”、“IP地址”、“TCP/UDP端口”的设置方法与“来源”区所讲到的完全相同，不用再说了，不同的是它们是指的远程！！！</span> </span></span></p><p><span style="font-size: 12px"><span style="font-size: 12px"><span id="text4" style="font-size: 12px">“规则编辑”看来不讲例子是不行的，下面先讲一个开放特殊端口的例子，以BT为例，见图<br />
-
-<img style="width: 596px; height: 421px" alt="Click here to open new window" src="http://www.magicwinmail.com/course/looknstop/images/22_96963.jpg" if(this.width=""/><br />
-事先说明偶的BT监听的端口是10521，Bt（Emule、Edonkey都是工作原理类似的软件）比较特殊，它与其它下载工具的工作原理不同，偶认为BT是用其它端口发送连接请求等等信息，而用10521端口来专门进行数据包的传输，故10521端口是不主动向外发送信息，因而当其它的远程BT端收到本地BT发出的信息后，便把回应信息向10521端口发送，此时在LNS里便认为这个操作有隐患，故而拦截。那么便需要对LNS进行设置，让它放这种信息一马，这样BT才能正常工作。（随便说一下，多数防火墙基于程序的信任程度更高一些，在此类防火墙里，应用程序所打开的所有端口都是对外开放的，也就是说外部程序可以主动联系该程序打开的所有端口，因而不用进行端口设置。看起来没有在LNS里这么麻烦，但仔细想想，安全性要低一些。就象是在一个正常卖票的窗口旁边有一个本来不是卖票的关着窗口，但当有人去敲了敲，窗口竞然打开了或许还进行了某种交易？！） <br />
-言归正传，下面说如何为BT打开这个被动的端口，通过下述设置偶在BT里每任务最大100个连接，当有80个左右的用户时，下载速度可以轻松达到120KB以上。 <br />
-
-?首先给该规则起个名，定义方向，略加说明，如图六中的1、2、4所示； <br />
-?然后在“以太网：类型”里选择“IP”，等于告诉LNS这是一条通关于数据包往来的规则，如3所示； <br />
-
-?在黑色编号5的“IP”里选择“TCP或UDP”，告诉LNS这是基于TCP或者UDP协议的数据包的规则（通常在BT里只用TCP协议，但偶在日志中发现它偶有用到UDP，所以也打开了，偶对BT的机制并不熟悉）； <br />
-
-?在黑色编号7里不用填任何MAC地址，本规则是对本机的，不需要进行MAC地址的排除组合等（但如果LNS安装在网关上，而BT在你的机器上，则可以在MAC地址里填写上你的MAC地址，呵呵，则只有你可以用BT了因为MAC地址在局域网里有唯一性，尤其它你们的局域网是自动分配IP地址的话。）； <br />
-
-?黑色编号8，IP地址选择“等于本机”就不用手工输入了。同样，如果你的机器在内网，而LNS在网关上，你就可以指定哪些IP可以使用BT而哪些机器不能使用了；比如你的内部机器IP=192.168.2.4，此时可以在“IP地址”里选择“等于”，并把192.168.2.4填写在正文，那么只有这台机器的10521端口可以被外部其它机器连接。大家多试试就可以体会。 <br />
-
-?黑色编号9，选择“等于”，然后填写你的BT监听的端口号。 <br />
-
-?点“应用程序”，如果黑色编号13、14所示，把你的Bt软件添加上，然后一路确定，回到“互联网过滤”界面，保存和应用就可以了（OK，此时打开BT开始下载，看看“日志”里有没有大量的记录，如果没有恭喜了，如果有大量的与端口有关的记录，说明某个地方弄错了，再仔细检查一下该规则）。这样该条规则就是BT专用的了，绝对不影响其它程序。 <br />
-同样的道理，如果你是想禁用远程机器与本地/本机的某个端口进行连接，那么只要在图三所示的“第二列”为该规则打上禁止标示就可以了，那么此时与该IP地址或者Mac地址匹配的机器的10521端口就永远无法被其它连接，且该端口也无法向外发送信息了。</span> </span></span></p><p><span style="font-size: 12px"><span style="font-size: 12px"><span id="text5" style="font-size: 12px">上面的例子是控制本地/本机资源的，那么如何限制你本地/本机应用程序对远程机器的访问，将在下面再举一例。见图七。 <br />
-
-<img style="width: 595px; height: 418px" alt="Click here to open new window" src="http://www.magicwinmail.com/course/looknstop/images/22_96964.jpg" if(this.width=""/><br />
-虽然在“应用程序过滤”里已经讲到了如何限制对远程的访问，但它不具有全局性，也就是说“应用程序过滤”里的规则优先级低于“互联网过滤”，LNS先匹配“应用程序过滤”然后再匹配“互联网过滤”，如果在“应用程序过滤”里已经禁止了的，在“互联网过滤”里将继续禁止；如果在“应用程序过滤”里允许了的，那么还得经过“互联网过滤”的审查。在这里编写的规则具有全局性，当然也可以针对某个特定程序。 <br />
-
-讲一个禁止与远程某个端口连接的例子，或者理解为禁止本地与远程某个端口进行通讯，此例子规则的意思为：禁止与12.10.2.20地址的77777端口进行双向联系。编写一条禁止规则通常有二个步骤。 <br />
-
-第一步：远程机器的信息只能设置在图七所示的目标区，黑色编号1选择“IP”类型，编号2选择“TCP”或者其它协议，如果不能确定，填上“TCP或者UDP”也不会有问题。 <br />
-
-在“目标”区域，如果你要禁止具体的某个远程主机，则在“IP地址”里选择“等于”（如果是对所有的远程主机则选择“全部”），然后再下面填写具体IP地址（例子里随便写了个12.10.2.20），“TCP/UDP端口”里填上端口号77777。 <br />
-
-如果这个禁止规则是与某个具体程序对应的，那么点“应用程序”，把具体的程序加入就行了；如果是对本机所有程序的，侧不需要添加任何程序。一路确定，回到“互联网过滤”界面。 <br />
-
-第二步：点击如图三所示的“第二列”（当然位置要与此条规则对应），当出现红色禁止标志时，点击“保存”和“应用”，OK！此时12.10.2.20地址的77777端口不能联系你的机器，你的机器也不能联系12.10.2.20机器的77777端口。当然其它端口是可以双向联系的。 <br />
-
-如果你想写一条禁止本地/本机的具体地址的具体端口与远程的具体地址的具体端口进行连接的规则时，则在“目标”区域填写你的本地/本机的IP和端口信息，而在“目标”区域填写远程机器的IP和端口信息，完成后再在“互联网过滤”界面上打上禁止标志就行了。通常很难存在一条这样的“允许”规则的。</span> </span></span></p><p><span style="font-size: 12px"><span style="font-size: 12px"><span id="text6" style="font-size: 12px">4.日志标签---告诉你当前阻止了哪些连接；允许了哪些连接（如果你也设置了记录的话，LNS默认对阻止的规则进行记录）；可以用来建立特殊规则。如图八所示。<br />
-<img style="width: 597px; height: 447px" alt="Click here to open new window" src="http://www.magicwinmail.com/course/looknstop/images/22_96965.jpg" if(this.width=""/><br />
-当你使用了某些软件并允许了它上网但却不能正常使用，此时可以查看“日志标签”，只是此时日志中不显示对应的程序名称，会显示连续的规则名称相同的一些信息。首先你确保这些信息是因为阻止了此类连接而生成的（通过规则名称在“互联网过滤标签”里看此规则前面是否有禁止标志），然后再看在端口号上有没有规律性，当规则名称相同、端口号也有规律性时，就可以用它来生成规则了。 <br />
-
-以例子说明，图八所示为BT在没有打开端口时的日志情况。黑色编号4区显示的是规则名称，几乎完全一样；黑色编号3区是端口；黑色编号2区所示为有一致性的端口号，都为10521（偶的BT监听端口）。从日志可以明显看出，BT的10521端口不允许被外界连接，也就是造成BT下载速度慢的全部原因（虽然已经把BT设置为任凭程序了，但对它的端口还是有限制的。）。<br />
-
-设置方法：在任意一条记录上点鼠标右键，会出现图八黑色编号1所示的菜单，菜单上总共会出现2个选择，你应该用鼠标点在黑色编号3区域中看到的那个频繁出现的端口所在的选择项。如本例中在黑色编号3区域中看到的频繁出现的端口号是10521，则在此菜单上就选择“允许Port10521-服务器”（此外的“服务器”意思是本机被其它机器连接，有点服务器的味道P），选择后会返回到“互联网过滤”标签，此时可以看到LNS已经为你自动增加了一条规则，并为此规则起了一个名称和简单的说明，你可以双击此规则改变规则名称和说明以使你清楚知道此规则的作用。 <br />
-
-回到日志来继续看，如果在某条日志上双击，则出现如图九中红色编号1所示的窗口，在此窗口中可以看到该条日志的详细信息（可惜没有与程序具体对应），有源/目标的IP地址、端口、数据报等详细内容，有经验的用户可以就此进行深入分析，以手工建立规则。在此不详细讲了。 <br />
-<img style="width: 596px; height: 447px" alt="Click here to open new window" src="http://www.magicwinmail.com/course/looknstop/images/22_96966.jpg" if(this.width=""/></span></span></span></p><p><span style="font-size: 12px"><span style="font-size: 12px;"><span style="font-size: 12px;"><span id="text7" style="font-size: 12px;">5.选项标签-高级设置及其它杂项，如图十所示 <br />
-
-
-<img style="width: 592px; height: 224px" alt="Click here to open new window" src="http://www.magicwinmail.com/course/looknstop/images/22_97053.jpg" if(this.width=""/><br />
-这一部分没有什么内容可讲，当鼠标停留在某个选项上时，都会自动跳出提示的。主要说说选择网络接口的操作。 <br />
-图中红色编号1区即为选择界面，通常按“自动选择”方式就能很好的工作，如果不能时，请按图十二所示按自己的上网方式进行选择。<br />
-<img style="width: 598px; height: 430px" src="http://www.magicwinmail.com/course/looknstop/images/22_97055.jpg" if(this.width="" alt=""/><br />
-点击红色编号2，则出现如图十一所示的“高级选项”界面，这个也大概说一下。<br />
-<img src="http://www.magicwinmail.com/course/looknstop/images/22_97054.jpg" if(this.width="" alt=""/><br />
-除了黑色编号3所在区域，其它编号区当鼠标指向时都有提示跳出，而且容易理解，不详细讲了，如果以后有时间再补充。重点讲黑色编号4、5、6、7区的。先来看看黑色编号3区的。 <br />
-
-“高级模式”----选中它，则在“应用程序过滤”、“互联网过滤”标签里才有一些高级属性出现。大家视自己的情况决定，不过偶建议打开。 <br />
-“原始日志”----选中它，则在日志文件中记录更多的信息，也就是日志文件更加详细，提供更多的基层信息，而且需要用第三方的工具才能打开察看日志文件。一般人没有必要打开，而且偶不建议记录日志文件，一来作用不大，二来记录日志文件的话，会增加CPU使用量。 <br />
-“退出时确认”----不用说。 <br />
-“TCP全状态包检测”----读为“TCP全状态?包检测”，一种数据包过滤技术，通过对报文的TCP标志进行检测而实现的。建议大家打开此功能；但这个功能默认是记录日志的，不能更改。 <br />
-“在此程序退出后保持互联网过滤处于活动状态”----2000以上有用。作用是当退出LNS，互联网过滤规则也在后台运行。偶想不出这个功能的必要性，故不建议大家打开，尤其是新安装LNS还处于调试阶段时更不要打开这个功能。否则可能会造成退出LNS了，上网还不正常。 <br />
-“监视DNS呼叫”----2000以上才起作用，用于监视应用程序向DNS服务器发出地址解析请求的。建议打开，但如果打开它LNS经常导致机器蓝屏，请关闭它。另外，在2003下千万不要打开，否则肯定蓝屏。 <br />
-“监视线程侵加（恶意代码插入）”----2000以上有用。也就是对付内存数据改写之类操作的，建议打开。 <br />
-最后面二条一看就明白，建议选中。 <br />
-
-黑色编号7，当你在图十中选中了网络界面接口的“自动选择”时，这个功能必较有用。它是用来排除那些不用检测的网卡的，比如说，你机器上有2个以上的网卡，其中一个是连接互联网的，其它的是连接不同网段的，那么你就把其它网段的IP输入在这里，以保证LNS能正常检测到你的上网网卡。可以在这里输入多个网段，之间用半角的分号分隔开。 <br />
-
-黑色编号4，点击后出现图十三所示的界面。 <br />
-<img src="http://www.magicwinmail.com/course/looknstop/images/22_97089.jpg" if(this.width="" alt=""/><br />
-黑色编号1为本机现有网络协议以及LNS是否允许此协议，当前哪些协议处于活动状态等信息。不同的操作系统显示的不同，2000以上系统只有NETBT.SYS和TCPIP.SYS二种。这二种协议的属性都是默认，且不可更改。当有其它协议时，比如图中的NPF.sys（网络监视），可以用“拦截”来控制是否允许它，也可以用“移除”删除它而不对该协议进行监控。 <br />
-
-黑色编号2，此区域决定了是否对已经激活的协议进行过滤（控制与该协议相关的网络操作），当选择禁用时不对当前活动的协议进行过滤，如果启用了则进行过滤，以增加安全性。建议打开“启用”。 <br />
-
-当点击图十一中的黑色编号5“插件”时，则出现一个已安装插件的选择窗口，选择了某个插件后就具备相关的扩展功能。这个不多讲了，除了多语言支持插件以外，其它都太高深了，偶们一般也用不到。 <br />
-
-当点击图十一中的黑色编号6“动态链接库”，会出现如图十四所示的动态链接库设置的窗口。此时勾“启用动态链接库检测”则当程序第一次加载一个DLL时LNS会询问允许或禁止，经过一些时间的学习后就不询问了。但当某个DLL的数字签名发生了变化，则LNS会再询问以保证DLL是合法修改，确保系统安全性；当然你也可以手工直接添加那些你认为有必要进行检测的DLL。2000以上系统才有此功能。使用windows2003的兄弟注意了，在2003下不要打开这个功能，否则Crash。这个功能也就是ZA、OP等的“组件功能”，但应该说LNS的这种处理方式更安全一些。</span> </span></span></span></p><p><span style="font-size: 12px;"><span style="font-size: 12px;"><span style="font-size: 12px;"><span id="text8" style="font-size: 12px;">三、特定事件处理 <br />
-1.阻止网络执法官控制 <br />
-
-　　网络执法官是利用的ARp欺骗的来达到控制目的的。　　 <br />
-　　ARP协议用来解析IP与MAC的对应关系，所以用下列方法可以实现抗拒网络执法官的控制。 <br />
-如果你的机器不准备与局域网中的机器通讯，那么可以使用下述方法： <br />
-　　A.在“互联网过滤”里面有一条“ARP : Authorize all ARP packets”规则，在这个规则前面打上禁止标志； <br />
-　　B.但这个规则默认会把网关的信息也禁止了，处理的办法是把网关的MAC地址（通常网关是固定的）放在这条规则的“目标”区，在“以太网：地址”里选择“不等于”，并把网关的MAC地址填写在那时；把自己的MAC地址放在“来源”区，在“以太网：地址”里选择“不等于”。 <br />
-　　C.在最后一条“All other packet”里，修改这条规则的“目标”区，在“以太网：地址”里选择“不等于”，MAC地址里填FF:FF:FF:FF:FF:FF；把自己的MAC地址放在“来源”区，在“以太网：地址”里选择“不等于”。其它不改动。 <br />
-　　这样网络执法官就无能为力了。此方法适用于不与局域网中其它机器通讯，且网关地址是固定的情况下。 <br />
-　　如果你的机器需要与局域网中的机器通讯，仅需要摆脱网络执法官的控制，那么下述方法更简单实用（此方法与防火墙无关）： <br />
-　　进入命令行状态，运行“ARP -s 网关IP 网关MAC”就可以了，想获得网关的MAC，只要Ping一下网关，然后用Arp-a命令查看，就可以得到网关的IP与MAC的对应。此方法应该更具通用性，而且当网关地址可变时也很好操作，重复一次“ARP -s 网关IP网关MAC”就行了。此命令作用是建立静态的ARP解析表。 <br />
-
-2.安装后不能上网 <br />
-
-　　安装LNS后不能上网的问题很是奇怪，可能与个人的具体上网方式关系较大。此时先确保在LNS中的网络接口选择是正确的（参见图十二）。 <br />
-　　其次看看LNS的“欢迎”标签里的“已连接”前面有没有勾，并且在“IP地址”里面有没有地址，如果这二项都没有问题，那么请把“互联网过滤”的规则表最后一条规则的“以太网：类型”中的“全部”改为“IP”再试，一般应该可以解决。如果这样做都无法解决上网，请再后面发帖，详细说明上网方式和LNS的设置情况，偶研究一下。^^_ <br />
-
-3.记不住规则<br />
-　　LNS记不住规则的情况是：当你的应用程序安装在一个中文目录中时。所以你重新安装应用程序，不要安装在中文目录下就可以解决。 <br />
-
-4.“已连接”没有选中 <br />
-
-　　“已连接”前面没有出现一个勾，此时并不意味着LnS不正常工作。出现此现象时，说明LNS并不确定网络接口选择的是否正确，特殊的上网方式或者一台机器安装有几块网卡时会出现此现象，而且要注意自己的IP地址是否与“高级选项”中的“网络自动检测时排除的IP”中的地址有冲突。 <br />
-　　解决办法是：先排除不是由于“网络自动检测时排除的IP”中包含了本机IP，如果是此情况，请删除“网络自动检测时排除的IP”列表中与自己IP冲突的数值；如果不是此情况，请手工在“网络接口”窗口中选择接口，直到“已连接”前面出现勾，且“IP地址”栏里出现正确的本机IP为止。 <br />
-
-5.关机超慢 <br />
-
-　　关机慢通常是由于没有退出网络连接造成的（通过网关上网的机器应该没有此现象），解决办法是关闭连接（比如断开ADSL连接）后再关机。 <br />
-
-四、LNS的优化 <br />
-
-（一）.应用程序过滤区的优化 <br />
-
-　　对应用程序过滤区的优化可以把程序类型分为操作系统软件和第三方软件。 <br />
-　　1.对于操作系统自己的文件，允许连网的数量越少越好，但数量取决于你希望系统提供哪些服务。比如，偶在内网，通过网关代理上网，本机不开任何其它服务，访问局域网中的其它机器的共享文件，那么偶只允许SVChost.exe通过防火墙（虽然SVChost.exe自己不上网，只加载其它程序）。而SVchost.exe想要做什么呢？它调用了其它系统某个网络应用（偶不知道是哪个）去进行域名解析，也就是连接到你的DNS的53端口，这样就可以在LNS里对Svchost.exe的行为进行限定。 <br />
-　　方法是： <br />
-　　A.双击“应用程序过滤”列表里的Svchost.exe，在出现的窗口中端口填写53，IP填写你自己所在地的域名解析服务器的IP地址； <br />
-　　B.点SVChost.exe所在行的绿色双箭头标志，让它变为红色的禁止标志； <br />
-　　C.其它所有如Explorer.exe等系统程序都禁止通过。 <br />
-　　这样，SVChost.exe所调用的系统文件、包括所调用的其它程序也只能访问这个地址和53号端口；且当系统启动后Svchost.exe也不能再调用并运行其它程序了。好处是让SVChost.exe只访问一个IP的一个端口，即使中了一些利用Svchost.exe调用以运行并且连网的病毒也不怕此病毒下载安装其它东东。 <br />
-　　2.第三方应用软件，则尽量根据各软件的特点，设定对应的端口就行了，IP地址不做限制。 <br />
-A.邮件客户端软件。则在前面所说的端口里只打开110和25端口就好了，方法是输入“110;25”不包括双引号。这样邮件客户端就只连接远程的这二个端口。 <br />
-　　B.FTP客户端软件。则打开FTP端口和高端口，方法是输入“20-24;60000-65000”不包括双引号。有些FTP服务端打开的可能是21、22、23端口；而发数据通常是60000以上的端口。有人可能说：“应用程序过滤”的优先级低于“互联网过滤”的优先级，在这里打开60000以上端口会不会也需要制定一条专门的规则呢（因为BT就得专门开一个端口）？其实不用，FTP的原理与BT不同，BT的监听端口是被动的，而FTP的高端口是主动的。</span> </span></span></span></p></span></p><br />
-
-    </div>
+<pre><code>
+(use-package company
+  :ensure t
+  :init
+  (setq company-minimum-prefix-length 2)
+  (setq company-dabbrev-ignore-case t)
+  :config
+  (add-hook 'after-init-hook 'global-company-mode)
+  (define-key company-active-map (kbd &quot;C-n&quot;) #'company-select-next)
+  (define-key company-active-map (kbd &quot;C-p&quot;) #'company-select-previous)
+  (define-key company-active-map (kbd &quot;C-s&quot;) #'company-filter-candidates)
+
+  (global-set-key (kbd &quot;C-c y&quot;) 'company-yasnippet)
+  )
+</code></pre>
+</div>
 
 <div class="meta">
-    
-    
-    <span class="comments"><a href="/lns-firewall/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/about-ip/">详解：IP的分类、寻址规则及子网掩码zz</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-03-25T00:00:00.000&#43;00:00' itemprop="datePublished">2006-03-25</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/windows">Windows</a>
-
-
-</div>
-    </div>
-        http://www.edu.cn/20031208/3095629.shtml<br />
-<p>　　随着电脑技术的普及和因特网技术的迅猛发展，因特网已作为二十一世纪人类的一种新的生活方式而深入到寻常百姓家。谈到因特网，IP地址就不能不提，因为无论是从学习还是使用因特网的角度来看，IP地址都是一个十分重要的概念，INTERNET的许多服务和特点都是通过IP地址体现出来的。 </p><p>　　<strong>一、IP地址的概念</strong></p><p>　　我们知道因特网是全世界范围内的计算机联为一体而构成的通信网络的总称。联在某个网络上的两台计算机之间在相互通信时，在它们所传送的数据包里都会含有某些附加信息，这些附加信息就是发送数据的计算机的地址和接受数据的计算机的地址。象这样，人们为了通信的方便给每一台计算机都事先分配一个类似我们日常生活中的电话号码一样的标识地址，该标识地址就是我们今天所要介绍的IP地址。根据TCP/IP协议规定，IP地址是由32位二进制数组成，而且在INTERNET范围内是唯一的。例如，某台联在因特网上的计算机的IP地址为： </p><p>　　11010010 01001001 10001100 00000010 </p><p>　　很明显，这些数字对于人来说不太好记忆。人们为了方便记忆，就将组成计算机的IP地址的32位二进制分成四段，每段8位，中间用小数点隔开，然后将每八位二进制转换成十进制数，这样上述计算机的IP地址就变成了：210.73.140.2。</p><br><!--more--><p>　　<strong>二、IP地址的分类</strong></p><p>　　我们说过因特网是把全世界的无数个网络连接起来的一个庞大的网间网，每个网络中的计算机通过其自身的IP地址而被唯一标识的，据此我们也可以设想，在INTERNET上这个庞大的网间网中，每个网络也有自己的标识符。这与我们日常生活中的电话号码很相像，例如有一个电话号码为0515163，这个号码中的前四位表示该电话是属于哪个地区的，后面的数字表示该地区的某个电话号码。与上面的例子类似，我们把计算机的IP地址也分成两部分，分别为网络标识和主机标识。同一个物理网络上的所有主机都用同一个网络标识，网络上的一个主机(包括网络上工作站、服务器和路由器等)都有一个主机标识与其对应?IP地址的4个字节划分为2个部分，一部分用以标明具体的网络段，即网络标识；另一部分用以标明具体的节点，即主机标识，也就是说某个网络中的特定的计算机号码。例如，盐城市信息网络中心的服务器的IP地址为210.73.140.2，对于该IP地址，我们可以把它分成网络标识和主机标识两部分，这样上述的IP地址就可以写成：</p><p>　　网络标识：210.73.140.0</p><p>　　主机标识：　　　　　2</p><p>　　合起来写：210.73.140.2</p><p>　　由于网络中包含的计算机有可能不一样多，有的网络可能含有较多的计算机，也有的网络包含较少的计算机，于是人们按照网络规模的大小，把32位地址信息设成三种定位的划分方式，这三种划分方法分别对应于A类、B类、C类IP地址。</p><p>　　1.A类IP地址</p><p>　　一个A类IP地址是指，在IP地址的四段号码中，第一段号码为网络号码，剩下的三段号码为本地计算机的号码。如果用二进制表示IP地址的话，A类IP地址就由1字节的网络地址和3字节主机地址组成，网络地址的最高位必须是“0”。A类IP地址中网络的标识长度为7位，主机标识的长度为24位，A类网络地址数量较少，可以用于主机数达1600多万台的大型网络。</p><p> &nbsp; &nbsp;&nbsp; <span style="color: rgb(255, 0, 0)">A类网络地址的最高位必须是“0”，也就是说第一位必须是00000000~01111111，换算过来就是0~127(2^7-1)，也就是从0.0.0.0~127.255.255.255，总共128个A类网络。每一个可以包含255x255x255=16581375台主机（其中应该除去127.x.x.x和0.0.0.0类型的ip，127开头的ip被保留用作回路测试，0.0.0.0用于启动后不再使用的主机）。A类网址的掩码最后三位都是0。</span><br />
-</p><p>　　2.B类IP地址</p><p>　　一个B类IP地址是指，在IP地址的四段号码中，前两段号码为网络号码，剩下的两段号码为本地计算机的号码。如果用二进制表示IP地址的话，B类IP地址就由2字节的网络地址和2字节主机地址组成，网络地址的最高位必须是“10”。B类IP地址中网络的标识长度为14位，主机标识的长度为16位，B类网络地址适用于中等规模规模的网络，每个网络所能容纳的计算机数为6万多台。</p><p> &nbsp; &nbsp;&nbsp; <span style="color: rgb(255, 0, 0)">B类网络地址的最高位必须是“10”，也就是说第一位必须是10000000~10111111，换算过来就是128(2^7)~191(2^7+2^6-1)，从128.0.0.0~191.255.255.255，总共64x255=16320个B类网络。每一个可以包含255x255=65025台主机。B类网址的掩码最后两位是0。</span> </p><p>　　3.C类IP地址 </p><p>　　一个C类IP地址是指，在IP地址的四段号码中，前三段号码为网络号码，剩下的一段号码为本地计算机的号码。如果用二进制表示IP地址的话，C类IP地址就由3字节的网络地址和1字节主机地址组成，网络地址的最高位必须是“110”。C类IP地址中网络的标识长度为21位，主机标识的长度为8位，C类网络地址数量较多，适用于小规模的局域网络，每个网络最多只能包含254台计算机。</p><p> &nbsp; &nbsp;&nbsp; <span style="color: rgb(255, 0, 0)">C类网络地址的最高位必须是“110”，也就是说第一位必须是11000000~11011111，换算过来就是192(2^7+2^6)~223(2^7+2^6+2^5-1=128+64+32-1)，从192.0.0.0~223.255.255.255，总共32x255x255=2080800个C类网络。每一个可以包含255台主机。C类网络的掩码最后一位是0。</span> </p><p>　　除了上面三种类型的IP地址外，还有几种特殊类型的IP地址，TCP/IP协议规定，凡IP地址中的第一个字节以“lll0”开始的地址都叫多点广播地址。因此，任何第一个字节大于223小于240的IP地址是多点广播地址；IP地址中的每一个字节都为0的地址(“0.0.0.0”)对应于当前主机；IP地址中的每一个字节都为1的IP地址(“255.255.255.255”)是当前子网的广播地址；IP地址中凡是以“llll0”的地址都留着将来作为特殊用途使用；IP地址中不能以十进制“127”作为开头，127.x.x.x用于回路测试，同时网络ID的第一个6位组也不能全置为“0”，全“0”表示本地网络。 </p><p>　　<strong>三、IP的寻址规则　</strong></p><p>　　1.网络寻址规则 </p><p>　　A、 网络地址必须唯一。 </p><p>　　B、 网络标识不能以数字127开头。在A类地址中，数字127保留给内部回送函数。 </p><p>　　C、 网络标识的第一个字节不能为255。数字255作为广播地址。 </p><p>　　D、 网络标识的第一个字节不能为“0”，“0”表示该地址是本地主机，不能传送。 </p><p>　　2.主机寻址规则 </p><p>　　A、主机标识在同一网络内必须是唯一的。 </p><p>　　B、主机标识的各个位不能都为“1”，如果所有位都为“1”，则该机地址是广播地址，而非主机的地址。 </p><p>　　C、主机标识的各个位不能都为“0”，如果各个位都为“0”，则表示“只有这个网络”，而这个网络上没有任何主机。 </p><p>　　<strong>四、IP子网掩码概述　</strong></p><p>　　1.子网掩码的概念 </p><p>　　子网掩码是一个32位地址，用于屏蔽IP地址的一部分以区别网络标识和主机标识，并说明该IP地址是在局域网上，还是在远程网上。 </p><p>　　2.确定子网掩码数 </p><p>　　用于子网掩码的位数决定于可能的子网数目和每个子网的主机数目。在定义子网掩码前，必须弄清楚本来使用的子网数和主机数目。 </p><p>　　定义子网掩码的步骤为： </p><p>　　A、确定哪些组地址归我们使用。比如我们申请到的网络号为 “210.73.a.b”，因为c类网络从192~223，所以该网络地址为c类IP地址，网络标识为“210.73”，主机标识为“a.b”。 </p><p>　　B、根据我们现在所需的子网数以及将来可能扩充到的子网数，用宿主机的一些位来定义子网掩码。比如我们现在需要12个子网，将来可能需要16个。用第三个字节的前四位确定子网掩码。前四位都置为“1”，即第三个字节为“11110000”，这个数我们暂且称作新的二进制子网掩码。 </p><p>　　C、把对应初始网络的各个位都置为“1”，即前两个字节都置为“1”，第四个字节都置为“0”，则子网掩码的间断二进制形式为：“11111111.11111111.11110000.00000000” </p><p>　　D、把这个数转化为间断十进制形式为：“255.255.240.0”</p><p> &nbsp; &nbsp;&nbsp; 也可以这么计算，因为是C类网络，所以掩码的最后一位肯定是0，从255往下算16个C类网络，应该到240就够了，所以掩码应该是255.255.240.0。<br />
- </p><p>　　这个数为该网络的子网掩码。 </p><p>　　3.IP掩码的标注 </p><p>　　A、无子网的标注法 </p><p>　　对无子网的IP地址，可写成主机号为0的掩码。如IP地址210.73.140.5，掩码为255.255.255.0，也可以缺省掩码，只写IP地址。 </p><p>　　B、有子网的标注法 </p><p>　　有子网时，一定要二者配对出现。以C类地址为例。 </p><p>　　1.IP地址中的前3个字节表示网络号，后一个字节既表明子网号，又说明主机号，还说明两个IP地址是否属于一个网段。如果属于同一网络区间，这两个地址间的信息交换就不通过路由器。如果不属同一网络区间，也就是子网号不同，两个地址的信息交换就要通过路由器进行。例如：对于IP地址为210.73.140.5的主机来说，其主机标识为00000101，对于IP地址为210.73.140.16的主机来说它的主机标识为00010000，以上两个主机标识的前面三位全是000，说明这两个IP地址在同一个网络区域中。 </p><p>　　2.掩码的功用是说明有子网和有几个子网，但子网数只能表示为一个范围，不能确切讲具体几个子网，掩码不说明具体子网号，有子网的掩码格式(对C类地址):主机标识前几位为子网号，后面不写主机，全写0。 </p><p>　　<strong>五、IP的其他事项　</strong></p><p>　　1.一般国际互联网信息中心在分配IP地址时是按照网络来分配的，因此只有说到网络地址时才能使用A类、B类、C类的说法； </p><p>　　2.在分配网络地址时，网络标识是固定的，而计算机标识是可以在一定范围内变化的，下面是三类网络地址的组成形式： </p><p>　　A类地址：73.0.0.0 </p><p>　　B类地址：160.153.0.0 </p><p>　　C类地址：210.73.140.0 </p><p>　　上述中的每个0均可以在0~255之间进行变化。 </p><p>　　3.因为IP地址的前三位数字已决定了一个IP地址是属于何种类型的网络，所以A类网络地址将无法再分成B类IP地址，B类IP地址也不能再分成C类IP地址。 </p><p>　　4.在谈到某一特定的计算机IP地址时不宜使用A类、B类、C类的说法，但可以说主机地址是属于哪一个A类、B类、C类网络了。 </p><p>　　通过上面的学习，大家对IP地址肯定有了了解。有了IP地址大家就可以发送电子邮件了，并且可以获得Internet网上的其他信息，例如可以获得Internet上的WWW服务、BBS服务、FTP服务等等。</p><br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/about-ip/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/l3-switch/">L3 switch</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-03-23T00:00:00.000&#43;00:00' itemprop="datePublished">2006-03-23</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/windows">Windows</a>
-
-
-</div>
-    </div>
-        http://vbb3.twftp.org/archive/index.php/t-4016.html<br />
-
-一般常用的交換器 Switch 是屬於第二層交換器 Layer 2 Switch，這種交換器是利用 OSI 第二層 MAC 位址的資訊來進行資料交換，它可以記憶學習第一個 Port 連接的 MAC 位址，透過 MAC 位址及封包目的的位址的辨別，L2 Switch 會將該封包直接傳送至連接目的地的 Port，而不會將該封包傳送到其他的 Port。若並無此目的地 IP 的資訊時，則 L2 Switch 會廣播至所有的連接埠上，待目的 IP 回應時，將新的連接埠對應學習起來，那麼下次就不用廣播而直接傳送。<br />
-
-如果再把路由表的功能加入 L2 Switch，那麼它就會變成 L3 Switch，可以為 VLAN 建立適當的路由表，讓效能更加提昇。L3 的交換器又稱為 IP Switch 或 Switch Router，透過專屬的 ASIC 晶片來解析第三層表頭（如 IP Header）以達到傳送目的，因此通常可以提高到每秒百萬封包的效能以及數十個高速乙太網路連接埠之容量。L3 Switch 的路由表可以對 VLAN 做更有效的管制，讓廣播封包不會無限制的傳送。<br />
-http://140.111.152.100/archives/2004_09.html<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/l3-switch/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/ldaplightweight-directory-access-protocol/">LDAP,Lightweight Directory Access Protocol</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-03-23T00:00:00.000&#43;00:00' itemprop="datePublished">2006-03-23</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/other">other</a>
-
-
-</div>
-    </div>
-        <strong>1 什么是LDAP</strong><br />
-
-LDAP的英文全称是Lightweight Directory Access Protocol，一般都简称为LDAP。<br />
-
-LDAP目录中可以存储各种类型的数据：电子邮件地址、邮件路由信息、人力资源数据、公用密匙、联系人列表，等等。通过把LDAP目录作为系统集成中的一个重要环节，可以简化员工在企业内部查询信息的步骤，甚至连主要的数据源都可以放在任何地方。<br />
-
-<br><!--more--><strong>2 LDAP目录的优势</strong><br />
-
-使用Win下面的IIS＋acess（or sql server），或者Linux下面的Apache＋mysql（or oracle）之类的后台，这种数据库也可以针对某个用户对数据库、表等作一些权限设置，最低只能到表一级，不能控制到记录一级。并且使用数据库需要不停的对数据类型做验证等，也会导致系统的整体性能一定程度的降低。<br />
-
-目录主要面向数据的查询服务，查询操作比修改操作多很多时，适宜使用目录服务。LDAP协议是跨平台的一个<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/ldaplightweight-directory-access-protocol/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/wsusmicrosoft-windows-server-update-services/">WSUS,Microsoft Windows Server Update Services</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-03-23T00:00:00.000&#43;00:00' itemprop="datePublished">2006-03-23</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/windows">Windows</a>
-
-
-</div>
-    </div>
-        http://www.winsvr.org/info/info.php?sessid=&infoid=12<br />
-
-<strong>1 什么是wsus</strong><br />
-
-WSUS（Microsoft Windows Server Update Services）是微软推出的免费的Windows更新管理服务，目前最新版本为2.0.0.2472，除了支持Windows系统（Windows 2000全系列、Windows XP全系列和Windows server 2003全系列）的更新管理外，还可以支持SQL Server、Exchange 2000/2003、Office XP/2003等系统的更新管理，并且在以后，WSUS将实现微软全系列产品的更新管理。<br />
-
-<strong>2 为什么要用wsus</strong><br />
-
-在小规模的企业网络中，客户端计算机通过自动更新连接Microsoft Update来进行系统更新并不会对企业的外部网络带宽造成太大的影响，例如有5台客户端计算机每台下载20M的更新程序，那么总占用的企业外部网络流量只是100M；但是在中大规模的企业网络中，如果每台客户端计算机都通过连接到Microsoft Update来实现更新，则会极大的影响企业的外部网络带宽，例如有500台客户端计算机每台下载20M的更新程序，就会占用10G的流量。更新变成了下面的流程“Microsoft Update->本地企业网络中的WSUS服务器->客户端计算机”。<br />
-
-<br><!--more--><strong>3 wsus需要的配置</strong><br />
-
-wsus服务器通过80和443端口从Mircosoft update获取更新，WSUS服务器到以下Web站点的HTTP/HTTPS获取更新。<br />
-
-http://windowsupdate.microsoft.com <br />
-http://*.windowsupdate.microsoft.com <br />
-https://*.windowsupdate.microsoft.com <br />
-http://*.update.microsoft.com <br />
-https://*.update.microsoft.com <br />
-http://*.windowsupdate.com <br />
-http://download.windowsupdate.com <br />
-http://download.microsoft.com <br />
-http://*.download.windowsupdate.com <br />
-http://wustat.windows.com <br />
-http://ntservicepack.microsoft.com <br />
-
-WSUS与IIS服务器结合创建Web站点来实现更新程序的分发，可以配置WSUS Web站点共享使用默认Web站点（服务端口为TCP 80）或者使用其他的端口为客户端计算机提供服务。在安装WSUS服务器时，如果不选择使用默认的Web站点，那么WSUS将创建自定义的Web站点并在TCP端口8530侦听HTTP连接请求，建议使用默认的Web站点。 <br />
-
-<strong>4 wsus客户端的配置</strong><br />
-
-WSUS服务器要求客户端计算机上运行WSUS客户端，WSUS客户端可以在打过SP3及以上补丁的Windows 2000全系列产品、Windows XP全系列产品、Windows server 2003全系列产品上运行，换言之，WSUS服务器支持运行这些操作系统的客户端计算机从其获得更新程序。其中Windows XP SP2以及Windows server 2003 SP1已经内建了WSUS客户端；而其他的操作系统中除了没有安装过任何SP的Windows XP外，内建的自动更新组件均具有自我更新特性，可以通过WSUS提供的自我更新程序包自动更新至WSUS客户端；对于没有安装过任何SP的Windows XP，你必须安装SUS客户端，从而通过SUS客户端来实现自我更新至WSUS客户端。 <br />
-
-由于客户端计算机的自动更新组件只能通过服务端口TCP 80来实现自我更新，因此，如果你在安装WSUS时不使用默认的Web站点而自定义一个Web站点，你也必须在侦听TCP 80端口的Web站点中创建一个名为Selfupdate的虚拟目录来为客户端计算机提供自我更新程序包，否则非WSUS客户端计算机不能正常的进行自我更新，从而不能从WSUS服务器获取更新程序。 <br />
-
-<strong>5 链式WSUS服务器环境</strong><br />
-
-WSUS服务器不仅仅可以从Windows Update中获取更新程序，也可以从其他WSUS服务器中获取更新程序。所以大规模的企业可以配置多台wsus服务器，形成链式WSUS服务器环境。<br />
-
-<strong>6 wsus的工作模式</strong><br />
-
-wsus服务器支持两种工作模式：集中管理和分布管理。<br />
-
-集中管理模式的WSUS服务器采用独立管理服务器和复制服务器这两种角色，它的含义是单个服务器（主服务器）作为独立管理服务器，而一个或多个从属服务器（复制服务器）只是复制主服务器上的数据。<br />
-
-分布管理模式只允许你配置每台WSUS服务器为独立管理服务器。<br />
-
-<strong>7 wsus使用的数据库</strong><br />
-
-WSUS数据库存储以下信息：WSUS服务器配置信息；用于描述更新程序作用的元数据；客户端计算机、更新程序信息以及客户端计算机所进行的更新情况。每个WSUS服务器需要自己的数据库，如果具有多个WSUS服务器，必须具有多个WSUS数据库。<br />
-
-<strong>8 更新存储位置</strong><br />
-
-更新可以分为两个部分：元数据和更新文件。元数据存储在wsus数据库中，而更新文件可以存储在Microsoft update服务器上，或者存储在本地wsus服务器。第一种方式wsus部署更新之后，客户端从Microsoft update服务器上面获取更新，这样可以节省本地服务器的空间，但是客户端较多的时候，更新时会占用大量带宽。第二种方式为默认选项，wsus下载更新后存储在本地，客户端更新时从wsus服务器下载。<br />
-
-<strong>9 性能相关的设置</strong><br />
-
-wsus允许设置为只有在批准更新时才下载更新文件，还可以对更新做过滤，只下载需要的更新。还有一个快速更新的设置，设置之后占用的外部带宽会增加，而内部带宽会减少。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/wsusmicrosoft-windows-server-update-services/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/flickr-free-photo-album/">flickr,免费相册</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-03-23T00:00:00.000&#43;00:00' itemprop="datePublished">2006-03-23</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/web">web</a>
-
-
-</div>
-    </div>
-        其实很早就知道flickr了，不过是发现那上面的图片似乎只能看小图，不能看大图，那多郁闷。刚才又去看了一下，发现可以看大图了，哇哇。。。这个真不错，推荐大家使用。<br />
-
-比较详细的使用说明<br />
-<a href="http://www.mugou.com/user3/13903/archives/2006/8374.shtml">http://www.mugou.com/user3/13903/archives/2006/8374.shtml</a><br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/flickr-free-photo-album/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/code-in-tt/">tt 1.0.1中CODE</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-03-23T00:00:00.000&#43;00:00' itemprop="datePublished">2006-03-23</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/web">web</a>
-
-
-</div>
-    </div>
-        借鉴的是tt 0.9.6中的方法。<br />
-
-修改blog目录下的<br />
-
-category/index.php<br />
-archive/index.php,item.php<br />
-entry/index.php<br />
-search/index.php<br />
-tag/index.php<br />
-keylog/index.php<br />
-notice/index.php,item.php<br />
-index.php<br />
-item.php<br />
-
-文件，找到function bindTags($id,$content)这个函数，其实所有包含这个函数的都需要做如下修改，不知道为啥不单独将这个函数写到一个文件，修改起来好麻烦。<br />
-
-在这个函数的第一行前面添<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/code-in-tt/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/a-test/">测试一下</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-03-23T00:00:00.000&#43;00:00' itemprop="datePublished">2006-03-23</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/heart">heart</a>
-
-
-</div>
-    </div>
-        在xh这里蹭了一块地方，哈哈哈，不知道能蹭多久。先测试一下有没有问题。yahoo的dns修改了2天才生效，这个郁闷啊。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/a-test/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/may-be-last-snow/">可能是最后一场雪了吧</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-02-28T00:00:00.000&#43;00:00' itemprop="datePublished">2006-02-28</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/heart">heart</a>
-
-
-</div>
-    </div>
-        早上起来，看见外面白茫茫的，以为是下大雾呢，出门才发现，原来地上也是白茫茫一片。阴了好几天了，总算下来雪了。上了公车，看到路边的汽车不管是黑色的红色的，隔着有水汽的车窗往外看，都是白色的了，呵呵。<br />
-
-
-[##_Gallery|1290633992.jpg||1031278377.jpg||width="449" height="339"|_##]<br />
-顺便测试一下tt1.0的新功能。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/may-be-last-snow/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/website-for-skaters/">刷子有自留地了</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-02-20T00:00:00.000&#43;00:00' itemprop="datePublished">2006-02-20</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/heart">heart</a>
-
-
-</div>
-    </div>
-        自从花园限制ip之后，刚好也赶上了冬天，不适和活动，所以一直没有和组织联系了。这下好了，<a href="http://grisword.com/bbs/index.php" target="_blank">自留地</a>开通了。欢迎刷刷爱好者来加入。 {{kaixin}}<br />
-
-另外，也得考虑要搞搞活动了，春游或者刷刷。嗯。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/website-for-skaters/#disqus_thread">Comments</a></span>
-    
     
 </div>
 </article>
 
 
+<div class="share">
+	<div class="addthis_toolbox addthis_default_style ">
+	
+	<a class="addthis_button_facebook_like" fb:like:layout="button_count"></a>
+	
+	
+	<a class="addthis_button_tweet"></a>
+	
+	
+	<a class="addthis_button_google_plusone" g:plusone:size="midum"></a>
+	
+	<a class="addthis_counter addthis_pill_style"></a>
+	</div>
+  <script type="text/javascript" src="http://s7.addthis.com/js/250/addthis_widget.js#pubid=ra-58da14be28165834"></script>
+</div>
 
-  <nav id="pagenavi">
+
+
     
-        <a href="/page/38/" class="prev">Prev</a>
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = 'https:\/\/wdicc.com\/emacs-as-python-ide\/';
+            this.page.identifier = 'https:\/\/wdicc.com\/emacs-as-python-ide\/';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
     
-    
-        <a href="/page/40/" class="next">Next</a>
-    
-    <div class="center"><a href="https://wdicc.com//archives/index.html">Blog Archives</a></div>
-  </nav>
+
+
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
 
 
     </div>

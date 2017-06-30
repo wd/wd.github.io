@@ -4221,6 +4221,34 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/test-for-live-write/">测试一下微软的livewrite</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-08-29T00:00:00.000&#43;00:00' itemprop="datePublished">2006-08-29</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/heart">heart</a>
+
+
+</div>
+    </div>
+        感觉好像还不错，呵呵。不过似乎没有写tag的地方。<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/test-for-live-write/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/tomcat-apache-bridge/">tomcat和apache桥接</a>
     </h2>
     <div class="entry-content">
@@ -4724,219 +4752,6 @@ Logs are generated in directory<br />
     
     
     <span class="comments"><a href="/oracle-handbook/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/usefull-sql/">Oracle维护常用SQL语句</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-08-05T00:00:00.000&#43;00:00' itemprop="datePublished">2006-08-05</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/other">other</a>
-
-
-</div>
-    </div>
-        查看所有用户<br />
-<pre class="prettyprint lang-sql">
-select username,password from dba_users;
-</pre><br />
-1、查看表空间的名称及大小<br />
-<pre class="prettyprint lang-sql">
-select t.tablespace_name, round(sum(bytes/(1024*1024)),0) ts_size
-from dba_tablespaces t, dba_data_files d
-where t.tablespace_name = d.tablespace_name
-group by t.tablespace_name;
-</pre><br />
-2、查看表空间物理文件的名称及大小<br />
-<pre class="prettyprint lang-sql">
-select tablespace_name, file_id, file_name,
-round(bytes/(1024*1024),0) total_space
-from dba_data_files
-order by tablespace_name;
-</pre><br />
-<!--more--><br />
-3、查看回滚段名称及大小<br />
-<pre class="prettyprint lang-sql">
-select segment_name, tablespace_name, r.status,
-(initial_extent/1024) InitialExtent,(next_extent/1024) NextExtent,
-max_extents, v.curext CurExtent
-From dba_rollback_segs r, v$rollstat v
-Where r.segment_id = v.usn(+)
-order by segment_name ;
-</pre><br />
-4、查看控制文件<br />
-<pre class="prettyprint lang-sql">
-select name from v$controlfile;
-</pre><br />
-5、查看日志文件<br />
-<pre class="prettyprint lang-sql">
-select member from v$logfile;
-</pre><br />
-6、查看表空间的使用情况<br />
-<pre class="prettyprint lang-sql">
-select sum(bytes)/(1024*1024) as free_space,tablespace_name
-from dba_free_space
-group by tablespace_name;
-
-SELECT A.TABLESPACE_NAME,A.BYTES TOTAL,B.BYTES USED, C.BYTES FREE,
-(B.BYTES*100)/A.BYTES "% USED",(C.BYTES*100)/A.BYTES "% FREE"
-FROM SYS.SM$TS_AVAIL A,SYS.SM$TS_USED B,SYS.SM$TS_FREE C
-WHERE A.TABLESPACE_NAME=B.TABLESPACE_NAME AND A.TABLESPACE_NAME=C.TABLESPACE_NAME;
-</pre><br />
-7、查看数据库库对象<br />
-select owner, object_type, status, count(*) count# from all_objects group by owner, object_type, status;<br />
-
-8、查看数据库的版本<br />
-Select version FROM Product_component_version<br />
-Where SUBSTR(PRODUCT,1,6)='Oracle';<br />
-
-9、查看数据库的创建日期和归档方式<br />
-Select Created, Log_Mode, Log_Mode From V$Database;<br />
-
-10、捕捉运行很久的SQL<br />
-column username format a12<br />
-column opname format a16<br />
-column progress format a8<br />
-select username,sid,opname,<br />
-round(sofar*100 / totalwork,0) || '%' as progress,<br />
-time_remaining,sql_text<br />
-from v$session_longops , v$sql<br />
-where time_remaining <> 0<br />
-and sql_address = address<br />
-and sql_hash_value = hash_value<br />
-/<br />
-
-11、查看数据表的参数信息<br />
-SELECT partition_name, high_value, high_value_length, tablespace_name,<br />
-pct_free, pct_used, ini_trans, max_trans, initial_extent,<br />
-next_extent, min_extent, max_extent, pct_increase, FREELISTS,<br />
-freelist_groups, LOGGING, BUFFER_POOL, num_rows, blocks,<br />
-empty_blocks, avg_space, chain_cnt, avg_row_len, sample_size,<br />
-last_analyzed<br />
-FROM dba_tab_partitions<br />
---WHERE table_name = :tname AND table_owner = :towner<br />
-ORDER BY partition_position<br />
-
-12、查看还没提交的事务<br />
-select * from v$locked_object;<br />
-select * from v$transaction;<br />
-
-13、查找object为哪些进程所用<br />
-select<br />
-p.spid,<br />
-s.sid,<br />
-s.serial# serial_num,<br />
-s.username user_name,<br />
-a.type object_type,<br />
-s.osuser os_user_name,<br />
-a.owner,<br />
-a.object object_name,<br />
-decode(sign(48 - command),<br />
-1,<br />
-to_char(command), 'Action Code #' || to_char(command) ) action,<br />
-p.program oracle_process,<br />
-s.terminal terminal,<br />
-s.program program,<br />
-s.status session_status<br />
-from v$session s, v$access a, v$process p<br />
-where s.paddr = p.addr and<br />
-s.type = 'USER' and<br />
-a.sid = s.sid and<br />
-a.object='SUBSCRIBER_ATTR'<br />
-order by s.username, s.osuser<br />
-
-14、回滚段查看<br />
-select rownum, sys.dba_rollback_segs.segment_name Name, v$rollstat.extents<br />
-Extents, v$rollstat.rssize Size_in_Bytes, v$rollstat.xacts XActs,<br />
-v$rollstat.gets Gets, v$rollstat.waits Waits, v$rollstat.writes Writes,<br />
-sys.dba_rollback_segs.status status from v$rollstat, sys.dba_rollback_segs,<br />
-v$rollname where v$rollname.name(+) = sys.dba_rollback_segs.segment_name and<br />
-v$rollstat.usn (+) = v$rollname.usn order by rownum<br />
-
-15、耗资源的进程(top session)<br />
-select s.schemaname schema_name, decode(sign(48 - command), 1,<br />
-to_char(command), 'Action Code #' || to_char(command) ) action, status<br />
-session_status, s.osuser os_user_name, s.sid, p.spid , s.serial# serial_num,<br />
-nvl(s.username, '[Oracle process]') user_name, s.terminal terminal,<br />
-s.program program, st.value criteria_value from v$sesstat st, v$session s , v$process p<br />
-where st.sid = s.sid and st.statistic# = to_number('38') and ('ALL' = 'ALL'<br />
-or s.status = 'ALL') and p.addr = s.paddr order by st.value desc, p.spid asc, s.username asc, s.osuser asc<br />
-
-16、查看锁(lock)情况<br />
-select /*+ RULE */ ls.osuser os_user_name, ls.username user_name,<br />
-decode(ls.type, 'RW', 'Row wait enqueue lock', 'TM', 'DML enqueue lock', 'TX',<br />
-'Transaction enqueue lock', 'UL', 'User supplied lock') lock_type,<br />
-o.object_name object, decode(ls.lmode, 1, null, 2, 'Row Share', 3,<br />
-'Row Exclusive', 4, 'Share', 5, 'Share Row Exclusive', 6, 'Exclusive', null)<br />
-lock_mode, o.owner, ls.sid, ls.serial# serial_num, ls.id1, ls.id2<br />
-from sys.dba_objects o, ( select s.osuser, s.username, l.type,<br />
-l.lmode, s.sid, s.serial#, l.id1, l.id2 from v$session s,<br />
-v$lock l where s.sid = l.sid ) ls where o.object_id = ls.id1 and o.owner<br />
-<> 'SYS' order by o.owner, o.object_name<br />
-
-17、查看等待(wait)情况<br />
-SELECT v$waitstat.class, v$waitstat.count count, SUM(v$sysstat.value) sum_value<br />
-FROM v$waitstat, v$sysstat WHERE v$sysstat.name IN ('db block gets',<br />
-'consistent gets') group by v$waitstat.class, v$waitstat.count<br />
-
-18、查看sga情况<br />
-SELECT NAME, BYTES FROM SYS.V_$SGASTAT ORDER BY NAME ASC<br />
-
-19、查看catched object<br />
-SELECT owner, name, db_link, namespace,<br />
-type, sharable_mem, loads, executions,<br />
-locks, pins, kept FROM v$db_object_cache<br />
-
-20、查看V$SQLAREA<br />
-SELECT SQL_TEXT, SHARABLE_MEM, PERSISTENT_MEM, RUNTIME_MEM, SORTS,<br />
-VERSION_COUNT, LOADED_VERSIONS, OPEN_VERSIONS, USERS_OPENING, EXECUTIONS,<br />
-USERS_EXECUTING, LOADS, FIRST_LOAD_TIME, INVALIDATIONS, PARSE_CALLS, DISK_READS,<br />
-BUFFER_GETS, ROWS_PROCESSED FROM V$SQLAREA<br />
-
-21、查看object分类数量<br />
-select decode (o.type#,1,'INDEX' , 2,'TABLE' , 3 , 'CLUSTER' , 4, 'VIEW' , 5 ,<br />
-'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) object_type , count(*) quantity from<br />
-sys.obj$ o where o.type# > 1 group by decode (o.type#,1,'INDEX' , 2,'TABLE' , 3<br />
-, 'CLUSTER' , 4, 'VIEW' , 5 , 'SYNONYM' , 6 , 'SEQUENCE' , 'OTHER' ) union select<br />
-'COLUMN' , count(*) from sys.col$ union select 'DB LINK' , count(*) from<br />
-
-22、按用户查看object种类<br />
-select u.name schema, sum(decode(o.type#, 1, 1, NULL)) indexes,<br />
-sum(decode(o.type#, 2, 1, NULL)) tables, sum(decode(o.type#, 3, 1, NULL))<br />
-clusters, sum(decode(o.type#, 4, 1, NULL)) views, sum(decode(o.type#, 5, 1,<br />
-NULL)) synonyms, sum(decode(o.type#, 6, 1, NULL)) sequences,<br />
-sum(decode(o.type#, 1, NULL, 2, NULL, 3, NULL, 4, NULL, 5, NULL, 6, NULL, 1))<br />
-others from sys.obj$ o, sys.user$ u where o.type# >= 1 and u.user# =<br />
-o.owner# and u.name <> 'PUBLIC' group by u.name order by<br />
-sys.link$ union select 'CONSTRAINT' , count(*) from sys.con$<br />
-
-23、有关connection的相关信息<br />
-
-1)查看有哪些用户连接<br />
-select s.osuser os_user_name, decode(sign(48 - command), 1, to_char(command),<br />
-'Action Code #' || to_char(command) ) action, p.program oracle_process,<br />
-status session_status, s.terminal terminal, s.program program,<br />
-s.username user_name, s.fixed_table_sequence activity_meter, '' query,<br />
-0 memory, 0 max_memory, 0 cpu_usage, s.sid, s.serial# serial_num<br />
-from v$session s, v$process p where s.paddr=p.addr and s.type = 'USER'<br />
-order by s.username, s.osuser<br />
-
-2)<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/usefull-sql/#disqus_thread">Comments</a></span>
     
     
 </div>

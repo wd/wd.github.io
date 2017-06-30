@@ -4221,6 +4221,58 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/2-problems-in-mutt/">mutt的两个问题以及解决办法</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-11-01T00:00:00.000&#43;00:00' itemprop="datePublished">2006-11-01</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/gmail">gmail</a>
+
+<a href="https://wdicc.com//tags/mail">Mail</a>
+
+<a href="https://wdicc.com//tags/msmtp">msmtp</a>
+
+<a href="https://wdicc.com//tags/mutt">mutt</a>
+
+<a href="https://wdicc.com//tags/thunderbird">thunderbird</a>
+
+<a href="https://wdicc.com//tags/%E4%B9%B1%E7%A0%81">乱码</a>
+
+
+</div>
+    </div>
+        mutt<a target="_blank" href="http://blog.wdicc.com/wordpress/2006/09/03/242/">用了一段时间</a>之后发现对方发过来的附件的名字都是乱码，多次之后就觉得比较郁闷，每次都得自己修改名字，还得猜文件类型，很郁闷。google了一下，发现了<a target="_blank" title="gnus/mutt 邮件乱码问题" href="http://learn.tsinghua.edu.cn:8080/2002315162/muttpatched.html">解决办法</a>，是因为mutt默认使用的是rfc2331来解码的，所以添加一个set rfc2047_parameters=yes就可以了，这样对方发过来的邮件就可以正常显示文件名称了。但是同时从那个网址得知，我发出去的附件，也是用rfc2331来编码的，这样到了对方那里，显然会乱码了。测试了一下，outlook里面提示有附件，可是打开是乱码，并且附件名称也不是实际的附件名称。foxmail里面不提示有附件，内容后面会显示几个乱码。<br />
+
+按照前面那个网址，找到了<a target="_blank" title="mutt的rfc2047补丁" href="http://www.emaillab.org/mutt/download1510.html.en">mutt的补丁</a>，尝试了半天，不能在muttng上面正常使用，没办法只好不用muttng用mutt了。打上补丁之后，设置了 set create_rfc2047_parameters=yes  发出去的邮件就正常了。在mutt的<a target="_blank" title="mutt patch list" href="http://wiki.mutt.org/index.cgi?PatchList">patch list</a>列表里面找到<a target="_blank" title="mutt的sidebar补丁" href="http://lunar-linux.org/index.php?page=mutt-sidebar">sidebar补丁</a>，给mutt打了sidebar的补丁，用起来也还行了。同时，也把我的mutt升级到了1.5.13，比源里面的都新了。呵呵。<br />
+
+此外，还有一个问题就是如何对应不同的账号使用不同的smtp server。 本来从网上找了一个文章说到了这个操作如何实现，我也照搬了，发现似乎可以实现这个功能。可是最近才发现，我完全错了，实际上用的总是msmtp里面设置的那个default smtp server，郁闷坏啦，给头以及同事发了好多邮件了，用的都是我的gmail邮箱。<br />
+
+现在我已经解决了这个问题，用的是send-hook，如下。<br />
+send-hook . 'my_hdr from:wd@aaa.com'<br />
+send-hook . 'set sendmail="/usr/bin/msmtp -a gmail"'<br />
+send-hook '~t .*@bbb\.com\.cn$' 'my_hdr from:stef@bbb.com.cn'<br />
+send-hook '~t .*@bbb\.com\.cn$' 'set sendmail="/usr/bin/msmtp -a bbb"'<br />
+
+这样，针对不同的mail，使用不同的sendmail程序。<br />
+
+发现mutt发送邮件的时候使用的是我的gmail邮箱的时候，我很郁闷，再加上发现他发送的附件在别人那里居然不认，让我就更郁闷了。立刻安装了thunderbird，并且设置好了他，打算以后就用他了。但是发现我已经习惯了mutt了，所以还是回头来给mutt打了补丁，做了修改，让他按照我的习惯来了。 用thunderbird后发现，很多事情不能按照我的意思来，很郁闷。<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/2-problems-in-mutt/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/happy-weekend/">这周末让人高兴的两件事情</a>
     </h2>
     <div class="entry-content">
@@ -4563,36 +4615,6 @@ ssh-keygen或者ssh-keygen -t rsa生成rsa方式的密匙。ssh-keygen -d 或者
     
     
     <span class="comments"><a href="/live-in-new-house/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/live-in-syms-house/">寄宿在老大家里</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-09-18T00:00:00.000&#43;00:00' itemprop="datePublished">2006-09-18</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/heart">heart</a>
-
-
-</div>
-    </div>
-        上周六总算看到了房子，问题还真是多啊。和老婆两个人房子里面转了2个小时，发现的问题都记在本本上了，今天老婆过去督促他们修去了。最早估计不到周末就可以搬家入住吧。现在在老大这里寄宿，和老婆两个人挤在一个小床垫上，呵呵，睡惯了我们的大床垫，还真有点不习惯，总觉得要掉下去。老大那里晚上可真安静，比我们以前路边的感觉好很多啊，呵呵，晚上一直听着他那个散热风扇在转。<br />
-
-两只猫跟着我们也是吓了一路，坐车都坐了快2个小时了。看着他们吓的发抖，真是心疼啊，不过昨天晚上他们闹腾起来，却又让人生恨，呵呵。不管怎么说，快了，就快可以住自己的家了，大的落地窗户旁边，随便他们怎么睡。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/live-in-syms-house/#disqus_thread">Comments</a></span>
     
     
 </div>

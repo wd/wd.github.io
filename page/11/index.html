@@ -4221,6 +4221,68 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/radeon-kms-in-kernel-2-6-31/">kernel 2.6.31 给 radeon 用上 kms</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2009-09-13T00:00:00.000&#43;00:00' itemprop="datePublished">2009-09-13</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/kms">kms</a>
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+<a href="https://wdicc.com//tags/radeon">radeon</a>
+
+
+</div>
+    </div>
+        intel 显卡用户享受 gem 已经很久了，kernel 2.6.31 总算给 ati 卡的用户带来了福音。<br />
+
+首先得在 kernel 里面打开相关的选项<br />
+Generic Driver Options --> Graphics support --> 这下面 dri 相关的和几个 fb 相关的，看着选吧。<br />
+Staging drivers --> 取消Exclude Staging drivers from being built --> Enable modesetting on radeon by default<br />
+
+编好后重启下，然后看看 dmesg |grep -i drm 看看，有下面这行就好了。<br />
+[drm] Initialized radeon 2.0.0 20080528 for 0000:01:00.0 on minor 0<br />
+
+然后再看看 /var/log/Xorg.0.log ，有没有这个，这个应该表示相关的 x 软件还没有支持。<br />
+(EE) RADEON(0): [dri] RADEONDRIGetVersion failed because of a version mismatch.<br />
+[dri] radeon kernel module version is 2.0.0 but version 1.17.0 or newer is needed.<br />
+[dri] Disabling DRI.<br />
+
+$ glxinfo |grep -i render<br />
+direct rendering: Yes<br />
+OpenGL renderer string: Software Rasterizer<br />
+
+接下来就升级几个包的 9999 版本，这几个 ebuild 在 x11 overlay 里面有<br />
+# x11-drivers/xf86-video-ati-9999<br />
+# media-libs/mesa-9999<br />
+# x11-libs/libdrm-9999 <br />
+
+装好后，重启下 x ，看看上面那几个信息。/var/log/Xorg.0.log 里面应该有 KMS 相关的信息了，glxinfo 如下<br />
+$ glxinfo |grep -i render<br />
+direct rendering: Yes<br />
+OpenGL renderer string: Mesa DRI R300 (RV380 5460) 20090101 x86/MMX/SSE2 TCL DRI2<br />
+
+
+好，o 了。不过我怎么觉得窗口切换好像没那么流畅了？。。。等会看看，不行还得换回去。。。汗。。。<br />
+update:  找到一个 bug url , 不知道是不是一样的 http://bugs.freedesktop.org/show_bug.cgi?id=23085 不过里面说应该已经解决了才对。。xf86-video-ati 我用的也是最新版的呀<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/radeon-kms-in-kernel-2-6-31/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/fonts-in-gentoo/">gentoo 里面字体</a>
     </h2>
     <div class="entry-content">
@@ -4813,51 +4875,6 @@ function FindProxyForURL(url, host)
     
     
     <span class="comments"><a href="/clever-cc/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/clean-places-sqlite/">清理 firefox places.sqlite 来提速</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2009-07-18T00:00:00.000&#43;00:00' itemprop="datePublished">2009-07-18</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/firefox">firefox</a>
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-
-</div>
-    </div>
-        来自这里 http://forum.moztw.org/viewtopic.php?t=26802<br />
-
-使用前先备份，后悔了还能弄回去。<br />
-
-<pre class="prettyprint lang-sql">
-sqlite3 places.sqlite "DELETE FROM moz_historyvisits WHERE place_id IN (SELECT id FROM moz_places WHERE visit_count <=2 );"
-
-sqlite3 places.sqlite "DELETE FROM moz_places WHERE (visit_count <=2 AND hidden <> 1 AND id NOT IN (SELECT place_id FROM moz_annos UNION SELECT fk FROM moz_bookmarks));"
-
-sqlite3 places.sqlite "DELETE FROM moz_inputhistory WHERE place_id NOT IN (SELECT id FROM moz_places);"
-
-sqlite3 places.sqlite "DELETE FROM moz_favicons WHERE id NOT IN (SELECT
-favicon_id FROM moz_places);"
-
-sqlite3 places.sqlite "VACUUM;"
-</pre><br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/clean-places-sqlite/#disqus_thread">Comments</a></span>
     
     
 </div>
