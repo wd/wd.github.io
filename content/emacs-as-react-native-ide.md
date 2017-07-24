@@ -1,6 +1,6 @@
 +++
 date = "2017-07-24T20:02:00+08:00"
-title = "emacs as react native ide"
+title = "Emacs as react native ide"
 tags = ['emacs', 'react']
 +++
 
