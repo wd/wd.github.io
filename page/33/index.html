@@ -4221,6 +4221,238 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/oracle-em-encoding/">Oracle10g EM乱码之快速解决</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-08-05T00:00:00.000&#43;00:00' itemprop="datePublished">2006-08-05</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/heart">heart</a>
+
+<a href="https://wdicc.com//tags/oracle">oracle</a>
+
+<a href="https://wdicc.com//tags/%E4%B9%B1%E7%A0%81">乱码</a>
+
+
+</div>
+    </div>
+        来源 <a target="_blank" href="http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html">这里</a><br />
+
+一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.<br />
+
+如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.<br />
+
+在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:<br />
+<!--more--><br />
+[oracle@danaly ~]$ cd $ORACLE_HOME/jdk/jre/lib<br />
+[oracle@danaly lib]$ ls font*zh_CN*<br />
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1<br />
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun<br />
+
+[oracle@danaly lib]$ cd $ORACLE_HOME/jre/1.4.2/lib/<br />
+[oracle@danaly lib]$ ls font*zh_CN*<br />
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1<br />
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun<br />
+
+我们只要用合适的中文字符集文件替换缺省文件即可,我选择使用font.properties.zh_CN.Redhat来替换缺省字体定义文件:<br />
+
+[oracle@danaly lib]$ cp font.properties.zh_CN.Redhat font.properties<br />
+
+替换之后需要清理一下Cache,重启EM即可.<br />
+
+Cache路径通常位于:<br />
+
+$ORACLE_HOME/oc4j/j2ee/oc4j_applications/applications/em/em/cabo/images/cache/zhs<br />
+
+清除所有gif文件即可.然后重新启动EM:<br />
+
+[oracle@danaly zhs]$ emctl stop dbconsole<br />
+TZ set to PRC<br />
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0<br />
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.<br />
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication<br />
+Stopping Oracle Enterprise Manager 10g Database Control ...<br />
+...  Stopped.<br />
+[oracle@danaly zhs]$ emctl start dbconsole<br />
+TZ set to PRC<br />
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0<br />
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.<br />
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication<br />
+Starting Oracle Enterprise Manager 10g Database Control .............. started.<br />
+------------------------------------------------------------------<br />
+Logs are generated in directory<br />
+/opt/oracle/product/10.2.0/danaly.hurrray.com.cn_danaly/sysman/log<br />
+
+现在登陆Web页面,EM显示就可以正常显示中文了.<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/oracle-em-encoding/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
+        <a href="/oracle-handbook/">Oracle数据库日常维护手册</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-08-05T00:00:00.000&#43;00:00' itemprop="datePublished">2006-08-05</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/oracle">oracle</a>
+
+<a href="https://wdicc.com//tags/other">other</a>
+
+<a href="https://wdicc.com//tags/%E7%9B%91%E6%8E%A7">监控</a>
+
+
+</div>
+    </div>
+        <h4 align="center" style="text-align: center; line-height: 13.5pt"><span lang="EN-US" style="color: black">Oracle</span><span style="color: black">数据库日常维护手册<span lang="EN-US"></span></span></h4><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">在<span lang="EN-US">Oracle</span>数据库运行期间，<span lang="EN-US">DBA</span>应该对数据库的运行日志及表空间的使用情况进行监控，及早发现数据库中存在的问题。<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><strong><span style="font-size: 9pt; font-family: 宋体; color: black">一、<span lang="EN-US">Oracle</span>警告日志文件监控 </span></strong><span lang="EN-US" style="font-size: 9pt; color: black"></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">Oracle</span><span style="font-size: 9pt; color: black">在运行过程中，会在警告日志文件<span lang="EN-US">(alert_SID.log)</span>中记录数据库的一些运行情况<span lang="EN-US">: </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●数据库的启动、关闭，启动时的非缺省参数<span lang="EN-US">; </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●数据库的重做日志切换情况，记录每次切换的时间，及如果因为检查点<span lang="EN-US">(checkpoint)</span>操作没有执行完成造成不能切换，会记录不能切换的原因<span lang="EN-US">; </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●对数据库进行的某些操作，如创建或删除表空间、增加数据文件<span lang="EN-US">; </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●数据库发生的错误，如表空间不够、出现坏块、数据库内部错误<span lang="EN-US">(ORA-600) </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">DBA</span><span style="font-size: 9pt; color: black">应该定期检查日志文件，根据日志中发现的问题及时进行处理<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">问题处理<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">启动参数不对检查初始化参数文件<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">因为检查点操作或归档操作没有完成造成重做日志不能切换如果经常发生这样的情况，可以考虑增加重做日志文件组<span lang="EN-US">;</span>想办法提高检查点或归档操作的效率<span lang="EN-US">; </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">有人未经授权删除了表空间检查数据库的安全问题，是否密码太简单<span lang="EN-US">;</span>如有必要，撤消某些用户的系统权限<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">出现坏块检查是否是硬件问题<span lang="EN-US">(</span>如磁盘本生有坏块<span lang="EN-US">)</span>，如果不是，检查是那个数据库对象出现了坏块，对这个对象进行重建<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">表空间不够增加数据文件到相应的表空间<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">出现<span lang="EN-US">ORA-600</span>根据日志文件的内容查看相应的<span lang="EN-US">TRC</span>文件，如果是<span lang="EN-US">Oracle</span>的<span lang="EN-US">bug</span>，要及时打上相应的补丁</span></p><br />
+
+<p style="text-indent: 24pt; line-height: 13.5pt"><!--more--><br />
+<strong><span style="font-size: 9pt; font-family: 宋体; color: black">    二、数据库表空间使用情况监控<span lang="EN-US">(</span>字典管理表空间<span lang="EN-US">) </span></span></strong><span lang="EN-US" style="font-size: 9pt; color: black"></span><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">数据库运行了一段时间后，由于不断的在表空间上创建和删除对象，会在表空间上产生大量的碎片，<span lang="EN-US">DBA</span>应该及时了解表空间的碎片和可用空间情况，以决定是否要对碎片进行整理或为表空间增加数据文件。<span lang="EN-US"> </span></span></p><br />
+
+<p style="text-indent: 24pt; line-height: 13.5pt"><code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black">select tablespace_name, </span></code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black"><br />
+<code><span style="font-family: 新宋体">count(*) chunks , </span></code><br />
+<code><span style="font-family: 新宋体">max(bytes/1024/1024) max_chunk </span></code><br />
+<code><span style="font-family: 新宋体">from dba_free_space </span></code><br />
+<code><span style="font-family: 新宋体">group by tablespace_name; </span></code></span><span lang="EN-US" style="font-size: 9pt; color: black"></span><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">上面的<span lang="EN-US">SQL</span>列出了数据库中每个表空间的空闲块情况<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">其中，<span lang="EN-US">CHUNKS</span>列表示表空间中有多少可用的空闲块<span lang="EN-US">(</span>每个空闲块是由一些连续的<span lang="EN-US">Oracle</span>数据块组成<span lang="EN-US">)</span>，如果这样的空闲块过多，比如平均到每个数据文件上超过了<span lang="EN-US">100</span>个，那么该表空间的碎片状况就比较严重了，可以尝试用以下的<span lang="EN-US">SQL</span>命令进行表空间相邻碎片的接合<span lang="EN-US">: </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">alter tablespace </span><span style="font-size: 9pt; color: black">表空间名<span lang="EN-US"> coalesce; </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">对表空间的扩充对表空间的数据文件大小进行扩展，或向表空间增加数据文件，例如：<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">alter database datafile ‘filename’ resize 2g;</span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">alter tablespace add datafile ‘filename’ size 2g;</span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><strong><span style="font-size: 9pt; font-family: 宋体; color: black">三、查看数据库的连接情况 </span></strong><span lang="EN-US" style="font-size: 9pt; color: black"></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">DBA</span><span style="font-size: 9pt; color: black">要定时对数据库的连接情况进行检查，看与数据库建立的会话数目是不是正常，如果建立了过多的连接，会消耗数据库的资源。同时，对一些<span lang="EN-US">“</span>挂死<span lang="EN-US">”</span>的连接，可能会需要<span lang="EN-US">DBA</span>手工进行清理。<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">以下的<span lang="EN-US">SQL</span>语句列出当前数据库建立的会话情况<span lang="EN-US">: </span></span></p><br />
+
+<p style="text-indent: 24pt; line-height: 13.5pt"><code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black">select sid,serial#,username,program,machine,status </span></code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black"><br />
+<code><span style="font-family: 新宋体">from v$session;</span></code></span><span lang="EN-US" style="font-size: 9pt; color: black"> </span><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">如果<span lang="EN-US">DBA</span>要手工断开某个会话，则执行<span lang="EN-US">: </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">alter system kill session 'SID,SERIAL#'; </span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><strong><span style="font-size: 9pt; font-family: 宋体; color: black">四、备份 </span></strong><span lang="EN-US" style="font-size: 9pt; color: black"></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">控制文件的备份：<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">在数据库结构发生变化时，如增加了表空间，增加了数据文件或重做日志文件这些操作，都会造成<span lang="EN-US">Oracle</span>数据库控制文件的变化，<span lang="EN-US">DBA</span>应及进行控制文件的备份，备份方法是<span lang="EN-US">: </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">执行<span lang="EN-US">SQL</span>语句<span lang="EN-US">: </span></span></p><br />
+
+<p style="text-indent: 24pt; line-height: 13.5pt"><code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black">alter database </span></code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black"><br />
+<code><span style="font-family: 新宋体">backup controlfile to '/home/backup/control.bak'; </span></code><br />
+</span><span style="font-size: 9pt; color: black">或<span lang="EN-US">: </span></span><br />
+
+<p style="text-indent: 24pt; line-height: 13.5pt"><code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black">alter database </span></code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black"><br />
+<code><span style="font-family: 新宋体">backup controlfile to trace; </span></code><br />
+</span><span style="font-size: 9pt; color: black">这样，会在<span lang="EN-US">USER_DUMP_DEST(</span>初始化参数文件中指定<span lang="EN-US">)</span>目录下生成创建控制文件的<span lang="EN-US">SQL</span>命令。 <span lang="EN-US"></span></span><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">数据逻辑备份：<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">导出：<span lang="EN-US">exp wd/******* file=***.dmp owner=wd</span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">导入：<span lang="EN-US">imp wd/******* file=***.dmp fromuser=wd touser=wd</span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><strong><span lang="EN-US" style="font-size: 9pt; font-family: 宋体; color: black"> </span></strong></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><strong><span style="font-size: 9pt; font-family: 宋体; color: black">五、检查数据库文件的状态 </span></strong><span lang="EN-US" style="font-size: 9pt; color: black"></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">DBA</span><span style="font-size: 9pt; color: black">要及时查看数据库中数据文件的状态<span lang="EN-US">(</span>如被误删除<span lang="EN-US">)</span>，根据实际情况决定如何进行处理，检查数据文件的状态的<span lang="EN-US">SQL</span>如下<span lang="EN-US">: </span></span></p><br />
+
+<p style="text-indent: 24pt; line-height: 13.5pt"><code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black">select file_name,status </span></code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black"><br />
+<code><span style="font-family: 新宋体">from dba_data_files;</span></code></span><span lang="EN-US" style="font-size: 9pt; color: black"> </span><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">如果数据文件的<span lang="EN-US">STATUS</span>列不是<span lang="EN-US">AVAILABLE</span>，那么就要采取相应的措施，如对该数据文件进行恢复操作，或重建该数据文件所在的表空间。<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><strong><span style="font-size: 9pt; font-family: 宋体; color: black">六、检查数据库定时作业的完成情况 </span></strong><span lang="EN-US" style="font-size: 9pt; color: black"></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">如果数据库使用了<span lang="EN-US">Oracle</span>的<span lang="EN-US">JOB</span>来完成一些定时作业，要对这些<span lang="EN-US">JOB</span>的运行情况进行检查<span lang="EN-US">: </span></span></p><br />
+
+<p style="text-indent: 24pt; line-height: 13.5pt"><code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black">select job,log_user,last_date,failures </span></code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black"><br />
+<code><span style="font-family: 新宋体">from dba_jobs; </span></code></span><span lang="EN-US" style="font-size: 9pt; color: black"></span><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">如果<span lang="EN-US">FAILURES</span>列是一个大于<span lang="EN-US">0</span>的数的话，说明<span lang="EN-US">JOB</span>运行失败，要进一步的检查。<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><strong><span style="font-size: 9pt; font-family: 宋体; color: black">七、数据库坏块的处理 </span></strong><span lang="EN-US" style="font-size: 9pt; color: black"></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">当<span lang="EN-US">Oracle</span>数据库出现坏块时，<span lang="EN-US">Oracle</span>会在警告日志文件<span lang="EN-US">(alert_SID.log)</span>中记录坏块的信息<span lang="EN-US">: </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">ORA-01578: ORACLE data block corrupted (file # 7, block # ) </span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">ORA-01110: data file : '/oracle1/oradata/V920/oradata/V816/users01.dbf' </span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">其中， 代表坏块所在数据文件的绝对文件号， 代表坏块是数据文件上的第几个数据块<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">出现这种情况时，应该首先检查是否是硬件及操作系统上的故障导致<span lang="EN-US">Oracle</span>数据库出现坏块。在排除了数据库以外的原因后，再对发生坏块的数据库对象进行处理。<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">1.</span><span style="font-size: 9pt; color: black">确定发生坏块的数据库对象<span lang="EN-US"> </span></span></p><br />
+
+<p style="text-indent: 24pt; line-height: 13.5pt"><code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black">SELECT tablespace_name, </span></code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black"><br />
+<code><span style="font-family: 新宋体">segment_type, </span></code><br />
+<code><span style="font-family: 新宋体">owner, </span></code><br />
+<code><span style="font-family: 新宋体">segment_name </span></code><br />
+<code><span style="font-family: 新宋体">FROM dba_extents </span></code><br />
+<code><span style="font-family: 新宋体">WHERE file_id = </span></code><br />
+<code><span style="font-family: 新宋体">AND </span></code><br />
+<code><span style="font-family: 新宋体">between block_id AND block_id+blocks-1; </span></code></span><span lang="EN-US" style="font-size: 9pt; color: black"></span><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">2.</span><span style="font-size: 9pt; color: black">决定修复方法<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">如果发生坏块的对象是一个索引，那么可以直接把索引<span lang="EN-US">DROP</span>掉后，再根据表里的记录进行重建<span lang="EN-US">; </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">如果发生坏块的表的记录可以根据其它表的记录生成的话，那么可以直接把这个表<span lang="EN-US">DROP</span>掉后重建<span lang="EN-US">; </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">如果有数据库的备份，则恢复数据库的方法来进行修复<span lang="EN-US">; </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">如果表里的记录没有其它办法恢复，那么坏块上的记录就丢失了，只能把表中其它数据块上的记录取出来，然后对这个表进行重建。<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">3.</span><span style="font-size: 9pt; color: black">用<span lang="EN-US">Oracle</span>提供的<span lang="EN-US">DBMS_REPAIR</span>包标记出坏块<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">exec DBMS_REPAIR.SKIP_CORRUPT_BLOCKS(' ',''); </span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">4.</span><span style="font-size: 9pt; color: black">使用<span lang="EN-US">Create table as select</span>命令将表中其它块上的记录保存到另一张表上<span lang="EN-US"> </span></span></p><br />
+
+<p style="text-indent: 24pt; line-height: 13.5pt"><code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black">create table corrupt_table_bak </span></code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black"><br />
+<code><span style="font-family: 新宋体">as </span></code><br />
+<code><span style="font-family: 新宋体">select * from corrupt_table; </span></code></span><span lang="EN-US" style="font-size: 9pt; color: black"></span><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">5.</span><span style="font-size: 9pt; color: black">用<span lang="EN-US">DROP TABLE</span>命令删除有坏块的表<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black">drop table corrup_tatble; </span></code><span lang="EN-US" style="font-size: 9pt; color: black"></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">6.</span><span style="font-size: 9pt; color: black">用<span lang="EN-US">alter table rename</span>命令恢复原来的表<span lang="EN-US"> </span></span></p><br />
+
+<p style="text-indent: 24pt; line-height: 13.5pt"><code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black">alter table corrupt_table_bak </span></code><span lang="EN-US" style="font-size: 10pt; font-family: 新宋体; color: black"><br />
+<code><span style="font-family: 新宋体">rename to corrupt_table; </span></code></span><span lang="EN-US" style="font-size: 9pt; color: black"></span><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">7.</span><span style="font-size: 9pt; color: black">如果表上存在索引，则要重建表上的索引<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><strong><span style="font-size: 9pt; font-family: 宋体; color: black">八、操作系统相关维护 <span lang="EN-US"></span></span></strong></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">DBA</span><span style="font-size: 9pt; color: black">要注意对操作系统的监控<span lang="EN-US">: </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●文件系统的空间使用情况<span lang="EN-US">(df -k)</span>，必要时对<span lang="EN-US">Oracle</span>的警告日志及<span lang="EN-US">TRC</span>文件进行清理<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●如果<span lang="EN-US">Oracle</span>提供网络服务，检查网络连接是否正常<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●检查操作系统的资源使用情况是否正常<span lang="EN-US"> </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">●检查数据库服务器有没有硬件故障，如磁盘、内存报错<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><strong><span style="font-size: 9pt; color: black">九、数据库背景知识<span lang="EN-US"></span></span></strong></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">配置文件<span lang="EN-US">   </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">spfile</span><span style="font-size: 9pt; color: black">，位于<span lang="EN-US">$ORACLE_HOME/dbs/spfile<ORACLE_SID>.ora,</span>是一个二进制文件，不能直接编辑，<span lang="EN-US">Oracle9i</span>之后默认使用<span lang="EN-US">spfile</span>。可以通过<span lang="EN-US">alter system set </span>×××<span lang="EN-US">=</span>×××<span lang="EN-US">;</span>来修改参数，大部分参数修改后不用重启数据库。可以通过执行<span lang="EN-US">show parameter spfile</span>来查看是否使用了<span lang="EN-US">spfile</span>，如果执行结果为空，则数据库没有使用<span lang="EN-US">spfile</span>。执行<span lang="EN-US">create spfile from pfile; </span>然后重启数据库就启用了<span lang="EN-US">spfile</span>。<span lang="EN-US">   </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">pfile</span><span style="font-size: 9pt; color: black">，位于<span lang="EN-US">$ORACLE_HOME/dbs/init<ORACLE_SID>.ora</span>，是一个<span lang="EN-US">ASCII</span>文件可以编辑，修改参数后需要重启数据库。<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">tnsnames.ora, </span><span style="font-size: 9pt; color: black">位于<span lang="EN-US">$ORACLE_HOME/network/admin/tnsnames.ora, </span>记录了服务明的信息。<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">listener.ora, </span><span style="font-size: 9pt; color: black">位于<span lang="EN-US">$ORACLE_HOME/network/admin/listener.ora</span>，记录了<span lang="EN-US">listener</span>的信息。<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">日志文件<span lang="EN-US">   </span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">alert, </span><span style="font-size: 9pt; color: black">位于<span lang="EN-US">$ORACLE_BASE/admin/$ORACLE_SID/bdump/alert<$ORACLE_SID>.log, Oracle</span>的报警日志，如数据库出错可以在此文件中查看。<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">redo, </span><span style="font-size: 9pt; color: black">位于<span lang="EN-US">$ORACLE_BASE/oradata/redo</span>××<span lang="EN-US">.log</span>，<span lang="EN-US">Orale</span>重做日志。<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">启动<span lang="EN-US">/</span>停止<span lang="EN-US">ORACLE</span>：<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">以<span lang="EN-US">sysdba</span>权限登陆<span lang="EN-US">sqlplus</span>，<span lang="EN-US"></span></span></p><br />
+<p style="text-indent: 42pt; line-height: 13.5pt"><span style="font-size: 9pt; color: black">停止：<span lang="EN-US">shutdown immediate</span></span></p><br />
+<p style="text-indent: 24pt; line-height: 13.5pt"><span lang="EN-US" style="font-size: 9pt; color: black">    </span><span style="font-size: 9pt; color: black">启动：<span lang="EN-US">startup</span></span></p><br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/oracle-handbook/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/usefull-sql/">Oracle维护常用SQL语句</a>
     </h2>
     <div class="entry-content">
@@ -5307,296 +5539,6 @@ ln -s /usr/local/wls813/anymusic /usr/local/wls<br />
     
     
     <span class="comments"><a href="/funny-math/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/service-can-stop/">可以关闭的linux系统服务</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-08-05T00:00:00.000&#43;00:00' itemprop="datePublished">2006-08-05</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/other">other</a>
-
-
-</div>
-    </div>
-        转自车东的blog<br />
-
-sudo /sbin/chkconfig --list| grep 3:on | awk '{print "/sbin/chkconfig "$1" off"}'<br />
-/sbin/chkconfig acpid off<br />
-/sbin/chkconfig anacron off<br />
-/sbin/chkconfig apmd off<br />
-/sbin/chkconfig auditd off<br />
-/sbin/chkconfig autofs off<br />
-/sbin/chkconfig bluetooth off<br />
-/sbin/chkconfig cpuspeed off<br />
-/sbin/chkconfig cups off<br />
-/sbin/chkconfig gpm off<br />
-/sbin/chkconfig haldaemon off<br />
-/sbin/chkconfig iptables off<br />
-/sbin/chkconfig isdn off<br />
-/sbin/chkconfig kudzu off<br />
-/sbin/chkconfig mDNSResponder off<br />
-/sbin/chkconfig mdmonitor off<br />
-/sbin/chkconfig messagebus off<br />
-/sbin/chkconfig netfs off<br />
-/sbin/chkconfig nfslock off<br />
-/sbin/chkconfig nifd off<br />
-/sbin/chkconfig pcmcia off<br />
-/sbin/chkconfig portmap off<br />
-/sbin/chkconfig rhnsd off<br />
-/sbin/chkconfig rpcgssd off<br />
-/sbin/chkconfig rpcidmapd off<br />
-/sbin/chkconfig sendmail off<br />
-/sbin/chkconfig xfs off<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/service-can-stop/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/auto-start-of-oracle/">在linux重新启动下如何设置oracle服务自动开启</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-08-05T00:00:00.000&#43;00:00' itemprop="datePublished">2006-08-05</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/oracle">oracle</a>
-
-<a href="https://wdicc.com//tags/other">other</a>
-
-
-</div>
-    </div>
-        来源 <a target="_blank" href="http://community.csdn.net/Expert/FAQ/FAQ_Index.asp?id=210567">这里</a><br />
-
-我装的是redhat  linux  9，oracle9.2.0.1.0,用sqlplus  "/as  sysdba"  startup可开启实例服务，用lsnrctl  start开启侦听服务，但这些都是通过手工输入操作的，能不能有办法让这些服务就象在windows一样设置为自动，让他在重启之后就可自动运行<br />
----------------------------------------------------------------<br />
-
-这个问题近期有人问过好多遍了，下面是  liuyi8903(好好学习)  的关于此问题的一个回复：<br />
-
-下面是我在linux  as  3下做的:<br />
-
-1.  创建文件/etc/oratab<br />
-添加<br />
-
-#添加如下内容到/etc/oratab文件中,<br />
-#$ORACLE_SID是你的Oracle数据库的sid<br />
-#$ORACLE_HOME是你的Oracle数据库的Oracle_home<br />
-#Y表示要求在系统启动的时候启动Oracle数据库.N表示不要在系统启动的时候启动Oracle<br />
-$ORACLE_SID:$ORACLE_HOME:Y<br />
-
-<!--more--><br />
-
-2.  修改文件/etc/rc.local添加一下两行<br />
-su  -  oracle  -c  'dbstart'<br />
-su  -  oracle  -c  'lsnrctl  start'<br />
----------------------------------------------------------------<br />
-
-以下是10G在Linux下oracle自启动的官方表述，可以参考一下，9i应该也有这方面的表述，可以去www.oracle.com找9i的文档看看：<br />
-
-
-1.Log  in  as  the  root  user.<br />
-
-2.Edit  the  oratab  file  for  your  platform.<br />
-
-To  open  the  file,  use  one  of  the  following  commands:<br />
-
-On  Solaris:<br />
-
-#  vi  /var/opt/oracle/oratab<br />
-
-On  AIX,  HP-UX,  Linux,  and  Tru64  UNIX:<br />
-
-#  vi  /etc/oratab<br />
-
-Database  entries  in  the  oratab  file  are  displayed  in  the  following  format:<br />
-
-SID:ORACLE_HOME:{Y  &brvbarN  &brvbarW}<br />
-
-In  this  example,  the  values  Y  and  N  specify  whether  you  want  the  scripts  to  start  up  or  shut  down  the  database,  respectively.  For  each  database  for  which  you  want  to  automate  shutdown  and  startup,  first  determine  the  instance  identifier  (SID)  for  that  database,  which  is  identified  by  the  SID  in  the  first  field.  Then,  change  the  last  field  for  each  to  Y.<br />
-
-You  can  set  dbstart  to  auto-start  a  single-instance  database  that  uses  an  Automatic  Storage  Management  installation  that  is  auto-started  by  Oracle  Clusterware.  This  is  the  default  behavior  for  an  Automatic  Storage  Management  cluster.  If  you  want  to  do  this,  then  you  must  change  the  oratab  entry  of  the  database  and  the  Automatic  Storage  Management  installation  to  use  a  third  field  with  the  value  W  and  N,  respectively.  These  values  specify  that  dbstart  auto-starts  the  database  only  after  the  Automatic  Storage  Management  instance  is  started.<br />
-
-
-Note:<br />
-
-If  you  add  new  database  instances  to  the  system  and  if  you  want  to  automate  startup  for  them,  then  you  must  edit  the  entries  for  those  instances  in  the  oratab  file.<br />
-
-
-3.Change  directory  to  one  of  the  following  depending  on  your  operating  system:<br />
-
-Platform  Initialization  File  Directory<br />
-AIX  /etc<br />
-Linux  and  Solaris  /etc/init.d<br />
-HP-UX  and  Tru64  UNIX  /sbin/init.d<br />
-
-
-4.Create  a  file  called  dbora,  and  copy  the  following  lines  into  this  file:<br />
-
-
-Note:<br />
-
-Change  the  value  of  the  ORACLE_HOME  environment  variable  to  an  Oracle  home  directory  for  the  installation.  Change  the  value  of  the  ORACLE  environment  variable  to  the  user  name  of  the  owner  of  the  database  installed  in  the  Oracle  home  directory  (typically,  oracle).<br />
-
-
-#!  /bin/sh    -x<br />
-#<br />
-#  Change  the  value  of  ORACLE_HOME  to  specify  the  correct  Oracle  home<br />
-#  directory  for  your  installation.<br />
-
-ORACLE_HOME=/u01/app/oracle/product/10.2.0/db_1<br />
-#<br />
-#  Change  the  value  of  ORACLE  to  the  login  name  of  the<br />
-#  oracle  owner  at  your  site.<br />
-#<br />
-ORACLE=oracle<br />
-
-PATH=${PATH}:$ORACLE_HOME/bin<br />
-HOST=`hostname`<br />
-PLATFORM=`uname`<br />
-export  ORACLE_HOME  PATH<br />
-#<br />
-if  [  !  "$2"  =  "ORA_DB"  ]  ;  then<br />
-if  [  "$PLATFORM"  =  "HP-UX"  ]  ;  then<br />
-remsh  $HOST  -l  $ORACLE  -n  "$0  $1  ORA_DB"<br />
-exit<br />
-else<br />
-rsh  $HOST  -l  $ORACLE    $0  $1  ORA_DB<br />
-exit<br />
-fi<br />
-fi<br />
-#<br />
-case  $1  in<br />
-'start')<br />
-$ORACLE_HOME/bin/dbstart  $ORACLE_HOME  &<br />
-;;<br />
-'stop')<br />
-$ORACLE_HOME/bin/dbshut  $ORACLE_HOME  &<br />
-;;<br />
-*)<br />
-echo  "usage:  $0  {start  &brvbarstop}"<br />
-exit<br />
-;;<br />
-esac<br />
-#<br />
-exit<br />
-
-
-Note:<br />
-
-This  script  can  only  stop  Oracle  Net  listener  for  which  a  password  has  not  been  set.  In  addition,  if  the  listener  name  is  not  the  default  name,  LISTENER,  then  you  must  specify  the  listener  name  in  the  stop  and  start  commands:<br />
-$ORACLE_HOME/bin/lsnrctl  {start  &brvbarstop}  listener_name<br />
-
-
-
-5.Change  the  group  of  the  dbora  file  to  the  OSDBA  group  (typically  dba),  and  set  the  permissions  to  750:<br />
-
-#  chgrp  dba  dbora<br />
-#  chmod  750  dbora<br />
-
-6.Create  symbolic  links  to  the  dbora  script  in  the  appropriate  run-level  script  directories  as  follows:<br />
-
-Platform  Symbolic  Links  Commands<br />
-
-Linux  #  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc3.d/K01dbora<br />
-#  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc3.d/S99dbora<br />
-#  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc5.d/K01dbora<br />
-#  ln  -s  /etc/init.d/dbora  /etc/rc.d/rc5.d/S99dbora<br />
----------------------------------------------------------------<br />
-
-Oracle在linux下的自动启动脚本<br />
-
-环境是redhat  9+oracle  9.2.0.4<br />
-
-1、在/etc/rc.d/init.d下创建脚本，名字就取为oracle，内容如下。假设oracle的安装用户是ora9。<br />
-case  "$1"  in<br />
-start)<br />
-echo  "Starting  Oracle  Databases  ...  "<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-date  +"  %T  %a  %D  :  Starting  Oracle  Databasee  as  part  of  system  up."  >>  /var/log/oracle<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-su  -  ora9  -c  "dbstart"  >>  /var/log/oracle<br />
-echo  "Done."<br />
-echo  "Starting  Oracle  Listeners  ...  "<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-date  +"  %T  %a  %D  :  Starting  Oracle  Listeners  as  part  of  system  up."  >>  /var/log/oracle<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-su  -  ora9  -c  "lsnrctl  start"  >>  /var/log/oracle<br />
-echo  "Done."<br />
-echo  ""<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-date  +"  %T  %a  %D  :  Finished."  >>  /var/log/oracle<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-touch  /var/lock/subsys/oracle<br />
-
-;;<br />
-stop)<br />
-echo  "Stoping  Oracle  Listeners  ...  "<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-date  +"  %T  %a  %D  :  Stoping  Oracle  Listener  as  part  of  system  down."  >>  /var/log/oracle<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-su  -  ora9  -c  "lsnrctl  stop"  >>  /var/log/oracle<br />
-echo  "Done."<br />
-rm  -f  /var/lock/subsys/oracle<br />
-echo  "Stoping  Oracle  Databases  ...  "<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-date  +"  %T  %a  %D  :  Stoping  Oracle  Databases  as  part  of  system  down."  >>  /var/log/oracle<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-su  -  ora9  -c  "dbshut"  >>/var/log/oracle<br />
-echo  "Done."<br />
-echo  ""<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-date  +"  %T  %a  %D  :  Finished."  >>  /var/log/oracle<br />
-echo  "-------------------------------------------------"  >>  /var/log/oracle<br />
-
-;;<br />
-restart)<br />
-$0  stop<br />
-$0  start<br />
-
-;;<br />
-*)<br />
-echo  "Usage:  oracle  {start  &brvbarstop  &brvbarrestart}"<br />
-exit  1<br />
-esac<br />
-
-2、修改/etc/rc.d/init.d/oracle的属性为755。<br />
-
-3、创建不同级别的link文件。<br />
-$  ln  -s  /etc/rc.d/init.d/oracle  /etc/rc.d/rc5.d/S99oracle<br />
-$  ln  -s  /etc/rc.d/init.d/oracle  /etc/rc.d/rc0.d/K01oracle<br />
-$  ln  -s  /etc/rc.d/init.d/oracle  /etc/rc.d/rc1.d/K01oracle<br />
-
-4、编辑/etc/oratab文件，设置需要自动启动的数据库实例。<br />
-
-5、在$ORACLE_HOME/dbs下，创建符号连接文件init$ORACLE_SID<br />
-cd  $ORACLE_HOME/dbs<br />
-ln  -s  spfile$ORACLE_SID.ora  init$ORACLE_SID.ora<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/auto-start-of-oracle/#disqus_thread">Comments</a></span>
     
     
 </div>

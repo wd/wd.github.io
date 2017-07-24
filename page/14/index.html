@@ -4221,6 +4221,160 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/writing-a-kde-plasma-applet/">写了一个 kde plasma applet</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2009-01-23T00:00:00.000&#43;00:00' itemprop="datePublished">2009-01-23</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+<a href="https://wdicc.com//tags/plasma">plasma</a>
+
+<a href="https://wdicc.com//tags/pyqt4">pyqt4</a>
+
+<a href="https://wdicc.com//tags/python">python</a>
+
+
+</div>
+    </div>
+        用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。<br />
+
+第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。<br />
+
+这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。<br />
+
+昨天花了一个下午，总算弄好了。参考的文档 <a href="http://www.qtopia.org.cn/doc/qiliang.net/qt/classes.html">qt的类</a>, <a href="http://www.zetcode.com/tutorials/pyqt4/">pyqt4 turtorial</a>,<a href="http://techbase.kde.org/Development/Tutorials/Plasma/Python/GettingStarted">plasma python</a> .<br />
+
+效果就这样。电池旁边那个就是。<br />
+
+<a href="http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png" target="_blank"><img src="http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png" alt="" width="300" /></a><br />
+
+代码<br />
+<pre class="prettyprint lang-python">
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+from PyKDE4.plasma import Plasma
+from PyKDE4 import plasmascript
+import time                                      
+
+class Cpuinfo(plasmascript.Applet):
+        def __init__(self,parent,args=None):
+                plasmascript.Applet.__init__(self,parent)
+
+        def init(self):
+                self.freqnow = ''
+                self.freqmax = ''
+                self.temp = ''
+                self.text = ''   
+
+                self.getCurrentFreq()
+                self.getMaxFreq()
+                self.getTemp()       
+
+                self.setHasConfigurationInterface(False)
+                self.setMinimumWidth(100)
+                self.setAspectRatioMode(Plasma.Square)
+                self.startTimer(1000)
+
+        def getCurrentFreq (self):
+                line = open ('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqnow = line
+
+        def getMaxFreq (self):
+                line = file('/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqmax = line
+
+        def getTemp (self):
+                line = file('/proc/acpi/thermal_zone/TZ1/temperature', 'r').read().rstrip('\n')
+                line = " ".join(line.split()[1:])
+                self.temp = line
+
+        def timerEvent(self, event):
+                self.getCurrentFreq()
+                self.getTemp()
+                self.text = "%s\n%.2f %d%%" % (self.temp, self.freqnow, self.freqnow / self.freqmax * 100)
+                self.update() 
+
+        def paintInterface(self, painter, option, rect):
+                painter.save()
+                painter.setPen(Qt.white)
+                #painter.setFont(QFont('Consolas',11))
+                painter.drawText(rect, Qt.AlignVCenter | Qt.AlignHCenter, self.text)
+                painter.restore()
+
+def CreateApplet(parent):
+                return Cpuinfo(parent)
+
+if __name__ == '__main__':
+        a = Cpuinfo(None)
+        a.init()
+        print a.freqnow</pre>
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/writing-a-kde-plasma-applet/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
+        <a href="/use-kde-42-in-gentoo/">将 gnome 换成 kde 4.2</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2009-01-23T00:00:00.000&#43;00:00' itemprop="datePublished">2009-01-23</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/gentoo">gentoo</a>
+
+<a href="https://wdicc.com//tags/kde">kde</a>
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+
+</div>
+    </div>
+        下面的步骤一定要明白干的是什么再操作，否则后果自负 :)。<br />
+
+1 修改 make.conf 里面的 use 为 kde4 -kde -gnome qt4 -qt3 -avahi -esd 这样。把 gnome 相关的 use 都 - 掉。我还有 -arts，看需要。使用 kde 这个use有时会导致安装 kde3，所以如果要使用最好在 /etc/portage/package.use 里面单独指定。如果不介意 kde + gnome 共存，那么 1,2 不是必须的。<br />
+
+2 emerge -uDN world<br />
+
+3 修改 /etc/portage/package.unmask ,加入 &gt;sys-apps/portage-2.1, unmask portage 2.2 ，2.2 才支持 set<br />
+
+4 layman -a kde-testing<br />
+
+5 emerge -av @kdebase-4.2<br />
+其他想装的东西可以去 /usr/local/portage/layman/kde-testing/sets 里面看。比如 emerge -av @kdepim-4.2，或者装里面的某个包，emerge kde-base/kmail:4.2<br />
+
+6 修改 /var/lib/portage/world ，删掉里面的 gnome 的包，当然不介意 gnome 和 kde 共存的话后面的就不需要做了。<br />
+
+7 emerge --depclean -p 清理 gnome 的包。<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/use-kde-42-in-gentoo/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/perl-cookie/">使用 perl 来登录网页</a>
     </h2>
     <div class="entry-content">
@@ -4710,108 +4864,6 @@ gateway 就是你的 vpn server 的地址，IPSec secret 就是我说的 group p
     
     
     <span class="comments"><a href="/vpnc-howto/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/palm-in-linux/">linux 下面同步 palm 手机</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2008-10-07T00:00:00.000&#43;00:00' itemprop="datePublished">2008-10-07</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/handspring">handspring</a>
-
-<a href="https://wdicc.com//tags/hotsync">hotsync</a>
-
-<a href="https://wdicc.com//tags/jpilot">jpilot</a>
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-<a href="https://wdicc.com//tags/plam">plam</a>
-
-<a href="https://wdicc.com//tags/visor">visor</a>
-
-
-</div>
-    </div>
-        plam 是万能的，呵呵。<br />
-
-主要参考了 gentoo wiki 上面的<a href="http://gentoo-wiki.com/Category:Palm" target="_blank">几篇文章</a>。编译好内核，然后 modprobe visor ，接着按hotsync同步按钮。此时可以看到 dmesg 的输出。<br />
-
-<pre class="prettyprint lang-txt">
-usb 2-2: new full speed USB device using uhci_hcd and address 6
-usb 2-2: configuration #1 chosen from 1 choice
-visor 2-2:1.0: Handspring Visor / Palm OS converter detected
-usb 2-2: Handspring Visor / Palm OS converter now attached to ttyUSB0
-usb 2-2: Handspring Visor / Palm OS converter now attached to ttyUSB1</pre>
-
-然后还需要建立一个 udev 的 rule。
-
-<pre class="prettyprint lang-txt">
-$ cat /etc/udev/rules.d/10-palm.rules 
-# PalmOne Tungsten T3
-BUS=="usb",SYSFS{serial}=="PalmSN12345678", KNERNEL="ttyUSB*",OWNER="root",GROUP="plugdev",MODE="0666",SYMLINK="pilot", RUN="/bin/su - wd -c '/usr/bin/jpilot -s'"
-#BUS="usb", SYSFS{product}="Palm Handheld*", KERNEL="ttyUSB*", MODE="666", SYMLINK="pilot", RUN="/bin/su - wd -c '/usr/bin/jpilot -s'"
-</pre><br />
-
-注意里面那个 serial，如果你不知道你的，或许可以用下面的那个 product。其实也可以查看 /proc/bus/usb/devices 来获取上面那些 serial 或者 product 信息的。仔细找找。另外还需要修改那个 wd 为你自己的用户名。<br />
-
-然后还需要装一个 jpilot 这个软件。需要先设置一下首选项，设置设备是 /dev/ttyUSB1 。以后同步的时候，只需要先启动 jpilot，然后按那个hotsync同步按钮就行了。还可以装软件，呵呵，不过似乎没办法选择装卡上还是手机上，估计都是手机上面了。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/palm-in-linux/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/kill-session-in-oracle/">oracle 里面 kill session</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2008-10-07T00:00:00.000&#43;00:00' itemprop="datePublished">2008-10-07</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-<a href="https://wdicc.com//tags/oracle">oracle</a>
-
-<a href="https://wdicc.com//tags/session">session</a>
-
-
-</div>
-    </div>
-        eygle <a href="http://www.eygle.com/faq/Kill_Session.htm" target="_blank">有篇文章</a>讲了这个，之前也看过。昨天实际操作了一下。<br />
-
-因为如 eygle 所讲，kill 了 session 之后，操作系统里面的进程资源有时候不一定会立即释放，所以最好在 kill 之前就找到系统的进程 id，这样，如果不释放的时候，可以直接kill。省的之后找起来麻烦。<br />
-
-昨天操作的时候有这么几个步骤<br />
-<ol><br />
-	<li>select * from v$session where username like 'UP' --先找到这个用户的 session。</li><br />
-	<li>select * from v$sql a, v$session b where b.username = 'UP' and a.sql_id = b.sql_id --找出来这个用户这些 session 对应的 sql 语句，好确认 session 的 id。</li><br />
-	<li>select * from v$process a, v$session b where a.addr = b.paddr and b.username like 'UP' and b.sid = xxx --找出来他的系统进程id，就是那个 spid。</li><br />
-	<li>ALTER SYSTEM KILL SESSION 'sid, serial#' --可以实施kill了，可能会提示你marked for kill，有必要的话，在os级别kill前面找出来的 spid。</li><br />
-</ol><br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/kill-session-in-oracle/#disqus_thread">Comments</a></span>
     
     
 </div>

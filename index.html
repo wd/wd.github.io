@@ -4221,6 +4221,205 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/emacs-as-react-native-ide/">emacs as react native ide</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2017-07-24T20:02:00.000&#43;08:00' itemprop="datePublished">2017-07-24</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/emacs">emacs</a>
+
+<a href="https://wdicc.com//tags/react">react</a>
+
+
+</div>
+    </div>
+        
+
+<p>最近又在写 <code>react-native</code> 了，对自己的环境又作了一番配置。记录一下。</p>
+
+<h2 id="web-mode">web-mode</h2>
+
+<p>我主要用的 mode 是 web-mode。这个 mode 简直万能，能处理 html，jsx，js 等。具体配置如下。</p>
+
+<pre><code>(use-package web-mode
+  :ensure t
+  :config
+  (add-to-list 'auto-mode-alist '(&quot;\\.html\\'&quot; . web-mode))
+  (add-to-list 'auto-mode-alist '(&quot;\\.js\\'&quot; . web-mode))
+  (add-to-list 'auto-mode-alist '(&quot;\\.ejs\\'&quot; . web-mode))
+  (setq web-mode-markup-indent-offset 4)
+  (setq web-mode-css-indent-offset 4)
+  (setq web-mode-code-indent-offset 4)
+
+  (setq web-mode-content-types-alist
+        '((&quot;jsx&quot; . &quot;.*\\.js\\'&quot;))
+        )
+)
+
+</code></pre>
+
+<p>主要是那个 <code>web-mode-content-types-alist</code> 的配置，让 web-mode 处理 js 文件的时候，把 <code>&lt;&gt;</code> 代码段识别成 jsx。这样能把缩进处理好。</p>
+
+<p>我还试过 rjsx-mode，这个用起来也可以，基于 js2-mdoe，js2-mode 有的一些用法都支持，并且 flycheck 都不用做多余的配置。但是主要问题是，jsx 的代码缩进有问题。</p>
+
+<h2 id="flycheck">flycheck</h2>
+
+<pre><code>(use-package flycheck
+  :ensure t
+  :config
+  (global-flycheck-mode t)
+  (flycheck-add-mode 'javascript-eslint 'web-mode)
+)
+
+</code></pre>
+
+<p>把 web-mode 的 checker 设置为 <code>javascript-eslint</code>，如果你用别的就设置成对应的。配合用的 .eslintrc 文件如下，可以根据自己需求调整。</p>
+
+<pre><code>{
+    &quot;parser&quot;: &quot;babel-eslint&quot;,
+    &quot;env&quot;: {
+        &quot;es6&quot;: true
+    },
+    &quot;parserOptions&quot;: {
+        &quot;ecmaVersion&quot;: 6,
+        &quot;sourceType&quot;: &quot;module&quot;,
+        &quot;ecmaFeatures&quot;: {
+            &quot;jsx&quot;: true
+        }
+    },
+    &quot;plugins&quot;: [
+        &quot;react&quot;
+    ],
+    &quot;globals&quot;: {
+        &quot;require&quot;: false,
+        &quot;module&quot;: false,
+        &quot;setInterval&quot;: false,
+        &quot;clearInterval&quot;: false,
+        &quot;setTimeout&quot;: false,
+        &quot;clearTimeout&quot;: false,
+        &quot;console&quot;: false
+    },
+    &quot;extends&quot;: [
+        &quot;eslint:recommended&quot;,
+        &quot;plugin:react/recommended&quot;
+    ],
+    &quot;rules&quot;: {
+        // overrides
+        &quot;react/prop-types&quot;: 0,
+        &quot;indent&quot;: [&quot;error&quot;, 4],
+        &quot;react/jsx-indent&quot;: [&quot;error&quot;, 4],
+        &quot;no-trailing-spaces&quot;: 2,
+        &quot;no-console&quot;: 0,
+        &quot;comma-dangle&quot;: [&quot;error&quot;, &quot;never&quot;]
+    }
+}
+
+</code></pre>
+
+<h2 id="补全">补全</h2>
+
+<pre><code>(use-package tern
+  :ensure t
+  :config
+  (add-hook 'web-mode-hook (lambda () (tern-mode t)))
+  :bind (:map tern-mode-keymap
+              (&quot;M-*&quot; . tern-pop-find-definition))
+  )
+
+(use-package company-tern
+  :ensure t
+  :config
+  (add-to-list 'company-backends 'company-tern)
+  )
+
+</code></pre>
+
+<p>我用的是 company 后端用的是 tern。.tern-project 的内容如下，可以根据自己的情况调整下。</p>
+
+<pre><code>{
+  &quot;ecmaVersion&quot;: 6,
+  &quot;libs&quot;: [
+    &quot;browser&quot;
+  ],
+  &quot;loadEagerly&quot;: [
+    &quot;Controller/*.js&quot;,
+    &quot;Utility/*.js&quot;,
+    &quot;App.js&quot;
+  ],
+  &quot;dontLoad&quot;: [
+    &quot;node_modules/**&quot;
+  ],
+  &quot;plugins&quot;: {
+    &quot;node&quot;: {},
+    &quot;es_modules&quot;: {},
+    &quot;jsx&quot;: {}
+  }
+}
+
+</code></pre>
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/emacs-as-react-native-ide/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
+        <a href="/django-middleware/">Django middleware</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2017-07-05T18:07:50.000&#43;08:00' itemprop="datePublished">2017-07-05</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/django">django</a>
+
+
+</div>
+    </div>
+        <p>Django 提供了 <a href="https://docs.djangoproject.com/en/1.11/topics/http/middleware/" title="middleware">middleware</a> 来让你 hack Request 和 Response。用的时候有几个问题需要注意一下。</p>
+
+<h1 id="call-方法"><code>__call__</code> 方法</h1>
+
+<p><code>__call__</code> 方法实际上就是最早收到 request 的地方，如果不关心 view，那么就可以在这里做你想要做的事情。比如认证用户啥的。这个实际上应该就是早期的 <code>process_request</code> 。</p>
+
+<h1 id="process-view-方法">process_view 方法</h1>
+
+<p><code>process_view</code> 方法会接收到 view_func 和其参数，如果想要针对这些东西处理，可以在这里动作。比如我们所有 api 请求的 POST 的 body 里面都是固定格式的 json 数据，我就在这里检查了 json 的格式，并把解析结果给到了 view_func。</p>
+
+<p>如果不打算对 view_func 做什么事情，那就最好做完想做的事情，直接返回 <code>None</code> 就可以。否则处理完毕之后，返回一个 response 对象。</p>
+
+<p>要注意的是，这里最好不要产生 exception，产生了会把逻辑跑到 Middleware 的 exception 逻辑里面。所以最好对自己的代码段加上 try-except 逻辑。</p>
+
+<p>另外，这里可以对 view_func 做调用，直接返回 view_func 的结果或者处理之后的结果，只要保证是个 response 对象就可以了。也可以不做调用，返回 <code>None</code> ，后续 django 也会调用。要注意的是，如果你对 view_func 做了调用，那么在捕捉到错误的时候，except 里面应该也需要返回一个 response 对象，不能返回 <code>None</code> 了，否则 djangon 还会再次调用这个 view_func 。</p>
+
+<h1 id="process-exception-方法">process_exception 方法</h1>
+
+<p><code>process_exception</code> 方法是在 view 报错的情况下会调用。我在这里统一返回了 server error 的 json，http 状态是 200 的。</p>
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/django-middleware/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/emacs-as-python-ide/">Emacs as python IDE</a>
     </h2>
     <div class="entry-content">
@@ -4830,106 +5029,6 @@ print(&quot;just a test&quot;)
     
     
     <span class="comments"><a href="/migrate-blog-to-hugo/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/upgrade-kernel-to-4-9-for-linode/">Upgrade kernel to 4.9 for linode</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2017-01-16T18:37:56.000&#43;08:00' itemprop="datePublished">2017-01-16</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/linode">linode</a>
-
-<a href="https://wdicc.com//tags/kernel">kernel</a>
-
-<a href="https://wdicc.com//tags/bbr">bbr</a>
-
-
-</div>
-    </div>
-        <p>bbr 那么牛逼，赶紧赶一个潮流。其实我之前用了 kcp，也是类似的东西，不过那个要求服务器端和客户端都需要跑 kcp 服务才可以。bbr 就不用了，只需要服务器配置好就可以了。</p>
-
-<p>Linode 实际上已经提供了 4.9 的内核。打开 <code>Dashboard</code>，然后点击你使用的 profile 右侧的 edit，在出来的界面里面，Kernel 右侧的列表里面，有个 4.9 的选项，不过我测试这个内核并不能打开 bbr，不知道是怎么回事，有兴趣的可以试试看，要注意选对架构（就是 64 还是 32）。</p>
-
-<p>所以还是需要自己装内核。debian 官方已经打包好了 kernel 4.9，访问 <a href="http://mirrors.kernel.org/debian/pool/main/l/linux/">http://mirrors.kernel.org/debian/pool/main/l/linux/</a> ，然后找到适合自己的 linux-image-4.9，我的是 <a href="http://mirrors.kernel.org/debian/pool/main/l/linux/linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb">http://mirrors.kernel.org/debian/pool/main/l/linux/linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb</a> ，下载到 vps 上面。</p>
-
-<p>然后执行 <code>sudo dkpg -i ./linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb</code>，最后应该会提示一个错误，缺少依赖的包。这个时候执行 <code>sudo apt-get -f install</code>，会提示安装缺失的包。</p>
-
-<p>然后，还需要安装 <code>grub</code>。看你的情况。就刚才 profile 编辑的页面里面，kernel 右侧的选项里面，你看看你的是 <code>grub2</code> 还是 <code>pv-grub</code>。</p>
-
-<ul>
-<li><p><code>grub2</code>: 参考<a href="https://www.linode.com/docs/tools-reference/custom-kernels-distros/run-a-distribution-supplied-kernel-with-kvm">这个</a></p>
-
-<pre><code>$ sudo apt-get install grub2
-$ sudo update-grub
-</code></pre></li>
-
-<li><p><code>pv-grub</code>: 参考<a href="https://www.linode.com/docs/tools-reference/custom-kernels-distros/run-a-distributionsupplied-kernel-with-pvgrub">这个</a></p>
-
-<pre><code>$ sudo apt-get install grub
-$ sudo mkdir /boot/grub
-$ sudo update-grub
-</code></pre></li>
-</ul>
-
-<p>然后在 profile 编辑页面里面，kernel 右侧选择对应的 grub 选项，重启 vps 就可以了。如果启动失败了，就在这个选项里面，选择之前的选项重启就可以恢复。</p>
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/upgrade-kernel-to-4-9-for-linode/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/python-new/">Python __new__</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2017-01-16T15:47:59.000&#43;08:00' itemprop="datePublished">2017-01-16</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/python">python</a>
-
-
-</div>
-    </div>
-        <p>翻译一点 <a href="https://www.python.org/download/releases/2.2/descrintro/#__new__">https://www.python.org/download/releases/2.2/descrintro/#__new__</a> 有些感觉还是挺生硬的，方便自己理解吧。</p>
-
-<p><code>__new__</code> 的一些规则:</p>
-
-<ul>
-<li><code>__new__</code> 是一个静态方法。定义它的时候并不需要执行 <code>__new__ = staticmethod(__new__)</code>，因为它的名字就包含了这个含义（这个对于类构造方法来说是个特殊的函数）</li>
-<li><code>__new__</code> 的第一个参数，必须是一个类，其余的参数是留给构造方法的。</li>
-<li>覆盖了基类的 <code>__new__</code> 方法的类有可能会调用基类的 <code>__new__</code> 方法。传递给基类的 <code>__new__</code> 方法的第一个参数，应该是覆盖基类的 <code>__new__</code> 方法的类，而不是基类，如果传递了基类，你得到的将是基类的示例。</li>
-<li>除非你想要按照后面两条描述的方法来使用，否则 <code>__new__</code> 方法必须要调用基类的 <code>__new__</code> 方法，这个是创建你的对象的实例的唯一方法。子类的 <code>__new__</code> 方法可以从两个方面影响产生的实例：传递不同的参数给基类的 <code>__new__</code>，以及修改基类产生的对象（例如初始化一些实例变量）</li>
-<li><code>__new__</code> 方法必须返回一个对象。并不一定必须返回一个新的对象，虽然通常都那么做。如果你返回一个已经存在的对象，依然会有对于 <code>__init__</code> 构造函数的调用。如果你返回一个其他函数的对象，那个对象的 <code>__init__</code> 也会被调用。如果忘记返回，python 会给你返回 None，你程序的调用方也许会觉得很奇怪。</li>
-<li>对于不可变对象，<code>__new__</code> 可以返回一个之前缓存的对象。对于一些比较小的 int, str, tuple 类型就是这么做的。这也是为什么他们的 <code>__init__</code> 什么都没做：否则之前缓存的对象会被 init 很多次。（另外一个原因是本身页没有东西可以给 <code>__init__</code> 初始化的了，<code>__new__</code> 返回的就是一个已经初始化的对象）。</li>
-<li>如果你想要给一个内置的不可变类型增加一些可变的状态（例如给 string 类型增加一个默认的转换方法），最好是在 <code>__init__</code> 方法里面初始化可变状态，而不要在 <code>__new__</code> 里面。</li>
-<li>如果你想要修改构造方法的签名，一般需要覆盖 <code>__new__</code> 和 <code>__init__</code> 方法来接受心的签名。然而，大部分内置类型都会忽视自己不用的参数，尤其是不可变类型（int，long，float，complex，str，unicode，tuple）都有一个假的 <code>__init__</code>，而可变类型（dict，list，file，super，classmethod，staticmethd，property）有一个假的 <code>__new__</code>。内置类型 <code>object</code> 有假的 <code>__init__</code> 和 <code>__new__</code> （给其他对象继承）。内置类型 <code>type</code> 在很多方面都很特别，请参考 metaclasses。</li>
-<li>（这条和 <code>__new__</code> 没关系，但是页应该了解一下）如果新建一个 <code>type</code> 的子类，实例会自动给 <code>__dict__</code> 和 <code>__weakrefs__</code> 预留空间（ <code>__dict__</code> 在你使用前不会初始化，所以你不需要担心创建的所有实例被一个空的字典所占用的空间）。如果不需要这个多余的空间，可以给你的类设置 <code>__slots__ = []</code>（更多信息可以参考 <code>__slots__</code>。</li>
-<li>Factoid: <code>__new__</code> 是一个静态方法，不是类方法。我开始的时候觉得他应该是一个类方法，and that&rsquo;s why I added the classmethod primitive。不幸的是，对于一个类方法，在这种情况下面 upcalls 不工作，所以我只好把他设计成一个第一个参数是一个 class 的静态方法。讽刺的是，there are now no known uses for class methods in the Python distribution (other than in the test suite). I might even get rid of classmethod in a future release if no good use for it can be found!</li>
-</ul>
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/python-new/#disqus_thread">Comments</a></span>
     
     
 </div>

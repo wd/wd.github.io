@@ -4221,6 +4221,176 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/cmda-1x-in-gentoo-linux/">总算搞定了我的CDMA无线上网卡</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2008-07-26T00:00:00.000&#43;00:00' itemprop="datePublished">2008-07-26</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/cdma">cdma</a>
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+<a href="https://wdicc.com//tags/pccard">pccard</a>
+
+<a href="https://wdicc.com//tags/setserial">setserial</a>
+
+<a href="https://wdicc.com//tags/wvdial">wvdial</a>
+
+
+</div>
+    </div>
+        早先在 Archlinux 的时候，就使用过这块卡。现在换了 gentoo，内核要自己编译，昨天拿回网卡后一直没搞定，今天总算搞定了。<br />
+
+我的是一块品速的 pinsu-100c 网卡，是 pccard（pcmcia）类型的。<br />
+
+如果是大于2.6.13内核的，先安装 sys-apps/pcmciautils 这个包。否则安装 pcmcia-cs 这个包。<br />
+
+内核参数需要设置的有下面几个：<br />
+<pre class="prettyprint lang-text">
+Device Drivers
+ Network device support (NETDEVICES [=y]) 下面的
+  ppp
+   PPP support for async serial ports
+# 如果搞不定可以试试看把别的ppp的也选上
+# 然后是
+Bus options (PCI etc.)
+ PCCard (PCMCIA/CardBus) support
+# 这下面相关的，我选的有 16-bit 那个和 yenta-compatible bridge ，通常就这个
+# 然后是下面这个，对应的模块是 serial_cs，这个会把 pccard 对应到 /dev/ttyS* 这个设备文件
+Device Drivers
+ Character Devices
+  PCMCIA character devices
+# 相关的模块
+pcmcia_core            31892  4 serial_cs,pcmcia,yenta_socket,rsrc_nonstatic
+</pre><br />
+
+搞定这些kernel选项之后，插入 pccard，应该会看到类似下面的信息，我之前因为kernel没有支持最后那个 serial_cs 模块，插入的时候没有最后两行信息。<br />
+
+<pre class="prettyprint lang-text">
+$ dmesg
+pccard: card ejected from slot 1
+pccard: PCMCIA card inserted into slot 1
+pcmcia: registering new device pcmcia1.0
+ttyS1: detected caps 00000700 should be 00000100
+1.0: ttyS1 at I/O 0x2f8 (irq = 18) is a 16C950/954
+
+$ ls -alh /dev/ttyS1
+crw-rw---- 1 root uucp 4, 65 07-26 22:28 /dev/ttyS1
+
+# 要注意那个时间，应该是你插入的时间，否则就有问题了。
+</pre><br />
+
+好了，设备识别出来了。那再安装 net-dialup/wvdial 这个包，用来拨号的。如果是 gnome 环境，也可以安装 net-dialup/gnome-ppp ，他会关联安装 wvdial，这个是 gui 的，可能更友好一点。<br />
+
+同时还需要安装一个叫做 sys-apps/setserial 的包，用来给 ttyS1 设备设置比特率，不太清楚为什么需要设置。用命令 sudo setserial /dev/ttyS1 baud_base 230400 ，要注意那个 230400，我从网上搜到的说网卡支持最高的比特率是这个，所以设置了这个，设置别得行不行，没试过。<br />
+
+然后呢，还需要有一个 /etc/wvdial.conf 文件。<br />
+<pre class="prettyprint lang-text">
+[Modem0]
+  Modem = /dev/ttyS1
+  Baud = 57600
+  SetVolume = 0
+  Dial Command = ATDT
+  Init1 = ATZ
+  FlowControl = Hardware (CRTSCTS)
+[Dialer Defaults]
+  Username = CARD
+  Password = CARD
+  Phone = #777
+  Stupid Mode = 1
+  Inherits = Modem0
+</pre><br />
+
+从网上搜到的，照抄就行了。关键是那个 /dev/ttyS1 ，和那个 Baud。一个对应你的设备，一个是比特率。我不太清楚为什么和上面设置的那个比特率不一样，不过我使用 minicom 测试的，只有这个比特率能 work。但是或许你那的情况会不一样，可以使用 minicom 来测试，minicom 里面设置了比特率之后，可以多输入几个 AT 回车看看有没有返回 OK，返回就能工作。<br />
+
+这样就一切ok了，sudo wvdial 就可以拨号了。<br />
+<pre class="prettyprint lang-text">
+$ sudo wvdial
+--> WvDial: Internet dialer version 1.60
+--> Initializing modem.
+--> Sending: ATZ
+OK
+--> Modem initialized.
+--> Sending: ATDT#777
+--> Waiting for carrier.
+CONNECT
+--> Carrier detected.  Starting PPP immediately.
+--> Starting pppd at Sat Jul 26 22:15:52 2008
+--> Pid of pppd: 11766
+--> Using interface ppp0
+--> pppd: ��[06][08]��[06][08][08]�[06][08]
+--> pppd: ��[06][08]��[06][08][08]�[06][08]
+--> pppd: ��[06][08]��[06][08][08]�[06][08]
+--> pppd: ��[06][08]��[06][08][08]�[06][08]
+--> pppd: ��[06][08]��[06][08][08]�[06][08]
+--> local  IP address 211.145.60.183
+--> pppd: ��[06][08]��[06][08][08]�[06][08]
+--> remote IP address 220.192.0.22
+--> pppd: ��[06][08]��[06][08][08]�[06][08]
+--> primary   DNS address 220.192.0.130
+--> pppd: ��[06][08]��[06][08][08]�[06][08]
+--> secondary DNS address 220.192.8.58
+--> pppd: ��[06][08]��[06][08][08]�[06][08]
+</pre><br />
+
+最主要那个 ATZ 发送之后，要返回一个 OK，如果没有，那就是表示没 work，继续搞吧，设备文件没问题的话，一般就出在比特率上面了，结合 setserial 和 minicom 多修改几个看看。<br />
+
+gnome-ppp 使用很简单了，自己琢磨吧。<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/cmda-1x-in-gentoo-linux/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
+        <a href="/kong-fu-panda/">昨天去看了《功夫熊猫》</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2008-07-06T00:00:00.000&#43;00:00' itemprop="datePublished">2008-07-06</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/heart">heart</a>
+
+<a href="https://wdicc.com//tags/movie">movie</a>
+
+<a href="https://wdicc.com//tags/panda">panda</a>
+
+
+</div>
+    </div>
+        浦发的电影票好久没定上了，所以熊猫出来好久了也没去看。<br />
+
+<img src="http://pic.yupoo.com/wdicc/655915d3eac1/aafljbo3.jpg" alt="功夫熊猫" width="500" height="500" /><br />
+
+片子还是不错的，“Mr 乌龟”的这种叫法不知道是怎么搞出来的，呵呵。<br />
+
+这里有不少预告片，可以去看看。 http://www.mtime.com/movie/44740/trailer.html<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/kong-fu-panda/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/howto-reset-ati-fglrx-settings/">万恶的 ATI fglrx 驱动</a>
     </h2>
     <div class="entry-content">
@@ -4614,81 +4784,6 @@ CONFIG_INITRAMFS_SOURCE="/usr/share/v86d/initramfs"</pre>
     
     
     <span class="comments"><a href="/new-blog-space/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/test-emacs-post/">Test emacs post</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2008-04-07T00:00:00.000&#43;00:00' itemprop="datePublished">2008-04-07</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-
-</div>
-    </div>
-        Just for a test..<br />
-
-&amp;amp;lt;strong&amp;amp;gt;Strong text&amp;amp;lt;/strong&amp;amp;gt;<br />
-
-Seemes not support post slug to..<br />
-
-So, just post it.<br />
-
-&lt;pre lang='perl'&gt;<br />
-use strict;<br />
-my $test;<br />
-&lt;/pre&gt;<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/test-emacs-post/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/usb-automount-in-gnome/">gnome 里面的 usb automount 终于好了</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2008-04-05T00:00:00.000&#43;00:00' itemprop="datePublished">2008-04-05</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/gnome">gnome</a>
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-<a href="https://wdicc.com//tags/usb">usb</a>
-
-
-</div>
-    </div>
-        升级到 gnome 2.22 之后，发现 usb 不自动mount了，归罪于gnome 2.22。但是刚才尝试手动mount的时候才发现，根本没有 /dev/sdx 设备，靠。想起来我好像把 scsi 相关的 kernel 选项都关掉了，nnd。重新编译内核之后，啥问题都没了。。。<br />
-
-就连之前 分区不显示在桌面上面 的问题都好了，ft，和scsi有关系？<br />
-
-gnome 下面有 gnome-volume-manager &amp; gnome-mount &amp; gnome-vfs 和自动挂载相关。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/usb-automount-in-gnome/#disqus_thread">Comments</a></span>
     
     
 </div>

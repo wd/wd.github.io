@@ -4221,6 +4221,109 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/built-in-sharding-in-postgresql/">Built in sharding in PostgreSQL</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2016-12-07T16:54:59.000&#43;08:00' itemprop="datePublished">2016-12-07</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/postgresql">postgresql</a>
+
+
+</div>
+    </div>
+        
+
+<p>PostgreSQL 内建 sharding 支持，粗略翻译自 <a href="https://wiki.postgresql.org/wiki/Built-in_Sharding">https://wiki.postgresql.org/wiki/Built-in_Sharding</a></p>
+
+<h2 id="introduction">Introduction</h2>
+
+<p>内建支持 sharding 最大的挑战是，如何用最小的代码修改实现。大部分社区的 sharding 修改支持都修改了很多 PostgreSQL 的代码，这也导致这些不能被 Postgres 社区那些不需要 sharding 的人接受。有了 FDW 之后，就有了在有限代码修改情况下实现内建 sharding 支持的可能。</p>
+
+<p>基于 FDW 的这种 sharding 设计，是基于 NTT 开发的 Postgres-XC，大概已经有 10 年了。Postgres-XL 是基于这个设计的一种更加灵活的实现。</p>
+
+<h2 id="enhance-existing-features">Enhance Existing Features</h2>
+
+<ul>
+<li>已完成？提升 FDW 的基础设计和 postgres_fdw。特别的，好的性能要求合理的把一些操作推送到子节点(foreign shards)。在 Postgres 9.6 中，join, sort, update, delete 都可以推送到字节点了。聚合的 pushdown 将在 Postgres 10 中支持。FDW 表已经可以作为继承表出现。</li>
+<li>提升分区支持有效提升 existence of shards。幸运的是，单节点的分区支持也需要重构才能提升性能和更多优化。例如，executor-based partition pruning.</li>
+<li>给 FDW 请求增加并行支持。这样能允许节点并行执行，这个可能会通过多个异步的链接来实现。</li>
+</ul>
+
+<h2 id="new-subsystems">New Subsystems</h2>
+
+<p>还需要开发一些子系统：
+* 允许表可以复制到所有节点，以允许更多的 join pushdown。这个可以通过 trigger 或者逻辑复制来完成。
+* 实现一个子模块，以使用新的分区系统表来提交符合提交的查询的 FDW 查询。
+* 实现一个子模块收集 FDW 查询的结果返回给用户。
+* 实现全局事务管理器以便更加高效的允许子节点原子的提交事务。这个可能会通过 prepared 的事务来实现，还有某种在 crash 之后清理那些 preapared 的事务的事务管理器。例如 XA。
+* 实现全局快照管理器，以允许子节点可以看到一致性的快照。（是不是 serialisable 事务模式会避免跨节点快照冲突？pg_export_snapshot() 或者 hot_standby_feedback 是不是会有帮助？) 多节点的备份的一致性也需要这个支持。
+* 实现支持 create, manage, report on shards 这些用户 API。</p>
+
+<h2 id="use-cases">Use Cases</h2>
+
+<p>有四种可能的用户案例和不同的需求:
+* 跨节点在只读节点上面执行只读聚合查询，例如数据仓库
+  这种是最简单的场景，不需要全局事务管理，全局快照管理，并且因为聚合，所以子节点返回的数据量也是最小的。
+* 跨节点在只读节点上面执行只读非聚合查询
+  这种会给调度节点压力，需要收集和处理很多子节点返回的数据。这种也能看到 FDW 传输机制等级。
+* 跨节点在可读写节点执行只读查询
+  这个需要全局快照管理来保证子节点返回数据的一致性
+* 跨节点执行读写查询
+  这个需要全局快照管理器和全局事务管理器</p>
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/built-in-sharding-in-postgresql/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
+        <a href="/registration-about-google-voice/">申请 google voice</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2016-11-14T16:02:30.000&#43;08:00' itemprop="datePublished">2016-11-14</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/google">google</a>
+
+
+</div>
+    </div>
+        <p>昨天晚上突然想申请一个 google voice 帐号。有了之后就可以作为国外的号码使用了，可以打电话收短信，想想好像还有点用。比如我就可以用他注册一个微博帐号用来关联一些无聊的服务了。。。</p>
+
+<p>申请的过程网上很多，不细说了。主要注意下面几点。</p>
+
+<ol>
+<li>需要美国 ip 打开 <a href="https://www.google.com/voice">https://www.google.com/voice</a> ，否则会跳转到一个帮助页面。这个从网上搜一些免费的代理就可以了。我是搜索到了一些 ss 帐号，然后配合 surge 来做的。</li>
+<li>需要一个能接电话的美国号码来接受 google voice 的验证电话。这个我是通过 <a href="http://textnow.com">http://textnow.com</a> 来做的。登录 textnow.com 注册一个免费的帐号，其中有一步是需要输入一个美国区号，这个要注意，我第一次注册的时候，输入的是 213 (洛杉矶地区的)，然后就不行，后来又申请了一个 517 的就可以。所以最好搜索一下别人申请成功的区号有哪些，另外还好就是只要有不同的邮箱，就可以多次注册来换号码，如果遇到不行的，可以换个邮箱重新注册一下。</li>
+<li>在 google voice 里面填入电话之后。google voice 会打电话给那个号码。我用 textnow 的 ios 客户端接的电话（建议不要用他们的 web，他们的 web 必须要你的浏览器支持 flash 才行，很恶心），我遇到的情况下，前几次接到的电话没有对方的声音，自己尝试直接输入号码也不行。后来多试几次就好了。</li>
+<li>后面就是选号了。选好号码之后，点提交一般都会遇到一个错误，「There was an error with your request. Please try again」, 遇到这个是正常的。需要你多次点击那个按钮提交，有人用按键精灵点了几个小时搞定了。我这是打开 chrome 的 dev tools，然后看 network 里面发的请求，每次点击都会有一个 post 请求，在上面按右键，选择 「copy as curl」，然后在命令行写一个简单的程序，<code>while true; do 这里把复制的内容贴过来 ;sleep 1.5s; done</code>，复制到命令行，不停的重试就可以了，直到收到邮件说你的号码开通了。要注意的是命令行也得设置代理，一般是通过 export。</li>
+</ol>
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/registration-about-google-voice/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/new-and-old/">新与旧</a>
     </h2>
     <div class="entry-content">
@@ -5058,215 +5161,6 @@ X-Pad: avoid browser bug
     
     
     <span class="comments"><a href="/how-to-create-a-blog-with-https-for-free/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/custom-netgear-r6300v2-wireless-router/">Custom Netgear r6300v2 wireless router</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2016-03-27T11:50:38.000&#43;08:00' itemprop="datePublished">2016-03-27</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-<a href="https://wdicc.com//tags/router">router</a>
-
-<a href="https://wdicc.com//tags/gfw">gfw</a>
-
-
-</div>
-    </div>
-        <p>接 <a href="/Across-the-Great-Wall-we-can-reach-every-corner-in-the-world">科学上网</a>。买了群晖之后，一直通过群晖上面跑一个 haproxy 来做转发。不过心里总觉得有点不爽，毕竟一方面多转发了一次，另外群晖在不使用的时候，还会休眠，又或多或少担心影响休眠（经过测试应该是不影响的，但是..）。所以买了 r6300v2 之后，就琢磨通过路由器做这个事情。</p>
-
-<p>路由器上面搞就有两个选择，一是从 iptables 入手，直接转发出去，另外一个是从软件层面做。</p>
-
-<p>开始搞了几天的 iptables，发现原有系统 iptables 条目还是挺多的，加上路由器翻墙的功能也需要加一些条目，导致尝试了好几天之后总算能够转发过去链接了，但是数据包过不去，为了调试就开始打算在路由器安装 tcpdump。然后找到了 <a href="https://github.com/Entware/entware">https://github.com/Entware/entware</a> ，配置好之后可以使用 opkg 来安装包。包列表可以参考这里 <a href="http://pkg.entware.net/binaries/armv7/Packages.html">http://pkg.entware.net/binaries/armv7/Packages.html</a> ，这个路由器是 armv7 版本的 cpu。</p>
-
-<p>安装 opkg 之前先得了解下，梅林固件分两部分存储，一部分是系统区，一部分是自定义区。系统区应该是你刷的固件所在的地方，是不能修改的，自定义区是可以存放一些自己定义的脚本的。每次系统启动的时候，你的一些自定义的东西都是存在自定义区加载的。自定义区就是 /jffs 分区。想要使用，得在 系统管理 -&gt; 系统设置 里面，打开 JFFS 的配置，允许执行上面的脚本。</p>
-
-<p>因为系统自带的 /jffs 分区只有 60M 左右，而我们装包的时候很容易就超过这个限制了，我现在已经用了 8xM 空间。所以最好还是用一个 u 盘来做这个事情。每次想要自动加载 u 盘，启动 u 盘里面的程序的话，还需要一些自定义的脚本来做这个事情。</p>
-
-<p>先把 opkg 配置好，需要先准备好 /opt 目录。</p>
-
-<pre><code>mkdir -p /tmp/opt
-mount -t ext4 -o rw,noatime /dev/sda1 /opt
-</code></pre>
-
-<p>上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</p>
-
-<p>然后参考 <a href="https://github.com/Entware/entware">https://github.com/Entware/entware</a> 操作就可以了，可以看到他会在 /opt 给你安装一陀东西。因为这个是 u 盘，所以东西重启也不会丢失。</p>
-
-<p>然后参考<a href="https://github.com/RMerl/asuswrt-merlin/wiki/User-scripts">梅林的 wiki</a>，它允许用户在 <code>/jffs/scripts</code> 自定义一些启动脚本，来支持我们自动挂载和启动 u 盘上面的程序。</p>
-
-<p>post-mount 内容如下，前面几个注释的是调试用的。最后一个 if 里面内容是执行一些 opkg 安装的程序的启动脚本，这个后面说。</p>
-
-<pre><code>#!/bin/sh
-
-#echo $(date) &gt; /tmp/000service-start
-#echo &quot;$1&quot; &gt;&gt; /tmp/000service-start
-#ls /dev/sda* &gt;&gt; /tmp/000service-start
-
-if [ -b /dev/sda1 ];then
-        mkdir -p /tmp/opt
-        mount -t ext4 -o rw,noatime /dev/sda1 /opt
-fi
-
-if [ -x /opt/bin/opkg ];then
-        /opt/etc/init.d/rc.unslung start
-fi
-</code></pre>
-
-<p>要记得 <code>sudo chmod +x post-mount</code>，然后可以重启路由器看看是不是启动之后就能看到 /opt 有了你上次安装的程序了。</p>
-
-<p>上面一阶段搞定之后，就可以装一些软件了，比如我装了 vim, tcpdump，bind-dig, haproxy。opkg 的命令使用可以参考这里 <a href="https://wiki.openwrt.org/doc/techref/opkg">https://wiki.openwrt.org/doc/techref/opkg</a> 。</p>
-
-<p>接着上面的话题，本来打算装好 tcpdump 来调试的，然后发现可以比较方便的启动 haproxy 之后，就打算用 haproxy 弄了，路由表太多，分析比较麻烦，还是走简单的吧。。</p>
-
-<p><code>/opt/etc/haproxy.cfg</code> 如下，把 IP 和 PORT 改成你自己的。</p>
-
-<pre><code>global
-        ulimit-n  331071
-
-defaults
-        log global
-        mode    tcp
-        option  dontlognull
-        timeout connect 1000
-        timeout client 150000
-        timeout server 150000
-
-frontend ss-in
-        bind *:本机PORT
-        default_backend ss-out
-
-backend ss-out
-        server server1 IP:远端PORT maxconn 20480
-</code></pre>
-
-<p><code>/opt/etc/init.d/S001haproxy.sh</code> 如下，<code>sudo chmod +x /etc/init.d/S001haproxy.sh</code></p>
-
-<pre><code>#!/bin/sh
-
-haproxy_bin=/opt/sbin/haproxy
-haproxy_cfg=/opt/etc/haproxy.cfg
-pid=/opt/var/run/haproxy.pid
-
-action=$1
-
-if [ -z &quot;$action&quot; ];then
-        printf &quot;Usage: $0 {start|stop|restart}\n&quot; &gt;&amp;2
-        exit 1
-fi
-
-case &quot;$action&quot; in
-        start)
-                $haproxy_bin -f $haproxy_cfg -p $pid -D
-                ;;
-        stop)
-                kill $(cat $pid)
-                ;;
-        restart)
-                kill $(cat $pid)
-                $haproxy_bin -f $haproxy_cfg -p $pid -D
-                ;;
-esac
-</code></pre>
-
-<p>因为前面在 post-mount 最后一个 if 里面的语句，这样启动路由器就会自动启动 haproxy 了。</p>
-
-<p>想使用这个端口转发，还需要在路由器配置界面里面增加一个到路由器 ip 的映射，然后还需要一个 <code>/jffs/scripts/firewall-start</code> 如下</p>
-
-<pre><code>#!/bin/sh
-
-iptables -I INPUT -i ppp0 -p tcp --destination-port PORT -j ACCEPT
-</code></pre>
-
-<p>我使用的过程中还发现一个问题，pkg.entware.net 貌似被墙了。。虽然配置了翻墙但是不太明白为什么路由器上面时好时坏，而我局域网内的 mac 访问总是 ok 的，很奇怪。路由器上面不能访问有个办法是通过 mac 代理一下。</p>
-
-<p>mac 上面启动一个 ngx，配置如下，使用 nginx -p ./ -c nginx.conf 启动。</p>
-
-<pre><code>events {
-  worker_connections 1024;
-}
-
-
-http {
-  server {
-      listen 0.0.0.0:8000;
-      location / {
-           proxy_pass http://pkg.entware.net;
-      }
-  }
-}
-</code></pre>
-
-<p>然后修改路由器上面 /opt/etc/opkg.conf <code>src/gz packages http://MAC_IP:8000/binaries/armv7</code>，然后就可以了。</p>
-
-<p>写完自己看发现这不是一份操作指南，只能算是一些提示，如果有人照着做能不能成功可能还是得看自己。。。</p>
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/custom-netgear-r6300v2-wireless-router/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/lua-metatable/">lua metatable</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2016-03-27T10:48:26.000&#43;08:00' itemprop="datePublished">2016-03-27</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/lua">lua</a>
-
-
-</div>
-    </div>
-        <pre><code>t = setmetatable({ bar = 4, foo = 7 }, { __index = { foo = 3 } })
-
-print(t.foo)  -- 7
-print(t.bar)  -- 4
-
-t = setmetatable({  }, { __index = { foo = 3} })
-
-print(t.foo)  -- 3
-print(t.bar)  -- nil
-
-fuc = function (t,k)
-    if k == 'foo' then
-        return rawget(t, 'bar')
-    else
-        return 0
-    end
-end
-
-t = setmetatable({   }, { __index = fuc })
-
-print(t.foo)  -- 3
-print(t.bar)  -- nil
-print(t.ff)
-</code></pre>
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/lua-metatable/#disqus_thread">Comments</a></span>
     
     
 </div>

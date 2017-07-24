@@ -4221,6 +4221,83 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/ip_conntrack-table-full/">ip_conntrack: table full</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-11-04T00:00:00.000&#43;00:00' itemprop="datePublished">2006-11-04</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/cacti">cacti</a>
+
+<a href="https://wdicc.com//tags/ip_conntrack">ip_conntrack</a>
+
+<a href="https://wdicc.com//tags/other">other</a>
+
+
+</div>
+    </div>
+        今天值班的时候发现网络不稳定，ping sina 50%以上的丢包率，ping 网关也差不多，所以服务器都开始报警了。一遍骂这个<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/ip_conntrack-table-full/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
+        <a href="/problem-in-cacti/">还是cacti的问题</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-11-04T00:00:00.000&#43;00:00' itemprop="datePublished">2006-11-04</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/cacti">cacti</a>
+
+<a href="https://wdicc.com//tags/cactid">cactid</a>
+
+<a href="https://wdicc.com//tags/other">other</a>
+
+<a href="https://wdicc.com//tags/upgrade">upgrade</a>
+
+
+</div>
+    </div>
+        前面那个帖子似乎没有解决问题，查看了一下log，有些异常：<br />
+cactid ERROR: SNMP timeout detected [500 milliseconds]<br />
+搜了一下，找到一个<a target="_blank" href="http://forums.cacti.net/about5487.html">文章</a>，似乎说升级就ok了，可是那个日期是2005年的，我的应该没那么老吧。不过还是上cacti的<a target="_blank" href="http://cacti.net/">主页</a>看了看，看到cacti和cactid都升级了，就打算升级一下看看。debian上面怎么玩呢？cacti还好说，之前升级过一次，不需要编译，直接按照<a target="_blank" href="http://www.cacti.net/downloads/docs/html/upgrade.html">文档</a>升级就好，cactid可得编译，我也不打算直接覆盖安装（其实真这么装没准还简单了），还是做一个deb包吧，一直没有体验过deb如何做，刚好机会来了。<br />
+
+搜了半天，找到一个<a target="_blank" href="http://debian.linuxsir.org/doc/inthedebianway/debian_build_package.html">文档</a>，按照里面的步骤，下载了diff、dsc等文件， 解压之后修改control文件和一些depands，然后编译打包，好像没什么问题，试着装了一下，装上了，运行了一下，好像也没问题，呵呵，就这么搞定了。<br />
+
+之后按照同样的步骤搞cacti，结果安装打包的文件后，出问题了，呵呵。不过还好，东弄西弄，总算还是弄好了。按照cacti的文档手动升级了一下，也没遇到问题。不过plugin-arch也需要同时升级一下。还有poller.php和cmd.php都需要加执行权限。<br />
+
+cactid i这个版本似乎执行的时候输出没有g那么多了，很好，要不然log会搞的很大。cmd.php的输出倒是没多少内容，不过没有cactid的多线程爽亚，呵呵。执行cactid之后，会发现还有些问题:<br />
+Host[6] DS[46] WARNING: Result from SNMP not valid. Partial Result: ...<br />
+
+搜了一下，找到一个<a href="http://forums.cacti.net/post-63188.html">文章</a>， 里面说到了问题的所在。我这里是因为一些有问题的data souce导致，比如这些本来就获取不到数据、或者之前的设备比如网卡现在没有了等等，都会导致cactid获取不到需要的数据，就会提示那个错误。按照里面提示的DS[46]，在http://your_ip/cacti/data_sources.php?action=ds_edit&id=num这个链接的num那里直接输入数字就能知道是哪个ds出问题了，删掉或者更新就ok了。<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/problem-in-cacti/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/2-problems-in-mutt/">mutt的两个问题以及解决办法</a>
     </h2>
     <div class="entry-content">
@@ -4523,98 +4600,6 @@ jdk会按照如下顺序查找相应的字体设置文件。<br />
     
     
     <span class="comments"><a href="/seems-nonething/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/public-key-in-ssh/">使用公匙密匙来登录ssh</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-09-26T00:00:00.000&#43;00:00' itemprop="datePublished">2006-09-26</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/other">other</a>
-
-<a href="https://wdicc.com//tags/ssh">ssh</a>
-
-<a href="https://wdicc.com//tags/urxvt">urxvt</a>
-
-<a href="https://wdicc.com//tags/%E5%85%AC%E5%8C%99">公匙</a>
-
-<a href="https://wdicc.com//tags/%E5%AF%86%E5%8C%99">密匙</a>
-
-
-</div>
-    </div>
-        ssh一种更加安全的登录方式是使用rsa/dsa方式来做验证。密码口令很可能被猜出来，但是用dsa方式验证的ssh，除非他弄到你的私匙，否则肯定是安全的。<br />
-
-ssh-keygen命令可以用来生成rsa/dsa方式的公匙密匙。<br />
-ssh-keygen或者ssh-keygen -t rsa生成rsa方式的密匙。ssh-keygen -d 或者 ssh-keygen -t dsa生成dsa方式的密匙。具体rsa和dsa的区别看 <a href="http://www-128.ibm.com/developerworks/cn/linux/security/openssh/part1/index.html">这里</a> 。<br />
-
-上面的命令会在~/.ssh文件夹中生成公匙（id_*sa.pub）和密匙（id_*sa），将pub文件中的内容copy到远程服务器你的home目录下面的.ssh目录中的authorized_keys[2]这个文件中，有没有最后的那个2要看你用的是ssh1还是ssh2方式，通常都有2。<br />
-
-然后就是远程服务器的这些文件需要有正确的权限，.ssh目录是700，authorized_keys2文件是644。<br />
-
-此后再登录服务器的时候应该就不需要输入密码了。<br />
-
-有一个小tip，就是给服务器的ip设置一个好记的形式，那么多的ip记住不容易阿，而且每次还得一个一个输入。具体方法就是修改hosts文件，添加类似下面的内容就可以了，相当于自己做了一个dns，呵呵。<br />
-#销售server<br />
-218.x.2.128 s128 xs xiaoshou<br />
-#db server<br />
-218.x.23.189 s189 db oracle<br />
-这样，以后访问s128或者s189就可以了，当然后面的xs、xiaoshou、db、oracle也都是别名，都可以用来访问。<br />
-
-还有一个tip，是关于term的。如果用的是urxvt，访问的远程服务器的时候可能会遇到“unknow terminal : rxvt-unicode” 类似的错误，如果出现了类似错误，会导致在服务器端vim和ls都没有颜色。解决方法是在.Xdefaults文件中添加URxvt.termName: xterm，或者.bash_profile里面自己设置一下TERM类型。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/public-key-in-ssh/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/live-in-new-house/">入住新房</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-09-21T00:00:00.000&#43;00:00' itemprop="datePublished">2006-09-21</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/heart">heart</a>
-
-<a href="https://wdicc.com//tags/newhouse">newhouse</a>
-
-
-</div>
-    </div>
-        不管怎么说，昨天住进去了。再也不关心房价了，再也不用和房东打交到了。<br />
-
-这几次找的搬家公司都挺便宜的，第一次从春园搬到秀园，几步路的距离吧，花了100，问别的公司可都开口150起呢。第二次从青塔到国美第一城，距离好远，从西四环外，搬到东四环外。这次花费200。第三次就是从国美第一城搬到了现在的万象新天，10几分钟车程吧，花费160。<br />
-
-昨天晚上回去买了托把，垃圾桶。粗略收拾了一下卧室，并且把冰箱、微波炉都擦干净了。现在东西还有很多没收拾，都再客厅里面，不过还好客厅够大，呵呵。<br />
-
-现在最紧要的是购买衣柜、纱窗、窗帘。昨天去小区里面的一个商家问了问，价格不便宜。纱窗三个窗口需要1200，窗帘1米78，衣柜做好了可能需要3k。纱窗那个就不用说了，实在太黑了，要价上面给打了8折还那么贵，我说我装个新的门也够了。窗帘我们问了附近的批发市场里面的，最贵的也就40一米。衣柜的话价格倒差不多，他这个是定做，样式都可以自己设计。<br />
-
-昨天晚上蚊子还真不少，翻了半天也没有翻到蚊香，不过我晚上好像没怎么被咬，不知道cc如何，呵呵。不是说高层没有蚊子么？蚊子怎么飞上来的啊？他们还真不嫌累。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/live-in-new-house/#disqus_thread">Comments</a></span>
     
     
 </div>
