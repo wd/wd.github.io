@@ -4221,6 +4221,44 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/use-rsa-and-dsa/">使用ssh的rsa和dsa验证登陆linux</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-04-24T00:00:00.000&#43;00:00' itemprop="datePublished">2006-04-24</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/other">other</a>
+
+<a href="https://wdicc.com//tags/ssh">ssh</a>
+
+
+</div>
+    </div>
+        参考地址：http://www.5ilinux.com/ssh01.html<br />
+
+按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。<br />
+
+用putty使用这个密匙的时候就出问题了，验证不了。<br />
+
+然后用putty生成公匙密匙，上传公匙，验证不了。<br />
+
+后来用openssh自带的ssh-keygen生成了公匙密匙，然后用putty的keygen转换了一下，用putty登陆就可以了。<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/use-rsa-and-dsa/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/limite-ssh-access-ip/">限制ssh访问的ip</a>
     </h2>
     <div class="entry-content">
@@ -4655,38 +4693,6 @@ Splunk是个商业的日志分析软件，运行于Unix环境，可以支持任�
     
     
     <span class="comments"><a href="/qmail-queue/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/how-mail-from-a-to-b/">邮件如何从A点到达B点zz</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-03-30T00:00:00.000&#43;00:00' itemprop="datePublished">2006-03-30</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/mail">Mail</a>
-
-
-</div>
-    </div>
-        <p>当一个主机上的用户想要发送一个邮件给另一个主机上的用户时, 许多事情发生了, 这个场景后面的东西很多是不必要知道的那么确切的. </p>  <p>假设一个用户 Alice, alice@alpha.example.com 想要发送一个邮件给 Bob, bob@beta.example.com,     下面是发送接收过程: </p>  <p>1. Alice 用她的邮件用户代理(MUA)编写邮件, 比如使用 mutt 或者 pine. 她在 To 这一栏指定接收者, Subject 这一栏填写邮件主题,     加上邮件本身的文本部分. 整个邮件看起来是下面这样的: </p><pre>    To: bob@beta<br />
-    Subject: lunch<br />
-
-    How about pizza?<br />
-</pre>  <p>2. 当她觉得这封邮件已经满意之后, 她指派 MUA 发送邮件. </p>  <p>3. 这时候, MUA 会加上附加的邮件头部分, 比如日期 Date 和邮件ID(Message-Id) 并且修改Alice输入的值(例如, 将 bob@beta     替换为"Bob &lt;bob@beta.example.com&gt;") 下一步, MUA 将邮件注入邮件系统. 有两种方式进行注入:     MUA 运行一个由邮件系统提供的为注入邮件为目的的程序; 或者使用SMTP协议和本地或者远程邮件服务器建立连接, 举个例子, 我们假定 MUA 使用本地注入程序将邮件传送给     MTA, 对于不同的MTA, 注入细节都是不同的, 不过对于UNIX系统, 使用sendmail 程序注入已经成了事实上的标准. 使用这种方式, MUA     可以将邮件头和邮件主体放置在一个文件内, 由空行分隔, 然后传递这个文件到 sendmail 程序. </p>  <p>4. 如果注入成功--邮件句法正确, 并且 sendmail 调用适当--那么现在邮件已经在 MTA 的职责内了. 不同的 MTA 细节是完全不同的,     通常MTA首先检查邮件头决定邮件将发往何处. 然后建立一个到主机beta的SMTP连接, 转发邮件给 beta 系统上的MTA. SMTP对话要求邮件被分成两部分发送:     信封, 这个部分确定了接收者的地址(bob@beta.example.com)和返回地址(alice@alpha.example.com), 以及邮件本身,     包括邮件头和邮件主体. </p>  <p>5. 如果beta主机的MTA拒绝这个邮件, 可能原因是在beta系统上没有这个bob用户, 在alpha 上的MTA发送一个反弹邮件给返回地址, 也就是     alice@alpha, 通知她邮件发送出现了问题. </p>  <p>6. 如果 beta主机上的 MTA接收了邮件, 它查看接收者地址, 决定是发送给本地local 还是远程 remote系统的邮件. 这个例子里面,     接收者是本地用户, 然后MTA或者传送邮件给 mail delivery agent (MDA), 比如 /bin/mail或者传送给 procmail.   </p>  <p>7. 如果传输失败了, 可能是Bob的邮箱超过了使用限额, beta 主机上的 MTA 将发送一个反弹信息给信封上的返回地址, 即 alice@alpha.   </p>  <p>8. 如果传输成功, 邮件将在Bob的邮箱中等待, 直到他使用MUA来阅读和显示邮件. </p><br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/how-mail-from-a-to-b/#disqus_thread">Comments</a></span>
     
     
 </div>

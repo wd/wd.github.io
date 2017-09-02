@@ -6,10 +6,23 @@
     <description>Recent content on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 24 Jul 2017 20:02:00 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 02 Sep 2017 18:22:47 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Add float debug button for react native</title>
+      <link>https://wdicc.com/add-float-debug-button-for-react-native/</link>
+      <pubDate>Sat, 02 Sep 2017 18:22:47 +0800</pubDate>
+      
+      <guid>https://wdicc.com/add-float-debug-button-for-react-native/</guid>
+      <description>React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候并不是一个好的操作，比如是个 pad，或者比如你自己的设备本身会触发晃动动作。那么如何在开发模式下面增加一个按钮打开这个菜单呢？可惜官方对这个功能没有兴趣多做开发 https://github.com/facebook/react-native/issues/10191 。
+iOS ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。
+import {NativeModules} from &#39;react-native&#39;; // 在某个按钮的动作里面 const {DevMenu} = NativeModules; DevMenu.show();  Android iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法，得自己通过 native 代码加。
+下面两种方式加的都是 android.support.design.widget.FloatingActionButton 按钮，其它的类似。需要增加好编译依赖 compile &#39;com.android.support:design:23.0.0&#39;，版本号按照自己的修改下。
+ private void addDevButton() { MainApplication application = (MainApplication) getApplication(); ReactNativeHost reactNativeHost = application.getReactNativeHost(); ReactInstanceManager reactInstanceManager = reactNativeHost.getReactInstanceManager(); final DevSupportManager devSupportManager = reactInstanceManager.getDevSupportManager(); // 这里是增加一个自定义菜单 // devSupportManager.addCustomDevOption(&amp;quot;Custom dev option&amp;quot;, new DevOptionHandler() { // @Override // public void onOptionSelected() { // Toast.</description>
+    </item>
     
     <item>
       <title>Emacs as react native ide</title>
@@ -275,23 +288,6 @@ Partial Writes / Torn Pages pg 默认是 8kB 一个 page。linux 文件系统一
 恢复的时候，在修改一个 page 之前，还是会读取一下。
 在 checkpoint 之后第一次修改一个 page 的时候，会把整个 page 写入 WAL。这是为了保证在恢复的时候，能保证这些被修改的 page 能完全恢复到他原有的样子。
 写放大 如果打开 Full page write，很显然会导致 WAL 文件增加，因为就算修改一个字节，也会导致 8kB page 的写入。因为 Full page write 只发生在 checkpoint 之后的第一次写入，所以减少 checkpoint 的发生频率是可以减少写入的。</description>
-    </item>
-    
-    <item>
-      <title>使用 pgrepup 跨版本升级 pg</title>
-      <link>https://wdicc.com/use-pgrepup-to-upgrade-your-postgres/</link>
-      <pubDate>Thu, 08 Dec 2016 11:55:33 +0800</pubDate>
-      
-      <guid>https://wdicc.com/use-pgrepup-to-upgrade-your-postgres/</guid>
-      <description>pgrepup 其实是一个支持 pg 跨版本复制的工具。而 pg 大版本升级需要停机是个比较郁闷的事情，如果能通过这个解决就实在太好了。下面测试了一下。
-安装 需要安装 pgrepup 和 pglogical。
-安装 pgrepup pgrepup 官方说是支持 python &amp;gt;= 2.7 的版本，我自己测试的结果，python 3.5 里面执行有点问题，需要修改几个地方。但是在 python 2.7 里面，不需要做任何修改，所以建议使用 python 2.7。安装很简单，执行 pip install pgprepup 就可以了。
-安装 pglogical 需要给你的 pg 安装这个扩展。高版本的和低版本的都需要安装。
-安装也很简单，下载源码，执行 PATH=/opt/pg96/bin:$PATH make USE_PGXS=1 install 就好了。如果是给 pg95 装，那就把路径改成 pg95。
-可以参考这里。
-配置 配置 db 先给几个 db 定义一下角色。db1 假设为 9.5 版本，db2 假设为 9.6 版本。
-pgrepup 允许 db1, db2 和执行 pgrepup 所在的机器分别在不同的机器，也可以在相同的机器，看机器情况。
-对于 db，最小配置的 postgres.conf 修改如下，我测试的时候两个 db 在一台机器上面，只需要修改 port 不一样就可以了。</description>
     </item>
     
   </channel>

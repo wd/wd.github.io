@@ -4221,6 +4221,57 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/nagios-conf/">今天又理解了nagios的两个配置</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2007-04-16T00:00:00.000&#43;00:00' itemprop="datePublished">2007-04-16</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+<a href="https://wdicc.com//tags/nagios">nagios</a>
+
+<a href="https://wdicc.com//tags/other">other</a>
+
+
+</div>
+    </div>
+        <b>Host and Service Dependencies</b><br />
+
+当监控的host或者service之间有依赖关系的时候，可以通过定义dependence来让nagios知道应该通知什么。<br />
+
+比如我这里的服务器都在idc托管，而我的nagios却是运行在公司的一台服务器上面。这样，有时候可能就需要考虑依赖关系了。比如当公司的网络出问题的时候（事实上经常出现），比如断网，总不能让他也认为是idc托管的服务器出问题了而给你发通知吧。host dependence正好可以解决这个问题。<br />
+
+比如 A 是idc的，B 是公司的网关（或者某个应该一直在线的服务器，比如sina.com.cn）。当nagios检测到A连不上的时候，他会根据dependence来检测B，如果B也连不上了，那么就只通知你B连不上了。<br />
+
+大概的配置如下<br />
+<pre class="prettyprint lang-text">
+        host_name                       B
+        dependent_host_name             A
+        notification_failure_criteria   d,u
+        }</pre>
+
+<b>Notification Escalations</b>
+
+escalations 的意思就是扩大。整个这个的意思应该就是扩大通知范围。之前一直没理解是什么意思，今天看了才明白。其实就是定义出问题的时候，什么时候扩大通知。
+
+比如A服务器挂了，他对应的contactgroup就会立刻得到通知。但是，如果这个组里面的人在睡觉或者在做什么事情忽略了这个通知，怎么办呢？当然nagios会通知多次，但是如果这些都忽略掉了或者没有收到怎么办？这样这个escalations就有作用了，他可以定义几次通知contatgroup之后就开始通知别的人。还有一些别的功能，就不多说了。
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/nagios-conf/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/twitter-what-are-u-doing/">twitter ? 我知道你在干什么</a>
     </h2>
     <div class="entry-content">
@@ -4615,57 +4666,6 @@ done</pre>
     
     
     <span class="comments"><a href="/awstats-log/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/compress-apache/">给apache加了一个compress模块，mod_deflate</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2007-04-02T00:00:00.000&#43;00:00' itemprop="datePublished">2007-04-02</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/apache">apache</a>
-
-<a href="https://wdicc.com//tags/web">web</a>
-
-
-</div>
-    </div>
-        apache 1.3 里面有个压缩模块叫做 mod_gzip ，不支持 2.x。在2.x 里面有一个 <a href="http://httpd.apache.org/docs/2.0/mod/mod_deflate.html">mod_deflate</a> 模块，也是类似的效果。想使用的话，很简单，编译的时候加上 --enable-deflate 就可以了。之后可以用 apachectl -l  看是不是正常加载了这个模块。<br />
-
-httpd.conf 添加下面的语句<br />
-<pre class="prettyprint lang-txt">
-
-对所有指定类似的文件都应用这个模块。添加之后访问看看。
-
-<pre class="prettyprint lang-txt">
-203.86.x.x - - [02/Apr/2007:15:24:23 +0800] "GET / HTTP/1.1" 200 <font color="#FF0000">4718</font> "-" 
-"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) 
-Gecko/20070309 Firefox/2.0.0.3"
-
-203.86.x.x - - [02/Apr/2007:15:46:16 +0800] "GET / HTTP/1.1" 200 <font color="#FF0000">1684</font> "-" 
-"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) 
-Gecko/20070309 irefox/2.0.0.3"</pre>
-
-好像是小了。。。
-
-如果error.log 里面出现了下面的错误
-<pre class="prettyprint lang-txt">
-
- 这表示apache的那个模块没有安装正确。
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/compress-apache/#disqus_thread">Comments</a></span>
     
     
 </div>
