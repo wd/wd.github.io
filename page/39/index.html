@@ -4221,6 +4221,57 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/qmail-queue/">Qmail邮件队列工作原理zz</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2006-03-30T00:00:00.000&#43;00:00' itemprop="datePublished">2006-03-30</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/mail">Mail</a>
+
+
+</div>
+    </div>
+        http://www.gbunix.com/htmldata/2005_06/15/25/article_1223_1.html<br />
+
+以下是qmail的数据流简图<br />
+
+ qmail-smtpd --- &gt;&gt;qmail-queue ---&gt;&gt; qmail-send &lt;&lt;--- qmail-rspawn &lt;&lt;--- qmail-remote<br />
+ &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; / &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; | <br />
+ &nbsp; &nbsp; &nbsp; qmail-inject _/ qmail-clean \_ qmail-lspawn &lt;&lt;--- qmail-local<br />
+
+ &nbsp; &nbsp;qmail中，每一条消息都发送到中央队列等待发送，由qmail-queue进程控制。它在以下情况被调用：<br />
+ &nbsp; &nbsp;1、当产生本地消息时，qmail-inject进程调用qmail-queue。<br />
+ &nbsp; &nbsp;2、qmail-smtpd准备SMTP协议下的投递邮件任务时调用它。<br />
+ &nbsp; &nbsp;3、向前（forwarded）发送邮件时，qmail－local调用它。<br />
+ &nbsp; &nbsp;4、退回邮件时，qmail－send调用它。<br />
+
+ &nbsp; &nbsp;每封邮件接着由qmail-lspawn 和qmail-rspawn协助qmail－sned进程完成投递，最后由qmail－clean清除邮件队列。这四个进程是系统由始至终都在运行的，十分重要。<br />
+
+由smtpd从域外接受邮件之后，会交给queue处理（也就是2），之后转到qmal-send，然后看是域内还是域外，域内用qmail-lspawn，域外用qmail-rspawn。域内邮件调用qmail-local处理，如果遇到.qmail文件转发邮件（也就是上面的3），还会交给queue处理，如果没有，就直接投递给用户（？）。域外邮件调用qmail-remote处理，如果对方拒收邮件，他就会产生一个新的邮件（bounce），交给qmail-send，然后交给queue（也就是4？）。<br />
+
+本地用户发送mail的时候调用qmail-inject，然后交给queue（也就是1）。<br />
+
+有几个问题。<br />
+1&nbsp; 收到域外邮件之后，判断本机是否有这个用户后才接受邮件呢，还是先接受进来放到queue里等qmail-local处理的时候再说？<br />
+
+2&nbsp; qmail-clean这个程序是怎么工作的？实时扫描queue的文件夹？<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/qmail-queue/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/how-mail-from-a-to-b/">邮件如何从A点到达B点zz</a>
     </h2>
     <div class="entry-content">
@@ -5289,50 +5340,6 @@ wsus允许设置为只有在批准更新时才下载更新文件，还可以对�
     
     
     <span class="comments"><a href="/flickr-free-photo-album/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/code-in-tt/">tt 1.0.1中CODE</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2006-03-23T00:00:00.000&#43;00:00' itemprop="datePublished">2006-03-23</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/web">web</a>
-
-
-</div>
-    </div>
-        借鉴的是tt 0.9.6中的方法。<br />
-
-修改blog目录下的<br />
-
-category/index.php<br />
-archive/index.php,item.php<br />
-entry/index.php<br />
-search/index.php<br />
-tag/index.php<br />
-keylog/index.php<br />
-notice/index.php,item.php<br />
-index.php<br />
-item.php<br />
-
-文件，找到function bindTags($id,$content)这个函数，其实所有包含这个函数的都需要做如下修改，不知道为啥不单独将这个函数写到一个文件，修改起来好麻烦。<br />
-
-在这个函数的第一行前面添<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/code-in-tt/#disqus_thread">Comments</a></span>
     
     
 </div>

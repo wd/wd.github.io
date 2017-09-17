@@ -6,10 +6,24 @@
     <description>Recent content on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 02 Sep 2017 18:22:47 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 16 Sep 2017 10:18:50 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Dpi dp and px</title>
+      <link>https://wdicc.com/dpi-dp-and-px/</link>
+      <pubDate>Sat, 16 Sep 2017 10:18:50 +0800</pubDate>
+      
+      <guid>https://wdicc.com/dpi-dp-and-px/</guid>
+      <description>这几天折腾了一下 android 上面的布局，了解了一些基础概念。
+首先有两个概念，一个是分辨率，一个是屏幕的实际尺寸。我们一般讲的 800x600 像素(px)，1024x768 像素(px)这些，都是分辨率。然后 5.5 寸(iPhone 6/7/8 plus)，4.7 寸(iPhone 6/7/8)，10.1 寸(iPad) 这些是实际尺寸，并且指的是屏幕对角线尺寸。
+一般来讲，除非是 5.5 和 10.1 这么大的差异，我们大多会在比如 5.5 和 4.7 上面使用同一个设计。比如在最上面 1cm (为什么说物理距离呢，因为手机屏幕就那么大，你不能把内容显示的太小，否则会看不清楚) 显示一个黄色的提示条。那么接下来的问题就是，1cm 对应的像素，就算在同一个设备的不同的分辨率下面，都是不一样的。那图怎么做？
+如果 20px 的图放到 800x600 的分辨率下面刚好，那么这个图放到了 1600x1200 的分辨率下面（这里说的是屏幕物理尺寸不变的情况下，因为如果物理尺寸如果也变大了，那就是另外一个情况了），不做缩放的话，就是会得到比 800x600 小一倍的效果。如果缩放的话，那就大小一样了，但是可能因为缩放导致失真。实际做法就是针对不同分辨率做不同的尺寸的图。比如针对 800x600 分辨率，做一个 20px 的图，那对于 1600x1200 分辨率的，做一个 40px 的图。以此类推。
+这样，三个概念就出来了
+ density 也就是 dpi，屏幕密度。 dp 是一个长度单位。 常见的 1x, 2x, @2x 这些。  density(dpi，屏幕密度) = 屏幕对角线的像素/对角线的物理尺寸 = (屏幕长的像素的平方 + 屏幕宽的像素的平方)开根号/对角线的物理尺寸，比如 iphone 3G/3GS 是 160, iphone 4 是 320。</description>
+    </item>
     
     <item>
       <title>Add float debug button for react native</title>
@@ -21,7 +35,7 @@
 iOS ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。
 import {NativeModules} from &#39;react-native&#39;; // 在某个按钮的动作里面 const {DevMenu} = NativeModules; DevMenu.show();  Android iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法，得自己通过 native 代码加。
 下面两种方式加的都是 android.support.design.widget.FloatingActionButton 按钮，其它的类似。需要增加好编译依赖 compile &#39;com.android.support:design:23.0.0&#39;，版本号按照自己的修改下。
- private void addDevButton() { MainApplication application = (MainApplication) getApplication(); ReactNativeHost reactNativeHost = application.getReactNativeHost(); ReactInstanceManager reactInstanceManager = reactNativeHost.getReactInstanceManager(); final DevSupportManager devSupportManager = reactInstanceManager.getDevSupportManager(); // 这里是增加一个自定义菜单 // devSupportManager.addCustomDevOption(&amp;quot;Custom dev option&amp;quot;, new DevOptionHandler() { // @Override // public void onOptionSelected() { // Toast.</description>
+private void addDevButton() { MainApplication application = (MainApplication) getApplication(); ReactNativeHost reactNativeHost = application.getReactNativeHost(); ReactInstanceManager reactInstanceManager = reactNativeHost.getReactInstanceManager(); final DevSupportManager devSupportManager = reactInstanceManager.getDevSupportManager(); // 这里是增加一个自定义菜单 // devSupportManager.addCustomDevOption(&amp;quot;Custom dev option&amp;quot;, new DevOptionHandler() { // @Override // public void onOptionSelected() { // Toast.</description>
     </item>
     
     <item>
@@ -272,22 +286,6 @@ Bloat 还会导致热门的查询会一下塞满内存。会导致相同的 live
 还有一个影响是，pg 的系统表也会有可能 bloat，因为他们也是表。导致这个的一种情况是频繁的创建和删除临时表。这个进一步会导致一些管理命令执行变慢，甚至比如 \d 这种命令。
 索引也有可能会 bloat。索引是 tuple 标识和数据之间的一个映射。这些标识指向的是某个 page 里面的 offset。每个 tuple 都是一个独立的对象，需要自己的索引条目。更新一行的时候总是会创建这行的新的索引条目。
 索引的 bloat 的影响比 table 小一点。索引里面指向 dead tuple 的可以直接标记为 dead. 这会使得索引膨胀，但是不会导致不必要的堆查找。同时更新堆中的 tuples 不影响已经索引的列，使用一种叫做 HOT 的技术来把指向 dead tuples 的指针指向新的。这允许查询可以通过这些指针复用旧的索引条目。(Also updates to tuples in the heap that do not affect the indexed column(s) use a technique called HOT to provide pointers from the dead tuple to its replacement.</description>
-    </item>
-    
-    <item>
-      <title>Full page write in PostgreSQL</title>
-      <link>https://wdicc.com/full-page-write-in-postgresql/</link>
-      <pubDate>Thu, 08 Dec 2016 18:02:14 +0800</pubDate>
-      
-      <guid>https://wdicc.com/full-page-write-in-postgresql/</guid>
-      <description>读了一篇文章，简单翻译总结下。
-Partial Writes / Torn Pages pg 默认是 8kB 一个 page。linux 文件系统一般是 4kB（x86 里面最大是 4kB)，老设备驱动一般是 512B 一个扇区，新的设备有些支持 4kB 或者 8kB。
-当 pg 写入一个 page 8kB 的时候，系统的底层会拆分小一点块，这里涉及到写入的原子性。8kB 的 pg page，会被文件系统拆分成 4kB 的块，然后拆分成 512B 扇区大小。这个时候如果系统崩溃（比如停电，内核 bug）会发生什么？
-即使系统的存储有针对这种情况的设计（比如 SSD 自带电容器，RAID 控制器自带电池），内核那块也是会拆分成 4kB 的 page，所以还是有一定可能性，pg 写了 8kB，但是只有部分写入成功。
-这个时候你可能意识到这就是为啥我们要有事务日志（WAL）。所以当系统崩溃重启之后，数据库会读取 WAL（从最后一次 checkpoint），然后重新写入一遍，以保证数据文件是完整的。
-恢复的时候，在修改一个 page 之前，还是会读取一下。
-在 checkpoint 之后第一次修改一个 page 的时候，会把整个 page 写入 WAL。这是为了保证在恢复的时候，能保证这些被修改的 page 能完全恢复到他原有的样子。
-写放大 如果打开 Full page write，很显然会导致 WAL 文件增加，因为就算修改一个字节，也会导致 8kB page 的写入。因为 Full page write 只发生在 checkpoint 之后的第一次写入，所以减少 checkpoint 的发生频率是可以减少写入的。</description>
     </item>
     
   </channel>

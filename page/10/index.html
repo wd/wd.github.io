@@ -4221,6 +4221,107 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/basic-elisp-programing/">elisp 最最初级的一点入门知识</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2010-04-25T00:00:00.000&#43;00:00' itemprop="datePublished">2010-04-25</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/elisp">elisp</a>
+
+<a href="https://wdicc.com//tags/emacs">emacs</a>
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+
+</div>
+    </div>
+        其实上次写 http://wdicc.com/how-i-became-a-emacser 的时候，是想写一点 eslisp 入门的东西的，结果总觉得好像也写不出来什么，就写成另一篇了，呵呵。(看这篇前最好先看看那个吧，那个更入门。)<br />
+
+不过我还是觉得，用 emacs 如果不会一点 elisp，那基本你是用不住的。记那些无聊的快捷键有什么意思，有意思的是你能让 emacs 用你希望的模式工作。今天 twitter 上面看到一个词"计算姬"，感觉很有点意思，呵呵，小蜜就是给你干活的嘛，不要被她折磨就好。<br />
+
+其实主要是我自我感觉目前了解的 elisp 的东西，好像基本就够用了，所以才想写出来，给比我还糊涂的指条明路。<br />
+
+1 数据类型。<br />
+elisp 是有类型在里面的，我看好像有什么 sequence, number 之类，具体有哪些不重要，重要的是你使用的时候，比如比较的时候，切记要弄明白他们是什么类型。我找到一个 format 函数，感觉很好用，可以转类型，具体可以查文档，可以多用用。<br />
+
+2 调试<br />
+调一个程序的时候，我觉得最基本的就是 print 和 message 这两个函数了吧，加上上面的 format，基本应该能搞定了。在一段 elisp 后面使用 C-x C-e 就能直接执行他，执行之后就能在当前的 emacs 里面起作用，不过对我等菜鸟来说，有时候会遇到一些奇怪的问题，不行就还是再启动一个 emacs 来验证结果吧。<br />
+
+3 emacs 简单设置<br />
+掌握了上面两个，基本就可以定义自己的东西了。一般用的是 setq，比如下面这个<br />
+<pre class="prettyprint">
+;; 防止页面滚动时跳动， scroll-margin 3 可以在靠近屏幕边沿3行时就开始滚动，可以很好的看到上下文。
+(setq scroll-margin 3
+            scroll-conservatively 10000)
+(set-terminal-coding-system 'utf-8)
+(add-to-list 'auto-mode-alist '("\\.py\\'" . python-mode))
+</pre><br />
+
+可以看到他一次设置了两个变量，其实写两个括号也是可以的。<br />
+
+还有下面的两行，他是执行了一个函数，这个函数里面干的什么，他接受什么参数，直接在 emacs 里面按 C-h f 然后输入你要查的函数的名字，就会显示 help 信息，很方便吧。<br />
+
+4 hook<br />
+下面稍微高级一点，了解下 hook 怎么用。hook 这个东西翻译过来应该是钩子的意思吧，其实就是别人的程序预留的一些接口，可以让你在他的程序里面插入一些你自己的程序。比如下面这几个。<br />
+<pre class="prettyprint">
+(add-hook 'weblogger-start-edit-entry-hook (lambda()
+    (auto-fill-mode -1)
+    (abbrev-mode -1)
+    (auto-complete-mode 1)
+    ))
+(add-hook 'cperl-mode-hook (lambda () (abbrev-mode -1)))
+(add-hook 'view-mode-hook 'view-mode-keybinding-hook)
+
+(defun weblogger-edit-entry (&optional entry)
+  "Edit a entry.  If ENTRY is specified, then use that entry.
+Otherwise, open a new entry."
+   ...........
+  (run-hooks 'weblogger-start-edit-entry-hook)
+)
+</pre><br />
+
+第一个是在 weblogger.el 开始编辑文件的时候，把那些 mode 关掉。第二个是 cperl-mode 启用的时候，把 abbrev-mode 关掉。第三个是在 view-mode-hook 执行的时候，执行那个函数。<br />
+
+最后是在实际代码里面这个 hook 是怎么执行的，能看到当调用 weblogger-edit-entry 的时候，就会在这里面某个时候去执行之前设置的 hook，这样个性化设置的目的就达到了。<br />
+
+eamcs 的各种 mode 一般都有各种的 hook，这应该能完全达到个性化的目的了，可有些时候想定制的地方没有 hook 怎么办？暴力一点，直接改他的程序好了。。。温柔一点的，那就看下面这个。<br />
+
+5 defadvice<br />
+
+defadvice 在文档里面写的很清楚，大概应该是可以在一个已有函数执行前或后执行你定义的东西。比如下面这个。<br />
+<pre class="prettyprint">
+;; use this to auto cancel notify
+;; (add-hook 'erc-send-pre-hook
+;;           (lambda(s)
+;;             (erc-tray-change-state nil)))
+(eval-after-load 'erc
+  '(progn
+     (defadvice erc-send-input (before change-tray-status activate)
+       (erc-tray-change-state nil))))
+</pre><br />
+
+我设置了 erc 在收到消息的时候会发送 notify 到 tray，我想做到只要我在 erc 里面输入了一些东西（即使是空的），就把 tray 的状态标记为已读，就不用继续提醒我了。<br />
+
+erc 有个 erc-send-pre-hook，可以在发送一条消息前执行 hook，可是如果输入的是空行，是不会触发这个 hook 的，使用 defadvice 可以解决这个，具体使用方法还是看文档吧，我突然觉得我很罗嗦。。。。屁大点东西也能发一篇？。。。<br />
+
+我会的基本就说完了，其它高级玩意有需要的时候应该可以从文档里面去看吧，目前来看，会用 hook 和 defadvice 我就知足了，不行就来 irc 里面找牛人问一个，经过提示后，应该还是能解决的吧。反正不求能自己去写一个 mode，当时最少也要能看明白别人的那点东西，然后自己能改一下吧，要不用 emacs 会很痛苦的。<br />
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/basic-elisp-programing/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/how-i-became-a-emacser/">我是怎么从 vim 转向 emacs 的</a>
     </h2>
     <div class="entry-content">
@@ -4712,57 +4813,6 @@ $(function() {
     
     
     <span class="comments"><a href="/2009/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/cow-ssh-proxycommand/">NB 的 ssh proxycommand</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2009-12-09T00:00:00.000&#43;00:00' itemprop="datePublished">2009-12-09</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/linux">linux</a>
-
-<a href="https://wdicc.com//tags/proxycommand">proxycommand</a>
-
-<a href="https://wdicc.com//tags/ssh">ssh</a>
-
-
-</div>
-    </div>
-        是从水木上面学来的。还参考了<a href="http://benno.id.au/blog/2006/06/08/ssh_proxy_command">这个</a>。<br />
-
-如果你工作的环境是下面这样的，那 ssh 的 proxycommand 对你会很有用。<br />
-
-your pc -> gw server -> work server<br />
-
-一般公司的服务器的网络都会设置安全级别，防止出现安全问题。那个 gw 也叫跳板机。需要在 gw 机器上面有 nc 。<br />
-
-修改 .ssh/config 文件，加上 <br />
-Host gw<br />
-  Hostname gw.abc.com<br />
-
-Host work<br />
-  Hostname work.abc.com<br />
-  User wd<br />
-  ProxyCommand ssh gw nc -q 0 %h %p 2>/dev/null<br />
-
-这样直接 ssh work 就好了。<br />
-
-那个 -q 0 可能有些版本的 nc 不支持。去掉就好了。那个 %h 表示 hostname，那个 %p 表示 port，可以直接写死。其它的 man ssh_config 吧。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/cow-ssh-proxycommand/#disqus_thread">Comments</a></span>
     
     
 </div>

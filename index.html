@@ -4221,6 +4221,67 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/dpi-dp-and-px/">Dpi dp and px</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2017-09-16T10:18:50.000&#43;08:00' itemprop="datePublished">2017-09-16</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/android">android</a>
+
+<a href="https://wdicc.com//tags/dpi">dpi</a>
+
+
+</div>
+    </div>
+        <p>这几天折腾了一下 android 上面的布局，了解了一些基础概念。</p>
+
+<p>首先有两个概念，一个是分辨率，一个是屏幕的实际尺寸。我们一般讲的 <code>800x600</code> 像素(px)，<code>1024x768</code> 像素(px)这些，都是分辨率。然后 <code>5.5</code> 寸(iPhone 6/7/8 plus)，<code>4.7</code> 寸(iPhone 6/7/8)，<code>10.1</code> 寸(iPad) 这些是实际尺寸，并且指的是屏幕对角线尺寸。</p>
+
+<p>一般来讲，除非是 5.5 和  10.1 这么大的差异，我们大多会在比如 5.5 和 4.7 上面使用同一个设计。比如在最上面 1cm (为什么说物理距离呢，因为手机屏幕就那么大，你不能把内容显示的太小，否则会看不清楚) 显示一个黄色的提示条。那么接下来的问题就是，1cm 对应的像素，就算在同一个设备的不同的分辨率下面，都是不一样的。那图怎么做？</p>
+
+<p>如果 20px 的图放到 800x600 的分辨率下面刚好，那么这个图放到了 1600x1200 的分辨率下面（这里说的是屏幕物理尺寸不变的情况下，因为如果物理尺寸如果也变大了，那就是另外一个情况了），不做缩放的话，就是会得到比 800x600 小一倍的效果。如果缩放的话，那就大小一样了，但是可能因为缩放导致失真。实际做法就是针对不同分辨率做不同的尺寸的图。比如针对 800x600 分辨率，做一个 20px 的图，那对于 1600x1200 分辨率的，做一个 40px 的图。以此类推。</p>
+
+<p>这样，三个概念就出来了</p>
+
+<ul>
+<li><code>density</code> 也就是 dpi，屏幕密度。</li>
+<li><code>dp</code> 是一个长度单位。</li>
+<li>常见的 <code>1x</code>, <code>2x</code>, <code>@2x</code> 这些。</li>
+</ul>
+
+<p><code>density(dpi，屏幕密度) = 屏幕对角线的像素/对角线的物理尺寸 = (屏幕长的像素的平方 + 屏幕宽的像素的平方)开根号/对角线的物理尺寸</code>，比如 iphone 3G/3GS 是 160, iphone 4 是 320。</p>
+
+<p><code>dp = px x 160 / dpi</code>。比如 160dp 在 160 dpi 下面是 160px，在 320 dpi 下面是 320px。其实就是说，160dp 我们在 iphone 3g 上和在 iphone 4 上看到的物理长度是一样的。</p>
+
+<p>而 <code>1x</code>, <code>2x</code> 是 <code>px/dp = dpi/160</code>。从上面那个例子也能看到，这个其实就是指 px 和 dp 的换算关系。一般我们要在某个手机上面开发，主要弄清楚的就是这个倍率就可以了。在 1x 的设备上面，想要展示 10px 的图，那么给 2x 的设备就得切一个 20px 的图，才能达到和 1x 上面一样的视觉效果。</p>
+
+<p>那我们一个 app 是需要同时准备展示在很多类型的设备上面的，1x, 1.5x, 2x 3x 等，总不能靠程序去计算然后决定用什么图吧。各系统其实已经做好了简单的适配方法了。比如 ios 里面，是通过给图取不同的名字来解决的，例如 example@2x.png，example@3x.png，ios 系统会自动去用对应的图。而 android 系统里面，是通过把图放入不同的目录来解决的，例如 drawable，drawable-hdpi, drawable-xhdbi，这几个分别对应 1x, 1.5x, 2x。</p>
+
+<p>其中要注意的是不要放错目录。如果把一个 1.5x 的图，放到了 1x 的目录下面，然后展示在一个 1.5x 的设备下面，会发现图会被缩放到 1.5 倍大小。</p>
+
+<p>参考链接:</p>
+
+<ul>
+<li><a href="http://www.jianshu.com/p/913943d25829">http://www.jianshu.com/p/913943d25829</a></li>
+<li><a href="https://www.zhihu.com/question/20697111">https://www.zhihu.com/question/20697111</a></li>
+</ul>
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/dpi-dp-and-px/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/add-float-debug-button-for-react-native/">Add float debug button for react native</a>
     </h2>
     <div class="entry-content">
@@ -4246,7 +4307,7 @@ body {
 
 <p>ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。</p>
 
-<pre><code>import {NativeModules} from 'react-native';
+<pre><code class="language-javascript">import {NativeModules} from 'react-native';
 
 // 在某个按钮的动作里面
 const {DevMenu} = NativeModules;
@@ -4259,7 +4320,7 @@ DevMenu.show();
 
 <p>下面两种方式加的都是 <code>android.support.design.widget.FloatingActionButton</code> 按钮，其它的类似。需要增加好编译依赖 <code>compile 'com.android.support:design:23.0.0'</code>，版本号按照自己的修改下。</p>
 
-<pre><code>        private void addDevButton() {
+<pre><code class="language-java">        private void addDevButton() {
 
             MainApplication application = (MainApplication) getApplication();
             ReactNativeHost reactNativeHost = application.getReactNativeHost();
@@ -4338,7 +4399,7 @@ DevMenu.show();
 
 <p>新建一个 layout 文件，取名比如叫做 <code>dev_button_layout.xml</code>， rootTag 是 <code>RelativeLayout</code>。然后在里面添加一个 <code>FloatingActionButton</code>，id 设置为 <code>dev_button</code>，然后设置好属性和位置。</p>
 
-<pre><code>        private void addDevButton() {
+<pre><code class="language-java">        private void addDevButton() {
             MainApplication application = (MainApplication) getApplication();
             ReactNativeHost reactNativeHost = application.getReactNativeHost();
             ReactInstanceManager reactInstanceManager = reactNativeHost.getReactInstanceManager();
@@ -5163,52 +5224,6 @@ print(&quot;just a test&quot;)
     
     
     <span class="comments"><a href="/use-org-mode-to-publish-blog/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/migrate-blog-to-hugo/">Migrate blog to hugo</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2017-03-11T16:29:40.000&#43;08:00' itemprop="datePublished">2017-03-11</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/hugo">hugo</a>
-
-<a href="https://wdicc.com//tags/hexo">hexo</a>
-
-<a href="https://wdicc.com//tags/blog">blog</a>
-
-
-</div>
-    </div>
-        <p>折腾了好几天，把 blog 从 hexo 迁移到了 <a href="http://gohugo.io/">hugo</a> 上面。hexo 是使用 nodejs 写出来的，hugo 是使用的 go。主要基于下面几个原因吧。</p>
-
-<ul>
-<li>个人不太喜欢 nodejs 那一坨依赖。</li>
-<li>hugo 也比 nodejs 速度快很多。</li>
-<li>hugo 用起来比较简洁。</li>
-</ul>
-
-<p>首先写了一个迁移工具 <a href="https://github.com/wd/hexo2hugo">hexo2hugo</a>。网上还有一个 nodejs 版本的<a href="http://nodejh.com/post/Migrate-to-Hugo-from-Hexo/">迁移工具</a>可以参考。其实就是简单的把头部信息处理一下就可以。我还有一些特殊需求，比如把老早以前的一些 html 格式的文档顺道处理一下格式，还有一些小的修正和兼容工作，所以自己写了一个。另外也主要是好久没有写代码了，熟悉下。。</p>
-
-<p>把文档迁移过去之后，找了几个主题看了一下，发现没有很喜欢的，就本着蛋疼的原则，把原来用的主题也<a href="https://github.com/wd/hugo-fabric">迁移过来了</a>，这个花的时间比较长一点。主要还得熟悉 hugo 的模板语法，还得想办法适配 hugo 的体系。比如 hugo 里面没有 archive 一说，不过通过万能的 google 搜索到了一个解决办法，也勉强还好。</p>
-
-<p>目前这个 blog 已经是由 hugo 产生了，和以前外观，访问地址完全一模一样，rss 地址都一样。我测试了 google 里面的搜索结果，是都可以跳转的。今天算是基本都迁移完毕了。</p>
-
-<p>这几天没事也总想记录一点想法，但是无奈新本子上面的 hexo 挂了，又不想搞 nodejs 那一坨依赖，就折腾了这个事情。不过折腾完毕之后发现想记录的事情都忘记了，nnd。</p>
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/migrate-blog-to-hugo/#disqus_thread">Comments</a></span>
     
     
 </div>

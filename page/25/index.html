@@ -4221,6 +4221,56 @@ body {
 
   <article class="post">
     <h2 class="title"> 
+        <a href="/awstats-log/">awstats 如何统计以前的日志？</a>
+    </h2>
+    <div class="entry-content">
+    <div class="meta">
+        <div class="date">Published on: <time datetime='2007-04-02T00:00:00.000&#43;00:00' itemprop="datePublished">2007-04-02</time>
+</div>
+        <div class="tags">Tags: 
+
+<a href="https://wdicc.com//tags/apache">apache</a>
+
+<a href="https://wdicc.com//tags/awstats">awstats</a>
+
+<a href="https://wdicc.com//tags/linux">linux</a>
+
+<a href="https://wdicc.com//tags/other">other</a>
+
+
+</div>
+    </div>
+        突然想安装一个awstats了，参考 <a href="http://www.chedong.com/tech/awstats.html">车东</a> 的文章，安装了一个。可是发现一个问题，设置了logfile为 access_log.%YYYY-24%MM-24%DD-24.log 之后，发现只能把昨天的日志统计进来，可是我的log下面还有好多呢，想统计以前的，怎么弄呢？幸好，awstats已经考虑到这个问题了。<br />
+
+awstats.pl 脚本支持在命令行指定logfile，这样简单了，改变这个参数就可以了。不过要注意的是，如果你的data里面已经处理新的日志，那么指定logfile也没用了，以前的没办法更新进来了。只能是删掉data里面的内容，然后重新从最早的开始生成一遍。我写了一个脚本来做这个事情。<br />
+
+<pre class="prettyprint lang-bash">
+
+awstats_dir=/opt/tt2/awstats/wwwroot/cgi-bin
+logfile_dir="/usr/local/apache/logs/"
+
+cd $awstats_dir
+
+for file in `find $logfile_dir -name "access_log.2*" | sort`;do
+        #echo "$file"
+        ./awstats.pl －update -config=wd -LogFile=$file
+done</pre>
+
+保存为 awstats.sh ，然后执行就可以了。他会查找 logfile_dir 下面所有的 access_log.2 开头的文件，作为参数来更新记录。
+
+    </div>
+
+<div class="meta">
+    
+    
+    <span class="comments"><a href="/awstats-log/#disqus_thread">Comments</a></span>
+    
+    
+</div>
+</article>
+
+  <article class="post">
+    <h2 class="title"> 
         <a href="/compress-apache/">给apache加了一个compress模块，mod_deflate</a>
     </h2>
     <div class="entry-content">
@@ -5024,65 +5074,6 @@ Logs are generated in directory
     
     
     <span class="comments"><a href="/install-oracle-in-rh/#disqus_thread">Comments</a></span>
-    
-    
-</div>
-</article>
-
-  <article class="post">
-    <h2 class="title"> 
-        <a href="/software-in-my-phone/">我手机上面使用的软件</a>
-    </h2>
-    <div class="entry-content">
-    <div class="meta">
-        <div class="date">Published on: <time datetime='2007-03-09T00:00:00.000&#43;00:00' itemprop="datePublished">2007-03-09</time>
-</div>
-        <div class="tags">Tags: 
-
-<a href="https://wdicc.com//tags/heart">heart</a>
-
-<a href="https://wdicc.com//tags/n70">N70</a>
-
-
-</div>
-    </div>
-        买N70就是为了可以装软件，可以很强的自定义功能。闲来没事讲讲里面的软件。<br />
-
-第一个就是输入法。用过A4和<b>国笔输入法</b>，感觉国笔的设计还是不错的。这里说的国笔是国笔2006前的那个版本，2006没有那个版本好用。说几个特点<br />
-<ol><li>输入汉字的状态下，可以直接输入数字。</li><li>输入汉字的状态下，可以直接输入字母。</li><li>可以同步通讯录到词组，输入人名的时候很方便。</li><li>别的还没想起来。不过有上面几点足够了。</li></ol><br />
-
-快捷精灵<strong>smart setting</strong>，也是不错的软件。可以自定义你的左软键，变成一个菜单。比如我把常用的几个软件加入到了这里，这样就不用每次去我的助理里面找了，速度快很多。他还可以自定义锁键盘后的解锁键和提示信息。<br />
-
-<b>handy clock</b>，一个时间软件。N70自带的闹钟只能设置一个，还只能天天设置。这个软件用来设置多个闹铃，同时可以定义哪天响，比如只工作日响什么的。别的功能就没多大用了。<br />
-
-<b>qreader</b>，电子书阅读软件。1.9x版可以读umd和txt格式的，txt格式需要保存成unicode编码，否则会出现乱码。可以用convertz这个软件来批量转换，挺好用的。<br />
-
-<b>区号秀</b>，用来显示来电或者短信的地区，这样来电的时候，能大概知道电话是哪里打来的。<br />
-
-<b>minute beep</b>，通话提示软件。可以设置打电话的时候多长时间提醒一下。<br />
-
-<b>seleq</b>和<b>fileman</b>，都是文件管理软件，各有千秋，都装上了。<br />
-
-<b>remind me</b>，未接来电和短信提醒软件。可以自定义哪个时间段内，多久开始提醒，以及提醒的次数，声音，音量等。很有用的软件。3.01好像不能设置提醒的音量。我用的3.0。<br />
-
-<b>eprofiles</b>，增强情景模式软件。可以设置时间自动切换情景模式，比如我设置工作日的早上7点半切换为户外，因为那会我在坐车，9点切换到标准，因为到了公司后可不想用那么大声音的铃声了，会吓坏的。还有些别的设置，就不说了。<br />
-
-<b>sbirthday</b>，可以说是通讯录的一个增强软件吧。通讯录可以设置生日，但是不会提醒。这个软件可以搜索通讯录，然后在日历里面自动设置生日提醒。<br />
-
-<b>名片备份</b>，这个的英文名忘记了，是一个用来备份通讯录的软件，可以导出成csv格式，这样可以用excel打开编辑。编辑完记得保存成unicode格式，否则中文会乱码。<br />
-
-<b>resco photo viewer</b>，一个看图软件，比自带的快很多。<br />
-
-别的软件就没什么我喜欢的了。上面几个中，可以说都比较依赖，感觉都挺有用的。就是手机上面装软件不要求新，要求稳定，新的不一定就好。<br />
-
-这些软件都可以从 <a href="http://www1.3g365.com/forum-4-1.html">3g365</a> 的网站找到下载。<br />
-
-    </div>
-
-<div class="meta">
-    
-    
-    <span class="comments"><a href="/software-in-my-phone/#disqus_thread">Comments</a></span>
     
     
 </div>
