@@ -10,7 +10,7 @@ React-native 里面在模拟器里面可以通过快捷键打开开发菜单，�
 
 ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。
 
-```
+```javascript
 import {NativeModules} from 'react-native';
 
 // 在某个按钮的动作里面
@@ -24,7 +24,7 @@ iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法
 
 下面两种方式加的都是 `android.support.design.widget.FloatingActionButton` 按钮，其它的类似。需要增加好编译依赖 `compile 'com.android.support:design:23.0.0'`，版本号按照自己的修改下。
 
-```
+```java
         private void addDevButton() {
 
             MainApplication application = (MainApplication) getApplication();
@@ -104,7 +104,7 @@ iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法
 
 新建一个 layout 文件，取名比如叫做 `dev_button_layout.xml`， rootTag 是 `RelativeLayout`。然后在里面添加一个 `FloatingActionButton`，id 设置为 `dev_button`，然后设置好属性和位置。
 
-```
+```java
         private void addDevButton() {
             MainApplication application = (MainApplication) getApplication();
             ReactNativeHost reactNativeHost = application.getReactNativeHost();
@@ -156,3 +156,5 @@ iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法
             if(BuildConfig.DEBUG)
                 addDevButton();
 ```
+
+
