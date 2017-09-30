@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>iptables做端口映射的一点新的心得 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">iptables做端口映射的一点新的心得</span></h1>
+
+<h2 class="date">2006/12/07</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/other">other</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+iptables做端口映射很简单的一个事情，我之前也写了<a href="http://blog.wdicc.com/wordpress/2006/05/09/153/">如何来实现</a>这个咚咚。今天要用到的时候，遇到了问题，写写怎么解决的。<br />
+
+写好SNAT和DNAT相关语句之后，在INPUT、FORWARD和OUTPUT里面针对各个端口都开放了权限，可是就是访问不了，看tcpdump可以看到，SNAT肯定是进行了，因为有对方回来的信息。后来仔细分析了一下整个转换的过程，发现了问题所在。<br />
+
+这里总共涉及到三台电脑，假设A是我们的server，B是中转server，C是希望通过B来访问A的客户端，所以一次完整的请求如下图。<br />
+<pre class="prettyprint lang-text">
+所以呢，以25端口为例，需要开放的端口依次是：
+<pre class="prettyprint lang-text">
+B : INPUT (目标端口25)
+B : FORWARD (目标端口25)
+B : OUTPUT (目标端口25)
+A : INPUT (目标端口25)
+--->上面是请求，下面开始回应请求
+A : OUTPUT (源端口25)
+B : INPUT (源端口25)
+B : FORWARD (源端口25)
+B : OUTPUT (源端口25)
+C : INPUT (源端口25)</pre>
+如此，一次请求发送过去的时候，所有数据包的目的端口都是25（假设B开放的转发端口也是25），源端口是1024-65535之间的某个数值，反回来所有数据包的源端口都是25，目的端口对应前面的那个端口。
+
+我的问题就是光开放了B的FORWARD的目的端口25，源端口25没有打开，这样数据不能正确返回给C，打开就好了。
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

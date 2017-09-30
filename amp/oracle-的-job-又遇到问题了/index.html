@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>oracle 的 job 又遇到问题了 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">oracle 的 job 又遇到问题了</span></h1>
+
+<h2 class="date">2007/06/29</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/job">job</a> <a href="/tags/linux">linux</a> <a href="/tags/oracle">oracle</a> <a href="/tags/other">other</a> <a href="/tags/%E9%AB%98%E7%BA%A7%E5%A4%8D%E5%88%B6">高级复制</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p>还是高级复制的问题，这次可能是因为job执行过程中，对方机器刚好重启导致的。反正job是卡在那里了，都10多天了。</p> <p>查看 dba_jobs_running 表，可以看到卡住的job的 job_id 和 sid 。查看 dba_jobs 表，可以看到相应 job 的信息，this_date 如果有数据的话，表示的是 job 开始执行的时间，next_date 是下次执行 job 的时间，如果 job 正常执行完毕，那么 this_date 应该是空的。根据 sid 还可以查看 v$session_wait 和 v$session 里面的这个 job 的一些状态。</p> <p>尝试了下面的方法来重新运行job，当时好像不好用，不过今天来看的时候，job是执行了。现在也不清楚是不是我这个操作起作用了，真晕。</p> <p><pre lang="txt">SQL&gt; exec dbms_job.broken(109,true);<br />
+
+PL/SQL procedure successfully completed.<br />
+
+SQL&gt; commit;<br />
+
+Commit complete.<br />
+
+SQL&gt; select job,sid from dba_jobs_running;<br />
+
+       JOB        SID<br />
+---------- ----------<br />
+       109        656<br />
+
+SQL&gt; select saddr,sid,serial#,paddr,username,status from v$session where username = 'REPADMIN';<br />
+
+SADDR           SID    SERIAL# PADDR    USERNAME                       STATUS<br />
+-------- ---------- ---------- -------- ------------------------------ --------<br />
+973CF8C4        626         27 98F96BB8 REPADMIN                       ACTIVE<br />
+973D2E7C        629         10 98F88670 REPADMIN                       ACTIVE<br />
+973F11F4        656         10 98F88174 REPADMIN                       ACTIVE<br />
+
+SQL&gt; alter system kill session '656,10';<br />
+
+System altered.<br />
+
+SQL&gt; select saddr,sid,serial#,paddr,username,status from v$session where username = 'REPADMIN';<br />
+
+no rows selected<br />
+
+SQL&gt; select job,sid from dba_jobs_running;<br />
+
+no rows selected<br />
+
+SQL&gt; select job,log_user,last_date,next_date from dba_jobs where log_user='REPADMIN';<br />
+
+       JOB LOG_USER                       LAST_DATE<br />
+---------- ------------------------------ -------------------<br />
+NEXT_DATE<br />
+-------------------<br />
+       106 REPADMIN                       2007-06-28 16:25:43<br />
+2007-06-28 16:35:43<br />
+
+       109 REPADMIN                       2007-06-28 16:07:38<br />
+4000-01-01 00:00:00<br />
+
+       110 REPADMIN                       2007-06-28 16:25:43<br />
+2007-06-28 16:35:43<br />
+
+
+SQL&gt; exec dbms_job.broken(109,false,sysdate);<br />
+
+PL/SQL procedure successfully completed.<br />
+
+SQL&gt; commit;<br />
+
+Commit complete.<br />
+
+SQL&gt; select job,log_user,last_date,next_date from dba_jobs where log_user='REPADMIN';<br />
+
+       JOB LOG_USER                       LAST_DATE<br />
+---------- ------------------------------ -------------------<br />
+NEXT_DATE<br />
+-------------------<br />
+       106 REPADMIN                       2007-06-28 16:25:43<br />
+2007-06-28 16:35:43<br />
+
+       109 REPADMIN                       2007-06-28 16:07:38<br />
+2007-06-28 16:28:40<br />
+
+       110 REPADMIN                       2007-06-28 16:25:43<br />
+2007-06-28 16:35:43<br />
+</pre><br />
+<p>此后就我所知道的，就只能等着了。dbms_job.run(job_id) 也可以让 job 立即执行。关键是看 this_date ，他的值就是开始执行 job 的时间，job 如果执行时间太长，而下次执行又太快的话，可能也会导致问题。所以还可以尝试手动执行 job 看看。 dba_jobs 的 waht 字段就是对于的语句。</p><br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

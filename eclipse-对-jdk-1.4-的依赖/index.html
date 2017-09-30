@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>eclipse 对 jdk 1.4 的依赖 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">eclipse 对 jdk 1.4 的依赖</span></h1>
+
+<h2 class="date">2009/05/16</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/ebuild">ebuild</a> <a href="/tags/linux">linux</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+首先日一下 bilbo，不小心按了一下 ctrl+z，内容居然都丢了，nnd，刚才都写完了。<br />
+
+言归正传。之前想安装 eclipse 的时候，发现他依赖 jdk 1.4，就没装。这次又想装了，就试着找找看哪个依赖 jdk 1.4.下面就是找的过程。<br />
+<pre class="prettyprint lang-txt">
+:%s/\(\d\)\s\+.*$/\1/g #去掉结尾的没用的东西
+:%s#/\(.*\)\(-\d\)#/\1/\1\2#   #把路径弄好</pre>
+<pre class="prettyprint lang-bash">for l in $(cat ~/b);do echo "######$l">
+下面是结果中的部分。第一个 ebuild 里面这种是不会有问题的。就是第二个造成的依赖 jdk 1.4，给他加一个 java5 的 use 的就好了。
+<pre class="prettyprint lang-txt">
+DEPEND=">=virtual/jdk-1.4
+RDEPEND=">=virtual/jre-1.4"
+######dev-java/tomcat-servlet-api/tomcat-servlet-api-5.5.27.ebuild
+DEPEND="java5? ( >=virtual/jdk-1.5 )
+!java5? ( =virtual/jdk-1.4* )
+RDEPEND="java5? ( >=virtual/jdk-1.5 )
+!java5? ( =virtual/jdk-1.4* )"</pre>
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

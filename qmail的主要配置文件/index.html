@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Qmail的主要配置文件 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Qmail的主要配置文件</span></h1>
+
+<h2 class="date">2006/01/16</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/mail">Mail</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+1．Qmail的主要配置文件<br />
+
+    qmail的配置文件是由多个文件组成的，不是集中在一个文件中，每个文件控制相应<br />
+部分的功能和属性，一个可执行程序可能有多个配置文件控制，所有的配置文件共同决<br />
+定了qmail运行的实现和模式。这些配置文件都在qmail的control目录中，本文的配置文<br />
+件位于/var/qmail/control目录中<br />
+
+    1.1、badmailfrom<br />
+
+    这个配置文件是控制邮件系统拒绝接收的邮件地址和邮件域，主要是为了防止垃圾<br />
+邮件。如果一个邮件地址或者邮件域被列入到这个文件中，系统就会拒绝接收这个邮件<br />
+地址发来的邮件，或者拒绝邮件域下所有邮件地址发来的邮件。不过这个配置文件只是<br />
+一般的垃圾邮件防范手段，对于比较全面的垃圾邮件过滤技术还要靠第三方软件来实现<br />
+。该文件的格式如下：<br />
+
+    11@11.com //拒绝这个地址发来的邮件<br />
+    22@2w.com<br />
+    @33.com //拒绝这个邮件域下的所有帐号发来的邮件<br />
+    @44.com<br />
+<br><!--more-->1.2、boucefrom<br />
+
+    bouceform是定义当邮件投递失败时系统返回给发送者一个包含失败信息的邮件时的<br />
+发送者。如果不存在这个文件，默认的发送者是MAILER-DAEMON。比如本文的<br />
+
+    echo postmaster > /var/qmail/control/bouncefrom<br />
+
+    就是定义投递者为postmaster，这样所有投递失败的返回邮件的发送者就成了postm<br />
+aster。<br />
+
+    1.3、concurrencylocal<br />
+
+     这个文件定义了qmail可以同时投递的本地邮件的个数。这个参数的缺省值是10，<br />
+也就是说系统允许同时有10个邮件在本地投递。concurrencylocal这个参数的最大值是<br />
+由编译时的conf-spawn参数来决定的，缺省值是120，最大值是255。<br />
+
+    1.4、concurrencyremote<br />
+
+    这个参数定义了qmail可以同时投递的远端邮件的个数，这个参数的缺省值是20。这<br />
+个参数的最大值也是由conf-spawn来决定的。<br />
+
+    1.5、defaultdomain<br />
+
+    它主要用于邮件用户在投递给同一邮件服务器的邮件用户时的邮件投递处理，比如<br />
+邮件服务器cnunix.com.cn用户user发送邮件给另一个邮件用户user1@cnunix，这实qmai<br />
+l-inject会将defaultdomain中定义的邮件域名加入到这个邮件的目标地址中，qmail会<br />
+自动认为这个邮件的目标地址是user1@cnunix.com.cn，并按照这个地址进行投递。当这<br />
+个文件不存在的时候，qmail会从配置文件me中读取这个参数。如果系统变量DEFAULTDOM<br />
+AIN已经设置，defaultdomain定义的参数将被忽略。<br />
+
+    1.6、defaulthost<br />
+
+    它和defaultdomain类似，当邮件系统接收到没有目标主机名的邮件时，这个设置文<br />
+件定义了系统往这个邮件中加入的目标主机名名称。在缺省情况下，qmail-inject会将d<br />
+efaulthost中定义的名称加入到没有定义投递邮件地址的邮件的目标主机名中，如果def<br />
+aulthost不存在，加入的目标主机名将时字符串“defaulthost”，defaulthost主要用<br />
+于邮件用户在投递给同一邮件服务器的邮件进行投递处理。如果系统变量QMAILDEFAULTH<br />
+OST已经设置，defaulthost定义的参数将被忽略。<br />
+
+    1.7、databyes<br />
+
+    它定义了qmail-smtpd所允许接收的邮件的最大字节数。这个参数的缺省值为0，表<br />
+示对接收邮件的字节数没有限制。如果要限制最大的接收为10M，操作如下：<br />
+
+    echo 10485760 > /var/qmail/control/databytes<br />
+
+    这是任何大于10M的邮件都会被拒绝。这个参数最好设置上，以避免恶意的对你服务<br />
+器发送大量的超大邮件，产生邮件服务器负荷过大，甚至系统崩溃的危险。<br />
+
+    1.8、doublebouncehost<br />
+
+    这个配置文件定义了出现“双重反弹”的时候，系统转发的邮件的主机名称。“双<br />
+重反弹”就是当系统因为投递失败将邮件返回给发送者时，发送者又将此邮件返回，这<br />
+个时候qmail将会把这个邮件转发到另一个邮件地址，一般这个地址就是管理员的地址。<br />
+doublebouncehost就是定义这个转发的邮件地址的主机名部分，而这个邮件地址的用户<br />
+名部分是由doublebouceto来定义的，因此这两个配置文件一般都是结合起来使用的。当<br />
+doublebouncehost不存在的时候，系统将会从配置文件me中读取这个参数。<br />
+
+    1.9、doublebounceto<br />
+
+    这个参说是结合blebouncehost来使用的，当这个参数不存在的时候，系统缺省值是<br />
+postmaster用户。<br />
+
+    1.10、helohost<br />
+
+    这个配置文件定义了当程序qmail-remote和远程邮件系统建立连接时所使用的主机<br />
+名。如果这个配置文件不存在，系统将会从配置文件me中读取这个参数值，如果me不存<br />
+在，qmail-remote将不能正常运行工作。<br />
+
+    1.11、locals<br />
+
+    这个配置文件是定义本地邮件域的，在qmail-send处理邮件投递时，将会使用local<br />
+s定义的值和邮件的目标地址进行比较，如果相同，系统就会将这个邮件投递到本地交给<br />
+qmail-lspawn来处理。如果一个邮件的目标主机名在locals找不到，系统将会把这个邮<br />
+件投递到远端邮件服务器系统，即使这个邮件的目标地址可能是本地邮件系统的。如果l<br />
+ocals不存在，系统将会从配置文件me中读取这个参数，如果me不存在，qmail-send将不<br />
+能正常运行。<br />
+
+    1.12、me<br />
+
+    这个配置文件是qmail系统十分重要的一个文件，如果这个文件不存在，qmail系统<br />
+将无法运行。me是用来定义本地邮件服务器的主机名的，上面已经介绍到了，有多个配<br />
+置文件是和me有关联的，如果那些配置文件不存在系统默认会从me中读取参数值的。me<br />
+这个配置文件一般都是在qmail系统安装时使用configure-fast来创建的，在上面qmail<br />
+系统安装的时候已经使用过了这个参数。<br />
+
+    1.13、queuelifetime<br />
+
+    这个配置文件是定义一个邮件在邮件队列中存活的时间，缺省值为7天(604800s)，<br />
+这个期限掉了以后qmail-send将会进行最后一次的投递尝试，如果投递失败，该邮件将<br />
+会从邮件队列中删除。<br />
+
+    1.14、rcphosts<br />
+
+     这个配置文件也是qmail一个十分重要的文件，这个文件是定义系统允许转发邮件<br />
+的邮件域，如果这个文件不存在或者为空，你的系统将会接收Internet上所有的域的邮<br />
+件转发，即你的系统是Open relay。配置文件rcpthosts最多可以支持50个主机名和域名<br />
+，如果超个这个数字，就需要保存到他的扩充配置文件morercphosts中，然后使用qmail<br />
+的命令程序qmail-newmrh(在本系统中，该文件在/var/qmail/bin目录下)来生成二进制<br />
+的morercpthosts.cdb文件，这样qmail-smtpd才可以从这个二进制文件中读取信息。<br />
+
+    1.15、virtualdomains<br />
+
+    这也是qmail的一个非常重要的配置文件，它定义了qmail的虚拟邮件域，qmail结合<br />
+vpopmail的虚拟域管理功能可以定义多个虚拟邮件域。<br />
+
+    1.16、smtproutes<br />
+
+    这个配置文件是定义qmail邮件系统的静态SMTP路由表信息的，他的格式应该是：<br />
+
+     HOST: targetHOST    //HOST可以是主机名或者域名。这行所表示的是意思是将所<br />
+有目标是HOST的邮件转发到targetHOST邮件服务器中，这个是最常规的表示方式。<br />
+
+      下面给一些例子和一些特殊的表示方法：<br />
+
+       cnunix.com.cn:cnunix.com   //这行表示的意思是将所有发往cnunix.com.cn的<br />
+邮件全部转发到cnunix.com这个邮件服务器。qmail不会在cnunix.com.cn邮件服务器中<br />
+投递时查询DNS中的MX记录，直接投递到cnunix.com邮件服务器中，加快了投递的速度。<br />
+
+
+     .cnunix.net:     //这行表示强迫qmail对DNS的MX记录进行查询，因为没有定义<br />
+转发的主机名，qmail将在DNS中查询任何以.cnunix.net结尾的邮件服务器<br />
+
+     :mail.cnunix.com.cn:2525    //这行定义表示所有发往该机器的所有邮件都将会<br />
+转发到mail.cnunix.com.cn这个邮件服务器，并且转发到对方的2525端口，这个方式一<br />
+般都是做邮件网关时用的到的。<br />
+
+    注意：smtproutes如果设置不正确或者DNS的变动会产生邮件的循环投递。<br />
+
+    1.17、timeoutconnect<br />
+
+    这个配置文件定义了qmail-remote在和远端SMTP服务器在SMTP连接断开以前接受一<br />
+个新的连接等待的最大时间(单位为秒s),默认值为一分钟(60s)。如果你的网络连接速率<br />
+比较低，就需要相应的调整这个参数到一个适合的值。<br />
+
+    1.18、timeoutremote<br />
+
+    这个配置文件定义了qmail-remote等待远端的SMTP服务器相应时等待的最大时间，<br />
+默认值为20分钟(1200s),如果到达这个最大值没有相应，qmail才和对方断开连接并且把<br />
+失败的记录写到qmail的日志中。<br />
+
+    1.19、smtpgreeting<br />
+
+     这个配置文件定义了用户在登录SMTP服务时显示的系统欢迎信息。修改这个信息可<br />
+以掩盖一些你的系统的本身的信息，可以相对的迷惑一下登录者:)<br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

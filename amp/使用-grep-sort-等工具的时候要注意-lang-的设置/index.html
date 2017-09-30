@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>使用 grep sort 等工具的时候要注意 LANG 的设置 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">使用 grep sort 等工具的时候要注意 LANG 的设置</span></h1>
+
+<h2 class="date">2010/07/12</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/grep">grep</a> <a href="/tags/linux">linux</a> <a href="/tags/sort">sort</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+发现在使用 sort 或 grep 等工具的时候，LANG 会影响到速度。<br />
+
+1.5G 的文件，grep -Ei 'keyword' file, LANG=C 的时候执行时间是 22 秒，LANG=en_US.UTF-8 的时候，执行时间是 3分53秒，最后结果是一样的。<br />
+
+这还不是最恐怖的，恐怖的是下面的<br />
+<pre class="prettyprint lang-text">
+$ cat a
+a
+b
+C
+d
+E
+
+$ LANG=en_US.UTF-8 egrep '[a-z]' a
+a
+b
+C
+d
+E
+
+$ LANG=C egrep '[a-z]' a
+a
+b
+d
+</pre><br />
+
+以后用这些工具还是小心一点吧。。。。。<br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

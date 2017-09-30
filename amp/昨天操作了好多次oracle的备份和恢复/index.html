@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>昨天操作了好多次oracle的备份和恢复 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">昨天操作了好多次oracle的备份和恢复</span></h1>
+
+<h2 class="date">2006/11/09</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/oracle">oracle</a> <a href="/tags/other">other</a> <a href="/tags/%E5%A4%87%E4%BB%BD">备份</a> <a href="/tags/%E6%81%A2%E5%A4%8D">恢复</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+oracle的数据库文件一旦建立就会一直占用磁盘空间，表空间用尽的时候，就需要为表空间添加数据文件。可是，从表里面删除数据的时候，表空间却不会释放，所以磁盘空间占用只会越来越大。前段时间一个数据库的表空间不足了，放数据的分区也磁盘空间不足了，必须得想办法释放一下空间才行，操作说起来其实也简单，就是倒腾。<br />
+
+操作值钱咱先给现在的表空间做一个备份。然后新建一个用户，给这个用户建立表空间，按照备份的大小添加数据文件。然后将备份导入新的表空间，切换应用使用的用户。删除之前用户的表空间，删除数据文件。然后给他重新建立表空间数据文件，切换回来。然后将新的用户里面的数据导出，导入到旧的用户下面。这样就操作完了。<br />
+
+导出导入的时候可以按照exp和imp帮助里面的那个例子，row=n表示不倒数据，只导结构。这样导出似乎也会有些问题，什么seq不会倒出来，需要重新弄，不太明白这个。<br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

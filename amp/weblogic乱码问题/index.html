@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>weblogic乱码问题 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">weblogic乱码问题</span></h1>
+
+<h2 class="date">2006/08/05</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/other">other</a> <a href="/tags/weblogc">weblogc</a> <a href="/tags/%E4%B9%B1%E7%A0%81">乱码</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+1 先看这里：WebLogic8.1的中文问题解决方法<br />
+
+http://dev2dev.bea.com.cn/techdoc/200311546.html<br />
+
+
+2 看看系统locale的设置，可以使用locale命令查看当前的locale设置，可以使用如下命令设置locale。<br />
+
+#LANG=en_US<br />
+
+没有在weblogic的手册中找到关于这部分的信息，可以测试一下系统locale对应用是否有影响。<br />
+<!--more--><br />
+3 下面是手册中关于国际化的一段说法，按照下面的说法，应该是不管有没有设置weblogic的字符集，他都会正确处理多字节字符，默认使用的是utf－8。<br />
+
+Often the default character sets used by WebLogic Server are adequate and you do not need to explicitly specify a character set for a Web Service. For example, if a client application specifies its preferred character set, and there is no character set specified for a Web Service, then WebLogic Server responds by using the client's preferred character set. Also, non-internationalized WebLogic Server instances use the US-ASCII character set by default, and internationalized WebLogic Server instances use the UTF-8 character set by default, and both of these character sets are compatible when one WebLogic Server instance is communicating with the other. This also means that a Web Service running on a non-internationalized WebLogic Server instance can handle multi-byte characters correctly.<br />
+
+具体修改的方法可以参看这里：http://e-docs.bea.com/wls/docs81/webserv/i18n.html。<br />
+生效的顺序如下：<br />
+
+Order of Precedence of Character Set Configuration Used By WebLogic Server<br />
+
+The following list shows the order by which WebLogic Server determines the character set of a WebLogic Web Service when it is creating the SOAP response to an invoke of one of its operations:<br />
+
+1. The value of the charset attribute in the corresponding <web-service> element of the web-services.xml deployment descriptor.<br />
+
+If this is not set, then WebLogic Server looks at the following:<br />
+
+2. The character set preferred by the client application that invoked the Web Service operation. If your client application uses the WebLogic Web Services client APIS, the character set is specified using the weblogic.webservice.binding.BindingInfo.setAcceptCharset() method.<br />
+
+If this is not set, then WebLogic Server looks at the following:<br />
+
+3. The value of the WebLogic Server system property weblogic.webservice.i18n.charset.<br />
+
+If this is not set, then WebLogic Server looks at the following:<br />
+
+4. The character set specified for the JVM. Specifically, if the JVM property user.language is set to en, then WebLogic Web Services use the US-ASCII character set. If the user.language property is set to anything else, WebLogic Web Services use the UTF-8 character set.<br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

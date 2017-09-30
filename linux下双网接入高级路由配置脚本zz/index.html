@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Linux下双网接入高级路由配置脚本zz | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Linux下双网接入高级路由配置脚本zz</span></h1>
+
+<h2 class="date">2006/01/12</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/other">other</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+http://lwfs.net/2005/11/28/10/<br />
+<pre class="prettyprint lang-bash">
+    #!/bin/bash
+
+    IP0=<ip of your eth0>
+    IP1=<ip of your eth1>
+    GW0=<gateway of your first net>
+    GW1=<gateway of your second net>
+    NET0=<network address of your first net: network address/netmask>
+    NET1=<same as above, the second net>
+    DEV0=eth0
+    DEV1=eth1
+
+    # comment the next two line after first run this script.
+    echo 200 cernet >>/etc/iproute2/rt_tables
+    echo 210 chinanet >>/etc/iproute2/rt_tables
+
+    ip route add ${NET0} dev ${DEV0} src ${IP0} table cernet
+    ip route add default via ${GW0} table cernet
+    ip route add ${NET1} dev ${DEV1} src ${IP1} table chinanet
+    ip route add default via ${GW1} table chinanet
+    ip route add ${NET0} dev ${DEV0} src ${IP0}
+    ip route add ${NET1} dev ${DEV1} src ${IP1}
+
+    # delete old rule
+    ip rule del from ${IP0}
+    ip rule del from ${IP1}
+    # setup new rule
+    ip rule add from ${IP0} table cernet
+    ip rule add from ${IP1} table chinanet 
+</pre><br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

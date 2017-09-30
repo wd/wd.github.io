@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>还是cacti的问题 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">还是cacti的问题</span></h1>
+
+<h2 class="date">2006/11/04</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/cacti">cacti</a> <a href="/tags/cactid">cactid</a> <a href="/tags/other">other</a> <a href="/tags/upgrade">upgrade</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+前面那个帖子似乎没有解决问题，查看了一下log，有些异常：<br />
+cactid ERROR: SNMP timeout detected [500 milliseconds]<br />
+搜了一下，找到一个<a target="_blank" href="http://forums.cacti.net/about5487.html">文章</a>，似乎说升级就ok了，可是那个日期是2005年的，我的应该没那么老吧。不过还是上cacti的<a target="_blank" href="http://cacti.net/">主页</a>看了看，看到cacti和cactid都升级了，就打算升级一下看看。debian上面怎么玩呢？cacti还好说，之前升级过一次，不需要编译，直接按照<a target="_blank" href="http://www.cacti.net/downloads/docs/html/upgrade.html">文档</a>升级就好，cactid可得编译，我也不打算直接覆盖安装（其实真这么装没准还简单了），还是做一个deb包吧，一直没有体验过deb如何做，刚好机会来了。<br />
+
+搜了半天，找到一个<a target="_blank" href="http://debian.linuxsir.org/doc/inthedebianway/debian_build_package.html">文档</a>，按照里面的步骤，下载了diff、dsc等文件， 解压之后修改control文件和一些depands，然后编译打包，好像没什么问题，试着装了一下，装上了，运行了一下，好像也没问题，呵呵，就这么搞定了。<br />
+
+之后按照同样的步骤搞cacti，结果安装打包的文件后，出问题了，呵呵。不过还好，东弄西弄，总算还是弄好了。按照cacti的文档手动升级了一下，也没遇到问题。不过plugin-arch也需要同时升级一下。还有poller.php和cmd.php都需要加执行权限。<br />
+
+cactid i这个版本似乎执行的时候输出没有g那么多了，很好，要不然log会搞的很大。cmd.php的输出倒是没多少内容，不过没有cactid的多线程爽亚，呵呵。执行cactid之后，会发现还有些问题:<br />
+Host[6] DS[46] WARNING: Result from SNMP not valid. Partial Result: ...<br />
+
+搜了一下，找到一个<a href="http://forums.cacti.net/post-63188.html">文章</a>， 里面说到了问题的所在。我这里是因为一些有问题的data souce导致，比如这些本来就获取不到数据、或者之前的设备比如网卡现在没有了等等，都会导致cactid获取不到需要的数据，就会提示那个错误。按照里面提示的DS[46]，在http://your_ip/cacti/data_sources.php?action=ds_edit&id=num这个链接的num那里直接输入数字就能知道是哪个ds出问题了，删掉或者更新就ok了。<br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

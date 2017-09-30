@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Oracle10g EM乱码之快速解决 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Oracle10g EM乱码之快速解决</span></h1>
+
+<h2 class="date">2006/08/05</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/heart">heart</a> <a href="/tags/oracle">oracle</a> <a href="/tags/%E4%B9%B1%E7%A0%81">乱码</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+来源 <a target="_blank" href="http://www.eygle.com/archives/2006/03/oracle10g_em_font_change.html">这里</a><br />
+
+一直没怎么用10g的EM工具,今天打开来看看,发现也有相传已久的乱码问题.网上也流传着N种解决方案,仔细看一下,其实这个问题很好解决.<br />
+
+如果安装时,我们系统环境变量设置的是中文环境,那么就不会有这个问题.这个问题根本原因在于安装时,JDK/JRE字符集的自动选择.<br />
+
+在 $ORACLE_HOME/jdk/jre/lib 和 $ORACLE_HOME/jre/1.4.2/lib/ 目录下都有多种字符集字体配置文件:<br />
+<!--more--><br />
+[oracle@danaly ~]$ cd $ORACLE_HOME/jdk/jre/lib<br />
+[oracle@danaly lib]$ ls font*zh_CN*<br />
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1<br />
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun<br />
+
+[oracle@danaly lib]$ cd $ORACLE_HOME/jre/1.4.2/lib/<br />
+[oracle@danaly lib]$ ls font*zh_CN*<br />
+font.properties.zh_CN.Redhat  font.properties.zh_CN.Redhat2.1<br />
+font.properties.zh_CN.Sun  font.properties.zh_CN_UTF8.Sun<br />
+
+我们只要用合适的中文字符集文件替换缺省文件即可,我选择使用font.properties.zh_CN.Redhat来替换缺省字体定义文件:<br />
+
+[oracle@danaly lib]$ cp font.properties.zh_CN.Redhat font.properties<br />
+
+替换之后需要清理一下Cache,重启EM即可.<br />
+
+Cache路径通常位于:<br />
+
+$ORACLE_HOME/oc4j/j2ee/oc4j_applications/applications/em/em/cabo/images/cache/zhs<br />
+
+清除所有gif文件即可.然后重新启动EM:<br />
+
+[oracle@danaly zhs]$ emctl stop dbconsole<br />
+TZ set to PRC<br />
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0<br />
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.<br />
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication<br />
+Stopping Oracle Enterprise Manager 10g Database Control ...<br />
+...  Stopped.<br />
+[oracle@danaly zhs]$ emctl start dbconsole<br />
+TZ set to PRC<br />
+Oracle Enterprise Manager 10g Database Control Release 10.2.0.1.0<br />
+Copyright (c) 1996, 2005 Oracle Corporation.  All rights reserved.<br />
+http://danaly.hurrray.com.cn:1158/em/console/aboutApplication<br />
+Starting Oracle Enterprise Manager 10g Database Control .............. started.<br />
+------------------------------------------------------------------<br />
+Logs are generated in directory<br />
+/opt/oracle/product/10.2.0/danaly.hurrray.com.cn_danaly/sysman/log<br />
+
+现在登陆Web页面,EM显示就可以正常显示中文了.<br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

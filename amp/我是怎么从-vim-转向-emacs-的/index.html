@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>我是怎么从 vim 转向 emacs 的 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">我是怎么从 vim 转向 emacs 的</span></h1>
+
+<h2 class="date">2010/04/18</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/emacs">emacs</a> <a href="/tags/linux">linux</a> <a href="/tags/vim">vim</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+从尝试用 emacs，到现在基本（有些地方还不是很适应）习惯用 emacs，算起来得有 n 年了，我都忘记最早接触 emacs 是什么时候了。在 2010-3-20 之前尝试过很多次，基本都是记几个快捷键，过几天就又忘记了。后来自己想了下为什么不能持续的原因，我觉得有两个。<br />
+
+1 没有在日常工作里面使用。<br />
+之前我的开发工作基本都是直接在某台服务器上面的，这样就开发调试会比较方便，而那些机器一般要不会装 emacs，这样不常用就会导致记住的快捷键过几天就忘记了。最近刚好需要在本机写点程序，也就刚好用上了。<br />
+
+2 不会 elisp。<br />
+emacs 的配置文件都是 elisp 写的，而不经过配置的 emacs 就编辑文件来看，我觉得还不如去用 vim，vim 好用多了。我想刚看到 elisp 的时候一般都会觉得这个语言太变态了，全是一堆的括号。。。而不会 elisp 就会导致你只能去机械的复制别人的配置，如果刚好是你想要的，那还好，而如果还想做点小的修改，那就会很郁闷，用起来郁闷，不用可能更郁闷。不爽多了，就干脆不用 emacs 了。<br />
+
+如果你能在日常工作中经常使用，并且会写程序（比如 php,perl 什么的，随便哪个都行），那么对于基本没怎么配置过 .vimrc 的用户来说，切换到 emacs 其实应该还算是一个比较简单的事情。<br />
+
+1 emacs 是无模式的。<br />
+这就是说你不用经常去按那个 Esc 来切换模式了。没有模式也就意味着你不能使用像 vim 那么简短的命令了，因为像 a,i,o,h,j,k 这些对 emacs 来说，这些都是正常的输入字符，所以我们不得不在这些字符前面加上 C(control), M(Meta 一般是 Alt), S(shift) 这些前缀。在 emacs 里面需要按的可能还远不止这些控制字符加一个普通字符，比如我定义的 C-c n E 来打开 erc。不要被这些吓着了，并不需要你记住所有的，你只要记住你常用的就好了。<br />
+
+2 emacs 里面的 buffer。<br />
+打开一个文件，就会出现一个 buffer。调用帮助，也会打开 buffer。使用 emacs 绝对不要和一些自动出现的 buffer 过不去，使用 emacs 的理念就是一个编辑器 n 个 buffer，编辑文件的，看 mail、news 的，上 irc 的等等。你需要的是一个方便的 buffer 切换的工具，推荐的有 ido-mode 和 ibuffer。<br />
+
+3 emacs 里面有各种 mode。<br />
+vim 里面是通过设置 filetype(ft) 来达到语法高亮等功能的。emacs 里面是通过各种 mode。emacs 里面有主模式(main mode)，和辅模式(minor mode)。上面说的 ido-mode 就是一个辅模式。打开一个文件后，一般有一个主模式（通过一些方法也可以有多个），多个辅模式。比如我打开一个 js 文件，会同时使用到 js2-mode 这个主模式，和 highlight-tail-mode, autocomplate-mode 这几个辅模式。<br />
+
+4 写点 elisp。<br />
+elisp 基本就是一堆的括号，括号最左半边的是操作符或函数，后面的都是他的参数，比如 (- 10 3)，具体这个是什么意思，就要去看看 "-" 是干嘛的，他会对后面的参数做什么事。再比如(setq xwl-at-company? (xwl-at-company))。先去看看那个 setq 是干嘛的，查完好像是设置变量的，他会把第二个参数的值赋给第一个参数。那第二个变量是个表达式，那就等于会把这个表达式的值赋给他，对吧。这个括号表达式是干嘛的呢？xwl-at-company 这个是自己写的函数，不需要参数，他会根据一些信息返回是不是在使用公司的网络。是返回 t，不是返回 nil。ok，这不就明白了么？呵呵。还有一些像 (if, (when, (progn 等等，都是这么个理解方法。<br />
+写程序就避免不了调试，最简单的调试方法应该就是直接打印了吧，呵呵。elisp 里面可以使用 print, message 来输出一些调试信息。比如 (print (format "value of t: %s" t))，具体啥意思可以参考前面说的方法去查查。这些信息可以在一个叫 *Messages* 的 buffer 里面看到。<br />
+
+5 emacs 里面的帮助。<br />
+C-h 是调用帮助，可以在后面再输入 ？ 来看看有什么可用的帮助。我一般用的是 m（看当前 mode 的一些快捷键设置），k（查某个快捷键是干嘛的），v（查 emacs 变量的值）。<br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

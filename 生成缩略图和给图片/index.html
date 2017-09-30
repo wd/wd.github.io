@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>生成缩略图和给图片 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">生成缩略图和给图片</span></h1>
+
+<h2 class="date">2005/12/13</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/web">web</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+一个自动生成缩略图的程序<br />
+
+<br><!--more--><pre lang="php"><br />
+<?<br />
+
+$FILENAME="image_name";<br />
+
+// 生成图片的宽度<br />
+$RESIZEWIDTH=400;<br />
+
+// 生成图片的高度<br />
+$RESIZEHEIGHT=400;<br />
+
+
+function ResizeImage($im,$maxwidth,$maxheight,$name){<br />
+	$width = imagesx($im);<br />
+	$height = imagesy($im);<br />
+	<br />
+	if(($maxwidth && $width > $maxwidth) || ($maxheight && $height > $maxheight)){<br />
+		if($maxwidth && $width > $maxwidth){<br />
+			$widthratio = $maxwidth/$width;<br />
+			$RESIZEWIDTH=true;<br />
+		}<br />
+
+		if($maxheight && $height > $maxheight){<br />
+			$heightratio = $maxheight/$height;<br />
+			$RESIZEHEIGHT=true;<br />
+		}<br />
+
+		if($RESIZEWIDTH && $RESIZEHEIGHT){<br />
+			if($widthratio < $heightratio){<br />
+				$ratio = $widthratio;<br />
+			}else{<br />
+				$ratio = $heightratio;<br />
+			}<br />
+		}elseif($RESIZEWIDTH){<br />
+			$ratio = $widthratio;<br />
+		}elseif($RESIZEHEIGHT){<br />
+			$ratio = $heightratio;<br />
+		}<br />
+		<br />
+		$newwidth = $width * $ratio;<br />
+		$newheight = $height * $ratio;<br />
+		<br />
+		if(function_exists("imagecopyresampled")){<br />
+			$newim = imagecreatetruecolor($newwidth, $newheight);<br />
+			imagecopyresampled($newim, $im, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);<br />
+		}else{<br />
+			$newim = imagecreate($newwidth, $newheight);<br />
+			imagecopyresized($newim, $im, 0, 0, 0, 0, $newwidth, $newheight, $width, $height);<br />
+		}<br />
+		<br />
+		ImageJpeg ($newim,$name . ".jpg");<br />
+		ImageDestroy ($newim);<br />
+	}else{<br />
+		ImageJpeg ($im,$name . ".jpg");<br />
+	}<br />
+}<br />
+
+
+
+if($_FILES[&#39;image&#39;][&#39;size&#39;]){<br />
+	if($_FILES[&#39;image&#39;][&#39;type&#39;] == "image/pjpeg"){<br />
+		$im = imagecreatefromjpeg($_FILES[&#39;image&#39;][&#39;tmp_name&#39;]);<br />
+	}elseif($_FILES[&#39;image&#39;][&#39;type&#39;] == "image/x-png"){<br />
+		$im = imagecreatefrompng($_FILES[&#39;image&#39;][&#39;tmp_name&#39;]);<br />
+	}elseif($_FILES[&#39;image&#39;][&#39;type&#39;] == "image/gif"){<br />
+		$im = imagecreatefromgif($_FILES[&#39;image&#39;][&#39;tmp_name&#39;]);<br />
+	}<br />
+	<br />
+	if($im){<br />
+		if(file_exists("$FILENAME.jpg")){<br />
+			unlink("$FILENAME.jpg");<br />
+		}<br />
+		ResizeImage($im,$RESIZEWIDTH,$RESIZEHEIGHT,$FILENAME);<br />
+		ImageDestroy ($im);<br />
+	}<br />
+}<br />
+
+?><br />
+</pre><br />
+
+自动<br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

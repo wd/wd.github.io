@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>tomcat和apache桥接 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">tomcat和apache桥接</span></h1>
+
+<h2 class="date">2006/08/23</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/apache">apache</a> <a href="/tags/tomcat">tomcat</a> <a href="/tags/web">web</a> <a href="/tags/%E6%A1%A5%E6%8E%A5">桥接</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+1 下载，安装tomcat，jdk和mod_jk<br />
+
+下载jdk  <a href="http://java.sun.com/javase/downloads/index.jsp">http://java.sun.com/javase/downloads/index.jsp</a><br />
+tomcat 5.5 需要jre 1.5才可以。下载之后是一个bin文件<br />
+<pre class="prettyprint lang-bash">
+$chmod +x xx.bin
+$./xx.bin</pre>
+
+他会将jdk解压到当前目录下面，然后作一个链接
+<pre class="prettyprint lang-bash">
+
+以后访问jdk文件夹即可，此处我们用JAVA_HOME来表示jdk文件夹的路径。
+
+下载tomcat <a href="http://tomcat.apache.org/download-55.cgi">http://tomcat.apache.org/download-55.cgi</a>
+下载 Core 那个版本就可以，下载之后解压，选择放置地方之后，做一个链接
+<pre class="prettyprint lang-bash">
+
+以后访问tomcat文件夹即可，此处我们用TOMCAT_HOME来表示tomcat的安装路径。
+
+下载 mod_jk ，这个是用来完成apache和tomcat桥接的模块，<a href="http://www.apache.org/dist/tomcat/tomcat-connectors/jk/"> http://www.apache.org/dist/tomcat/tomcat-connectors/jk/</a> 。
+可以下载已经编译好的模块，不过要注意要和自己的apache版本对应才行。也可以下载source自己编译，这里我们自己编译。
+
+下载source之后，解压，进入解压后的目录，然后
+<pre class="prettyprint lang-bash">
+$./configure --with-apxs=/usr/local/apache/bin/apxs #后面是apxs的目录
+也可以
+$./configure --with-apache=/usr/local/apache #apache的目录
+$make
+</pre><br />
+编译完成之后，复制桥接模块到apache的modules目录<br />
+<pre class="prettyprint lang-bash">
+
+2 配置
+
+jdk的环境需要配置一个系统变量JAVA_HOME，可以写到/etc/profile中，或者修改tomcat的启动停止脚本来设置java环境也可以（这
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>给apache加了一个compress模块，mod_deflate | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">给apache加了一个compress模块，mod_deflate</span></h1>
+
+<h2 class="date">2007/04/02</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/apache">apache</a> <a href="/tags/web">web</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+apache 1.3 里面有个压缩模块叫做 mod_gzip ，不支持 2.x。在2.x 里面有一个 <a href="http://httpd.apache.org/docs/2.0/mod/mod_deflate.html">mod_deflate</a> 模块，也是类似的效果。想使用的话，很简单，编译的时候加上 --enable-deflate 就可以了。之后可以用 apachectl -l  看是不是正常加载了这个模块。<br />
+
+httpd.conf 添加下面的语句<br />
+<pre class="prettyprint lang-txt">
+
+对所有指定类似的文件都应用这个模块。添加之后访问看看。
+
+<pre class="prettyprint lang-txt">
+203.86.x.x - - [02/Apr/2007:15:24:23 +0800] "GET / HTTP/1.1" 200 <font color="#FF0000">4718</font> "-" 
+"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) 
+Gecko/20070309 Firefox/2.0.0.3"
+
+203.86.x.x - - [02/Apr/2007:15:46:16 +0800] "GET / HTTP/1.1" 200 <font color="#FF0000">1684</font> "-" 
+"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) 
+Gecko/20070309 irefox/2.0.0.3"</pre>
+
+好像是小了。。。
+
+如果error.log 里面出现了下面的错误
+<pre class="prettyprint lang-txt">
+
+ 这表示apache的那个模块没有安装正确。
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

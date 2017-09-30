@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>mac 里面的 emacs 的几个设置 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">mac 里面的 emacs 的几个设置</span></h1>
+
+<h2 class="date">2012/03/06</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/emacs">emacs</a> <a href="/tags/linux">linux</a> <a href="/tags/macos">macos</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p>刚开始在 mac 里面使用 emacs 简直就是自虐，因为那个反人类的 command 按键。一般 pc 上面的 alt 是在 space 旁边的，macbook 的 space 旁边是 command，对于一个需要经常在 mac 里面按的键，不是一般的郁闷。这个问题有两个方法解决。<br />
+</p><br />
+
+<div id="outline-container-1" class="outline-2"><br />
+<h2 id="sec-1">mac 自带的解决方法</h2><br />
+<div class="outline-text-2" id="text-1"><br />
+
+
+<p><br />
+就是在键盘设置里面，把修饰键里面的 command 和 alt 替换一下。这个方法会很不爽，因为 mac 里面的复制粘贴是 command + c/v，以后要按 alt + c/v 的话，距离有点远。<br />
+</p><br />
+</div><br />
+
+</div><br />
+
+<div id="outline-container-2" class="outline-2"><br />
+<h2 id="sec-2">KeyRemap4MacBook</h2><br />
+<div class="outline-text-2" id="text-2"><br />
+
+
+<p><br />
+这个是个 mac 上面的软件，地址在 <a href="http://pqrs.org/macosx/keyremap4macbook/document.html">这里</a> 。里面的设置实在太多了，这里要用到的一个就是只在 emacs 里面把 command 和 alt 替换一下，这样就解决了上面提到的问题，还算完美。可是这个时候会发现，在 emacs 界面激活的情况下，command 开头的系统级别的快捷键都不好用了，比如 command + tab，这也很郁闷。<br />
+</p><br />
+</div><br />
+
+</div><br />
+
+<div id="outline-container-3" class="outline-2"><br />
+<h2 id="sec-3">emacs 自带的完美解决方法</h2><br />
+<div class="outline-text-2" id="text-3"><br />
+
+
+<p><br />
+只说 emacs23，emacs24。早期的好像有 mac-pass-command-to-system 之类的设置，可我在 emacs24 里面没看到这个变量。<br />
+</p><br />
+<p><br />
+具体设置参考<a href="http://www.emacswiki.org/emacs/EmacsForMacOS#toc23">这里</a> ，主要是下面这些设置。<br />
+</p><br />
+
+
+<pre class="prettyprint lang-lisp">
+;; key bindings
+(when (eq system-type 'darwin) ;; mac specific settings
+  (setq mac-option-modifier 'alt)
+  (setq mac-command-modifier 'meta)
+  (global-set-key [kp-delete] 'delete-char) ;; sets fn-delete to be right-delete
+  )
+</pre><br />
+
+<p><br />
+现在就很爽了，按 command + x 和 alt + x 效果一样，按 command + tab 也能切换窗口。算是完美了。<br />
+</p></div><br />
+</div><br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

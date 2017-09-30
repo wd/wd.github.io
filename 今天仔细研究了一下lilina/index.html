@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>今天仔细研究了一下lilina | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">今天仔细研究了一下lilina</span></h1>
+
+<h2 class="date">2007/04/12</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/heart">heart</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+lilina 最近总是出问题，又用不惯别的，今天花了点时间看了看。<br />
+
+lilina 的rss解析用的是 magpie ，feed文件下载用的是 Snoopy 。下载之后 magpie 用 xml_parse 来做处理。lilina 使用 magpie 的 fetch_rss() 函数来处理rss。而在 inc/magpie/rss_fetch.php 里面又用 _fetch_remote_file() 函数来获取rss文件，文件的获取用的是 Snoopy 类。获取文件内容之后，又用 magpie 的 MagpieRSS 类的 MagpieRSS 函数来处理文件，里面用到了 xml_parse() 函数。再后面就没有仔细看了。<br />
+
+我遇到的问题是 Snoopy 获取文件是没问题的，出问题的是 xml_parse ,如果获取的source不是有效的xml文件，xml_parse 会死掉，所以我就在 xml_parse 前面检查了一下 source 是不是一个正常的feed。有人推荐 tidy 来验证，那太麻烦了，我就直接match了一下feed这个关键字。。。目前看好像每问题。。<br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

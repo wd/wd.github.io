@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>emacs 的 emms 里面的乱码 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">emacs 的 emms 里面的乱码</span></h1>
+
+<h2 class="date">2010/06/19</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/emacs">emacs</a> <a href="/tags/emms">emms</a> <a href="/tags/linux">linux</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<a href="http://www.gnu.org/software/emms/">emms</a> 是基于 emacs 的一个播放器，不过其它他做的应该只是管理音乐，具体播放还是靠 mpg123 或 mplayer 这样的程序。<br />
+
+前几天下了一些 mp3, 这两天就又搞了搞 emms。emacser.cn 有篇<a href="http://emacser.com/emms.htm">文章</a>就是介绍这个的，就不多说了。主要是被编码问题搞死了。<br />
+
+下载的 mp3 的 tag 是 gbk 的，可是设置了 emms-info-mp3info-coding-system 为 gbk 没效果，而用 mp3info 程序看了 mp3 的 tag，确实是 gbk 的，奇怪了就。后来发现 emms 还带了一个 emms-print-metadata 这个程序，这个程序貌似不需要设置编码，他会出来的结果直接就是 utf8, 可就算用这个 (通过设置 (setq emms-info-functions '(emms-info-libtag)) )，出来的结果还是乱码。<br />
+
+后来突然想起来是不是 cache 的问题，然后就发现有两个地方可能有 cache，一个是 emms-cache.el 一个是 emms-history.el，把这两个对应的 cache 文件删掉，再运行一次 emms 就没问题了。我还设置了下下面的。<br />
+<pre class="prettyprint">
+(setq emms-cache-file "~/.emacs.d/emms/emms-cache"
+      emms-history-file "~/.emacs.d/emms/emms-history")
+</pre><br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

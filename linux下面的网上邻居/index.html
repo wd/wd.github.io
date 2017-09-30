@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Linux下面的网上邻居 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Linux下面的网上邻居</span></h1>
+
+<h2 class="date">2006/11/06</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/archlinux">Archlinux</a> <a href="/tags/fuse">fuse</a> <a href="/tags/fusesmb">fusesmb</a> <a href="/tags/smbnetfs">smbnetfs</a> <a href="/tags/%E7%BD%91%E4%B8%8A%E9%82%BB%E5%B1%85">网上邻居</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+linux下面有个samba可以mount网上邻居的共享到本地，然后进行访问什么的。可是这样做就需要你事先知道有谁共享了什么，或者需要自己通过一 些命令来查看有谁共享了什么。那么，有没有更加弱智一点的操作方法呢？就像windows里面，有个文件夹，打开之后里面就是网上邻居里面的一些电脑呢？ 有的。<br />
+
+首先安装smbnetfs这个包，同时他会关联fuse这个包，安装fuse之后，会提示你需要将fuse模块加入内核。<br />
+$sudo modprobe fuse<br />
+
+自己修改rc.conf，把他加上，每次启动会自己加载。<br />
+
+然后呢，启动smbnetfs。<br />
+$sudo /etc/rc.d/smbnetfs start<br />
+
+他会给你把网上邻居mount到/mnt/smbnet，去那里看看，是不是网上邻居都出来了？<br />
+如果进某台电脑进不去，我也不知道怎么解决，也不知道是什么问题不行就试试看fusesmb吧。<br />
+
+smbnetfs的配置文件都在/etc/smbnet/.smb下面，smb.conf可以直接cp /etc/samba/smb.conf，smbnetfs.conf是他的配置文件，里面的内容根据自己需要修改。<br />
+
+smbnetfs.auth,smbnetfs.host这俩个文件里面可能涉及到密码，所以设置合适的权限。<br />
+
+auth文件的格式类似如下：<br />
+auth "xfs" "SIC.COM/wd" "wdddd"<br />
+auth "FS" "wd" "wwwwd"<br />
+
+调试好了之后，你就可以把smbnetfs加到rc.conf的启动列表里面了，这样每次开机之后，直接访问/mnt/smbnet就是网上邻居了。<br />
+
+除了smbnetfs之外，还有fusesmb也可以实现类似功能，不过效果都差不多。fusesmb源里面没有，aur有，需要自己编译。<br />
+
+ps:经过一段时间的使用比较之后，发现fusesmb比smbnetfs效果好。smbnetfs经常出现电脑打不开的情况，还有更新不及时的问题。fusesmb就好多了。fusesmb的配置文件在~/.smb/下面，格式可以通过man来查看，配置起来感觉比smbnetfs简单。 需要更新网上邻居列表的时候，执行fusesmb.cache命令就可以。<br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

@@ -27,10 +27,10 @@ anaconda-mode 遇到的问题和解决 anaconda-mode 我遇到一个问题，为
     
     <item>
       <title>Python __new__</title>
-      <link>https://wdicc.com/python-new/</link>
+      <link>https://wdicc.com/python-__new__/</link>
       <pubDate>Mon, 16 Jan 2017 15:47:59 +0800</pubDate>
       
-      <guid>https://wdicc.com/python-new/</guid>
+      <guid>https://wdicc.com/python-__new__/</guid>
       <description>翻译一点 https://www.python.org/download/releases/2.2/descrintro/#__new__ 有些感觉还是挺生硬的，方便自己理解吧。
 __new__ 的一些规则:
  __new__ 是一个静态方法。定义它的时候并不需要执行 __new__ = staticmethod(__new__)，因为它的名字就包含了这个含义（这个对于类构造方法来说是个特殊的函数） __new__ 的第一个参数，必须是一个类，其余的参数是留给构造方法的。 覆盖了基类的 __new__ 方法的类有可能会调用基类的 __new__ 方法。传递给基类的 __new__ 方法的第一个参数，应该是覆盖基类的 __new__ 方法的类，而不是基类，如果传递了基类，你得到的将是基类的示例。 除非你想要按照后面两条描述的方法来使用，否则 __new__ 方法必须要调用基类的 __new__ 方法，这个是创建你的对象的实例的唯一方法。子类的 __new__ 方法可以从两个方面影响产生的实例：传递不同的参数给基类的 __new__，以及修改基类产生的对象（例如初始化一些实例变量） __new__ 方法必须返回一个对象。并不一定必须返回一个新的对象，虽然通常都那么做。如果你返回一个已经存在的对象，依然会有对于 __init__ 构造函数的调用。如果你返回一个其他函数的对象，那个对象的 __init__ 也会被调用。如果忘记返回，python 会给你返回 None，你程序的调用方也许会觉得很奇怪。 对于不可变对象，__new__ 可以返回一个之前缓存的对象。对于一些比较小的 int, str, tuple 类型就是这么做的。这也是为什么他们的 __init__ 什么都没做：否则之前缓存的对象会被 init 很多次。（另外一个原因是本身页没有东西可以给 __init__ 初始化的了，__new__ 返回的就是一个已经初始化的对象）。 如果你想要给一个内置的不可变类型增加一些可变的状态（例如给 string 类型增加一个默认的转换方法），最好是在 __init__ 方法里面初始化可变状态，而不要在 __new__ 里面。 如果你想要修改构造方法的签名，一般需要覆盖 __new__ 和 __init__ 方法来接受心的签名。然而，大部分内置类型都会忽视自己不用的参数，尤其是不可变类型（int，long，float，complex，str，unicode，tuple）都有一个假的 __init__，而可变类型（dict，list，file，super，classmethod，staticmethd，property）有一个假的 __new__。内置类型 object 有假的 __init__ 和 __new__ （给其他对象继承）。内置类型 type 在很多方面都很特别，请参考 metaclasses。 （这条和 __new__ 没关系，但是页应该了解一下）如果新建一个 type 的子类，实例会自动给 __dict__ 和 __weakrefs__ 预留空间（ __dict__ 在你使用前不会初始化，所以你不需要担心创建的所有实例被一个空的字典所占用的空间）。如果不需要这个多余的空间，可以给你的类设置 __slots__ = []（更多信息可以参考 __slots__。 Factoid: __new__ 是一个静态方法，不是类方法。我开始的时候觉得他应该是一个类方法，and that&amp;rsquo;s why I added the classmethod primitive。不幸的是，对于一个类方法，在这种情况下面 upcalls 不工作，所以我只好把他设计成一个第一个参数是一个 class 的静态方法。讽刺的是，there are now no known uses for class methods in the Python distribution (other than in the test suite).</description>
@@ -59,10 +59,10 @@ class Meta(type): register = [] def __new__(cls, class_name, parrent_class, para
     
     <item>
       <title>python 的 decorator 学习</title>
-      <link>https://wdicc.com/decorator-in-python/</link>
+      <link>https://wdicc.com/python-%E7%9A%84-decorator-%E5%AD%A6%E4%B9%A0/</link>
       <pubDate>Fri, 21 Oct 2016 18:50:59 +0800</pubDate>
       
-      <guid>https://wdicc.com/decorator-in-python/</guid>
+      <guid>https://wdicc.com/python-%E7%9A%84-decorator-%E5%AD%A6%E4%B9%A0/</guid>
       <description>最近学习了一下 python 的 decorator（装饰器），看的是这篇，Python修饰器的函数式编程， 觉得挺有意思的，写点东西记录一下。
 装饰器简单讲就是返回一个函数的函数/类。看个简单的例子。
 #!/usr/bin/python # -*- coding: utf-8 -*- def dec1(fn): print(&#39;inside dec1&#39;) def wrapper(): print(&#39;inside wrapper&#39;) return fn() return wrapper @dec1 def f1(): print(&#39;inside f1&#39;) if __name__ == &#39;__main__&#39;: print(&#39;begin exec&#39;) f1() print(&#39;end exec&#39;) # 执行结果: # inside dec1 # begin exec # inside wrapper # inside f1 # end exec  看上面例子能看到，装饰器生效有 2 个步骤，第一个是装饰，第二个是执行。上面装饰器的效果，和下面的代码的效果是一样。
@@ -71,10 +71,10 @@ class Meta(type): register = [] def __new__(cls, class_name, parrent_class, para
     
     <item>
       <title>把 emacs 做为 python ide</title>
-      <link>https://wdicc.com/use-emacs-as-python-ide/</link>
+      <link>https://wdicc.com/%E6%8A%8A-emacs-%E5%81%9A%E4%B8%BA-python-ide/</link>
       <pubDate>Mon, 13 Jul 2009 00:00:00 +0000</pubDate>
       
-      <guid>https://wdicc.com/use-emacs-as-python-ide/</guid>
+      <guid>https://wdicc.com/%E6%8A%8A-emacs-%E5%81%9A%E4%B8%BA-python-ide/</guid>
       <description>emacs 用的其实不是很多，不过他实在是个好东西，各种 mode，用熟了肯定能帮你提升不少工作速度。
 我用 emacs-cvs , ropemacs( dev 版，  0.6 ）, rope (  0.9.2 ), company-mode (  0.4.2 ) 这几个软件在 gentoo 里面都还没有，我自己写了几个 ebuild。
 装好之后，基本就是 require 一下就好，我没做什么设置，效果如下。
@@ -83,10 +83,10 @@ here</description>
     
     <item>
       <title>改良的 fetion.py</title>
-      <link>https://wdicc.com/modified-fetion-py/</link>
+      <link>https://wdicc.com/%E6%94%B9%E8%89%AF%E7%9A%84-fetion.py/</link>
       <pubDate>Mon, 06 Jul 2009 00:00:00 +0000</pubDate>
       
-      <guid>https://wdicc.com/modified-fetion-py/</guid>
+      <guid>https://wdicc.com/%E6%94%B9%E8%89%AF%E7%9A%84-fetion.py/</guid>
       <description>这个 fetion.py 来自 这里。
 不修改的情况下，-t 可以是 sip, uid, mobile_no 这几个。
 我修改了下，不加 -t 参数会打印联系人列表。另外还能用 nickname 来发（没测试，我没几个好友，没好意思发）。
@@ -95,10 +95,10 @@ here</description>
     
     <item>
       <title>asm 和 python的扯淡 zz</title>
-      <link>https://wdicc.com/asm-and-python/</link>
+      <link>https://wdicc.com/asm-%E5%92%8C-python%E7%9A%84%E6%89%AF%E6%B7%A1-zz/</link>
       <pubDate>Thu, 14 May 2009 00:00:00 +0000</pubDate>
       
-      <guid>https://wdicc.com/asm-and-python/</guid>
+      <guid>https://wdicc.com/asm-%E5%92%8C-python%E7%9A%84%E6%89%AF%E6%B7%A1-zz/</guid>
       <description>python: 兄弟，最近我手头紧，能借点不？
 asm: 行，不过怎么你以前不是过得还滋润的，怎么现在混这么差，
 python: 不知道啊，现在根本接不到什么项目，听说还有风声要收回我的开发资质。
@@ -146,10 +146,10 @@ asm: 最后告诉你一个秘密，人的弱点就是天生有奴性，贱，喜
     
     <item>
       <title>写了一个 kde plasma applet</title>
-      <link>https://wdicc.com/writing-a-kde-plasma-applet/</link>
+      <link>https://wdicc.com/%E5%86%99%E4%BA%86%E4%B8%80%E4%B8%AA-kde-plasma-applet/</link>
       <pubDate>Fri, 23 Jan 2009 00:00:00 +0000</pubDate>
       
-      <guid>https://wdicc.com/writing-a-kde-plasma-applet/</guid>
+      <guid>https://wdicc.com/%E5%86%99%E4%BA%86%E4%B8%80%E4%B8%AA-kde-plasma-applet/</guid>
       <description>用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。
 第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。
 这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。

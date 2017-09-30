@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>python 的 decorator 学习 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">python 的 decorator 学习</span></h1>
+
+<h2 class="date">2016/10/21</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/python">python</a> <a href="/tags/decorator">decorator</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p>最近学习了一下 python 的 decorator（装饰器），看的是这篇，<a href="http://coolshell.cn/articles/11265.html">Python修饰器的函数式编程</a>， 觉得挺有意思的，写点东西记录一下。</p>
+
+<p>装饰器简单讲就是返回一个函数的函数/类。看个简单的例子。</p>
+
+<pre><code class="language-python">#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+
+def dec1(fn):
+    print('inside dec1')
+
+    def wrapper():
+        print('inside wrapper')
+        return fn()
+    return wrapper
+
+
+@dec1
+def f1():
+    print('inside f1')
+
+if __name__ == '__main__':
+    print('begin exec')
+    f1()
+    print('end exec')
+
+# 执行结果:
+# inside dec1
+# begin exec
+# inside wrapper
+# inside f1
+# end exec
+</code></pre>
+
+<p>看上面例子能看到，装饰器生效有 2 个步骤，第一个是装饰，第二个是执行。上面装饰器的效果，和下面的代码的效果是一样。</p>
+
+<pre><code class="language-python">#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+
+def dec1(fn):
+    print('inside dec1')
+
+    def wrapper():
+        print('inside wrapper')
+        return fn()
+    return wrapper
+
+
+# @dec1
+def f1():
+    print('inside f1')
+
+if __name__ == '__main__':
+    print('begin exec')
+    dec1(f1)()
+    print('end exec')
+
+# 执行结果:
+# begin exec
+# inside dec1
+# inside wrapper
+# inside f1
+# end exec
+</code></pre>
+
+<p>可以看到除了 「begin/end exec」，其他部分执行结果是一样的。所以理解装饰器，就把 <code>@dec1</code> 换成 <code>dec1(fn)()</code> 这么理解就可以了。</p>
+
+<p>有时候会看到类也可以作为装饰器使用。其实理解起来也类似。举个例子。</p>
+
+<pre><code class="language-python">#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+
+class dec1(object):
+    def __init__(self, fn):
+        print('inside dec1')
+        self.fn = fn
+
+    def __call__(self):
+        print('inside wrapper')
+        return self.fn()
+
+
+@dec1
+def f1():
+    print('inside f1')
+
+if __name__ == '__main__':
+    print('begin exec')
+    f1()
+    print('end exec')
+
+# 执行结果:
+# inside dec1
+# begin exec
+# inside wrapper
+# inside f1
+# end exec
+</code></pre>
+
+<p>这里和上面类似，把 <code>@dec1</code> 理解成 <code>dec1(fn)()</code>，不过是这里的 <code>dec1</code> 是个类，那么 <code>dec1(fn)</code> 其实是调用的 <code>dec1.__init__(fn)</code>，那么后续的 <code>dec1(fn)()</code> 就是调用产生的对象的 <code>dec1.__call__()</code> 了。</p>
+
+<p>有时候还能看到加了参数的装饰器。加了参数的是怎么回事呢。再看下面的例子。</p>
+
+<pre><code class="language-python">#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+
+def dec1(name):
+    print('inside dec1')
+
+    def real_dec1(fn):
+        def wrapper():
+            print('inside wrapper')
+            return fn()
+        return wrapper
+    return real_dec1
+
+
+@dec1(name='1')
+def f1():
+    print('inside f1')
+
+if __name__ == '__main__':
+    print('begin exec')
+    f1()
+    print('end exec')
+
+# 执行结果:
+# inside dec1
+# begin exec
+# inside wrapper
+# inside f1
+# end exec
+</code></pre>
+
+<p>看懂了没有，就是多了个嵌套而已。遇到加了参数的，那就是把之前的没有参数的部分返回回来就可以了。等价的例子就不贴了，这个等价于 <code>dec1(name='1')(fn)()</code>。</p>
+
+<p>如果是类装饰器，并且有参数，那等价于 <code>dec1(name='1')(fn)()</code>，其中 <code>__init__(self, name)</code> 先处理第一层参数，然后 <code>__call__(fn)</code> 处理第二层，然后需要在 <code>__call__</code> 里面再定义一个 wrapper 返回。</p>
+
+<p>说明白没有？呵呵。</p>
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

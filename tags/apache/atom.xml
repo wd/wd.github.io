@@ -13,20 +13,20 @@
     
     <item>
       <title>Apache优化之KeepAlive</title>
-      <link>https://wdicc.com/apache-keepalive/</link>
+      <link>https://wdicc.com/apache%E4%BC%98%E5%8C%96%E4%B9%8Bkeepalive/</link>
       <pubDate>Fri, 05 Sep 2008 00:00:00 +0000</pubDate>
       
-      <guid>https://wdicc.com/apache-keepalive/</guid>
+      <guid>https://wdicc.com/apache%E4%BC%98%E5%8C%96%E4%B9%8Bkeepalive/</guid>
       <description>KeepAlive是在HTTP/1.1中定义的，用来保持客户机和服务器的长连接，执子之手与子偕老。通过减少建立TCP Session的次数来提高性能。常用的配置参数有{KeepAlive, KeepAliveTimeout, MaxKeepAliveRequests}。逐个说来：KeepAlive是决定开启KeepAlive支持；KeepAliveTimeout决定一 个KeepAlive的连接能保持多少时间，Timeout就尽快shutdown链接，若还有数据必须再建立新的连接 了；MaxKeepAliveRequests于KeepAliveTimeout相似，意思是服务多少个请求就shutdown连接。看个例子：
 KeepAliveTimeout 5 意思是说，打开KeepAlive，每个连接只保持5秒就中断。 对于KeepAlive的配置需要慎重，错误的参数可能导致严重的性能问题。一个高负载的Server，如果建立的很多长连接将无法继续服 务新的连接。因此需要根据server的性质调整KeepAliveTimeout或是MaxKeepAliveRequests的值。 例如：你的网页上有三幅图画2个外部javascript，他们都存放在你自己的server上。因此将 MaxKeepAliveRequests设置为7比较合适。3幅图2个js各一个link，网页本身一个link，还有firefox传说中的 favicon.ico。当然还是要有KeepAliveTimeout的。如果客户机用了该死的IE并且设置了某个该死的选项，IE是不会向服务器发送 HEAD请求查看图片（或是其他资源）是否过期的，而是直接使用本地图片。这个时候服务器是不会计算Request的(因为压根就没有Request 嘛)。再如果只有MaxKeepAliveRequests参数，服务器会默认等待5秒才结束KeepAlive连接。通常这5秒可能玩死一个高负载的服 务器(所以说这个社会需要闪婚...)。因此打开Firefox，启动Firebug，看看你的站究竟需要多少次请求，再决定KeepAlive吧。 </description>
     </item>
     
     <item>
       <title>awstats 如何统计以前的日志？</title>
-      <link>https://wdicc.com/awstats-log/</link>
+      <link>https://wdicc.com/awstats-%E5%A6%82%E4%BD%95%E7%BB%9F%E8%AE%A1%E4%BB%A5%E5%89%8D%E7%9A%84%E6%97%A5%E5%BF%97/</link>
       <pubDate>Mon, 02 Apr 2007 00:00:00 +0000</pubDate>
       
-      <guid>https://wdicc.com/awstats-log/</guid>
+      <guid>https://wdicc.com/awstats-%E5%A6%82%E4%BD%95%E7%BB%9F%E8%AE%A1%E4%BB%A5%E5%89%8D%E7%9A%84%E6%97%A5%E5%BF%97/</guid>
       <description>突然想安装一个awstats了，参考 车东 的文章，安装了一个。可是发现一个问题，设置了logfile为 access_log.%YYYY-24%MM-24%DD-24.log 之后，发现只能把昨天的日志统计进来，可是我的log下面还有好多呢，想统计以前的，怎么弄呢？幸好，awstats已经考虑到这个问题了。
 awstats.pl 脚本支持在命令行指定logfile，这样简单了，改变这个参数就可以了。不过要注意的是，如果你的data里面已经处理新的日志，那么指定logfile也没用了，以前的没办法更新进来了。只能是删掉data里面的内容，然后重新从最早的开始生成一遍。我写了一个脚本来做这个事情。
 awstats_dir=/opt/tt2/awstats/wwwroot/cgi-bin logfile_dir=&#34;/usr/local/apache/logs/&#34; cd $awstats_dir for file in `find $logfile_dir -name &#34;access_log.2*&#34; | sort`;do #echo &#34;$file&#34; ./awstats.pl －update -config=wd -LogFile=$file done 保存为 awstats.sh ，然后执行就可以了。他会查找 logfile_dir 下面所有的 access_log.2 开头的文件，作为参数来更新记录。 </description>
@@ -34,10 +34,10 @@ awstats_dir=/opt/tt2/awstats/wwwroot/cgi-bin logfile_dir=&#34;/usr/local/apache/
     
     <item>
       <title>给apache加了一个compress模块，mod_deflate</title>
-      <link>https://wdicc.com/compress-apache/</link>
+      <link>https://wdicc.com/%E7%BB%99apache%E5%8A%A0%E4%BA%86%E4%B8%80%E4%B8%AAcompress%E6%A8%A1%E5%9D%97mod_deflate/</link>
       <pubDate>Mon, 02 Apr 2007 00:00:00 +0000</pubDate>
       
-      <guid>https://wdicc.com/compress-apache/</guid>
+      <guid>https://wdicc.com/%E7%BB%99apache%E5%8A%A0%E4%BA%86%E4%B8%80%E4%B8%AAcompress%E6%A8%A1%E5%9D%97mod_deflate/</guid>
       <description>apache 1.3 里面有个压缩模块叫做 mod_gzip ，不支持 2.x。在2.x 里面有一个 mod_deflate 模块，也是类似的效果。想使用的话，很简单，编译的时候加上 --enable-deflate 就可以了。之后可以用 apachectl -l 看是不是正常加载了这个模块。
 httpd.conf 添加下面的语句
 对所有指定类似的文件都应用这个模块。添加之后访问看看。 203.86.x.x - - [02/Apr/2007:15:24:23 +0800] &#34;GET / HTTP/1.1&#34; 200 4718 &#34;-&#34; &#34;Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) Gecko/20070309 Firefox/2.0.0.3&#34; 203.86.x.x - - [02/Apr/2007:15:46:16 +0800] &#34;GET / HTTP/1.1&#34; 200 1684 &#34;-&#34; &#34;Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) Gecko/20070309 irefox/2.0.0.3&#34; 好像是小了。。。 如果error.log 里面出现了下面的错误 这表示apache的那个模块没有安装正确。 </description>
@@ -45,10 +45,10 @@ httpd.conf 添加下面的语句
     
     <item>
       <title>tomcat和apache桥接</title>
-      <link>https://wdicc.com/tomcat-apache-bridge/</link>
+      <link>https://wdicc.com/tomcat%E5%92%8Capache%E6%A1%A5%E6%8E%A5/</link>
       <pubDate>Wed, 23 Aug 2006 00:00:00 +0000</pubDate>
       
-      <guid>https://wdicc.com/tomcat-apache-bridge/</guid>
+      <guid>https://wdicc.com/tomcat%E5%92%8Capache%E6%A1%A5%E6%8E%A5/</guid>
       <description>1 下载，安装tomcat，jdk和mod_jk
 下载jdk http://java.sun.com/javase/downloads/index.jsp
 tomcat 5.5 需要jre 1.5才可以。下载之后是一个bin文件
@@ -59,10 +59,10 @@ $chmod +x xx.bin $./xx.bin 他会将jdk解压到当前目录下面，然后作�
     
     <item>
       <title>apache的rewrite一点配置心得</title>
-      <link>https://wdicc.com/apache-rewrite/</link>
+      <link>https://wdicc.com/apache%E7%9A%84rewrite%E4%B8%80%E7%82%B9%E9%85%8D%E7%BD%AE%E5%BF%83%E5%BE%97/</link>
       <pubDate>Wed, 14 Jun 2006 00:00:00 +0000</pubDate>
       
-      <guid>https://wdicc.com/apache-rewrite/</guid>
+      <guid>https://wdicc.com/apache%E7%9A%84rewrite%E4%B8%80%E7%82%B9%E9%85%8D%E7%BD%AE%E5%BF%83%E5%BE%97/</guid>
       <description>apache这里有一些奇怪的日志。
 211.90.119.118 - - [12/Apr/2006:00:00:12 +0800] &#34;GET http://abc.com.cn/www/x.jsp HTTP/1.1&#34; 200 2994 &#34;-&#34; &#34;SEC-schx639 UP.Browser/4.1.26l&#34;
 通常GET这里都是“/www/x.jsp”的，可是这个是怎么产生的呢？通过浏览器访问http://abc.com.cn/http://abc.com.cn/www/x.jsp，也不能产生这种请求，后来查看apache手册，这个引号里面表示的是“请求的第一条信息”，google了一下才知道，可以用下面的方式产生这种日志。
@@ -81,10 +81,10 @@ RewriteEngine onRewriteLog /usr/local/apache/apache_rewrite_log.logRewriteLogLev
     
     <item>
       <title>weblogic的“Too many open files”错和apache的“CONNECTION_REFUSED”错</title>
-      <link>https://wdicc.com/too-many-open-files/</link>
+      <link>https://wdicc.com/weblogic%E7%9A%84too-many-open-files%E9%94%99%E5%92%8Capache%E7%9A%84connection_refused%E9%94%99/</link>
       <pubDate>Tue, 30 May 2006 00:00:00 +0000</pubDate>
       
-      <guid>https://wdicc.com/too-many-open-files/</guid>
+      <guid>https://wdicc.com/weblogic%E7%9A%84too-many-open-files%E9%94%99%E5%92%8Capache%E7%9A%84connection_refused%E9%94%99/</guid>
       <description>weblogic和apache桥接之后，访问量大的时候，遇到了weblogic报下面的错误：
 ####     rnel   ####     Kernel   oo many open files ####     rnel   ####     Kernel   oo many open files 
 

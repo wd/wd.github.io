@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>使用 perl 发带附件的邮件 | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/atom-one-light.min.css">
+  <script src="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/highlight.min.js"></script>
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">使用 perl 发带附件的邮件</span></h1>
+
+<h2 class="date">2010/07/05</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/linux">linux</a> <a href="/tags/perl">perl</a> <a href="/tags/sendmail">sendmail</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+继 <a href="http://wdicc.com/sendmail-use-perl/">上篇</a> 使用 perl 发带中文标题的邮件后，又研究了下发带附件的。<br />
+
+基本差别不大，主要是那个 Content-type 要变一下。那个 boundary 可以自己随便写，和后面的统一就行了。<br />
+
+<pre class="prettyprint lang-perl">
+my $title = encode_base64("标题", "");
+my $body = encode_base64("邮件正文");
+my $attach = encode_base64("附件内容");
+my $filename = encode('MIME-B', decode('utf8', "文件中文.txt"))
+
+open(MAIL, '|/usr/sbin/sendmail -t');
+ 
+print MAIL "From: test\@abs.com\r\n";
+print MAIL "To: test\@abs.com\r\n";
+print MAIL "Subject: =?UTF-8?B?$title?=\r\n";
+print MAIL "MIME-Version: 1.0\r\n";
+# print MAIL "Content-type: text/plain; charset=utf-8\r\n";
+print MAIL <<EOF;
+Content-Type: multipart/mixed; boundary=\"FFFFFFFFKKKKKK\"
+
+--FFFFFFFFKKKKKK
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+
+$body
+--FFFFFFFFKKKKKK
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=$filename.csv
+Content-Transfer-Encoding: base64
+
+$attach
+--FFFFFFFFKKKKKK--
+EOF
+    close(MAIL); 
+
+</pre><br />
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer>
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+
