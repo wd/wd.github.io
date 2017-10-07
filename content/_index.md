@@ -5,8 +5,7 @@ title: Home
 <h1><center>wd and cc</center></h1>
 <h3 style="margin-right:100px;text-align:right">--- Happy every day</h3>
 
-<div style="float:right"><a data-flickr-embed="true"  href="https://www.flickr.com/photos/wd_afei/21077008516/in/dateposted-public/" title="酷不"><img src="https://farm1.staticflickr.com/627/21077008516_9191edb81a_b.jpg" width="300px" alt="酷不"></a><script async src="//embedr.flickr.com/assets/client-code.js" charset="utf-8"></script>
-</div>
+<div style="float:right; width: 40%;"><img src="https://farm1.staticflickr.com/627/21077008516_9191edb81a_n.jpg" alt="酷不"></div>
 
 This is my personal blog, to collect and record some things I thought and learned. I'm trying to learn English now, I wrote done these things in English, wish this can be to make some help to improve my English.
 
