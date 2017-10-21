@@ -1,0 +1,377 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Howto Make react-redux Work With react-navigation | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+
+  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
+  <script src="https://wdicc.com//js/hljs.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Howto Make react-redux Work With react-navigation</span></h1>
+
+<h2 class="date">2017/10/21</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/react-native">react-native</a> <a href="/tags/redux">redux</a> <a href="/tags/react-redux">react-redux</a> <a href="/tags/react-navigation">react-navigation</a> 
+  
+  
+</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<main>
+<p>这周花了一些时间研究 <code>react-redux</code> 和怎么让它和 <code>react-navigation</code> 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 <a href="https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3" title="gist">gist</a>。</p>
+
+<pre><code class="language-javascript">
+/**
+ * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理
+ * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合
+ * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做
+ * 参考：
+ *  https://github.com/jackielii/simplest-redux-example
+ *  http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html
+ */
+
+import React, { Component } from 'react';
+import {
+    StyleSheet,
+    Text,
+    View,
+    Button
+} from 'react-native';
+
+import { Provider, connect } from 'react-redux';
+import { createStore, combineReducers } from 'redux';
+import { StackNavigator, addNavigationHelpers } from 'react-navigation';
+
+// Home 页面，UI 组件
+class MyHome extends Component {
+    constructor(props) {
+        super(props);
+        console.log('init home, props', props);
+    }
+
+    _nextPage() {
+        // navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样
+        let {navigation} = this.props;
+        navigation.navigate(&quot;App&quot;);
+    }
+
+    render() {
+        // 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4)
+        // 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5)
+        let {onIncButtonClicked} = this.props.screenProps.MyAppActions;
+
+        // 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面
+        return (
+            &lt;View style={styles.container}&gt;
+                &lt;Button title=&quot;Inc counter&quot; onPress={onIncButtonClicked}&gt;&lt;/Button&gt;
+                &lt;Button title=&quot;Next page&quot; onPress={()=&gt;this._nextPage()}&gt;&lt;/Button&gt;
+            &lt;/View&gt;
+        )
+    }
+}
+
+// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新
+class ShowText extends Component {
+    render() {
+        let {counter} = this.props;
+
+        return (
+            &lt;Text&gt;{counter}&lt;/Text&gt;
+        )
+    }
+}
+
+// App 页面，UI 组件
+class MyApp extends Component {
+    constructor(props) {
+        super(props);
+        console.log('init App, props', props);
+    }
+
+    componentWillReceiveProps(newProps) {
+        console.log('myapp recive props', newProps);
+    }
+
+    render() {
+        // 组件的 state/props 获取，有自己的命名空间 (1)
+        let {counter} = this.props.screenProps.MyApp;
+        // 组件的 action props (5)
+        let {onIncButtonClicked, onDecButtonClicked} = this.props.screenProps.MyAppActions;
+
+        // 界面有一个计数器的结果，两个按钮
+        return (
+            &lt;View style={styles.container}&gt;
+                &lt;ShowText counter={counter} /&gt;
+                &lt;Button title=&quot;Inc counter&quot; onPress={onIncButtonClicked}&gt;&lt;/Button&gt;
+                &lt;Button title=&quot;Dec counter&quot; onPress={onDecButtonClicked}&gt;&lt;/Button&gt;
+            &lt;/View&gt;
+        )
+    }
+}
+
+// 初始化 StackNavigator，定义页面路由
+let AppNavigator = StackNavigator({
+    Home: {
+        screen: MyHome
+    },
+    App: {
+        screen: MyApp
+    }
+});
+
+// 包装一下 StackNavigator，因为有些参数需要定制一下
+class MyStackNavigator extends Component {
+    constructor(props) {
+        super(props);
+        console.log(&quot;inside MyStackNavigator&quot;, props);
+    }
+
+    render() {
+        // screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4)
+        // navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取
+        return (
+            &lt;AppNavigator
+                screenProps={this.props}
+                navigation={addNavigationHelpers({
+                    dispatch: this.props.dispatch, // 通过 action props 定义 (2)
+                    state: this.props.nav, // 通过 state props 定义 (3)
+                })} /&gt;
+        )
+    }
+}
+
+// 定义 state 和 props 的关系，所有 redux 应用都需要 (6)
+let mapStateToProps = (state, ownProps) =&gt; {
+    console.log(&quot;inside mapstate to props&quot;, state, ownProps);
+    return {
+        // 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1)
+        &quot;MyApp&quot;: state.MyApp,
+        &quot;MyHome&quot;: state.MyHome,
+        // 定义 StackNavigator 的 state (3)
+        &quot;nav&quot;: state.nav
+    }
+};
+
+// 定义 action 和 props 的关系，所有 redux 应用都需要
+let mapDispatchToProps = (dispatch, ownProps) =&gt; {
+    console.log(&quot;inside map dispath to props&quot;);
+    return {
+        // 这两个也是不同的命名空间，和上面使用的时候路径对应 (5)
+        'MyAppActions': {
+            onIncButtonClicked: () =&gt; {
+                let action = {
+                    type: &quot;INC_COUNTER&quot;,
+                    payload: 1
+                };
+
+                dispatch(action);
+            },
+            onDecButtonClicked: () =&gt; {
+                let action = {
+                    type: &quot;DEC_COUNTER&quot;,
+                    payload: -1
+                };
+
+                dispatch(action);
+            }
+        },
+        'MyHomeActions': {
+            onNextButtonClicked: () =&gt; {
+                let action = {
+                    type: &quot;NEXT_PAGE&quot;
+                };
+
+                dispatch(action);
+            }
+        },
+        // 定义 StackNavigator 的 action props (2)
+        'dispatch': dispatch
+    }
+}
+
+// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有
+// 所以从这里也能看出来，reducer 并不一定按照页面去分
+let homeReducer = (state, action) =&gt; {
+    console.log(&quot;inside home reducer&quot;, state, action);
+    return state || {};
+};
+
+// 定义一个初始化的 state
+let myAppInitState = { 'counter': 10};
+// 定义 app 页面的 reducer
+let myAppReducer = (state = myAppInitState, action) =&gt; {
+    // 收到的 state 实际上只是自己命名空间下的 (6)
+    console.log(&quot;inside myAppReducer&quot;, state, action);
+    let myState = state;
+    // 需要处理的 action 的逻辑
+    // 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action
+    switch (action.type) {
+        case &quot;DEC_COUNTER&quot;:
+        case &quot;INC_COUNTER&quot;:
+            // 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新
+            return Object.assign({}, myState, {
+                'counter': myState.counter + action.payload
+            });
+        default:
+            return state;
+    }
+};
+
+// 定义一个 StackNavigator 用到的初始化状态，这个很重要
+const initialState = AppNavigator.router.getStateForAction(AppNavigator.router.getActionForPathAndParams('Home'));
+// 定义 StackNavigator 的 reducer，代码直接复制来的
+const navReducer = (state = initialState, action) =&gt; {
+    console.log(&quot;inside nav reducer&quot;, state, action);
+    const nextState = AppNavigator.router.getStateForAction(action, state);
+
+    // Simply return the original `state` if `nextState` is null or undefined.
+    return nextState || state;
+};
+
+// 创建 store
+let store = createStore(combineReducers({
+    // 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6)
+    // 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6)
+    MyApp: myAppReducer,
+    MyHome: homeReducer,
+    nav: navReducer
+}));
+
+// 让 redux 加持一下，保佑
+let App = connect(mapStateToProps, mapDispatchToProps)(MyStackNavigator);
+
+// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索
+export default class Root extends Component&lt;{}&gt; {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            &lt;Provider store={store}&gt;
+                &lt;App prop1=&quot;prop1&quot; /&gt;
+            &lt;/Provider&gt;
+        );
+    }
+}
+
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        backgroundColor: '#F5FCFF',
+    },
+    welcome: {
+        fontSize: 20,
+        textAlign: 'center',
+        margin: 10,
+    },
+    instructions: {
+        textAlign: 'center',
+        color: '#333333',
+        marginBottom: 5,
+    },
+});
+</code></pre>
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer style="clear:both">
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

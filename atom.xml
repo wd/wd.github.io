@@ -6,10 +6,276 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sat, 07 Oct 2017 18:10:00 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 21 Oct 2017 08:19:28 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Howto Make react-redux Work With react-navigation</title>
+      <link>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</link>
+      <pubDate>Sat, 21 Oct 2017 08:19:28 +0800</pubDate>
+      
+      <guid>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</guid>
+      <description>&lt;p&gt;这周花了一些时间研究 &lt;code&gt;react-redux&lt;/code&gt; 和怎么让它和 &lt;code&gt;react-navigation&lt;/code&gt; 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 &lt;a href=&#34;https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3&#34; title=&#34;gist&#34;&gt;gist&lt;/a&gt;。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;
+/**
+ * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理
+ * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合
+ * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做
+ * 参考：
+ *  https://github.com/jackielii/simplest-redux-example
+ *  http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html
+ */
+
+import React, { Component } from &#39;react&#39;;
+import {
+    StyleSheet,
+    Text,
+    View,
+    Button
+} from &#39;react-native&#39;;
+
+import { Provider, connect } from &#39;react-redux&#39;;
+import { createStore, combineReducers } from &#39;redux&#39;;
+import { StackNavigator, addNavigationHelpers } from &#39;react-navigation&#39;;
+
+// Home 页面，UI 组件
+class MyHome extends Component {
+    constructor(props) {
+        super(props);
+        console.log(&#39;init home, props&#39;, props);
+    }
+
+    _nextPage() {
+        // navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样
+        let {navigation} = this.props;
+        navigation.navigate(&amp;quot;App&amp;quot;);
+    }
+
+    render() {
+        // 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4)
+        // 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5)
+        let {onIncButtonClicked} = this.props.screenProps.MyAppActions;
+
+        // 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面
+        return (
+            &amp;lt;View style={styles.container}&amp;gt;
+                &amp;lt;Button title=&amp;quot;Inc counter&amp;quot; onPress={onIncButtonClicked}&amp;gt;&amp;lt;/Button&amp;gt;
+                &amp;lt;Button title=&amp;quot;Next page&amp;quot; onPress={()=&amp;gt;this._nextPage()}&amp;gt;&amp;lt;/Button&amp;gt;
+            &amp;lt;/View&amp;gt;
+        )
+    }
+}
+
+// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新
+class ShowText extends Component {
+    render() {
+        let {counter} = this.props;
+
+        return (
+            &amp;lt;Text&amp;gt;{counter}&amp;lt;/Text&amp;gt;
+        )
+    }
+}
+
+// App 页面，UI 组件
+class MyApp extends Component {
+    constructor(props) {
+        super(props);
+        console.log(&#39;init App, props&#39;, props);
+    }
+
+    componentWillReceiveProps(newProps) {
+        console.log(&#39;myapp recive props&#39;, newProps);
+    }
+
+    render() {
+        // 组件的 state/props 获取，有自己的命名空间 (1)
+        let {counter} = this.props.screenProps.MyApp;
+        // 组件的 action props (5)
+        let {onIncButtonClicked, onDecButtonClicked} = this.props.screenProps.MyAppActions;
+
+        // 界面有一个计数器的结果，两个按钮
+        return (
+            &amp;lt;View style={styles.container}&amp;gt;
+                &amp;lt;ShowText counter={counter} /&amp;gt;
+                &amp;lt;Button title=&amp;quot;Inc counter&amp;quot; onPress={onIncButtonClicked}&amp;gt;&amp;lt;/Button&amp;gt;
+                &amp;lt;Button title=&amp;quot;Dec counter&amp;quot; onPress={onDecButtonClicked}&amp;gt;&amp;lt;/Button&amp;gt;
+            &amp;lt;/View&amp;gt;
+        )
+    }
+}
+
+// 初始化 StackNavigator，定义页面路由
+let AppNavigator = StackNavigator({
+    Home: {
+        screen: MyHome
+    },
+    App: {
+        screen: MyApp
+    }
+});
+
+// 包装一下 StackNavigator，因为有些参数需要定制一下
+class MyStackNavigator extends Component {
+    constructor(props) {
+        super(props);
+        console.log(&amp;quot;inside MyStackNavigator&amp;quot;, props);
+    }
+
+    render() {
+        // screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4)
+        // navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取
+        return (
+            &amp;lt;AppNavigator
+                screenProps={this.props}
+                navigation={addNavigationHelpers({
+                    dispatch: this.props.dispatch, // 通过 action props 定义 (2)
+                    state: this.props.nav, // 通过 state props 定义 (3)
+                })} /&amp;gt;
+        )
+    }
+}
+
+// 定义 state 和 props 的关系，所有 redux 应用都需要 (6)
+let mapStateToProps = (state, ownProps) =&amp;gt; {
+    console.log(&amp;quot;inside mapstate to props&amp;quot;, state, ownProps);
+    return {
+        // 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1)
+        &amp;quot;MyApp&amp;quot;: state.MyApp,
+        &amp;quot;MyHome&amp;quot;: state.MyHome,
+        // 定义 StackNavigator 的 state (3)
+        &amp;quot;nav&amp;quot;: state.nav
+    }
+};
+
+// 定义 action 和 props 的关系，所有 redux 应用都需要
+let mapDispatchToProps = (dispatch, ownProps) =&amp;gt; {
+    console.log(&amp;quot;inside map dispath to props&amp;quot;);
+    return {
+        // 这两个也是不同的命名空间，和上面使用的时候路径对应 (5)
+        &#39;MyAppActions&#39;: {
+            onIncButtonClicked: () =&amp;gt; {
+                let action = {
+                    type: &amp;quot;INC_COUNTER&amp;quot;,
+                    payload: 1
+                };
+
+                dispatch(action);
+            },
+            onDecButtonClicked: () =&amp;gt; {
+                let action = {
+                    type: &amp;quot;DEC_COUNTER&amp;quot;,
+                    payload: -1
+                };
+
+                dispatch(action);
+            }
+        },
+        &#39;MyHomeActions&#39;: {
+            onNextButtonClicked: () =&amp;gt; {
+                let action = {
+                    type: &amp;quot;NEXT_PAGE&amp;quot;
+                };
+
+                dispatch(action);
+            }
+        },
+        // 定义 StackNavigator 的 action props (2)
+        &#39;dispatch&#39;: dispatch
+    }
+}
+
+// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有
+// 所以从这里也能看出来，reducer 并不一定按照页面去分
+let homeReducer = (state, action) =&amp;gt; {
+    console.log(&amp;quot;inside home reducer&amp;quot;, state, action);
+    return state || {};
+};
+
+// 定义一个初始化的 state
+let myAppInitState = { &#39;counter&#39;: 10};
+// 定义 app 页面的 reducer
+let myAppReducer = (state = myAppInitState, action) =&amp;gt; {
+    // 收到的 state 实际上只是自己命名空间下的 (6)
+    console.log(&amp;quot;inside myAppReducer&amp;quot;, state, action);
+    let myState = state;
+    // 需要处理的 action 的逻辑
+    // 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action
+    switch (action.type) {
+        case &amp;quot;DEC_COUNTER&amp;quot;:
+        case &amp;quot;INC_COUNTER&amp;quot;:
+            // 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新
+            return Object.assign({}, myState, {
+                &#39;counter&#39;: myState.counter + action.payload
+            });
+        default:
+            return state;
+    }
+};
+
+// 定义一个 StackNavigator 用到的初始化状态，这个很重要
+const initialState = AppNavigator.router.getStateForAction(AppNavigator.router.getActionForPathAndParams(&#39;Home&#39;));
+// 定义 StackNavigator 的 reducer，代码直接复制来的
+const navReducer = (state = initialState, action) =&amp;gt; {
+    console.log(&amp;quot;inside nav reducer&amp;quot;, state, action);
+    const nextState = AppNavigator.router.getStateForAction(action, state);
+
+    // Simply return the original `state` if `nextState` is null or undefined.
+    return nextState || state;
+};
+
+// 创建 store
+let store = createStore(combineReducers({
+    // 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6)
+    // 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6)
+    MyApp: myAppReducer,
+    MyHome: homeReducer,
+    nav: navReducer
+}));
+
+// 让 redux 加持一下，保佑
+let App = connect(mapStateToProps, mapDispatchToProps)(MyStackNavigator);
+
+// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索
+export default class Root extends Component&amp;lt;{}&amp;gt; {
+    constructor(props) {
+        super(props);
+    }
+
+    render() {
+        return (
+            &amp;lt;Provider store={store}&amp;gt;
+                &amp;lt;App prop1=&amp;quot;prop1&amp;quot; /&amp;gt;
+            &amp;lt;/Provider&amp;gt;
+        );
+    }
+}
+
+
+const styles = StyleSheet.create({
+    container: {
+        flex: 1,
+        justifyContent: &#39;center&#39;,
+        alignItems: &#39;center&#39;,
+        backgroundColor: &#39;#F5FCFF&#39;,
+    },
+    welcome: {
+        fontSize: 20,
+        textAlign: &#39;center&#39;,
+        margin: 10,
+    },
+    instructions: {
+        textAlign: &#39;center&#39;,
+        color: &#39;#333333&#39;,
+        marginBottom: 5,
+    },
+});
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
     
     <item>
       <title>生生死死《白鹿原》</title>
@@ -2222,42 +2488,6 @@ X-Pad: avoid browser bug
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;然后使用 &lt;code&gt;nc -l 9999 &amp;lt; test.resp&lt;/code&gt; 命令启动服务，客户端来请求的时候，就会返回上面 &lt;code&gt;test.resp&lt;/code&gt; 里面的内容。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>从双拼讲输入法</title>
-      <link>https://wdicc.com/double-pinyin/</link>
-      <pubDate>Sat, 20 Aug 2016 10:00:51 +0800</pubDate>
-      
-      <guid>https://wdicc.com/double-pinyin/</guid>
-      <description>&lt;p&gt;上高中的时候，就流行五笔打字，不过那会家里都没有电脑，都是去网吧（或者叫打字社）去学习的，不过那会学习这个貌似唯一的用途就是录入用。&lt;/p&gt;
-
-&lt;p&gt;当时也背过五笔的码表，王旁青头兼五一，估计很多人都很熟悉。上了大学在有更多机会接触电脑的时候，上网什么的，自然就开始使用拼音输入法，因为基本不需要练习，会盲打知道键盘按键键位就可以使用。当时用的比较多的是智能 ABC，后来 2000 年左右写书的时候，用的是紫光拼音，紫光的词库比智能 ABC 好一点，所以用起来也好用很多。此后一直使用拼音输入法。&lt;/p&gt;
-
-&lt;p&gt;直到应该是大概 2008 年左右，ssslang 在使用二笔，就开始想尝试一下码表输入法。因为本身使用了这么多年的电脑输入和拼音输入法之后，对字形其实已经失去了概念，如果学五笔的话，肯定会是很痛苦的。&lt;/p&gt;
-
-&lt;p&gt;而二笔输入法一个字 4 个码，第一个码还是拼音的第一个字母，但是大部分常用字都是 2 个码就可以出，所以这样等于每个字都至少知道了一半的编码，这个还是很赞的。&lt;/p&gt;
-
-&lt;p&gt;二笔输入法也有很多编码方案，当时选的是哲豆二笔，这个方案只用了 26 个字母键，所以也可以在手机上面使用（其他方案用了一些符号键，比如 [ ]，当时手机还都是流行硬键盘，一般都没有单独的符号键，而且貌似现在的软键盘也没有单独的符号键）。我当时用的 palm treo 650，输入还是蛮爽的。后来自己把一些词库导入了进去，用起来就更加舒服了。&lt;/p&gt;
-
-&lt;p&gt;但是后来的问题是慢慢的一些流行的智能机没有那么好的输入法自定义支持，就没法用了，慢慢切回来了拼音输入法。&lt;/p&gt;
-
-&lt;p&gt;二笔是码表输入法，就是每个字有自己的编码，联系的过程就是熟悉码表的过程，如果某个字不熟悉，那么其实你是需要轻微的思考的，想一下那个字怎么写，是哪个码。所以输入的速度取决于对这些字的熟悉程度，遇到不熟悉的会有卡顿。&lt;/p&gt;
-
-&lt;p&gt;最近看到了不少双拼的讨论，就想尝试一下双拼。因为如果反正都是用拼音输入法，那么对于 ing, eng 这些，如果可以按一个按键就输入进去，那么岂不是可以节省很多时间？并且这个还是基于拼音的，和那些需要记住字形的输入法不是一个套路，看着还不错。&lt;/p&gt;
-
-&lt;p&gt;我是这周一开始尝试的。mac 上面用的是鼠须管，ios 用的 touchpal。双拼也有很多方案，我选的方案是小鹤双拼，也没啥特别的原因，就是看用的人挺多的。&lt;/p&gt;
-
-&lt;p&gt;尝试的结果就是，输入了 4 天之后，周五我又换回了拼音输入法。。。。&lt;/p&gt;
-
-&lt;p&gt;因为我越用越发现，双拼也是个码表输入法。开始想得是节省拼音的输入时间，但是打字的时候，比如输入 hao 的时候，想到的不是输入 h 然后输入 ao 对应的字母 c，而是熟悉之后自然而然的按照 hc 来输入，下次需要输入 lao 的时候，还是需要想一下 ao 在字母 c，需要输入 lc。&lt;/p&gt;
-
-&lt;p&gt;这么看的话，和前面说的码表输入法有啥区别呢？所以我感觉双拼也是个码表输入法。既然是码表输入法，双拼的区分度那么差，何必折腾他呢，不如去用二笔呢。而且我用的时候最郁闷的是，二笔训练出来的键位记忆居然总会出来捣乱，这其实也更加说明这个就是码表输入法。。。&lt;/p&gt;
-
-&lt;p&gt;而且还有就是，普通拼音输入法里面，尤其是手机上面，容易按错键，比如 hao 输入成了 hso 的时候，手机上面会纠错，把「好」这个选项放在第一个。但是如果是双拼就没那么好搞了，如果也增加纠错，那会增加很多重码，体验不好。&lt;/p&gt;
-
-&lt;p&gt;另外还有个问题就是对于 sh, s, en, eng 这些不太清楚的人来讲，更加是个挑战，当然拼音可以用模糊音，按说双拼也可以想办法自定义模糊音。但是可能就失去了双拼的一些优势。&lt;/p&gt;
 </description>
     </item>
     
