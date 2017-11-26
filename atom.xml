@@ -6,10 +6,234 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 06 Nov 2017 18:47:41 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 26 Nov 2017 09:19:11 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Best Practice for React-Native and Redux</title>
+      <link>https://wdicc.com/best-practice-for-react-native-redux/</link>
+      <pubDate>Sun, 26 Nov 2017 09:19:11 +0800</pubDate>
+      
+      <guid>https://wdicc.com/best-practice-for-react-native-redux/</guid>
+      <description>&lt;p&gt;从 6 月到现在，在 RN 上面摸爬滚打了一段时间了，目前总算找到了一个适合我们自我感觉还可以的开发模式。&lt;/p&gt;
+
+&lt;p&gt;一开始，我们使用的是传统的 React 的模式，然后一个 app 页面一个文件，通过 StackNavigator 组合到一起。这么做在我们的第一个 app 里面没觉得有什么问题，每个页面维护自己的数据，页面之间需要数据共享或者通讯的时候（比如从 list 到详情页面的时候，详情里面有一个改变状态的按钮，状态改变之后希望 list 的状态也跟着变化，这样用户返回之后能看到正确的数据）有 2 个方式。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;通过 DeviceEventEmitter。&lt;/li&gt;
+  需要数据的页面订阅，然后在其他页面 emit event 之后前面的页面就可以收到。这个时候可以只通知改变的数据的字段，前一个页面直接去修改，这样可以避免重新刷新页面。也可以发一个简单的通知让其他页面去自己获取数据。
+&lt;/ul&gt;
+
+&lt;ul&gt;
+&lt;li&gt;通过 navigator 提供的 params 属性。&lt;/li&gt;
+  StatckNavigator 提供了一个 params 属性。就是 &lt;code&gt;this.props.navigation.state.params&lt;/code&gt; ，可以通过 setParams 来改变，或者通过类似 &lt;code&gt;this.props.navigation.navigate(&#39;Login&#39;, {goBackToHome: true})&lt;/code&gt; 的方式给，那个 &lt;code&gt;goBackToHome&lt;/code&gt; 将来就会在 params 里面。
+&lt;/ul&gt;
+
+&lt;p&gt;直到我们开始做第二个 app。&lt;/p&gt;
+
+&lt;p&gt;第二个 app 是一个单页面 app，登录之后就只有一个页面了，有一个大地图，有左侧 sidebar，sidebar 里面的按钮点击还会出其他页面。这个肯定不能按照我们前面的思路来做了，我们按照组件，拆分了不同的文件，然后组合起来。这个时候更加会需要页面之间的通讯，并且这个时候可选项只有第一个了 &lt;code&gt;DeviceEventEmitter&lt;/code&gt; ，因为都没有 navigate 什么事情。&lt;/p&gt;
+
+&lt;p&gt;这个时候就发现一个问题，event 太多了，开始有点混乱了。emit event 之后，慢慢会发现不知道哪里有订阅，不好管理。这个 app 做完之后，就仔细研究了一下 redux。&lt;/p&gt;
+
+&lt;p&gt;其实写第一个 app 的时候就知道 redux，但是很多概念看的云里雾里的，当时在 react 还没有吃透的情况下，根本没有能力把 redux 搞好。所以当时放弃了 redux。&lt;/p&gt;
+
+&lt;p&gt;了解 redux 之后，感觉这个东西是我们的药。统一的 state 管理，这不就不用考虑状态传递了么？所以一门心思开始研究 redux。刚好我们第一个 app 需要全新改版，我们就借机把我们的第一个 app 也重构到了 redux 实现。整体过程还是蛮舒服的，自己也总结了几条我们自己的使用的思路。&lt;/p&gt;
+
+&lt;h3 id=&#34;目录结构安排&#34;&gt;目录结构安排&lt;/h3&gt;
+
+&lt;p&gt;先大概看看我们 app 的目录结构。我们把所有的 js 文件都放到了 app 目录下面。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+app
+ios
+android
+index.js
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后 app 目录下面，分了 &lt;code&gt;actions&lt;/code&gt; ， &lt;code&gt;reducers&lt;/code&gt; ， &lt;code&gt;sagas&lt;/code&gt; ， &lt;code&gt;selector&lt;/code&gt; 几个目录。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;
+actions
+images
+index.js
+reducers
+sagas
+screens
+selectors
+utility
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+&lt;li&gt;actions 里面放的是 mapDispatchToProps 这个逻辑对应的东西。&lt;/li&gt;
+&lt;li&gt;reducers 里面放的是 reducers。&lt;/li&gt;
+&lt;li&gt;sagas 里面放的是所有网络请求相关的 actions 的处理逻辑。&lt;/li&gt;
+&lt;li&gt;seelctor 里面放的是 mapStateToProps 这个逻辑对应的东西。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;每个目录里面也都有一个自己的 index.js 把本目录里面的内容组合起来。通过最外面的 index.js 把这几个目录的逻辑组合起来。&lt;/p&gt;
+
+&lt;h3 id=&#34;给页面设计一个基类&#34;&gt;给页面设计一个基类&lt;/h3&gt;
+
+&lt;p&gt;这样会比较方便你去做一些所有页面都需要做的事情。&lt;/p&gt;
+
+&lt;h3 id=&#34;一个-app-一个统一的-store&#34;&gt;一个 app 一个统一的 store&lt;/h3&gt;
+
+&lt;p&gt;我们 app 还不大，所以这么设计也还好，如果页面比较复杂，我看也有组件使用自己的 store 的例子，这个还没有经验。这么做唯一一个问题就是，那个 store 里面的数据一直都在，多少会占用一些内存。不过我是觉得没啥了，其实这点内存占用不算啥。&lt;/p&gt;
+
+&lt;h3 id=&#34;store-设计和页面无关&#34;&gt;store 设计和页面无关&lt;/h3&gt;
+
+&lt;p&gt;Store 参考了一个文章统一设计，和页面无关。比如我们设计了 user, orders, orderDetail 这些 state，数据所有页面共享。否则如果按照页面来划分的话，某些页面之间如果有用到共享数据就要么多复制一份，那有点浪费了，要么就是会有点乱。&lt;/p&gt;
+
+&lt;h3 id=&#34;每个页面都使用自己的-props&#34;&gt;每个页面都使用自己的 props&lt;/h3&gt;
+
+&lt;p&gt;不在页面间交叉使用 props ，这样不会乱。并且因为我们是一个统一的 store，所以其实每次 props 变化，所有页面都会 render。这个我使用下面的一个思路来解决了。&lt;/p&gt;
+
+&lt;h3 id=&#34;shouldcomponentupdate&#34;&gt;shouldComponentUpdate&lt;/h3&gt;
+
+&lt;p&gt;这个就是在页面的基类里面，通过比较判断本页面的 props 是否有变化来解决前面那个 render 问题。&lt;/p&gt;
+
+&lt;h3 id=&#34;使用-reselect&#34;&gt;使用 reselect&lt;/h3&gt;
+
+&lt;p&gt;因为只要 state 发生变化 redux 就会调用 mapStateToProps 来计算 props，这个计算有一些消耗，毕竟一般也就其中一个页面的 props 需要计算。我们用这个 reselect 解决这个问题，一个页面的 props 需要的 state 没变化的时候，reselect 就可以把 cache 的数据直接返回就好了。&lt;/p&gt;
+
+&lt;h3 id=&#34;适当使用页面的-state&#34;&gt;适当使用页面的 state&lt;/h3&gt;
+
+&lt;p&gt;redux 的理念是所有页面的 state 都放到了 store 里面，你不需要做 setState 动作了。但是实际上有些时候适当使用 state 会让你的开发更加方便。比如表单验证，用户输入数据之后点击提交 ，如果通过发送 action 改变 state 然后再通过 selector 返回页面，那就有点太费劲了。而直接通过 setState 设定页面 state，然后在提交表单的时候读出来做验证就简单多了。&lt;/p&gt;
+
+&lt;p&gt;有时候页面的一些 state 是和 props 有关系的，这个时候可以使用 &lt;code&gt;componentWillReceiveProps(nextProps)&lt;/code&gt; 来判定，然后和 state 同步。&lt;/p&gt;
+
+&lt;h3 id=&#34;android-的返回按钮处理&#34;&gt;Android 的返回按钮处理&lt;/h3&gt;
+
+&lt;p&gt;android 有一个实体的返回按钮，StackNavigator 给出的&lt;a href=&#34;https://reactnavigation.org/docs/guides/redux#Handling-the-Hardware-Back-Button-in-Android&#34; title=&#34;方案&#34;&gt;方案&lt;/a&gt;是监听一个 &lt;code&gt;hardwareBackPress&lt;/code&gt; 事件，然后 &lt;code&gt;dispatch(NavigationActions.back())&lt;/code&gt; ，但是有一个问题是，有时候我们返回的时候还需要做一些自己的动作。比如清理 store 的数据，或者判断一下往哪里返什么的，比如用户刚提交了订单之后，给了一个按钮可以看订单详情，这个时候从详情返回就希望直接到首页，不要又返回新建订单的页面。&lt;/p&gt;
+
+&lt;p&gt;我们通过下面的思路做的&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;
+    onBackPress = () =&amp;gt; {
+        const { dispatch, nav } = this.props;
+
+        if (nav.index === 0) {
+            return false;
+        }
+        const {routes} = nav;
+        const {params} = routes[routes.length-1]
+
+        if(params &amp;amp;&amp;amp; params.goBack) {
+            params.goBack();
+        } else {
+            dispatch(NavigationActions.back());
+        }
+        return true;
+    };
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后在页面的基类里面&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;
+    constructor(props) {
+        super(props);
+        if (this.goBack)
+            this.props.navigation.setParams({ goBack: ()=&amp;gt;this.goBack() })
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后页面里面如果有自己的特殊逻辑，那就实现一个 &lt;code&gt;goBack&lt;/code&gt; 方法就好了。&lt;/p&gt;
+
+&lt;h3 id=&#34;参考文章&#34;&gt;参考文章&lt;/h3&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://wdicc.com/11-mistakes-during-use-react-native/&#34; title=&#34;11-mistakes-during-use-react-native&#34;&gt;11-mistakes-during-use-react-native&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Podcasts 推荐</title>
+      <link>https://wdicc.com/podcasts/</link>
+      <pubDate>Sat, 25 Nov 2017 11:38:37 +0800</pubDate>
+      
+      <guid>https://wdicc.com/podcasts/</guid>
+      <description>
+
+&lt;p&gt;也不知道从什么时候开始听播客的，现在几乎是 podcast 的重度用户。听播客比看东西省力，以前是上下班的时候想休息一下眼睛就听播客，现在每天开车上下班没法看东西，所以听的更多了。推荐一些我自己听的，下面排序是随机的，和推荐度无关。&lt;/p&gt;
+
+&lt;h2 id=&#34;中文播客&#34;&gt;中文播客&lt;/h2&gt;
+
+&lt;h3 id=&#34;迟早更新&#34;&gt;迟早更新&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.weareones.com/2&#34;&gt;http://www.weareones.com/2&lt;/a&gt; 这个是个夫妻档，主播任宁刚 30 岁，但是知识面还是挺广的，播客里面的内容很广，但是多与科技有些关系。主播枪枪和他是夫妻，挺有意思的。更新比较快，基本每周都有。&lt;/p&gt;
+
+&lt;h3 id=&#34;teahour&#34;&gt;Teahour&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://teahour.fm/&#34;&gt;http://teahour.fm/&lt;/a&gt; 这个播客经常会请一些比较厉害的开发者和创始人来做访谈，谈的内容也基本是在科技圈。不过最近更新比较慢，前几天刚更新了一期，距上一期已经是 1 年左右了。但是听一听历史的 ep 有些也不过时。&lt;/p&gt;
+
+&lt;h3 id=&#34;代码时间&#34;&gt;代码时间&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://codetimecn.com/&#34;&gt;http://codetimecn.com/&lt;/a&gt; 这个播客也是请人来做访谈，不过聊的感觉有时候有点尴尬，也不知道为啥有这个感觉。也是很久更新一期，历史的也可以听听。&lt;/p&gt;
+
+&lt;h3 id=&#34;checked&#34;&gt;checked&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://checked.fm/&#34;&gt;http://checked.fm/&lt;/a&gt; 这个播客有三个主播，2 个少数派的雇员，还有个妹子。都是年轻人，都挺有意思的。会讨论各种科技话题，科技热点事件，APP 使用经验等，更新也比较及时。&lt;/p&gt;
+
+&lt;h3 id=&#34;机核网&#34;&gt;机核网&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.g-cores.com/categories/9&#34;&gt;https://www.g-cores.com/categories/9&lt;/a&gt; 一个游戏播客。机核网本身是个游戏咨询站。播客内容就是各种游戏相关的东西。我之前听过《血缘》和《黑魂》相关的。不过因为我游戏玩的其实没那么多，所以他们谈的很多游戏没玩过，后来也就不听了。&lt;/p&gt;
+
+&lt;h3 id=&#34;比特新声&#34;&gt;比特新声&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://banlan.show/bitvoice&#34;&gt;https://banlan.show/bitvoice&lt;/a&gt; 主播海龙是出国培训老师，主播有才是一个 soho 的程序员。一个文科一个理科，思想的一些碰撞还挺有意思的。谈论的话题基本是科技圈的居多，但是内容也比较广泛。&lt;/p&gt;
+
+&lt;h3 id=&#34;ux-coffee-设计咖&#34;&gt;UX Coffee 设计咖&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://uxcoffee.co/&#34;&gt;http://uxcoffee.co/&lt;/a&gt; 主要和谈论一些设计和用户体验相关的内容。主播应该在国外，会请一些在国外的华语开发者来访谈。&lt;/p&gt;
+
+&lt;h3 id=&#34;i-o-调频&#34;&gt;「I/O」调频&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://dailyio.net/&#34;&gt;http://dailyio.net/&lt;/a&gt; 更新不多，貌似是一个人的独白，感觉听的不多，所以我也不记得大致内容了。&lt;/p&gt;
+
+&lt;h3 id=&#34;内核恐慌&#34;&gt;内核恐慌&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://kernelpanic.fm/&#34;&gt;https://kernelpanic.fm/&lt;/a&gt; 科技播客，内容还挺好的，可惜目前更新很少。最近几期《字谈字串》都是 4 个人串台。Rio 和吴涛其实还参加了近期的《迟早更新》，但是他们居然不更新自己的播客，发指。&lt;/p&gt;
+
+&lt;h3 id=&#34;it-公论&#34;&gt;IT 公论&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://itgonglun.com/&#34;&gt;https://itgonglun.com/&lt;/a&gt; 李如一和 Rio 主持。李如一好像挺有名的，不过我不是很熟悉。也是科技相关的播客。&lt;/p&gt;
+
+&lt;h3 id=&#34;两个-it-大叔&#34;&gt;两个 iT 大叔&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://podcast.lengqidong.com/podcast.xml&#34;&gt;http://podcast.lengqidong.com/podcast.xml&lt;/a&gt; 没有找到他们的网站，只有一个 rss 地址了。这个是两个男主播，聊的内容大都和科技相关。&lt;/p&gt;
+
+&lt;h3 id=&#34;etw&#34;&gt;ETW&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.etw.fm/&#34;&gt;http://www.etw.fm/&lt;/a&gt; 这个是两个驻美记者做的播客，两个妹子。聊各种热点话题，还是挺有意思的。&lt;/p&gt;
+
+&lt;h2 id=&#34;英文播客&#34;&gt;英文播客&lt;/h2&gt;
+
+&lt;p&gt;英文播客我基本只能听英语学习类的，其他的语速和发音会导致有不少听不懂。&lt;/p&gt;
+
+&lt;h3 id=&#34;all-ears-english&#34;&gt;All Ears English&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.allearsenglish.com/&#34;&gt;https://www.allearsenglish.com/&lt;/a&gt; 两个美国妹子，语速没有调慢，聊一些日常的用语什么的，感觉还是比较好懂的。&lt;/p&gt;
+
+&lt;h3 id=&#34;潘吉jenny告诉你-学英语聊美国-开言英语&#34;&gt;潘吉Jenny告诉你|学英语聊美国|开言英语&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://openlanguage.com/library/learn-english/9/culture-show&#34;&gt;https://openlanguage.com/library/learn-english/9/culture-show&lt;/a&gt; 这个是一个中国人一个外国人搭配的播客。里面中文说的比较多，会讲解一些常用的词汇用语什么的。&lt;/p&gt;
+
+&lt;h3 id=&#34;culips-english&#34;&gt;Culips English&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://esl.culips.com/&#34;&gt;https://esl.culips.com/&lt;/a&gt; 主播都是外国人，语速应该是调整过感觉比较慢。有词汇讲解，也有普通的聊天。&lt;/p&gt;
+
+&lt;h3 id=&#34;the-english-we-speak&#34;&gt;The English We Speak&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.bbc.co.uk/programmes/p02pc9zn&#34;&gt;http://www.bbc.co.uk/programmes/p02pc9zn&lt;/a&gt; 主播是英国口音，内容都比较短，每次基本就是一二个词。&lt;/p&gt;
+
+&lt;h3 id=&#34;eslpod&#34;&gt;ESLPod&lt;/h3&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://www.eslpod.com/&#34;&gt;https://www.eslpod.com/&lt;/a&gt; 这个是我很早以前听过的，目前这个没有免费的更新了，必须付费，年费还不低。不过这个是我听过觉得比较好的，会仔细用英文解释对话里面的单词。&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>草泥马</title>
@@ -1525,6 +1749,10 @@ MHR = 206 - (0.88 x age)
 &lt;h2 id=&#34;2017-6-30&#34;&gt;2017.6.30&lt;/h2&gt;
 
 &lt;p&gt;再次更新一下，目前体重 77kg。目前吃喝的内容基本已经不需要太注意了，只是有意不要多吃，也避免吃谷物类。不过我也吃过几次米饭，面条，大饼什么的，目前体重还是保持住了。&lt;/p&gt;
+
+&lt;h2 id=&#34;2017-11-26&#34;&gt;2017.11.26&lt;/h2&gt;
+
+&lt;p&gt;目前又开始尝试减体重。因为发现工作的时候确实不是很好减，毕竟饿了的话工作都不能专心。上周我尝试吃了一周的 711 沙拉和水果，貌似这几天早上称重到了 74.8，低于了 75 了都，感觉也是有效果的，还在尝试。&lt;/p&gt;
 </description>
     </item>
     
@@ -2490,73 +2718,6 @@ Uninstall operations
 &lt;h2 id=&#34;参考文档&#34;&gt;参考文档&lt;/h2&gt;
 
 &lt;p&gt;&lt;a href=&#34;http://qiita.com/yteraoka/items/e82e4d28f6a23915d190&#34;&gt;http://qiita.com/yteraoka/items/e82e4d28f6a23915d190&lt;/a&gt;&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Built in sharding in PostgreSQL</title>
-      <link>https://wdicc.com/built-in-sharding-in-postgresql/</link>
-      <pubDate>Wed, 07 Dec 2016 16:54:59 +0800</pubDate>
-      
-      <guid>https://wdicc.com/built-in-sharding-in-postgresql/</guid>
-      <description>
-
-&lt;p&gt;PostgreSQL 内建 sharding 支持，粗略翻译自 &lt;a href=&#34;https://wiki.postgresql.org/wiki/Built-in_Sharding&#34;&gt;https://wiki.postgresql.org/wiki/Built-in_Sharding&lt;/a&gt;&lt;/p&gt;
-
-&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
-
-&lt;p&gt;内建支持 sharding 最大的挑战是，如何用最小的代码修改实现。大部分社区的 sharding 修改支持都修改了很多 PostgreSQL 的代码，这也导致这些不能被 Postgres 社区那些不需要 sharding 的人接受。有了 FDW 之后，就有了在有限代码修改情况下实现内建 sharding 支持的可能。&lt;/p&gt;
-
-&lt;p&gt;基于 FDW 的这种 sharding 设计，是基于 NTT 开发的 Postgres-XC，大概已经有 10 年了。Postgres-XL 是基于这个设计的一种更加灵活的实现。&lt;/p&gt;
-
-&lt;h2 id=&#34;enhance-existing-features&#34;&gt;Enhance Existing Features&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;已完成？提升 FDW 的基础设计和 postgres_fdw。特别的，好的性能要求合理的把一些操作推送到子节点(foreign shards)。在 Postgres 9.6 中，join, sort, update, delete 都可以推送到字节点了。聚合的 pushdown 将在 Postgres 10 中支持。FDW 表已经可以作为继承表出现。&lt;/li&gt;
-&lt;li&gt;提升分区支持有效提升 existence of shards。幸运的是，单节点的分区支持也需要重构才能提升性能和更多优化。例如，executor-based partition pruning.&lt;/li&gt;
-&lt;li&gt;给 FDW 请求增加并行支持。这样能允许节点并行执行，这个可能会通过多个异步的链接来实现。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h2 id=&#34;new-subsystems&#34;&gt;New Subsystems&lt;/h2&gt;
-
-&lt;p&gt;还需要开发一些子系统：
-* 允许表可以复制到所有节点，以允许更多的 join pushdown。这个可以通过 trigger 或者逻辑复制来完成。
-* 实现一个子模块，以使用新的分区系统表来提交符合提交的查询的 FDW 查询。
-* 实现一个子模块收集 FDW 查询的结果返回给用户。
-* 实现全局事务管理器以便更加高效的允许子节点原子的提交事务。这个可能会通过 prepared 的事务来实现，还有某种在 crash 之后清理那些 preapared 的事务的事务管理器。例如 XA。
-* 实现全局快照管理器，以允许子节点可以看到一致性的快照。（是不是 serialisable 事务模式会避免跨节点快照冲突？pg_export_snapshot() 或者 hot_standby_feedback 是不是会有帮助？) 多节点的备份的一致性也需要这个支持。
-* 实现支持 create, manage, report on shards 这些用户 API。&lt;/p&gt;
-
-&lt;h2 id=&#34;use-cases&#34;&gt;Use Cases&lt;/h2&gt;
-
-&lt;p&gt;有四种可能的用户案例和不同的需求:
-* 跨节点在只读节点上面执行只读聚合查询，例如数据仓库
-  这种是最简单的场景，不需要全局事务管理，全局快照管理，并且因为聚合，所以子节点返回的数据量也是最小的。
-* 跨节点在只读节点上面执行只读非聚合查询
-  这种会给调度节点压力，需要收集和处理很多子节点返回的数据。这种也能看到 FDW 传输机制等级。
-* 跨节点在可读写节点执行只读查询
-  这个需要全局快照管理来保证子节点返回数据的一致性
-* 跨节点执行读写查询
-  这个需要全局快照管理器和全局事务管理器&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>申请 google voice</title>
-      <link>https://wdicc.com/registration-about-google-voice/</link>
-      <pubDate>Mon, 14 Nov 2016 16:02:30 +0800</pubDate>
-      
-      <guid>https://wdicc.com/registration-about-google-voice/</guid>
-      <description>&lt;p&gt;昨天晚上突然想申请一个 google voice 帐号。有了之后就可以作为国外的号码使用了，可以打电话收短信，想想好像还有点用。比如我就可以用他注册一个微博帐号用来关联一些无聊的服务了。。。&lt;/p&gt;
-
-&lt;p&gt;申请的过程网上很多，不细说了。主要注意下面几点。&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;需要美国 ip 打开 &lt;a href=&#34;https://www.google.com/voice&#34;&gt;https://www.google.com/voice&lt;/a&gt; ，否则会跳转到一个帮助页面。这个从网上搜一些免费的代理就可以了。我是搜索到了一些 ss 帐号，然后配合 surge 来做的。&lt;/li&gt;
-&lt;li&gt;需要一个能接电话的美国号码来接受 google voice 的验证电话。这个我是通过 &lt;a href=&#34;http://textnow.com&#34;&gt;http://textnow.com&lt;/a&gt; 来做的。登录 textnow.com 注册一个免费的帐号，其中有一步是需要输入一个美国区号，这个要注意，我第一次注册的时候，输入的是 213 (洛杉矶地区的)，然后就不行，后来又申请了一个 517 的就可以。所以最好搜索一下别人申请成功的区号有哪些，另外还好就是只要有不同的邮箱，就可以多次注册来换号码，如果遇到不行的，可以换个邮箱重新注册一下。&lt;/li&gt;
-&lt;li&gt;在 google voice 里面填入电话之后。google voice 会打电话给那个号码。我用 textnow 的 ios 客户端接的电话（建议不要用他们的 web，他们的 web 必须要你的浏览器支持 flash 才行，很恶心），我遇到的情况下，前几次接到的电话没有对方的声音，自己尝试直接输入号码也不行。后来多试几次就好了。&lt;/li&gt;
-&lt;li&gt;后面就是选号了。选好号码之后，点提交一般都会遇到一个错误，「There was an error with your request. Please try again」, 遇到这个是正常的。需要你多次点击那个按钮提交，有人用按键精灵点了几个小时搞定了。我这是打开 chrome 的 dev tools，然后看 network 里面发的请求，每次点击都会有一个 post 请求，在上面按右键，选择 「copy as curl」，然后在命令行写一个简单的程序，&lt;code&gt;while true; do 这里把复制的内容贴过来 ;sleep 1.5s; done&lt;/code&gt;，复制到命令行，不停的重试就可以了，直到收到邮件说你的号码开通了。要注意的是命令行也得设置代理，一般是通过 export。&lt;/li&gt;
-&lt;/ol&gt;
 </description>
     </item>
     
