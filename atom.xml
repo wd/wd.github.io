@@ -45,8 +45,7 @@
 
 &lt;p&gt;先大概看看我们 app 的目录结构。我们把所有的 js 文件都放到了 app 目录下面。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-app
+&lt;pre&gt;&lt;code&gt;app
 ios
 android
 index.js
@@ -54,8 +53,7 @@ index.js
 
 &lt;p&gt;然后 app 目录下面，分了 &lt;code&gt;actions&lt;/code&gt; ， &lt;code&gt;reducers&lt;/code&gt; ， &lt;code&gt;sagas&lt;/code&gt; ， &lt;code&gt;selector&lt;/code&gt; 几个目录。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-actions
+&lt;pre&gt;&lt;code&gt;actions
 images
 index.js
 reducers
@@ -110,8 +108,7 @@ utility
 
 &lt;p&gt;我们通过下面的思路做的&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;
-    onBackPress = () =&amp;gt; {
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;    onBackPress = () =&amp;gt; {
         const { dispatch, nav } = this.props;
 
         if (nav.index === 0) {
@@ -131,8 +128,7 @@ utility
 
 &lt;p&gt;然后在页面的基类里面&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;
-    constructor(props) {
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;    constructor(props) {
         super(props);
         if (this.goBack)
             this.props.navigation.setParams({ goBack: ()=&amp;gt;this.goBack() })
@@ -566,8 +562,7 @@ JavaScript 的进化，需要考虑：
       <guid>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</guid>
       <description>&lt;p&gt;这周花了一些时间研究 &lt;code&gt;react-redux&lt;/code&gt; 和怎么让它和 &lt;code&gt;react-navigation&lt;/code&gt; 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 &lt;a href=&#34;https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3&#34; title=&#34;gist&#34;&gt;gist&lt;/a&gt;。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;
-/**
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;/**
  * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理
  * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合
  * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做
@@ -975,7 +970,11 @@ const styles = StyleSheet.create({
 
 &lt;p&gt;&lt;del&gt;后面可能还想把 tags 页面做成横向的列表，目前那个有点太占位置了。不过目前还没找到比较好看一点的设计，遇到再说了。另外刚发现那个 code 块的空白太多了，可能回头也调整一下。&lt;/del&gt;&lt;/p&gt;
 
-&lt;p&gt;已经弄了一个 tag 的样式，先这么看着吧。另外也修正了一下 code 的空白。发现 org 的 &lt;code&gt;BEGIN_SRC&lt;/code&gt; 输出的时候，会加一个换行在第一行，这个导致多了一个空白行，稍微有点丑了，回头有时间再看看是哪里的问题吧。&lt;/p&gt;
+&lt;p&gt;已经弄了一个 tag 的样式，先这么看着吧。另外也修正了一下 code 的空白。&lt;/p&gt;
+
+&lt;p&gt;&lt;del&gt;发现 org 的 &lt;code&gt;BEGIN_SRC&lt;/code&gt; 输出的时候，会加一个换行在第一行，这个导致多了一个空白行，稍微有点丑了，回头有时间再看看是哪里的问题吧。&lt;/del&gt;&lt;/p&gt;
+
+&lt;p&gt;上面这个问题在 hugo 的 HEAD 版本里面已经修复了。&lt;/p&gt;
 </description>
     </item>
     
@@ -1308,6 +1307,83 @@ DevMenu.show();
 }
 
 &lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;补全-update&#34;&gt;补全 update&lt;/h2&gt;
+
+&lt;p&gt;tern 这个东西用了一段时间，发现不是很好用。经常找不到 symbol，以及在 jsx 代码里面无法跳转。后来发现了 &lt;a href=&#34;https://github.com/ananthakumaran/tide&#34;&gt;tide&lt;/a&gt;，简直好用到不行。&lt;/p&gt;
+
+&lt;p&gt;tide 是基于 vscode 用的 tsserver 来搞的。这个开始是给 TypeScript 用的，目前也支持普通 js。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;(defun setup-tide-mode ()
+  (interactive)
+  ;; (setq tide-tsserver-process-environment &#39;(&amp;quot;TSS_LOG=-level verbose -file /tmp/tss.log&amp;quot;))
+  (tide-setup)
+  ;;(setq flycheck-check-syntax-automatically &#39;(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  ;; company is an optional dependency. You have to
+  ;; install it separately via package-install
+  ;; `M-x package-install [ret] company`
+  )
+
+
+(use-package tide
+  :ensure t
+  :bind ((&amp;quot;M-.&amp;quot; . tide-jump-to-definition)
+         (&amp;quot;M-,&amp;quot; . tide-jump-back)
+         )
+
+  :config
+  (setup-tide-mode)
+  ;; aligns annotation to the right hand side
+  (setq company-tooltip-align-annotations t)
+
+  ;; formats the buffer before saving
+  ;;(add-hook &#39;before-save-hook &#39;tide-format-before-save)
+
+  ;; configure javascript-tide checker to run after your default javascript checker
+  (flycheck-add-next-checker &#39;javascript-eslint &#39;javascript-tide &#39;append)
+
+  (add-hook &#39;web-mode-hook
+            (lambda ()
+              (when (string-equal &amp;quot;js&amp;quot; (file-name-extension buffer-file-name))
+                (setup-tide-mode))))
+  ;; configure jsx-tide checker to run after your default jsx checker
+  (flycheck-add-mode &#39;javascript-eslint &#39;web-mode)
+  (flycheck-add-next-checker &#39;javascript-eslint &#39;jsx-tide &#39;append)
+  )
+
+
+;; 针对 web-mode 做一个配置
+    (add-hook &#39;web-mode-hook
+            (lambda ()
+              (set (make-local-variable &#39;company-backends)
+                   &#39;(
+                      company-tide
+                      ;company-react
+                      company-dabbrev-code
+                      company-keywords
+                      company-files
+                      company-yasnippet))))
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;其实我也没做啥配置，就是官方的那几个就可以。然后还有一个 jsconfig.json 的配置文件如下。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;{
+    &amp;quot;compilerOptions&amp;quot;: {
+        &amp;quot;allowJs&amp;quot;: true,
+        &amp;quot;allowSyntheticDefaultImports&amp;quot;: true
+    },
+    &amp;quot;exclude&amp;quot;: [
+        &amp;quot;node_modules&amp;quot;,
+        &amp;quot;ios&amp;quot;,
+        &amp;quot;android&amp;quot;,
+        &amp;quot;.git&amp;quot;
+    ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这就支持了好多功能，比如光标停留在一个 keyword 上面就会高亮相关的，比如 company 的补全啥的，都很不错。还支持 refactor。&lt;/p&gt;
 </description>
     </item>
     
@@ -1359,8 +1435,7 @@ DevMenu.show();
 
 &lt;p&gt;&lt;code&gt;anaconda-mode&lt;/code&gt; 我遇到一个问题，为了下载 emacs 的 package 方便，我设置了代理，这个代理导致 &lt;code&gt;anaconda-mode&lt;/code&gt; 和补全进程交互的时候，连接不能断开，就会不停的新建连接，一会就打开文件数满了，可以参观这个 &lt;a href=&#34;https://github.com/proofit404/anaconda-mode/issues/255&#34; title=&#34;issue&#34;&gt;issue&lt;/a&gt;。主要是设置了 &lt;code&gt;no_proxy&lt;/code&gt; 解决。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
- (setq url-proxy-services
+&lt;pre&gt;&lt;code&gt; (setq url-proxy-services
        &#39;((&amp;quot;no_proxy&amp;quot; . &amp;quot;^\\(127.0.0.1\\|localhost\\|10.*\\)&amp;quot;)
          (&amp;quot;http&amp;quot; . &amp;quot;127.0.0.1:6152&amp;quot;)
          (&amp;quot;https&amp;quot; . &amp;quot;127.0.0.1:6152&amp;quot;)))
@@ -1374,8 +1449,7 @@ DevMenu.show();
 
 &lt;p&gt;我的项目是建了一个 &lt;code&gt;.venv&lt;/code&gt; 目录，所以每次打开一个 python 文件，会自动配置好 virtualenv 的环境，这样 &lt;code&gt;elpy&lt;/code&gt; 在 django 自带的 model 上面也可以查找 defination。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-(use-package auto-virtualenv
+&lt;pre&gt;&lt;code&gt;(use-package auto-virtualenv
   :ensure t
   :config
   (add-hook &#39;python-mode-hook &#39;auto-virtualenv-set-virtualenv)
@@ -1386,8 +1460,7 @@ DevMenu.show();
 
 &lt;p&gt;&lt;code&gt;elpy&lt;/code&gt; 其实没有什么好配置的，主要注意的是，因为我们用了 virtualenv 环境，所以需要他依赖的包都装在 &lt;code&gt;.venv&lt;/code&gt; 环境或者装在 python 自己的目录下面应该都可以。启动 emacs 之后可以使用 &lt;code&gt;M-x elpy-config&lt;/code&gt; 看看还有什么没配置好。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-(use-package elpy
+&lt;pre&gt;&lt;code&gt;(use-package elpy
   :ensure t
   :init
   (setq elpy-rpc-backend &amp;quot;jedi&amp;quot;)
@@ -1412,8 +1485,7 @@ DevMenu.show();
 
 &lt;p&gt;好处是打开 python 文件的时候，会把代码都折叠起来，按照需要你自己打开就好。elpa 里面没有，网上搜到的。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-(use-package python-magic
+&lt;pre&gt;&lt;code&gt;(use-package python-magic
   :ensure outline-magic
   :config
   (add-hook &#39;python-mode-hook &#39;my-python-outline-hook)
@@ -1428,8 +1500,7 @@ DevMenu.show();
 
 &lt;p&gt;这个工具是用来锁进 python 代码和浏览代码用的。搜一下有动图，看看就知道了。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-(use-package indent-tools
+&lt;pre&gt;&lt;code&gt;(use-package indent-tools
   :ensure t
   :init
   (add-hook &#39;python-mode-hook
@@ -1444,8 +1515,7 @@ DevMenu.show();
 
 &lt;p&gt;我没搞定在 company 里面直接显示出来 yasnippet 可用的 snippet，只好设置了一个快捷键 &lt;code&gt;C-c y&lt;/code&gt; 来提示。可以提示出来一大堆。比如我经常写错的 &lt;code&gt;-*- coding:utf8 -*-&lt;/code&gt; 有一个 snippet 叫做 &lt;code&gt;utf8&lt;/code&gt; ，直接输入之后 tab 就可以了。&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-(use-package company
+&lt;pre&gt;&lt;code&gt;(use-package company
   :ensure t
   :init
   (setq company-minimum-prefix-length 2)
@@ -1474,8 +1544,7 @@ DevMenu.show();
 
 &lt;p&gt;这个 docker 本地监听的端口是固定的 8388 不能修改, 例如 docker-compose.yml 里面&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-server:
+&lt;pre&gt;&lt;code&gt;server:
   image: easypi/shadowsocks-libev
   container_name: wd-ss
   ports:
@@ -1491,8 +1560,7 @@ server:
 
 &lt;p&gt;启动服务之后,可以使用 &lt;code&gt;docker logs wd-ss&lt;/code&gt; 来看 log, 类似于下面, 这个 docker 启用了 udp relay 和 tcp fast open, 差不多也就够了.&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
- 2017-06-09 03:13:17 INFO: using tcp fast open
+&lt;pre&gt;&lt;code&gt; 2017-06-09 03:13:17 INFO: using tcp fast open
  2017-06-09 03:13:17 INFO: UDP relay enabled
  2017-06-09 03:13:17 INFO: initializing ciphers... aes-256-cfb
  2017-06-09 03:13:17 INFO: using nameserver: 8.8.8.8
@@ -1503,8 +1571,7 @@ server:
 
 &lt;p&gt;如果想要开启更多选项, 可以在 compose 文件里面使用 command 自定义启动命令&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-  command:
+&lt;pre&gt;&lt;code&gt;  command:
     ss-server -s 0.0.0.0
               -p 8338
               -k 5C4D5403-31C9
@@ -1645,8 +1712,7 @@ server:
 
 &lt;p&gt;对于心率，先看下面的公式&lt;/p&gt;
 
-&lt;pre&gt;&lt;code&gt;
-MHR(最大心率) = 220 - age
+&lt;pre&gt;&lt;code&gt;MHR(最大心率) = 220 - age
 MHR = 206 - (0.88 x age)
 &lt;/code&gt;&lt;/pre&gt;
 
@@ -1777,8 +1843,7 @@ MHR = 206 - (0.88 x age)
 &lt;li&gt;list3&lt;/li&gt;
 &lt;/ul&gt;
 
-&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
-import sys
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;import sys
 
 class Hugo(object):
     def __init__(self):

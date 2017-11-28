@@ -202,6 +202,83 @@
 
 </code></pre>
 
+<h2 id="补全-update">补全 update</h2>
+
+<p>tern 这个东西用了一段时间，发现不是很好用。经常找不到 symbol，以及在 jsx 代码里面无法跳转。后来发现了 <a href="https://github.com/ananthakumaran/tide">tide</a>，简直好用到不行。</p>
+
+<p>tide 是基于 vscode 用的 tsserver 来搞的。这个开始是给 TypeScript 用的，目前也支持普通 js。</p>
+
+<pre><code>(defun setup-tide-mode ()
+  (interactive)
+  ;; (setq tide-tsserver-process-environment '(&quot;TSS_LOG=-level verbose -file /tmp/tss.log&quot;))
+  (tide-setup)
+  ;;(setq flycheck-check-syntax-automatically '(save mode-enabled))
+  (eldoc-mode +1)
+  (tide-hl-identifier-mode +1)
+  ;; company is an optional dependency. You have to
+  ;; install it separately via package-install
+  ;; `M-x package-install [ret] company`
+  )
+
+
+(use-package tide
+  :ensure t
+  :bind ((&quot;M-.&quot; . tide-jump-to-definition)
+         (&quot;M-,&quot; . tide-jump-back)
+         )
+
+  :config
+  (setup-tide-mode)
+  ;; aligns annotation to the right hand side
+  (setq company-tooltip-align-annotations t)
+
+  ;; formats the buffer before saving
+  ;;(add-hook 'before-save-hook 'tide-format-before-save)
+
+  ;; configure javascript-tide checker to run after your default javascript checker
+  (flycheck-add-next-checker 'javascript-eslint 'javascript-tide 'append)
+
+  (add-hook 'web-mode-hook
+            (lambda ()
+              (when (string-equal &quot;js&quot; (file-name-extension buffer-file-name))
+                (setup-tide-mode))))
+  ;; configure jsx-tide checker to run after your default jsx checker
+  (flycheck-add-mode 'javascript-eslint 'web-mode)
+  (flycheck-add-next-checker 'javascript-eslint 'jsx-tide 'append)
+  )
+
+
+;; 针对 web-mode 做一个配置
+    (add-hook 'web-mode-hook
+            (lambda ()
+              (set (make-local-variable 'company-backends)
+                   '(
+                      company-tide
+                      ;company-react
+                      company-dabbrev-code
+                      company-keywords
+                      company-files
+                      company-yasnippet))))
+</code></pre>
+
+<p>其实我也没做啥配置，就是官方的那几个就可以。然后还有一个 jsconfig.json 的配置文件如下。</p>
+
+<pre><code>{
+    &quot;compilerOptions&quot;: {
+        &quot;allowJs&quot;: true,
+        &quot;allowSyntheticDefaultImports&quot;: true
+    },
+    &quot;exclude&quot;: [
+        &quot;node_modules&quot;,
+        &quot;ios&quot;,
+        &quot;android&quot;,
+        &quot;.git&quot;
+    ]
+}
+</code></pre>
+
+<p>这就支持了好多功能，比如光标停留在一个 keyword 上面就会高亮相关的，比如 company 的补全啥的，都很不错。还支持 refactor。</p>
+
 </main>
 
 <section id="comment">

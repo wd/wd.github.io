@@ -91,8 +91,7 @@
 
 <p><code>anaconda-mode</code> 我遇到一个问题，为了下载 emacs 的 package 方便，我设置了代理，这个代理导致 <code>anaconda-mode</code> 和补全进程交互的时候，连接不能断开，就会不停的新建连接，一会就打开文件数满了，可以参观这个 <a href="https://github.com/proofit404/anaconda-mode/issues/255" title="issue">issue</a>。主要是设置了 <code>no_proxy</code> 解决。</p>
 
-<pre><code>
- (setq url-proxy-services
+<pre><code> (setq url-proxy-services
        '((&quot;no_proxy&quot; . &quot;^\\(127.0.0.1\\|localhost\\|10.*\\)&quot;)
          (&quot;http&quot; . &quot;127.0.0.1:6152&quot;)
          (&quot;https&quot; . &quot;127.0.0.1:6152&quot;)))
@@ -106,8 +105,7 @@
 
 <p>我的项目是建了一个 <code>.venv</code> 目录，所以每次打开一个 python 文件，会自动配置好 virtualenv 的环境，这样 <code>elpy</code> 在 django 自带的 model 上面也可以查找 defination。</p>
 
-<pre><code>
-(use-package auto-virtualenv
+<pre><code>(use-package auto-virtualenv
   :ensure t
   :config
   (add-hook 'python-mode-hook 'auto-virtualenv-set-virtualenv)
@@ -118,8 +116,7 @@
 
 <p><code>elpy</code> 其实没有什么好配置的，主要注意的是，因为我们用了 virtualenv 环境，所以需要他依赖的包都装在 <code>.venv</code> 环境或者装在 python 自己的目录下面应该都可以。启动 emacs 之后可以使用 <code>M-x elpy-config</code> 看看还有什么没配置好。</p>
 
-<pre><code>
-(use-package elpy
+<pre><code>(use-package elpy
   :ensure t
   :init
   (setq elpy-rpc-backend &quot;jedi&quot;)
@@ -144,8 +141,7 @@
 
 <p>好处是打开 python 文件的时候，会把代码都折叠起来，按照需要你自己打开就好。elpa 里面没有，网上搜到的。</p>
 
-<pre><code>
-(use-package python-magic
+<pre><code>(use-package python-magic
   :ensure outline-magic
   :config
   (add-hook 'python-mode-hook 'my-python-outline-hook)
@@ -160,8 +156,7 @@
 
 <p>这个工具是用来锁进 python 代码和浏览代码用的。搜一下有动图，看看就知道了。</p>
 
-<pre><code>
-(use-package indent-tools
+<pre><code>(use-package indent-tools
   :ensure t
   :init
   (add-hook 'python-mode-hook
@@ -176,8 +171,7 @@
 
 <p>我没搞定在 company 里面直接显示出来 yasnippet 可用的 snippet，只好设置了一个快捷键 <code>C-c y</code> 来提示。可以提示出来一大堆。比如我经常写错的 <code>-*- coding:utf8 -*-</code> 有一个 snippet 叫做 <code>utf8</code> ，直接输入之后 tab 就可以了。</p>
 
-<pre><code>
-(use-package company
+<pre><code>(use-package company
   :ensure t
   :init
   (setq company-minimum-prefix-length 2)
