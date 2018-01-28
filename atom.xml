@@ -6,10 +6,74 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 26 Nov 2017 09:19:11 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 25 Jan 2018 11:00:57 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>GeoHash</title>
+      <link>https://wdicc.com/geohash/</link>
+      <pubDate>Thu, 25 Jan 2018 11:00:57 +0800</pubDate>
+      
+      <guid>https://wdicc.com/geohash/</guid>
+      <description>&lt;p&gt;我们的应用里面，会有需要用户提交一些坐标点，然后还需要判断这些坐标点和其他坐标点是不是重合或者距离在一定范围内（例如 200M）。&lt;/p&gt;
+
+&lt;p&gt;这个需求最简单的做法就是用户提交的时候，循环和所有需要判断的点比较一下就可以了，但是如果数据量比较大的情况下，这个消耗还是很可观的，因为无法提前索引。所以我们就想，是不是有更好的思路呢？&lt;/p&gt;
+
+&lt;p&gt;一个比较简单的思路是，每次坐标点存储的时候都 hash 一下，一定范围内的，都 hash 到同一个值，这样比较的时候只需要做等于判断就可以了，这个可以索引。那么最简单的做法就是参考 &lt;a href=&#34;https://en.wikipedia.org/wiki/Decimal_degrees&#34; title=&#34;https://en.wikipedia.org/wiki/Decimal_degrees&#34;&gt;https://en.wikipedia.org/wiki/Decimal_degrees&lt;/a&gt; 把坐标点的经纬度按照精度 round，例如 &lt;code&gt;123.4567890123&lt;/code&gt; 和 &lt;code&gt;123.4567894562&lt;/code&gt; 都 round 为 &lt;code&gt;123.456789&lt;/code&gt; ，但是这么做无法精确到想要的那个 200M。&lt;/p&gt;
+
+&lt;p&gt;然后依据上面的思路，和四舍五入的思路，我琢磨是不是可以弄一个 x 舍 x+1 入这么个逻辑，把坐标轴分为 x 等份。然后我就可以通过自己定义 x 来做到想要的精度了（通过经纬度来定义实际距离应该本身就是有误差的，这个和把球面坐标系投影到平面坐标系的方法有关系）。&lt;/p&gt;
+
+&lt;p&gt;按照上面 x 舍 x+1 入的逻辑，实际上是把平面分成了 n 个正方形，同一个正方形里面的，可以认为他们是符合条件的。但是，很明显在相邻的区域里面的，也有可能有符合条件的点，比如两个点分别在区域的这边和另一边。这些点怎么找到呢？&lt;/p&gt;
+
+&lt;p&gt;有一个思路是先找到点所在的区域，然后把周围 8 个区域的点也找出来，这个查找是可以索引的，是 O(1) 的，然后再循环的和找出来的点单个做比较算距离，这个过程是 O(n)，但是 n 小了很多。&lt;/p&gt;
+
+&lt;p&gt;上面是我山寨的一个思路，找了一下发现已经有了，就是 geohash，可以看参考链接，里面比较详细了。&lt;/p&gt;
+
+&lt;p&gt;参考链接&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Geohash&#34; title=&#34;Geohash&#34;&gt;Geohash&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://www.cnblogs.com/LBSer/p/3310455.html&#34; title=&#34;http://www.cnblogs.com/LBSer/p/3310455.html&#34;&gt;http://www.cnblogs.com/LBSer/p/3310455.html&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>SafeAreaView in RN</title>
+      <link>https://wdicc.com/safeareaview-in-rn/</link>
+      <pubDate>Thu, 25 Jan 2018 10:36:51 +0800</pubDate>
+      
+      <guid>https://wdicc.com/safeareaview-in-rn/</guid>
+      <description>&lt;p&gt;iPhone X 整出来一个刘海和底部的下巴，app 需要做特殊处理，否则可能会顶部把内容显示到被刘海挡住的那部分里面，下面呢会显示到那个手势控制的里面，导致一些按钮不能点击。&lt;/p&gt;
+
+&lt;p&gt;之前我们用的是 &lt;a href=&#34;https://www.npmjs.com/package/react-native-iphone-x-helper&#34; title=&#34;https://www.npmjs.com/package/react-native-iphone-x-helper&#34;&gt;https://www.npmjs.com/package/react-native-iphone-x-helper&lt;/a&gt; 自己计算的。前几天升级 RN 翻 0.52 的 release Note 发现 RN 0.50 新增了一个叫做 &lt;code&gt;SafeAreaView&lt;/code&gt; 的 view 来解决这个问题。&lt;/p&gt;
+
+&lt;p&gt;用法也很简单，把你的内容包含到这里面就可以了。有下面两个方法。&lt;/p&gt;
+
+&lt;p&gt;不用 SafeAreaView 来处理底部，比如显示的是一个列表什么的，底部不固定的，用户如果有需要点按会往上滚动出底部的手势区域然后点击。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;SafeAreaView /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;使用 SafeAreaView 处理底部，比如底部是一排固定按钮，例如微信那样的，这个时候需要把底部区域让出来。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;SafeAreaView&amp;gt;
+  ....
+&amp;lt;/SafeAreaView&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;SafeAreaView 本身支持设置背景色，但是不支持顶部和底部设置不同的颜色，思路是可以给 SafeAreaView 下面放两个 view 分别设置他们的颜色。代码我贴到参考链接 2 里面了。&lt;/p&gt;
+
+&lt;p&gt;参考链接：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/facebook/react-native/commit/ad4b124&#34; title=&#34;https://github.com/facebook/react-native/commit/ad4b124&#34;&gt;https://github.com/facebook/react-native/commit/ad4b124&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d&#34; title=&#34;https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d&#34;&gt;https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
     
     <item>
       <title>Best Practice for React-Native and Redux</title>
@@ -136,6 +200,18 @@ utility
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;然后页面里面如果有自己的特殊逻辑，那就实现一个 &lt;code&gt;goBack&lt;/code&gt; 方法就好了。&lt;/p&gt;
+
+&lt;h3 id=&#34;表单的弹出页面-不一定需要使用-store&#34;&gt;表单的弹出页面，不一定需要使用 store&lt;/h3&gt;
+
+&lt;p&gt;比如一个下单页面，需要填联系人信息，这个时候我们一般会到一个联系人的页面来选择联系人。这个时候在这个页面选择的联系人，如何传递给上一个页面呢？有两个类型的方法。&lt;/p&gt;
+
+&lt;p&gt;第一个方法自然就是 redux 的方法，在选择页面点确定的时候，触发 action 通过 reducer 设置这个页面的 store，然后通过 selector 修改上一个页面的 props，这样就达到了传递的目的。&lt;/p&gt;
+
+&lt;p&gt;第二个方法是在新页面打开的时候，通过 navigater 传一个 callback 过去，那边选择好的时候，调用这个回调方法把数据传回来。&lt;/p&gt;
+
+&lt;p&gt;第一个方法贴合 redux 的做法，但是存在一个问题，如果这个新的选择页面在多个地方出现，那么就需要有一个区分，当前这个选择是给哪个地方服务的(因为必须得在 redux 的 store 里面做好区分，否则两个页面总是相同的状态)。另外还有一个数据清理的问题，否则下次在别的页面打开这个页面，会有上次的数据残留。&lt;/p&gt;
+
+&lt;p&gt;第二个方法土一点，但是没有上面的问题。不过要注意的是，如果新的页面有网络请求，那这个时候还需要和 saga thunk 这些关联，那么就总是会走到 redux 的 store，所以这个方法就不适用了。&lt;/p&gt;
 
 &lt;h3 id=&#34;参考文章&#34;&gt;参考文章&lt;/h3&gt;
 
@@ -2354,435 +2430,6 @@ $hash = unpack(&amp;quot;I&amp;quot;, pack(&amp;quot;B32&amp;quot;, $hash));
 &lt;p&gt;索引 bloat 的问题还是应该需要重视。例如 btree 索引是由二叉树组成()。叶子节点包含值和 tuple 标识（应该是指在 data file 的 offset）。随机更新因为会重用 page，所以可以保持 btree 维持一个良好的形状。但是，如果是单侧更新，会导致大量的空页。&lt;/p&gt;
 
 &lt;p&gt;The size considerations of index bloat are still significant. For instance a btree index consists of binary tree of pages (the same sized pages as you find holding tuples in the heap). The leaf node pages contain values and tuple identifiers. Uniform random table updates tend to keep a btree index in pretty good shape because it can reuse pages. However lopsided inserts/updates affecting one side of the tree while preserving a few straggling entries can lead to lots of mostly empty pages.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Full page write in PostgreSQL</title>
-      <link>https://wdicc.com/full-page-write-in-postgresql/</link>
-      <pubDate>Thu, 08 Dec 2016 18:02:14 +0800</pubDate>
-      
-      <guid>https://wdicc.com/full-page-write-in-postgresql/</guid>
-      <description>
-
-&lt;p&gt;读了一篇&lt;a href=&#34;http://blog.2ndquadrant.com/on-the-impact-of-full-page-writes/&#34;&gt;文章&lt;/a&gt;，简单翻译总结下。&lt;/p&gt;
-
-&lt;h2 id=&#34;partial-writes-torn-pages&#34;&gt;Partial Writes / Torn Pages&lt;/h2&gt;
-
-&lt;p&gt;pg 默认是 8kB 一个 page。linux 文件系统一般是 4kB（x86 里面最大是 4kB)，老设备驱动一般是 512B 一个扇区，新的设备有些支持 4kB 或者 8kB。&lt;/p&gt;
-
-&lt;p&gt;当 pg 写入一个 page 8kB 的时候，系统的底层会拆分小一点块，这里涉及到写入的原子性。8kB 的 pg page，会被文件系统拆分成 4kB 的块，然后拆分成 512B 扇区大小。这个时候如果系统崩溃（比如停电，内核 bug）会发生什么？&lt;/p&gt;
-
-&lt;p&gt;即使系统的存储有针对这种情况的设计（比如 SSD 自带电容器，RAID 控制器自带电池），内核那块也是会拆分成 4kB 的 page，所以还是有一定可能性，pg 写了 8kB，但是只有部分写入成功。&lt;/p&gt;
-
-&lt;p&gt;这个时候你可能意识到这就是为啥我们要有事务日志（WAL）。所以当系统崩溃重启之后，数据库会读取 WAL（从最后一次 checkpoint），然后重新写入一遍，以保证数据文件是完整的。&lt;/p&gt;
-
-&lt;p&gt;恢复的时候，在修改一个 page 之前，还是会读取一下。&lt;/p&gt;
-
-&lt;p&gt;在 checkpoint 之后第一次修改一个 page 的时候，会把整个 page 写入 WAL。这是为了保证在恢复的时候，能保证这些被修改的 page 能完全恢复到他原有的样子。&lt;/p&gt;
-
-&lt;h2 id=&#34;写放大&#34;&gt;写放大&lt;/h2&gt;
-
-&lt;p&gt;如果打开 Full page write，很显然会导致 WAL 文件增加，因为就算修改一个字节，也会导致 8kB page 的写入。因为 Full page write 只发生在 checkpoint 之后的第一次写入，所以减少 checkpoint 的发生频率是可以减少写入的。&lt;/p&gt;
-
-&lt;h2 id=&#34;uuid-vs-bigserial-主键&#34;&gt;UUID vs BIGSERIAL 主键&lt;/h2&gt;
-
-&lt;p&gt;比较了一下使用 UUID 或者 bigserial 做主键对写入的影响。可以看原链接的图，会发现在 INSERT 语句的情况下 UUID 产生的 WAL 文件量比较多。主要原因是 Btree 索引的情况下，bigserial 是顺序的维护这个索引，UUID 是无顺序的，会导致维护索引产生的数据量不同。&lt;/p&gt;
-
-&lt;p&gt;如果是使用 UPDATE 随机修改，那么会发现产生的 WAL 数量就差不多了。&lt;/p&gt;
-
-&lt;h2 id=&#34;8kb-and-4kb-pages&#34;&gt;8kB and 4kB pages&lt;/h2&gt;
-
-&lt;p&gt;如果减小 pg 的 page 的大小，可以减小 WAL 数量。从 8kB 减小到 4kB，上面 UUID 那个例子，可以减少大概 35% 的量。&lt;/p&gt;
-
-&lt;h2 id=&#34;需要-full-page-write-吗&#34;&gt;需要 full-page write 吗？&lt;/h2&gt;
-
-&lt;p&gt;首先，这个参数是 2005 年 pg 8.1 引入的，那么现代的文件系统是不是已经不用操心部分写入的情况了？作者尝试了一些测试没有测试出来部分写入的情况，当然这不表示不会存在。但是就算是存在，数据的一致性校验也会是有效的保护（虽然并不能修复这个问题，但是至少能让你知道有坏的 page）&lt;/p&gt;
-
-&lt;p&gt;其次，现在很多系统都依赖于流式同步，并不会等着有问题的服务器在有硬件问题的时候重启，并且花费很多时间恢复，一般都直接切换到热备服务器上面了。这个时候部分写就不是什么问题了。但是如果我们都推荐这么做，那么「我也不知道为啥数据损坏了，我只是设置了 full_page_writes=off」这种会是 DBA 死前最常见的言论了。(类似于「这种蛇我之前在 reddit 看见过，无毒的」)&lt;/p&gt;
-
-&lt;h2 id=&#34;总结&#34;&gt;总结&lt;/h2&gt;
-
-&lt;p&gt;对于 full-page write 你没法直接优化。大部分情况下，full-page write 都是发生在 checkpoint 之后，直到下一次 checkpoint。所以调整 checkpoint 的发生频率不要太频繁很重要。&lt;/p&gt;
-
-&lt;p&gt;有些应用层的操作，可能会导致对表或者索引的随机写入的增加，例如上面的 UUID 的值就是随机的，会让简单的 INSERT 也会导致索引的随机 update。使用 Bigserial 做主键(让 UUID 做替代键)可以减少写放大。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>使用 pgrepup 跨版本升级 pg</title>
-      <link>https://wdicc.com/use-pgrepup-to-upgrade-your-postgres/</link>
-      <pubDate>Thu, 08 Dec 2016 11:55:33 +0800</pubDate>
-      
-      <guid>https://wdicc.com/use-pgrepup-to-upgrade-your-postgres/</guid>
-      <description>
-
-&lt;p&gt;&lt;a href=&#34;http://gasparin.net/2016/11/pgrepup-upgrade-postgresql-using-logical-replication/&#34;&gt;pgrepup&lt;/a&gt; 其实是一个支持 pg 跨版本复制的工具。而 pg 大版本升级需要停机是个比较郁闷的事情，如果能通过这个解决就实在太好了。下面测试了一下。&lt;/p&gt;
-
-&lt;h2 id=&#34;安装&#34;&gt;安装&lt;/h2&gt;
-
-&lt;p&gt;需要安装 &lt;code&gt;pgrepup&lt;/code&gt; 和 &lt;code&gt;pglogical&lt;/code&gt;。&lt;/p&gt;
-
-&lt;h3 id=&#34;安装-pgrepup&#34;&gt;安装 pgrepup&lt;/h3&gt;
-
-&lt;p&gt;pgrepup 官方说是支持 python &amp;gt;= 2.7 的版本，我自己测试的结果，python 3.5 里面执行有点问题，需要修改几个地方。但是在 python 2.7 里面，不需要做任何修改，所以建议使用 python 2.7。安装很简单，执行 &lt;code&gt;pip install pgprepup&lt;/code&gt; 就可以了。&lt;/p&gt;
-
-&lt;h3 id=&#34;安装-pglogical&#34;&gt;安装 pglogical&lt;/h3&gt;
-
-&lt;p&gt;需要给你的 pg 安装这个扩展。高版本的和低版本的都需要安装。&lt;/p&gt;
-
-&lt;p&gt;安装也很简单，下载源码，执行 &lt;code&gt;PATH=/opt/pg96/bin:$PATH make USE_PGXS=1 install&lt;/code&gt; 就好了。如果是给 pg95 装，那就把路径改成 pg95。&lt;/p&gt;
-
-&lt;p&gt;可以参考&lt;a href=&#34;https://2ndquadrant.com/it/resources/pglogical/pglogical-installation-instructions/&#34;&gt;这里&lt;/a&gt;。&lt;/p&gt;
-
-&lt;h2 id=&#34;配置&#34;&gt;配置&lt;/h2&gt;
-
-&lt;h3 id=&#34;配置-db&#34;&gt;配置 db&lt;/h3&gt;
-
-&lt;p&gt;先给几个 db 定义一下角色。db1 假设为 9.5 版本，db2 假设为 9.6 版本。&lt;/p&gt;
-
-&lt;p&gt;pgrepup 允许 db1, db2 和执行 pgrepup 所在的机器分别在不同的机器，也可以在相同的机器，看机器情况。&lt;/p&gt;
-
-&lt;p&gt;对于 db，最小配置的 postgres.conf 修改如下，我测试的时候两个 db 在一台机器上面，只需要修改 port 不一样就可以了。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;listen_addresses = &#39;*&#39;          # what IP address(es) to listen on;
-port = 5495
-wal_level = logical # minimal, archive, hot_standby, or logical
-max_wal_senders = 3             # max number of walsender processes
-max_replication_slots = 3       # max number of replication slots
-shared_preload_libraries = &#39;pglogical&#39;          # (change requires restart)
-
-## 下面几个参数不是必须设置的
-logging_collector = on          # Enable capturing of stderr and csvlog
-log_filename = &#39;postgresql-%Y-%m-%d.log&#39;        # log file name pattern,
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;pg_hba.conf 如下，修改其中的 client_ip 和 db_ip 为对应的真实 ip。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;host all all client_ip/32 md5
-host replication pgrepup_replication db_ip/32 md5
-host all pgrepup_replication db_ip/32 md5
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;配置好之后，启动 db1 和 db2 看看是不是可以正常连接。&lt;/p&gt;
-
-&lt;p&gt;还需要建立用户。如果已经存在一个 super 的用户，那也可以直接用那个用户，没有的话，就建一个。db1 和 db2 都需要建立，可以是不同的用户。&lt;/p&gt;
-
-&lt;h4 id=&#34;hint&#34;&gt;hint&lt;/h4&gt;
-
-&lt;p&gt;当然，如果我们在生产环境里面做这个事情，那肯定会是 db1 已经是一个存在的 db，只需要增加原来没有的配置就好了。db2 会是一个全新的 db，使用 initdb 初始化，之后配置上面的配置项（当然，如果是将来要给生产用，那应该是复制 db1 的配置文件过来，修改端口就可以了，其他都一样）。&lt;/p&gt;
-
-&lt;h3 id=&#34;配置-pgrepup&#34;&gt;配置 pgrepup&lt;/h3&gt;
-
-&lt;p&gt;执行一下 &lt;code&gt;pgrepup config&lt;/code&gt;&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;❯❯❯ pgrepup config
-Pgrepup 0.3.7
-Create a new pgrepup config
-Configuration filename [~/.pgrepup] ./pgrepup.config
-Security
-Do you want to encrypt database credentials using a password? [Y/n] n
-Folder where pgrepup store temporary dumps and pgpass file [/tmp] ./tmp
-Source Database configuration
-Ip address or Dns name: db_ip
-Port: 5495
-Connect Database: [template1]
-Username: wd
-Password:
-Destination Database configuration
-Ip address or Dns name: db_ip
-Port: 5496
-Connect Database: [template1]
-Username: wd
-Password:
-Configuration saved to ./pgrepup.config.
-You can now use the check command to verify setup of source and destination databases
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;之后会产生一个配置文件 pgrepup.config，有修改的话，可以打开再次编辑。&lt;/p&gt;
-
-&lt;p&gt;之后，可以执行一下 &lt;code&gt;pgrepup check&lt;/code&gt; 来检查一下&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;❯❯❯ pgrepup -c pgrepup.config check
-Pgrepup 0.3.7
-Global checkings...
- &amp;gt;  Folder ./tmp exists and is writable ..........................................OK
-Checking Source...
- &amp;gt;  Connection PostgreSQL connection to db_ip:5495 with user wd OK
- &amp;gt;  pglogical installation .......................................................KO
-
-    Hint: Install docs at https://2ndquadrant.com/it/resources/pglogical/pglogical-installation-instructions/
-
- &amp;gt;  Needed wal_level setting .....................................................OK
- &amp;gt;  Needed max_worker_processes setting ..........................................OK
- &amp;gt;  Needed max_replication_slots setting .........................................OK
- &amp;gt;  Needed max_wal_senders setting ...............................................OK
- &amp;gt;  pg_hba.conf settings .........................................................KO
-    Hint: Add the following lines to /home/wd/data95/pg_hba.conf:
-        host replication pgrepup_replication db_ip/32 md5
-        host all pgrepup_replication db_ip/32 md5
-    After adding the lines, remember to reload postgreSQL
- &amp;gt;  Local pg_dumpall version .....................................................OK
- &amp;gt;  Source cluster tables without primary keys
- &amp;gt;      template1 ................................................................OK
- &amp;gt;      testdb
- &amp;gt;          public.t1 ............................................................OK
- &amp;gt;      postgres .................................................................OK
-Checking Destination...
- &amp;gt;  Connection PostgreSQL connection to db_ip:5496 with user wd OK
- &amp;gt;  pglogical installation .......................................................KO
-
-    Hint: Install docs at https://2ndquadrant.com/it/resources/pglogical/pglogical-installation-instructions/
-
- &amp;gt;  Needed wal_level setting .....................................................KO
-    Hint: Set wal_level to logical
- &amp;gt;  Needed max_worker_processes setting ..........................................OK
- &amp;gt;  Needed max_replication_slots setting .........................................KO
-    Hint: Increase max_replication_slots to 3
- &amp;gt;  Needed max_wal_senders setting ...............................................OK
- &amp;gt;  pg_hba.conf settings .........................................................KO
-    Hint: Add the following lines to /home/wd/data96/pg_hba.conf:
-        host replication pgrepup_replication db_ip/32 md5
-        host all pgrepup_replication db_ip/32 md5
-    After adding the lines, remember to reload postgreSQL
- &amp;gt;  Local pg_dumpall version .....................................................OK
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;上面是我第一次执行 check 的结果，可以看到很多红色的 &lt;code&gt;KO&lt;/code&gt;，有些下面还有 hint 提示告诉你怎么修复，针对红色的信息进行修复就好了。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;❯❯❯ pgrepup -c pgrepup.config check
-Pgrepup 0.3.7
-Global checkings...
- &amp;gt;  Folder ./tmp exists and is writable ..........................................OK
-Checking Source...
- &amp;gt;  Connection PostgreSQL connection to db_ip:5495 with user wd ...OK
- &amp;gt;  pglogical installation .......................................................OK
- &amp;gt;  Needed wal_level setting .....................................................OK
- &amp;gt;  Needed max_worker_processes setting ..........................................OK
- &amp;gt;  Needed max_replication_slots setting .........................................OK
- &amp;gt;  Needed max_wal_senders setting ...............................................OK
- &amp;gt;  pg_hba.conf settings .........................................................OK
- &amp;gt;  Local pg_dumpall version .....................................................OK
- &amp;gt;  Source cluster tables without primary keys
- &amp;gt;      template1 ................................................................OK
- &amp;gt;      testdb
- &amp;gt;          public.t1 ............................................................OK
- &amp;gt;      postgres .................................................................OK
-Checking Destination...
- &amp;gt;  Connection PostgreSQL connection to db_ip:5496 with user wd ...OK
- &amp;gt;  pglogical installation .......................................................OK
- &amp;gt;  Needed wal_level setting .....................................................OK
- &amp;gt;  Needed max_worker_processes setting ..........................................OK
- &amp;gt;  Needed max_replication_slots setting .........................................OK
- &amp;gt;  Needed max_wal_senders setting ...............................................OK
- &amp;gt;  pg_hba.conf settings .........................................................OK
- &amp;gt;  Local pg_dumpall version .....................................................OK
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;上面是我修复之后执行的结果。其中会提示会被同步的 db（上面是 template1, testdb, postgres）。之后执行 setup&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;❯❯❯ pgrepup -c pgrepup.config setup
-Pgrepup 0.3.7
-Check if there are active subscriptions in Destination nodes .....................OK
-Global tasks
- &amp;gt;  Remove nodes from Destination cluster
- &amp;gt;      postgres .................................................................OK
- &amp;gt;      template1 ................................................................OK
- &amp;gt;      testdb ...................................................................OK
- &amp;gt;  Create temp pgpass file ......................................................OK
- &amp;gt;  Drop pg_logical extension in all databases of Source cluster
- &amp;gt;      template1 ................................................................OK
- &amp;gt;      postgres .................................................................OK
- &amp;gt;      testdb ...................................................................OK
- &amp;gt;  Drop pg_logical extension in all databases of Destination cluster
- &amp;gt;      postgres .................................................................OK
- &amp;gt;      template1 ................................................................OK
- &amp;gt;      testdb ...................................................................OK
-Setup Source
- &amp;gt;  Create user for replication ..................................................OK
- &amp;gt;  Dump globals and schema of all databases .....................................OK
- &amp;gt;  Setup pglogical replication sets on Source node name
- &amp;gt;      template1 ................................................................OK
- &amp;gt;      postgres .................................................................OK
- &amp;gt;      testdb ...................................................................OK
-Setup Destination
- &amp;gt;  Create and import source globals and schema ..................................OK
- &amp;gt;  Setup pglogical Destination node name
- &amp;gt;      postgres .................................................................OK
- &amp;gt;      testdb ...................................................................OK
- &amp;gt;      template1 ................................................................OK
-Cleaning up
- &amp;gt;  Remove temporary pgpass file .................................................OK
- &amp;gt;  Remove other temporary files .................................................OK
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;然后执行 start&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;❯❯❯ pgrepup -c pgrepup.config start
-Pgrepup 0.3.7
-Start replication and upgrade
- &amp;gt;  postgres .................................................................OK
- &amp;gt;  template1 ................................................................OK
- &amp;gt;  testdb ...................................................................OK
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;可以通过 status 看同步状态&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;❯❯❯ pgrepup -c pgrepup.config status
-Pgrepup 0.3.7
-Configuration
- &amp;gt;  Source database cluster ......................................................OK
- &amp;gt;  Destination database cluster .................................................OK
-Pglogical setup
- &amp;gt;  Source database cluster
- &amp;gt;      template1 ................................................................OK
- &amp;gt;      postgres .................................................................OK
- &amp;gt;      testdb ...................................................................OK
- &amp;gt;  Destination database cluster
- &amp;gt;      postgres .................................................................OK
- &amp;gt;      testdb ...................................................................OK
- &amp;gt;      template1 ................................................................OK
-Replication status
- &amp;gt;  Database postgres
- &amp;gt;      Replication status ..............................................replicating
- &amp;gt;  Database testdb
- &amp;gt;      Replication status ..............................................replicating
- &amp;gt;  Database template1
- &amp;gt;      Replication status ..............................................replicating
- &amp;gt;  Xlog difference (bytes) ...................................................57816
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;可以看到三个 db 都在同步。这个时候在 db1 上面插入数据，能在 db2 上面看到会同步过去。&lt;/p&gt;
-
-&lt;p&gt;状态有三种情况
-* initializing: pglogical 正在 copy 数据
-* replication: 同步状态
-* down: 同步断开了，需要检查日志修复&lt;/p&gt;
-
-&lt;h2 id=&#34;需要注意的问题&#34;&gt;需要注意的问题&lt;/h2&gt;
-
-&lt;h3 id=&#34;db-里面的表都需要有主键&#34;&gt;db 里面的表都需要有主键&lt;/h3&gt;
-
-&lt;p&gt;如果存在没有主键的表，执行 check 的时候会看到下面的信息&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt; &amp;gt;  Source cluster tables without primary keys
- &amp;gt;      template1 ................................................................OK
- &amp;gt;      testdb
- &amp;gt;          public.t2 ............................................................KO
-    Hint: Add a primary key or unique index or use the pgrepup fix command
- &amp;gt;          public.t1 ............................................................OK
- &amp;gt;      postgres .................................................................OK
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;如果不解决就执行 setup，会提示下面的信息&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Setup Source ........................................Skipped, configuration problems
-Setup Destination
- &amp;gt;  Create and import source globals and schema .............................Skipped
- &amp;gt;  Setup pglogical Destination node name
- &amp;gt;      postgres .................................................................OK
- &amp;gt;      template1 ................................................................OK
- &amp;gt;      testdb ...................................................................OK
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;可以自己创建一个主键重新 check，也可以执行 fix 来修复，然后再次执行 setup。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt; ❯❯❯ pgrepup -c pgrepup.config fix
-Pgrepup 0.3.7
-Find Source cluster&#39;s databases with tables without primary key/unique index...
- &amp;gt;  template1 ....................................................................OK
- &amp;gt;  postgres .....................................................................OK
- &amp;gt;  testdb
- &amp;gt;      Found public.t2 without primary key ................Added __pgrepup_id field
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;通过 fix 加的主键，在 uninstall 的时候会被删除。&lt;/p&gt;
-
-&lt;h3 id=&#34;replication-status-down&#34;&gt;Replication status .. down&lt;/h3&gt;
-
-&lt;p&gt;有时候会遇到有的 db 的状态是好的，有的 db 是 down 的情况&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;Replication status
- &amp;gt;  Database postgres
- &amp;gt;      Replication status ..............................................replicating
- &amp;gt;  Database testdb
- &amp;gt;      Replication status .....................................................down
- &amp;gt;  Database template1
- &amp;gt;      Replication status ..............................................replicating
- &amp;gt;  Xlog difference (bytes) ..................................................614096
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;在同步状态下面，如果给某个 db 加一个没有主键的表，就会导致同步断掉。修复方法是先 stop，然后执行 check，按照提示修复，然后执行 setup，然后 start 就可以了。&lt;/p&gt;
-
-&lt;h3 id=&#34;官方列出来的几个问题&#34;&gt;官方列出来的几个问题&lt;/h3&gt;
-
-&lt;ul&gt;
-&lt;li&gt;DDL 命令。不会同步 DDL 命令，可以在 db1 试试看 &lt;code&gt;pglogical.replicate_ddl_command&lt;/code&gt;。&lt;/li&gt;
-&lt;li&gt;seq 序列。执行 stop 命令的时候，会在目标 db 的 seq 上面加 1000。&lt;/li&gt;
-&lt;li&gt;有大量的 db。执行 start 命令之后，pglogical 会每个 db 启动一个 worker 来同步数据，要是 db 比较多会导致比较高的负载。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;因为这个是基于 pglogical 的，所以还需要关注 pglogical 列出来的一些&lt;a href=&#34;https://2ndquadrant.com/it/resources/pglogical/pglogical-docs/&#34;&gt;限制&lt;/a&gt; 第 4 部分 Limitations and Restrictions。
-* 4.1 Superuser is required
-* 4.2 UNLOGGED and TEMPORARY not replicated
-* 4.3 One database at a time
-* 4.4 PRIMARY KEY or REPLICA IDENTITY required
-* 4.5 Only one unique index/constraint/PK
-* 4.6 DDL
-* 4.7 No replication queue flush
-* 4.8 FOREIGN KEYS
-* 4.9 TRUNCATE
-* 4.10 Sequences
-* 4.11 Triggers
-* 4.12 PostgreSQL Version differences
-* 4.13 Doesn&amp;rsquo;t replicate DDL&lt;/p&gt;
-
-&lt;h3 id=&#34;pgrepup-uninstall&#34;&gt;pgrepup uninstall&lt;/h3&gt;
-
-&lt;p&gt;uninstall 会清理 pgrepup 创建的一些信息，比如安装的 pglogical 扩展，创建用来同步的用户，和通过 fix 命令添加的 seq。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;❯❯❯ pgrepup -c pgrepup.config uninstall
-Pgrepup 0.3.7
-Check active subscriptions in Destination nodes
- &amp;gt;  template1 ...............................................................Stopped
- &amp;gt;  testdb ..................................................................Stopped
- &amp;gt;  postgres ................................................................Stopped
-Uninstall operations
- &amp;gt;  Remove nodes from Destination cluster
- &amp;gt;      postgres .................................................................OK
- &amp;gt;      testdb ...................................................................OK
- &amp;gt;      template1 ................................................................OK
- &amp;gt;  Drop pg_logical extension in all databases
- &amp;gt;      Source
- &amp;gt;          template1 ............................................................OK
- &amp;gt;          postgres .............................................................OK
- &amp;gt;          testdb ...............................................................OK
- &amp;gt;      Destination
- &amp;gt;          postgres .............................................................OK
- &amp;gt;          testdb ...............................................................OK
- &amp;gt;          template1 ............................................................OK
- &amp;gt;  Drop user for replication ....................................................OK
- &amp;gt;  Drop unique fields added by fix command
- &amp;gt;          template1
- &amp;gt;          postgres
- &amp;gt;          testdb
- &amp;gt;              public.t1 ........................................................OK
- &amp;gt;              public.t2 ........................................................OK
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;升级&#34;&gt;升级&lt;/h2&gt;
-
-&lt;p&gt;如果前面配置好了同步状态，那剩下的事情就简单了。
-* 停止应用链接 db1
-* 确保 db1 已经没有任何链接
-* 使用 &lt;code&gt;pgrepup stop&lt;/code&gt; 停止 replication
-* 修改应用链接到 db2
-* 启动应用
-* 剩下的就是处理掉停止的 db1&lt;/p&gt;
-
-&lt;h2 id=&#34;参考文档&#34;&gt;参考文档&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://qiita.com/yteraoka/items/e82e4d28f6a23915d190&#34;&gt;http://qiita.com/yteraoka/items/e82e4d28f6a23915d190&lt;/a&gt;&lt;/p&gt;
 </description>
     </item>
     
