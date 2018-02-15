@@ -6,10 +6,77 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 25 Jan 2018 11:00:57 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 15 Feb 2018 08:56:03 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Go Across the Gfw</title>
+      <link>https://wdicc.com/go-across-the-gfw/</link>
+      <pubDate>Thu, 15 Feb 2018 08:56:03 +0800</pubDate>
+      
+      <guid>https://wdicc.com/go-across-the-gfw/</guid>
+      <description>&lt;p&gt;一直用的是梅林里面自带的方案来处理翻墙，后来想在公司的服务器上面也搞一下这个事情，至少把 Google 等常用站点能翻出去，就研究了一下原理。&lt;/p&gt;
+
+&lt;p&gt;目前墙有两个基本措施需要我们去跨越。1 DNS 污染。 2 数据包解析劫持。3 ip 封禁。&lt;/p&gt;
+
+&lt;p&gt;DNS 污染是通过修改或者限制 DNS 请求的数据，来让用户取到一个错误的 ip 而导致用户不能访问正确的网站的方法。一些比较大的网站都被做了 DNS 污染，比如 Google，youtube，facebook，twitter 等。&lt;/p&gt;
+
+&lt;p&gt;数据包解析是指在出国的核心路由上面，分析用户要访问的网站和发送的数据，然后发现问题之后，从中间给用户和网站发送 rst 数据包，让双方断开连接的一种方法。这样就算是用户通过指定 host 等方法避开了 DNS 污染，也可以进一步阻止请求。这种方法对于 https 的请求应该是没有效果的。所以有时候可以通过指定 host 的方法访问到 google。&lt;/p&gt;
+
+&lt;p&gt;对于上面的避开措施，第三种方法就起作用了，就是直接封禁 ip。这样就算指定了 host 也不能访问。&lt;/p&gt;
+
+&lt;p&gt;如果想要翻墙，就需要避开上面这三种封禁的方法。我这里列了一些方式，https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/ 各有利弊。这里想讲的是梅林大致的逻辑。&lt;/p&gt;
+
+&lt;p&gt;最主要的一个思路是使用 iptables 把一些包发给一些支持透明代理的软件，例如 &lt;code&gt;ss-redir&lt;/code&gt; 或者 &lt;code&gt;v2ray&lt;/code&gt; 的 &lt;code&gt;dokodemo-door&lt;/code&gt; 协议的端口。这些软件会自动把数据请求通过代理请求到之后，返回给用户。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;-A PREROUTING -p tcp -j REDIRECT --to-ports 1080
+
+-A PREROUTING -p tcp -m multiport --dports 443 dst -j REDIRECT --to-ports 1080
+-A PREROUTING -p tcp -m multiport --dports 80 dst -j REDIRECT --to-ports 1080
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;第一句是把所有请求都转发到了 1080 端口，这样就是全部请求都走代理。第二三句是把所有 443 和 80 端口的请求都转发到了 1080 这个代理端口。如果只是想要某些网站走代理呢？那一个办法是在这个语句里面指定 &lt;code&gt;--dest=12.34.56.78&lt;/code&gt; 指定目标 ip，但是这样一来有的网站 ip 很多且会变化，这样就有点累了。&lt;/p&gt;
+
+&lt;p&gt;iptables 支持和 ipset 配合来做数据包的过滤，而 dnsmasq 支持自动添加特定的 ipset 条目，这两个结合就完美了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;server=/.google.com/208.67.222.222#443
+server=/.google.com.hk/208.67.222.222#443
+server=/.gstatic.com/208.67.222.222#443
+server=/.ggpht.com/208.67.222.222#443
+server=/.googleusercontent.com/208.67.222.222#443
+server=/.appspot.com/208.67.222.222#443
+server=/.googlecode.com/208.67.222.222#443
+server=/.googleapis.com/208.67.222.222#443
+server=/.gmail.com/208.67.222.222#443
+server=/.ytimg.com/208.67.222.222#443
+
+ipset=/.google.com/setmefree
+ipset=/.google.com.hk/setmefree
+ipset=/.gstatic.com/setmefree
+ipset=/.ggpht.com/setmefree
+ipset=/.googleusercontent.com/setmefree
+ipset=/.appspot.com/setmefree
+ipset=/.googlecode.com/setmefree
+ipset=/.googleapis.com/setmefree
+ipset=/.gmail.com/setmefree
+ipset=/.ytimg.com/setmefree
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面是 dnsmasq 的配置，前面的 server 部分，对于指定域名使用特定的 DNS 服务器，用来防污染。ipset 部分，把这些域名解析的结果，提交给 ipset 的 setmefree 这个 set，然后方便配合 iptables 来做过滤。&lt;/p&gt;
+
+&lt;p&gt;dnsmasq 做了上面的配置之后，查询一下列表里面的 DNS，然后通过 &lt;code&gt;ipset list setmefree&lt;/code&gt; 可以看到里面会有一些 ip。&lt;/p&gt;
+
+&lt;p&gt;然后是修改 iptables，增加 ipset 的规则过滤。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;-A PREROUTING -p tcp -m multiport --dports 443 -m set --match-set setmefree dst -j REDIRECT --to-ports 1080
+-A PREROUTING -p tcp -m multiport --dports 80 -m set --match-set setmefree dst -j REDIRECT --to-ports 1080
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样，对于列到 dnsmasq 那个里面的 ipset 部分的域名，全部会走代理了。对于其他地址的请求，不会有任何影响。&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>GeoHash</title>
@@ -2404,32 +2471,6 @@ $hash = unpack(&amp;quot;I&amp;quot;, pack(&amp;quot;B32&amp;quot;, $hash));
       <description>&lt;p&gt;把 blog 用到的模板整理了一下，放到了 &lt;a href=&#34;https://github.com/wd/hexo-fabric&#34;&gt;https://github.com/wd/hexo-fabric&lt;/a&gt; ，这个最开始是 fork 别人的代码改的，后来发现原来那个人已经不用了，就整理一下，增加了一个 tag 支持，修改了一下字体和背景色，还有代码颜色等，都是一些小修改。同时也提交到了官方的 theme 库，不过 pull request 还没有通过。。&lt;/p&gt;
 
 &lt;p&gt;另外，还把之前写的一个给 ngx-lua 用的一个使用 mcrypt 加密解密的库 &lt;a href=&#34;https://github.com/wd/lua-resty-mcrypt&#34;&gt;https://github.com/wd/lua-resty-mcrypt&lt;/a&gt; ，整理出来单独弄了一个模块。代码其实非常简单，这个也能看出来 ngx_lua 里面使用 ffi 调用 C 模块开发多舒服，不过因为 C 知识有限，可能还是会有一些问题，不过至少自己测试是 ok 的，也在线上跑了好久，只能遇到有问题的再说了。这个同时也提交到了春哥的 opm 仓库，那个倒没有审核，提交就被索引了，使用的话应该可以用 opm 命令直接安装。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Bloat and Query Speed in PostgreSQL</title>
-      <link>https://wdicc.com/bloat-and-query-speed-in-postgresql/</link>
-      <pubDate>Fri, 09 Dec 2016 12:12:21 +0800</pubDate>
-      
-      <guid>https://wdicc.com/bloat-and-query-speed-in-postgresql/</guid>
-      <description>&lt;p&gt;内容反义自 &lt;a href=&#34;https://www.citusdata.com/blog/2016/11/04/autovacuum-not-the-enemy/&#34;&gt;https://www.citusdata.com/blog/2016/11/04/autovacuum-not-the-enemy/&lt;/a&gt;&lt;/p&gt;
-
-&lt;p&gt;pg 的 mvcc 会导致表索引的 bloat 就不多说了。说一下不合理处理这种 bloat 害处是啥。&lt;/p&gt;
-
-&lt;p&gt;首先肯定是会浪费空间。然后也会影响查询速度。表和索引存储的时候都是 8kB 一个 page，如果一个查询一些行，数据库会加载这些 pages 到内存。一个 page 里面的 dead rows 越多，在加载的时候就越浪费 I/O。例如全表扫描会加载所有的 dead rows。&lt;/p&gt;
-
-&lt;p&gt;Bloat 还会导致热门的查询会一下塞满内存。会导致相同的 live rows 需要更多 pages。This causes swapping and makes certain query plans and algorithms ineligible for execution.&lt;/p&gt;
-
-&lt;p&gt;还有一个影响是，pg 的系统表也会有可能 bloat，因为他们也是表。导致这个的一种情况是频繁的创建和删除临时表。这个进一步会导致一些管理命令执行变慢，甚至比如 &lt;code&gt;\d&lt;/code&gt; 这种命令。&lt;/p&gt;
-
-&lt;p&gt;索引也有可能会 bloat。索引是 tuple 标识和数据之间的一个映射。这些标识指向的是某个 page 里面的 offset。每个 tuple 都是一个独立的对象，需要自己的索引条目。更新一行的时候总是会创建这行的新的索引条目。&lt;/p&gt;
-
-&lt;p&gt;索引的 bloat 的影响比 table 小一点。索引里面指向 dead tuple 的可以直接标记为 dead. 这会使得索引膨胀，但是不会导致不必要的堆查找。同时更新堆中的 tuples 不影响已经索引的列，使用一种叫做 HOT 的技术来把指向 dead tuples 的指针指向新的。这允许查询可以通过这些指针复用旧的索引条目。(Also updates to tuples in the heap that do not affect the indexed column(s) use a technique called HOT to provide pointers from the dead tuple to its replacement. This allows queries to reuses old index entries by following pointers across the heap.) (没太看明白.)&lt;/p&gt;
-
-&lt;p&gt;索引 bloat 的问题还是应该需要重视。例如 btree 索引是由二叉树组成()。叶子节点包含值和 tuple 标识（应该是指在 data file 的 offset）。随机更新因为会重用 page，所以可以保持 btree 维持一个良好的形状。但是，如果是单侧更新，会导致大量的空页。&lt;/p&gt;
-
-&lt;p&gt;The size considerations of index bloat are still significant. For instance a btree index consists of binary tree of pages (the same sized pages as you find holding tuples in the heap). The leaf node pages contain values and tuple identifiers. Uniform random table updates tend to keep a btree index in pretty good shape because it can reuse pages. However lopsided inserts/updates affecting one side of the tree while preserving a few straggling entries can lead to lots of mostly empty pages.&lt;/p&gt;
 </description>
     </item>
     
