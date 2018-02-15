@@ -1,0 +1,66 @@
+---
+title: "Dp and Px Again"
+date: 2018-01-13T09:11:09+08:00
+tags: ["dp", "dpi"]
+draft: true
+toc: true
+---
+上次把 dp 和 px 的[[/dpi-dp-and-px/][逻辑]]整理了一下之后，昨天有同学分享了一个基于百分比布局的一个思路，感觉挺不错的。
+
+** 直接使用 dp 存在的问题
+
+dp 和 px 是给计算机看的，人肉眼看到的情况，得计算成英寸。公式应该是 =dp * multiplier / PPI= ，那 iphone 屏幕的情况如下，对于 10 dp，对应的物理尺寸如表格最下面
+
+|                           | 	iPhone 6/7/8	                               | iPhone 6/7/8 Plus	                                | iPhone X                                         |
+| Display Size	          | 4.7 in	                                         | 5.5 in	                                           | 5.8 in                                           |
+| Screen Size	           | 375 x 667 points	                               | 414 x 736 points	                                 | 375 x 812 points                                 |
+| Rendered Pixels	       | 750 x 1334 (@2x)	                               | 1242 x 2208 (@3x)	                                | 1125 x 2436 (@3x)                                |
+| Physical Pixels	       | 750 x 1334	                                     | 1080 x 1920	                                      | 946 x 2048                                       |
+| Pixels Per Inch (PPI)	 | sqrt(750**2 + 1334**2)/4.7 = 325.6122832234166	 | sqrt(1242**2 + 2208**2)/5.5 = 460.60786283538965	 | sqrt(1125**2 + 2436**2)/5.8 = 462.62579033027964 |
+| 物理尺寸                  | 10*2/326 = 0.06134969325153374                     | 10*3/460 = 0.06521739130434782                       | 10*3/462 = 0.06493506493506493                   |
+
+所以就会看到，设置了 10 dp 的尺寸，在不同 iPhone 屏幕上面，看到的实际宽度基本是一致的。
+
+而在 android 上面，屏幕尺寸众多，无法做到精确的倍数，如下表
+
+| Multiplier       | PPI 范围      |
+| mdpi(@1x)	    | 120dpi~160dpi |
+| hdpi(@1.5x)	  | 160dpi~240dpi |
+| xhdpi(@2x)	   | 240dpi~320dpi |
+| xxhdpi(@3x)	  | 320dpi~480dpi |
+| xxxhdpi(@4x)	 | 480dpi~640dpi |
+
+对于屏幕 PPI 是 280 和 320 的手机，都会适配为 2x。那么按照上面计算实际物理宽度的逻辑，计算一下得到，对于 10dp，在两个手机上面，对应的分别是 =10*2/280 = 0.07142857142857142= 和 =10*2/320 = 0.0625= 。意思就是说，同样设置 10dp，在 280 的手机上面，会看到实际宽度比想要的宽一点。
+
+** 解决的思路
+
+不指望 dp 在各个设备上面表现一致，而是通过屏幕尺寸计算出不同的 dp 值给不同的设备，保证最后的物理尺寸一致。
+
+比如以 iphone 6 做基准的话，10dp 在 iphone 6p 上面，应该是 =(10*2/326)*280/2=8.588957055214724dp= ，那么在 280PPI 手机上面设置 8.58dp 和 iphone 6 上面的 10dp 物理尺寸是一样的。
+
+750, 1334
+
+scale = min(width/750, height/1334)
+
+scale = min(1242/750, 2208/1334) = 1.656
+
+dp = Math.round(size * scale + 0.5)/ (3/2)
+dp = (10 * 1.656 + 0.5)/(3/2) = 11
+
+dp = Math.round(100 * 2 * scale + 0.5) / pixelRatio
+dp = (10 * 2 * 1.656 + 0.5)/3
+
+
+
+这样代码大致如下
+
+#+BEGIN_SRC javascript
+const size = (size) => {
+  let {height, width} = Dimensions.get('window')
+  let ppi = Math.sqrt(width**2 + height**2) / 
+  let dp = (size * 2/326) * PixelRatio.get()
+
+  return PixelRatio.roundToNearestPixel(dp)
+}
+#+END_SRC
+
