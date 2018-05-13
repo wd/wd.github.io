@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Android on wd and cc</title>
+    <link>https://wdicc.com/tags/android/</link>
+    <description>Recent content in Android on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 16 Sep 2017 10:18:50 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/android/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Dpi dp and px</title>
+      <link>https://wdicc.com/dpi-dp-and-px/</link>
+      <pubDate>Sat, 16 Sep 2017 10:18:50 +0800</pubDate>
+      
+      <guid>https://wdicc.com/dpi-dp-and-px/</guid>
+      <description>这几天折腾了一下 android 上面的布局，了解了一些基础概念。
+首先有两个概念，一个是分辨率，一个是屏幕的实际尺寸。我们一般讲的 800x600 像素(px)，1024x768 像素(px)这些，都是分辨率。然后 5.5 寸(iPhone 6/7/8 plus)，4.7 寸(iPhone 6/7/8)，10.1 寸(iPad) 这些是实际尺寸，并且指的是屏幕对角线尺寸。
+一般来讲，除非是 5.5 和 10.1 这么大的差异，我们大多会在比如 5.5 和 4.7 上面使用同一个设计。比如在最上面 1cm (为什么说物理距离呢，因为手机屏幕就那么大，你不能把内容显示的太小，否则会看不清楚) 显示一个黄色的提示条。那么接下来的问题就是，1cm 对应的像素，就算在同一个设备的不同的分辨率下面，都是不一样的。那图怎么做？
+如果 20px 的图放到 800x600 的分辨率下面刚好，那么这个图放到了 1600x1200 的分辨率下面（这里说的是屏幕物理尺寸不变的情况下，因为如果物理尺寸如果也变大了，那就是另外一个情况了），不做缩放的话，就是会得到比 800x600 小一倍的效果。如果缩放的话，那就大小一样了，但是可能因为缩放导致失真。实际做法就是针对不同分辨率做不同的尺寸的图。比如针对 800x600 分辨率，做一个 20px 的图，那对于 1600x1200 分辨率的，做一个 40px 的图。以此类推。
+这样，三个概念就出来了
+ density 也就是 dpi，屏幕密度。 dp 是一个长度单位。 常见的 1x, 2x, @2x 这些。  density(dpi，屏幕密度) = 屏幕对角线的像素/对角线的物理尺寸 = (屏幕长的像素的平方 + 屏幕宽的像素的平方)开根号/对角线的物理尺寸，比如 iphone 3G/3GS 是 160, iphone 4 是 320。</description>
+    </item>
+    
+    <item>
+      <title>Add float debug button for react native</title>
+      <link>https://wdicc.com/add-float-debug-button-for-react-native/</link>
+      <pubDate>Sat, 02 Sep 2017 18:22:47 +0800</pubDate>
+      
+      <guid>https://wdicc.com/add-float-debug-button-for-react-native/</guid>
+      <description>React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候并不是一个好的操作，比如是个 pad，或者比如你自己的设备本身会触发晃动动作。那么如何在开发模式下面增加一个按钮打开这个菜单呢？可惜官方对这个功能没有兴趣多做开发 https://github.com/facebook/react-native/issues/10191 。
+iOS ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。
+import {NativeModules} from &#39;react-native&#39;; // 在某个按钮的动作里面 const {DevMenu} = NativeModules; DevMenu.show();  Android iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法，得自己通过 native 代码加。
+下面两种方式加的都是 android.support.design.widget.FloatingActionButton 按钮，其它的类似。需要增加好编译依赖 compile &#39;com.android.support:design:23.0.0&#39;，版本号按照自己的修改下。
+private void addDevButton() { MainApplication application = (MainApplication) getApplication(); ReactNativeHost reactNativeHost = application.getReactNativeHost(); ReactInstanceManager reactInstanceManager = reactNativeHost.getReactInstanceManager(); final DevSupportManager devSupportManager = reactInstanceManager.getDevSupportManager(); // 这里是增加一个自定义菜单 // devSupportManager.addCustomDevOption(&amp;quot;Custom dev option&amp;quot;, new DevOptionHandler() { // @Override // public void onOptionSelected() { // Toast.</description>
+    </item>
+    
+  </channel>
+</rss>

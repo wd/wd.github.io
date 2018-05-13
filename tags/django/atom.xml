@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Django on wd and cc</title>
+    <link>https://wdicc.com/tags/django/</link>
+    <description>Recent content in Django on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Wed, 05 Jul 2017 18:07:50 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/django/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Django middleware</title>
+      <link>https://wdicc.com/django-middleware/</link>
+      <pubDate>Wed, 05 Jul 2017 18:07:50 +0800</pubDate>
+      
+      <guid>https://wdicc.com/django-middleware/</guid>
+      <description>Django 提供了 middleware 来让你 hack Request 和 Response。用的时候有几个问题需要注意一下。
+__call__ 方法 __call__ 方法实际上就是最早收到 request 的地方，如果不关心 view，那么就可以在这里做你想要做的事情。比如认证用户啥的。这个实际上应该就是早期的 process_request 。
+process_view 方法 process_view 方法会接收到 view_func 和其参数，如果想要针对这些东西处理，可以在这里动作。比如我们所有 api 请求的 POST 的 body 里面都是固定格式的 json 数据，我就在这里检查了 json 的格式，并把解析结果给到了 view_func。
+如果不打算对 view_func 做什么事情，那就最好做完想做的事情，直接返回 None 就可以。否则处理完毕之后，返回一个 response 对象。
+要注意的是，这里最好不要产生 exception，产生了会把逻辑跑到 Middleware 的 exception 逻辑里面。所以最好对自己的代码段加上 try-except 逻辑。
+另外，这里可以对 view_func 做调用，直接返回 view_func 的结果或者处理之后的结果，只要保证是个 response 对象就可以了。也可以不做调用，返回 None ，后续 django 也会调用。要注意的是，如果你对 view_func 做了调用，那么在捕捉到错误的时候，except 里面应该也需要返回一个 response 对象，不能返回 None 了，否则 djangon 还会再次调用这个 view_func 。</description>
+    </item>
+    
+  </channel>
+</rss>

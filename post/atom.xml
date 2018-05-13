@@ -1,0 +1,498 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Posts on wd and cc</title>
+    <link>https://wdicc.com/post/</link>
+    <description>Recent content in Posts on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 13 May 2018 10:43:28 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/post/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Redux Selector</title>
+      <link>https://wdicc.com/redux-selector/</link>
+      <pubDate>Sun, 13 May 2018 10:43:28 +0800</pubDate>
+      
+      <guid>https://wdicc.com/redux-selector/</guid>
+      <description>redux 应用可以通过 selector 来做 state - props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的是这个 https://github.com/reduxjs/reselect。
+selector 主要是一个纯函数，给同样的输入，得到同样的输出，只处理数据，没有其他附加影响。这样就可以缓存中间结果了。
+新建 selector 有两个方法，一个是直接定义函数，例如
+const s1 = (state) =&amp;gt; { // 经过计算 return state.user } const s2 = state =&amp;gt; state.data  另外一个方法是通过 createSelector 函数来创建，例如
+const s3 = createSelector(s1, s2, (s1, s2) =&amp;gt;{ // 经过计算 return xx })  实际上 selector 都是一些函数，具体用的是侯会执行这些函数，第一个方法创建的还好理解，第二个方法里面，会传什么参数呢？输入是什么呢？
+实际上，第二个方法定义的 selector 执行的时候类似这样。
+const res = s3(s1(state), s2(state))  输入是里面 selector 的输入，然后不停嵌套到最初的数据。这样一个 selector 使用的方法就广泛了。比如
+const s1_res = s1(state) // 从其他地方或者逻辑获取到这个值 const res = s3(s1_res, s2(state)) // 直接用来作为 s3 的输入  </description>
+    </item>
+    
+    <item>
+      <title>Openwrt</title>
+      <link>https://wdicc.com/openwrt/</link>
+      <pubDate>Sun, 13 May 2018 10:01:39 +0800</pubDate>
+      
+      <guid>https://wdicc.com/openwrt/</guid>
+      <description>前段时间还搞了一下 openwrt 定制，记录一下。
+openwrt 提供了很方便的方式让你可以在 x86 机器上面定制路由器固件，到 https://archive.openwrt.org/ 下载对应的源码就可以。
+比如我用的是这个 https://archive.openwrt.org/barrier_breaker/14.07/ar71xx/generic/OpenWrt-ImageBuilder-ar71xx_generic-for-linux-x86_64.tar.bz2 ， barrier_breaker 是版本， ar71xx 是 cpu 架构。解压之后目录类似如下
+drwxr-xr-x 12 wd wd 4.0K Mar 29 17:18 . drwxr-xr-x 3 wd wd 4.0K Mar 26 20:32 .. drwxr-xr-x 3 wd wd 4.0K Mar 27 10:40 bin drwxr-xr-x 3 wd wd 4.0K Oct 1 2014 build_dir -rw-r--r-- 1 wd wd 94K Oct 1 2014 .config drwxr-xr-x 2 wd wd 4.0K Oct 1 2014 dl drwxr-xr-x 3 wd wd 4.</description>
+    </item>
+    
+    <item>
+      <title>Develop Plugin for Asuswrt Merlin</title>
+      <link>https://wdicc.com/develop-plugin-for-asuswrt-merlin/</link>
+      <pubDate>Sun, 13 May 2018 08:03:28 +0800</pubDate>
+      
+      <guid>https://wdicc.com/develop-plugin-for-asuswrt-merlin/</guid>
+      <description>换华硕路由器之后，一直用的是梅林（merlin）的固件（rom）。基于这个固件，有一个 koolshare 的团队做了很多插件，并且做了一个通用的软件中心，可以方便的管理插件，还挺不错的。
+打算用 v2ray 的时候，就想着如何才能无缝替换掉 ss。因为 v2ray 在路由器上面跑效率不高内存占用比较高，ss 作者开始说不打算支持 v2ray。后来研究了 ss 原理之后发现替换很简单，只需要具备 2 个功能就可以，一个是可以支持 socks 代理，一个是可以透明转发流量的端口。这两个协议在 v2ray 都支持，所以要做的其实就是在启动 ss 相应软件的时候启动 v2ray 的就可以了。
+基于这个逻辑写了一个文档 ，能弄明白的话，自己用应该也够了。后来一时兴起，做了一个改进版。这个版本基本上就傻瓜化了。做的时候对基于 merlin 开发有了一些经验记录一下，发现讲这个的东西不多。
+一些基础知识 路由器上面的内容是只读的，修改之后重启就会重置。但是 JFFS 分区里面的内容是会保留的。想要保存数据有两个方法。
+ 存一个文件放到 JFFS 分区上面。 通过 dbus 命令储存。(这个命令具体会把数据存哪里我还没仔细看。)  文件方式没什么好说的，储存和读取解析需要你自己做。 dbus 命令提供了 key-value 的形式储存数据，可以通过例如 dbus list v2ray 列出来所有 v2ray 开头的 key 的情况，执行 dbus 命令不带参数会有使用方法提示。
+一般开发插件还有一个设置也需要开启，就是允许执行 JFFS 的自定义脚本。这个指的是路由器启动的时候，自动执行 /jffs/scripts/ 下面的一些文件，也并不是任意文件都会执行，merlin 自己的 wiki 有比较详细的说明。
+所以实际上一个插件的工作方式实际上是这样
+ 路由器启动 读取 dbus 配置的数据 执行 /jffs/scripts/ 目录下面相应的脚本 这些脚本里面会执行你的插件的脚本 你的脚本会读取 dbus 配置的数据，以及读取你存储的文件 不管是你的界面还是脚本有新的数据需要保存，通过 dbus 或者文件存下来  每次路由器启动都是这样一个从头初始化的过程。</description>
+    </item>
+    
+    <item>
+      <title>Self Hosted Blog</title>
+      <link>https://wdicc.com/self-hosted-blog/</link>
+      <pubDate>Fri, 06 Apr 2018 14:59:49 +0800</pubDate>
+      
+      <guid>https://wdicc.com/self-hosted-blog/</guid>
+      <description>给 checked 的一个反馈。
+给播客写反馈是个很奇怪的事情，当我听完博客觉得心潮澎湃的写反馈的时候，其实主播们应该已经对那些说过的事情的兴趣估计已经没有了。所以感觉是像是一个很激动兴奋的人找别人聊天，结果人家波澜不惊的和你说：嗯嗯嗯。。一样。。
+有两点反馈，一点关于文章格式，一点关于自建博客。
+语言这个东西，发明出来就是为了交流用的，如果某种流行的东西有助于交流，那我觉得没有什么问题。比如空行代替头部空两个字，感觉好很多。比如使用 &#39;。。。。&#39; 代替 &#39;……&#39; 也没什么（其实是给我下面标点乱用打埋伏。。。:p ）。
+直角引号的讨论有很多，随便搜了一个 。我记得最早流行这个好像就是知乎，后来搜狗输入法还提供了一个选项是在知乎输入引号的时候输入直角引号。我个人喜欢看直角的，因为很多时候那个蝌蚪样子的，有好几个编码，比如 ‘ ’、“ ”、&#39; &#39;、&#34; &#34;、 这几个都是半角的，左右不好区分开。但是直角的，再怎么也比较好区分左右，并且对竖排文字，比如广告图什么的里面也很有好。可以参考下这个 。
+下面聊自建博客。这个 20 年前我和 hum 的看法是一样的，有病才去自己弄，需要自己搞服务器，自己维护，成本很高。但是使用别人搞的，也并不是没有问题。
+ 网站倒闭。最初的 MSN Live Space，然后新浪博客，然后国外的 wordpress，然后国内牛博网等等很多，那会博客风起来的时候，非常多这种网站，目前这些都不能访问或者死掉了。死掉的时候，你的文章怎么办？良心一点的提供一个导出，要不然就是你自己想办法解决。写的时候可能文本，最后拿到的没准是一堆的 HTML，很难处理。 流氓的版权协议。国内各大网站都会要你发的帖子的著作权，可以找找看有没有说版权归你，使用的时候会找你协商以及给你版权费的。 格式样式不可控。各网站都有自己的风格，比如我们程序员经常会想贴一点代码，想要一个高亮，但是人家不给你提供的话，你就很难做到。还有比如想要在文章顶部显示一个大纲方便看的人一目了然的需求。不过目前因为 markdown 的兴起，还算是对程序员友好，也算有希望统一这个格式的问题。同时 markdown 还能一定意义上解决上面提到的导出迁移的问题（当然，前提是人家让你导出），不过呢，还有另一个问题是 markdown 原定的标准实际是个残废，很多常用的东西都不支持，比如表格，比如 footnote，然后各家必定会对他扩展，那就会导致你从这家导出来的别家不一定支持。这里顺便安利一下 org-mode。  我自己使用自建博客很多年了，以后应该也不会使用其他商业的博客。我自己的博客的用途是留存我自己的经历，本身只分享文本内容，因为图片的流量问题，一般免费服务的空间都会限制，这些图片你自己维护起来也很费劲。就算是付费的，也很少有终身的，以后的事情谁能说的清。所以我都是用文字来表达，好处一方面是整站打包也就几M，另一方面，分享出去的东西别人也很方便的可以留存。
+如果用途不止我那个，那平台名气是可以借用的，用平台肯定是最好的选择。
+自建博客目前其实也很简单，空间在 github 开个账号就可以，只需要传 HTML 内容就可以，可以通过一些工具把文章转成 HTML 就可以。就算没有这种商业服务，自己搞一个 vps 跑一个 nginx 之类的，服务这些 HTML 也是一个很简单的事情。比如我用的是 hugo，支持 markdown，org-mode。类似的还有 hexo。
+最后说忍不住补充一下 org-mode。org-mode 一直被认为是 Emacs 用户才能用，其实并不是，目前也也有一些支持他的文本处理工具，比如 hugo 和 pandoc 就支持 org-mode 文件输入，输出 HTML。目测目前 markdown 的那个表格就是学习的 org-mode 的，org-mode 的表格还支持写公式计算。别的不多说了，org-mode 基本是 markdown 的一个超集，有兴趣可以了解一下。</description>
+    </item>
+    
+    <item>
+      <title>Beijing Traffic</title>
+      <link>https://wdicc.com/beijing-traffic/</link>
+      <pubDate>Fri, 06 Apr 2018 14:51:19 +0800</pubDate>
+      
+      <guid>https://wdicc.com/beijing-traffic/</guid>
+      <description>给比特新声的一个反馈，记录一下。
+北京最初的时候，应该只有二环里面四个区（崇文，宣武，东西城）可能才算城区，后面慢慢的，加上海淀，朝阳等几个区，那会通州区还是通县，类似的大兴，密云县。到目前的大北京的情况，东边繁华地带都和河北接壤了（就是燕郊）。
+北京实在太大了。
+我在中关村上班的时候，家在东五环外面，去公司上班，开车单程需要 35 公里。快的话 40 分钟，慢的话 1.5 小时。我也有同事住在燕郊，长阳，你们可以查查有多远。
+大概 10 年左右，我从中关村 7 点下班了开车回家是 40 分钟。基本不堵车，全程 4 环加 5 环路，基本没有红绿灯，开的还是挺快的。但是现在就不行了，即使在 1/5 车限行的情况下，堵车也很厉害。可能只有单双号还能和以前一比了。
+北京特别大，但是走哪里都有一个比较集中的生活区，会有一些大的商场，超市，方便你购买生活用品和吃饭。但是随着年轻人不在家里做饭或者很少做饭，这些商场现在也是人满为患，到了饭点吃饭基本都需要排队。
+北京喜欢建大路。二环到现在的六环。这种规划我认为比较脑残，可能能体现出来一些气派的感觉，毕竟第一次看到能让 10 辆车并行通过的路，还是会觉得：哇，比我们那的土路确实牛逼多了。这种路，刚修好的几年里面，确实会爽，只要开上去，一路没有红绿灯困扰，不堵车还是挺快的。尤其领导开上来的时候，把路一封，其他车上不来，领导的自豪感估计挺强的。
+ 说说脑残的地方。 这种路非常怕扰动。为了快速，肯定要减少出入口，因为车辆出入的时候，速度肯定会比较慢，多了就容易影响其他不出入的车。这样，一旦遇到点情况，大家都出不去，只能在里面堵着。我说的情况包括不限于车祸，恶劣天气，路况的变化。 这种路一般都有应急车道。但是有时候遇到比如桥梁啥的，可能那一小段会没有应急车道。而就这个情况，会导致拥堵。怎么发生的呢？车辆一旦稍微多一点，就会有车开应急车道，这些车到了没有应急车道的地方，必然需要并到路里面来，因为车辆本身多，他一并入，必然导致后车需要减速让行，然后连锁反应，后面的车觉得这个车道好像比旁边的车道慢，就会并入旁边车道或者进入应急车道。恶性循环，而这个情况的出现，可能值需要一辆走应急的车来触发一下，这条路立刻就不行了。 讲一个搞笑的事情，我每天都路过环路的一个桥，这个桥就没有应急车道。而且这个桥上桥是个上坡，那一些货车到了这里就起不来速度，就会导致这个地方产生那个连锁反应开始拥堵。这个拥堵，一般到了下桥的地方就恢复了。感觉道路设计应该也是一个比较有意思的事情。 五环路之前是收费的，所以出入口就更加少了，每次开上去遇到堵车都没有办法绕开。 过马路很头大。马路太宽，要么建天桥，要么地道，或者就是绕道到一个立交桥的地方过。拿着重物的话，天桥和地道上下会觉得不方便。绕道立交桥又会比较远。很难受。 这里还想起来另外一个事情，就是北京也喜欢建大的小区。然后小区物业为了管理方便，自然把能关的门都关掉，这样可以开那么几个门派少量的保安看着。如果一个小区在大路边上，大概率是没有临路的门的，所以过了马路还得绕道到另外一边进小区。 这种大路，还会导致临路的屋子住的很难受。大路上面一般车多且速度快，噪音很大，灰尘也很大。 这个因为一旦开上去后路就比较，往往都是一直大路开就可以，所以这个很多人会首选往这里开，尤其新手怕开错路，这也就导致这种路更容易拥堵。而且，因为修大路会导致很多小路给大路让行，在小路上面开很难受。 也因为这个思路，主路一旦堵了之后，很多排队上主路的车，会继续把辅路也堵住。然后往那些方向走的路就彻底都废掉了。  上面是我觉得几个大路不好的地方。我 6 月份去上海，发现很喜欢上海的路。另外当时觉得上海好像比北京小多了。我是住在静安寺附近，去了田子坊，人民公园，外滩一路玩，发现骑摩拜就可以。
+上海的路大都有树荫，骑车很舒服。自行车道也都有，另外很多的单行线。和香港的路有点类似。不知道像北京这么大的城市，是不是也适合这样的设计。</description>
+    </item>
+    
+    <item>
+      <title>Bitcoin</title>
+      <link>https://wdicc.com/bitcoin/</link>
+      <pubDate>Sun, 25 Mar 2018 20:10:44 +0800</pubDate>
+      
+      <guid>https://wdicc.com/bitcoin/</guid>
+      <description>比特币上万刀一个之后，简直已经没人不知道这个东西了。有的东西只要号称要搞比特币，股票就得涨 30%。我简单讲讲我的理解。
+ 比特币相关概念，有两个重要的要点。 区块链 去中心化  区块链 大家都知道区块链是一个账本。普通的账本，比如银行存折，每笔交易都会记录本次交易的金额，也会记录操作之后的余额。这样多次交易之后，你也无法只修改其中一条记录，因为一旦修改，和这条记录之后的记录就对不上了。但是其实抛开存折这回事的话，在你的记录中间插入一些记录是没有人会发现的。不过我们因为有存折，存折上面一行记录一条记录，中间也没法插入其他的。但是目前存折其实用的人不多了。
+区块链的特点是把一些数据以链条一样的形式串起来。不过和链条有区别的地方是，链条每个节点是相同的，其实切断链条，取掉一个节点，然后接上，看着并没有什么不同。但是区块链任何一个节点都是不同的，去掉一个，后面的就无法连接起来了。因为每一个节点都是唯一的，且每一个节点都包含了他上一个节点的信息。某一个节点丢失或者被修改，那下一个节点保存的这个节点的信息和实际情况就对不上了。
+这样的一个链条下来，能达到防止中间某条记录被篡改，保证了数据的可靠性。
+去中心化 我们的账本，交易记录，大多是存放在银行的。银行开放了一些接口可以让你查账。但是实际上如果银行如果记录了一笔你认为错误的记录，你很难提供一个方法来证明银行出错了。这个就是中心化的方式存在的问题。当然，现实环境里面，银行也不会主动去做损坏自己名誉的事情，比如做假账错账。银行也会想办法防止自己内部的员工因为某些自己的目的来作恶，比如系统会记录各种审计记录，系统开发人员和使用人员权限分离，使用的时候需要授权鉴权等，这些都是防止银行自己出错的措施。
+去中心化，就是把银行这个节点拿掉，所有参与记账的人员（就是旷工）都共享一份账本。每个人都可以验证账本数据的正确性，大家互相不信任，通过博弈来实现这个账本的记录和传递。
+因为去中心化，大家数据同步是需要时间的，那么实际上一个账本的记录走向是会分叉的，一个博弈是大家都会挑选长的分支走。因为如果其他旷工不选短的，那么他自己选短的链条对他没有任何好处，他将得不到自己的挖矿奖励。所以旷工都会保证自己确认的交易都是没问题的。那么整个网络才是一个可信的，可持续的。
+如果是有大量的旷工（算力）联合起来了，那么其实他们就可以控制链条走向了。现在很多时候挖矿是加入了矿池，走向可能是会被矿池控制的。
+目前很多的公司都搞区块链，基本都不讲如何实现去中心化，如果没有去中心化，那还是一个大公司记录的话，实际上只是是用了一部分比特币的概念。没有去中心化思维的区块链就是耍流氓，千万别信。</description>
+    </item>
+    
+    <item>
+      <title>BJ Chinaunicom Iptv</title>
+      <link>https://wdicc.com/bj-chinaunicom-iptv/</link>
+      <pubDate>Sun, 25 Mar 2018 09:21:39 +0800</pubDate>
+      
+      <guid>https://wdicc.com/bj-chinaunicom-iptv/</guid>
+      <description>刚入住现在的房子的时候，只有朝阳有线，当时还没有高清台，机顶盒也很烂。后来大家争取来了歌华有线，好了很多。再之后，我买了华为盒子之后，发现有线电视简直就是情怀了，很少开了，都是在线看视频。尤其后来装了一个 HDP 直播之后，电视节目也可以看了，就更少开有线了。就去把有线盒子给退了。
+有段时间岳母在北京住着，离不开有线，HDP 直播很不稳定，节目有时候还打不开什么的，岳母老抱怨。后来想起来，装了北京联通宽带好像会送一个 iptv 的盒子，可以看电视节目。就联系了一下联通，给过来装了一个盒子。
+这个盒子只能直接接到光猫的 lan4 口，我的上网的路由器是接在 lan1 口的。盒子虽然支持无线，但是不能直接连我 lan1 口的路由器。这个盒子有自带的遥控器，不好用，并且系统里面会诱导你用点播什么的，不是很爽。前段时间看到一个水木的帖子讲折腾 iptv 的 ，自己想尝试在任意设备看，就了解了一下。
+光猫有的带路由功能，可以直接光猫拨号，以及可以登录后台修改网络结构。有的不带，等于啥功能都没有。IPTV 和通常的上网通道在猫里面是隔离的，不同的 vlan 走不同的网络。所以这也是为什么盒子只能接 lan4，而且这个 lan4 口并不能正常的访问我们的互联网，限制了只能访问那个 iptv 运转需要的网络。而 lan1 可以访问互联网，但是不能访问 iptv 的网络。我家的电视和光猫分别在客厅的两个面对的墙，因为盒子只能直连光猫，那光猫到盒子，盒子到电视都必须是有线，经过客厅线就没法走了。类似下面这样的。
+光猫 lan4 --- 网线 ---&amp;gt; iptv 盒子 --- HDMI ---&amp;gt; 电视  后来找到了一个通过电力猫解决的办法。买一对就可以了。类似下面这样。
+光猫 lan4 -- 网线 --&amp;gt; 电力猫1 ........电网..... 电力猫2 ---- 网线 ---&amp;gt; iptv 盒子 ---- HDMI ---&amp;gt; 电视  这样基本就可以了。但是那个盒子用起来不爽，所以打算折腾一下。按照那个帖子我试了，我这无法配置光猫，无法控制光猫的 ip 段。这样那个方案似乎就没法用了。后来又找了一些方案，比如这个方案可以单路由搞这个事情，但是我发现也有问题，里面需要知道光猫里面的 vlan 划分，我这没法知道，也没法弄了。
+后来发现了另外一个思路，解决了我的问题。线路连接思路大概如下。
+光猫 lan1 -- 主路由 WAN 光猫 lan4 -- 辅路由 WAN 辅路由 LAN（任意一个口） --- 主路由 LAN（任意一个口）  然后主路由就以前的设置就可以，假设主路由的 LAN 的网段是 192.</description>
+    </item>
+    
+    <item>
+      <title>Apple Carplay</title>
+      <link>https://wdicc.com/apple-carplay/</link>
+      <pubDate>Sat, 24 Mar 2018 09:08:47 +0800</pubDate>
+      
+      <guid>https://wdicc.com/apple-carplay/</guid>
+      <description>Carplay 技术苹果老早就搞出来了，一直没有机会体验。最近车上搞了一个 carplay，总结下这段时间的体验。
+手机连上车之后，Carplay 会自动启动，然后其实是会把车的娱乐系统的那个屏幕变成第二个手机屏幕一样。上面会排列一堆支持 Carplay 的 app，只有 app 支持才能在上面用（越狱之后可以解开这个限制，我没试过）。
+Apple 自带的软件，比如 Phone, Messages, Music, Podcasts, Maps 这些都支持。第三方的地图比如 Google maps 高德都不支持，不清楚是不是 Apple 限制的。第三方的音乐软件，比如 Spotify, QQ音乐，网易音乐支持。界面会和手机上面的有点区别，应该是需要特别为 Carplay 做界面。
+Carplay 和 Airplay 很像，就是 app 实际是运行在你手机上面的，比如你启动了 Spotify 的话，这个时候看手机，会发现手机上面也显示的是 Spotify 的界面，手机上面如果按 Home 退出，那 Carplay 的界面上面也会会到 Home。
+苹果自带的 Maps 在国内用的是高德的数据，最近支持了摄像头限速提醒。我用英文系统，可以设置为显示当地的文字，地图上面看到的就是中文，不过语音提示都是英文的，念地名的时候很好笑。在汽车屏幕上面不能不支持手势缩放，只能点那个加减按钮。也不支持我车自带的一个旋钮缩放地图，那个旋钮在车自带的地图里面可以很方便的缩放。苹果地图会自动做一些判断，比如早上上车会提示你是不是要去公司，可以做到点一下就自动设置好导航路线。另外，因为实际上是在手机上面也会同时导航，打开手机界面的话，也能看到，当然手机就不会重复播报提醒的，但是如果你有 apple watch 的话，手表会提醒。快到转向什么的，会振动提醒。
+播客播放的时候，支持调整速度，但是只能是 0.5，1, 1.5 这样，不能调到 0.8，1.3 这样。但是在 APP 里面调整好了会显示。支持快速前进和后退几十秒，和 app 里面操作类似。
+Message 有消息的时候，图标上面会有提醒，点开会自动启动 siri 给你播报，但是播不出来中文，感觉很蠢，而且还不显示内容。。。会提示你是不是要回复，可以通过 siri 回复。
+然后就是，siri 实在太蠢了。我开始的时候，在个人信息里面设置了 Home 和 Work 的地址，然后试了语音说 Navigate to home 或者 Take me to home，结果就给我找到一个东北的地方，不知道是不是音译匹配上了，非常蠢，试了很多次都不行。最后只能点那个提示出来的 Home。（我刚才又试了几次，发现目前可以准确找到 Home 了。。）</description>
+    </item>
+    
+    <item>
+      <title>React Native compnent reuse</title>
+      <link>https://wdicc.com/react-native-compnent-reuse/</link>
+      <pubDate>Sat, 24 Mar 2018 08:44:39 +0800</pubDate>
+      
+      <guid>https://wdicc.com/react-native-compnent-reuse/</guid>
+      <description>做功能的时候，一般我们会适当的封装一些组件出来共享，这样好管理和维护，这个大家估计都会这么做。有时候手机上面因为屏幕小，填一些表单的时候，会需要到另外一个页面去维护选择一些内容，那这个页面是页面还是组件呢？
+我总结下来，所有需要填写的页面，都应该按照组件的思维来封。因为他们实际上很可能会被多次复用，一个路径上面可能会出现多次。当然，普通页面也可能会出现多次，出现多次的展示页面如果是相同的内容，那 store 里面用一个按说也没问题，如果是不同的内容，那应该会有一个 id 来区分不同的内容，这个时候 store 里面存一个用这个 id 做 key 的 map 就可以了。
+继续说填写页面。比如我们的新建订单的页面，会有两个入口，一个是全新的，一个是从历史订单复制的。从历史订单复制的，就需要在 store 里面先把已有的数据放一份，再进入新建页面，如果用户点了返回按键，还需要把 store 里面的状态清掉，否则下次进入的时候还会有出来上次的数据。
+如果按照组件的思维封装，那数据入口只有 props，store 里面不会有，就不用考虑清数据的问题。至于返回的数据，根据页面情况，一般是有两个途径，一个是需要把数据返回给上一个页面的，一个是直接把数据通过网络请求发送的。对于第一个，可以通过 callback 方法给上一个页面，对于第二个，通过 action 来做就可以了。
+我们需要把页面里面的数据区分一下 private 数据和 public 数据。对于 private 数据每次使用基本不一样，通过 props 传递进来。而 public 数据基本是相同的，那通过 store 存下来，必要的时候更新就可以了。
+我们使用的是 reac-navigation，使用的时候，可以通过 navigate(&#39;newPage&#39;, {prop1: &#39;prop1 value&#39;, callback: func1}) 这种方法来把数据和 callback 方法传递过去。那个页面处理完毕之后，通过 callback 把数据返回来。这样就不用费力把数据通过 action - reducer - selector 传到上一个页面了，并且页面再次使用也不用操心上一次使用的时候的残留数据了，页面被复用也不会互相干扰。</description>
+    </item>
+    
+    <item>
+      <title>Go Across the Gfw</title>
+      <link>https://wdicc.com/go-across-the-gfw/</link>
+      <pubDate>Thu, 15 Feb 2018 08:56:03 +0800</pubDate>
+      
+      <guid>https://wdicc.com/go-across-the-gfw/</guid>
+      <description>一直用的是梅林里面自带的方案来处理翻墙，后来想在公司的服务器上面也搞一下这个事情，至少把 Google 等常用站点能翻出去，就研究了一下原理。
+目前墙有两个基本措施需要我们去跨越。1 DNS 污染。 2 数据包解析劫持。3 ip 封禁。
+DNS 污染是通过修改或者限制 DNS 请求的数据，来让用户取到一个错误的 ip 而导致用户不能访问正确的网站的方法。一些比较大的网站都被做了 DNS 污染，比如 Google，youtube，facebook，twitter 等。
+数据包解析是指在出国的核心路由上面，分析用户要访问的网站和发送的数据，然后发现问题之后，从中间给用户和网站发送 rst 数据包，让双方断开连接的一种方法。这样就算是用户通过指定 host 等方法避开了 DNS 污染，也可以进一步阻止请求。这种方法对于 https 的请求应该是没有效果的。所以有时候可以通过指定 host 的方法访问到 google。
+对于上面的避开措施，第三种方法就起作用了，就是直接封禁 ip。这样就算指定了 host 也不能访问。
+如果想要翻墙，就需要避开上面这三种封禁的方法。我这里列了一些方式，https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/ 各有利弊。这里想讲的是梅林大致的逻辑。
+最主要的一个思路是使用 iptables 把一些包发给一些支持透明代理的软件，例如 ss-redir 或者 v2ray 的 dokodemo-door 协议的端口。这些软件会自动把数据请求通过代理请求到之后，返回给用户。
+-A PREROUTING -p tcp -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 443 dst -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 80 dst -j REDIRECT --to-ports 1080  第一句是把所有请求都转发到了 1080 端口，这样就是全部请求都走代理。第二三句是把所有 443 和 80 端口的请求都转发到了 1080 这个代理端口。如果只是想要某些网站走代理呢？那一个办法是在这个语句里面指定 --dest=12.</description>
+    </item>
+    
+    <item>
+      <title>GeoHash</title>
+      <link>https://wdicc.com/geohash/</link>
+      <pubDate>Thu, 25 Jan 2018 11:00:57 +0800</pubDate>
+      
+      <guid>https://wdicc.com/geohash/</guid>
+      <description>我们的应用里面，会有需要用户提交一些坐标点，然后还需要判断这些坐标点和其他坐标点是不是重合或者距离在一定范围内（例如 200M）。
+这个需求最简单的做法就是用户提交的时候，循环和所有需要判断的点比较一下就可以了，但是如果数据量比较大的情况下，这个消耗还是很可观的，因为无法提前索引。所以我们就想，是不是有更好的思路呢？
+一个比较简单的思路是，每次坐标点存储的时候都 hash 一下，一定范围内的，都 hash 到同一个值，这样比较的时候只需要做等于判断就可以了，这个可以索引。那么最简单的做法就是参考 https://en.wikipedia.org/wiki/Decimal_degrees 把坐标点的经纬度按照精度 round，例如 123.4567890123 和 123.4567894562 都 round 为 123.456789 ，但是这么做无法精确到想要的那个 200M。
+然后依据上面的思路，和四舍五入的思路，我琢磨是不是可以弄一个 x 舍 x+1 入这么个逻辑，把坐标轴分为 x 等份。然后我就可以通过自己定义 x 来做到想要的精度了（通过经纬度来定义实际距离应该本身就是有误差的，这个和把球面坐标系投影到平面坐标系的方法有关系）。
+按照上面 x 舍 x+1 入的逻辑，实际上是把平面分成了 n 个正方形，同一个正方形里面的，可以认为他们是符合条件的。但是，很明显在相邻的区域里面的，也有可能有符合条件的点，比如两个点分别在区域的这边和另一边。这些点怎么找到呢？
+有一个思路是先找到点所在的区域，然后把周围 8 个区域的点也找出来，这个查找是可以索引的，是 O(1) 的，然后再循环的和找出来的点单个做比较算距离，这个过程是 O(n)，但是 n 小了很多。
+上面是我山寨的一个思路，找了一下发现已经有了，就是 geohash，可以看参考链接，里面比较详细了。
+参考链接
+ Geohash http://www.cnblogs.com/LBSer/p/3310455.html  </description>
+    </item>
+    
+    <item>
+      <title>SafeAreaView in RN</title>
+      <link>https://wdicc.com/safeareaview-in-rn/</link>
+      <pubDate>Thu, 25 Jan 2018 10:36:51 +0800</pubDate>
+      
+      <guid>https://wdicc.com/safeareaview-in-rn/</guid>
+      <description>iPhone X 整出来一个刘海和底部的下巴，app 需要做特殊处理，否则可能会顶部把内容显示到被刘海挡住的那部分里面，下面呢会显示到那个手势控制的里面，导致一些按钮不能点击。
+之前我们用的是 https://www.npmjs.com/package/react-native-iphone-x-helper 自己计算的。前几天升级 RN 翻 0.52 的 release Note 发现 RN 0.50 新增了一个叫做 SafeAreaView 的 view 来解决这个问题。
+用法也很简单，把你的内容包含到这里面就可以了。有下面两个方法。
+不用 SafeAreaView 来处理底部，比如显示的是一个列表什么的，底部不固定的，用户如果有需要点按会往上滚动出底部的手势区域然后点击。
+&amp;lt;SafeAreaView /&amp;gt;  使用 SafeAreaView 处理底部，比如底部是一排固定按钮，例如微信那样的，这个时候需要把底部区域让出来。
+&amp;lt;SafeAreaView&amp;gt; .... &amp;lt;/SafeAreaView&amp;gt;  SafeAreaView 本身支持设置背景色，但是不支持顶部和底部设置不同的颜色，思路是可以给 SafeAreaView 下面放两个 view 分别设置他们的颜色。代码我贴到参考链接 2 里面了。
+参考链接：
+ https://github.com/facebook/react-native/commit/ad4b124 https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d  </description>
+    </item>
+    
+    <item>
+      <title>Best Practice for React-Native and Redux</title>
+      <link>https://wdicc.com/best-practice-for-react-native-redux/</link>
+      <pubDate>Sun, 26 Nov 2017 09:19:11 +0800</pubDate>
+      
+      <guid>https://wdicc.com/best-practice-for-react-native-redux/</guid>
+      <description>从 6 月到现在，在 RN 上面摸爬滚打了一段时间了，目前总算找到了一个适合我们自我感觉还可以的开发模式。
+一开始，我们使用的是传统的 React 的模式，然后一个 app 页面一个文件，通过 StackNavigator 组合到一起。这么做在我们的第一个 app 里面没觉得有什么问题，每个页面维护自己的数据，页面之间需要数据共享或者通讯的时候（比如从 list 到详情页面的时候，详情里面有一个改变状态的按钮，状态改变之后希望 list 的状态也跟着变化，这样用户返回之后能看到正确的数据）有 2 个方式。
+ 通过 DeviceEventEmitter。 需要数据的页面订阅，然后在其他页面 emit event 之后前面的页面就可以收到。这个时候可以只通知改变的数据的字段，前一个页面直接去修改，这样可以避免重新刷新页面。也可以发一个简单的通知让其他页面去自己获取数据。   通过 navigator 提供的 params 属性。 StatckNavigator 提供了一个 params 属性。就是 this.props.navigation.state.params ，可以通过 setParams 来改变，或者通过类似 this.props.navigation.navigate(&#39;Login&#39;, {goBackToHome: true}) 的方式给，那个 goBackToHome 将来就会在 params 里面。  直到我们开始做第二个 app。
+第二个 app 是一个单页面 app，登录之后就只有一个页面了，有一个大地图，有左侧 sidebar，sidebar 里面的按钮点击还会出其他页面。这个肯定不能按照我们前面的思路来做了，我们按照组件，拆分了不同的文件，然后组合起来。这个时候更加会需要页面之间的通讯，并且这个时候可选项只有第一个了 DeviceEventEmitter ，因为都没有 navigate 什么事情。
+这个时候就发现一个问题，event 太多了，开始有点混乱了。emit event 之后，慢慢会发现不知道哪里有订阅，不好管理。这个 app 做完之后，就仔细研究了一下 redux。</description>
+    </item>
+    
+    <item>
+      <title>Podcasts 推荐</title>
+      <link>https://wdicc.com/podcasts/</link>
+      <pubDate>Sat, 25 Nov 2017 11:38:37 +0800</pubDate>
+      
+      <guid>https://wdicc.com/podcasts/</guid>
+      <description>也不知道从什么时候开始听播客的，现在几乎是 podcast 的重度用户。听播客比看东西省力，以前是上下班的时候想休息一下眼睛就听播客，现在每天开车上下班没法看东西，所以听的更多了。推荐一些我自己听的，下面排序是随机的，和推荐度无关。
+中文播客 迟早更新 http://www.weareones.com/2 这个是个夫妻档，主播任宁刚 30 岁，但是知识面还是挺广的，播客里面的内容很广，但是多与科技有些关系。主播枪枪和他是夫妻，挺有意思的。更新比较快，基本每周都有。
+Teahour http://teahour.fm/ 这个播客经常会请一些比较厉害的开发者和创始人来做访谈，谈的内容也基本是在科技圈。不过最近更新比较慢，前几天刚更新了一期，距上一期已经是 1 年左右了。但是听一听历史的 ep 有些也不过时。
+代码时间 http://codetimecn.com/ 这个播客也是请人来做访谈，不过聊的感觉有时候有点尴尬，也不知道为啥有这个感觉。也是很久更新一期，历史的也可以听听。
+checked http://checked.fm/ 这个播客有三个主播，2 个少数派的雇员，还有个妹子。都是年轻人，都挺有意思的。会讨论各种科技话题，科技热点事件，APP 使用经验等，更新也比较及时。
+机核网 https://www.g-cores.com/categories/9 一个游戏播客。机核网本身是个游戏咨询站。播客内容就是各种游戏相关的东西。我之前听过《血缘》和《黑魂》相关的。不过因为我游戏玩的其实没那么多，所以他们谈的很多游戏没玩过，后来也就不听了。
+比特新声 https://banlan.show/bitvoice 主播海龙是出国培训老师，主播有才是一个 soho 的程序员。一个文科一个理科，思想的一些碰撞还挺有意思的。谈论的话题基本是科技圈的居多，但是内容也比较广泛。
+UX Coffee 设计咖 http://uxcoffee.co/ 主要和谈论一些设计和用户体验相关的内容。主播应该在国外，会请一些在国外的华语开发者来访谈。
+「I/O」调频 http://dailyio.net/ 更新不多，貌似是一个人的独白，感觉听的不多，所以我也不记得大致内容了。
+内核恐慌 https://kernelpanic.fm/ 科技播客，内容还挺好的，可惜目前更新很少。最近几期《字谈字串》都是 4 个人串台。Rio 和吴涛其实还参加了近期的《迟早更新》，但是他们居然不更新自己的播客，发指。
+IT 公论 https://itgonglun.com/ 李如一和 Rio 主持。李如一好像挺有名的，不过我不是很熟悉。也是科技相关的播客。
+两个 iT 大叔 http://podcast.lengqidong.com/podcast.xml 没有找到他们的网站，只有一个 rss 地址了。这个是两个男主播，聊的内容大都和科技相关。
+ETW http://www.etw.fm/ 这个是两个驻美记者做的播客，两个妹子。聊各种热点话题，还是挺有意思的。
+英文播客 英文播客我基本只能听英语学习类的，其他的语速和发音会导致有不少听不懂。
+All Ears English https://www.allearsenglish.com/ 两个美国妹子，语速没有调慢，聊一些日常的用语什么的，感觉还是比较好懂的。</description>
+    </item>
+    
+    <item>
+      <title>草泥马</title>
+      <link>https://wdicc.com/freedom/</link>
+      <pubDate>Mon, 06 Nov 2017 18:47:41 +0800</pubDate>
+      
+      <guid>https://wdicc.com/freedom/</guid>
+      <description>我搜了一下我的帖子，GFW 这个 tag 最早在我的 「2006/12/01 咱也玩玩lilina」 这个帖子里面就出现了。里面提到 Google 有时候会撞墙，会导致 Google reader 也不能访问。我也忘记这个东西最早是什么时候进入我的生活的，从我的 blog 后面可以看到 09 年开始研究一些相关技术，到现在已经 8 年了。
+很多人说百度更懂中文。我从来没觉得，可能因为我中文搜的不多吧，不过就算是中文也更喜欢看 Google 里面的结果。百度里面巨量的重复内容，都是一个帖子被复制了很多次，浪费很多时间翻页之后你还是会发现没有你想要的结果。用 Google 的时候，如果前面 3 页（更多时候，1-2 页足够）还没有你想要的结果，那么要么是这个结果就是少，要么就是你的关键字不对，根据结果里面的一些信息，适当调整自己的关键字。
+因为本身是搞技术的，技术方面，国外的文章水分更少，并且自己也基本能看懂技术相关的英文内容，所以从来都不用百度。国内的各种论坛（也有一些例外的，比如 v2ex，rubychina 等），大量的顶，回复可见内容的帖子，基本没什么意义。不如直接看英文世界里面的情况来的直接。
+那会有一段时间还流行各种草泥马相关的东西，比如草泥马之歌。大家用这种方式自嘲，讽刺。当时总觉得这种东西不符合普世价值并不能长久，笑笑也就好了。这么一翻，就是 8 年。现在还每况愈下，一些稍微活跃一点的还有喝茶的待遇。
+这个帖子前几天就想写了，一忙忘记了，今天补上。我和图拉鼎同学并没有见过面。唯一的近距离接触，是当时他在北京 Canonical 公司的时候，有次要聚会，我和他在 qtalk 上面聊过，不过可惜我最后没参加（这段记忆也比较模糊了，可能会有记错），没有见面。后面更多的就是在微博看他在回到杭州后享受生活了。
+看看他的生活，就是一个普通宅男，聪明热爱生活，经常游荡在杭州的街巷，发现一些别人没注意到或者忽略的事物。写写代码，咖啡馆坐坐，找一个志同道合的朋友聊聊天，再普通不过了。偏偏就是这样的一个人都容不下，神经一点一点变的异常铭感，没有点神经病估计现在也不好当领导了。
+前两年，还有另外一个朋友开发了一款搭建高性能网站使用的服务器软件（和翻墙无关），本来一直在国外工作，回家探亲被限制出境，具体原因不聊了，后来解决了出去了。目前在国外成立的自己的公司，专门发扬自己的软件，也拿到了绿卡。估计以后也没兴趣回来了。
+目前这个形势下，无法预见我们自己哪天不会遇到问题，即使你自己学会了阉割自己，但你怎么知道他们的铭感点在哪里呢？也可能是「就是喜欢看你虽然不喜欢，但是又不得不一起建设社会主义的样子」呢？
+想起来一个大话西游里面大对白了
+ 爱一个人需要理由么？ 需要吗？ 不需要吗？ 需要吗？ 不需要吗？ 等你真爱上一个人你就知道了  把里面的「爱」替换为「整」（等你真被整的时候就知道了）我感觉还是挺适合的。
+附送 草泥马之歌 给有兴趣的。</description>
+    </item>
+    
+    <item>
+      <title>Why I Am Not at React Native Developer(节译)</title>
+      <link>https://wdicc.com/why-i-am-not-at-react-native-developer/</link>
+      <pubDate>Thu, 02 Nov 2017 14:00:39 +0800</pubDate>
+      
+      <guid>https://wdicc.com/why-i-am-not-at-react-native-developer/</guid>
+      <description>翻译自这里 Why I&#39;m not a React Native Developer 。
+Introduction 很多人把 RN 作为下一个移动 app 的开发平台。切换开发平台有可能会有巨大的消耗也可能会改变你日常的工作流程。同时平台也可能会改变你开发使用的软件，需要你掌握一些特殊的工具和工作流，把你绑定到一个新的开发生态里面。
+Facebook 自己想要完全切换到 RN 来代替原来的 Native 开发。RN 开发团队也在努力做这个事情，他们搞了一个软件开发平台来代替传统的 Xcode/Swift/ObjC 开发模式。RN 团队到底对这个是一个怎么的态度，貌似还不太明确。
+我自己搞了几个月开发之后，我感觉这个平台不是我想要的一个，也不推荐其他人往里跳。
+Declarative style 在 RN 里面，UI 是一堆包含状态(state)的函数(function)和属性(props)。
+下面是个例子，假设我们需要在左上角有一个小正方形，如果用户连接了就显示红色，没连接显示绿色。
+在这种编程类型下，你指定所有更新 UI 需要的步骤。我们需要监听 isConnectd 来更新 view。我们告诉 iOS 如何计算状态。
+比较一下 RN 的模式。
+RN 让你在 render() 方法里面描述你的 UI。React 框架来保证 state 的变化会触发 re-rendering。对于数据的修改，会自动触发 UI 的改变。
+我想这是一种思考 UI 的很好的方式。这也是 MVC 模式的一种进化，View 只需要负责展示，不需要负责管理数据。
+Faster iterations RN 里面开发的时候，框架会在本地启动一个 server。你只需要编译一次，然后在 iOS 模拟器或者真机上面运行，RN 会保证你在 js 里面做的任何修改都会反馈到 app 里面。</description>
+    </item>
+    
+    <item>
+      <title>11 Mistakes During Use React Native(翻译)</title>
+      <link>https://wdicc.com/11-mistakes-during-use-react-native/</link>
+      <pubDate>Wed, 01 Nov 2017 19:12:24 +0800</pubDate>
+      
+      <guid>https://wdicc.com/11-mistakes-during-use-react-native/</guid>
+      <description>粗略的翻译自 11 mistakes I’ve made during React Native / Redux app development。
+一些可能会错误的评估  虽然有很多可以重复使用的组件，你还是需要分开考虑 iOS 和 Android 的布局。 当你评估表单实现的时候，应该要同时考虑表单的验证。开发 RN 比开发例如 Cordova 这样的 hybrid 的程序需要写的代码更多。 如果是基于一个已经有后端的 webapp 写代码，应该需要先去仔细看看后端提供的功能接口，因为你需要自己写逻辑，弄明白了 DB 结构数据关联，可以然你更好的规划你的 redux store。  尽量使用已有的组件 Google 一下就会发现，已经有大量的现成的组件，例如 buttons, footers 等。如果你没啥特殊要求，这些你都可以直接用。你要是有自己的特殊需要，也可以包装一下这些组件成你自己的，然后在里面自定义样式。不过你自己使用 View, Text, TouchableOpacity 等这些 RN 组件来自己包装对于你理解 RN 的工作原理。你自己打包的组件的版本也不会变，不像依赖外部模块。
+不要分开搞 iOS 和 Android 的布局 如果你有不同的布局需求，那就分开。否则，你可以使用 RN Platform 提供的 API 来做一些小的区分。
+如果布局很大不同，那就把布局内容放到不同的文件里面。
+你可以使用 index.ios.js 给 iOS 布局用，index.android.js 给 Android 用。
+共同的重复代码可以放到 helpers 里面。</description>
+    </item>
+    
+    <item>
+      <title>Howto Make react-redux Work With react-navigation</title>
+      <link>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</link>
+      <pubDate>Sat, 21 Oct 2017 08:19:28 +0800</pubDate>
+      
+      <guid>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</guid>
+      <description>这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 gist。
+/** * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理 * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合 * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做 * 参考： * https://github.com/jackielii/simplest-redux-example * http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html */ import React, { Component } from &#39;react&#39;; import { StyleSheet, Text, View, Button } from &#39;react-native&#39;; import { Provider, connect } from &#39;react-redux&#39;; import { createStore, combineReducers } from &#39;redux&#39;; import { StackNavigator, addNavigationHelpers } from &#39;react-navigation&#39;; // Home 页面，UI 组件 class MyHome extends Component { constructor(props) { super(props); console.</description>
+    </item>
+    
+    <item>
+      <title>生生死死《白鹿原》</title>
+      <link>https://wdicc.com/life/</link>
+      <pubDate>Sat, 07 Oct 2017 18:10:00 +0800</pubDate>
+      
+      <guid>https://wdicc.com/life/</guid>
+      <description>之前 6 月份去上海那边的时候，偶尔看到电视里面演《白鹿原》，看了几集。吸引我的，主要可能是里面的乡土气息，以及里面的几个演员演的挺好的。那会看的好像是 40 多集，并且是断续看的，剧情也不太能接的上。后来回来后，找了一个时间，就从头开始看了。直到今天才算看完。看的时候实在是感慨良多，看完了也是心情不太能平复，稍微记录一下。因为没看过书，记录以电视剧剧情为主。
+这剧从大清末年演到了 49 年建国后，基本是从白嘉轩娶媳妇开始讲到当了族长，到生儿育女，到孩子上学，闹革命，生孩子。到最后剧里面的人物死的死，老的老，实在是看的人很心酸。从一个上帝视角看了这么多人的生生死死，以后还是得少看这种剧了。
+白嘉轩一辈子，挺直了腰杆做人，做事的是非对错不评价，但是确实是可以算是不愧对自己，家教很严，但是也就导致了服从家教的孩子们活的很是平淡，这个其实也就是白嘉轩的理念，踏实种个地抱个娃，平平安安一辈子，也就是了，这也是很多老普通百姓的理念。&#34;房是招牌地是累，按下银钱是催命鬼&#34;，这就是古人对普通人生活的建议。但是这么做就可以踏实一辈子么？可以看到白嘉轩的各种经历，清兵围城，闹土匪，镇嵩军征粮征税，天灾大旱，国民党共产党互相闹，这些事情，你不去惹，事情也会找上你。这是命不好？
+生活这一辈子就是个社交，免不了的要和其他人产生交集，矛盾就会出现，就会遇到问题。躲不掉。所谓你抗争是一辈子，认命也是一辈子，一辈子过去了也就是过去了，没有反悔的机会，不能重新来过。
+鹿子霖从开头争抢族长，到后面坐牢看透人生，到后面老糊涂了，演的实在是很好。普通老百姓，有点小恶，顶多也就是占点小便宜，大恶也不敢，游说小蛾勾引白孝文成功之后，白嘉轩对孝文执行族法，是真的出来劝了，没想到这么严重。小老百姓占点便宜就回家高高兴兴的喝酒了。这人活的也很真实，那点小便宜也就是他的一点追求，能压倒族长一头，就觉得自己很有面子。反而白嘉轩那么大义，倒是有那么些不真实。
+这剧里面两个最悲情的人物，一个是田小蛾，一个就是冷秋月。小蛾没啥别的追求，也就是想有个人能一起踏实过日子。所以黑娃和他住在破窑里面的时候是最开心的，管他其他那些呢，只要能一起好好过日子就可以了。但是可惜，有些事情看不透，参加农协搞事情，以为是好运来了，却没想到那是送命的前兆。以为黑娃死了之后，一个弱女人开始找自己的依靠，一半是为了报仇，一半是真心觉得白孝文对自己真好，开始了自己的第二次的幸福生活。却没想到，命丧在这里。死的很悲情，这也是炮灰，要不是鹿兆鹏拉拢，可能黑娃踏实的攒钱，种地养老婆，一辈子或许平平淡淡的，但是安安全全的就过去了。有欲望，就会被人利用，当然也可以说那是自己想做的，不是利用，但是在做之前有人告诉过后果么，知道了后果，还回去做么？当然，可能也没人能预料到那个后果，还是自己的选择。
+传言鹿兆鹏死了的时候，秋月端着盆子给鹿子霖洗脚，说是代鹿兆鹏做这个事情，那个瞬间就泪崩了。秋月你可以说是死在封建社会下，但是鹿兆鹏也有不可原谅的责任。秋月开始可能真是按照父母之命嫁过去的，但是后面，某次对白里面也说了，那是真心喜欢兆鹏。就像兆海为了白灵终生未娶一样，秋月为了兆鹏也是守了一辈子的寡。鹿兆鹏说是为了他爷爷为了他爸，把人家娶回了家，又让人家守活寡，这个算是一个正确的价值观么？秋月出场之后一辈子，都踏踏实实的照顾兆鹏父母爷爷，为的就是哪天兆鹏可以多看她一眼，就连想要生一个孩子，也是为了说将来给兆鹏父母养老。等了一辈子，最后兆鹏回家说带她走的时候，本以为已经等到头了，结果发现兆鹏的方案还是继续让她守活寡，也就是这一刻，秋月可能才明白，兆鹏这辈子都不可能和她有什么交集了，自己守的这么一辈子，毫无意义，自杀也是她唯一的一个选择了。封建礼数是一半责任，鹿兆鹏本人也有一半责任。
+鹿兆鹏和白嘉轩一样的不真实。
+白灵这个演员确实有点嫩，但是也就是这样，估计才能演好年轻的时候。白灵有句话&#34;我的眼睛睁开了，就不会再闭回去&#34;，一个积极向上的乐观的年轻人，和命运做抗争，看过了各种生死之后，总算要过上安定日子了，死了。可能连自己的孩子都没见上几次。每次看到她，那种跳脱的状态很吸引人，不过也有人不喜欢她。
+看剧的时候，说实话一直担心最后是一个大家都悲惨的结局，虽然知道这是演戏，但是还是希望能有点好的结局。剧里最后也算是一个还可以的结局了，如果把后面的大跃进灾年再写了，真就有点难看了。鹿家活了一个儿子还有孙女，白家活了一个儿子和孙子孙女。
+其他人就不评论了，其实看的时候很多场景都有感触，但是也没记住那么多。看完之后还蛮有冲动再看一次的，但是剧集实在太长了，以后有时间看一下书吧，这个年代拍的电视剧，本身就有太多的忌讳，相信还是原著会更加精彩，而且初步估计，会感觉和电视剧是两个内容，呵呵。当年我高中的时候，拿到一本《平凡的世界》，那会简直就是一刻不停，连续看了几天把书看完了。现在不记得多少内容了，但是那会应该也是被书里描述的农村到城市的历程吸引了吧。现在看白鹿原，里面孩子们最后在县城省城工作，其实和现在的世道没个啥区别。而且其他的，比如这高房价物价，贪官私人关系，可能也可以类比。小老百姓真的可以踏实过日子么？
+踏实过日子，慢慢可能会让人把你玩死。另一个选择就是不甘于现状，当然也不一定求逆天改命，只求能在遇到事情的时候，能给自己多一些路。
+现在年纪大了，确实很多事情慢慢在看透，40 不惑不是都看明白了，是看明白的也就明白了，没看明白的就不看了，所谓看透。这个年纪看这种讲人一生的戏，看到后面那么多的生死，和自己的现实一应证，实在是有点抗不住。人生一辈子，到底是为什么活呢？越来越迷茫了。所以这帖子的英文取名为 Life。</description>
+    </item>
+    
+    <item>
+      <title>Encrypt and Security</title>
+      <link>https://wdicc.com/encrypt-and-security/</link>
+      <pubDate>Mon, 02 Oct 2017 13:26:39 +0800</pubDate>
+      
+      <guid>https://wdicc.com/encrypt-and-security/</guid>
+      <description>上周有同学分享了一下加密解密，感觉自己学到了一些东西，记录一下。
+加密 &amp; 解密 有时候面试的时候会遇到有人讲自己搞过的一些加密方法，会提到「对于 xx 我们使用 md5 加密」，md5 是一种加密方法么？我觉得不是。所谓加密，是对应解密的，不能还原原文的方法，就不应该算加密了吧。
+常常可以听到的，有对称加密和非对称加密。对称加密是指加密解密使用的是同一个密钥的方法，非对称的是指使用不同的密钥的方法。
+对称密钥加密的方法有 DES、3DES、AES、Blowfish、IDEA、RC5、RC6。我之前用过其中的 3DES 和 Blowfish。特点是速度快。
+非对称加密也叫公开密钥加密，方法有 RSA、ElGamal、背包算法、Rabin（RSA的特例）、迪菲－赫尔曼密钥交换协议中的公钥加密算法、椭圆曲线加密算法（英语：Elliptic Curve Cryptography, ECC）。基本都没怎么用过。。他的特点是其中一个公钥可以公开，公钥加密的信息只能通过私钥解密，只要保证私钥安全就可以。但是这个方法加解密速度较慢。
+分组模式 加密算法并不能说一次给多少数据都可以一次加密完毕，实际处理的时候是按块处理的，先按照一定逻辑分组。
+分组模式有 ECB, CBC, CFB, OFB, CTR等。ECB 就是最简单的，分组之后每块分别加密，然后组合起来。这个方法导致可以任意替换各组的位置而不影响解密。比如原来加密是「A 欠 B 1 万」，每个字刚好一个分组，那即使在不能解密的情况下，也可能导致收到的消息是 「B 欠 A 1 万」。所以就有了其它的那几个加密分组模式，其它的几个模式都会和前后的数据有一定的关系，这样就不能这样调换了。对于第一组数据，加密的时候会需要一个初始化的数据，就是 IV。
+散列算法 也就是 hash 算法。常见的 md5, sha1, sha256, sha512 等。这种是对内容产生一个摘要，是一个有损的过程，根据摘要值，不能得到原文。但是可以通过比对摘要来确认摘要是不是来自相同的内容(有一定的碰撞几率)。
+https https 是指基于 tls/ssl 协议基础上面跑的 http 协议。建立 ssl 握手之后，就是基于 http 协议的逻辑来在这个 ssl 通道上面传输了。
+握手验证过程中，有两个证书需要用到，一个是 CA Root certificate，还有一个是经过 CA 签名的 Web server certificate。CA 根证书是权威的 CA 机构给到各个浏览器和操作系统内置的一个公钥。Web 服务器证书是权威 CA 机构验证了网站的身份之后，使用 CA 的私钥对证书签名，签名就是根据证书内容先进行 Hash，然后使用私钥加密，把结果作为签名一起放到证书里面。</description>
+    </item>
+    
+    <item>
+      <title>Change Blog Theme to Hugo Classic</title>
+      <link>https://wdicc.com/change-blog-theme-to-hugo-classic/</link>
+      <pubDate>Sat, 30 Sep 2017 21:47:20 +0800</pubDate>
+      
+      <guid>https://wdicc.com/change-blog-theme-to-hugo-classic/</guid>
+      <description>一个主题看久了会腻，原来用的 hugo-fabric 也是我在最早的 jeklly 的 fabric 主题上修改的。那个主题偏暗，我把一些颜色调亮了一点，但是还是不是很舒服，对颜色搭配还是没有感觉。
+今天折腾了一下，把 theme 换到了 hugo-classic，这个也是 fork 自一个别人的主题，增加了一些缺失的内容
+ 首页分页 disqus 支持 code 块颜色不是很明显的问题 css 全文输出  后面可能还想把 tags 页面做成横向的列表，目前那个有点太占位置了。不过目前还没找到比较好看一点的设计，遇到再说了。另外刚发现那个 code 块的空白太多了，可能回头也调整一下。
+已经弄了一个 tag 的样式，先这么看着吧。另外也修正了一下 code 的空白。
+发现 org 的 BEGIN_SRC 输出的时候，会加一个换行在第一行，这个导致多了一个空白行，稍微有点丑了，回头有时间再看看是哪里的问题吧。
+上面这个问题在 hugo 的 HEAD 版本里面已经修复了。</description>
+    </item>
+    
+    <item>
+      <title>Dpi dp and px</title>
+      <link>https://wdicc.com/dpi-dp-and-px/</link>
+      <pubDate>Sat, 16 Sep 2017 10:18:50 +0800</pubDate>
+      
+      <guid>https://wdicc.com/dpi-dp-and-px/</guid>
+      <description>这几天折腾了一下 android 上面的布局，了解了一些基础概念。
+首先有两个概念，一个是分辨率，一个是屏幕的实际尺寸。我们一般讲的 800x600 像素(px)，1024x768 像素(px)这些，都是分辨率。然后 5.5 寸(iPhone 6/7/8 plus)，4.7 寸(iPhone 6/7/8)，10.1 寸(iPad) 这些是实际尺寸，并且指的是屏幕对角线尺寸。
+一般来讲，除非是 5.5 和 10.1 这么大的差异，我们大多会在比如 5.5 和 4.7 上面使用同一个设计。比如在最上面 1cm (为什么说物理距离呢，因为手机屏幕就那么大，你不能把内容显示的太小，否则会看不清楚) 显示一个黄色的提示条。那么接下来的问题就是，1cm 对应的像素，就算在同一个设备的不同的分辨率下面，都是不一样的。那图怎么做？
+如果 20px 的图放到 800x600 的分辨率下面刚好，那么这个图放到了 1600x1200 的分辨率下面（这里说的是屏幕物理尺寸不变的情况下，因为如果物理尺寸如果也变大了，那就是另外一个情况了），不做缩放的话，就是会得到比 800x600 小一倍的效果。如果缩放的话，那就大小一样了，但是可能因为缩放导致失真。实际做法就是针对不同分辨率做不同的尺寸的图。比如针对 800x600 分辨率，做一个 20px 的图，那对于 1600x1200 分辨率的，做一个 40px 的图。以此类推。
+这样，三个概念就出来了
+ density 也就是 dpi，屏幕密度。 dp 是一个长度单位。 常见的 1x, 2x, @2x 这些。  density(dpi，屏幕密度) = 屏幕对角线的像素/对角线的物理尺寸 = (屏幕长的像素的平方 + 屏幕宽的像素的平方)开根号/对角线的物理尺寸，比如 iphone 3G/3GS 是 160, iphone 4 是 320。</description>
+    </item>
+    
+    <item>
+      <title>Add float debug button for react native</title>
+      <link>https://wdicc.com/add-float-debug-button-for-react-native/</link>
+      <pubDate>Sat, 02 Sep 2017 18:22:47 +0800</pubDate>
+      
+      <guid>https://wdicc.com/add-float-debug-button-for-react-native/</guid>
+      <description>React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候并不是一个好的操作，比如是个 pad，或者比如你自己的设备本身会触发晃动动作。那么如何在开发模式下面增加一个按钮打开这个菜单呢？可惜官方对这个功能没有兴趣多做开发 https://github.com/facebook/react-native/issues/10191 。
+iOS ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。
+import {NativeModules} from &#39;react-native&#39;; // 在某个按钮的动作里面 const {DevMenu} = NativeModules; DevMenu.show();  Android iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法，得自己通过 native 代码加。
+下面两种方式加的都是 android.support.design.widget.FloatingActionButton 按钮，其它的类似。需要增加好编译依赖 compile &#39;com.android.support:design:23.0.0&#39;，版本号按照自己的修改下。
+private void addDevButton() { MainApplication application = (MainApplication) getApplication(); ReactNativeHost reactNativeHost = application.getReactNativeHost(); ReactInstanceManager reactInstanceManager = reactNativeHost.getReactInstanceManager(); final DevSupportManager devSupportManager = reactInstanceManager.getDevSupportManager(); // 这里是增加一个自定义菜单 // devSupportManager.addCustomDevOption(&amp;quot;Custom dev option&amp;quot;, new DevOptionHandler() { // @Override // public void onOptionSelected() { // Toast.</description>
+    </item>
+    
+    <item>
+      <title>Emacs as react native ide</title>
+      <link>https://wdicc.com/emacs-as-react-native-ide/</link>
+      <pubDate>Mon, 24 Jul 2017 20:02:00 +0800</pubDate>
+      
+      <guid>https://wdicc.com/emacs-as-react-native-ide/</guid>
+      <description>最近又在写 react-native 了，对自己的环境又作了一番配置。记录一下。
+web-mode 我主要用的 mode 是 web-mode。这个 mode 简直万能，能处理 html，jsx，js 等。具体配置如下。
+(use-package web-mode :ensure t :config (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.html\\&#39;&amp;quot; . web-mode)) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.js\\&#39;&amp;quot; . web-mode)) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.ejs\\&#39;&amp;quot; . web-mode)) (setq web-mode-markup-indent-offset 4) (setq web-mode-css-indent-offset 4) (setq web-mode-code-indent-offset 4) (setq web-mode-content-types-alist &#39;((&amp;quot;jsx&amp;quot; . &amp;quot;.*\\.js\\&#39;&amp;quot;)) ) )  主要是那个 web-mode-content-types-alist 的配置，让 web-mode 处理 js 文件的时候，把 &amp;lt;&amp;gt; 代码段识别成 jsx。这样能把缩进处理好。
+我还试过 rjsx-mode，这个用起来也可以，基于 js2-mdoe，js2-mode 有的一些用法都支持，并且 flycheck 都不用做多余的配置。但是主要问题是，jsx 的代码缩进有问题。
+flycheck (use-package flycheck :ensure t :config (global-flycheck-mode t) (flycheck-add-mode &#39;javascript-eslint &#39;web-mode) )  把 web-mode 的 checker 设置为 javascript-eslint，如果你用别的就设置成对应的。配合用的 .</description>
+    </item>
+    
+    <item>
+      <title>Django middleware</title>
+      <link>https://wdicc.com/django-middleware/</link>
+      <pubDate>Wed, 05 Jul 2017 18:07:50 +0800</pubDate>
+      
+      <guid>https://wdicc.com/django-middleware/</guid>
+      <description>Django 提供了 middleware 来让你 hack Request 和 Response。用的时候有几个问题需要注意一下。
+__call__ 方法 __call__ 方法实际上就是最早收到 request 的地方，如果不关心 view，那么就可以在这里做你想要做的事情。比如认证用户啥的。这个实际上应该就是早期的 process_request 。
+process_view 方法 process_view 方法会接收到 view_func 和其参数，如果想要针对这些东西处理，可以在这里动作。比如我们所有 api 请求的 POST 的 body 里面都是固定格式的 json 数据，我就在这里检查了 json 的格式，并把解析结果给到了 view_func。
+如果不打算对 view_func 做什么事情，那就最好做完想做的事情，直接返回 None 就可以。否则处理完毕之后，返回一个 response 对象。
+要注意的是，这里最好不要产生 exception，产生了会把逻辑跑到 Middleware 的 exception 逻辑里面。所以最好对自己的代码段加上 try-except 逻辑。
+另外，这里可以对 view_func 做调用，直接返回 view_func 的结果或者处理之后的结果，只要保证是个 response 对象就可以了。也可以不做调用，返回 None ，后续 django 也会调用。要注意的是，如果你对 view_func 做了调用，那么在捕捉到错误的时候，except 里面应该也需要返回一个 response 对象，不能返回 None 了，否则 djangon 还会再次调用这个 view_func 。</description>
+    </item>
+    
+    <item>
+      <title>Emacs as python IDE</title>
+      <link>https://wdicc.com/emacs-as-python-ide/</link>
+      <pubDate>Fri, 30 Jun 2017 20:47:56 +0800</pubDate>
+      
+      <guid>https://wdicc.com/emacs-as-python-ide/</guid>
+      <description>最近 python 写的比较多，比较了几个编辑器，最后还是留下了 emacs。
+主要比较了 emacs 和 pycharm。pycharm 绝对是一个很强的 IDE，几乎可以补全任何东西，写代码各种提示。比如 Django 里面定义一个 model User 之后，就可以 User. 之后提示 objects ，这个是依据 metaclass 来补全的。另外还有比如写 User.objects.get(|) 的时候，光标在竖线那个位置，会提示 User 的字段，这个相当好用。这两个只是皮毛，实在是太好用了。
+但是为什么还要用 emacs 呢？emacs 的编辑器功能太好用了。比如 &amp;lt; 到页首， &amp;gt; 到页尾， C-x b 切换 buffer，还有切换 frame，等等快捷键非常舒服，完全不用鼠标。不过也可能是我习惯了 emacs 的快捷键了。在 pycharm 里面时不时就不行，比如选择一段文字，纯键盘需要按 -&amp;gt; 配合才可以，那还不如用鼠标算了。
+其实如果一上手就用 pycharm，那绝对会觉得很爽。
+emacs 写 python 在原生的 python-mode 基础上有两个好用的选择，一个是 anaconda-mode，一个是 elpy。 anaconda-mode 相对来说比较简陋一点，但是补全什么的没问题，缺少重构功能。两个的工作模式都是会启动一个补全用的进程，然后通过 lisp 和这个进程交互获取补全信息。
+anaconda-mode 遇到的问题和解决 anaconda-mode 我遇到一个问题，为了下载 emacs 的 package 方便，我设置了代理，这个代理导致 anaconda-mode 和补全进程交互的时候，连接不能断开，就会不停的新建连接，一会就打开文件数满了，可以参观这个 issue。主要是设置了 no_proxy 解决。</description>
+    </item>
+    
+    <item>
+      <title>Run ssserver on VPS</title>
+      <link>https://wdicc.com/run-ssserver-on-vps/</link>
+      <pubDate>Fri, 09 Jun 2017 10:55:44 +0800</pubDate>
+      
+      <guid>https://wdicc.com/run-ssserver-on-vps/</guid>
+      <description>VPS 上面好早以前用过 docker 跑了一个 container 运行了一个 ssserver, 是从 debian 基本系统创建, 然后手动安装各种软件弄好的. 最近朋友升级了 docker, 那个工作有点问题了,就重新搞了一下, 发现现在好方便.
+我用的是这里提供的 dockerfile https://github.com/EasyPi/docker-shadowsocks-libev, 他的例子里面使用了 docker-compose 来创建, 发现很简单, 不过遇到了一个问题, 说一下解决办法.
+这个 docker 本地监听的端口是固定的 8388 不能修改, 例如 docker-compose.yml 里面
+server: image: easypi/shadowsocks-libev container_name: wd-ss ports: - &amp;quot;HOST_PORT:8388/tcp&amp;quot; - &amp;quot;HOST_PORT:8388/udp&amp;quot; environment: - METHOD=aes-256-cfb - PASSWORD=5ouMnqPyzseL restart: always  需要配置的是 HOST_PORT METHOD PASSWORD 这三个变量, 然后我还指定了 container_name 方便以后的操作, 不指定会自动产生一个.
+启动服务之后,可以使用 docker logs wd-ss 来看 log, 类似于下面, 这个 docker 启用了 udp relay 和 tcp fast open, 差不多也就够了.</description>
+    </item>
+    
+    <item>
+      <title>Meetings and meetings</title>
+      <link>https://wdicc.com/meetings-and-meetings/</link>
+      <pubDate>Sat, 08 Apr 2017 15:16:49 +0800</pubDate>
+      
+      <guid>https://wdicc.com/meetings-and-meetings/</guid>
+      <description>前几天海龙 在 twitter 的提了一个问题“这个世界上有喜欢开会的人吗？能和我说说理由吗？”。作为开了很多会的人，由不住想说两句。
+ 首先，高质量的会应该具备什么呢？我也没看过《罗伯特议事规则》这样的书（放在 kindle 里面好久了一直没看过，汗颜。。），就是自己按照自己参与的情况总结下： 会议前必要的沟通，好确认是不是需要你参加。当然也有一定可能性组织会议的人确认需要你参加而不做沟通（当然也不排除判断错误的时候 QAQ）。 组织会议的人做好前期调研，会议讨论的一些相关方案的基本情况应该需要比较了解。避免好容易召集齐人之后，发现要讨论的内容本身自己互相矛盾，或者需要参会的人没有通知等情况。 邮件通知与会人会议要沟通的内容，和希望达成的目标，让大家提前了解事情的原委。也给大家一个机会提前确认下是不是真的和自己有关系。 有了希望达成的目标，就应该会比较明确具体需要谁参与，比如想要一个明确的决定的时候，却约一个不能拍板的人来，这会议注定不能成功。 会议中有可以控制会议节奏的人主持。能适时的阻止一些无关话题，扯皮，控制会议节奏，避免开大长会和会上吵架。 会议中有人记录会议记录，结束后有人会把会议记录和结论(这个很重要，没有结论的会就是没必要开的会)发给所有人。  下面列几个我作为技术人员常见的一些烂会。
+产品总监派一个刚入职几天业务都没摸清的人召集一帮干了好几年的工程师开会。这种情况下，产品经理大概率会被工程师各种怼，因为他不可能真的熟悉产品，工程师提到的很多可能的问题都不太可能圆满回答，最后会发现要讨论的问题各种依赖性，A 功能不确定的情况下，B 功能可能直接就不存在而没必要讨论了。最后会导致会议非常低效。这个时候所有人都会不爽，技术工程师会认为浪费他的时间，产品经理会认为这些人好难配合。其实锅应该是在产品总监头上。
+跨部门的会议。很多时候莫名其妙就招呼你去开会，到了之后也不知道是讨论什么的，最后听半天发现貌似和自己一毛钱关系都没有，浪费几个小时。当然浪费的是你的时间，组织会议的人其实是有收获的，他明白这事情和你无关。
+头脑风暴会议当作需求讨论会来开。有时候对方可能根本没有明确的想法，你当成最终需求讨论半天指出来其中各种问题，最后发现其实他们根本就确定怎么做呢。这种情况其实就是那个网传的“产品经理找你聊一天，他的需求有了，你的程序还没写”的情况。毕竟需求会的优先级会比头脑风暴要稍微高一点。
+如果作为组织者，就是尽量做到前面提到的好的会议应该具备的条件，避免浪费别人时间。作为参与者，如果有能力，遇到有问题的会议，应该想办法协助会议组织者把会议变高效，提高效率的同时，自己也会节省不必要的时间，我经常这么干，毕竟年轻人不容易。。。。当然，我有时候不一定那么有耐心，遇到垃圾会有时候直接就走了，留他们继续浪费时间。
+再回到海龙的问题，我的回答是有些人为了合理的浪费时间，是会喜欢开会的，因为这样会让别人觉得他的时间安排很充实，因为整天不在座位，在忙。不知道各位开会的时候有没有遇到一些人全部时间都是在刷手机，只是偶尔说一两句话？这些人就是我说的这种人。我如果遇到我没兴趣的会或者和我无关的会议，我会直接和组织的人申请离开，如果确实后面和我有关系，那麻烦到了时间点叫我（当然你也得保证下到时可以随叫随到，避免浪费其他参会人的时间等你），当然，呃…… 如果我碰巧也想合理的浪费一下时间。。。。
+这些人一般都需要是 leader，至少有人在给他创造 GDP 的，否则一个手头很多工作要干的人，你让他开这种无意义的会他自己也不答应，否则其他工作完不成无法交代的。不过某种意义上讲，这些人也是有贡献的，至少能组织一些人贡献 GDP 就是贡献。
+感觉跨职业跨部门的会比较容易产生垃圾会，因为看问题角度不一样，有时候会比较难互相理解。我们技术人员很多时候开会，都是找一块白板，画几个图，大家就都明白了，很快就能出决议，不能定的一般可能是需要 leader 拍板的。
+同一个部门的会大家会接触比较多比较容易妥协，能接受自己多花点时间或者吃点小亏来完成一个事情。这其实也是所谓的拓展，团队活动，年会想要达到的目的，如果大家都很熟悉的情况下，就比较容易站在对方的角度想问题，遇到事情容易妥协。
+上面提到的这些问题其实越大的公司问题越多，反而小公司比较少，因为头绪少，并且大家都比较熟悉的缘故。当然实在遇到一个比较弱的会议组织者，烂会也不可避免。</description>
+    </item>
+    
+    <item>
+      <title>Something about cruise tour</title>
+      <link>https://wdicc.com/something-about-cruise-tour/</link>
+      <pubDate>Mon, 20 Mar 2017 20:41:10 +0800</pubDate>
+      
+      <guid>https://wdicc.com/something-about-cruise-tour/</guid>
+      <description>之前知道邮轮游一直没有体验过，据说是在上面各种滚来滚去看书，因为手机没有信号，没有网络。前几天体验了一把，总结一下。
+一句话总结 这上面有你讨厌的所有因素，大妈，广场舞，广场卡拉 ok，小孩子，无序，占座，插队，甚至最后一天还目睹了两起吵架。
+邮轮游玩什么 我参加的是歌诗达幸运号（Costa Fortun），邮轮上面估计 80% 都是各种大爷大妈，带着女儿外孙。你可以想象一下，平时最不喜欢的组合在这里最全了。
+邮轮上面有免费的自助餐和一些特别的餐食，比如批萨，面条，猪排什么的。也有收费的餐食，当然你可以不去。酒和软饮都是收费的，开饭的时候有免费的白水给你喝，屋子里面是没有的。
+邮轮上面一般有大量的娱乐设施，比如赌场，游戏机，泳池，桑拿，剧场等。还定期有各种娱乐活动，比如猜个字啊，跳个舞什么的。所以第一次去还是可以看个新鲜的，尤其可能还有一些漂亮的陪玩 mm，看着也还可以。游戏机赌场是收费的，恩。
+此外剧场每天基本都会有一场大型的演出，30-40 分钟，可以让你打发时间。但是剧场虽然每天演出内容不一样，但是演员总是那一波，看多了其实也会腻味。
+房间里面也有电视，不过我观察电视都是反复重播录下来的一些电视，然后有一个电影台还是只有那么几部反复重复播放，《x man 天启》我看了不下 10 遍。
+小孩也有人给带着玩游戏，有专门的儿童俱乐部。还有健身房，健身房是我唯一对这次邮轮活动满意的地方，当然肯定不是对环境满意，毕竟里面充满了大爷大妈，满意的地方主要是在设备，设备真心不错。浴室和换衣间地板异常干净，比起我家楼下的奥力，简直天上地下。
+邮轮一般有那么1，2天是下船，我们这次的安排很屎，景点很无聊，低接导游也只是对购物有兴趣，购物店虽然不贵，但是东西比较少，挺没意思的。
+让人反感的几个瞬间 排队上邮轮的时候，过安检的时候就一条队排的特别粗，到了最后那变细互相挤着往前走。我们后面有个阿姨就各种急着往你前面走，我老婆发现之后就故意挤着不让，我看的笑死，呵呵。
+第一天必须做逃生演习。有个大爷一家推着小车带着孩子，孩子可能没一会睡着了。而演习是需要所有人参加的，所以就不得不等比较慢的人。大爷就生气了，开始呵斥工作人员，「孩子都睡着了，啥时候开始」之类的，声音巨大。工作人员大都是外籍，估计也吓了一跳。最后结束的时候，大爷还过去指着那个工作人员不知道说了什么。
+剧院演出，基本前三四排上面都是东西占座的。除非你提前半个小时到。另外就是各种小孩大声说话也没人管。有时候酒吧做游戏，工作人员都明确说了游戏可能比较激烈，让大家把小孩弄走，但是看着一个女的抱着小孩几次被劝离之后还是要上去玩，貌似还是上去让小孩参与。
+昨天有个游戏，几个被淘汰的大妈，悄悄的跑回去继续参与，也有跑回去被发现之后赶走，再次跑回去的，当着一百来号人目睹就那么做，真的无语。
+今天下船之前大家集中在一个地方等着，有个姥爷带着孙女玩气球。有个哥们玩心重，带了个面具就冲那小孩过去了，小孩吓的赶紧跑到了姥爷后面，那个哥们就走了。过了半分钟小孩反映过来开始哭，那姥爷就开始不爽了。后来他们全家，追着那小伙骂，最后把面具也抢过来了，还要护照说要以后有啥毛病要找他。纠缠了能有10分钟。
+这只是记得起来的几个，反正年轻人真的不建议去邮轮了。如果是自己父母，倒是可以推荐去，他们应该喜欢。</description>
+    </item>
+    
+    <item>
+      <title>My way to keep fit</title>
+      <link>https://wdicc.com/my-way-to-keep-fit/</link>
+      <pubDate>Mon, 13 Mar 2017 15:19:30 +0800</pubDate>
+      
+      <guid>https://wdicc.com/my-way-to-keep-fit/</guid>
+      <description>目前第一阶段减肥基本告一段落，后面目标是保持目前体重 6 个月。
+先聊聊结果 2014 年 9 月份前，我的体重最高到 98kg，甚至有时候超过了 100kg。第一阶段减肥可能截止到 2016 年中，减到体重大概是 92kg。第二阶段开始于 2016 年 2 月底，截止到今天体重 80kg。整体算下来减掉 40 斤。
+第一阶段 2014 年开始我发现一种比较简单的减肥方法，就是不吃或者少吃晚饭。
+这个方法应该不一定对所有人适用。我估计应该只对 BMI(Body Mass Index, 身体质量指数，注意和体脂率不是一个东西)比较高的人有用吧。
+我当时 BMI 是 98/1.77^2=31.28 是属于比较高的，坚持了上面的方法半年之后，大概最瘦的时候是 28，我查了是刚好脱离了肥胖那一档，进入了过重。
+我当时所在的公司的上班时间是 10:00 - 19:00，但是经常出现 20:00 以后才从公司走的情况，这样我到家经常是 21:30 或者 22:00 以后。这个时候吃晚饭就太晚了，基本吃饭完了就睡觉了。并且，中午吃饭到这个时候，一般其实已经饿过劲了，那个时间反而没有那么饿了，我就慢慢开始晚上到家之后只吃几个水果。后来慢慢转为不吃东西，或者只吃很少的水果。有时候也会遇到快下班的时候非常饿，这个时候吃点小零食，也就可以了。这种方式减肥，早上和中午基本不控制自己，还是吃的比较好的。
+上面说了，这个阶段减掉了大概 10 多斤。中午饮食基本不控制，晚上不吃，或者很少吃（一个月有那么一两次推不开的）。
+第二阶段 大概是从今年 2 月底从日本回来，开始实施，方法是锻炼加节食。
+锻炼的内容是 60 分钟椭圆机（我用的机器难度是 5，不同机器可能不一样），30 分钟运动后拉伸，30 分钟游泳。大概是每周 1，2，4，5 去，一周会休息三天。锻炼毕竟比较枯燥，所以需要中间休息一下调剂一下心情，如果你的体力耐力跟的上，可以不休息。
+上面的强度下来，进度大概是一周 3kg。我的情况 3 月 25 是 88.6kg，5 月 2 是 81.7kg，5.5 是 80kg。为什么比较慢呢？在这两个月内，我参加了一趟邮轮游大概一周，去了一趟沈阳，大概一周，还去了一趟日本大概一周。所以如果坚持应该可以更快，但是快速减重我感觉应该可能会有副作用，所以我也基本也是控制减一点，保持几天这样子，不让这个减重太快。另外，这段时间我是全职减肥，所以没有工作上面的压力，可能速度相对快一点。</description>
+    </item>
+    
+  </channel>
+</rss>

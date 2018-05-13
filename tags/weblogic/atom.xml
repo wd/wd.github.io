@@ -1,0 +1,150 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Weblogic on wd and cc</title>
+    <link>https://wdicc.com/tags/weblogic/</link>
+    <description>Recent content in Weblogic on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 05 Aug 2006 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/weblogic/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Weblogic服务器性能调优</title>
+      <link>https://wdicc.com/weblogic-turning/</link>
+      <pubDate>Sat, 05 Aug 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/weblogic-turning/</guid>
+      <description>来源 这里
+注：在下面做的介绍都是以Weblogic8.1为例的，其它版本的Weblogic可能会有些许不同。
+1) 设置JAVA参数；
+a) 编辑Weblogic Server启动脚本文件；
+BEA_HOME\user_projects\domains\domain-name\startWebLogic.cmd(startWebLogic.sh on Unix)
+BEA_HOME\user_projects\domains\domain-name\startManagedWebLogic.cmd(startManagedWebLogic.sh on Unix)
+b) 编辑set JAVA_OPTIONS命令，如：set JAVA_OPTIONS=-Xms256m –Xmx256m；
+c) 保存，重启即可。
+注：在WebLogic中，为了获得更好的性能，BEA公司推荐最小Java堆等于最大Java堆。
+
+2) 开发模式 vs. 产品模式；
+开发模式和产品模式的一些参数的默认值不同，可能会对性能造成影响，下面是对性能有影响的参数列表：
+参数
+开发模式默认值
+产品模式默认值
+Execute Queue: Thread Count
+15 threads
+25 threads
+JDBC Connection Pool: MaxCapacity
+15 connnections
+25 connections
+通过启动管理控制台，在域（如：mydomain） 配置  常规选择产品模式。
+3) 尽量开启本地I/O；
+通过启动管理控制台，在域（如：mydomain） 服务器  server实例（如：myserver） 配置  调整选择启用本地I/O。
+注：此值也可通过手动的修改config.xml配置文件。
+4) 调优执行队列线程；
+a) 修改默认执行线程数
+在这里，执行队列的线程数表示执行队列能够同时执行的操作的数量。但此值不是设的越大越好，应该恰到好处的去设置它，太小了，执行队列中将会积累很多待处理的任务，太大了，则会消耗大量的系统资源从而影响整体的性能。在产品模式下默认为25个执行线程。
+为了设置理想的执行队列的线程数，我们可以启动管理控制台，在域（如：mydomain） 服务器  server实例（如：myserver） 监视  性能中监控最大负载时执行队列的吞吐量和队列中的等待请求数，据此确定理想的数值。</description>
+    </item>
+    
+    <item>
+      <title>weblogic安装</title>
+      <link>https://wdicc.com/install-weblogic/</link>
+      <pubDate>Sat, 05 Aug 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/install-weblogic/</guid>
+      <description>WebLogic Server (LINUX平台)简明安装手册
+首先下载weblogic。在公司的fs服务器上面有已经下载好的版本。
+将要安装的版本（以813为例）上传到服务器，然后下面都用root用户操作。这里讲解的都是远程安装，没有使用图形界面。
+#chmod +x server81x_linux32.bin
+#./ server813_linux32.bin
+稍等片刻会出来weblogic的安装界面。
+
+Extracting 0%....................................................................................................100%
+Welcome:
+--------
+This installer will guide you through the installation of WebLogic Server 8.1 SP3. Type &#34;Next&#34; or enter to proceed to the next prompt. If you want to change data entered previously, type &#34;Previous&#34;. You may quit the installer at any time by typing &#34;Exit&#34;.
+Enter [Exit][Next]Next
+直接按回车。
+BEA Systems License Agreement:
+------------------------------
+BEA SYSTEMS, INC.</description>
+    </item>
+    
+    <item>
+      <title>重置weblogic密码</title>
+      <link>https://wdicc.com/reset-weblogic-password/</link>
+      <pubDate>Fri, 07 Jul 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/reset-weblogic-password/</guid>
+      <description>参考网址：这里
+weblogic得密码忘记了怎么办呢？总算让我找到除了重建域之外得方法了。
+首先假设你得weblogic是在运行中，并且boot.properties中已经保存了加密得用户名密码。这样你除了不能登录控制台外，启动停止weblogic是没问题得。
+备份boot.properties文件和DefaultAuthenticatorInit.ldift文件。后面操作不能实现得时候，还可以恢复。停止weblogic。切换到你得域目录（就是域得启动停止脚本所在得目录）。java -cp \server\lib\weblogic.jar weblogic.security.utils.AdminAccount adminuser weblogic .（要注意最后有个点）rm myserver/ldap/DefaultAuthenticatormyrealmInit.initializedrm boot.properties启动weblogic，记得不要在后台启动，因为你需要输入用来启动得用户名密码，用户名是adminuser，密码是weblogic，应该是可以启动得。上面这步没问题得话，你就可以用adminuser登录控制台修改原来用户得密码了。改好之后，新建一个boot.properties，写上你原来得用户名和新得密码。重启一下weblogic试试看。除去上面得假设，如果你得服务器因为没有密码已经起不来了，或许你也可以试试看从2开始能不能设置一个新得密码。</description>
+    </item>
+    
+    <item>
+      <title>apache的rewrite一点配置心得</title>
+      <link>https://wdicc.com/apache-rewrite/</link>
+      <pubDate>Wed, 14 Jun 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/apache-rewrite/</guid>
+      <description>apache这里有一些奇怪的日志。
+211.90.119.118 - - [12/Apr/2006:00:00:12 +0800] &#34;GET http://abc.com.cn/www/x.jsp HTTP/1.1&#34; 200 2994 &#34;-&#34; &#34;SEC-schx639 UP.Browser/4.1.26l&#34;
+通常GET这里都是“/www/x.jsp”的，可是这个是怎么产生的呢？通过浏览器访问http://abc.com.cn/http://abc.com.cn/www/x.jsp，也不能产生这种请求，后来查看apache手册，这个引号里面表示的是“请求的第一条信息”，google了一下才知道，可以用下面的方式产生这种日志。
+telnet abc.com.cn 80GET http://abc.com.cn/www/x.jsp HTTP/1.1
+这样看来，这个请求应该是不正确的，“get /www/x.jsp HTTP/1.1”才对。这个请求被转发给weblogic之后，weblogic会处理不了，因为他会去找“http://abc.com.cn/http://abc.com.cn/www/x.jsp”这个文件，显然是找不到的。
+不过幸好，weblogic有个PathTrim设置，将请求路径种的“http://abc.com.cn”给他去掉就可以了。
+&amp;lt;IfModule mod_weblogic.c&amp;gt;WebLogicHost 192.168.0.252WebLogicPort 7050PathTrim http://abc.com.cnMatchExpression *.jsp&amp;lt;/IfModule&amp;gt;
+问题似乎解决了。不过此后又发现我们的域名不止这一个，还有def.com.cn和dfg.com.cn，解决方法似乎也很简单，多添加几个PathTrim呗，但是此后你就会发现，weblogic似乎比较弱智，只有最后一个PathTrim设置会生效……，查看了weblogic的文档也没有找到解决方法，他那里也没有说可以写几个。
+这样就需要从apache这里解决，幸好apache这里还有虚拟主机。针对各个域名分别配置几个虚拟主机，建立基于域名的虚拟主机。文档可以参考这里&amp;nbsp; 。
+需要注意的是，基于域名的虚拟主机配置好之后，如果用虚拟主机里面没有的域名访问的时候，他会去匹配第一个虚拟主机，同样，用ip访问也会如此。
+当一个请求到达的时候，服务器会首先检查它是否使用了一个能和 NameVirtualHost相匹配的IP地址。如果能够匹配， 它就会查找每个与这个IP地址相对应的&amp;lt;VirtualHost&amp;gt;配置段， 并尝试找出一个ServerName或ServerAlias配置项与请求的主机名相同的。 如果找到了，它就会使用这个服务器的配置。 否则，将使用符合这个IP地址的第一个列出的虚拟主机。
+配置好虚拟主机之后，上面的问题就解决了。接着就发现有些终端不能正常访问业务了。查看全局的配置，有些rewrite rule的配置，想当然认为虚拟主机会继承全局设置。其实不是这样的，全局的对虚拟主机的没有任何影响。还需要在虚拟主机中单独设置。
+RewriteEngine onRewriteLog /usr/local/apache/apache_rewrite_log.logRewriteLogLevel 2RewriteRule&amp;nbsp; xx
+建议加上log的设置，这样可以很好的检查rewrite有没有起作用。此外，也一定要加上RewriteEngine on，否则任何rewrite rule都不会起作用。</description>
+    </item>
+    
+    <item>
+      <title>weblogic的“Too many open files”错和apache的“CONNECTION_REFUSED”错</title>
+      <link>https://wdicc.com/too-many-open-files/</link>
+      <pubDate>Tue, 30 May 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/too-many-open-files/</guid>
+      <description>weblogic和apache桥接之后，访问量大的时候，遇到了weblogic报下面的错误：
+####     rnel   ####     Kernel   oo many open files ####     rnel   ####     Kernel   oo many open files 
+
+weblogic产生这个错误以后，就会拒绝服务，这时通过IE已经访问不了了。所以接下来就会出现apache报下面的错误：
+[Tue May 30 13:00:57 2006] [error] CONNECTION_REFUSED [os error=0, line 1600 of ../nsapi/URL.cpp]: 218.206.70.193:7001 errno= 0
+
+这时访问apache会提示和weblogic的桥出了问题。
+这个问题已经遇到很多次了，但通常都是夜间，第二天查看日志的时候，会发现那个时候确实访问量比较大。查看当时的连接情况可以看到，apache和java连接都700多。看了网上的说明，调整了系统参数、调整了weblogic的设置等，都不见效。
+http://www.bea.com.cn/support_pattern/Too_Many_Open_Files_Pattern.html
+http://e-docs.bea.com/wls/docs81/perform/index.html
+今天又出现这个情况了，不过是白天，和web应用的作者一起对weblogic的情况进行了观察。
+通过weblogic控制台，可以看到Throughput这里大都是在处理1左右的访问，Queue Length这里却在不停的涨，开始就对Thread count做了修改，从50调整到了400，但是还是可以看到Thread会用完，一会Queue Length就又涨起来了。</description>
+    </item>
+    
+    <item>
+      <title>Apache &#43; weblogic 桥接的Connection_Refused错误</title>
+      <link>https://wdicc.com/apache-weblogic-error/</link>
+      <pubDate>Mon, 22 May 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/apache-weblogic-error/</guid>
+      <description>http://edocs.bea.com/wls/docs81/plugins/apache.html#113649
+主要是调整weblogic的AcceptBackLog参数。</description>
+    </item>
+    
+    <item>
+      <title>weblogic apache 桥接指南</title>
+      <link>https://wdicc.com/weblogic-apache-bridge/</link>
+      <pubDate>Mon, 22 May 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/weblogic-apache-bridge/</guid>
+      <description>Using Web Server Plug-Ins with WebLogic Server
+http://edocs.bea.com/wls/docs90/plugins/apache.html</description>
+    </item>
+    
+  </channel>
+</rss>

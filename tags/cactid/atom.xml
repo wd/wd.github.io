@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Cactid on wd and cc</title>
+    <link>https://wdicc.com/tags/cactid/</link>
+    <description>Recent content in Cactid on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 04 Nov 2006 00:00:00 +0000</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/cactid/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>还是cacti的问题</title>
+      <link>https://wdicc.com/problem-in-cacti/</link>
+      <pubDate>Sat, 04 Nov 2006 00:00:00 +0000</pubDate>
+      
+      <guid>https://wdicc.com/problem-in-cacti/</guid>
+      <description>前面那个帖子似乎没有解决问题，查看了一下log，有些异常：
+cactid ERROR: SNMP timeout detected [500 milliseconds]
+搜了一下，找到一个文章，似乎说升级就ok了，可是那个日期是2005年的，我的应该没那么老吧。不过还是上cacti的主页看了看，看到cacti和cactid都升级了，就打算升级一下看看。debian上面怎么玩呢？cacti还好说，之前升级过一次，不需要编译，直接按照文档升级就好，cactid可得编译，我也不打算直接覆盖安装（其实真这么装没准还简单了），还是做一个deb包吧，一直没有体验过deb如何做，刚好机会来了。
+搜了半天，找到一个文档，按照里面的步骤，下载了diff、dsc等文件， 解压之后修改control文件和一些depands，然后编译打包，好像没什么问题，试着装了一下，装上了，运行了一下，好像也没问题，呵呵，就这么搞定了。
+之后按照同样的步骤搞cacti，结果安装打包的文件后，出问题了，呵呵。不过还好，东弄西弄，总算还是弄好了。按照cacti的文档手动升级了一下，也没遇到问题。不过plugin-arch也需要同时升级一下。还有poller.php和cmd.php都需要加执行权限。
+cactid i这个版本似乎执行的时候输出没有g那么多了，很好，要不然log会搞的很大。cmd.php的输出倒是没多少内容，不过没有cactid的多线程爽亚，呵呵。执行cactid之后，会发现还有些问题:
+Host[6] DS[46] WARNING: Result from SNMP not valid. Partial Result: ...
+搜了一下，找到一个文章， 里面说到了问题的所在。我这里是因为一些有问题的data souce导致，比如这些本来就获取不到数据、或者之前的设备比如网卡现在没有了等等，都会导致cactid获取不到需要的数据，就会提示那个错误。按照里面提示的DS[46]，在http://your_ip/cacti/data_sources.php?action=ds_edit&amp;id=num这个链接的num那里直接输入数字就能知道是哪个ds出问题了，删掉或者更新就ok了。</description>
+    </item>
+    
+  </channel>
+</rss>

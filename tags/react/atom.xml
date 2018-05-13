@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>React on wd and cc</title>
+    <link>https://wdicc.com/tags/react/</link>
+    <description>Recent content in React on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 24 Mar 2018 08:44:39 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/react/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>React Native compnent reuse</title>
+      <link>https://wdicc.com/react-native-compnent-reuse/</link>
+      <pubDate>Sat, 24 Mar 2018 08:44:39 +0800</pubDate>
+      
+      <guid>https://wdicc.com/react-native-compnent-reuse/</guid>
+      <description>做功能的时候，一般我们会适当的封装一些组件出来共享，这样好管理和维护，这个大家估计都会这么做。有时候手机上面因为屏幕小，填一些表单的时候，会需要到另外一个页面去维护选择一些内容，那这个页面是页面还是组件呢？
+我总结下来，所有需要填写的页面，都应该按照组件的思维来封。因为他们实际上很可能会被多次复用，一个路径上面可能会出现多次。当然，普通页面也可能会出现多次，出现多次的展示页面如果是相同的内容，那 store 里面用一个按说也没问题，如果是不同的内容，那应该会有一个 id 来区分不同的内容，这个时候 store 里面存一个用这个 id 做 key 的 map 就可以了。
+继续说填写页面。比如我们的新建订单的页面，会有两个入口，一个是全新的，一个是从历史订单复制的。从历史订单复制的，就需要在 store 里面先把已有的数据放一份，再进入新建页面，如果用户点了返回按键，还需要把 store 里面的状态清掉，否则下次进入的时候还会有出来上次的数据。
+如果按照组件的思维封装，那数据入口只有 props，store 里面不会有，就不用考虑清数据的问题。至于返回的数据，根据页面情况，一般是有两个途径，一个是需要把数据返回给上一个页面的，一个是直接把数据通过网络请求发送的。对于第一个，可以通过 callback 方法给上一个页面，对于第二个，通过 action 来做就可以了。
+我们需要把页面里面的数据区分一下 private 数据和 public 数据。对于 private 数据每次使用基本不一样，通过 props 传递进来。而 public 数据基本是相同的，那通过 store 存下来，必要的时候更新就可以了。
+我们使用的是 reac-navigation，使用的时候，可以通过 navigate(&#39;newPage&#39;, {prop1: &#39;prop1 value&#39;, callback: func1}) 这种方法来把数据和 callback 方法传递过去。那个页面处理完毕之后，通过 callback 把数据返回来。这样就不用费力把数据通过 action - reducer - selector 传到上一个页面了，并且页面再次使用也不用操心上一次使用的时候的残留数据了，页面被复用也不会互相干扰。</description>
+    </item>
+    
+    <item>
+      <title>Add float debug button for react native</title>
+      <link>https://wdicc.com/add-float-debug-button-for-react-native/</link>
+      <pubDate>Sat, 02 Sep 2017 18:22:47 +0800</pubDate>
+      
+      <guid>https://wdicc.com/add-float-debug-button-for-react-native/</guid>
+      <description>React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候并不是一个好的操作，比如是个 pad，或者比如你自己的设备本身会触发晃动动作。那么如何在开发模式下面增加一个按钮打开这个菜单呢？可惜官方对这个功能没有兴趣多做开发 https://github.com/facebook/react-native/issues/10191 。
+iOS ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。
+import {NativeModules} from &#39;react-native&#39;; // 在某个按钮的动作里面 const {DevMenu} = NativeModules; DevMenu.show();  Android iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法，得自己通过 native 代码加。
+下面两种方式加的都是 android.support.design.widget.FloatingActionButton 按钮，其它的类似。需要增加好编译依赖 compile &#39;com.android.support:design:23.0.0&#39;，版本号按照自己的修改下。
+private void addDevButton() { MainApplication application = (MainApplication) getApplication(); ReactNativeHost reactNativeHost = application.getReactNativeHost(); ReactInstanceManager reactInstanceManager = reactNativeHost.getReactInstanceManager(); final DevSupportManager devSupportManager = reactInstanceManager.getDevSupportManager(); // 这里是增加一个自定义菜单 // devSupportManager.addCustomDevOption(&amp;quot;Custom dev option&amp;quot;, new DevOptionHandler() { // @Override // public void onOptionSelected() { // Toast.</description>
+    </item>
+    
+    <item>
+      <title>Emacs as react native ide</title>
+      <link>https://wdicc.com/emacs-as-react-native-ide/</link>
+      <pubDate>Mon, 24 Jul 2017 20:02:00 +0800</pubDate>
+      
+      <guid>https://wdicc.com/emacs-as-react-native-ide/</guid>
+      <description>最近又在写 react-native 了，对自己的环境又作了一番配置。记录一下。
+web-mode 我主要用的 mode 是 web-mode。这个 mode 简直万能，能处理 html，jsx，js 等。具体配置如下。
+(use-package web-mode :ensure t :config (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.html\\&#39;&amp;quot; . web-mode)) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.js\\&#39;&amp;quot; . web-mode)) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.ejs\\&#39;&amp;quot; . web-mode)) (setq web-mode-markup-indent-offset 4) (setq web-mode-css-indent-offset 4) (setq web-mode-code-indent-offset 4) (setq web-mode-content-types-alist &#39;((&amp;quot;jsx&amp;quot; . &amp;quot;.*\\.js\\&#39;&amp;quot;)) ) )  主要是那个 web-mode-content-types-alist 的配置，让 web-mode 处理 js 文件的时候，把 &amp;lt;&amp;gt; 代码段识别成 jsx。这样能把缩进处理好。
+我还试过 rjsx-mode，这个用起来也可以，基于 js2-mdoe，js2-mode 有的一些用法都支持，并且 flycheck 都不用做多余的配置。但是主要问题是，jsx 的代码缩进有问题。
+flycheck (use-package flycheck :ensure t :config (global-flycheck-mode t) (flycheck-add-mode &#39;javascript-eslint &#39;web-mode) )  把 web-mode 的 checker 设置为 javascript-eslint，如果你用别的就设置成对应的。配合用的 .</description>
+    </item>
+    
+  </channel>
+</rss>

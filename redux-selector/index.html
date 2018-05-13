@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Redux Selector | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+
+  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
+  <script src="https://wdicc.com//js/hljs.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Redux Selector</span></h1>
+
+<h2 class="date">2018/05/13</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/redux">redux</a> <a href="/tags/selector">selector</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p>redux 应用可以通过 selector 来做 state -> props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的是这个 <a href="https://github.com/reduxjs/reselect" title="https://github.com/reduxjs/reselect">https://github.com/reduxjs/reselect</a>。</p>
+
+<p>selector 主要是一个纯函数，给同样的输入，得到同样的输出，只处理数据，没有其他附加影响。这样就可以缓存中间结果了。</p>
+
+<p>新建 selector 有两个方法，一个是直接定义函数，例如</p>
+
+<pre><code class="language-javascript">const s1 = (state) =&gt; {
+    // 经过计算
+    return state.user
+}
+const s2 = state =&gt; state.data
+</code></pre>
+
+<p>另外一个方法是通过 <code>createSelector</code> 函数来创建，例如</p>
+
+<pre><code class="language-javascript">const s3 = createSelector(s1, s2, (s1, s2) =&gt;{
+    // 经过计算
+    return xx
+})
+</code></pre>
+
+<p>实际上 selector 都是一些函数，具体用的是侯会执行这些函数，第一个方法创建的还好理解，第二个方法里面，会传什么参数呢？输入是什么呢？</p>
+
+<p>实际上，第二个方法定义的 selector 执行的时候类似这样。</p>
+
+<pre><code class="language-javascript">const res = s3(s1(state), s2(state))
+</code></pre>
+
+<p>输入是里面 selector 的输入，然后不停嵌套到最初的数据。这样一个 selector 使用的方法就广泛了。比如</p>
+
+<pre><code class="language-javascript">const s1_res = s1(state) // 从其他地方或者逻辑获取到这个值
+
+const res = s3(s1_res, s2(state)) // 直接用来作为 s3 的输入
+</code></pre>
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer style="clear:both">
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

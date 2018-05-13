@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Redux on wd and cc</title>
+    <link>https://wdicc.com/tags/redux/</link>
+    <description>Recent content in Redux on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sun, 13 May 2018 10:43:28 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/redux/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>Redux Selector</title>
+      <link>https://wdicc.com/redux-selector/</link>
+      <pubDate>Sun, 13 May 2018 10:43:28 +0800</pubDate>
+      
+      <guid>https://wdicc.com/redux-selector/</guid>
+      <description>redux 应用可以通过 selector 来做 state - props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的是这个 https://github.com/reduxjs/reselect。
+selector 主要是一个纯函数，给同样的输入，得到同样的输出，只处理数据，没有其他附加影响。这样就可以缓存中间结果了。
+新建 selector 有两个方法，一个是直接定义函数，例如
+const s1 = (state) =&amp;gt; { // 经过计算 return state.user } const s2 = state =&amp;gt; state.data  另外一个方法是通过 createSelector 函数来创建，例如
+const s3 = createSelector(s1, s2, (s1, s2) =&amp;gt;{ // 经过计算 return xx })  实际上 selector 都是一些函数，具体用的是侯会执行这些函数，第一个方法创建的还好理解，第二个方法里面，会传什么参数呢？输入是什么呢？
+实际上，第二个方法定义的 selector 执行的时候类似这样。
+const res = s3(s1(state), s2(state))  输入是里面 selector 的输入，然后不停嵌套到最初的数据。这样一个 selector 使用的方法就广泛了。比如
+const s1_res = s1(state) // 从其他地方或者逻辑获取到这个值 const res = s3(s1_res, s2(state)) // 直接用来作为 s3 的输入  </description>
+    </item>
+    
+    <item>
+      <title>Best Practice for React-Native and Redux</title>
+      <link>https://wdicc.com/best-practice-for-react-native-redux/</link>
+      <pubDate>Sun, 26 Nov 2017 09:19:11 +0800</pubDate>
+      
+      <guid>https://wdicc.com/best-practice-for-react-native-redux/</guid>
+      <description>从 6 月到现在，在 RN 上面摸爬滚打了一段时间了，目前总算找到了一个适合我们自我感觉还可以的开发模式。
+一开始，我们使用的是传统的 React 的模式，然后一个 app 页面一个文件，通过 StackNavigator 组合到一起。这么做在我们的第一个 app 里面没觉得有什么问题，每个页面维护自己的数据，页面之间需要数据共享或者通讯的时候（比如从 list 到详情页面的时候，详情里面有一个改变状态的按钮，状态改变之后希望 list 的状态也跟着变化，这样用户返回之后能看到正确的数据）有 2 个方式。
+ 通过 DeviceEventEmitter。 需要数据的页面订阅，然后在其他页面 emit event 之后前面的页面就可以收到。这个时候可以只通知改变的数据的字段，前一个页面直接去修改，这样可以避免重新刷新页面。也可以发一个简单的通知让其他页面去自己获取数据。   通过 navigator 提供的 params 属性。 StatckNavigator 提供了一个 params 属性。就是 this.props.navigation.state.params ，可以通过 setParams 来改变，或者通过类似 this.props.navigation.navigate(&#39;Login&#39;, {goBackToHome: true}) 的方式给，那个 goBackToHome 将来就会在 params 里面。  直到我们开始做第二个 app。
+第二个 app 是一个单页面 app，登录之后就只有一个页面了，有一个大地图，有左侧 sidebar，sidebar 里面的按钮点击还会出其他页面。这个肯定不能按照我们前面的思路来做了，我们按照组件，拆分了不同的文件，然后组合起来。这个时候更加会需要页面之间的通讯，并且这个时候可选项只有第一个了 DeviceEventEmitter ，因为都没有 navigate 什么事情。
+这个时候就发现一个问题，event 太多了，开始有点混乱了。emit event 之后，慢慢会发现不知道哪里有订阅，不好管理。这个 app 做完之后，就仔细研究了一下 redux。</description>
+    </item>
+    
+    <item>
+      <title>Howto Make react-redux Work With react-navigation</title>
+      <link>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</link>
+      <pubDate>Sat, 21 Oct 2017 08:19:28 +0800</pubDate>
+      
+      <guid>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</guid>
+      <description>这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 gist。
+/** * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理 * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合 * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做 * 参考： * https://github.com/jackielii/simplest-redux-example * http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html */ import React, { Component } from &#39;react&#39;; import { StyleSheet, Text, View, Button } from &#39;react-native&#39;; import { Provider, connect } from &#39;react-redux&#39;; import { createStore, combineReducers } from &#39;redux&#39;; import { StackNavigator, addNavigationHelpers } from &#39;react-navigation&#39;; // Home 页面，UI 组件 class MyHome extends Component { constructor(props) { super(props); console.</description>
+    </item>
+    
+  </channel>
+</rss>

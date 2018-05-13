@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>React Native on wd and cc</title>
+    <link>https://wdicc.com/tags/react-native/</link>
+    <description>Recent content in React Native on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 24 Mar 2018 08:44:39 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/react-native/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>React Native compnent reuse</title>
+      <link>https://wdicc.com/react-native-compnent-reuse/</link>
+      <pubDate>Sat, 24 Mar 2018 08:44:39 +0800</pubDate>
+      
+      <guid>https://wdicc.com/react-native-compnent-reuse/</guid>
+      <description>做功能的时候，一般我们会适当的封装一些组件出来共享，这样好管理和维护，这个大家估计都会这么做。有时候手机上面因为屏幕小，填一些表单的时候，会需要到另外一个页面去维护选择一些内容，那这个页面是页面还是组件呢？
+我总结下来，所有需要填写的页面，都应该按照组件的思维来封。因为他们实际上很可能会被多次复用，一个路径上面可能会出现多次。当然，普通页面也可能会出现多次，出现多次的展示页面如果是相同的内容，那 store 里面用一个按说也没问题，如果是不同的内容，那应该会有一个 id 来区分不同的内容，这个时候 store 里面存一个用这个 id 做 key 的 map 就可以了。
+继续说填写页面。比如我们的新建订单的页面，会有两个入口，一个是全新的，一个是从历史订单复制的。从历史订单复制的，就需要在 store 里面先把已有的数据放一份，再进入新建页面，如果用户点了返回按键，还需要把 store 里面的状态清掉，否则下次进入的时候还会有出来上次的数据。
+如果按照组件的思维封装，那数据入口只有 props，store 里面不会有，就不用考虑清数据的问题。至于返回的数据，根据页面情况，一般是有两个途径，一个是需要把数据返回给上一个页面的，一个是直接把数据通过网络请求发送的。对于第一个，可以通过 callback 方法给上一个页面，对于第二个，通过 action 来做就可以了。
+我们需要把页面里面的数据区分一下 private 数据和 public 数据。对于 private 数据每次使用基本不一样，通过 props 传递进来。而 public 数据基本是相同的，那通过 store 存下来，必要的时候更新就可以了。
+我们使用的是 reac-navigation，使用的时候，可以通过 navigate(&#39;newPage&#39;, {prop1: &#39;prop1 value&#39;, callback: func1}) 这种方法来把数据和 callback 方法传递过去。那个页面处理完毕之后，通过 callback 把数据返回来。这样就不用费力把数据通过 action - reducer - selector 传到上一个页面了，并且页面再次使用也不用操心上一次使用的时候的残留数据了，页面被复用也不会互相干扰。</description>
+    </item>
+    
+    <item>
+      <title>Best Practice for React-Native and Redux</title>
+      <link>https://wdicc.com/best-practice-for-react-native-redux/</link>
+      <pubDate>Sun, 26 Nov 2017 09:19:11 +0800</pubDate>
+      
+      <guid>https://wdicc.com/best-practice-for-react-native-redux/</guid>
+      <description>从 6 月到现在，在 RN 上面摸爬滚打了一段时间了，目前总算找到了一个适合我们自我感觉还可以的开发模式。
+一开始，我们使用的是传统的 React 的模式，然后一个 app 页面一个文件，通过 StackNavigator 组合到一起。这么做在我们的第一个 app 里面没觉得有什么问题，每个页面维护自己的数据，页面之间需要数据共享或者通讯的时候（比如从 list 到详情页面的时候，详情里面有一个改变状态的按钮，状态改变之后希望 list 的状态也跟着变化，这样用户返回之后能看到正确的数据）有 2 个方式。
+ 通过 DeviceEventEmitter。 需要数据的页面订阅，然后在其他页面 emit event 之后前面的页面就可以收到。这个时候可以只通知改变的数据的字段，前一个页面直接去修改，这样可以避免重新刷新页面。也可以发一个简单的通知让其他页面去自己获取数据。   通过 navigator 提供的 params 属性。 StatckNavigator 提供了一个 params 属性。就是 this.props.navigation.state.params ，可以通过 setParams 来改变，或者通过类似 this.props.navigation.navigate(&#39;Login&#39;, {goBackToHome: true}) 的方式给，那个 goBackToHome 将来就会在 params 里面。  直到我们开始做第二个 app。
+第二个 app 是一个单页面 app，登录之后就只有一个页面了，有一个大地图，有左侧 sidebar，sidebar 里面的按钮点击还会出其他页面。这个肯定不能按照我们前面的思路来做了，我们按照组件，拆分了不同的文件，然后组合起来。这个时候更加会需要页面之间的通讯，并且这个时候可选项只有第一个了 DeviceEventEmitter ，因为都没有 navigate 什么事情。
+这个时候就发现一个问题，event 太多了，开始有点混乱了。emit event 之后，慢慢会发现不知道哪里有订阅，不好管理。这个 app 做完之后，就仔细研究了一下 redux。</description>
+    </item>
+    
+    <item>
+      <title>Howto Make react-redux Work With react-navigation</title>
+      <link>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</link>
+      <pubDate>Sat, 21 Oct 2017 08:19:28 +0800</pubDate>
+      
+      <guid>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</guid>
+      <description>这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 gist。
+/** * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理 * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合 * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做 * 参考： * https://github.com/jackielii/simplest-redux-example * http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html */ import React, { Component } from &#39;react&#39;; import { StyleSheet, Text, View, Button } from &#39;react-native&#39;; import { Provider, connect } from &#39;react-redux&#39;; import { createStore, combineReducers } from &#39;redux&#39;; import { StackNavigator, addNavigationHelpers } from &#39;react-navigation&#39;; // Home 页面，UI 组件 class MyHome extends Component { constructor(props) { super(props); console.</description>
+    </item>
+    
+    <item>
+      <title>Add float debug button for react native</title>
+      <link>https://wdicc.com/add-float-debug-button-for-react-native/</link>
+      <pubDate>Sat, 02 Sep 2017 18:22:47 +0800</pubDate>
+      
+      <guid>https://wdicc.com/add-float-debug-button-for-react-native/</guid>
+      <description>React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候并不是一个好的操作，比如是个 pad，或者比如你自己的设备本身会触发晃动动作。那么如何在开发模式下面增加一个按钮打开这个菜单呢？可惜官方对这个功能没有兴趣多做开发 https://github.com/facebook/react-native/issues/10191 。
+iOS ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。
+import {NativeModules} from &#39;react-native&#39;; // 在某个按钮的动作里面 const {DevMenu} = NativeModules; DevMenu.show();  Android iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法，得自己通过 native 代码加。
+下面两种方式加的都是 android.support.design.widget.FloatingActionButton 按钮，其它的类似。需要增加好编译依赖 compile &#39;com.android.support:design:23.0.0&#39;，版本号按照自己的修改下。
+private void addDevButton() { MainApplication application = (MainApplication) getApplication(); ReactNativeHost reactNativeHost = application.getReactNativeHost(); ReactInstanceManager reactInstanceManager = reactNativeHost.getReactInstanceManager(); final DevSupportManager devSupportManager = reactInstanceManager.getDevSupportManager(); // 这里是增加一个自定义菜单 // devSupportManager.addCustomDevOption(&amp;quot;Custom dev option&amp;quot;, new DevOptionHandler() { // @Override // public void onOptionSelected() { // Toast.</description>
+    </item>
+    
+  </channel>
+</rss>
