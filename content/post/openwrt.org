@@ -1,0 +1,100 @@
+---
+title: "Openwrt"
+date: 2018-05-13T10:01:39+08:00
+tags: ["openwrt"]
+toc: true
+---
+前段时间还搞了一下 openwrt 定制，记录一下。
+
+openwrt 提供了很方便的方式让你可以在 x86 机器上面定制路由器固件，到 [[https://archive.openwrt.org/][https://archive.openwrt.org/]] 下载对应的源码就可以。
+
+比如我用的是这个 [[https://archive.openwrt.org/barrier_breaker/14.07/ar71xx/generic/OpenWrt-ImageBuilder-ar71xx_generic-for-linux-x86_64.tar.bz2]] ， =barrier_breaker= 是版本， =ar71xx= 是 cpu 架构。解压之后目录类似如下 
+
+#+BEGIN_SRC
+drwxr-xr-x 12 wd wd 4.0K Mar 29 17:18 .
+drwxr-xr-x  3 wd wd 4.0K Mar 26 20:32 ..
+drwxr-xr-x  3 wd wd 4.0K Mar 27 10:40 bin
+drwxr-xr-x  3 wd wd 4.0K Oct  1  2014 build_dir
+-rw-r--r--  1 wd wd  94K Oct  1  2014 .config
+drwxr-xr-x  2 wd wd 4.0K Oct  1  2014 dl
+drwxr-xr-x  3 wd wd 4.0K Mar 26 20:37 include
+-rw-r--r--  1 wd wd 5.0K Sep 21  2014 Makefile
+-rw-r--r--  1 wd wd 570K Oct  1  2014 .packageinfo
+drwxr-xr-x  4 wd wd 4.0K Oct  1  2014 packages
+-rw-r--r--  1 wd wd  331 Oct  1  2014 repositories.conf
+-rw-r--r--  1 wd wd  11K Sep 21  2014 rules.mk
+drwxr-xr-x  4 wd wd 4.0K Sep 21  2014 scripts
+drwxr-xr-x  3 wd wd 4.0K Oct  1  2014 staging_dir
+drwxr-xr-x  3 wd wd 4.0K Oct  1  2014 target
+-rw-r--r--  1 wd wd 128K Sep 21  2014 .targetinfo
+drwxr-xr-x  2 wd wd 4.0K Mar 27 10:40 tmp
+#+END_SRC
+
+编译的命令如下
+
+#+BEGIN_SRC
+make image \
+    PROFILE=TLWR703 \
+    PACKAGES="firewall -ip6tables -kmod-ip6tables -kmod-ipv6 -odhcp6c -ppp -ppp-mod-pppoe -liblua -libubus-lua -libuci-lua -luci-app-firewall -luci-i18n-english -luci-lib-ipkg -luci-lib-lmo -luci-lib-sys -luci-proto-core -luci-proto-ppp -luci-sgi-cgi -luci-theme-base -luci-theme-openwrt kmod-mii kmod-usb-net kmod-usb-net-cdc-ether usb-modeswitch curl" \
+    FILES=files/
+#+END_SRC
+
+编译结果会放在 =bin/ar71xx/= 下面
+
+#+BEGIN_SRC
+-rw-r--r-- 1 wd wd  827 May 13 10:08 md5sums
+-rw-r--r-- 1 wd wd 2.2M May 13 10:08 openwrt-ar71xx-generic-root.squashfs
+-rw-r--r-- 1 wd wd 1.9M May 13 10:08 openwrt-ar71xx-generic-root.squashfs-64k
+-rw-r--r-- 1 wd wd 3.8M May 13 10:08 openwrt-ar71xx-generic-tl-wr703n-v1-squashfs-factory.bin
+-rw-r--r-- 1 wd wd 2.9M May 13 10:08 openwrt-ar71xx-generic-tl-wr703n-v1-squashfs-sysupgrade.bin
+-rw-r--r-- 1 wd wd 1.5M May 13 10:08 openwrt-ar71xx-generic-uImage-gzip.bin
+-rw-r--r-- 1 wd wd 1.1M May 13 10:08 openwrt-ar71xx-generic-uImage-lzma.bin
+-rwxr-xr-x 1 wd wd 3.2M May 13 10:08 openwrt-ar71xx-generic-vmlinux.bin
+-rwxr-xr-x 1 wd wd 3.3M May 13 10:08 openwrt-ar71xx-generic-vmlinux.elf
+-rw-r--r-- 1 wd wd 1.5M May 13 10:08 openwrt-ar71xx-generic-vmlinux.gz
+-rw-r--r-- 1 wd wd 1.1M May 13 10:08 openwrt-ar71xx-generic-vmlinux.lzma
+-rwxr-xr-x 1 wd wd 1.2M May 13 10:08 openwrt-ar71xx-generic-vmlinux-lzma.elf
+#+END_SRC
+
+那个 =openwrt-ar71xx-generic-tl-wr703n-v1-squashfs-factory.bin= 就是我那个路由器的出厂固件。简直简单到没法说了。
+
+前面那个编译命令里面， =PROFILE= 是指定要编译的路由器，这个必须得是固件支持的，可以在 =target/linux/ar71xx/generic/profiles/= 目录看到。
+
+#+BEGIN_SRC
+00-default.mk  8devices.mk  atheros.mk   buffalo.mk  dragino.mk   ew.mk          jjplus.mk   netgear.mk   pcs.mk      rosewill.mk  tp-link.mk   wd.mk
+01-minimal.mk  alfa.mk      atlantis.mk  compex.mk   easylink.mk  gl-connect.mk  linksys.mk  oolite.mk    planex.mk   senao.mk     trendnet.mk  zcomax.mk
+02-ath5k.mk    allnet.mk    bhu.mk       d-link.mk   engenius.mk  hiwifi.mk      nclink.mk   openmesh.mk  redwave.mk  sitecom.mk   ubnt.mk      zyxel.mk
+#+END_SRC
+
+=PACKAGES= 指定了要包含的包，可以在 =packages/= 目录下面看到有的包。
+
+=FILES= 指定了自己定义要包含到固件里面的文件。可以把这个目录当作 =/= 来放文件，比如你放到 =files/abc= 下面的文件，将来会在路由器的 =/abc= 下面。
+
+#+BEGIN_SRC
+.:
+etc
+
+./etc:
+banner  config  crontabs  dropbear  run.sh
+
+./etc/config:
+dropbear  firewall  network  system  wireless
+
+./etc/crontabs:
+root
+
+./etc/dropbear:
+authorized_keys
+#+END_SRC
+
+后面还给 wr703n 接了一个华为 4g usb E8372h 型号，支持了 4g 上网。需要的包是这些， =kmod-mii kmod-usb-net kmod-usb-net-cdc-ether usb-modeswitch= ，华为这个 usb 支持 ether 方式使用，并且 usb-modeswitch 直接就支持，不用自己配置。把 eth1 作为 wan 就可以了。
+
+中国联通的信道
+
+- 3G: WCDMA Band 1/8
+- 4G: LTE-FDD 1/3/8  LTE-TDD 40/41
+
+参考的一些文章
+
+- 链接 [[https://soha.moe/post/make-4g-wifi-ap-with-openwrt.html]]
+- 链接 [[http://right.com.cn/forum/forum.php?mod=viewthread&action=printable&tid=209854][http://right.com.cn/forum/forum.php?mod=viewthread&action=printable&tid=209854]] 这个论坛里面之前有一个帖子帮助很大没保存

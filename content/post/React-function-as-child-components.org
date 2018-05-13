@@ -1,0 +1,238 @@
+---
+title: "React Function as Child Components"
+date: 2018-04-06T15:13:47+08:00
+tags: ["react"]
+toc: true
+draft: true
+---
+翻译自 [[https://medium.com/merrickchristensen/function-as-child-components-5f3920a9ace9][Function as Chinld Components ]](我后面都使用 FCC 替代，不知道如何翻译好)。有些是意译，可能不太准确。
+
+** 什么是 Function as Chinld Components
+FCC 就是一个组件接收一个函数作为他的子组件。这个编程模式只是简单的使用了 React 的 child 属性。
+
+#+BEGIN_SRC javascript
+class MyComponent extends React.Component { 
+  render() {
+    return (
+      <div>
+        {this.props.children('Scuba Steve')}
+      </div>
+    );
+  }
+}
+
+MyComponent.propTypes = {
+  children: React.PropTypes.func.isRequired,
+};
+#+END_SRC
+
+这是一个 FCC 的例子，其实就是把 child 定义为一个函数，这样可以允许使用这个组件的地方来决定如何处理子组件的展示。例如
+
+#+BEGIN_SRC javascript
+<MyComponent>
+  {(name) => (
+    <div>{name}</div>
+  )}
+</MyComponent>
+#+END_SRC
+
+其他人可以用下面不同的方式使用这个组件。例如
+
+#+BEGIN_SRC javascript
+<MyComponent>
+  {(name) => (
+    <img src=’/scuba-steves-picture.jpg’ alt={name} />
+  )}
+</MyComponent>
+#+END_SRC
+
+What is really neat here is that MyComponent, the Function as Child Component can manage state on behalf of components it is composed with, without making demands on how that state is leveraged by its children. Lets move on to a more realistic example.
+
+这里真正整洁的是，MyComponent，作为子组件的函数可以代表它所组成的组件来管理状态，而不需要它的子级如何利用这个状态。 让我们继续一个更现实的例子。
+
+** The Ratio Component
+
+Ratio 组件会使用当前设备的宽度，监听缩放事件，调用子组件传递宽度，高度和其他一些信息。
+
+先写一个简单的 FCC 组件。
+
+#+BEGIN_SRC javascript
+class Ratio extends React.Component {
+  render() {
+    return (
+        {this.props.children()}
+    );
+  }
+}
+Ratio.propTypes = {
+ children: React.PropTypes.func.isRequired,
+};
+#+END_SRC
+
+接下来设计 API，组件有 X, Y 属性，会使用当前的宽度来计算，设计一些内部用的状态管理 width, height，以及有没有进行计算过。
+
+#+BEGIN_SRC javascript
+class Ratio extends React.Component {
+  constructor() {
+    super(...arguments);
+    this.state = {
+      hasComputed: false,
+      width: 0,
+      height: 0, 
+    };
+  }
+  render() {
+    return (
+      {this.props.children()}
+    );
+  }
+}
+Ratio.propTypes = {
+  x: React.PropTypes.number.isRequired,
+  y: React.PropTypes.number.isRequired,
+  children: React.PropTypes.func.isRequired,
+};
+Ratio.defaultProps = {
+  x: 3,
+  y: 4
+};
+#+END_SRC
+
+到目前其实还啥都没干呢，接下来加一些事件监听和宽度的计算逻辑（当 ratio 变化的时候，重新计算）。
+
+#+BEGIN_SRC javascript
+class Ratio extends React.Component {
+  constructor() {
+    super(...arguments);
+    this.handleResize = this.handleResize.bind(this);
+    this.state = {
+      hasComputed: false,
+      width: 0,
+      height: 0, 
+    };
+  }
+  getComputedDimensions({x, y}) {
+    const {width} = this.container.getBoundingClientRect();
+    return {
+      width,
+      height: width * (y / x), 
+    };
+  }
+  componentWillReceiveProps(next) {
+    this.setState(this.getComputedDimensions(next));
+  }
+  componentDidMount() {
+    this.setState({
+      ...this.getComputedDimensions(this.props),
+      hasComputed: true,
+    });
+    window.addEventListener('resize', this.handleResize, false);
+  }
+  componentWillUnmount() {
+    window.removeEventListener('resize', this.handleResize, false);
+  }
+  handleResize() {
+    this.setState({
+      hasComputed: false,
+    }, () => {
+      this.setState({
+        hasComputed: true,
+        ...this.getComputedDimensions(this.props),
+      });
+    });
+  }
+  render() {
+    return (
+      <div ref={(ref) => this.container = ref}>
+        {this.props.children(this.state.width, this.state.height, this.state.hasComputed)}
+      </div>
+    );
+  }
+}
+Ratio.propTypes = {
+  x: React.PropTypes.number.isRequired,
+  y: React.PropTypes.number.isRequired,
+  children: React.PropTypes.func.isRequired,
+};
+Ratio.defaultProps = {
+  x: 3,
+  y: 4
+};
+#+END_SRC
+
+我们添加了一些事件监听来监听缩放事件，来计算 width 和 height。这样在内部状态里面得到了 width 和 height，那么如何传递给其他组件呢？
+
+This is one of those things that is hard to understand because it is so simple that when you see it you think, “That can’t be all there is to it.” but this is all there is to it.
+
+** Children is literally just a JavaScript function.
+也就是说只需要通过函数参数的方法传递计算好的 width 和 height。
+
+#+BEGIN_SRC javascript
+render() {
+    return (
+      <div ref='container'>
+        {this.props.children(this.state.width, this.state.height, this.state.hasComputed)}
+      </div>
+    );
+}
+#+END_SRC
+
+现在任何人都可以使用 ratio 组件来得到计算过的 width 和 height。例如，可以作为 img 的属性。
+
+#+BEGIN_SRC javascript
+<Ratio>
+  {(width, height, hasComputed) => (
+    hasComputed 
+      ? <img src='/scuba-steve-image.png' width={width} height={height} /> 
+      : null
+  )}
+</Ratio>
+#+END_SRC
+
+可以把计算好的值作为 css 参数。
+
+#+BEGIN_SRC javascript
+<Ratio>
+  {(width, height, hasComputed) => (
+    <div style={{width, height}}>Hello world!</div>
+  )}
+</Ratio>
+#+END_SRC
+
+可以根据计算好的 height 来显示不同的内容。
+
+#+BEGIN_SRC javascript
+<Ratio>
+  {(width, height, hasComputed) => (
+    hasComputed && height > TOO_TALL
+      ? <TallThing />
+      : <NotSoTallThing />
+  )}
+</Ratio>
+#+END_SRC
+
+
+** Strengths
+
+1. 使用这些组件的人决定这些属性如何传递和使用。
+2. FCC 组件的开发人员不强制要求这些属性被如何使用，给用户提供了很大的自由度。
+3. Consumers don’t need to create another component to decide how to apply properties passed in from a “Higher Order Component”. Higher Order Components typically enforce property names on the components they are composed with. To work around this many providers of “Higher Order Components” provide a selector function which allows consumers to choose your property names (think redux-connects select function). This isn’t a problem with Function as Child Components.
+3. 
+4. Doesn’t pollute “props” namespace, this allows you to use a “Ratio” component and a “Pinch to Zoom” component together regardless that they are both calculating width. Higher Order Components carry an implicit contract they impose on the components they are composed with, unfortunately this can mean colliding prop names being unable to compose Higher Order Components with other ones.
+5. Higher Order Components create a layer of indirection in your development tools and components themselves, for example setting constants on a Higher Order Component will be unaccessible once wrapped in a Higher Order Component. For example:
+
+#+BEGIN_SRC javascript
+MyComponent.SomeContant = ‘SCUBA’;
+#+END_SRC
+
+Then wrapped by a Higher Order Component,
+
+#+BEGIN_SRC javascript
+export default connect(...., MyComponent);
+#+END_SRC
+
+RIP your constant. It is no longer accessible without the Higher Order Component providing a function to access the underlying component class. Sad.
+
+** Summary
+
+Most the time when you think “I need a Higher Order Component for this shared functionality!” I hope I have convinced you that a Function as Child Component is a better alternative for abstracting your UI concerns, in my experience it nearly always is, with the exception that your child component is truly coupled to the Higher Order Component it is composed with.

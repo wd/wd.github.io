@@ -1,0 +1,85 @@
+---
+title: "Develop Plugin for Asuswrt Merlin"
+date: 2018-05-13T08:03:28+08:00
+tags: ["merlin", "koolshare", "asuswrt"]
+toc: true
+---
+换华硕路由器之后，一直用的是梅林（merlin）的固件（rom）。基于这个固件，有一个 [[http://koolshare.cn/forum-96-1.html][koolshare]] 的团队做了很多插件，并且做了一个通用的软件中心，可以方便的管理插件，还挺不错的。
+
+打算用 v2ray 的时候，就想着如何才能无缝替换掉 ss。因为 v2ray 在路由器上面跑效率不高内存占用比较高，ss 作者开始说不打算支持 v2ray。后来研究了 ss 原理之后发现替换很简单，只需要具备 2 个功能就可以，一个是可以支持 socks 代理，一个是可以透明转发流量的端口。这两个协议在 v2ray 都支持，所以要做的其实就是在启动 ss 相应软件的时候启动 v2ray 的就可以了。
+
+基于这个逻辑写了一个[[https://gist.github.com/wd/e0bc83b33ce63506a9bdbc3b81658c52][文档]] ，能弄明白的话，自己用应该也够了。后来一时兴起，做了一个[[https://gist.github.com/wd/1445e3fcf0c9bc535a6e70d2de1d1624][改进版]]。这个版本基本上就傻瓜化了。做的时候对基于 merlin 开发有了一些经验记录一下，发现讲这个的东西不多。
+
+* 一些基础知识
+
+路由器上面的内容是只读的，修改之后重启就会重置。但是 JFFS 分区里面的内容是会保留的。想要保存数据有两个方法。
+
+1. 存一个文件放到 JFFS 分区上面。
+2. 通过 =dbus= 命令储存。(这个命令具体会把数据存哪里我还没仔细看。)
+
+文件方式没什么好说的，储存和读取解析需要你自己做。 =dbus= 命令提供了 key-value 的形式储存数据，可以通过例如 =dbus list v2ray= 列出来所有 =v2ray= 开头的 key 的情况，执行 =dbus= 命令不带参数会有使用方法提示。
+
+一般开发插件还有一个设置也需要开启，就是允许执行 JFFS 的自定义脚本。这个指的是路由器启动的时候，自动执行 =/jffs/scripts/= 下面的一些文件，也并不是任意文件都会执行，merlin 自己的 [[https://github.com/RMerl/asuswrt-merlin/wiki/User-scripts][wiki]] 有比较详细的说明。
+
+所以实际上一个插件的工作方式实际上是这样
+
+1. 路由器启动
+2. 读取 dbus 配置的数据
+3. 执行 =/jffs/scripts/= 目录下面相应的脚本
+4. 这些脚本里面会执行你的插件的脚本
+5. 你的脚本会读取 dbus 配置的数据，以及读取你存储的文件
+6. 不管是你的界面还是脚本有新的数据需要保存，通过 dbus 或者文件存下来
+
+每次路由器启动都是这样一个从头初始化的过程。
+
+* 基于 koolshare 软件中心的离线包
+
+我开发是基于 koolshare 软件中心的，他提供了一个离线安装的功能，以及很多好用的小工具，可以方便开发。想支持离线安装，需要你提供一个 [[https://github.com/wd/koolshare_plugin_v2ray/blob/master/install.sh][install.sh]]，你上传的包的名字必须是 =name.tar.gz= ， ~name~ 名字还得和解压之后的目录名字对应，有些人多次下载系统可能会给他改成 =name(1).tar.gz= 这种会失败。
+
+=install.sh= 里面底部定义的那几个 =softcenter_module_v2ray_= 开头的配置是给软件中心用的。 =home_url= 是软件中心里面点击你插件的图标的时候打开的页面。
+
+安装离线包的时候不会自动处理 =uninstall.sh= ，需要你自己把这个放到[[https://github.com/wd/koolshare_plugin_v2ray/blob/master/install.sh#L61][对应地方]]，并且需要有对的名字。
+
+整个安装完全是你自己控制自己要做的事情。卸载也一样，需要自己删除自己复制的脚本文件和产生的数据等。
+
+* 界面功能
+
+merlin 的界面文件是 =.asp= 结尾，里面唯一相关的标记是类似这样的 =<% nvram_get("firmver"); %>= ，不记得是不是 asp 语法里面的东西了。基本上都是一些 js 和 html 的东西。
+
+** 初始化
+
+一般是在界面的 body 的 onload 方法里面执行[[https://github.com/wd/koolshare_plugin_v2ray/blob/master/webs/Module_v2ray.asp#L463][自己的函数]]。[[https://github.com/wd/koolshare_plugin_v2ray/blob/master/webs/Module_v2ray.asp#L500][这里]]是预留左侧系统原有的导航按钮的地方。
+
+** 保存配置
+
+界面里面可以通过 post 给 =applydb.cgi= 的方式保存给 dbus，类似[[https://github.com/wd/koolshare_plugin_v2ray/blob/master/webs/Module_v2ray.asp#L251][这里]]。先把表单里面的值都读出来做适当的处理，然后存到 =dbus= 这个变量里面， =SystemCmd= 定义的是执行 post 的之后需要执行的脚本。 =action_mode= 是执行脚本之后界面的动作。
+
+这个里面你的脚本会被调用，你需要处理的事情，比如保存配置到文件什么的就可以在这里做了。
+
+这里有一个问题是执行命令的时候，不能得到执行的结果反馈。
+
+** 执行命令的时候显示反馈
+
+上面保存配置是通过 ajax 异步执行的，ajax 的执行结果立刻就会反馈，脚本调用也是异步的，调用脚本的执行结果需要你自己想办法获取。
+
+类似我[[https://github.com/wd/koolshare_plugin_v2ray/blob/master/webs/Module_v2ray.asp#L300][这里]]，在 ajax 执行成功之后获取执行的结果。先显示一个图层，在里面再[[https://github.com/wd/koolshare_plugin_v2ray/blob/master/webs/Module_v2ray.asp#L305][无限执行另外一个 ajax]]，把 ajax 的执行结果放到刚才那个图层里面，这样用户就可以看到了。然后通过检查结果里面是否[[https://github.com/wd/koolshare_plugin_v2ray/blob/master/webs/Module_v2ray.asp#L316][包含特定字符]]来判断脚本是不是执行完毕。
+
+ajax 请求的是一个 [[https://github.com/wd/koolshare_plugin_v2ray/blob/master/webs/Module_v2ray.asp#L307][url]]，这个 url 对应的文件是[[https://github.com/wd/koolshare_plugin_v2ray/blob/master/res/v2ray_status.htm][这个]]。里面其实很简单，就是把 =/tmp/v2ray_status.log= 的内容显示出来。
+
+所以通过这个方式，上面的脚本自需要把想要反馈的内容放到这个 log 文件就可以了，整个逻辑就这样。我这里为了简单所有的脚本执行都复用了这个 log 文件，所以为了避免被上次执行的命令影响，每次执行脚本写入这个文件前都先把这个文件里面的历史数据清楚掉。
+
+** 其他命令执行结果的方式
+
+merlin 还提供了一个 =apply.cgi= 可以执行脚本，例如[[https://github.com/wd/koolshare_plugin_v2ray/blob/master/webs/Module_v2ray.asp#L136][这里]]。我忘记是不是同步执行的了，好像是命令执行完毕之后才会执行 ajax 的回调。
+
+依然还是通过请求刚才那个 =/res/v2ray_status.html= 文件来[[https://github.com/wd/koolshare_plugin_v2ray/blob/master/webs/Module_v2ray.asp#L147][取结果]]。
+
+这里还不有一个坑，如果长时间没有从登录界面进入过路由器管理界面，那执行这个可能会遇到获取到的数据是一个 html 的到 Login 页面的 redirect。
+
+* Cron
+
+如果想要定时执行一些任务，可以添加 cron。merlin 管理界面的用户不一定都是 admin，所以 cron 的用户也不一定是什么，可以用 =cru= [[https://github.com/wd/koolshare_plugin_v2ray/blob/master/scripts/v2ray_watchdog.sh#L91][命令]]来管理 cron。
+
+* 自己的启动脚本
+
+前面也说过，可以放到[[https://github.com/RMerl/asuswrt-merlin/wiki/User-scripts][这些对应的脚本]]里面。
