@@ -150,8 +150,8 @@ authorized_keys
 &lt;p&gt;参考的一些文章&lt;/p&gt;
 
 &lt;ul&gt;
-&lt;li&gt;链接 &lt;a href=&#34;https://soha.moe/post/make-4g-wifi-ap-with-openwrt.html&#34; title=&#34;https://soha.moe/post/make-4g-wifi-ap-with-openwrt.html&#34;&gt;https://soha.moe/post/make-4g-wifi-ap-with-openwrt.html&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;链接 &lt;a href=&#34;http://right.com.cn/forum/forum.php?mod=viewthread&amp;amp;action=printable&amp;amp;tid=209854&#34; title=&#34;http://right.com.cn/forum/forum.php?mod=viewthread&amp;amp;action=printable&amp;amp;tid=209854&#34;&gt;http://right.com.cn/forum/forum.php?mod=viewthread&amp;action=printable&amp;tid=209854&lt;/a&gt; 这个论坛里面之前有一个帖子帮助很大没保存&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://soha.moe/post/make-4g-wifi-ap-with-openwrt.html&#34; title=&#34;https://soha.moe/post/make-4g-wifi-ap-with-openwrt.html&#34;&gt;https://soha.moe/post/make-4g-wifi-ap-with-openwrt.html&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;http://right.com.cn/forum/forum.php?mod=viewthread&amp;amp;action=printable&amp;amp;tid=209854&#34; title=&#34;http://right.com.cn/forum/forum.php?mod=viewthread&amp;amp;action=printable&amp;amp;tid=209854&#34;&gt;http://right.com.cn/forum/forum.php?mod=viewthread&amp;action=printable&amp;tid=209854&lt;/a&gt; 这个论坛里面之前有一个帖子帮助很大没保存&lt;/li&gt;
 &lt;/ul&gt;
 </description>
     </item>
@@ -237,6 +237,22 @@ authorized_keys
 &lt;p&gt;依然还是通过请求刚才那个 &lt;code&gt;/res/v2ray_status.html&lt;/code&gt; 文件来&lt;a href=&#34;https://github.com/wd/koolshare_plugin_v2ray/blob/master/webs/Module_v2ray.asp#L147&#34; title=&#34;取结果&#34;&gt;取结果&lt;/a&gt;。&lt;/p&gt;
 
 &lt;p&gt;这里还不有一个坑，如果长时间没有从登录界面进入过路由器管理界面，那执行这个可能会遇到获取到的数据是一个 html 的到 Login 页面的 redirect。&lt;/p&gt;
+
+&lt;h2 id=&#34;读取保存的数据&#34;&gt;读取保存的数据&lt;/h2&gt;
+
+&lt;h3 id=&#34;通过-js-读取&#34;&gt;通过 js 读取&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-html&#34;&gt;&amp;lt;script type=&amp;quot;text/javascript&amp;quot; src=&amp;quot;/dbconf?p=v2ray&amp;amp;v=&amp;lt;% uptime(); %&amp;gt;&amp;quot;&amp;gt;&amp;lt;/script&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;那个 p 会只显示匹配那个前缀的数据。上面这个 url 直接打开看看就知道了，会产生一个 &lt;code&gt;db_v2ray&lt;/code&gt; 这个变量。在界面里面就可以使用例如 &lt;code&gt;db_v2ray[&amp;quot;v2ray_module_version&amp;quot;]&lt;/code&gt; 来获取 dbus 的数据了。&lt;/p&gt;
+
+&lt;h3 id=&#34;通过页面标签获取&#34;&gt;通过页面标签获取&lt;/h3&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-html&#34;&gt;&amp;lt;input type=&amp;quot;hidden&amp;quot; id=&amp;quot;ss_basic_enable&amp;quot; name=&amp;quot;ss_basic_enable&amp;quot; value=&amp;quot;&amp;lt;% dbus_get_def(&amp;quot;ss_basic_enable&amp;quot;, &amp;quot;&amp;quot;); %&amp;gt;&amp;quot;/&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;例如上面这个，通过 &lt;code&gt;&amp;lt;% dbus_get_def()/&amp;gt;&lt;/code&gt; 这样的标签就可以获取到相应的变量。&lt;/p&gt;
 
 &lt;h1 id=&#34;cron&#34;&gt;Cron&lt;/h1&gt;
 

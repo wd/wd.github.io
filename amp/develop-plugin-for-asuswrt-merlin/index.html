@@ -248,6 +248,89 @@
                 
                     <ul class="toc-h1">
                 
+                    <ul class="toc-h2">
+                
+                
+                
+                
+                <li>
+                    <a href="/develop-plugin-for-asuswrt-merlin/#%e8%af%bb%e5%8f%96%e4%bf%9d%e5%ad%98%e7%9a%84%e6%95%b0%e6%8d%ae"> 读取保存的数据 </a>
+                </li>
+                
+                
+                    </ul>
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                    <ul class="toc-h2">
+                
+                    <ul class="toc-h3">
+                
+                
+                
+                
+                <li>
+                    <a href="/develop-plugin-for-asuswrt-merlin/#%e9%80%9a%e8%bf%87-js-%e8%af%bb%e5%8f%96"> 通过 js 读取 </a>
+                </li>
+                
+                
+                    </ul>
+                
+                    </ul>
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                    <ul class="toc-h2">
+                
+                    <ul class="toc-h3">
+                
+                
+                
+                
+                <li>
+                    <a href="/develop-plugin-for-asuswrt-merlin/#%e9%80%9a%e8%bf%87%e9%a1%b5%e9%9d%a2%e6%a0%87%e7%ad%be%e8%8e%b7%e5%8f%96"> 通过页面标签获取 </a>
+                </li>
+                
+                
+                    </ul>
+                
+                    </ul>
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
                 
                 
                 
@@ -363,6 +446,22 @@
 <p>依然还是通过请求刚才那个 <code>/res/v2ray_status.html</code> 文件来<a href="https://github.com/wd/koolshare_plugin_v2ray/blob/master/webs/Module_v2ray.asp#L147" title="取结果">取结果</a>。</p>
 
 <p>这里还不有一个坑，如果长时间没有从登录界面进入过路由器管理界面，那执行这个可能会遇到获取到的数据是一个 html 的到 Login 页面的 redirect。</p>
+
+<h2 id="读取保存的数据">读取保存的数据</h2>
+
+<h3 id="通过-js-读取">通过 js 读取</h3>
+
+<pre><code class="language-html">&lt;script type=&quot;text/javascript&quot; src=&quot;/dbconf?p=v2ray&amp;v=&lt;% uptime(); %&gt;&quot;&gt;&lt;/script&gt;
+</code></pre>
+
+<p>那个 p 会只显示匹配那个前缀的数据。上面这个 url 直接打开看看就知道了，会产生一个 <code>db_v2ray</code> 这个变量。在界面里面就可以使用例如 <code>db_v2ray[&quot;v2ray_module_version&quot;]</code> 来获取 dbus 的数据了。</p>
+
+<h3 id="通过页面标签获取">通过页面标签获取</h3>
+
+<pre><code class="language-html">&lt;input type=&quot;hidden&quot; id=&quot;ss_basic_enable&quot; name=&quot;ss_basic_enable&quot; value=&quot;&lt;% dbus_get_def(&quot;ss_basic_enable&quot;, &quot;&quot;); %&gt;&quot;/&gt;
+</code></pre>
+
+<p>例如上面这个，通过 <code>&lt;% dbus_get_def()/&gt;</code> 这样的标签就可以获取到相应的变量。</p>
 
 <h1 id="cron">Cron</h1>
 
