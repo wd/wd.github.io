@@ -6,10 +6,94 @@
     <description>Recent content in Posts on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 13 May 2018 10:43:28 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 02 Jul 2018 16:47:31 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/post/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Boot Linux Through PXE</title>
+      <link>https://wdicc.com/boot-linux-through-pxe/</link>
+      <pubDate>Mon, 02 Jul 2018 16:47:31 +0800</pubDate>
+      
+      <guid>https://wdicc.com/boot-linux-through-pxe/</guid>
+      <description>测试 porteus 的时候，每次都是做好 iso 之后写到一个 u 盘，然后用 u 盘启动看看效果，发现有点蛋疼，这浪费时间不说，我的 u 盘寿命估计也得少一截。就研究了一下 pxe 启动，这样每次改完之后通过 pxe 直接读取我改了之后的 iso 引导 linux 就好了。
+我这看 pxe 启动主要需要做两个事情，一个是 dhcp 的时候广播 tftp 的信息，一个是通过 nfs 共享给那个系统需要读取的文件。nfs 共享也可以改用 http 等其他服务。
+dnsmasq 广播 tftp 的信息，可以通过 dnsmasq 来做。dhcp 部分就不贴了，只贴 tftp 相关的。
+tftp-root=/srv/pxe/boot dhcp-boot=/pxelinux.0 enable-tftp  网卡启动的时候会获取 /pxelinux.0 然后获取 /pxelinux.cfg/default （这个实际上有一个判断顺序，方便给不同的机器不同的配置）。然后根据这里面的配置，获取内核信息。然后加载内核。
+nfs 加载内核之后还需要系统文件，这个时候貌似有几个选择，比如通过 http 发送。我这用的是 nfs。想要通过 nfs 发送，内核得能支持 nfs mount。各 linux 的做法貌似不太一样。
+配置 nfs 的目录，在 /etc/exports 里面加入类似这样的信息。
+/srv/pxe/porteus *(ro,fsid=0,no_subtree_check) /srv/pxe/storage *(rw,fsid=1,no_root_squash,no_subtree_check)  然后 exportfs -rv ，这样 nfs 设置好了。</description>
+    </item>
+    
+    <item>
+      <title>Install Porteus to HD</title>
+      <link>https://wdicc.com/install-porteus-to-hd/</link>
+      <pubDate>Mon, 02 Jul 2018 16:23:54 +0800</pubDate>
+      
+      <guid>https://wdicc.com/install-porteus-to-hd/</guid>
+      <description>Porteus 是一个很好玩的系统，他基于 aufs 弄出来的一个「只读」系统，说是只读，实际上他也可以把修改保存到一个硬盘目录，然后启动的时候自动加载这些修改，这样就修改都还在。但是如果把这个目录删除，那么修改就都没有了，这就是所谓的只读。
+我开始的需求是需要搞一个 linux，然后给用户使用，并且希望用户只能用浏览器，不能使用其他东西，因为我们提供的服务就是一个网页。不能使用其他东西是为了避免使用的时候导致系统奔溃什么的，还得派人花时间去维护。然后看到有人推荐 Kiosk，看了一下感觉这个东西太完美了，就是我想要的东西。然后就开始研究这个系统。研究的过程中发现了他是基于 Porteus 的，就开始看 porteus。
+Kiosk 确实也不错，但是我使用的时候想要定制支持中文输入法，打印机等设备，然后发现他阉割加定制的太多了，导致我看了几天居然还没有找到他的入口在哪里，尝试想搞定输入法，费了很多劲。kiosk 使用的是 openbox + tint2 ，后面看了 porteus 之后，他支持 mate，kde 这些桌面，并且也直接就支持 scim，所以打算还是基于这个定制比较简单一点。
+具体定制就不多说了，主要是定制好 iso 之后，怎么安装到硬盘。
+其实也相当简单，只需要把 u 盘上面的内容复制到一个硬盘分区，然后安装一个 bootloader 就可以了。
+安装 bootloader 的时候由于对这个东西不是特别熟悉，以及这么多年不搞 linux 之后又出来很多新的概念，所以走了一些弯路，一番学习之后，发现简单的很。可以参考这里。
+然后就是需要弄一个 grub.cfg 就可以了。
+set timeout=1 set superusers=root password_pbkdf2 root grub.pbkdf2.sha512.10000.xxxxxxxx password guest guest if [ x&amp;quot;$default&amp;quot; = xsaved ];then load_env; set default=&amp;quot;$saved_entry&amp;quot;; fi insmod vbe insmod efi_gop insmod efi_uga insmod font insmod part_gpt search --label --no-floppy --set kgzx KGZX set prefix=($kgzx)/boot/grub if loadfont $prefix/fonts/unicode.</description>
+    </item>
+    
+    <item>
+      <title>Compile Kernel Module</title>
+      <link>https://wdicc.com/compile-kernel-module/</link>
+      <pubDate>Mon, 02 Jul 2018 16:13:56 +0800</pubDate>
+      
+      <guid>https://wdicc.com/compile-kernel-module/</guid>
+      <description>使用 porteus 的时候，发现网卡不支持，找了一下发现有内核驱动可以用，那就需要编译一下内核的模块。
+这里有一个帖子写了如何编译内核，主要步骤是先给内核打 aufs 的补丁，然后就是正常的 make config &amp;&amp; make &amp;&amp; make modules_install 了。
+我这只是编译一个网卡驱动，操作步骤大概如下，把内核解压放到 /mnt/sda1/kernel 下面，然后把网卡驱动代码放到 /mnt/sda1/kernel/linux-4.16.3/drivers/net/wireless/rtl8821ce 下面。
+# cd /mnt/sda1/kernel/linux-4.16.3/ # modprobe configs &amp;amp;&amp;amp; zcat /proc/config.gz &amp;gt; .config # make oldconfig # make prepare # make modules_prepare # export srctree=/mnt/sda1/kernel/linux-4.16.3 # ln -s /mnt/sda1/kernel/linux-4.16.3 /usr/src/linux # cd drivers/net/wireless/rtl8821ce # make  然后在这个目录下面会产生一个 rtl8821ce.ko 的文件。
+如果是遇到自己用的内核有一个模块没编译，那可以用下面的方式
+# after make modules_prepare # make modules SUBDIRS=drivers/firmware/efi/  这样会在 drivers/firmware/efi/ 目录下面产生一个 xx.ko 之类的文件。</description>
+    </item>
+    
+    <item>
+      <title>Geodesy</title>
+      <link>https://wdicc.com/geodesy/</link>
+      <pubDate>Sun, 01 Jul 2018 08:10:05 +0800</pubDate>
+      
+      <guid>https://wdicc.com/geodesy/</guid>
+      <description>坐标点之间的距离角度计算不能简单的用平面几何来算，得按照球面计算，PostgreSQL 提供了 gis 数据的计算支持，各种图形关系判断，距离计算等等。但是我们有时候也需要在 js 里面计算，开始的时候尝试自己按照公式写来着，写了一些发现太蛋疼了，因为只是单纯的看公式，缺少空间概念，算的对不对啥的都不知道。后来发现了这个 js 库，简直太贴心了。
+ 提供了我用过的几个功能 度数表示转换，小数点形式到度分秒形式的互转。在 utm.js 里面。 计算线的真北角。point1.bearingTo(point2)，真北角计算是和线的方向有关系的。 和当前点夹角是 x，距离是 y 的点，point1.destinationPoint(y, x)。 两点之间的距离，point1.distanceTo(point2)  然后顺便记录一些东西。
+// 两条线的夹角的一半，普通角度 let angle = (360 + 180 + bearing1 - bearing2) % 360 // 360 保证只有正的 let halfAngle = angle &amp;gt; 180 ? (360 - angle)/2 : angle/2 // 只要锐角 // 计算两条线夹角中线的真北角 // left,right bearing 需要是真北角 let rightBearing = 90 + (bearing1 + bearing2)/2 let leftBearing = 180 + rightBearing // Math.</description>
+    </item>
+    
+    <item>
+      <title>UEFI Bootable Usb</title>
+      <link>https://wdicc.com/uefi-bootable-usb/</link>
+      <pubDate>Sat, 30 Jun 2018 07:30:58 +0800</pubDate>
+      
+      <guid>https://wdicc.com/uefi-bootable-usb/</guid>
+      <description>UEFI shell UEFI firmware 应该会读取设备里面的分区，找到 ESP 然后再读里面的内容。我看到最简单的方式是把 u 盘格式化成 fat 然后建一个目录 /boot/efi 然后下载一个 uefi shell 把 .efi 文件放到这个目录 /boot/efi/shellx64.efi ，然后启动的时候就多了一个 uefi 菜单了，选择之后可以进入一个 uefi shell。
+uefi shell 里面有几个命令可以用。
+map map 可以列出来当前机器的磁盘情况，找到你的 esp 分区。
+ls ls 可以列出来磁盘目录里面的内容，比如 ls fs0:\boot ，注意磁盘和目录之间用 : ，目录层级之间用 \ 。
+bcfg 可以通过 bcfg boot dump -v 列出来当前所有的 efi 菜单，注意每个项目都有一个序号，后面会用到。
+比如我想自己加一个菜单进去，那就找到最后那个的序号，然后执行 bcfg add 8 fs0:\boot\grub\grubx64.efi GRUB (fat 系统不区分大小写)，指向我自己通过 grub-install --efi-directory=/mnt/sda1/ 放到 esp 分区的 grub 的 efi ，这样启动的时候就多了一个 GRUB 的选项，通过这个选项就可以进入 linux，然后使用更方便的 efibootmgr 来编辑这个菜单了。</description>
+    </item>
+    
+    <item>
+      <title>Grub2 and UEFI</title>
+      <link>https://wdicc.com/grub2-and-uefi/</link>
+      <pubDate>Fri, 29 Jun 2018 20:03:54 +0800</pubDate>
+      
+      <guid>https://wdicc.com/grub2-and-uefi/</guid>
+      <description>这几天搞 Linux 又学习了一些新的东西。
+以前都是把 grub 装到 MBR，然后通过 grub 可以 chainloader 启动 windows。现在发现我装了之后并不能启动我的 windows 10 了，就只好研究了一下。
+GPT 分区 以前都是 MBR(Master Boot Record) 形式的分区，主分区 4 个，如果想要建更多，需要建扩展分区，然后再在扩展分区里面建立逻辑分区。现在发现有了 GPT(GUID Partition Table) 分区。这个方式呢，比 MBR 方式有好处，支持更多分区，支持大于 2.2TB 容量的磁盘。
+我看我的 windows 10 机器预装就是用的这个分区格式。
+UEFI 系统 UEFI(Unified Extensible Firmware Interface) 是基于 BIOS 的 MBR 启动方式不同的东西，是基于单独的 EFI System Partition(ESP) 里面的数据启动的。里面的程序都需要和 UEFI firmware 的 bitness 一致，x86_64 啥的。
+所以我的 windows 10 在 ESP 分区里面已经放了一个自己的起动器。Linux 启动之后，可以查看 /sys/firmware/efi 看看是不是有，有的话表示 kernel 支持 efi，且和 firmware 的 bitness 一致。</description>
+    </item>
     
     <item>
       <title>Redux Selector</title>
@@ -391,107 +475,6 @@ web-mode 我主要用的 mode 是 web-mode。这个 mode 简直万能，能处�
 (use-package web-mode :ensure t :config (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.html\\&#39;&amp;quot; . web-mode)) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.js\\&#39;&amp;quot; . web-mode)) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.ejs\\&#39;&amp;quot; . web-mode)) (setq web-mode-markup-indent-offset 4) (setq web-mode-css-indent-offset 4) (setq web-mode-code-indent-offset 4) (setq web-mode-content-types-alist &#39;((&amp;quot;jsx&amp;quot; . &amp;quot;.*\\.js\\&#39;&amp;quot;)) ) )  主要是那个 web-mode-content-types-alist 的配置，让 web-mode 处理 js 文件的时候，把 &amp;lt;&amp;gt; 代码段识别成 jsx。这样能把缩进处理好。
 我还试过 rjsx-mode，这个用起来也可以，基于 js2-mdoe，js2-mode 有的一些用法都支持，并且 flycheck 都不用做多余的配置。但是主要问题是，jsx 的代码缩进有问题。
 flycheck (use-package flycheck :ensure t :config (global-flycheck-mode t) (flycheck-add-mode &#39;javascript-eslint &#39;web-mode) )  把 web-mode 的 checker 设置为 javascript-eslint，如果你用别的就设置成对应的。配合用的 .</description>
-    </item>
-    
-    <item>
-      <title>Django middleware</title>
-      <link>https://wdicc.com/django-middleware/</link>
-      <pubDate>Wed, 05 Jul 2017 18:07:50 +0800</pubDate>
-      
-      <guid>https://wdicc.com/django-middleware/</guid>
-      <description>Django 提供了 middleware 来让你 hack Request 和 Response。用的时候有几个问题需要注意一下。
-__call__ 方法 __call__ 方法实际上就是最早收到 request 的地方，如果不关心 view，那么就可以在这里做你想要做的事情。比如认证用户啥的。这个实际上应该就是早期的 process_request 。
-process_view 方法 process_view 方法会接收到 view_func 和其参数，如果想要针对这些东西处理，可以在这里动作。比如我们所有 api 请求的 POST 的 body 里面都是固定格式的 json 数据，我就在这里检查了 json 的格式，并把解析结果给到了 view_func。
-如果不打算对 view_func 做什么事情，那就最好做完想做的事情，直接返回 None 就可以。否则处理完毕之后，返回一个 response 对象。
-要注意的是，这里最好不要产生 exception，产生了会把逻辑跑到 Middleware 的 exception 逻辑里面。所以最好对自己的代码段加上 try-except 逻辑。
-另外，这里可以对 view_func 做调用，直接返回 view_func 的结果或者处理之后的结果，只要保证是个 response 对象就可以了。也可以不做调用，返回 None ，后续 django 也会调用。要注意的是，如果你对 view_func 做了调用，那么在捕捉到错误的时候，except 里面应该也需要返回一个 response 对象，不能返回 None 了，否则 djangon 还会再次调用这个 view_func 。</description>
-    </item>
-    
-    <item>
-      <title>Emacs as python IDE</title>
-      <link>https://wdicc.com/emacs-as-python-ide/</link>
-      <pubDate>Fri, 30 Jun 2017 20:47:56 +0800</pubDate>
-      
-      <guid>https://wdicc.com/emacs-as-python-ide/</guid>
-      <description>最近 python 写的比较多，比较了几个编辑器，最后还是留下了 emacs。
-主要比较了 emacs 和 pycharm。pycharm 绝对是一个很强的 IDE，几乎可以补全任何东西，写代码各种提示。比如 Django 里面定义一个 model User 之后，就可以 User. 之后提示 objects ，这个是依据 metaclass 来补全的。另外还有比如写 User.objects.get(|) 的时候，光标在竖线那个位置，会提示 User 的字段，这个相当好用。这两个只是皮毛，实在是太好用了。
-但是为什么还要用 emacs 呢？emacs 的编辑器功能太好用了。比如 &amp;lt; 到页首， &amp;gt; 到页尾， C-x b 切换 buffer，还有切换 frame，等等快捷键非常舒服，完全不用鼠标。不过也可能是我习惯了 emacs 的快捷键了。在 pycharm 里面时不时就不行，比如选择一段文字，纯键盘需要按 -&amp;gt; 配合才可以，那还不如用鼠标算了。
-其实如果一上手就用 pycharm，那绝对会觉得很爽。
-emacs 写 python 在原生的 python-mode 基础上有两个好用的选择，一个是 anaconda-mode，一个是 elpy。 anaconda-mode 相对来说比较简陋一点，但是补全什么的没问题，缺少重构功能。两个的工作模式都是会启动一个补全用的进程，然后通过 lisp 和这个进程交互获取补全信息。
-anaconda-mode 遇到的问题和解决 anaconda-mode 我遇到一个问题，为了下载 emacs 的 package 方便，我设置了代理，这个代理导致 anaconda-mode 和补全进程交互的时候，连接不能断开，就会不停的新建连接，一会就打开文件数满了，可以参观这个 issue。主要是设置了 no_proxy 解决。</description>
-    </item>
-    
-    <item>
-      <title>Run ssserver on VPS</title>
-      <link>https://wdicc.com/run-ssserver-on-vps/</link>
-      <pubDate>Fri, 09 Jun 2017 10:55:44 +0800</pubDate>
-      
-      <guid>https://wdicc.com/run-ssserver-on-vps/</guid>
-      <description>VPS 上面好早以前用过 docker 跑了一个 container 运行了一个 ssserver, 是从 debian 基本系统创建, 然后手动安装各种软件弄好的. 最近朋友升级了 docker, 那个工作有点问题了,就重新搞了一下, 发现现在好方便.
-我用的是这里提供的 dockerfile https://github.com/EasyPi/docker-shadowsocks-libev, 他的例子里面使用了 docker-compose 来创建, 发现很简单, 不过遇到了一个问题, 说一下解决办法.
-这个 docker 本地监听的端口是固定的 8388 不能修改, 例如 docker-compose.yml 里面
-server: image: easypi/shadowsocks-libev container_name: wd-ss ports: - &amp;quot;HOST_PORT:8388/tcp&amp;quot; - &amp;quot;HOST_PORT:8388/udp&amp;quot; environment: - METHOD=aes-256-cfb - PASSWORD=5ouMnqPyzseL restart: always  需要配置的是 HOST_PORT METHOD PASSWORD 这三个变量, 然后我还指定了 container_name 方便以后的操作, 不指定会自动产生一个.
-启动服务之后,可以使用 docker logs wd-ss 来看 log, 类似于下面, 这个 docker 启用了 udp relay 和 tcp fast open, 差不多也就够了.</description>
-    </item>
-    
-    <item>
-      <title>Meetings and meetings</title>
-      <link>https://wdicc.com/meetings-and-meetings/</link>
-      <pubDate>Sat, 08 Apr 2017 15:16:49 +0800</pubDate>
-      
-      <guid>https://wdicc.com/meetings-and-meetings/</guid>
-      <description>前几天海龙 在 twitter 的提了一个问题“这个世界上有喜欢开会的人吗？能和我说说理由吗？”。作为开了很多会的人，由不住想说两句。
- 首先，高质量的会应该具备什么呢？我也没看过《罗伯特议事规则》这样的书（放在 kindle 里面好久了一直没看过，汗颜。。），就是自己按照自己参与的情况总结下： 会议前必要的沟通，好确认是不是需要你参加。当然也有一定可能性组织会议的人确认需要你参加而不做沟通（当然也不排除判断错误的时候 QAQ）。 组织会议的人做好前期调研，会议讨论的一些相关方案的基本情况应该需要比较了解。避免好容易召集齐人之后，发现要讨论的内容本身自己互相矛盾，或者需要参会的人没有通知等情况。 邮件通知与会人会议要沟通的内容，和希望达成的目标，让大家提前了解事情的原委。也给大家一个机会提前确认下是不是真的和自己有关系。 有了希望达成的目标，就应该会比较明确具体需要谁参与，比如想要一个明确的决定的时候，却约一个不能拍板的人来，这会议注定不能成功。 会议中有可以控制会议节奏的人主持。能适时的阻止一些无关话题，扯皮，控制会议节奏，避免开大长会和会上吵架。 会议中有人记录会议记录，结束后有人会把会议记录和结论(这个很重要，没有结论的会就是没必要开的会)发给所有人。  下面列几个我作为技术人员常见的一些烂会。
-产品总监派一个刚入职几天业务都没摸清的人召集一帮干了好几年的工程师开会。这种情况下，产品经理大概率会被工程师各种怼，因为他不可能真的熟悉产品，工程师提到的很多可能的问题都不太可能圆满回答，最后会发现要讨论的问题各种依赖性，A 功能不确定的情况下，B 功能可能直接就不存在而没必要讨论了。最后会导致会议非常低效。这个时候所有人都会不爽，技术工程师会认为浪费他的时间，产品经理会认为这些人好难配合。其实锅应该是在产品总监头上。
-跨部门的会议。很多时候莫名其妙就招呼你去开会，到了之后也不知道是讨论什么的，最后听半天发现貌似和自己一毛钱关系都没有，浪费几个小时。当然浪费的是你的时间，组织会议的人其实是有收获的，他明白这事情和你无关。
-头脑风暴会议当作需求讨论会来开。有时候对方可能根本没有明确的想法，你当成最终需求讨论半天指出来其中各种问题，最后发现其实他们根本就确定怎么做呢。这种情况其实就是那个网传的“产品经理找你聊一天，他的需求有了，你的程序还没写”的情况。毕竟需求会的优先级会比头脑风暴要稍微高一点。
-如果作为组织者，就是尽量做到前面提到的好的会议应该具备的条件，避免浪费别人时间。作为参与者，如果有能力，遇到有问题的会议，应该想办法协助会议组织者把会议变高效，提高效率的同时，自己也会节省不必要的时间，我经常这么干，毕竟年轻人不容易。。。。当然，我有时候不一定那么有耐心，遇到垃圾会有时候直接就走了，留他们继续浪费时间。
-再回到海龙的问题，我的回答是有些人为了合理的浪费时间，是会喜欢开会的，因为这样会让别人觉得他的时间安排很充实，因为整天不在座位，在忙。不知道各位开会的时候有没有遇到一些人全部时间都是在刷手机，只是偶尔说一两句话？这些人就是我说的这种人。我如果遇到我没兴趣的会或者和我无关的会议，我会直接和组织的人申请离开，如果确实后面和我有关系，那麻烦到了时间点叫我（当然你也得保证下到时可以随叫随到，避免浪费其他参会人的时间等你），当然，呃…… 如果我碰巧也想合理的浪费一下时间。。。。
-这些人一般都需要是 leader，至少有人在给他创造 GDP 的，否则一个手头很多工作要干的人，你让他开这种无意义的会他自己也不答应，否则其他工作完不成无法交代的。不过某种意义上讲，这些人也是有贡献的，至少能组织一些人贡献 GDP 就是贡献。
-感觉跨职业跨部门的会比较容易产生垃圾会，因为看问题角度不一样，有时候会比较难互相理解。我们技术人员很多时候开会，都是找一块白板，画几个图，大家就都明白了，很快就能出决议，不能定的一般可能是需要 leader 拍板的。
-同一个部门的会大家会接触比较多比较容易妥协，能接受自己多花点时间或者吃点小亏来完成一个事情。这其实也是所谓的拓展，团队活动，年会想要达到的目的，如果大家都很熟悉的情况下，就比较容易站在对方的角度想问题，遇到事情容易妥协。
-上面提到的这些问题其实越大的公司问题越多，反而小公司比较少，因为头绪少，并且大家都比较熟悉的缘故。当然实在遇到一个比较弱的会议组织者，烂会也不可避免。</description>
-    </item>
-    
-    <item>
-      <title>Something about cruise tour</title>
-      <link>https://wdicc.com/something-about-cruise-tour/</link>
-      <pubDate>Mon, 20 Mar 2017 20:41:10 +0800</pubDate>
-      
-      <guid>https://wdicc.com/something-about-cruise-tour/</guid>
-      <description>之前知道邮轮游一直没有体验过，据说是在上面各种滚来滚去看书，因为手机没有信号，没有网络。前几天体验了一把，总结一下。
-一句话总结 这上面有你讨厌的所有因素，大妈，广场舞，广场卡拉 ok，小孩子，无序，占座，插队，甚至最后一天还目睹了两起吵架。
-邮轮游玩什么 我参加的是歌诗达幸运号（Costa Fortun），邮轮上面估计 80% 都是各种大爷大妈，带着女儿外孙。你可以想象一下，平时最不喜欢的组合在这里最全了。
-邮轮上面有免费的自助餐和一些特别的餐食，比如批萨，面条，猪排什么的。也有收费的餐食，当然你可以不去。酒和软饮都是收费的，开饭的时候有免费的白水给你喝，屋子里面是没有的。
-邮轮上面一般有大量的娱乐设施，比如赌场，游戏机，泳池，桑拿，剧场等。还定期有各种娱乐活动，比如猜个字啊，跳个舞什么的。所以第一次去还是可以看个新鲜的，尤其可能还有一些漂亮的陪玩 mm，看着也还可以。游戏机赌场是收费的，恩。
-此外剧场每天基本都会有一场大型的演出，30-40 分钟，可以让你打发时间。但是剧场虽然每天演出内容不一样，但是演员总是那一波，看多了其实也会腻味。
-房间里面也有电视，不过我观察电视都是反复重播录下来的一些电视，然后有一个电影台还是只有那么几部反复重复播放，《x man 天启》我看了不下 10 遍。
-小孩也有人给带着玩游戏，有专门的儿童俱乐部。还有健身房，健身房是我唯一对这次邮轮活动满意的地方，当然肯定不是对环境满意，毕竟里面充满了大爷大妈，满意的地方主要是在设备，设备真心不错。浴室和换衣间地板异常干净，比起我家楼下的奥力，简直天上地下。
-邮轮一般有那么1，2天是下船，我们这次的安排很屎，景点很无聊，低接导游也只是对购物有兴趣，购物店虽然不贵，但是东西比较少，挺没意思的。
-让人反感的几个瞬间 排队上邮轮的时候，过安检的时候就一条队排的特别粗，到了最后那变细互相挤着往前走。我们后面有个阿姨就各种急着往你前面走，我老婆发现之后就故意挤着不让，我看的笑死，呵呵。
-第一天必须做逃生演习。有个大爷一家推着小车带着孩子，孩子可能没一会睡着了。而演习是需要所有人参加的，所以就不得不等比较慢的人。大爷就生气了，开始呵斥工作人员，「孩子都睡着了，啥时候开始」之类的，声音巨大。工作人员大都是外籍，估计也吓了一跳。最后结束的时候，大爷还过去指着那个工作人员不知道说了什么。
-剧院演出，基本前三四排上面都是东西占座的。除非你提前半个小时到。另外就是各种小孩大声说话也没人管。有时候酒吧做游戏，工作人员都明确说了游戏可能比较激烈，让大家把小孩弄走，但是看着一个女的抱着小孩几次被劝离之后还是要上去玩，貌似还是上去让小孩参与。
-昨天有个游戏，几个被淘汰的大妈，悄悄的跑回去继续参与，也有跑回去被发现之后赶走，再次跑回去的，当着一百来号人目睹就那么做，真的无语。
-今天下船之前大家集中在一个地方等着，有个姥爷带着孙女玩气球。有个哥们玩心重，带了个面具就冲那小孩过去了，小孩吓的赶紧跑到了姥爷后面，那个哥们就走了。过了半分钟小孩反映过来开始哭，那姥爷就开始不爽了。后来他们全家，追着那小伙骂，最后把面具也抢过来了，还要护照说要以后有啥毛病要找他。纠缠了能有10分钟。
-这只是记得起来的几个，反正年轻人真的不建议去邮轮了。如果是自己父母，倒是可以推荐去，他们应该喜欢。</description>
-    </item>
-    
-    <item>
-      <title>My way to keep fit</title>
-      <link>https://wdicc.com/my-way-to-keep-fit/</link>
-      <pubDate>Mon, 13 Mar 2017 15:19:30 +0800</pubDate>
-      
-      <guid>https://wdicc.com/my-way-to-keep-fit/</guid>
-      <description>目前第一阶段减肥基本告一段落，后面目标是保持目前体重 6 个月。
-先聊聊结果 2014 年 9 月份前，我的体重最高到 98kg，甚至有时候超过了 100kg。第一阶段减肥可能截止到 2016 年中，减到体重大概是 92kg。第二阶段开始于 2016 年 2 月底，截止到今天体重 80kg。整体算下来减掉 40 斤。
-第一阶段 2014 年开始我发现一种比较简单的减肥方法，就是不吃或者少吃晚饭。
-这个方法应该不一定对所有人适用。我估计应该只对 BMI(Body Mass Index, 身体质量指数，注意和体脂率不是一个东西)比较高的人有用吧。
-我当时 BMI 是 98/1.77^2=31.28 是属于比较高的，坚持了上面的方法半年之后，大概最瘦的时候是 28，我查了是刚好脱离了肥胖那一档，进入了过重。
-我当时所在的公司的上班时间是 10:00 - 19:00，但是经常出现 20:00 以后才从公司走的情况，这样我到家经常是 21:30 或者 22:00 以后。这个时候吃晚饭就太晚了，基本吃饭完了就睡觉了。并且，中午吃饭到这个时候，一般其实已经饿过劲了，那个时间反而没有那么饿了，我就慢慢开始晚上到家之后只吃几个水果。后来慢慢转为不吃东西，或者只吃很少的水果。有时候也会遇到快下班的时候非常饿，这个时候吃点小零食，也就可以了。这种方式减肥，早上和中午基本不控制自己，还是吃的比较好的。
-上面说了，这个阶段减掉了大概 10 多斤。中午饮食基本不控制，晚上不吃，或者很少吃（一个月有那么一两次推不开的）。
-第二阶段 大概是从今年 2 月底从日本回来，开始实施，方法是锻炼加节食。
-锻炼的内容是 60 分钟椭圆机（我用的机器难度是 5，不同机器可能不一样），30 分钟运动后拉伸，30 分钟游泳。大概是每周 1，2，4，5 去，一周会休息三天。锻炼毕竟比较枯燥，所以需要中间休息一下调剂一下心情，如果你的体力耐力跟的上，可以不休息。
-上面的强度下来，进度大概是一周 3kg。我的情况 3 月 25 是 88.6kg，5 月 2 是 81.7kg，5.5 是 80kg。为什么比较慢呢？在这两个月内，我参加了一趟邮轮游大概一周，去了一趟沈阳，大概一周，还去了一趟日本大概一周。所以如果坚持应该可以更快，但是快速减重我感觉应该可能会有副作用，所以我也基本也是控制减一点，保持几天这样子，不让这个减重太快。另外，这段时间我是全职减肥，所以没有工作上面的压力，可能速度相对快一点。</description>
     </item>
     
   </channel>

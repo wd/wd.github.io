@@ -6,10 +6,39 @@
     <description>Recent content in Linux on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 27 Mar 2016 11:50:38 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 02 Jul 2018 16:47:31 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/tags/linux/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Boot Linux Through PXE</title>
+      <link>https://wdicc.com/boot-linux-through-pxe/</link>
+      <pubDate>Mon, 02 Jul 2018 16:47:31 +0800</pubDate>
+      
+      <guid>https://wdicc.com/boot-linux-through-pxe/</guid>
+      <description>测试 porteus 的时候，每次都是做好 iso 之后写到一个 u 盘，然后用 u 盘启动看看效果，发现有点蛋疼，这浪费时间不说，我的 u 盘寿命估计也得少一截。就研究了一下 pxe 启动，这样每次改完之后通过 pxe 直接读取我改了之后的 iso 引导 linux 就好了。
+我这看 pxe 启动主要需要做两个事情，一个是 dhcp 的时候广播 tftp 的信息，一个是通过 nfs 共享给那个系统需要读取的文件。nfs 共享也可以改用 http 等其他服务。
+dnsmasq 广播 tftp 的信息，可以通过 dnsmasq 来做。dhcp 部分就不贴了，只贴 tftp 相关的。
+tftp-root=/srv/pxe/boot dhcp-boot=/pxelinux.0 enable-tftp  网卡启动的时候会获取 /pxelinux.0 然后获取 /pxelinux.cfg/default （这个实际上有一个判断顺序，方便给不同的机器不同的配置）。然后根据这里面的配置，获取内核信息。然后加载内核。
+nfs 加载内核之后还需要系统文件，这个时候貌似有几个选择，比如通过 http 发送。我这用的是 nfs。想要通过 nfs 发送，内核得能支持 nfs mount。各 linux 的做法貌似不太一样。
+配置 nfs 的目录，在 /etc/exports 里面加入类似这样的信息。
+/srv/pxe/porteus *(ro,fsid=0,no_subtree_check) /srv/pxe/storage *(rw,fsid=1,no_root_squash,no_subtree_check)  然后 exportfs -rv ，这样 nfs 设置好了。</description>
+    </item>
+    
+    <item>
+      <title>Grub2 and UEFI</title>
+      <link>https://wdicc.com/grub2-and-uefi/</link>
+      <pubDate>Fri, 29 Jun 2018 20:03:54 +0800</pubDate>
+      
+      <guid>https://wdicc.com/grub2-and-uefi/</guid>
+      <description>这几天搞 Linux 又学习了一些新的东西。
+以前都是把 grub 装到 MBR，然后通过 grub 可以 chainloader 启动 windows。现在发现我装了之后并不能启动我的 windows 10 了，就只好研究了一下。
+GPT 分区 以前都是 MBR(Master Boot Record) 形式的分区，主分区 4 个，如果想要建更多，需要建扩展分区，然后再在扩展分区里面建立逻辑分区。现在发现有了 GPT(GUID Partition Table) 分区。这个方式呢，比 MBR 方式有好处，支持更多分区，支持大于 2.2TB 容量的磁盘。
+我看我的 windows 10 机器预装就是用的这个分区格式。
+UEFI 系统 UEFI(Unified Extensible Firmware Interface) 是基于 BIOS 的 MBR 启动方式不同的东西，是基于单独的 EFI System Partition(ESP) 里面的数据启动的。里面的程序都需要和 UEFI firmware 的 bitness 一致，x86_64 啥的。
+所以我的 windows 10 在 ESP 分区里面已经放了一个自己的起动器。Linux 启动之后，可以查看 /sys/firmware/efi 看看是不是有，有的话表示 kernel 支持 efi，且和 firmware 的 bitness 一致。</description>
+    </item>
     
     <item>
       <title>Custom Netgear r6300v2 wireless router</title>
@@ -448,31 +477,6 @@ emacs manual 里面关于列编辑的页面。emacs 里面那个默认的列编�
       <description>用 emacs 的应该都知道 org-mode 这个大杀器，一直以来都想在工作里面用上他，可总是习惯不了。
 这几天尝试把 org-mode 打造成了我的一个 job tracker，用来记录自己的 todo 和完成情况。
 ;; ;; org-mode ;; ;; (setq org-agenda-files &#39;(&#34;~/org&#34;)) (setq org-agenda-files (file-expand-wildcards &#34;~/org/*.org&#34;)) ;; 把 ~/org/*.org 都加入到 agenda 里面，使用 C-c a a 看 agenda 的时候，会从这些文件里面读 (add-to-list &#39;auto-mode-alist &#39;(&#34;\\.org$&#34; . org-mode)) (define-key global-map &#34;\C-cl&#34; &#39;org-store-link) (define-key global-map &#34;\C-ca&#34; &#39;org-agenda) (setq org-log-done t) ;; 变到 done 状态的时候，记录一下时间 (add-hook &#39;org-mode-hook (lambda () (org-set-local &#39;yas/trigger-key [tab]) (define-key yas/keymap [tab] &#39;yas/next-field-group))) (setq org-todo-keywords &#39;((sequence &#34;</description>
-    </item>
-    
-    <item>
-      <title>使用 grep sort 等工具的时候要注意 LANG 的设置</title>
-      <link>https://wdicc.com/lang-settings-when-use-grep-or-sort/</link>
-      <pubDate>Mon, 12 Jul 2010 00:00:00 +0000</pubDate>
-      
-      <guid>https://wdicc.com/lang-settings-when-use-grep-or-sort/</guid>
-      <description>发现在使用 sort 或 grep 等工具的时候，LANG 会影响到速度。
-1.5G 的文件，grep -Ei &#39;keyword&#39; file, LANG=C 的时候执行时间是 22 秒，LANG=en_US.UTF-8 的时候，执行时间是 3分53秒，最后结果是一样的。
-这还不是最恐怖的，恐怖的是下面的
-$ cat a a b C d E $ LANG=en_US.UTF-8 egrep &#39;[a-z]&#39; a a b C d E $ LANG=C egrep &#39;[a-z]&#39; a a b d 
-以后用这些工具还是小心一点吧。。。。。</description>
-    </item>
-    
-    <item>
-      <title>无聊又写一个用来发邮件的 pm..</title>
-      <link>https://wdicc.com/sendmail-pm/</link>
-      <pubDate>Fri, 09 Jul 2010 00:00:00 +0000</pubDate>
-      
-      <guid>https://wdicc.com/sendmail-pm/</guid>
-      <description>继使用 perl 发中文标题邮件，和中文附件邮件后，又把他们整合了一下写了一个 pm 干这个事。
-其实发带附件的邮件应该是有现成的 pm 干这个事的，比如 MIME::Lite 之类，没特殊需求还是用那个吧，这个纯属无聊写的。
-文件前面有使用方法。。
-package SendMail; use strict; use warnings; use Data::Dumper; use Encode; use MIME::Base64; =head1 Examples use SendMail; my $sm = SendMail-new( { To = &#39;you@foo.com, other@bar.com&#39;, Subject = &#39;just a test 中文&#39;, }); -- or -- my $sm = SendMail-new( { From = &#39;me@abc.com&#39;, To = &#39;you@foo.com, other@bar.com&#39;, Subject = &#39;just a test 中文&#39;, } ); -- or -- my $sm = SendMail-new( { From = &#39;me@abc.</description>
     </item>
     
   </channel>

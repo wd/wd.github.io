@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Boot Linux Through PXE | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+
+  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
+  <script src="https://wdicc.com//js/hljs.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Boot Linux Through PXE</span></h1>
+
+<h2 class="date">2018/07/02</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/linux">linux</a> <a href="/tags/pxe">pxe</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p>测试 porteus 的时候，每次都是做好 iso 之后写到一个 u 盘，然后用 u 盘启动看看效果，发现有点蛋疼，这浪费时间不说，我的 u 盘寿命估计也得少一截。就研究了一下 pxe 启动，这样每次改完之后通过 pxe 直接读取我改了之后的 iso 引导 linux 就好了。</p>
+
+<p>我这看 pxe 启动主要需要做两个事情，一个是 dhcp 的时候广播 tftp 的信息，一个是通过 nfs 共享给那个系统需要读取的文件。nfs 共享也可以改用 http 等其他服务。</p>
+
+<h2 id="dnsmasq">dnsmasq</h2>
+
+<p>广播 tftp 的信息，可以通过 dnsmasq 来做。dhcp 部分就不贴了，只贴 tftp 相关的。</p>
+
+<pre><code>tftp-root=/srv/pxe/boot
+dhcp-boot=/pxelinux.0
+enable-tftp
+</code></pre>
+
+<p>网卡启动的时候会获取 <code>/pxelinux.0</code> 然后获取 <code>/pxelinux.cfg/default</code> （这个实际上有一个判断顺序，方便给不同的机器不同的配置）。然后根据这里面的配置，获取内核信息。然后加载内核。</p>
+
+<h2 id="nfs">nfs</h2>
+
+<p>加载内核之后还需要系统文件，这个时候貌似有几个选择，比如通过 http 发送。我这用的是 nfs。想要通过 nfs 发送，内核得能支持 nfs mount。各 linux 的做法貌似不太一样。</p>
+
+<p>配置 nfs 的目录，在 <code>/etc/exports</code> 里面加入类似这样的信息。</p>
+
+<pre><code>/srv/pxe/porteus *(ro,fsid=0,no_subtree_check)
+/srv/pxe/storage *(rw,fsid=1,no_root_squash,no_subtree_check)
+</code></pre>
+
+<p>然后 <code>exportfs -rv</code> ，这样 nfs 设置好了。</p>
+
+<p>我这 export 的目录和上面 tftp-root 的目录不一样，有的发行版可能会按照 tftp-root 的设置来读取，这个还得区分发行版看。</p>
+
+<h2 id="其他">其他</h2>
+
+<p>上面的例子只是写了一个大高，是实际使用相差很大。比如如何得到 <code>pxelinux.0</code> ，如何让内核支持 nfs，以及在内核启动的时候加载 nfs 并使用 nfs 的数据启动，这些都和发行版有关系，还需要单看。</p>
+
+<ul>
+参考
+<li><a href="https://www.syslinux.org/wiki/index.php?title=PXELINUX" title="PXELINUX">PXELINUX</a></li>
+</ul>
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer style="clear:both">
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

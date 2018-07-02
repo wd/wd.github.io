@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Compile Kernel Module | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+
+  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
+  <script src="https://wdicc.com//js/hljs.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Compile Kernel Module</span></h1>
+
+<h2 class="date">2018/07/02</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/kernel">kernel</a> <a href="/tags/porteus">porteus</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p>使用 porteus 的时候，发现网卡不支持，找了一下发现有内核驱动可以用，那就需要编译一下内核的模块。</p>
+
+<p><a href="http://www.porteus.org/component/content/article/20-tutorials/development/91-compilation-and-usage-of-custom-porteus-kernel.html" title="这里">这里</a>有一个帖子写了如何编译内核，主要步骤是先给内核打 aufs 的补丁，然后就是正常的 make config && make && make modules_install 了。</p>
+
+<p>我这只是编译一个网卡驱动，操作步骤大概如下，把内核解压放到 /mnt/sda1/kernel 下面，然后把网卡驱动代码放到 /mnt/sda1/kernel/linux-4.16.3/drivers/net/wireless/rtl8821ce 下面。</p>
+
+<pre><code># cd /mnt/sda1/kernel/linux-4.16.3/
+# modprobe configs &amp;&amp; zcat /proc/config.gz &gt; .config
+# make oldconfig
+# make prepare
+# make modules_prepare
+# export srctree=/mnt/sda1/kernel/linux-4.16.3
+# ln -s /mnt/sda1/kernel/linux-4.16.3 /usr/src/linux
+# cd drivers/net/wireless/rtl8821ce
+# make
+</code></pre>
+
+<p>然后在这个目录下面会产生一个 rtl8821ce.ko 的文件。</p>
+
+<p>如果是遇到自己用的内核有一个模块没编译，那可以用下面的方式</p>
+
+<pre><code># after make modules_prepare
+# make modules SUBDIRS=drivers/firmware/efi/
+</code></pre>
+
+<p>这样会在 drivers/firmware/efi/ 目录下面产生一个 xx.ko 之类的文件。</p>
+
+<p>把上面产生的 ko 文件放到你的 linux 的对应目录就可以使用 modprob 加载了，例如 <code>/lib/modules/4.16.3-porteus/kernel/drivers/net/wireless/8821ce.ko</code> 。</p>
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer style="clear:both">
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Geodesy | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+
+  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
+  <script src="https://wdicc.com//js/hljs.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Geodesy</span></h1>
+
+<h2 class="date">2018/07/01</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/geo">geo</a> <a href="/tags/javascript">javascript</a> 
+  
+  
+</p>
+</div>
+
+
+
+<main>
+<p>坐标点之间的距离角度计算不能简单的用平面几何来算，得按照球面计算，PostgreSQL 提供了 gis 数据的计算支持，各种图形关系判断，距离计算等等。但是我们有时候也需要在 js 里面计算，开始的时候尝试自己按照公式写来着，写了一些发现太蛋疼了，因为只是单纯的看公式，缺少空间概念，算的对不对啥的都不知道。后来发现了这个 <a href="https://github.com/chrisveness/geodesy" title="js 库">js 库</a>，简直太贴心了。</p>
+
+<ol>
+提供了我用过的几个功能
+<li>度数表示转换，小数点形式到度分秒形式的互转。在 utm.js 里面。</li>
+<li>计算线的真北角。point1.bearingTo(point2)，真北角计算是和线的方向有关系的。</li>
+<li>和当前点夹角是 x，距离是 y 的点，point1.destinationPoint(y, x)。</li>
+<li>两点之间的距离，point1.distanceTo(point2)</li>
+</ol>
+
+<p>然后顺便记录一些东西。</p>
+
+<pre><code class="language-javascript">// 两条线的夹角的一半，普通角度
+let angle = (360 + 180 + bearing1 - bearing2) % 360 // 360 保证只有正的
+let halfAngle = angle &gt; 180 ? (360 - angle)/2 : angle/2 // 只要锐角
+
+// 计算两条线夹角中线的真北角
+// left,right bearing 需要是真北角
+let rightBearing = 90 + (bearing1 + bearing2)/2
+let leftBearing = 180 + rightBearing
+
+// Math.sin 之类的方法使用的应该是小数形式的度数表示
+let angleToDecimal = halfAngle*Math.PI/180
+</code></pre>
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer style="clear:both">
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

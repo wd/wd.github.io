@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Uefi on wd and cc</title>
+    <link>https://wdicc.com/tags/uefi/</link>
+    <description>Recent content in Uefi on wd and cc</description>
+    <generator>Hugo -- gohugo.io</generator>
+    <language>zh-cn</language>
+    <lastBuildDate>Sat, 30 Jun 2018 07:30:58 +0800</lastBuildDate>
+    
+	<atom:link href="https://wdicc.com/tags/uefi/atom.xml" rel="self" type="application/rss+xml" />
+    
+    
+    <item>
+      <title>UEFI Bootable Usb</title>
+      <link>https://wdicc.com/uefi-bootable-usb/</link>
+      <pubDate>Sat, 30 Jun 2018 07:30:58 +0800</pubDate>
+      
+      <guid>https://wdicc.com/uefi-bootable-usb/</guid>
+      <description>UEFI shell UEFI firmware 应该会读取设备里面的分区，找到 ESP 然后再读里面的内容。我看到最简单的方式是把 u 盘格式化成 fat 然后建一个目录 /boot/efi 然后下载一个 uefi shell 把 .efi 文件放到这个目录 /boot/efi/shellx64.efi ，然后启动的时候就多了一个 uefi 菜单了，选择之后可以进入一个 uefi shell。
+uefi shell 里面有几个命令可以用。
+map map 可以列出来当前机器的磁盘情况，找到你的 esp 分区。
+ls ls 可以列出来磁盘目录里面的内容，比如 ls fs0:\boot ，注意磁盘和目录之间用 : ，目录层级之间用 \ 。
+bcfg 可以通过 bcfg boot dump -v 列出来当前所有的 efi 菜单，注意每个项目都有一个序号，后面会用到。
+比如我想自己加一个菜单进去，那就找到最后那个的序号，然后执行 bcfg add 8 fs0:\boot\grub\grubx64.efi GRUB (fat 系统不区分大小写)，指向我自己通过 grub-install --efi-directory=/mnt/sda1/ 放到 esp 分区的 grub 的 efi ，这样启动的时候就多了一个 GRUB 的选项，通过这个选项就可以进入 linux，然后使用更方便的 efibootmgr 来编辑这个菜单了。</description>
+    </item>
+    
+    <item>
+      <title>Grub2 and UEFI</title>
+      <link>https://wdicc.com/grub2-and-uefi/</link>
+      <pubDate>Fri, 29 Jun 2018 20:03:54 +0800</pubDate>
+      
+      <guid>https://wdicc.com/grub2-and-uefi/</guid>
+      <description>这几天搞 Linux 又学习了一些新的东西。
+以前都是把 grub 装到 MBR，然后通过 grub 可以 chainloader 启动 windows。现在发现我装了之后并不能启动我的 windows 10 了，就只好研究了一下。
+GPT 分区 以前都是 MBR(Master Boot Record) 形式的分区，主分区 4 个，如果想要建更多，需要建扩展分区，然后再在扩展分区里面建立逻辑分区。现在发现有了 GPT(GUID Partition Table) 分区。这个方式呢，比 MBR 方式有好处，支持更多分区，支持大于 2.2TB 容量的磁盘。
+我看我的 windows 10 机器预装就是用的这个分区格式。
+UEFI 系统 UEFI(Unified Extensible Firmware Interface) 是基于 BIOS 的 MBR 启动方式不同的东西，是基于单独的 EFI System Partition(ESP) 里面的数据启动的。里面的程序都需要和 UEFI firmware 的 bitness 一致，x86_64 啥的。
+所以我的 windows 10 在 ESP 分区里面已经放了一个自己的起动器。Linux 启动之后，可以查看 /sys/firmware/efi 看看是不是有，有的话表示 kernel 支持 efi，且和 firmware 的 bitness 一致。</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -6,10 +6,339 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 13 May 2018 10:43:28 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 02 Jul 2018 16:47:31 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Boot Linux Through PXE</title>
+      <link>https://wdicc.com/boot-linux-through-pxe/</link>
+      <pubDate>Mon, 02 Jul 2018 16:47:31 +0800</pubDate>
+      
+      <guid>https://wdicc.com/boot-linux-through-pxe/</guid>
+      <description>&lt;p&gt;测试 porteus 的时候，每次都是做好 iso 之后写到一个 u 盘，然后用 u 盘启动看看效果，发现有点蛋疼，这浪费时间不说，我的 u 盘寿命估计也得少一截。就研究了一下 pxe 启动，这样每次改完之后通过 pxe 直接读取我改了之后的 iso 引导 linux 就好了。&lt;/p&gt;
+
+&lt;p&gt;我这看 pxe 启动主要需要做两个事情，一个是 dhcp 的时候广播 tftp 的信息，一个是通过 nfs 共享给那个系统需要读取的文件。nfs 共享也可以改用 http 等其他服务。&lt;/p&gt;
+
+&lt;h2 id=&#34;dnsmasq&#34;&gt;dnsmasq&lt;/h2&gt;
+
+&lt;p&gt;广播 tftp 的信息，可以通过 dnsmasq 来做。dhcp 部分就不贴了，只贴 tftp 相关的。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;tftp-root=/srv/pxe/boot
+dhcp-boot=/pxelinux.0
+enable-tftp
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;网卡启动的时候会获取 &lt;code&gt;/pxelinux.0&lt;/code&gt; 然后获取 &lt;code&gt;/pxelinux.cfg/default&lt;/code&gt; （这个实际上有一个判断顺序，方便给不同的机器不同的配置）。然后根据这里面的配置，获取内核信息。然后加载内核。&lt;/p&gt;
+
+&lt;h2 id=&#34;nfs&#34;&gt;nfs&lt;/h2&gt;
+
+&lt;p&gt;加载内核之后还需要系统文件，这个时候貌似有几个选择，比如通过 http 发送。我这用的是 nfs。想要通过 nfs 发送，内核得能支持 nfs mount。各 linux 的做法貌似不太一样。&lt;/p&gt;
+
+&lt;p&gt;配置 nfs 的目录，在 &lt;code&gt;/etc/exports&lt;/code&gt; 里面加入类似这样的信息。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;/srv/pxe/porteus *(ro,fsid=0,no_subtree_check)
+/srv/pxe/storage *(rw,fsid=1,no_root_squash,no_subtree_check)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后 &lt;code&gt;exportfs -rv&lt;/code&gt; ，这样 nfs 设置好了。&lt;/p&gt;
+
+&lt;p&gt;我这 export 的目录和上面 tftp-root 的目录不一样，有的发行版可能会按照 tftp-root 的设置来读取，这个还得区分发行版看。&lt;/p&gt;
+
+&lt;h2 id=&#34;其他&#34;&gt;其他&lt;/h2&gt;
+
+&lt;p&gt;上面的例子只是写了一个大高，是实际使用相差很大。比如如何得到 &lt;code&gt;pxelinux.0&lt;/code&gt; ，如何让内核支持 nfs，以及在内核启动的时候加载 nfs 并使用 nfs 的数据启动，这些都和发行版有关系，还需要单看。&lt;/p&gt;
+
+&lt;ul&gt;
+参考
+&lt;li&gt;&lt;a href=&#34;https://www.syslinux.org/wiki/index.php?title=PXELINUX&#34; title=&#34;PXELINUX&#34;&gt;PXELINUX&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Install Porteus to HD</title>
+      <link>https://wdicc.com/install-porteus-to-hd/</link>
+      <pubDate>Mon, 02 Jul 2018 16:23:54 +0800</pubDate>
+      
+      <guid>https://wdicc.com/install-porteus-to-hd/</guid>
+      <description>&lt;p&gt;&lt;a href=&#34;http://porteus.org/&#34; title=&#34;Porteus&#34;&gt;Porteus&lt;/a&gt; 是一个很好玩的系统，他基于 aufs 弄出来的一个「只读」系统，说是只读，实际上他也可以把修改保存到一个硬盘目录，然后启动的时候自动加载这些修改，这样就修改都还在。但是如果把这个目录删除，那么修改就都没有了，这就是所谓的只读。&lt;/p&gt;
+
+&lt;p&gt;我开始的需求是需要搞一个 linux，然后给用户使用，并且希望用户只能用浏览器，不能使用其他东西，因为我们提供的服务就是一个网页。不能使用其他东西是为了避免使用的时候导致系统奔溃什么的，还得派人花时间去维护。然后看到有人推荐 &lt;a href=&#34;http://porteus-kiosk.org/index.html&#34; title=&#34;Kiosk&#34;&gt;Kiosk&lt;/a&gt;，看了一下感觉这个东西太完美了，就是我想要的东西。然后就开始研究这个系统。研究的过程中发现了他是基于 Porteus 的，就开始看 porteus。&lt;/p&gt;
+
+&lt;p&gt;Kiosk 确实也不错，但是我使用的时候想要定制支持中文输入法，打印机等设备，然后发现他阉割加定制的太多了，导致我看了几天居然还没有找到他的入口在哪里，尝试想搞定输入法，费了很多劲。kiosk 使用的是 openbox + tint2 ，后面看了 porteus 之后，他支持 mate，kde 这些桌面，并且也直接就支持 scim，所以打算还是基于这个定制比较简单一点。&lt;/p&gt;
+
+&lt;p&gt;具体定制就不多说了，主要是定制好 iso 之后，怎么安装到硬盘。&lt;/p&gt;
+
+&lt;p&gt;其实也相当简单，只需要把 u 盘上面的内容复制到一个硬盘分区，然后安装一个 bootloader 就可以了。&lt;/p&gt;
+
+&lt;p&gt;安装 bootloader 的时候由于对这个东西不是特别熟悉，以及这么多年不搞 linux 之后又出来很多新的概念，所以走了一些弯路，一番&lt;a href=&#34;https://wdicc.com/grub2-and-uefi/&#34; title=&#34;学习&#34;&gt;学习&lt;/a&gt;之后，发现简单的很。可以参考&lt;a href=&#34;https://wdicc.com/grub2-and-uefi/#grub&#34; title=&#34;这里&#34;&gt;这里&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;然后就是需要弄一个 &lt;code&gt;grub.cfg&lt;/code&gt; 就可以了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;set timeout=1
+set superusers=root
+password_pbkdf2 root grub.pbkdf2.sha512.10000.xxxxxxxx
+password guest guest
+
+if [ x&amp;quot;$default&amp;quot; = xsaved ];then
+ load_env;
+ set default=&amp;quot;$saved_entry&amp;quot;;
+fi
+
+insmod vbe
+insmod efi_gop
+insmod efi_uga
+
+insmod font
+insmod part_gpt
+
+search --label --no-floppy --set kgzx KGZX
+set prefix=($kgzx)/boot/grub
+
+if loadfont $prefix/fonts/unicode.pf2
+then
+    insmod gfxterm
+    set gfxmode=auto
+    set gfxpayload=keep
+    terminal_output gfxterm
+    insmod png
+    background_image $prefix/grub.png
+fi
+
+menuentry &#39;我的系统&#39; --unrestricted {
+  set root=&amp;quot;($kgzx)&amp;quot;
+  linux /boot/syslinux/vmlinuz changes=/mnt/sda4/
+  initrd /boot/syslinux/initrd.xz
+  boot
+}
+
+menuentry &#39;Cleanup&#39; --users &amp;quot;guest&amp;quot; {
+  set root=&amp;quot;($kgzx)&amp;quot;
+  linux   /boot/syslinux/vmlinuz 3 restore=1
+  initrd /boot/syslinux/initrd.xz
+  boot
+}
+
+menuentry &#39;Backup&#39; --users &amp;quot;root&amp;quot; {
+  search --file --set root /efi/Microsoft/Boot/bootmgfw.efi
+  chainloader /efi/Microsoft/Boot/bootmgfw.efi
+  boot
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果只是使用 mbr 方式，也可以用 grub-legacy 也就是 0.97 那个版本，安装操作类似的，grub.cfg 不一样，那个是叫做 &lt;code&gt;menu.lst&lt;/code&gt; 。然后那个版本不支持 uefi boot 和中文菜单。好像也不支持菜单设置密码？没啥特别的建议还是 grub2 吧。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Compile Kernel Module</title>
+      <link>https://wdicc.com/compile-kernel-module/</link>
+      <pubDate>Mon, 02 Jul 2018 16:13:56 +0800</pubDate>
+      
+      <guid>https://wdicc.com/compile-kernel-module/</guid>
+      <description>&lt;p&gt;使用 porteus 的时候，发现网卡不支持，找了一下发现有内核驱动可以用，那就需要编译一下内核的模块。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;http://www.porteus.org/component/content/article/20-tutorials/development/91-compilation-and-usage-of-custom-porteus-kernel.html&#34; title=&#34;这里&#34;&gt;这里&lt;/a&gt;有一个帖子写了如何编译内核，主要步骤是先给内核打 aufs 的补丁，然后就是正常的 make config &amp;&amp; make &amp;&amp; make modules_install 了。&lt;/p&gt;
+
+&lt;p&gt;我这只是编译一个网卡驱动，操作步骤大概如下，把内核解压放到 /mnt/sda1/kernel 下面，然后把网卡驱动代码放到 /mnt/sda1/kernel/linux-4.16.3/drivers/net/wireless/rtl8821ce 下面。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# cd /mnt/sda1/kernel/linux-4.16.3/
+# modprobe configs &amp;amp;&amp;amp; zcat /proc/config.gz &amp;gt; .config
+# make oldconfig
+# make prepare
+# make modules_prepare
+# export srctree=/mnt/sda1/kernel/linux-4.16.3
+# ln -s /mnt/sda1/kernel/linux-4.16.3 /usr/src/linux
+# cd drivers/net/wireless/rtl8821ce
+# make
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后在这个目录下面会产生一个 rtl8821ce.ko 的文件。&lt;/p&gt;
+
+&lt;p&gt;如果是遇到自己用的内核有一个模块没编译，那可以用下面的方式&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# after make modules_prepare
+# make modules SUBDIRS=drivers/firmware/efi/
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样会在 drivers/firmware/efi/ 目录下面产生一个 xx.ko 之类的文件。&lt;/p&gt;
+
+&lt;p&gt;把上面产生的 ko 文件放到你的 linux 的对应目录就可以使用 modprob 加载了，例如 &lt;code&gt;/lib/modules/4.16.3-porteus/kernel/drivers/net/wireless/8821ce.ko&lt;/code&gt; 。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Geodesy</title>
+      <link>https://wdicc.com/geodesy/</link>
+      <pubDate>Sun, 01 Jul 2018 08:10:05 +0800</pubDate>
+      
+      <guid>https://wdicc.com/geodesy/</guid>
+      <description>&lt;p&gt;坐标点之间的距离角度计算不能简单的用平面几何来算，得按照球面计算，PostgreSQL 提供了 gis 数据的计算支持，各种图形关系判断，距离计算等等。但是我们有时候也需要在 js 里面计算，开始的时候尝试自己按照公式写来着，写了一些发现太蛋疼了，因为只是单纯的看公式，缺少空间概念，算的对不对啥的都不知道。后来发现了这个 &lt;a href=&#34;https://github.com/chrisveness/geodesy&#34; title=&#34;js 库&#34;&gt;js 库&lt;/a&gt;，简直太贴心了。&lt;/p&gt;
+
+&lt;ol&gt;
+提供了我用过的几个功能
+&lt;li&gt;度数表示转换，小数点形式到度分秒形式的互转。在 utm.js 里面。&lt;/li&gt;
+&lt;li&gt;计算线的真北角。point1.bearingTo(point2)，真北角计算是和线的方向有关系的。&lt;/li&gt;
+&lt;li&gt;和当前点夹角是 x，距离是 y 的点，point1.destinationPoint(y, x)。&lt;/li&gt;
+&lt;li&gt;两点之间的距离，point1.distanceTo(point2)&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;然后顺便记录一些东西。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;// 两条线的夹角的一半，普通角度
+let angle = (360 + 180 + bearing1 - bearing2) % 360 // 360 保证只有正的
+let halfAngle = angle &amp;gt; 180 ? (360 - angle)/2 : angle/2 // 只要锐角
+
+// 计算两条线夹角中线的真北角
+// left,right bearing 需要是真北角
+let rightBearing = 90 + (bearing1 + bearing2)/2
+let leftBearing = 180 + rightBearing
+
+// Math.sin 之类的方法使用的应该是小数形式的度数表示
+let angleToDecimal = halfAngle*Math.PI/180
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>UEFI Bootable Usb</title>
+      <link>https://wdicc.com/uefi-bootable-usb/</link>
+      <pubDate>Sat, 30 Jun 2018 07:30:58 +0800</pubDate>
+      
+      <guid>https://wdicc.com/uefi-bootable-usb/</guid>
+      <description>&lt;h1 id=&#34;uefi-shell&#34;&gt;UEFI shell&lt;/h1&gt;
+
+&lt;p&gt;UEFI firmware 应该会读取设备里面的分区，找到 ESP 然后再读里面的内容。我看到最简单的方式是把 u 盘格式化成 fat 然后建一个目录 &lt;code&gt;/boot/efi&lt;/code&gt; 然后下载一个 &lt;a href=&#34;https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface#UEFI_Shell&#34; title=&#34;uefi shell&#34;&gt;uefi shell&lt;/a&gt; 把 .efi 文件放到这个目录 &lt;code&gt;/boot/efi/shellx64.efi&lt;/code&gt; ，然后启动的时候就多了一个 uefi 菜单了，选择之后可以进入一个 uefi shell。&lt;/p&gt;
+
+&lt;p&gt;uefi shell 里面有几个命令可以用。&lt;/p&gt;
+
+&lt;h2 id=&#34;map&#34;&gt;map&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;map&lt;/code&gt; 可以列出来当前机器的磁盘情况，找到你的 esp 分区。&lt;/p&gt;
+
+&lt;h2 id=&#34;ls&#34;&gt;ls&lt;/h2&gt;
+
+&lt;p&gt;&lt;code&gt;ls&lt;/code&gt; 可以列出来磁盘目录里面的内容，比如 &lt;code&gt;ls fs0:\boot&lt;/code&gt; ，注意磁盘和目录之间用 &lt;code&gt;:&lt;/code&gt; ，目录层级之间用 &lt;code&gt;\&lt;/code&gt; 。&lt;/p&gt;
+
+&lt;h2 id=&#34;bcfg&#34;&gt;bcfg&lt;/h2&gt;
+
+&lt;p&gt;可以通过 &lt;code&gt;bcfg boot dump -v&lt;/code&gt; 列出来当前所有的 efi 菜单，注意每个项目都有一个序号，后面会用到。&lt;/p&gt;
+
+&lt;p&gt;比如我想自己加一个菜单进去，那就找到最后那个的序号，然后执行 &lt;code&gt;bcfg add 8 fs0:\boot\grub\grubx64.efi GRUB&lt;/code&gt; (fat 系统不区分大小写)，指向我自己通过 &lt;code&gt;grub-install --efi-directory=/mnt/sda1/&lt;/code&gt; 放到 esp 分区的 grub 的 efi ，这样启动的时候就多了一个 GRUB 的选项，通过这个选项就可以进入 linux，然后使用更方便的 efibootmgr 来编辑这个菜单了。&lt;/p&gt;
+
+&lt;ul&gt;
+参考:
+&lt;li&gt;&lt;a href=&#34;https://wiki.archlinux.org/index.php/EFISTUB#UEFI_Shell&#34; title=&#34;UEFI Shell&#34;&gt;UEFI Shell&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;自己制作-iso&#34;&gt;自己制作 iso&lt;/h1&gt;
+
+&lt;p&gt;通过 &lt;a href=&#34;https://www.syslinux.org/wiki/index.php?title=Isohybrid#UEFI&#34; title=&#34;isohybrid&#34;&gt;isohybrid&lt;/a&gt; 可以把一个 iso 做成支持 uefi 的格式，然后通过 dd 写入 u 盘之后，这个 u 盘就支持 uefi 启动了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;mkisofs \
+ -o output.iso \
+ -c boot/syslinux/isolinux.boot \
+ -b boot/syslinux/isolinux.bin \
+  -no-emul-boot -boot-load-size 4 -boot-info-table \
+ -eltorito-alt-boot \
+ -eltorito-platform 0xEF -eltorito-boot isolinux/efiboot.img \
+  -no-emul-boot \
+ CD_ROOT
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;efiboot.img 实际是一个 iso 格式的磁盘 img，可以通过下面的方式产生&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;$ dd if=/dev/zero of=./efiboot.img bs=1M count=4
+$ mount efiboot.img ./mnt
+$ cp -r EFI /mnt
+$ umount /mnt
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;EFI/boot 目录是 efi 启动你自己定义的内容，然后执行 &lt;code&gt;isohybrid --uefi output.iso&lt;/code&gt; 。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Grub2 and UEFI</title>
+      <link>https://wdicc.com/grub2-and-uefi/</link>
+      <pubDate>Fri, 29 Jun 2018 20:03:54 +0800</pubDate>
+      
+      <guid>https://wdicc.com/grub2-and-uefi/</guid>
+      <description>&lt;p&gt;这几天搞 Linux 又学习了一些新的东西。&lt;/p&gt;
+
+&lt;p&gt;以前都是把 grub 装到 MBR，然后通过 grub 可以 chainloader 启动 windows。现在发现我装了之后并不能启动我的 windows 10 了，就只好研究了一下。&lt;/p&gt;
+
+&lt;h2 id=&#34;gpt-分区&#34;&gt;GPT 分区&lt;/h2&gt;
+
+&lt;p&gt;以前都是 MBR(Master Boot Record) 形式的分区，主分区 4 个，如果想要建更多，需要建扩展分区，然后再在扩展分区里面建立逻辑分区。现在发现有了 GPT(GUID Partition Table) 分区。这个方式呢，比 MBR 方式有好处，支持更多分区，支持大于 2.2TB 容量的磁盘。&lt;/p&gt;
+
+&lt;p&gt;我看我的 windows 10 机器预装就是用的这个分区格式。&lt;/p&gt;
+
+&lt;h2 id=&#34;uefi-系统&#34;&gt;UEFI 系统&lt;/h2&gt;
+
+&lt;p&gt;UEFI(Unified Extensible Firmware Interface) 是基于 BIOS 的 MBR 启动方式不同的东西，是基于单独的 EFI System Partition(ESP) 里面的数据启动的。里面的程序都需要和 UEFI firmware 的 bitness 一致，x86_64 啥的。&lt;/p&gt;
+
+&lt;p&gt;所以我的 windows 10 在 ESP 分区里面已经放了一个自己的起动器。Linux 启动之后，可以查看 &lt;code&gt;/sys/firmware/efi&lt;/code&gt; 看看是不是有，有的话表示 kernel 支持 efi，且和 firmware 的 bitness 一致。&lt;/p&gt;
+
+&lt;p&gt;ESP 分区是 fat16/fat32 格式的，不像 mbr 在固定位置，到底是哪个分区是呢？是通过通过分区的 boot flag 这个标志来识别的。&lt;/p&gt;
+
+&lt;h2 id=&#34;efibootmgr&#34;&gt;efibootmgr&lt;/h2&gt;
+
+&lt;p&gt;Linux 下面可以使用 efibootmgr 管理 efi 菜单，当然得 kernel 支持，主要看 &lt;code&gt;/sys/firmware/efi&lt;/code&gt; 目录吧。具体内核参数可以看&lt;a href=&#34;https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface#Linux_kernel_config_options_for_UEFI&#34; title=&#34;这个&#34;&gt;这个&lt;/a&gt;。我看着应该是只有通过 efi 启动的系统，才能读取 efi firmware 的信息。否则就算有内核模块也不能读取。&lt;/p&gt;
+
+&lt;p&gt;我还发现我这的机器上面通过 efibootmgr 删除了 windows 的行之后，启动的时候按 F12 出来的启动选项里面还有 windwos，会自动加回来，不知道是主板的保护还是哪里的问题，bios 里面没找到可以关闭这个功能的地方。&lt;/p&gt;
+
+&lt;h2 id=&#34;grub&#34;&gt;Grub&lt;/h2&gt;
+
+&lt;p&gt;grub 支持安装到 MBR 也支持安装到 ESP 分区。不过只是把内容放到那个分区，最后给 efi 加启动的菜单，还需要 efibootmgr，就是需要相应的内核支持。&lt;/p&gt;
+
+&lt;p&gt;类似这样，就是通过 uefi 启动了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# grub-install --target=x86_64-efi --efi-directory=/mnt/sda1 --bootloader-id=GRUB --boot-directory=/mnt/sda4/boot /dev/sda
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;也可以装到 MBR，就是通过传统的 bios 启动。可能需要加 &lt;code&gt;--force&lt;/code&gt; ，我遇到的情况会提示 gpt 分区的 boot flag 没有，我这直接不理他加 force 就可以。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;# grub-install --boot-directory=/mnt/sda4/boot /dev/sda
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;grub 实际上是放到第一个分区前面的一部分空间里面的，传统的 MBR 方式分区软件一般会预留 31kb 从第 63 个扇区开始分区。对于 GPT 分区，因为会有一个 ESP 分区，grub 也可以直接利用这个，装到这个分区，ESP 分区会有一个 bootable flag，因为这等于是单独给 grub 用的分区，所以 grub 也不客气会直接覆盖里面的东西，用自己的文件系统格式，一般系统都不支持，这样也可以防止你自己或者被其他软件误操作。所以要注意，如果你打算用 efi 模式启动，那通过第一个方式用 &lt;code&gt;--efi-directory&lt;/code&gt; 把 grub 装到这个分区，或者就还是用 mbr 方式好了。参考&lt;a href=&#34;https://www.gnu.org/software/grub/manual/grub/html_node/BIOS-installation.html#BIOS-installation&#34; title=&#34;这个&#34;&gt;这个&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h2 id=&#34;加载-windows&#34;&gt;加载 windows&lt;/h2&gt;
+
+&lt;p&gt;我看可以通过 chainloader 加载 windows，也有 ntldr 加载，不太清楚具体区别。chainloader 是通过读取指定设备的块来的，比如 chainloader +1 读第一个块。或者 chainloader /EFI/Microsoft/Boot/bootmgfw.efi。&lt;/p&gt;
+
+&lt;p&gt;UEFI 模式安装的 windows 可以参考&lt;a href=&#34;https://wiki.archlinux.org/index.php/GRUB#Windows_installed_in_UEFI.2FGPT_Mode_menu_entry&#34; title=&#34;这里&#34;&gt;这里&lt;/a&gt;，传统 MBR 方式的，参考&lt;a href=&#34;https://wiki.archlinux.org/index.php/GRUB#Windows_installed_in_BIOS.2FMBR_mode&#34; title=&#34;这里&#34;&gt;这里&lt;/a&gt;，这个用的是 ntldr 的方式，估计用 chainloader +1 应该也可以。&lt;/p&gt;
+
+&lt;h2 id=&#34;怎么通过-uefi-启动-grub&#34;&gt;怎么通过 uefi 启动 grub&lt;/h2&gt;
+
+&lt;p&gt;想要使用 efibootmgr 编辑 efi 的菜单，就得通过 efi 模式启动到一个 linux。那一种方式是找一个支持 efi 启动的 live cd。另外一种是使用一个 &lt;a href=&#34;https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface#UEFI_Shell&#34; title=&#34;uefi shell&#34;&gt;uefi shell&lt;/a&gt;，可以参考&lt;a href=&#34;https://wdicc.com/uefi-bootable-usb/&#34; title=&#34;这里&#34;&gt;这里&lt;/a&gt;。&lt;/p&gt;
+
+&lt;h2 id=&#34;设备名称是变的怎么办&#34;&gt;设备名称是变的怎么办&lt;/h2&gt;
+
+&lt;p&gt;我发现我这插了 u 盘之后，u 盘就成了 hd0 了，这样写在 grub.cfg 里面的 &lt;code&gt;set root=&amp;quot;(hd0,1)&amp;quot;&lt;/code&gt; 这样的代码就有问题了。grub2 提供了一个 &lt;a href=&#34;https://www.gnu.org/software/grub/manual/grub/grub.html#search&#34; title=&#34;search&#34;&gt;search&lt;/a&gt; 命令来查找你想要的东西，然后把结果设置到一个变量。&lt;/p&gt;
+
+&lt;p&gt;文档里面写了 &lt;code&gt;search.file&lt;/code&gt; 是 &lt;code&gt;search --file&lt;/code&gt; 的 alias，但实际上还有坑在这里。区别的地方看下面&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;search.file /efi/Microsoft/Boot/bootmgfw.efi root
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code&gt;search --file /efi/Microsoft/Boot/bootmgfw.efi --set root
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;看到区别了吧，那个 root 相当于是自己定义的变量（实际上 grub2 会隐含的用到 root 变量，所以也不能完全说是自己定义的）。我在这个坑上面花了一些时间。&lt;/p&gt;
+
+&lt;h2 id=&#34;参考资料&#34;&gt;参考资料&lt;/h2&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.rodsbooks.com/efi-bootloaders/index.html&#34; title=&#34;Managing EFI Boot Loaders for Linux&#34;&gt;Managing EFI Boot Loaders for Linux&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.rodsbooks.com/efi-bootloaders/grub2.html&#34; title=&#34;Managing EFI Boot Loaders for Linux: Using GRUB 2&#34;&gt;Managing EFI Boot Loaders for Linux: Using GRUB 2&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://www.gnu.org/software/grub/manual/grub/html_node/Installing-GRUB-using-grub_002dinstall.html&#34; title=&#34;4.1 Installing GRUB using grub-install&#34;&gt;4.1 Installing GRUB using grub-install&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
     
     <item>
       <title>Redux Selector</title>
@@ -1982,441 +2311,6 @@ DevMenu.show();
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;这就支持了好多功能，比如光标停留在一个 keyword 上面就会高亮相关的，比如 company 的补全啥的，都很不错。还支持 refactor。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Django middleware</title>
-      <link>https://wdicc.com/django-middleware/</link>
-      <pubDate>Wed, 05 Jul 2017 18:07:50 +0800</pubDate>
-      
-      <guid>https://wdicc.com/django-middleware/</guid>
-      <description>&lt;p&gt;Django 提供了 &lt;a href=&#34;https://docs.djangoproject.com/en/1.11/topics/http/middleware/&#34; title=&#34;middleware&#34;&gt;middleware&lt;/a&gt; 来让你 hack Request 和 Response。用的时候有几个问题需要注意一下。&lt;/p&gt;
-
-&lt;h1 id=&#34;call-方法&#34;&gt;&lt;code&gt;__call__&lt;/code&gt; 方法&lt;/h1&gt;
-
-&lt;p&gt;&lt;code&gt;__call__&lt;/code&gt; 方法实际上就是最早收到 request 的地方，如果不关心 view，那么就可以在这里做你想要做的事情。比如认证用户啥的。这个实际上应该就是早期的 &lt;code&gt;process_request&lt;/code&gt; 。&lt;/p&gt;
-
-&lt;h1 id=&#34;process-view-方法&#34;&gt;process_view 方法&lt;/h1&gt;
-
-&lt;p&gt;&lt;code&gt;process_view&lt;/code&gt; 方法会接收到 view_func 和其参数，如果想要针对这些东西处理，可以在这里动作。比如我们所有 api 请求的 POST 的 body 里面都是固定格式的 json 数据，我就在这里检查了 json 的格式，并把解析结果给到了 view_func。&lt;/p&gt;
-
-&lt;p&gt;如果不打算对 view_func 做什么事情，那就最好做完想做的事情，直接返回 &lt;code&gt;None&lt;/code&gt; 就可以。否则处理完毕之后，返回一个 response 对象。&lt;/p&gt;
-
-&lt;p&gt;要注意的是，这里最好不要产生 exception，产生了会把逻辑跑到 Middleware 的 exception 逻辑里面。所以最好对自己的代码段加上 try-except 逻辑。&lt;/p&gt;
-
-&lt;p&gt;另外，这里可以对 view_func 做调用，直接返回 view_func 的结果或者处理之后的结果，只要保证是个 response 对象就可以了。也可以不做调用，返回 &lt;code&gt;None&lt;/code&gt; ，后续 django 也会调用。要注意的是，如果你对 view_func 做了调用，那么在捕捉到错误的时候，except 里面应该也需要返回一个 response 对象，不能返回 &lt;code&gt;None&lt;/code&gt; 了，否则 djangon 还会再次调用这个 view_func 。&lt;/p&gt;
-
-&lt;h1 id=&#34;process-exception-方法&#34;&gt;process_exception 方法&lt;/h1&gt;
-
-&lt;p&gt;&lt;code&gt;process_exception&lt;/code&gt; 方法是在 view 报错的情况下会调用。我在这里统一返回了 server error 的 json，http 状态是 200 的。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Emacs as python IDE</title>
-      <link>https://wdicc.com/emacs-as-python-ide/</link>
-      <pubDate>Fri, 30 Jun 2017 20:47:56 +0800</pubDate>
-      
-      <guid>https://wdicc.com/emacs-as-python-ide/</guid>
-      <description>&lt;p&gt;最近 python 写的比较多，比较了几个编辑器，最后还是留下了 emacs。&lt;/p&gt;
-
-&lt;p&gt;主要比较了 emacs 和 pycharm。pycharm 绝对是一个很强的 IDE，几乎可以补全任何东西，写代码各种提示。比如 Django 里面定义一个 model User 之后，就可以 &lt;code&gt;User.&lt;/code&gt; 之后提示 &lt;code&gt;objects&lt;/code&gt; ，这个是依据 metaclass 来补全的。另外还有比如写 &lt;code&gt;User.objects.get(|)&lt;/code&gt; 的时候，光标在竖线那个位置，会提示 &lt;code&gt;User&lt;/code&gt; 的字段，这个相当好用。这两个只是皮毛，实在是太好用了。&lt;/p&gt;
-
-&lt;p&gt;但是为什么还要用 emacs 呢？emacs 的编辑器功能太好用了。比如 &lt;code&gt;&amp;lt;&lt;/code&gt; 到页首， &lt;code&gt;&amp;gt;&lt;/code&gt; 到页尾， &lt;code&gt;C-x b&lt;/code&gt; 切换 buffer，还有切换 frame，等等快捷键非常舒服，完全不用鼠标。不过也可能是我习惯了 emacs 的快捷键了。在 pycharm 里面时不时就不行，比如选择一段文字，纯键盘需要按 &lt;code&gt;-&amp;gt;&lt;/code&gt; 配合才可以，那还不如用鼠标算了。&lt;/p&gt;
-
-&lt;p&gt;其实如果一上手就用 pycharm，那绝对会觉得很爽。&lt;/p&gt;
-
-&lt;p&gt;emacs 写 python 在原生的 &lt;code&gt;python-mode&lt;/code&gt; 基础上有两个好用的选择，一个是 &lt;a href=&#34;https://github.com/proofit404/anaconda-mode&#34; title=&#34;anaconda-mode&#34;&gt;anaconda-mode&lt;/a&gt;，一个是 &lt;a href=&#34;https://github.com/jorgenschaefer/elpy&#34; title=&#34;elpy&#34;&gt;elpy&lt;/a&gt;。 &lt;code&gt;anaconda-mode&lt;/code&gt; 相对来说比较简陋一点，但是补全什么的没问题，缺少重构功能。两个的工作模式都是会启动一个补全用的进程，然后通过 lisp 和这个进程交互获取补全信息。&lt;/p&gt;
-
-&lt;h2 id=&#34;anaconda-mode-遇到的问题和解决&#34;&gt;anaconda-mode 遇到的问题和解决&lt;/h2&gt;
-
-&lt;p&gt;&lt;code&gt;anaconda-mode&lt;/code&gt; 我遇到一个问题，为了下载 emacs 的 package 方便，我设置了代理，这个代理导致 &lt;code&gt;anaconda-mode&lt;/code&gt; 和补全进程交互的时候，连接不能断开，就会不停的新建连接，一会就打开文件数满了，可以参观这个 &lt;a href=&#34;https://github.com/proofit404/anaconda-mode/issues/255&#34; title=&#34;issue&#34;&gt;issue&lt;/a&gt;。主要是设置了 &lt;code&gt;no_proxy&lt;/code&gt; 解决。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt; (setq url-proxy-services
-       &#39;((&amp;quot;no_proxy&amp;quot; . &amp;quot;^\\(127.0.0.1\\|localhost\\|10.*\\)&amp;quot;)
-         (&amp;quot;http&amp;quot; . &amp;quot;127.0.0.1:6152&amp;quot;)
-         (&amp;quot;https&amp;quot; . &amp;quot;127.0.0.1:6152&amp;quot;)))
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;auto-virtualenv&#34;&gt;auto-virtualenv&lt;/h2&gt;
-
-&lt;p&gt;我的 python 项目使用了 &lt;code&gt;virtualenv&lt;/code&gt; ，会在项目目录下面建一个 &lt;code&gt;.venv&lt;/code&gt; 的目录，把虚拟环境放进去。 &lt;code&gt;anaconda-mode&lt;/code&gt; 提供了 &lt;code&gt;pythonic-activate&lt;/code&gt; 命令， &lt;code&gt;elpy&lt;/code&gt; 提供了 &lt;code&gt;pyvenv-activate&lt;/code&gt; 来切换环境。但是每次打开项目都需要搞一下就挺恶心了。&lt;/p&gt;
-
-&lt;p&gt;然后找到了 &lt;a href=&#34;https://github.com/marcwebbie/auto-virtualenv&#34; title=&#34;auto-virtualenv&#34;&gt;auto-virtualenv&lt;/a&gt; 这个工具。安装之后，他会自动查找你的项目里面的可能的虚拟环境。项目根目录识别是通过 &lt;code&gt;.git&lt;/code&gt; ， &lt;code&gt;.hg&lt;/code&gt; 等一些逻辑来判定的，具体可以看代码。然后虚拟环境识别是通过根目录下面的 &lt;code&gt;.python-version&lt;/code&gt; &lt;code&gt;.venv&lt;/code&gt; 等来识别的。&lt;/p&gt;
-
-&lt;p&gt;我的项目是建了一个 &lt;code&gt;.venv&lt;/code&gt; 目录，所以每次打开一个 python 文件，会自动配置好 virtualenv 的环境，这样 &lt;code&gt;elpy&lt;/code&gt; 在 django 自带的 model 上面也可以查找 defination。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;(use-package auto-virtualenv
-  :ensure t
-  :config
-  (add-hook &#39;python-mode-hook &#39;auto-virtualenv-set-virtualenv)
-)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;elpy&#34;&gt;elpy&lt;/h2&gt;
-
-&lt;p&gt;&lt;code&gt;elpy&lt;/code&gt; 其实没有什么好配置的，主要注意的是，因为我们用了 virtualenv 环境，所以需要他依赖的包都装在 &lt;code&gt;.venv&lt;/code&gt; 环境或者装在 python 自己的目录下面应该都可以。启动 emacs 之后可以使用 &lt;code&gt;M-x elpy-config&lt;/code&gt; 看看还有什么没配置好。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;(use-package elpy
-  :ensure t
-  :init
-  (setq elpy-rpc-backend &amp;quot;jedi&amp;quot;)
-  (elpy-enable)
-  :config
-  (add-hook &#39;python-mode-hook &#39;elpy-mode)
-  (with-eval-after-load &#39;elpy
-  (add-hook &#39;elpy-mode-hook &#39;elpy-use-ipython))
-  :bind ((&amp;quot;M-*&amp;quot; . pop-tag-mark))
-  )
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;code&gt;elpy-rpc-backend&lt;/code&gt; 有两个选择，一个 &lt;code&gt;jedi&lt;/code&gt; ，一个 &lt;code&gt;rope&lt;/code&gt; ，我试了感觉区别不大，另外 rope 感觉要死了。所以我用了 &lt;code&gt;jedi&lt;/code&gt; 。&lt;/p&gt;
-
-&lt;h2 id=&#34;flycheck&#34;&gt;flycheck&lt;/h2&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://github.com/flycheck/flycheck&#34; title=&#34;flycheck&#34;&gt;flycheck&lt;/a&gt; 可以配合 &lt;code&gt;flake8&lt;/code&gt; 实时显示出来你的代码有不符合 flake8 要求的地方，很方便。这个工具我也遇到一个坑 &lt;a href=&#34;https://github.com/flycheck/flycheck/issues/1228#issuecomment-311706873&#34; title=&#34;issue&#34;&gt;issue&lt;/a&gt;，有兴趣可以看看。主要原因是 flycheck 是使用 &lt;code&gt;flake8 &amp;lt; xxx.py&lt;/code&gt; 这种方式检查的，而这种方式下 flake8 不会考虑文件头部的 &lt;code&gt;coding&lt;/code&gt; 设置，来识别文件编码，而是根据 &lt;code&gt;LC_CTYPE&lt;/code&gt; 环境变量来的，所以只要正确设置这个变量就可以了。 issue 里面提到的设置 emacs 的编码屁用么有的。&lt;/p&gt;
-
-&lt;p&gt;flycheck 可以配合 flake8 和 pylint 来做 python 代码的检查，如果装了前者，就不会考虑后者了。我试过 pylint，这货默认要求有点高，比如 class 和 method 没有 doc string 也会提示，代码一堆问题，我就赶紧换掉了。。。&lt;/p&gt;
-
-&lt;h2 id=&#34;python-outline&#34;&gt;python outline&lt;/h2&gt;
-
-&lt;p&gt;好处是打开 python 文件的时候，会把代码都折叠起来，按照需要你自己打开就好。elpa 里面没有，网上搜到的。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;(use-package python-magic
-  :ensure outline-magic
-  :config
-  (add-hook &#39;python-mode-hook &#39;my-python-outline-hook)
-  (add-hook &#39;python-mode-hook
-            (lambda ()
-              (setq outline-regexp &amp;quot;def\\|class &amp;quot;)))
-
-  )
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;indent-tools&#34;&gt;indent-tools&lt;/h2&gt;
-
-&lt;p&gt;这个工具是用来锁进 python 代码和浏览代码用的。搜一下有动图，看看就知道了。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;(use-package indent-tools
-  :ensure t
-  :init
-  (add-hook &#39;python-mode-hook
-            (lambda () (define-key python-mode-map (kbd &amp;quot;C-c i&amp;quot;) &#39;indent-tools-hydra/body))
-            )
-  )
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;yasnippet-和-company&#34;&gt;yasnippet 和 company&lt;/h2&gt;
-
-&lt;p&gt;elpy 是使用这两个补全的。有几个有用的配置， &lt;code&gt;C-s&lt;/code&gt; 那个，可以在补全候选菜单出来的时候，用关键词过滤结果。&lt;/p&gt;
-
-&lt;p&gt;我没搞定在 company 里面直接显示出来 yasnippet 可用的 snippet，只好设置了一个快捷键 &lt;code&gt;C-c y&lt;/code&gt; 来提示。可以提示出来一大堆。比如我经常写错的 &lt;code&gt;-*- coding:utf8 -*-&lt;/code&gt; 有一个 snippet 叫做 &lt;code&gt;utf8&lt;/code&gt; ，直接输入之后 tab 就可以了。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;(use-package company
-  :ensure t
-  :init
-  (setq company-minimum-prefix-length 2)
-  (setq company-dabbrev-ignore-case t)
-  :config
-  (add-hook &#39;after-init-hook &#39;global-company-mode)
-  (define-key company-active-map (kbd &amp;quot;C-n&amp;quot;) #&#39;company-select-next)
-  (define-key company-active-map (kbd &amp;quot;C-p&amp;quot;) #&#39;company-select-previous)
-  (define-key company-active-map (kbd &amp;quot;C-s&amp;quot;) #&#39;company-filter-candidates)
-
-  (global-set-key (kbd &amp;quot;C-c y&amp;quot;) &#39;company-yasnippet)
-  )
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Run ssserver on VPS</title>
-      <link>https://wdicc.com/run-ssserver-on-vps/</link>
-      <pubDate>Fri, 09 Jun 2017 10:55:44 +0800</pubDate>
-      
-      <guid>https://wdicc.com/run-ssserver-on-vps/</guid>
-      <description>&lt;p&gt;VPS 上面好早以前用过 docker 跑了一个 container 运行了一个 ssserver, 是从 debian 基本系统创建, 然后手动安装各种软件弄好的. 最近朋友升级了 docker, 那个工作有点问题了,就重新搞了一下, 发现现在好方便.&lt;/p&gt;
-
-&lt;p&gt;我用的是这里提供的 dockerfile https://github.com/EasyPi/docker-shadowsocks-libev, 他的例子里面使用了 &lt;code&gt;docker-compose&lt;/code&gt; 来创建, 发现很简单, 不过遇到了一个问题, 说一下解决办法.&lt;/p&gt;
-
-&lt;p&gt;这个 docker 本地监听的端口是固定的 8388 不能修改, 例如 docker-compose.yml 里面&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;server:
-  image: easypi/shadowsocks-libev
-  container_name: wd-ss
-  ports:
-    - &amp;quot;HOST_PORT:8388/tcp&amp;quot;
-    - &amp;quot;HOST_PORT:8388/udp&amp;quot;
-  environment:
-    - METHOD=aes-256-cfb
-    - PASSWORD=5ouMnqPyzseL
-  restart: always
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;需要配置的是 &lt;code&gt;HOST_PORT&lt;/code&gt; &lt;code&gt;METHOD&lt;/code&gt; &lt;code&gt;PASSWORD&lt;/code&gt; 这三个变量, 然后我还指定了 &lt;code&gt;container_name&lt;/code&gt; 方便以后的操作, 不指定会自动产生一个.&lt;/p&gt;
-
-&lt;p&gt;启动服务之后,可以使用 &lt;code&gt;docker logs wd-ss&lt;/code&gt; 来看 log, 类似于下面, 这个 docker 启用了 udp relay 和 tcp fast open, 差不多也就够了.&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt; 2017-06-09 03:13:17 INFO: using tcp fast open
- 2017-06-09 03:13:17 INFO: UDP relay enabled
- 2017-06-09 03:13:17 INFO: initializing ciphers... aes-256-cfb
- 2017-06-09 03:13:17 INFO: using nameserver: 8.8.8.8
- 2017-06-09 03:13:17 INFO: tcp server listening at 0.0.0.0:8388
- 2017-06-09 03:13:17 INFO: udp server listening at 0.0.0.0:8388
- 2017-06-09 03:13:17 INFO: running from root user
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;如果想要开启更多选项, 可以在 compose 文件里面使用 command 自定义启动命令&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;  command:
-    ss-server -s 0.0.0.0
-              -p 8338
-              -k 5C4D5403-31C9
-              -m aes-256-cfb
-              -t 30
-              --fast-open
-              -u
-              -a nobody
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;自己实验过程中, 如果可以随时删除自己的 container 重建, 将来 ss 升级的话, 只需要把 image 更新一下,然后删除再新建一下 container 就好了.用起来还是相当简单方便的.&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Meetings and meetings</title>
-      <link>https://wdicc.com/meetings-and-meetings/</link>
-      <pubDate>Sat, 08 Apr 2017 15:16:49 +0800</pubDate>
-      
-      <guid>https://wdicc.com/meetings-and-meetings/</guid>
-      <description>&lt;p&gt;前几天&lt;a href=&#34;https://haohailong.net/&#34; title=&#34;海龙&#34;&gt;海龙&lt;/a&gt; 在 twitter 的提了一个问题“这个世界上有喜欢开会的人吗？能和我说说理由吗？”。作为开了很多会的人，由不住想说两句。&lt;/p&gt;
-
-&lt;ul&gt;
-首先，高质量的会应该具备什么呢？我也没看过《罗伯特议事规则》这样的书（放在 kindle 里面好久了一直没看过，汗颜。。），就是自己按照自己参与的情况总结下：
-&lt;li&gt;会议前必要的沟通，好确认是不是需要你参加。当然也有一定可能性组织会议的人确认需要你参加而不做沟通（当然也不排除判断错误的时候 QAQ）。&lt;/li&gt;
-&lt;li&gt;组织会议的人做好前期调研，会议讨论的一些相关方案的基本情况应该需要比较了解。避免好容易召集齐人之后，发现要讨论的内容本身自己互相矛盾，或者需要参会的人没有通知等情况。&lt;/li&gt;
-&lt;li&gt;邮件通知与会人会议要沟通的内容，和希望达成的目标，让大家提前了解事情的原委。也给大家一个机会提前确认下是不是真的和自己有关系。&lt;/li&gt;
-&lt;li&gt;有了希望达成的目标，就应该会比较明确具体需要谁参与，比如想要一个明确的决定的时候，却约一个不能拍板的人来，这会议注定不能成功。&lt;/li&gt;
-&lt;li&gt;会议中有可以控制会议节奏的人主持。能适时的阻止一些无关话题，扯皮，控制会议节奏，避免开大长会和会上吵架。&lt;/li&gt;
-&lt;li&gt;会议中有人记录会议记录，结束后有人会把会议记录和结论(这个很重要，没有结论的会就是没必要开的会)发给所有人。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;下面列几个我作为技术人员常见的一些烂会。&lt;/p&gt;
-
-&lt;p&gt;产品总监派一个刚入职几天业务都没摸清的人召集一帮干了好几年的工程师开会。这种情况下，产品经理大概率会被工程师各种怼，因为他不可能真的熟悉产品，工程师提到的很多可能的问题都不太可能圆满回答，最后会发现要讨论的问题各种依赖性，A 功能不确定的情况下，B 功能可能直接就不存在而没必要讨论了。最后会导致会议非常低效。这个时候所有人都会不爽，技术工程师会认为浪费他的时间，产品经理会认为这些人好难配合。其实锅应该是在产品总监头上。&lt;/p&gt;
-
-&lt;p&gt;跨部门的会议。很多时候莫名其妙就招呼你去开会，到了之后也不知道是讨论什么的，最后听半天发现貌似和自己一毛钱关系都没有，浪费几个小时。当然浪费的是你的时间，组织会议的人其实是有收获的，他明白这事情和你无关。&lt;/p&gt;
-
-&lt;p&gt;头脑风暴会议当作需求讨论会来开。有时候对方可能根本没有明确的想法，你当成最终需求讨论半天指出来其中各种问题，最后发现其实他们根本就确定怎么做呢。这种情况其实就是那个网传的“产品经理找你聊一天，他的需求有了，你的程序还没写”的情况。毕竟需求会的优先级会比头脑风暴要稍微高一点。&lt;/p&gt;
-
-&lt;p&gt;如果作为组织者，就是尽量做到前面提到的好的会议应该具备的条件，避免浪费别人时间。作为参与者，如果有能力，遇到有问题的会议，应该想办法协助会议组织者把会议变高效，提高效率的同时，自己也会节省不必要的时间，我经常这么干，毕竟年轻人不容易。。。。当然，我有时候不一定那么有耐心，遇到垃圾会有时候直接就走了，留他们继续浪费时间。&lt;/p&gt;
-
-&lt;p&gt;再回到海龙的问题，我的回答是有些人为了合理的浪费时间，是会喜欢开会的，因为这样会让别人觉得他的时间安排很充实，因为整天不在座位，在忙。不知道各位开会的时候有没有遇到一些人全部时间都是在刷手机，只是偶尔说一两句话？这些人就是我说的这种人。我如果遇到我没兴趣的会或者和我无关的会议，我会直接和组织的人申请离开，如果确实后面和我有关系，那麻烦到了时间点叫我（当然你也得保证下到时可以随叫随到，避免浪费其他参会人的时间等你），当然，呃…… 如果我碰巧也想合理的浪费一下时间。。。。&lt;/p&gt;
-
-&lt;p&gt;这些人一般都需要是 leader，至少有人在给他创造 GDP 的，否则一个手头很多工作要干的人，你让他开这种无意义的会他自己也不答应，否则其他工作完不成无法交代的。不过某种意义上讲，这些人也是有贡献的，至少能组织一些人贡献 GDP 就是贡献。&lt;/p&gt;
-
-&lt;p&gt;感觉跨职业跨部门的会比较容易产生垃圾会，因为看问题角度不一样，有时候会比较难互相理解。我们技术人员很多时候开会，都是找一块白板，画几个图，大家就都明白了，很快就能出决议，不能定的一般可能是需要 leader 拍板的。&lt;/p&gt;
-
-&lt;p&gt;同一个部门的会大家会接触比较多比较容易妥协，能接受自己多花点时间或者吃点小亏来完成一个事情。这其实也是所谓的拓展，团队活动，年会想要达到的目的，如果大家都很熟悉的情况下，就比较容易站在对方的角度想问题，遇到事情容易妥协。&lt;/p&gt;
-
-&lt;p&gt;上面提到的这些问题其实越大的公司问题越多，反而小公司比较少，因为头绪少，并且大家都比较熟悉的缘故。当然实在遇到一个比较弱的会议组织者，烂会也不可避免。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Something about cruise tour</title>
-      <link>https://wdicc.com/something-about-cruise-tour/</link>
-      <pubDate>Mon, 20 Mar 2017 20:41:10 +0800</pubDate>
-      
-      <guid>https://wdicc.com/something-about-cruise-tour/</guid>
-      <description>&lt;p&gt;之前知道邮轮游一直没有体验过，据说是在上面各种滚来滚去看书，因为手机没有信号，没有网络。前几天体验了一把，总结一下。&lt;/p&gt;
-
-&lt;h1 id=&#34;一句话总结&#34;&gt;一句话总结&lt;/h1&gt;
-
-&lt;p&gt;这上面有你讨厌的所有因素，大妈，广场舞，广场卡拉 ok，小孩子，无序，占座，插队，甚至最后一天还目睹了两起吵架。&lt;/p&gt;
-
-&lt;h1 id=&#34;邮轮游玩什么&#34;&gt;邮轮游玩什么&lt;/h1&gt;
-
-&lt;p&gt;我参加的是歌诗达幸运号（Costa Fortun），邮轮上面估计 80% 都是各种大爷大妈，带着女儿外孙。你可以想象一下，平时最不喜欢的组合在这里最全了。&lt;/p&gt;
-
-&lt;p&gt;邮轮上面有免费的自助餐和一些特别的餐食，比如批萨，面条，猪排什么的。也有收费的餐食，当然你可以不去。酒和软饮都是收费的，开饭的时候有免费的白水给你喝，屋子里面是没有的。&lt;/p&gt;
-
-&lt;p&gt;邮轮上面一般有大量的娱乐设施，比如赌场，游戏机，泳池，桑拿，剧场等。还定期有各种娱乐活动，比如猜个字啊，跳个舞什么的。所以第一次去还是可以看个新鲜的，尤其可能还有一些漂亮的陪玩 mm，看着也还可以。游戏机赌场是收费的，恩。&lt;/p&gt;
-
-&lt;p&gt;此外剧场每天基本都会有一场大型的演出，30-40 分钟，可以让你打发时间。但是剧场虽然每天演出内容不一样，但是演员总是那一波，看多了其实也会腻味。&lt;/p&gt;
-
-&lt;p&gt;房间里面也有电视，不过我观察电视都是反复重播录下来的一些电视，然后有一个电影台还是只有那么几部反复重复播放，《x man 天启》我看了不下 10 遍。&lt;/p&gt;
-
-&lt;p&gt;小孩也有人给带着玩游戏，有专门的儿童俱乐部。还有健身房，健身房是我唯一对这次邮轮活动满意的地方，当然肯定不是对环境满意，毕竟里面充满了大爷大妈，满意的地方主要是在设备，设备真心不错。浴室和换衣间地板异常干净，比起我家楼下的奥力，简直天上地下。&lt;/p&gt;
-
-&lt;p&gt;邮轮一般有那么1，2天是下船，我们这次的安排很屎，景点很无聊，低接导游也只是对购物有兴趣，购物店虽然不贵，但是东西比较少，挺没意思的。&lt;/p&gt;
-
-&lt;h1 id=&#34;让人反感的几个瞬间&#34;&gt;让人反感的几个瞬间&lt;/h1&gt;
-
-&lt;p&gt;排队上邮轮的时候，过安检的时候就一条队排的特别粗，到了最后那变细互相挤着往前走。我们后面有个阿姨就各种急着往你前面走，我老婆发现之后就故意挤着不让，我看的笑死，呵呵。&lt;/p&gt;
-
-&lt;p&gt;第一天必须做逃生演习。有个大爷一家推着小车带着孩子，孩子可能没一会睡着了。而演习是需要所有人参加的，所以就不得不等比较慢的人。大爷就生气了，开始呵斥工作人员，「孩子都睡着了，啥时候开始」之类的，声音巨大。工作人员大都是外籍，估计也吓了一跳。最后结束的时候，大爷还过去指着那个工作人员不知道说了什么。&lt;/p&gt;
-
-&lt;p&gt;剧院演出，基本前三四排上面都是东西占座的。除非你提前半个小时到。另外就是各种小孩大声说话也没人管。有时候酒吧做游戏，工作人员都明确说了游戏可能比较激烈，让大家把小孩弄走，但是看着一个女的抱着小孩几次被劝离之后还是要上去玩，貌似还是上去让小孩参与。&lt;/p&gt;
-
-&lt;p&gt;昨天有个游戏，几个被淘汰的大妈，悄悄的跑回去继续参与，也有跑回去被发现之后赶走，再次跑回去的，当着一百来号人目睹就那么做，真的无语。&lt;/p&gt;
-
-&lt;p&gt;今天下船之前大家集中在一个地方等着，有个姥爷带着孙女玩气球。有个哥们玩心重，带了个面具就冲那小孩过去了，小孩吓的赶紧跑到了姥爷后面，那个哥们就走了。过了半分钟小孩反映过来开始哭，那姥爷就开始不爽了。后来他们全家，追着那小伙骂，最后把面具也抢过来了，还要护照说要以后有啥毛病要找他。纠缠了能有10分钟。&lt;/p&gt;
-
-&lt;p&gt;这只是记得起来的几个，反正年轻人真的不建议去邮轮了。如果是自己父母，倒是可以推荐去，他们应该喜欢。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>My way to keep fit</title>
-      <link>https://wdicc.com/my-way-to-keep-fit/</link>
-      <pubDate>Mon, 13 Mar 2017 15:19:30 +0800</pubDate>
-      
-      <guid>https://wdicc.com/my-way-to-keep-fit/</guid>
-      <description>&lt;p&gt;目前第一阶段减肥基本告一段落，后面目标是保持目前体重 6 个月。&lt;/p&gt;
-
-&lt;h1 id=&#34;先聊聊结果&#34;&gt;先聊聊结果&lt;/h1&gt;
-
-&lt;p&gt;2014 年 9 月份前，我的体重最高到 98kg，甚至有时候超过了 100kg。第一阶段减肥可能截止到 2016 年中，减到体重大概是 92kg。第二阶段开始于 2016 年 2 月底，截止到今天体重 80kg。整体算下来减掉 40 斤。&lt;/p&gt;
-
-&lt;h1 id=&#34;第一阶段&#34;&gt;第一阶段&lt;/h1&gt;
-
-&lt;p&gt;2014 年开始我发现一种比较简单的减肥方法，就是不吃或者少吃晚饭。&lt;/p&gt;
-
-&lt;p&gt;这个方法应该不一定对所有人适用。我估计应该只对 BMI(Body Mass Index, 身体质量指数，注意和体脂率不是一个东西)比较高的人有用吧。&lt;/p&gt;
-
-&lt;p&gt;我当时 BMI 是 &lt;code&gt;98/1.77^2=31.28&lt;/code&gt; 是属于比较高的，坚持了上面的方法半年之后，大概最瘦的时候是 28，我查了是刚好脱离了肥胖那一档，进入了过重。&lt;/p&gt;
-
-&lt;p&gt;我当时所在的公司的上班时间是 10:00 - 19:00，但是经常出现 20:00 以后才从公司走的情况，这样我到家经常是 21:30 或者 22:00 以后。这个时候吃晚饭就太晚了，基本吃饭完了就睡觉了。并且，中午吃饭到这个时候，一般其实已经饿过劲了，那个时间反而没有那么饿了，我就慢慢开始晚上到家之后只吃几个水果。后来慢慢转为不吃东西，或者只吃很少的水果。有时候也会遇到快下班的时候非常饿，这个时候吃点小零食，也就可以了。这种方式减肥，早上和中午基本不控制自己，还是吃的比较好的。&lt;/p&gt;
-
-&lt;p&gt;上面说了，这个阶段减掉了大概 10 多斤。中午饮食基本不控制，晚上不吃，或者很少吃（一个月有那么一两次推不开的）。&lt;/p&gt;
-
-&lt;h1 id=&#34;第二阶段&#34;&gt;第二阶段&lt;/h1&gt;
-
-&lt;p&gt;大概是从今年 2 月底从日本回来，开始实施，方法是锻炼加节食。&lt;/p&gt;
-
-&lt;p&gt;锻炼的内容是 60 分钟椭圆机（我用的机器难度是 5，不同机器可能不一样），30 分钟运动后拉伸，30 分钟游泳。大概是每周 1，2，4，5 去，一周会休息三天。锻炼毕竟比较枯燥，所以需要中间休息一下调剂一下心情，如果你的体力耐力跟的上，可以不休息。&lt;/p&gt;
-
-&lt;p&gt;上面的强度下来，进度大概是一周 3kg。我的情况 3 月 25 是 88.6kg，5 月 2 是 81.7kg，5.5 是 80kg。为什么比较慢呢？在这两个月内，我参加了一趟邮轮游大概一周，去了一趟沈阳，大概一周，还去了一趟日本大概一周。所以如果坚持应该可以更快，但是快速减重我感觉应该可能会有副作用，所以我也基本也是控制减一点，保持几天这样子，不让这个减重太快。另外，这段时间我是全职减肥，所以没有工作上面的压力，可能速度相对快一点。&lt;/p&gt;
-
-&lt;h1 id=&#34;方法细节&#34;&gt;方法细节&lt;/h1&gt;
-
-&lt;h2 id=&#34;mhr&#34;&gt;MHR&lt;/h2&gt;
-
-&lt;p&gt;按照一些理论，在有氧运动一定时间 T 之后，保持一定的心率 HR 继续运动，就会开始消耗脂肪。所谓的 &lt;a href=&#34;https://www.douban.com/note/228079030/&#34; title=&#34;fat burning zone&#34;&gt;fat burning zone&lt;/a&gt; (搜索到的，仅供参考)。&lt;/p&gt;
-
-&lt;p&gt;对于 T，我看有的说是 20 分钟，有的是 40 分钟。我一般的做法是持续运动 40-50 分钟，不超过一小时。&lt;/p&gt;
-
-&lt;p&gt;对于心率，先看下面的公式&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;MHR(最大心率) = 220 - age
-MHR = 206 - (0.88 x age)
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;上面是最大心率，有多种算法最后应该结果大致有个范围，然后你的减脂的 HR 范围就是 &lt;code&gt;MHR x (0.7 到 0.8)&lt;/code&gt; 之间。我算出来我的是大概 130-145.&lt;/p&gt;
-
-&lt;p&gt;所以注意并不是越累越好，比如天天跑 5km 还追求速度，那个思路不对，那个不是减肥。只要心率到了加持续时间够长。，不管做什么都减肥。&lt;/p&gt;
-
-&lt;h2 id=&#34;节食&#34;&gt;节食&lt;/h2&gt;
-
-&lt;p&gt;如果想要减脂，必须要节食，并且节食之后，我发现不运动体重也会降，直到降到一个平衡点。&lt;/p&gt;
-
-&lt;p&gt;节食并不是一下子就从原来中午晚上吃两碗米饭变成只吃一个苹果，这个也是应该有个循序渐进的过程，要不不说身体是否能接受，你自己就坚持不下来。&lt;/p&gt;
-
-&lt;p&gt;我的建议是，逐步减少饭量，花 1-2 个月来完成这个过程，一定要给自己定一个什么时间点达到什么目标的方案，否则面对一个自己都觉得无法达到的目标，也会容易被各种诱惑吸引，然后放弃。&lt;/p&gt;
-
-&lt;p&gt;节食期间，并非就一直得是清淡饮食，偶尔吃一次大餐也不是不行，但是最好安排在中午，并且吃了之后第二天早餐午餐一定要减少量。另外注意是「偶尔」，千万别当成常态。&lt;/p&gt;
-
-&lt;p&gt;此外，也得注意要按时吃饭，节食本身就很痛苦了，如果不能按时吃饭，比如过了平时饭点再吃，容易吃多，影响节食效果。&lt;/p&gt;
-
-&lt;p&gt;我自己的方案，如果今天上午不出门，那就最多喝一杯牛奶做早餐。如果要出门，可以接受大概半个馒头那么多的饮食量。中午也类似，如果不出门就少吃，如果要出门，可以适当比平时多一点点，避免晚上的时候很难熬，或者路上出现低血糖。&lt;/p&gt;
-
-&lt;p&gt;我自己控制的结果，是在中午大概3点一顿自助餐的基础上，晚上6点又有不能推掉的酒局的情况下，中午一杯啤酒，晚上一杯红酒，然后第二天重量维持不变。自己感觉还是挺有成就感的，当然也很痛苦。&lt;/p&gt;
-
-&lt;p&gt;我目前体重还没有到平台期，还不清楚节食结束之后反弹的情况，但是我自己的打算是平台期或者达到我的目标体重之后，我再继续维持低饮食量一段时间巩固下，把自己的饮食习惯培养好，不再能暴饮暴食的情况下，应该是可以适当放开饮食的。&lt;/p&gt;
-
-&lt;ul&gt;
-总结下：
-&lt;li&gt;节食要循序渐进，不要一次就到位，食量可以比如每周减 1/4 的节奏安排。&lt;/li&gt;
-&lt;li&gt;设定自己的目标，一阶段一阶段完成，不要一次设定一个看着无法做到的目标&lt;/li&gt;
-&lt;li&gt;饮食要准时定量，实在受不了的时候，可以允许自己来一次暴食（不要暴饮，尤其是甜的饮料，酒等），但要注意控制次数&lt;/li&gt;
-&lt;li&gt;毅力坚持很重要。我节食期间参加各种自助餐，火锅，聚餐等都能很好的控制自己的食欲。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;关于低血糖，特别讲一下，节食非常容易产生低血糖，建议按照自己的体力，健身之前最好吃一口东西（不要多），或者随身携带一些吃的，一旦感觉低血糖头晕，就补充一点。别产生什么危险。&lt;/p&gt;
-
-&lt;p&gt;低血糖的时候，也会影响你做事情的效率，会发现什么事情都不想做，所以这个时候最好就吃点吧，不过要注意是这也是有控制的吃。&lt;/p&gt;
-
-&lt;h2 id=&#34;跑步机-vs-椭圆机-vs-动感单车&#34;&gt;跑步机 vs 椭圆机 vs 动感单车&lt;/h2&gt;
-
-&lt;ul&gt;
-我自己家里买了一台动感单车，实际实践过之后，用这个有几个缺陷
-&lt;li&gt;自己练没有动感。在操课房里面教练会带着不停的变换速度，动作，一方面让你觉得没那么无聊，另一方面也是能增加运动量。&lt;/li&gt;
-&lt;li&gt;自己练容易损坏脚踝和膝盖。我自己在家练的时候，基本就是站上面运动 30+ 分钟，脚一直在单车上面脚尖踩着，练完之后脚会疼痛。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;我其实挺喜欢在外面跑步，尤其早上，但是因为体重大，好几次都是跑一周之后双腿膝盖会开始疼痛，只好作罢。健身房里面的跑步机冲击比路面跑步小，可以试试看。&lt;/p&gt;
-
-&lt;p&gt;最近尝试了跑步机上面跑，坚持 2 周之后，还是出现了一只腿的膝盖疼痛，只好暂停。开始尝试椭圆机。&lt;/p&gt;
-
-&lt;p&gt;跑步机上面跑强度比椭圆机肯定强很多，跑步机上面在一个不快的速度下面，我持续跑 15 分钟之后，心率就会达到 150，其实已经有点高了。&lt;/p&gt;
-
-&lt;ul&gt;
-跑步机的几个问题
-&lt;li&gt;容易心率过快&lt;/li&gt;
-&lt;li&gt;不方便听音乐看片子分散注意力&lt;/li&gt;
-&lt;li&gt;不容易不间断坚持跑 30 - 40 分钟&lt;/li&gt;
-&lt;li&gt;膝盖损伤&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;ul&gt;
-最后发现椭圆机实在是很不错
-&lt;li&gt;运动速度慢，不妨碍你看片子听音乐(这个非常重要，否则坚持50分钟很难)&lt;/li&gt;
-&lt;li&gt;速度恒定，也就是心率恒定，你只需要选择一个适合你的减脂的心率的难度就可以了&lt;/li&gt;
-&lt;li&gt;对膝盖冲击比较小&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;我用实际使用的就是椭圆机 Elliptical Trainer。一次 60 分钟，控制心率在 140 左右。高了就换近一点的把手，低了就换远一点的。&lt;/p&gt;
-
-&lt;h2 id=&#34;运动后拉伸&#34;&gt;运动后拉伸&lt;/h2&gt;
-
-&lt;p&gt;这个一定要做，可以参考 keep 这个 app 里面的一些教程做，另外就是自己看着健身房的设备练练。注意设定好节奏，比如一组 10 次，做 3 组。&lt;/p&gt;
-
-&lt;p&gt;这个是拉伸，不是力量训练，所以不需要挑战自己的极限。控制好设备的重量。&lt;/p&gt;
-
-&lt;h2 id=&#34;饮食注意&#34;&gt;饮食注意&lt;/h2&gt;
-
-&lt;p&gt;我本身血压高，所以需要低盐。然后减脂的话，一般的讲法是不要吃或者少吃和糖类有关系的食物，比如糖，西瓜这些，以及很容易转换为糖类的食物，比如谷物，大米这些。可以吃肉类（瘦肉或者白肉，比如鸡肉鱼肉）。&lt;/p&gt;
-
-&lt;p&gt;我以前基本没炒过青菜，这次发现光是做到不难吃的话，其实很简单。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;不用水煮直接凉拌：黄瓜，西红柿等，莴笋&lt;/li&gt;
-&lt;li&gt;白水煮了就能接受的：西兰花，菜花&lt;/li&gt;
-&lt;li&gt;水煮之后过油炒一下加点盐或者酱油的：油菜，蘑菇，小白菜，菠菜&lt;/li&gt;
-&lt;li&gt;直接过油炒一下加盐或者酱油：芹菜&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;之前看了一本书，里面讲到几个低盐的方法，就是比如放入火腿肠等本身自带咸味的食材，或者往酸的方向走。对于凉拌菜，可以适当考虑加一点醋，发现还挺不错的。&lt;/p&gt;
-
-&lt;h1 id=&#34;update&#34;&gt;Update&lt;/h1&gt;
-
-&lt;p&gt;有上面这几招，应该可以让你短时间不会吃腻了。我中午基本就是吃一盘青菜，不吃主食。&lt;/p&gt;
-
-&lt;h2 id=&#34;2017-6-9&#34;&gt;2017.6.9&lt;/h2&gt;
-
-&lt;p&gt;更新一下, 从停止运动到现在已经大概一个多月了, 之前最低到了 78kg. 这一个月发现如果还按照之前的食量, 体重还会降. 但是我不打算继续让它降的, 所以也开始提升食量.&lt;/p&gt;
-
-&lt;p&gt;最近两周我还出去国内玩了一趟, 吃饭吃的也挺多的, 时间也不固定, 到了当地还会尝试喝当地的一些米酒啤酒之类的, 到今天早上称重是 79kg. 感觉还可以.&lt;/p&gt;
-
-&lt;h2 id=&#34;2017-6-30&#34;&gt;2017.6.30&lt;/h2&gt;
-
-&lt;p&gt;再次更新一下，目前体重 77kg。目前吃喝的内容基本已经不需要太注意了，只是有意不要多吃，也避免吃谷物类。不过我也吃过几次米饭，面条，大饼什么的，目前体重还是保持住了。&lt;/p&gt;
-
-&lt;h2 id=&#34;2017-11-26&#34;&gt;2017.11.26&lt;/h2&gt;
-
-&lt;p&gt;目前又开始尝试减体重。因为发现工作的时候确实不是很好减，毕竟饿了的话工作都不能专心。上周我尝试吃了一周的 711 沙拉和水果，貌似这几天早上称重到了 74.8，低于了 75 了都，感觉也是有效果的，还在尝试。&lt;/p&gt;
 </description>
     </item>
     

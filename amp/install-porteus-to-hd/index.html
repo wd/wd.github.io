@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Install Porteus to HD | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+
+  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
+  <script src="https://wdicc.com//js/hljs.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Install Porteus to HD</span></h1>
+
+<h2 class="date">2018/07/02</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/porteus">porteus</a> 
+  
+  
+</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<main>
+<p><a href="http://porteus.org/" title="Porteus">Porteus</a> 是一个很好玩的系统，他基于 aufs 弄出来的一个「只读」系统，说是只读，实际上他也可以把修改保存到一个硬盘目录，然后启动的时候自动加载这些修改，这样就修改都还在。但是如果把这个目录删除，那么修改就都没有了，这就是所谓的只读。</p>
+
+<p>我开始的需求是需要搞一个 linux，然后给用户使用，并且希望用户只能用浏览器，不能使用其他东西，因为我们提供的服务就是一个网页。不能使用其他东西是为了避免使用的时候导致系统奔溃什么的，还得派人花时间去维护。然后看到有人推荐 <a href="http://porteus-kiosk.org/index.html" title="Kiosk">Kiosk</a>，看了一下感觉这个东西太完美了，就是我想要的东西。然后就开始研究这个系统。研究的过程中发现了他是基于 Porteus 的，就开始看 porteus。</p>
+
+<p>Kiosk 确实也不错，但是我使用的时候想要定制支持中文输入法，打印机等设备，然后发现他阉割加定制的太多了，导致我看了几天居然还没有找到他的入口在哪里，尝试想搞定输入法，费了很多劲。kiosk 使用的是 openbox + tint2 ，后面看了 porteus 之后，他支持 mate，kde 这些桌面，并且也直接就支持 scim，所以打算还是基于这个定制比较简单一点。</p>
+
+<p>具体定制就不多说了，主要是定制好 iso 之后，怎么安装到硬盘。</p>
+
+<p>其实也相当简单，只需要把 u 盘上面的内容复制到一个硬盘分区，然后安装一个 bootloader 就可以了。</p>
+
+<p>安装 bootloader 的时候由于对这个东西不是特别熟悉，以及这么多年不搞 linux 之后又出来很多新的概念，所以走了一些弯路，一番<a href="/grub2-and-uefi/" title="学习">学习</a>之后，发现简单的很。可以参考<a href="/grub2-and-uefi/#grub" title="这里">这里</a>。</p>
+
+<p>然后就是需要弄一个 <code>grub.cfg</code> 就可以了。</p>
+
+<pre><code>set timeout=1
+set superusers=root
+password_pbkdf2 root grub.pbkdf2.sha512.10000.xxxxxxxx
+password guest guest
+
+if [ x&quot;$default&quot; = xsaved ];then
+ load_env;
+ set default=&quot;$saved_entry&quot;;
+fi
+
+insmod vbe
+insmod efi_gop
+insmod efi_uga
+
+insmod font
+insmod part_gpt
+
+search --label --no-floppy --set kgzx KGZX
+set prefix=($kgzx)/boot/grub
+
+if loadfont $prefix/fonts/unicode.pf2
+then
+    insmod gfxterm
+    set gfxmode=auto
+    set gfxpayload=keep
+    terminal_output gfxterm
+    insmod png
+    background_image $prefix/grub.png
+fi
+
+menuentry '我的系统' --unrestricted {
+  set root=&quot;($kgzx)&quot;
+  linux /boot/syslinux/vmlinuz changes=/mnt/sda4/
+  initrd /boot/syslinux/initrd.xz
+  boot
+}
+
+menuentry 'Cleanup' --users &quot;guest&quot; {
+  set root=&quot;($kgzx)&quot;
+  linux   /boot/syslinux/vmlinuz 3 restore=1
+  initrd /boot/syslinux/initrd.xz
+  boot
+}
+
+menuentry 'Backup' --users &quot;root&quot; {
+  search --file --set root /efi/Microsoft/Boot/bootmgfw.efi
+  chainloader /efi/Microsoft/Boot/bootmgfw.efi
+  boot
+}
+</code></pre>
+
+<p>如果只是使用 mbr 方式，也可以用 grub-legacy 也就是 0.97 那个版本，安装操作类似的，grub.cfg 不一样，那个是叫做 <code>menu.lst</code> 。然后那个版本不支持 uefi boot 和中文菜单。好像也不支持菜单设置密码？没啥特别的建议还是 grub2 吧。</p>
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer style="clear:both">
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+
