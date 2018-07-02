@@ -76,6 +76,25 @@ merlin 还提供了一个 =apply.cgi= 可以执行脚本，例如[[https://githu
 
 这里还不有一个坑，如果长时间没有从登录界面进入过路由器管理界面，那执行这个可能会遇到获取到的数据是一个 html 的到 Login 页面的 redirect。
 
+** 读取保存的数据
+
+*** 通过 js 读取
+
+#+BEGIN_SRC html
+<script type="text/javascript" src="/dbconf?p=v2ray&v=<% uptime(); %>"></script>
+#+END_SRC
+
+那个 p 会只显示匹配那个前缀的数据。上面这个 url 直接打开看看就知道了，会产生一个 =db_v2ray= 这个变量。在界面里面就可以使用例如 =db_v2ray["v2ray_module_version"]= 来获取 dbus 的数据了。
+
+*** 通过页面标签获取
+
+#+BEGIN_SRC html
+<input type="hidden" id="ss_basic_enable" name="ss_basic_enable" value="<% dbus_get_def("ss_basic_enable", ""); %>"/>
+#+END_SRC
+
+例如上面这个，通过 =<% dbus_get_def()/>= 这样的标签就可以获取到相应的变量。
+
+
 * Cron
 
 如果想要定时执行一些任务，可以添加 cron。merlin 管理界面的用户不一定都是 admin，所以 cron 的用户也不一定是什么，可以用 =cru= [[https://github.com/wd/koolshare_plugin_v2ray/blob/master/scripts/v2ray_watchdog.sh#L91][命令]]来管理 cron。

@@ -1,0 +1,55 @@
+---
+title: "UEFI Bootable Usb"
+date: 2018-06-30T07:30:58+08:00
+tags: ["UEFI"]
+toc: true
+---
+
+* UEFI shell
+UEFI firmware 应该会读取设备里面的分区，找到 ESP 然后再读里面的内容。我看到最简单的方式是把 u 盘格式化成 fat 然后建一个目录 =/boot/efi= 然后下载一个 [[https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface#UEFI_Shell][uefi shell]] 把 .efi 文件放到这个目录 =/boot/efi/shellx64.efi= ，然后启动的时候就多了一个 uefi 菜单了，选择之后可以进入一个 uefi shell。
+
+uefi shell 里面有几个命令可以用。
+
+** map
+
+=map= 可以列出来当前机器的磁盘情况，找到你的 esp 分区。
+
+** ls
+
+=ls= 可以列出来磁盘目录里面的内容，比如 =ls fs0:\boot= ，注意磁盘和目录之间用 =:= ，目录层级之间用 =\= 。
+
+** bcfg
+
+可以通过 =bcfg boot dump -v= 列出来当前所有的 efi 菜单，注意每个项目都有一个序号，后面会用到。
+
+比如我想自己加一个菜单进去，那就找到最后那个的序号，然后执行 =bcfg add 8 fs0:\boot\grub\grubx64.efi GRUB= (fat 系统不区分大小写)，指向我自己通过 =grub-install --efi-directory=/mnt/sda1/= 放到 esp 分区的 grub 的 efi ，这样启动的时候就多了一个 GRUB 的选项，通过这个选项就可以进入 linux，然后使用更方便的 efibootmgr 来编辑这个菜单了。
+
+参考:
+- [[https://wiki.archlinux.org/index.php/EFISTUB#UEFI_Shell][UEFI Shell]]
+
+* 自己制作 iso
+
+通过 [[https://www.syslinux.org/wiki/index.php?title=Isohybrid#UEFI][isohybrid]] 可以把一个 iso 做成支持 uefi 的格式，然后通过 dd 写入 u 盘之后，这个 u 盘就支持 uefi 启动了。
+
+#+BEGIN_SRC 
+mkisofs \
+ -o output.iso \
+ -c boot/syslinux/isolinux.boot \
+ -b boot/syslinux/isolinux.bin \
+  -no-emul-boot -boot-load-size 4 -boot-info-table \
+ -eltorito-alt-boot \
+ -eltorito-platform 0xEF -eltorito-boot isolinux/efiboot.img \
+  -no-emul-boot \
+ CD_ROOT
+#+END_SRC
+
+efiboot.img 实际是一个 iso 格式的磁盘 img，可以通过下面的方式产生
+
+#+BEGIN_SRC 
+$ dd if=/dev/zero of=./efiboot.img bs=1M count=4
+$ mount efiboot.img ./mnt
+$ cp -r EFI /mnt
+$ umount /mnt
+#+END_SRC
+
+EFI/boot 目录是 efi 启动你自己定义的内容，然后执行 =isohybrid --uefi output.iso= 。
