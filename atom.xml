@@ -6,10 +6,168 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 02 Jul 2018 16:47:31 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 03 Sep 2018 18:00:56 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>React Native Deeplink</title>
+      <link>https://wdicc.com/react-native-deeplink/</link>
+      <pubDate>Mon, 03 Sep 2018 18:00:56 +0800</pubDate>
+      
+      <guid>https://wdicc.com/react-native-deeplink/</guid>
+      <description>&lt;p&gt;App 一般都支持类似 &lt;code&gt;coolflight://list&lt;/code&gt; 这样的链接，可以直接打开 app 并打开列表，这个就是 deeplink。&lt;/p&gt;
+
+&lt;p&gt;这个需要对 native 代码做一些修改，可以参考&lt;a href=&#34;https://reactnavigation.org/docs/en/deep-linking.html&#34; title=&#34;这里&#34;&gt;这里&lt;/a&gt;的修改，ios 和 android 都有写。这里有一个需要注意的是，对于 android 有一个配置是&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;    &amp;lt;data android:scheme=&amp;quot;mychat&amp;quot; android:host=&amp;quot;mychat&amp;quot; /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个里面配置 host 的话，后面使用的时候就需要类似 &lt;code&gt;mychat://mychat/list&lt;/code&gt; 这样的方式了，就是多了一层 mychat。这样也会导致 ios 和 android 的链接不统一，我查了&lt;a href=&#34;https://developer.android.com/training/app-links/deep-linking&#34; title=&#34;文档&#34;&gt;文档&lt;/a&gt;也没有查到没有设置 host 会有什么问题，我就去掉了，去掉之后，ios 和 android 的链接就统一了。都是 &lt;code&gt;mychat://list&lt;/code&gt;&lt;/p&gt;
+
+&lt;p&gt;另外 android 还有一个需要注意的地方是，activity 的 launchmod 需要设置为 &lt;code&gt;singleTask&lt;/code&gt; 要不会导致每次通过 deeplink 打开 app 都会新建一个，导致你有多个 js 在后台跑。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;&amp;lt;activity
+  android:name=&amp;quot;.MainActivity&amp;quot;
+  android:launchMode=&amp;quot;singleTask&amp;quot;&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在 js 里面可以使用 &lt;code&gt;Linking.openURL(url).catch(err =&amp;gt; console.error(&#39;An error occurred&#39;, err))&lt;/code&gt; 打开一个 deeplink ，可以是别的 app 的，也可以是自己的。&lt;/p&gt;
+
+&lt;p&gt;然后就是在 js 里面处理对应的 deeplink 了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;componentDidMount() {
+  Linking.getInitialURL().then((url) =&amp;gt; {
+    if (url) {
+      console.log(&#39;Initial url is: &#39; + url);
+    }
+  }).catch(err =&amp;gt; console.error(&#39;An error occurred&#39;, err));
+
+  Linking.addEventListener(&#39;url&#39;, this._handleOpenURL);
+}
+
+componentWillUnmount() {
+  Linking.removeEventListener(&#39;url&#39;, this._handleOpenURL);
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在 &lt;code&gt;componentDidMount&lt;/code&gt; 里面，通过 &lt;code&gt;Linking.getInitialURL()&lt;/code&gt; 可以得到 app 冷启动的时候拿到的 link。通过 &lt;code&gt;Linking.addEventListener(&#39;url&#39;, callback)&lt;/code&gt; 可以拿到热启动 app 拿到的 link，分别处理或者统一处理都可以，看业务需求。&lt;/p&gt;
+
+&lt;p&gt;我们用的是 React Navigation，他支持可以直接给 screen 设置 path，然后和 deeplink 匹配跳转。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;const SimpleApp = createStackNavigator({
+  Home: { screen: HomeScreen },
+  Chat: {
+    screen: ChatScreen,
+    path: &#39;chat/:user&#39;,
+  },
+});
+
+
+const prefix = &#39;mychat://&#39;; // 这里我们上面提到的统一了，所以不用区分 ios 和 android
+const MainApp = () =&amp;gt; &amp;lt;SimpleApp uriPrefix={prefix} /&amp;gt;;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样只需要定义一个 &lt;code&gt;uriPrefix&lt;/code&gt; 就可以了。&lt;/p&gt;
+
+&lt;p&gt;我们为了把 navigation 和 redux 结合，自定义了 navigation 的 &lt;code&gt;navigation&lt;/code&gt; 属性，就不允许这么弄了。需要自己处理。&lt;/p&gt;
+
+&lt;p&gt;主要思路是通过 &lt;code&gt;SimpleApp.router.getActionForPathAndParams(path, params)&lt;/code&gt; 得到 action，然后 dipatch 这个 action 就可以了。&lt;/p&gt;
+
+&lt;p&gt;那个 &lt;code&gt;chat/:user&lt;/code&gt; 可以匹配到 &lt;code&gt;mychat://chat/Jim&lt;/code&gt; 这样的 deeplink，然后那个 &lt;code&gt;user: Jim&lt;/code&gt; 会以 param 的方式给到 screen，通过 param.user 可以访问到。&lt;/p&gt;
+
+&lt;p&gt;path 的格式支持的是这个 &lt;a href=&#34;https://github.com/pillarjs/path-to-regexp&#34; title=&#34;path-to-regexp&#34;&gt;path-to-regexp&lt;/a&gt; 支持的格式，可以自定义表达式，具体可以参考那个文档。&lt;/p&gt;
+
+&lt;p&gt;path 支持使用 &lt;code&gt;?&lt;/code&gt; 来表示一个字段是可选的，例如 &lt;code&gt;mychat://chat/:user?&lt;/code&gt; 表示会匹配到 &lt;code&gt;mychat://chat&lt;/code&gt; 和 &lt;code&gt;mychat://chat/Jim&lt;/code&gt; 。 &lt;code&gt;mychat://chat/:user?/:msg?&lt;/code&gt; 这样的，可以匹配 &lt;code&gt;mychat://chat&lt;/code&gt; &lt;code&gt;mychat://chat/Jim&lt;/code&gt; &lt;code&gt;mychat://chat/Jim/hey&lt;/code&gt; 但是不能匹配 &lt;code&gt;mychat://chat//hey&lt;/code&gt; 。默认匹配的是 &lt;code&gt;([^\\/]+)&lt;/code&gt; 可以通过自定义表达式支持。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;  path: &#39;chat/:user([^\\/]*)?/:msg?&#39;
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>React Mobx</title>
+      <link>https://wdicc.com/react-mobx/</link>
+      <pubDate>Sun, 02 Sep 2018 19:18:16 +0800</pubDate>
+      
+      <guid>https://wdicc.com/react-mobx/</guid>
+      <description>&lt;p&gt;我们之前用的是 redux 来做的统一 store，最近一个新项目有同学用了 mobx，就了解了一下，刚开始看的时候，感觉比 redux 好啊？&lt;/p&gt;
+
+&lt;p&gt;mobx 的逻辑是自动收集 store 属性被哪些 dom 使用，然后在属性被改变的时候，自动更新 dom。这样的模式显然比 redux 的 action，reducer，selector 那一套简单多了。&lt;/p&gt;
+
+&lt;p&gt;给对应的组件加上 &lt;code&gt;@observer&lt;/code&gt; 装饰器之后，store 改变就会自动重现渲染组件。store 可以用下面的模式给到组件&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;const store = new TodoList();
+&amp;lt;TodoListView todoList={store} /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;也可以用 &lt;code&gt;@inject&lt;/code&gt; 装饰器&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;@inject(store =&amp;gt; store)
+@observer
+class TodoListView {
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;之后都通过 &lt;code&gt;this.props&lt;/code&gt; 引用。&lt;/p&gt;
+
+&lt;p&gt;一切都很美好，直到我看到了&lt;a href=&#34;https://mobx.js.org/best/react.html&#34; title=&#34;这个&#34;&gt;这个&lt;/a&gt;，这里列了一些 mobx 的坑。比如有讲到，mobx 为了能监控到对 store 的依赖和修改，其实是把 store 属性做了修改，所以 store 有一个属性是一个 Map，那么实际得到的是一个和 ES6 Map api 类似的一个对象，但是并不是原生的 Map。比如有一个属性是 Object，你给加了一个 key，例如 store.object[&#39;a&#39;] = &#39;test&#39;，那么这个修改并不能被监视，具体看那个文档吧。&lt;/p&gt;
+
+&lt;p&gt;写 Javascript 基本就是从一个小坑爬出来掉到一个大坑里面。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Android Custom</title>
+      <link>https://wdicc.com/android-custom/</link>
+      <pubDate>Sun, 02 Sep 2018 08:00:16 +0800</pubDate>
+      
+      <guid>https://wdicc.com/android-custom/</guid>
+      <description>&lt;p&gt;我们给用户的设备，有 android pad 和 pc。pc 系统我之前基于 porteus 定制了一个，勉强可以用。apad 的系统一直没搞好。&lt;/p&gt;
+
+&lt;p&gt;Android 系统必须要解锁之后才可以定制系统，否则没有 root 权限，system 分区的数据不能修改。&lt;/p&gt;
+
+&lt;ul&gt;
+Android 系统有四个重要的分区。
+&lt;li&gt;&lt;code&gt;boot&lt;/code&gt; ，和 linux 的类似，里面有 kernel 和 ramdisk，ramdisk 应该是在启动之后会成为 / 分区&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;recovery&lt;/code&gt; ，恢复分区，如果想对系统分区做什么操作，可以使用这里的程序引导系统，这个时候允许你进行一些操作。默认的 recovery 只能 wipe 和刷系统。自定义的 recovery 比较厉害，可以支持备份啊啥的一堆事情，比如 twrp 还有图形界面。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;system&lt;/code&gt; ，系统分区，系统程序都在这里，包括系统自带的一些 app 等等。正常情况对这个分区是不能修改的，系统分区都是只读的。&lt;/li&gt;
+&lt;li&gt;&lt;code&gt;data&lt;/code&gt; ，数据分区，这个分区是给用户使用的。用户安装的一下 app 以及一些数据都在这里。wipe 的时候就是会清空这个分区的数据。大家熟悉的 sdcard 那个分区，其实数据也是在这里的。data 分区里面 app 只能读取自己的数据，无法访问别的 app 的。但是放在 /sdcard 分区的数据，大家都可以访问（当然，还得有 sdcard 的权限）&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;前三个分区都可以定制。首先需要解锁 bootloader，这个各个定制版都可能有区别，比如华为我记得还需要去他们网站获取一个解锁码，获取的时候会提示你解锁之后就不给保了。原生的 android 都是去开发者选项里面打开，然后在启动的时候进 bootloader，执行 &lt;code&gt;fastboot oem unlock-go&lt;/code&gt; 。解锁的时候会自动 reset 系统，注意先备份数据。&lt;/p&gt;
+
+&lt;p&gt;解锁之后，就可以刷自己的 recovery 了。刷之前建议先备份一下 &lt;code&gt;boot&lt;/code&gt; &lt;code&gt;recovery&lt;/code&gt; &lt;code&gt;system&lt;/code&gt; 分区，以方便自己回头可以刷回来。我用的是 twrp，其它的好像现在也么看到。这个得找和你的手机匹配的才行。具体方法是执行 fastboot boot twrpxxxxx.img 临时使用 twrp 启动，然后用通过 &lt;code&gt;adb shell&lt;/code&gt; 登录 shell，之后用 &lt;code&gt;dd if=/dev/block/mmcblk0pXX of=/sdcard/xxx.img&lt;/code&gt; 来备份，之后用 &lt;code&gt;adb pull /sdcard/xxx.img&lt;/code&gt; 下载到本地。具体各个分区的那个 XX 是什么，可以用 &lt;code&gt;fdisk -l&lt;/code&gt; 看。&lt;/p&gt;
+
+&lt;p&gt;这里有一个需要注意的是，我发现我这使用临时启动到 twrp 的方式还是不能修改 system 分区，必须是把 twrp 刷入 recovery 之后才可以。就是这个导致我一直没有搞好 apad 的系统，我开始一直是用临时启动到 recovery 的方式来做的，对 system 做修改就是死机。&lt;/p&gt;
+
+&lt;p&gt;现在比较新的系统都有一个 dm-verify ，想修改 system 分区就需要关闭这个，否则任何修改都会导致系统不能启动。我在 &lt;a href=&#34;https://forum.xda-developers.com/android/software/universal-dm-verity-forceencrypt-t3817389&#34; title=&#34;xda 找到一个&#34;&gt;xda 找到一个&lt;/a&gt; 可以直接在 recovery 里面通过 sideload 刷就可以。&lt;/p&gt;
+
+&lt;p&gt;关闭 dm-verify 之后就可以修改系统了。我还有一个需求是想系统启动之后，通过 iptables 对系统使用的网络做一些限制。想要在系统启动之后做一些事情，比较简单的就是修改 system 分区的那些 xxx.rc 加入自己的东西。我试了之后发现虽然程序可以执行，但是这种方式的程序，并不能直接操作 iptables 命令（执行不报错，但是无实际效果）。查了说大概是 kernel 级别的限制，这样难不成就去定制 kernel 了？&lt;/p&gt;
+
+&lt;p&gt;Android 系统的 root 实际应该就是对系统 kernel 打了一个补丁，放了一个后门，允许通过 su 命令来获取 root 权限，这里获取的 root 权限可是货真价实的，可以执行 iptables 命令。&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://forum.xda-developers.com/apps/magisk&#34; title=&#34;Magisk&#34;&gt;Magisk&lt;/a&gt; 可以给系统 root。recovery 里面通过 sideload 刷入之后，系统会多出来一个 app，有程序想用 su 的话，这个 app 会弹一个提示问是不是允许。magisk 应该是给 kernel 打了补丁，关闭了 dm-verify（所以用 magisk 的话，就可以不用上面那个了），然后启动的时候，会 mount 一个 su.img 提供 su 命令，会启动一个 su 的 daemon。这个可以通过看 ramdisk 里面的内容可以看到。magisk 还会在你的 /data 分区装一个 app，一起配合使用。但是要注意一点，我们 wipe 系统之后，这个 app 也会被删除。但是前面说的那些 su.img 之类都是在 boot 分区的，那些都还有，一个没有 app 配合的 su 也可以用，就是所有程序都直接使用，没有限制了。所以如果是你自己用，那最最好是和 boot 一起刷，或者就是自己安装一个 app。&lt;/p&gt;
+
+&lt;p&gt;对于 system 的修改，拿到 root 权限就可以了。但是对于 boot 分区，只能拿到一个 boot.img，想要修改，还需要使用一些工具把里面的内容解出来，以及之后再打包。我找到一个&lt;a href=&#34;https://forum.xda-developers.com/showthread.php?t=2319018&#34; title=&#34;工具&#34;&gt;工具&lt;/a&gt; 。&lt;/p&gt;
+
+&lt;p&gt;android 系统启动的时候会读取一些 xxx.rc，这些 rc 类似 linux 下面那些，但是不像 linux 那些都是脚本，是有一个自己的格式的内容。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;on property:sys.boot_completed=1
+    start wd-post-boot
+
+service wd-post-boot /system/bin/sh /wd.post_boot.sh
+    class late_start
+    user root
+    disabled
+    oneshot
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;比如我上面这个，定义了一个 service &lt;code&gt;wd-post-boot&lt;/code&gt; ，然后让他在 &lt;code&gt;sys.boot_completed&lt;/code&gt; 这个 prop 值为 1 的时候执行一次。还有很多其它的方法，可以找 android 的文档看，我说的不能执行 iptables 就是这里的脚本里面不能执行。&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Boot Linux Through PXE</title>
@@ -1902,415 +2060,6 @@ const styles = StyleSheet.create({
 &lt;p&gt;&lt;del&gt;发现 org 的 &lt;code&gt;BEGIN_SRC&lt;/code&gt; 输出的时候，会加一个换行在第一行，这个导致多了一个空白行，稍微有点丑了，回头有时间再看看是哪里的问题吧。&lt;/del&gt;&lt;/p&gt;
 
 &lt;p&gt;上面这个问题在 hugo 的 HEAD 版本里面已经修复了。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Dpi dp and px</title>
-      <link>https://wdicc.com/dpi-dp-and-px/</link>
-      <pubDate>Sat, 16 Sep 2017 10:18:50 +0800</pubDate>
-      
-      <guid>https://wdicc.com/dpi-dp-and-px/</guid>
-      <description>&lt;p&gt;这几天折腾了一下 android 上面的布局，了解了一些基础概念。&lt;/p&gt;
-
-&lt;p&gt;首先有两个概念，一个是分辨率，一个是屏幕的实际尺寸。我们一般讲的 &lt;code&gt;800x600&lt;/code&gt; 像素(px)，&lt;code&gt;1024x768&lt;/code&gt; 像素(px)这些，都是分辨率。然后 &lt;code&gt;5.5&lt;/code&gt; 寸(iPhone 6/7/8 plus)，&lt;code&gt;4.7&lt;/code&gt; 寸(iPhone 6/7/8)，&lt;code&gt;10.1&lt;/code&gt; 寸(iPad) 这些是实际尺寸，并且指的是屏幕对角线尺寸。&lt;/p&gt;
-
-&lt;p&gt;一般来讲，除非是 5.5 和  10.1 这么大的差异，我们大多会在比如 5.5 和 4.7 上面使用同一个设计。比如在最上面 1cm (为什么说物理距离呢，因为手机屏幕就那么大，你不能把内容显示的太小，否则会看不清楚) 显示一个黄色的提示条。那么接下来的问题就是，1cm 对应的像素，就算在同一个设备的不同的分辨率下面，都是不一样的。那图怎么做？&lt;/p&gt;
-
-&lt;p&gt;如果 20px 的图放到 800x600 的分辨率下面刚好，那么这个图放到了 1600x1200 的分辨率下面（这里说的是屏幕物理尺寸不变的情况下，因为如果物理尺寸如果也变大了，那就是另外一个情况了），不做缩放的话，就是会得到比 800x600 小一倍的效果。如果缩放的话，那就大小一样了，但是可能因为缩放导致失真。实际做法就是针对不同分辨率做不同的尺寸的图。比如针对 800x600 分辨率，做一个 20px 的图，那对于 1600x1200 分辨率的，做一个 40px 的图。以此类推。&lt;/p&gt;
-
-&lt;p&gt;这样，三个概念就出来了&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;code&gt;density&lt;/code&gt; 也就是 dpi，屏幕密度。&lt;/li&gt;
-&lt;li&gt;&lt;code&gt;dp&lt;/code&gt; 是一个长度单位。&lt;/li&gt;
-&lt;li&gt;常见的 &lt;code&gt;1x&lt;/code&gt;, &lt;code&gt;2x&lt;/code&gt;, &lt;code&gt;@2x&lt;/code&gt; 这些。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;code&gt;density(dpi，屏幕密度) = 屏幕对角线的像素/对角线的物理尺寸 = (屏幕长的像素的平方 + 屏幕宽的像素的平方)开根号/对角线的物理尺寸&lt;/code&gt;，比如 iphone 3G/3GS 是 160, iphone 4 是 320。&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;dp = px x 160 / dpi&lt;/code&gt;。比如 160dp 在 160 dpi 下面是 160px，在 320 dpi 下面是 320px。其实就是说，160dp 我们在 iphone 3g 上和在 iphone 4 上看到的物理长度是一样的。&lt;/p&gt;
-
-&lt;p&gt;而 &lt;code&gt;1x&lt;/code&gt;, &lt;code&gt;2x&lt;/code&gt; 是 &lt;code&gt;px/dp = dpi/160&lt;/code&gt;。从上面那个例子也能看到，这个其实就是指 px 和 dp 的换算关系。一般我们要在某个手机上面开发，主要弄清楚的就是这个倍率就可以了。在 1x 的设备上面，想要展示 10px 的图，那么给 2x 的设备就得切一个 20px 的图，才能达到和 1x 上面一样的视觉效果。&lt;/p&gt;
-
-&lt;p&gt;那我们一个 app 是需要同时准备展示在很多类型的设备上面的，1x, 1.5x, 2x 3x 等，总不能靠程序去计算然后决定用什么图吧。各系统其实已经做好了简单的适配方法了。比如 ios 里面，是通过给图取不同的名字来解决的，例如 example@2x.png，example@3x.png，ios 系统会自动去用对应的图。而 android 系统里面，是通过把图放入不同的目录来解决的，例如 drawable，drawable-hdpi, drawable-xhdbi，这几个分别对应 1x, 1.5x, 2x。&lt;/p&gt;
-
-&lt;p&gt;其中要注意的是不要放错目录。如果把一个 1.5x 的图，放到了 1x 的目录下面，然后展示在一个 1.5x 的设备下面，会发现图会被缩放到 1.5 倍大小。&lt;/p&gt;
-
-&lt;p&gt;参考链接:&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.jianshu.com/p/913943d25829&#34;&gt;http://www.jianshu.com/p/913943d25829&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://www.zhihu.com/question/20697111&#34;&gt;https://www.zhihu.com/question/20697111&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Add float debug button for react native</title>
-      <link>https://wdicc.com/add-float-debug-button-for-react-native/</link>
-      <pubDate>Sat, 02 Sep 2017 18:22:47 +0800</pubDate>
-      
-      <guid>https://wdicc.com/add-float-debug-button-for-react-native/</guid>
-      <description>
-
-&lt;p&gt;React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候并不是一个好的操作，比如是个 pad，或者比如你自己的设备本身会触发晃动动作。那么如何在开发模式下面增加一个按钮打开这个菜单呢？可惜官方对这个功能没有兴趣多做开发 &lt;a href=&#34;https://github.com/facebook/react-native/issues/10191&#34;&gt;https://github.com/facebook/react-native/issues/10191&lt;/a&gt; 。&lt;/p&gt;
-
-&lt;h2 id=&#34;ios&#34;&gt;iOS&lt;/h2&gt;
-
-&lt;p&gt;ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;import {NativeModules} from &#39;react-native&#39;;
-
-// 在某个按钮的动作里面
-const {DevMenu} = NativeModules;
-DevMenu.show();
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;android&#34;&gt;Android&lt;/h2&gt;
-
-&lt;p&gt;iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法，得自己通过 native 代码加。&lt;/p&gt;
-
-&lt;p&gt;下面两种方式加的都是 &lt;code&gt;android.support.design.widget.FloatingActionButton&lt;/code&gt; 按钮，其它的类似。需要增加好编译依赖 &lt;code&gt;compile &#39;com.android.support:design:23.0.0&#39;&lt;/code&gt;，版本号按照自己的修改下。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;        private void addDevButton() {
-
-            MainApplication application = (MainApplication) getApplication();
-            ReactNativeHost reactNativeHost = application.getReactNativeHost();
-            ReactInstanceManager reactInstanceManager = reactNativeHost.getReactInstanceManager();
-            final DevSupportManager devSupportManager = reactInstanceManager.getDevSupportManager();
-
-            // 这里是增加一个自定义菜单
-//            devSupportManager.addCustomDevOption(&amp;quot;Custom dev option&amp;quot;, new DevOptionHandler() {
-//                @Override
-//                public void onOptionSelected() {
-//                    Toast.makeText(MainActivity.this, &amp;quot;Hello from custom dev option&amp;quot;, Toast.LENGTH_SHORT).show();
-//                }
-//            });
-
-
-            // Fake empty container dev_button_layout
-            // 创建一个 layout
-            RelativeLayout lContainerLayout = new RelativeLayout(mActivity.getApplicationContext());
-            lContainerLayout.setLayoutParams(new RelativeLayout.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.MATCH_PARENT ));
-
-            // custom view
-            // 创建一个 button
-            FloatingActionButton button = new FloatingActionButton(mActivity);
-            button.setImageResource(R.drawable.ga_airplane);
-
-            RelativeLayout.LayoutParams lButtonParams = new RelativeLayout.LayoutParams(
-                    ViewGroup.LayoutParams.WRAP_CONTENT, ViewGroup.LayoutParams.WRAP_CONTENT
-            );
-            lButtonParams.addRule(RelativeLayout.ALIGN_PARENT_RIGHT);
-            lButtonParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
-            button.setLayoutParams(lButtonParams);
-
-            ViewGroup.MarginLayoutParams mp = (ViewGroup.MarginLayoutParams) button.getLayoutParams();
-            mp.setMargins(0, 0, 0, dpToPx(mActivity, 125));
-
-            button.setLayoutParams(mp);
-
-            //设定拖动动作
-            button.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    switch (event.getActionMasked()) {
-                        case MotionEvent.ACTION_DOWN:
-                            dX = v.getX() - event.getRawX();
-                            dY = v.getY() - event.getRawY();
-                            lastAction = MotionEvent.ACTION_DOWN;
-                            break;
-
-                        case MotionEvent.ACTION_MOVE:
-                            v.setY(event.getRawY() + dY);
-                            v.setX(event.getRawX() + dX);
-                            lastAction = MotionEvent.ACTION_MOVE;
-                            break;
-
-                        case MotionEvent.ACTION_UP:
-                            if (lastAction == MotionEvent.ACTION_DOWN)
-                                // 点击的时候打开菜单
-                                devSupportManager.showDevOptionsDialog();
-                            break;
-
-                        default:
-                            return false;
-                    }
-                    return true;
-                }
-            });
-
-            lContainerLayout.addView(button);
-            addContentView(lContainerLayout, new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.MATCH_PARENT ));
-        }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;上面是纯代码方式，还可以通过 xml 文件方式搞定。&lt;/p&gt;
-
-&lt;p&gt;新建一个 layout 文件，取名比如叫做 &lt;code&gt;dev_button_layout.xml&lt;/code&gt;， rootTag 是 &lt;code&gt;RelativeLayout&lt;/code&gt;。然后在里面添加一个 &lt;code&gt;FloatingActionButton&lt;/code&gt;，id 设置为 &lt;code&gt;dev_button&lt;/code&gt;，然后设置好属性和位置。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;        private void addDevButton() {
-            MainApplication application = (MainApplication) getApplication();
-            ReactNativeHost reactNativeHost = application.getReactNativeHost();
-            ReactInstanceManager reactInstanceManager = reactNativeHost.getReactInstanceManager();
-            final DevSupportManager devSupportManager = reactInstanceManager.getDevSupportManager();
-
-            View view = View.inflate(mActivity, R.layout.dev_button_layout, null);
-            FloatingActionButton button = (FloatingActionButton) view.findViewById(R.id.dev_button);
-            //button.setImageResource(R.drawable.ga_airplane);
-
-            button.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View v, MotionEvent event) {
-                    switch (event.getActionMasked()) {
-                        case MotionEvent.ACTION_DOWN:
-                            dX = v.getX() - event.getRawX();
-                            dY = v.getY() - event.getRawY();
-                            lastAction = MotionEvent.ACTION_DOWN;
-                            break;
-
-                        case MotionEvent.ACTION_MOVE:
-                            v.setY(event.getRawY() + dY);
-                            v.setX(event.getRawX() + dX);
-                            lastAction = MotionEvent.ACTION_MOVE;
-                            break;
-
-                        case MotionEvent.ACTION_UP:
-                            if (lastAction == MotionEvent.ACTION_DOWN)
-                                devSupportManager.showDevOptionsDialog();
-                            break;
-
-                        default:
-                            return false;
-                    }
-                    return true;
-                }
-            });
-
-            addContentView(view, new ViewGroup.LayoutParams(
-                    ViewGroup.LayoutParams.MATCH_PARENT , ViewGroup.LayoutParams.MATCH_PARENT ));
-        }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;然后在你的 &lt;code&gt;MainActivity&lt;/code&gt; 的 &lt;code&gt;onCreate&lt;/code&gt; 里面，在 &lt;code&gt;super.onCreate(savedInstanceState);&lt;/code&gt; 后面增加&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;            // debug 环境下才显示
-            if(BuildConfig.DEBUG)
-                addDevButton();
-&lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Emacs as react native ide</title>
-      <link>https://wdicc.com/emacs-as-react-native-ide/</link>
-      <pubDate>Mon, 24 Jul 2017 20:02:00 +0800</pubDate>
-      
-      <guid>https://wdicc.com/emacs-as-react-native-ide/</guid>
-      <description>
-
-&lt;p&gt;最近又在写 &lt;code&gt;react-native&lt;/code&gt; 了，对自己的环境又作了一番配置。记录一下。&lt;/p&gt;
-
-&lt;h2 id=&#34;web-mode&#34;&gt;web-mode&lt;/h2&gt;
-
-&lt;p&gt;我主要用的 mode 是 web-mode。这个 mode 简直万能，能处理 html，jsx，js 等。具体配置如下。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;(use-package web-mode
-  :ensure t
-  :config
-  (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.html\\&#39;&amp;quot; . web-mode))
-  (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.js\\&#39;&amp;quot; . web-mode))
-  (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.ejs\\&#39;&amp;quot; . web-mode))
-  (setq web-mode-markup-indent-offset 4)
-  (setq web-mode-css-indent-offset 4)
-  (setq web-mode-code-indent-offset 4)
-
-  (setq web-mode-content-types-alist
-        &#39;((&amp;quot;jsx&amp;quot; . &amp;quot;.*\\.js\\&#39;&amp;quot;))
-        )
-)
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;主要是那个 &lt;code&gt;web-mode-content-types-alist&lt;/code&gt; 的配置，让 web-mode 处理 js 文件的时候，把 &lt;code&gt;&amp;lt;&amp;gt;&lt;/code&gt; 代码段识别成 jsx。这样能把缩进处理好。&lt;/p&gt;
-
-&lt;p&gt;我还试过 rjsx-mode，这个用起来也可以，基于 js2-mdoe，js2-mode 有的一些用法都支持，并且 flycheck 都不用做多余的配置。但是主要问题是，jsx 的代码缩进有问题。&lt;/p&gt;
-
-&lt;h2 id=&#34;flycheck&#34;&gt;flycheck&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code&gt;(use-package flycheck
-  :ensure t
-  :config
-  (global-flycheck-mode t)
-  (flycheck-add-mode &#39;javascript-eslint &#39;web-mode)
-)
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;把 web-mode 的 checker 设置为 &lt;code&gt;javascript-eslint&lt;/code&gt;，如果你用别的就设置成对应的。配合用的 .eslintrc 文件如下，可以根据自己需求调整。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;{
-    &amp;quot;parser&amp;quot;: &amp;quot;babel-eslint&amp;quot;,
-    &amp;quot;env&amp;quot;: {
-        &amp;quot;es6&amp;quot;: true
-    },
-    &amp;quot;parserOptions&amp;quot;: {
-        &amp;quot;ecmaVersion&amp;quot;: 6,
-        &amp;quot;sourceType&amp;quot;: &amp;quot;module&amp;quot;,
-        &amp;quot;ecmaFeatures&amp;quot;: {
-            &amp;quot;jsx&amp;quot;: true
-        }
-    },
-    &amp;quot;plugins&amp;quot;: [
-        &amp;quot;react&amp;quot;
-    ],
-    &amp;quot;globals&amp;quot;: {
-        &amp;quot;require&amp;quot;: false,
-        &amp;quot;module&amp;quot;: false,
-        &amp;quot;setInterval&amp;quot;: false,
-        &amp;quot;clearInterval&amp;quot;: false,
-        &amp;quot;setTimeout&amp;quot;: false,
-        &amp;quot;clearTimeout&amp;quot;: false,
-        &amp;quot;console&amp;quot;: false
-    },
-    &amp;quot;extends&amp;quot;: [
-        &amp;quot;eslint:recommended&amp;quot;,
-        &amp;quot;plugin:react/recommended&amp;quot;
-    ],
-    &amp;quot;rules&amp;quot;: {
-        // overrides
-        &amp;quot;react/prop-types&amp;quot;: 0,
-        &amp;quot;indent&amp;quot;: [&amp;quot;error&amp;quot;, 4],
-        &amp;quot;react/jsx-indent&amp;quot;: [&amp;quot;error&amp;quot;, 4],
-        &amp;quot;no-trailing-spaces&amp;quot;: 2,
-        &amp;quot;no-console&amp;quot;: 0,
-        &amp;quot;comma-dangle&amp;quot;: [&amp;quot;error&amp;quot;, &amp;quot;never&amp;quot;]
-    }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;补全&#34;&gt;补全&lt;/h2&gt;
-
-&lt;pre&gt;&lt;code&gt;(use-package tern
-  :ensure t
-  :config
-  (add-hook &#39;web-mode-hook (lambda () (tern-mode t)))
-  :bind (:map tern-mode-keymap
-              (&amp;quot;M-*&amp;quot; . tern-pop-find-definition))
-  )
-
-(use-package company-tern
-  :ensure t
-  :config
-  (add-to-list &#39;company-backends &#39;company-tern)
-  )
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;我用的是 company 后端用的是 tern。.tern-project 的内容如下，可以根据自己的情况调整下。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;{
-  &amp;quot;ecmaVersion&amp;quot;: 6,
-  &amp;quot;libs&amp;quot;: [
-    &amp;quot;browser&amp;quot;
-  ],
-  &amp;quot;loadEagerly&amp;quot;: [
-    &amp;quot;Controller/*.js&amp;quot;,
-    &amp;quot;Utility/*.js&amp;quot;,
-    &amp;quot;App.js&amp;quot;
-  ],
-  &amp;quot;dontLoad&amp;quot;: [
-    &amp;quot;node_modules/**&amp;quot;
-  ],
-  &amp;quot;plugins&amp;quot;: {
-    &amp;quot;node&amp;quot;: {},
-    &amp;quot;es_modules&amp;quot;: {},
-    &amp;quot;jsx&amp;quot;: {}
-  }
-}
-
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;h2 id=&#34;补全-update&#34;&gt;补全 update&lt;/h2&gt;
-
-&lt;p&gt;tern 这个东西用了一段时间，发现不是很好用。经常找不到 symbol，以及在 jsx 代码里面无法跳转。后来发现了 &lt;a href=&#34;https://github.com/ananthakumaran/tide&#34;&gt;tide&lt;/a&gt;，简直好用到不行。&lt;/p&gt;
-
-&lt;p&gt;tide 是基于 vscode 用的 tsserver 来搞的。这个开始是给 TypeScript 用的，目前也支持普通 js。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;(defun setup-tide-mode ()
-  (interactive)
-  ;; (setq tide-tsserver-process-environment &#39;(&amp;quot;TSS_LOG=-level verbose -file /tmp/tss.log&amp;quot;))
-  (tide-setup)
-  ;;(setq flycheck-check-syntax-automatically &#39;(save mode-enabled))
-  (eldoc-mode +1)
-  (tide-hl-identifier-mode +1)
-  ;; company is an optional dependency. You have to
-  ;; install it separately via package-install
-  ;; `M-x package-install [ret] company`
-  )
-
-
-(use-package tide
-  :ensure t
-  :bind ((&amp;quot;M-.&amp;quot; . tide-jump-to-definition)
-         (&amp;quot;M-,&amp;quot; . tide-jump-back)
-         )
-
-  :config
-  (setup-tide-mode)
-  ;; aligns annotation to the right hand side
-  (setq company-tooltip-align-annotations t)
-
-  ;; formats the buffer before saving
-  ;;(add-hook &#39;before-save-hook &#39;tide-format-before-save)
-
-  ;; configure javascript-tide checker to run after your default javascript checker
-  (flycheck-add-next-checker &#39;javascript-eslint &#39;javascript-tide &#39;append)
-
-  (add-hook &#39;web-mode-hook
-            (lambda ()
-              (when (string-equal &amp;quot;js&amp;quot; (file-name-extension buffer-file-name))
-                (setup-tide-mode))))
-  ;; configure jsx-tide checker to run after your default jsx checker
-  (flycheck-add-mode &#39;javascript-eslint &#39;web-mode)
-  (flycheck-add-next-checker &#39;javascript-eslint &#39;jsx-tide &#39;append)
-  )
-
-
-;; 针对 web-mode 做一个配置
-    (add-hook &#39;web-mode-hook
-            (lambda ()
-              (set (make-local-variable &#39;company-backends)
-                   &#39;(
-                      company-tide
-                      ;company-react
-                      company-dabbrev-code
-                      company-keywords
-                      company-files
-                      company-yasnippet))))
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;其实我也没做啥配置，就是官方的那几个就可以。然后还有一个 jsconfig.json 的配置文件如下。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;{
-    &amp;quot;compilerOptions&amp;quot;: {
-        &amp;quot;allowJs&amp;quot;: true,
-        &amp;quot;allowSyntheticDefaultImports&amp;quot;: true
-    },
-    &amp;quot;exclude&amp;quot;: [
-        &amp;quot;node_modules&amp;quot;,
-        &amp;quot;ios&amp;quot;,
-        &amp;quot;android&amp;quot;,
-        &amp;quot;.git&amp;quot;
-    ]
-}
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;这就支持了好多功能，比如光标停留在一个 keyword 上面就会高亮相关的，比如 company 的补全啥的，都很不错。还支持 refactor。&lt;/p&gt;
 </description>
     </item>
     

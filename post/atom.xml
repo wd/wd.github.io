@@ -6,10 +6,51 @@
     <description>Recent content in Posts on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 02 Jul 2018 16:47:31 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 03 Sep 2018 18:00:56 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/post/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>React Native Deeplink</title>
+      <link>https://wdicc.com/react-native-deeplink/</link>
+      <pubDate>Mon, 03 Sep 2018 18:00:56 +0800</pubDate>
+      
+      <guid>https://wdicc.com/react-native-deeplink/</guid>
+      <description>App 一般都支持类似 coolflight://list 这样的链接，可以直接打开 app 并打开列表，这个就是 deeplink。
+这个需要对 native 代码做一些修改，可以参考这里的修改，ios 和 android 都有写。这里有一个需要注意的是，对于 android 有一个配置是
+ &amp;lt;data android:scheme=&amp;quot;mychat&amp;quot; android:host=&amp;quot;mychat&amp;quot; /&amp;gt;  这个里面配置 host 的话，后面使用的时候就需要类似 mychat://mychat/list 这样的方式了，就是多了一层 mychat。这样也会导致 ios 和 android 的链接不统一，我查了文档也没有查到没有设置 host 会有什么问题，我就去掉了，去掉之后，ios 和 android 的链接就统一了。都是 mychat://list
+另外 android 还有一个需要注意的地方是，activity 的 launchmod 需要设置为 singleTask 要不会导致每次通过 deeplink 打开 app 都会新建一个，导致你有多个 js 在后台跑。
+&amp;lt;activity android:name=&amp;quot;.MainActivity&amp;quot; android:launchMode=&amp;quot;singleTask&amp;quot;&amp;gt;  在 js 里面可以使用 Linking.openURL(url).catch(err =&amp;gt; console.error(&#39;An error occurred&#39;, err)) 打开一个 deeplink ，可以是别的 app 的，也可以是自己的。
+然后就是在 js 里面处理对应的 deeplink 了。</description>
+    </item>
+    
+    <item>
+      <title>React Mobx</title>
+      <link>https://wdicc.com/react-mobx/</link>
+      <pubDate>Sun, 02 Sep 2018 19:18:16 +0800</pubDate>
+      
+      <guid>https://wdicc.com/react-mobx/</guid>
+      <description>我们之前用的是 redux 来做的统一 store，最近一个新项目有同学用了 mobx，就了解了一下，刚开始看的时候，感觉比 redux 好啊？
+mobx 的逻辑是自动收集 store 属性被哪些 dom 使用，然后在属性被改变的时候，自动更新 dom。这样的模式显然比 redux 的 action，reducer，selector 那一套简单多了。
+给对应的组件加上 @observer 装饰器之后，store 改变就会自动重现渲染组件。store 可以用下面的模式给到组件
+const store = new TodoList(); &amp;lt;TodoListView todoList={store} /&amp;gt;  也可以用 @inject 装饰器
+@inject(store =&amp;gt; store) @observer class TodoListView { }  之后都通过 this.props 引用。
+一切都很美好，直到我看到了这个，这里列了一些 mobx 的坑。比如有讲到，mobx 为了能监控到对 store 的依赖和修改，其实是把 store 属性做了修改，所以 store 有一个属性是一个 Map，那么实际得到的是一个和 ES6 Map api 类似的一个对象，但是并不是原生的 Map。比如有一个属性是 Object，你给加了一个 key，例如 store.object[&#39;a&#39;] = &#39;test&#39;，那么这个修改并不能被监视，具体看那个文档吧。
+写 Javascript 基本就是从一个小坑爬出来掉到一个大坑里面。</description>
+    </item>
+    
+    <item>
+      <title>Android Custom</title>
+      <link>https://wdicc.com/android-custom/</link>
+      <pubDate>Sun, 02 Sep 2018 08:00:16 +0800</pubDate>
+      
+      <guid>https://wdicc.com/android-custom/</guid>
+      <description>我们给用户的设备，有 android pad 和 pc。pc 系统我之前基于 porteus 定制了一个，勉强可以用。apad 的系统一直没搞好。
+Android 系统必须要解锁之后才可以定制系统，否则没有 root 权限，system 分区的数据不能修改。
+ Android 系统有四个重要的分区。 boot ，和 linux 的类似，里面有 kernel 和 ramdisk，ramdisk 应该是在启动之后会成为 / 分区 recovery ，恢复分区，如果想对系统分区做什么操作，可以使用这里的程序引导系统，这个时候允许你进行一些操作。默认的 recovery 只能 wipe 和刷系统。自定义的 recovery 比较厉害，可以支持备份啊啥的一堆事情，比如 twrp 还有图形界面。 system ，系统分区，系统程序都在这里，包括系统自带的一些 app 等等。正常情况对这个分区是不能修改的，系统分区都是只读的。 data ，数据分区，这个分区是给用户使用的。用户安装的一下 app 以及一些数据都在这里。wipe 的时候就是会清空这个分区的数据。大家熟悉的 sdcard 那个分区，其实数据也是在这里的。data 分区里面 app 只能读取自己的数据，无法访问别的 app 的。但是放在 /sdcard 分区的数据，大家都可以访问（当然，还得有 sdcard 的权限）  前三个分区都可以定制。首先需要解锁 bootloader，这个各个定制版都可能有区别，比如华为我记得还需要去他们网站获取一个解锁码，获取的时候会提示你解锁之后就不给保了。原生的 android 都是去开发者选项里面打开，然后在启动的时候进 bootloader，执行 fastboot oem unlock-go 。解锁的时候会自动 reset 系统，注意先备份数据。
+解锁之后，就可以刷自己的 recovery 了。刷之前建议先备份一下 boot recovery system 分区，以方便自己回头可以刷回来。我用的是 twrp，其它的好像现在也么看到。这个得找和你的手机匹配的才行。具体方法是执行 fastboot boot twrpxxxxx.</description>
+    </item>
     
     <item>
       <title>Boot Linux Through PXE</title>
@@ -435,46 +476,6 @@ https https 是指基于 tls/ssl 协议基础上面跑的 http 协议。建立 s
 已经弄了一个 tag 的样式，先这么看着吧。另外也修正了一下 code 的空白。
 发现 org 的 BEGIN_SRC 输出的时候，会加一个换行在第一行，这个导致多了一个空白行，稍微有点丑了，回头有时间再看看是哪里的问题吧。
 上面这个问题在 hugo 的 HEAD 版本里面已经修复了。</description>
-    </item>
-    
-    <item>
-      <title>Dpi dp and px</title>
-      <link>https://wdicc.com/dpi-dp-and-px/</link>
-      <pubDate>Sat, 16 Sep 2017 10:18:50 +0800</pubDate>
-      
-      <guid>https://wdicc.com/dpi-dp-and-px/</guid>
-      <description>这几天折腾了一下 android 上面的布局，了解了一些基础概念。
-首先有两个概念，一个是分辨率，一个是屏幕的实际尺寸。我们一般讲的 800x600 像素(px)，1024x768 像素(px)这些，都是分辨率。然后 5.5 寸(iPhone 6/7/8 plus)，4.7 寸(iPhone 6/7/8)，10.1 寸(iPad) 这些是实际尺寸，并且指的是屏幕对角线尺寸。
-一般来讲，除非是 5.5 和 10.1 这么大的差异，我们大多会在比如 5.5 和 4.7 上面使用同一个设计。比如在最上面 1cm (为什么说物理距离呢，因为手机屏幕就那么大，你不能把内容显示的太小，否则会看不清楚) 显示一个黄色的提示条。那么接下来的问题就是，1cm 对应的像素，就算在同一个设备的不同的分辨率下面，都是不一样的。那图怎么做？
-如果 20px 的图放到 800x600 的分辨率下面刚好，那么这个图放到了 1600x1200 的分辨率下面（这里说的是屏幕物理尺寸不变的情况下，因为如果物理尺寸如果也变大了，那就是另外一个情况了），不做缩放的话，就是会得到比 800x600 小一倍的效果。如果缩放的话，那就大小一样了，但是可能因为缩放导致失真。实际做法就是针对不同分辨率做不同的尺寸的图。比如针对 800x600 分辨率，做一个 20px 的图，那对于 1600x1200 分辨率的，做一个 40px 的图。以此类推。
-这样，三个概念就出来了
- density 也就是 dpi，屏幕密度。 dp 是一个长度单位。 常见的 1x, 2x, @2x 这些。  density(dpi，屏幕密度) = 屏幕对角线的像素/对角线的物理尺寸 = (屏幕长的像素的平方 + 屏幕宽的像素的平方)开根号/对角线的物理尺寸，比如 iphone 3G/3GS 是 160, iphone 4 是 320。</description>
-    </item>
-    
-    <item>
-      <title>Add float debug button for react native</title>
-      <link>https://wdicc.com/add-float-debug-button-for-react-native/</link>
-      <pubDate>Sat, 02 Sep 2017 18:22:47 +0800</pubDate>
-      
-      <guid>https://wdicc.com/add-float-debug-button-for-react-native/</guid>
-      <description>React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候并不是一个好的操作，比如是个 pad，或者比如你自己的设备本身会触发晃动动作。那么如何在开发模式下面增加一个按钮打开这个菜单呢？可惜官方对这个功能没有兴趣多做开发 https://github.com/facebook/react-native/issues/10191 。
-iOS ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。
-import {NativeModules} from &#39;react-native&#39;; // 在某个按钮的动作里面 const {DevMenu} = NativeModules; DevMenu.show();  Android iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法，得自己通过 native 代码加。
-下面两种方式加的都是 android.support.design.widget.FloatingActionButton 按钮，其它的类似。需要增加好编译依赖 compile &#39;com.android.support:design:23.0.0&#39;，版本号按照自己的修改下。
-private void addDevButton() { MainApplication application = (MainApplication) getApplication(); ReactNativeHost reactNativeHost = application.getReactNativeHost(); ReactInstanceManager reactInstanceManager = reactNativeHost.getReactInstanceManager(); final DevSupportManager devSupportManager = reactInstanceManager.getDevSupportManager(); // 这里是增加一个自定义菜单 // devSupportManager.addCustomDevOption(&amp;quot;Custom dev option&amp;quot;, new DevOptionHandler() { // @Override // public void onOptionSelected() { // Toast.</description>
-    </item>
-    
-    <item>
-      <title>Emacs as react native ide</title>
-      <link>https://wdicc.com/emacs-as-react-native-ide/</link>
-      <pubDate>Mon, 24 Jul 2017 20:02:00 +0800</pubDate>
-      
-      <guid>https://wdicc.com/emacs-as-react-native-ide/</guid>
-      <description>最近又在写 react-native 了，对自己的环境又作了一番配置。记录一下。
-web-mode 我主要用的 mode 是 web-mode。这个 mode 简直万能，能处理 html，jsx，js 等。具体配置如下。
-(use-package web-mode :ensure t :config (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.html\\&#39;&amp;quot; . web-mode)) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.js\\&#39;&amp;quot; . web-mode)) (add-to-list &#39;auto-mode-alist &#39;(&amp;quot;\\.ejs\\&#39;&amp;quot; . web-mode)) (setq web-mode-markup-indent-offset 4) (setq web-mode-css-indent-offset 4) (setq web-mode-code-indent-offset 4) (setq web-mode-content-types-alist &#39;((&amp;quot;jsx&amp;quot; . &amp;quot;.*\\.js\\&#39;&amp;quot;)) ) )  主要是那个 web-mode-content-types-alist 的配置，让 web-mode 处理 js 文件的时候，把 &amp;lt;&amp;gt; 代码段识别成 jsx。这样能把缩进处理好。
-我还试过 rjsx-mode，这个用起来也可以，基于 js2-mdoe，js2-mode 有的一些用法都支持，并且 flycheck 都不用做多余的配置。但是主要问题是，jsx 的代码缩进有问题。
-flycheck (use-package flycheck :ensure t :config (global-flycheck-mode t) (flycheck-add-mode &#39;javascript-eslint &#39;web-mode) )  把 web-mode 的 checker 设置为 javascript-eslint，如果你用别的就设置成对应的。配合用的 .</description>
     </item>
     
   </channel>
