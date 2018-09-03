@@ -1,0 +1,31 @@
+---
+title: "React Mobx"
+date: 2018-09-02T19:18:16+08:00
+tags: ["react", "mobx"]
+toc: true
+---
+我们之前用的是 redux 来做的统一 store，最近一个新项目有同学用了 mobx，就了解了一下，刚开始看的时候，感觉比 redux 好啊？
+
+mobx 的逻辑是自动收集 store 属性被哪些 dom 使用，然后在属性被改变的时候，自动更新 dom。这样的模式显然比 redux 的 action，reducer，selector 那一套简单多了。
+
+给对应的组件加上 =@observer= 装饰器之后，store 改变就会自动重现渲染组件。store 可以用下面的模式给到组件
+
+#+BEGIN_SRC javascript
+const store = new TodoList();
+<TodoListView todoList={store} />
+#+END_SRC
+
+也可以用 =@inject= 装饰器
+
+#+BEGIN_SRC javascript
+@inject(store => store)
+@observer
+class TodoListView {
+}
+#+END_SRC
+
+之后都通过 =this.props= 引用。
+
+一切都很美好，直到我看到了[[https://mobx.js.org/best/react.html][这个]]，这里列了一些 mobx 的坑。比如有讲到，mobx 为了能监控到对 store 的依赖和修改，其实是把 store 属性做了修改，所以 store 有一个属性是一个 Map，那么实际得到的是一个和 ES6 Map api 类似的一个对象，但是并不是原生的 Map。比如有一个属性是 Object，你给加了一个 key，例如 store.object['a'] = 'test'，那么这个修改并不能被监视，具体看那个文档吧。
+
+写 Javascript 基本就是从一个小坑爬出来掉到一个大坑里面。

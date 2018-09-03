@@ -1,0 +1,78 @@
+---
+title: "React Native Deeplink"
+date: 2018-09-03T18:00:56+08:00
+tags: ["react", "deeplink"]
+toc: true
+---
+App 一般都支持类似 =coolflight://list= 这样的链接，可以直接打开 app 并打开列表，这个就是 deeplink。
+
+这个需要对 native 代码做一些修改，可以参考[[https://reactnavigation.org/docs/en/deep-linking.html][这里]]的修改，ios 和 android 都有写。这里有一个需要注意的是，对于 android 有一个配置是
+
+#+BEGIN_SRC 
+    <data android:scheme="mychat" android:host="mychat" />
+#+END_SRC
+
+这个里面配置 host 的话，后面使用的时候就需要类似 =mychat://mychat/list= 这样的方式了，就是多了一层 mychat。这样也会导致 ios 和 android 的链接不统一，我查了[[https://developer.android.com/training/app-links/deep-linking][文档]]也没有查到没有设置 host 会有什么问题，我就去掉了，去掉之后，ios 和 android 的链接就统一了。都是 =mychat://list=
+
+另外 android 还有一个需要注意的地方是，activity 的 launchmod 需要设置为 =singleTask= 要不会导致每次通过 deeplink 打开 app 都会新建一个，导致你有多个 js 在后台跑。
+
+#+BEGIN_SRC 
+<activity
+  android:name=".MainActivity"
+  android:launchMode="singleTask">
+#+END_SRC
+
+在 js 里面可以使用 =Linking.openURL(url).catch(err => console.error('An error occurred', err))= 打开一个 deeplink ，可以是别的 app 的，也可以是自己的。
+
+然后就是在 js 里面处理对应的 deeplink 了。
+
+#+BEGIN_SRC javascript
+componentDidMount() {
+  Linking.getInitialURL().then((url) => {
+    if (url) {
+      console.log('Initial url is: ' + url);
+    }
+  }).catch(err => console.error('An error occurred', err));
+
+  Linking.addEventListener('url', this._handleOpenURL);
+}
+
+componentWillUnmount() {
+  Linking.removeEventListener('url', this._handleOpenURL);
+}
+
+#+END_SRC
+
+在 =componentDidMount= 里面，通过 =Linking.getInitialURL()= 可以得到 app 冷启动的时候拿到的 link。通过 =Linking.addEventListener('url', callback)= 可以拿到热启动 app 拿到的 link，分别处理或者统一处理都可以，看业务需求。
+
+我们用的是 React Navigation，他支持可以直接给 screen 设置 path，然后和 deeplink 匹配跳转。
+
+#+BEGIN_SRC javascript
+const SimpleApp = createStackNavigator({
+  Home: { screen: HomeScreen },
+  Chat: {
+    screen: ChatScreen,
+    path: 'chat/:user',
+  },
+});
+
+
+const prefix = 'mychat://'; // 这里我们上面提到的统一了，所以不用区分 ios 和 android
+const MainApp = () => <SimpleApp uriPrefix={prefix} />;
+#+END_SRC
+
+这样只需要定义一个 =uriPrefix= 就可以了。
+
+我们为了把 navigation 和 redux 结合，自定义了 navigation 的 =navigation= 属性，就不允许这么弄了。需要自己处理。
+
+主要思路是通过 =SimpleApp.router.getActionForPathAndParams(path, params)= 得到 action，然后 dipatch 这个 action 就可以了。
+
+那个 =chat/:user= 可以匹配到 =mychat://chat/Jim= 这样的 deeplink，然后那个 =user: Jim= 会以 param 的方式给到 screen，通过 param.user 可以访问到。
+
+path 的格式支持的是这个 [[https://github.com/pillarjs/path-to-regexp][path-to-regexp]] 支持的格式，可以自定义表达式，具体可以参考那个文档。
+
+path 支持使用 =?= 来表示一个字段是可选的，例如 =mychat://chat/:user?= 表示会匹配到 =mychat://chat= 和 =mychat://chat/Jim= 。 =mychat://chat/:user?/:msg?= 这样的，可以匹配 =mychat://chat= =mychat://chat/Jim= =mychat://chat/Jim/hey= 但是不能匹配 =mychat://chat//hey= 。默认匹配的是 =([^\\/]+)= 可以通过自定义表达式支持。
+
+#+BEGIN_SRC javascript
+  path: 'chat/:user([^\\/]*)?/:msg?'
+#+END_SRC
