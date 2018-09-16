@@ -6,10 +6,199 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 03 Sep 2018 18:00:56 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 16 Sep 2018 16:36:17 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Typescript for React Native</title>
+      <link>https://wdicc.com/typescript-for-react-native/</link>
+      <pubDate>Sun, 16 Sep 2018 16:36:17 +0800</pubDate>
+      
+      <guid>https://wdicc.com/typescript-for-react-native/</guid>
+      <description>&lt;p&gt;前几天研究 settimeout 的问题的时候，发现 &lt;a href=&#34;https://github.com/ocetnik/react-native-background-timer&#34; title=&#34;react-native-background-timer&#34;&gt;react-native-background-timer&lt;/a&gt; 自己没有 typescript 的 type 文件，但是有人给写了一个 &lt;a href=&#34;https://www.npmjs.com/package/@types/react-native-background-timer&#34; title=&#34;@types/react-native-background-timer&#34;&gt;@types/react-native-background-timer&lt;/a&gt;，这个包算偏门了，都有人写了 type 文件，我感觉是时候试试看 typescript 了。&lt;/p&gt;
+
+&lt;p&gt;搜了一下，发现没有多少在 rn 里面使用 ts 的，有一些关于 react 的，又很奇怪，大都基于 webpack 的。后来找到一篇&lt;a href=&#34;https://facebook.github.io/react-native/blog/2018/05/07/using-typescript-with-react-native&#34; title=&#34;官方的 blog 上面的&#34;&gt;官方的 blog 上面的&lt;/a&gt;，然后结合自己的研究，找到了思路。我是基于已有项目来做的，那个 blog 是基于新项目，大同小异。&lt;/p&gt;
+
+&lt;p&gt;首先装几个包，这几个包里面， &lt;code&gt;=typescript&lt;/code&gt; 提供 typescript 的编译器， &lt;code&gt;react-native-typescript-transformer&lt;/code&gt; 提供了从 ts 代码到 js 代码的转换支持， @types 的两个包提供了 react 和 react-native 的 type 文件。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;$ yarn add -D typescript react-native-typescript-transformer @types/react @types/react-native
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在项目的根目录还需要准几个文件。 tsconfig.json，你的目录里面可能已经有一个 &lt;code&gt;jsconfig.json&lt;/code&gt; 了，那个是给 eslint 用的。tsconfig.json 同时给 typescript 和 tslint 使用。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;{
+  &amp;quot;compilerOptions&amp;quot;: {
+    &amp;quot;target&amp;quot;: &amp;quot;es2015&amp;quot;,
+    &amp;quot;module&amp;quot;: &amp;quot;es2015&amp;quot;,
+    &amp;quot;lib&amp;quot;: [
+      &amp;quot;es2015&amp;quot;
+    ],
+    &amp;quot;jsx&amp;quot;: &amp;quot;react&amp;quot;,
+    &amp;quot;noEmit&amp;quot;: true,
+    &amp;quot;moduleResolution&amp;quot;: &amp;quot;node&amp;quot;,
+    &amp;quot;strict&amp;quot;: true,
+    &amp;quot;esModuleInterop&amp;quot;: true,
+    &amp;quot;types&amp;quot;: [
+       &amp;quot;react&amp;quot;,
+       &amp;quot;react-native&amp;quot;
+     ],
+    &amp;quot;allowSyntheticDefaultImports&amp;quot;: true
+  },
+  &amp;quot;include&amp;quot;: [
+     &amp;quot;./app/**/*&amp;quot;
+  ],
+  &amp;quot;exclude&amp;quot;: [
+    &amp;quot;node_modules&amp;quot;
+  ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这里面的 include/exclude 按照需要调整，注意里面没有 output，我们并不需要 typescript 输出 js 文件。（当然，也可以用输出 js 文件的方式来做这个事情，但是这样就不太好自动化了，细节不说了）&lt;/p&gt;
+
+&lt;p&gt;然后还需要一个 rn-cli.config.js，这个是给 &lt;code&gt;react-native-typescript-transformer&lt;/code&gt; 用的。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;module.exports = {
+  getTransformModulePath() {
+    return require.resolve(&#39;react-native-typescript-transformer&#39;);
+  },
+  getSourceExts() {
+    return [&#39;ts&#39;, &#39;tsx&#39;];
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后就可以写一些 &lt;code&gt;.ts&lt;/code&gt; 文件了。 &lt;code&gt;.ts&lt;/code&gt; 文件表示只有 js 代码， &lt;code&gt;.tsx&lt;/code&gt; 文件表示里面有 react 代码。写完之后可以执行一下 &lt;code&gt;yarn tsc&lt;/code&gt; 看看，是否有错误。没有错误的话，也可以在模拟器里面看看自己的 ts 代码是不是确实可以执行。&lt;/p&gt;
+
+&lt;p&gt;你的代码可以在模拟器里面执行，主要是下面这段代码的作用。 &lt;code&gt;ts.transpileModule&lt;/code&gt; 会把 ts 代码转换成 js 代码，最终执行的是 js 代码。这里有一个需要注意的地方就是这里不管 ts 的语法错误，也就是你比如定义了一个 type 是 string 类型的变量，你给他做了 number 类型的赋值，这个在 js 里面是可以的，ts 是不允许的，但是这里并不会看到错误。执行 &lt;code&gt;yarn tsc&lt;/code&gt; 可以看到错误提示。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;module.exports.transform = function(src, filename, options) {
+  if (typeof src === &#39;object&#39;) {
+    // handle RN &amp;gt;= 0.46
+    ;({ src, filename, options } = src)
+  }
+
+  if (filename.endsWith(&#39;.ts&#39;) || filename.endsWith(&#39;.tsx&#39;)) {
+    const tsCompileResult = ts.transpileModule(src, {
+      compilerOptions,
+      fileName: filename,
+      reportDiagnostics: true,
+    })
+
+    const errors = tsCompileResult.diagnostics.filter(
+      ({ category }) =&amp;gt; category === ts.DiagnosticCategory.Error
+    )
+.....
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+所以保证代码符合 typescript 有下面几个方法：
+&lt;li&gt;使用支持 typescript 的编辑器，依靠编辑器的提示。vs code 配合 tslint 可以做到这个。&lt;/li&gt;
+&lt;li&gt;提交代码之前执行 &lt;code&gt;yarn tsc&lt;/code&gt; 验证代码没问题之后再提交。&lt;/li&gt;
+&lt;li&gt;在 git 的 commit-hook 里面增加一个 hook 自动执行 &lt;code&gt;yarn tsc&lt;/code&gt; 检查。git 也可以在 server 端做这个检查。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;为了保证这个，我在 git 的 commit-hook 里面增加了一个 hook。放到 &lt;code&gt;.git/hooks/pre-commit&lt;/code&gt; 就可以。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-bash&#34;&gt;#!/bin/sh
+
+has_ts_file=`git diff --cached --name-status | awk &#39;$1 != &amp;quot;D&amp;quot; { print $2 }&#39; | grep &#39;.ts$&#39; |wc -l`
+
+exec 1&amp;gt;&amp;amp;2
+
+if [ &amp;quot;$has_ts_file&amp;quot; -ge &#39;1&#39; ];then
+    yarn tsc
+fi
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;但是 git 的 hooks 文件并不是 repo 的一部份，如何保证大家都是一样的配置呢？有一个 npm 包可以做这个事情。。 &lt;code&gt;yarn add -D pre-commit&lt;/code&gt; ，然后在 package.json 里面增加一些配置。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;    &amp;quot;scripts&amp;quot;: {
+        &amp;quot;start&amp;quot;: &amp;quot;node node_modules/react-native/local-cli/cli.js start&amp;quot;,
+        &amp;quot;test&amp;quot;: &amp;quot;jest&amp;quot;,
+        &amp;quot;lint&amp;quot;: &amp;quot;node_modules/.bin/eslint app&amp;quot;,
+        &amp;quot;version&amp;quot;: &amp;quot;./version-ios.sh&amp;quot;,
+        &amp;quot;precommit&amp;quot;: &amp;quot;./pre-commit&amp;quot;
+    },
+    &amp;quot;pre-commit&amp;quot;: [
+        &amp;quot;precommit&amp;quot;
+    ],
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;scripts 里面的 precommit 和 pre-commit 是新加的。那个 pre-commit 就是上面的那个脚本，放到项目目录一起管理就可以。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Background Task in React Native</title>
+      <link>https://wdicc.com/background-task-in-react-native/</link>
+      <pubDate>Sat, 08 Sep 2018 16:06:18 +0800</pubDate>
+      
+      <guid>https://wdicc.com/background-task-in-react-native/</guid>
+      <description>&lt;p&gt;react-native 支持 &lt;code&gt;setTimeout&lt;/code&gt; 和 &lt;code&gt;setInterval&lt;/code&gt; 这些 js 的方法来设置 timer 执行一些任务。但是对于长时间执行的任务，比如你想每 1 分钟都执行一下网络请求看看是不是有新的数据，这个时候会有一个黄条警告和你说不要这么做。&lt;/p&gt;
+
+&lt;p&gt;我们有类似需求，就找到了 &lt;a href=&#34;https://github.com/ocetnik/react-native-background-timer&#34; title=&#34;react-native-background-timer&#34;&gt;react-native-background-timer&lt;/a&gt; 这个包。这个用起来和 js 的 setTimeout 的方法一样，可以一直运行。&lt;/p&gt;
+
+&lt;p&gt;我们另外还使用了 websocket 来和服务器保持数据同步。这样就必须要保证有网络问题的时候，可以自动重连保证链接。我们找到了 &lt;a href=&#34;https://github.com/pladaria/reconnecting-websocket&#34; title=&#34;reconnecting-websocket&#34;&gt;reconnecting-websocket&lt;/a&gt; 这个包，他提供了自动重连功能。这个包是基于 js 写的，没有任何的 native 代码。我们用的过程中发现时不时会出现断开的情况，因为并不能稳定复现，我们一开始也没有太多时间研究这个问题，所以这个 bug 几乎是持续了几个月。另外，也主要是因为我们还有 pc 设备，也用了 websocket，但是那边表现就很稳定，所以基本可以确定是 android 的问题。&lt;/p&gt;
+
+&lt;p&gt;我们试过自己手动断网，和手动重启服务器的方式断开 websocket，然后发现他都会重连。出现 bug 的时候，都是比如放了一个晚上，第二天来了之后，发现断开了。或者有时候似乎又不会断，总之是不很好的稳定可以复现。&lt;/p&gt;
+
+&lt;p&gt;一开始怀疑是 android 进入省电模式之后，应用会出问题，把设备一直接着电源之后，似乎发现好像好了，但是实际上还是会出现断开的情况。后来给 app 增加了 &lt;code&gt;REQUEST_IGNORE_BATTERY_OPTIMIZATIONS&lt;/code&gt; 权限，试图解决，发现也不行。&lt;/p&gt;
+
+&lt;p&gt;最近一个月总算有时间看看了，仔细研究了一下。给 app 增加了更多的 log，记录一下 websocket 的链接和断开的情况。发现一个情况，似乎整整 24h 的时候，会出现一个断开。断开之后有时候会连不上，有时候可以。因为是整整 24h，所以这个断开基本上可以肯定是 server 那边问题，但是断开不能重连依然是用户端这边的问题。&lt;/p&gt;
+
+&lt;p&gt;后来我们找到了 24h 断开的原因，我们 websocket server 用的是 channel redis，&lt;a href=&#34;https://github.com/django/channels_redis/blob/master/channels_redis/core.py#L149&#34; title=&#34;里面默认是 24h 会断开&#34;&gt;里面默认是 24h 会断开&lt;/a&gt;。这个案子破了，定期倒是没问题，现在就是为啥不会重连的问题了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt; def __init__(
+        self,
+        hosts=None,
+        prefix=&amp;quot;asgi:&amp;quot;,
+        expiry=60,
+        group_expiry=86400,
+        capacity=100,
+        channel_capacity=None,
+        symmetric_encryption_keys=None,
+    ):
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;通过分析 websocket 的日志，发现断开之后，执行重连的时候，reconnect-websocket 避免过度重连，会增加一个延时，调用 &lt;a href=&#34;https://github.com/pladaria/reconnecting-websocket/blob/master/reconnecting-websocket.ts#L326&#34; title=&#34;this._wait()&#34;&gt;this._wait()&lt;/a&gt;，问题就出在了这里，我们发现这个 promise 会卡住不能 resolve，这里面调用的就是 &lt;code&gt;setTimeout&lt;/code&gt; 。结合一开始说的，比较怀疑 rn 自己的 setTimeout 有问题，就试了一下使用 react-native-background-timer 来实现。改了之后运行了几天发现问题解决了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;    private _wait(): Promise&amp;lt;void&amp;gt; {
+        return new Promise(resolve =&amp;gt; {
+            setTimeout(resolve, this._getNextDelay());
+        });
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;继续看看为啥 rn 自己的 timer 有问题。&lt;/p&gt;
+
+&lt;p&gt;找到了 &lt;a href=&#34;https://github.com/facebook/react-native/blob/master/Libraries/Core/Timers/JSTimers.js&#34; title=&#34;JSTimers.js&#34;&gt;JSTimers.js&lt;/a&gt;，这里面通过调用 &lt;code&gt;Timing.createTimer&lt;/code&gt; 来创建 timer 的。Timing.createTimer 这个 native 模块的代码在&lt;a href=&#34;https://github.com/facebook/react-native/blob/master/ReactAndroid/src/main/java/com/facebook/react/modules/core/Timing.java#L324&#34; title=&#34;这里&#34;&gt;这里&lt;/a&gt;。这代码里面用到的包不熟悉，看了半天觉得看不明白，但是看到了这些。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-java&#34;&gt;  @Override
+  public void onHostPause() {
+    isPaused.set(true);
+    clearFrameCallback();
+    maybeIdleCallback();
+  }
+
+  @Override
+  public void onHostResume() {
+    isPaused.set(false);
+    // TODO(5195192) Investigate possible problems related to restarting all tasks at the same
+    // moment
+    setChoreographerCallback();
+    maybeSetChoreographerIdleCallback();
+  }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;那个 &lt;code&gt;onHostPause&lt;/code&gt; 很可疑，我们知道 android 黑屏的时候，是会调用 app 的 onPause 的。继续找这个类实现了 &lt;a href=&#34;https://github.com/facebook/react-native/blob/master/ReactAndroid/src/main/java/com/facebook/react/bridge/LifecycleEventListener.java&#34; title=&#34;LifecycleEventListener&#34;&gt;LifecycleEventListener&lt;/a&gt; 这个接口，里面注释写和 active 切换有关系，实际就是和 onPause 这些 activity 的生命周期挂钩的。&lt;/p&gt;
+
+&lt;p&gt;app 放到后台之后，会调用 onHostPause，然后 timer 就都不执行了，所以那个 promise 一直不能 resolve，然后 reconnect-websocket 就不会连接。&lt;/p&gt;
+
+&lt;p&gt;RN 提供了 &lt;a href=&#34;https://facebook.github.io/react-native/docs/headless-js-android.html&#34; title=&#34;Headless JS&#34;&gt;Headless JS&lt;/a&gt; 来执行后台任务。我们就是改造了一下 reconnect-websocket 用 react-native-background-timer 就解决问题了。有需要可以用这个 https://github.com/wd/reconnecting-websocket 。&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>React Native Deeplink</title>
@@ -1935,131 +2124,6 @@ const styles = StyleSheet.create({
 &lt;p&gt;踏实过日子，慢慢可能会让人把你玩死。另一个选择就是不甘于现状，当然也不一定求逆天改命，只求能在遇到事情的时候，能给自己多一些路。&lt;/p&gt;
 
 &lt;p&gt;现在年纪大了，确实很多事情慢慢在看透，40 不惑不是都看明白了，是看明白的也就明白了，没看明白的就不看了，所谓看透。这个年纪看这种讲人一生的戏，看到后面那么多的生死，和自己的现实一应证，实在是有点抗不住。人生一辈子，到底是为什么活呢？越来越迷茫了。所以这帖子的英文取名为 Life。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Encrypt and Security</title>
-      <link>https://wdicc.com/encrypt-and-security/</link>
-      <pubDate>Mon, 02 Oct 2017 13:26:39 +0800</pubDate>
-      
-      <guid>https://wdicc.com/encrypt-and-security/</guid>
-      <description>&lt;p&gt;上周有同学分享了一下加密解密，感觉自己学到了一些东西，记录一下。&lt;/p&gt;
-
-&lt;h2 id=&#34;加密-解密&#34;&gt;加密 &amp; 解密&lt;/h2&gt;
-
-&lt;p&gt;有时候面试的时候会遇到有人讲自己搞过的一些加密方法，会提到「对于 xx 我们使用 md5 加密」，md5 是一种加密方法么？我觉得不是。所谓加密，是对应解密的，不能还原原文的方法，就不应该算加密了吧。&lt;/p&gt;
-
-&lt;p&gt;常常可以听到的，有对称加密和非对称加密。对称加密是指加密解密使用的是同一个密钥的方法，非对称的是指使用不同的密钥的方法。&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://zh.wikipedia.org/wiki/%25E5%25B0%258D%25E7%25A8%25B1%25E5%25AF%2586%25E9%2591%25B0%25E5%258A%25A0%25E5%25AF%2586&#34; title=&#34;对称密钥加密&#34;&gt;对称密钥加密&lt;/a&gt;的方法有 DES、3DES、AES、Blowfish、IDEA、RC5、RC6。我之前用过其中的 3DES 和 Blowfish。特点是速度快。&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://zh.wikipedia.org/wiki/%25E5%2585%25AC%25E5%25BC%2580%25E5%25AF%2586%25E9%2592%25A5%25E5%258A%25A0%25E5%25AF%2586&#34; title=&#34;非对称加密&#34;&gt;非对称加密&lt;/a&gt;也叫公开密钥加密，方法有 RSA、ElGamal、背包算法、Rabin（RSA的特例）、迪菲－赫尔曼密钥交换协议中的公钥加密算法、椭圆曲线加密算法（英语：Elliptic Curve Cryptography, ECC）。基本都没怎么用过。。他的特点是其中一个公钥可以公开，公钥加密的信息只能通过私钥解密，只要保证私钥安全就可以。但是这个方法加解密速度较慢。&lt;/p&gt;
-
-&lt;h2 id=&#34;分组模式&#34;&gt;分组模式&lt;/h2&gt;
-
-&lt;p&gt;加密算法并不能说一次给多少数据都可以一次加密完毕，实际处理的时候是按块处理的，先按照一定逻辑分组。&lt;/p&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://zh.wikipedia.org/wiki/%25E5%2588%2586%25E7%25BB%2584%25E5%25AF%2586%25E7%25A0%2581%25E5%25B7%25A5%25E4%25BD%259C%25E6%25A8%25A1%25E5%25BC%258F&#34; title=&#34;分组模式&#34;&gt;分组模式&lt;/a&gt;有 ECB, CBC, CFB, OFB, CTR等。ECB 就是最简单的，分组之后每块分别加密，然后组合起来。这个方法导致可以任意替换各组的位置而不影响解密。比如原来加密是「A 欠 B 1 万」，每个字刚好一个分组，那即使在不能解密的情况下，也可能导致收到的消息是 「B 欠 A 1 万」。所以就有了其它的那几个加密分组模式，其它的几个模式都会和前后的数据有一定的关系，这样就不能这样调换了。对于第一组数据，加密的时候会需要一个初始化的数据，就是 IV。&lt;/p&gt;
-
-&lt;h2 id=&#34;散列算法&#34;&gt;散列算法&lt;/h2&gt;
-
-&lt;p&gt;也就是 hash 算法。常见的 md5, sha1, sha256, sha512 等。这种是对内容产生一个摘要，是一个有损的过程，根据摘要值，不能得到原文。但是可以通过比对摘要来确认摘要是不是来自相同的内容(有一定的碰撞几率)。&lt;/p&gt;
-
-&lt;h2 id=&#34;https&#34;&gt;https&lt;/h2&gt;
-
-&lt;p&gt;https 是指基于 tls/ssl 协议基础上面跑的 http 协议。建立 ssl 握手之后，就是基于 http 协议的逻辑来在这个 ssl 通道上面传输了。&lt;/p&gt;
-
-&lt;p&gt;握手验证过程中，有两个证书需要用到，一个是 CA Root certificate，还有一个是经过 CA 签名的 Web server certificate。CA 根证书是权威的 CA 机构给到各个浏览器和操作系统内置的一个公钥。Web 服务器证书是权威 CA 机构验证了网站的身份之后，使用 CA 的私钥对证书签名，签名就是根据证书内容先进行 Hash，然后使用私钥加密，把结果作为签名一起放到证书里面。&lt;/p&gt;
-
-&lt;p&gt;Client 访问服务器，会收到服务器返回的 Web 服务器证书，浏览器会根据 CA 根证书对这个证书的签名进行验证，因为那个跟证书其实就是一个公钥，所以可以使用他解开前面加密的签名，然后也使用相同的 Hash 算法把证书内容 hash，比对结果看是否一致，这个会在后面说数字签名的时候再讲。另外，浏览器也会检查比如有效期，域名等，没问题就认为证书有效。然后浏览器会使用证书里面的公钥，继续和 Web 服务器做握手，浏览器会产生一个随机数，用公钥加密然后返回给 Web 服务器。后续双方会使用这个随机数作为密钥，使用一种对称加密方法做后续的加密。&lt;/p&gt;
-
-&lt;p&gt;整个过程中，前面使用非对称加密，协商好一个密钥，后面使用这个密钥来使用对称加密来加密后续的大量的内容。&lt;/p&gt;
-
-&lt;h3 id=&#34;client-hello&#34;&gt;Client hello&lt;/h3&gt;
-
-&lt;p&gt;CLient hello 消息包括&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;TLS 版本&lt;/li&gt;
-&lt;li&gt;随机数，时间戳&lt;/li&gt;
-&lt;li&gt;Session Id，用来减少握手次数&lt;/li&gt;
-&lt;li&gt;支持的加密方式 Cipher Suites&lt;/li&gt;
-&lt;li&gt;Server name&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&#34;server-hello&#34;&gt;Server hello&lt;/h3&gt;
-
-&lt;p&gt;Server hello 消息包括&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;TLS 版本，表示同意&lt;/li&gt;
-&lt;li&gt;时间戳&lt;/li&gt;
-&lt;li&gt;Session Id&lt;/li&gt;
-&lt;li&gt;Cipher Suites&lt;/li&gt;
-&lt;li&gt;Web 服务器证书&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&#34;验证-web-服务器证书&#34;&gt;验证 Web 服务器证书&lt;/h3&gt;
-
-&lt;ul&gt;
-&lt;li&gt;Not Before Time&lt;/li&gt;
-&lt;li&gt;Not After Time&lt;/li&gt;
-&lt;li&gt;Common Name&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&#34;验证权威-ca-机构的签名&#34;&gt;验证权威 CA 机构的签名&lt;/h3&gt;
-
-&lt;h3 id=&#34;pre-master-secret&#34;&gt;Pre-Master Secret&lt;/h3&gt;
-
-&lt;h2 id=&#34;数字签名&#34;&gt;数字签名&lt;/h2&gt;
-
-&lt;p&gt;比如 A 向 B 借了 100 块钱，这个时候 B 就需要 A 给打一个欠条。一方面，如何保证借条可以安全传输，另一方面，如何保证 A 将来不赖掉这个借条呢？可以使用前面提到的私钥公钥的方法来解决。&lt;/p&gt;
-
-&lt;p&gt;首先 A 把自己的公钥公开，然后把借条内容做一个 Hash，把 hash 结果使用自己的私钥来加密得到一个签名，同时把借条内容和签名给 B。B 拿到借条内容和签名之后，可以用那个公钥解密签名，然后对借条内容 Hash 得到一个 hash 值，比对这两个结果看是否一致。这个过程就完成了。&lt;/p&gt;
-
-&lt;p&gt;如果借条或者是签名在传输过程中被串改，那么 B 就能发现内容的 hash 值和签名解密之后的值不一致。这样就保证了安全。(当然，这里还有个问题是如何保证 B 拿到的公钥是对的，这个感觉肯能是通过其他途径保证的。)&lt;/p&gt;
-
-&lt;p&gt;因为公钥是公开的，任何一个第三方都可以做这个验证，可以验证一致就表示是 A 自己用私钥加密的。这个就保证了 A 无法赖掉这个借条。（我们讨论过，如果公钥不公开，并且没有第三方对这个公钥做了公证，那么是无法保证 A 赖账的。）&lt;/p&gt;
-
-&lt;p&gt;在这个过程里面，我们把借条内容先做一个 Hash，拿到一个 hash 值，然后再加密，这个结果就是一个数字签名了。任何人拿到了公钥，都可以将签名解密，然后可以对借条做相同的 Hash，比对解密出来的值是否等同于那个 hash 值。&lt;/p&gt;
-
-&lt;p&gt;前面 https 里面提到的 CA 权威机构对证书签名，其实就是类似的事。&lt;/p&gt;
-
-&lt;h2 id=&#34;参考连接&#34;&gt;参考连接&lt;/h2&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.moserware.com/2009/06/first-few-milliseconds-of-https.html&#34; title=&#34;http://www.moserware.com/2009/06/first-few-milliseconds-of-https.html&#34;&gt;http://www.moserware.com/2009/06/first-few-milliseconds-of-https.html&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://stackoverflow.com/questions/188266/how-are-ssl-certificates-verified&#34; title=&#34;https://stackoverflow.com/questions/188266/how-are-ssl-certificates-verified&#34;&gt;https://stackoverflow.com/questions/188266/how-are-ssl-certificates-verified&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://crypto.stackexchange.com/questions/5332/how-does-a-client-verify-a-server-certificate&#34; title=&#34;https://crypto.stackexchange.com/questions/5332/how-does-a-client-verify-a-server-certificate&#34;&gt;https://crypto.stackexchange.com/questions/5332/how-does-a-client-verify-a-server-certificate&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Change Blog Theme to Hugo Classic</title>
-      <link>https://wdicc.com/change-blog-theme-to-hugo-classic/</link>
-      <pubDate>Sat, 30 Sep 2017 21:47:20 +0800</pubDate>
-      
-      <guid>https://wdicc.com/change-blog-theme-to-hugo-classic/</guid>
-      <description>&lt;p&gt;一个主题看久了会腻，原来用的 &lt;a href=&#34;https://github.com/wd/hugo-fabric&#34; title=&#34;hugo-fabric&#34;&gt;hugo-fabric&lt;/a&gt; 也是我在最早的 jeklly 的 fabric 主题上修改的。那个主题偏暗，我把一些颜色调亮了一点，但是还是不是很舒服，对颜色搭配还是没有感觉。&lt;/p&gt;
-
-&lt;p&gt;今天折腾了一下，把 theme 换到了 &lt;a href=&#34;https://github.com/wd/hugo-classic&#34; title=&#34;hugo-classic&#34;&gt;hugo-classic&lt;/a&gt;，这个也是 fork 自一个别人的主题，增加了一些缺失的内容&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;首页分页&lt;/li&gt;
-&lt;li&gt;disqus 支持&lt;/li&gt;
-&lt;li&gt;code 块颜色不是很明显的问题&lt;/li&gt;
-&lt;li&gt;css 全文输出&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;&lt;del&gt;后面可能还想把 tags 页面做成横向的列表，目前那个有点太占位置了。不过目前还没找到比较好看一点的设计，遇到再说了。另外刚发现那个 code 块的空白太多了，可能回头也调整一下。&lt;/del&gt;&lt;/p&gt;
-
-&lt;p&gt;已经弄了一个 tag 的样式，先这么看着吧。另外也修正了一下 code 的空白。&lt;/p&gt;
-
-&lt;p&gt;&lt;del&gt;发现 org 的 &lt;code&gt;BEGIN_SRC&lt;/code&gt; 输出的时候，会加一个换行在第一行，这个导致多了一个空白行，稍微有点丑了，回头有时间再看看是哪里的问题吧。&lt;/del&gt;&lt;/p&gt;
-
-&lt;p&gt;上面这个问题在 hugo 的 HEAD 版本里面已经修复了。&lt;/p&gt;
 </description>
     </item>
     

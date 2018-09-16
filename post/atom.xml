@@ -6,10 +6,39 @@
     <description>Recent content in Posts on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 03 Sep 2018 18:00:56 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 16 Sep 2018 16:36:17 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/post/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Typescript for React Native</title>
+      <link>https://wdicc.com/typescript-for-react-native/</link>
+      <pubDate>Sun, 16 Sep 2018 16:36:17 +0800</pubDate>
+      
+      <guid>https://wdicc.com/typescript-for-react-native/</guid>
+      <description>前几天研究 settimeout 的问题的时候，发现 react-native-background-timer 自己没有 typescript 的 type 文件，但是有人给写了一个 @types/react-native-background-timer，这个包算偏门了，都有人写了 type 文件，我感觉是时候试试看 typescript 了。
+搜了一下，发现没有多少在 rn 里面使用 ts 的，有一些关于 react 的，又很奇怪，大都基于 webpack 的。后来找到一篇官方的 blog 上面的，然后结合自己的研究，找到了思路。我是基于已有项目来做的，那个 blog 是基于新项目，大同小异。
+首先装几个包，这几个包里面， =typescript 提供 typescript 的编译器， react-native-typescript-transformer 提供了从 ts 代码到 js 代码的转换支持， @types 的两个包提供了 react 和 react-native 的 type 文件。
+$ yarn add -D typescript react-native-typescript-transformer @types/react @types/react-native  在项目的根目录还需要准几个文件。 tsconfig.json，你的目录里面可能已经有一个 jsconfig.json 了，那个是给 eslint 用的。tsconfig.json 同时给 typescript 和 tslint 使用。
+{ &amp;quot;compilerOptions&amp;quot;: { &amp;quot;target&amp;quot;: &amp;quot;es2015&amp;quot;, &amp;quot;module&amp;quot;: &amp;quot;es2015&amp;quot;, &amp;quot;lib&amp;quot;: [ &amp;quot;es2015&amp;quot; ], &amp;quot;jsx&amp;quot;: &amp;quot;react&amp;quot;, &amp;quot;noEmit&amp;quot;: true, &amp;quot;moduleResolution&amp;quot;: &amp;quot;node&amp;quot;, &amp;quot;strict&amp;quot;: true, &amp;quot;esModuleInterop&amp;quot;: true, &amp;quot;types&amp;quot;: [ &amp;quot;react&amp;quot;, &amp;quot;react-native&amp;quot; ], &amp;quot;allowSyntheticDefaultImports&amp;quot;: true }, &amp;quot;include&amp;quot;: [ &amp;quot;.</description>
+    </item>
+    
+    <item>
+      <title>Background Task in React Native</title>
+      <link>https://wdicc.com/background-task-in-react-native/</link>
+      <pubDate>Sat, 08 Sep 2018 16:06:18 +0800</pubDate>
+      
+      <guid>https://wdicc.com/background-task-in-react-native/</guid>
+      <description>react-native 支持 setTimeout 和 setInterval 这些 js 的方法来设置 timer 执行一些任务。但是对于长时间执行的任务，比如你想每 1 分钟都执行一下网络请求看看是不是有新的数据，这个时候会有一个黄条警告和你说不要这么做。
+我们有类似需求，就找到了 react-native-background-timer 这个包。这个用起来和 js 的 setTimeout 的方法一样，可以一直运行。
+我们另外还使用了 websocket 来和服务器保持数据同步。这样就必须要保证有网络问题的时候，可以自动重连保证链接。我们找到了 reconnecting-websocket 这个包，他提供了自动重连功能。这个包是基于 js 写的，没有任何的 native 代码。我们用的过程中发现时不时会出现断开的情况，因为并不能稳定复现，我们一开始也没有太多时间研究这个问题，所以这个 bug 几乎是持续了几个月。另外，也主要是因为我们还有 pc 设备，也用了 websocket，但是那边表现就很稳定，所以基本可以确定是 android 的问题。
+我们试过自己手动断网，和手动重启服务器的方式断开 websocket，然后发现他都会重连。出现 bug 的时候，都是比如放了一个晚上，第二天来了之后，发现断开了。或者有时候似乎又不会断，总之是不很好的稳定可以复现。
+一开始怀疑是 android 进入省电模式之后，应用会出问题，把设备一直接着电源之后，似乎发现好像好了，但是实际上还是会出现断开的情况。后来给 app 增加了 REQUEST_IGNORE_BATTERY_OPTIMIZATIONS 权限，试图解决，发现也不行。
+最近一个月总算有时间看看了，仔细研究了一下。给 app 增加了更多的 log，记录一下 websocket 的链接和断开的情况。发现一个情况，似乎整整 24h 的时候，会出现一个断开。断开之后有时候会连不上，有时候可以。因为是整整 24h，所以这个断开基本上可以肯定是 server 那边问题，但是断开不能重连依然是用户端这边的问题。
+后来我们找到了 24h 断开的原因，我们 websocket server 用的是 channel redis，里面默认是 24h 会断开。这个案子破了，定期倒是没问题，现在就是为啥不会重连的问题了。
+def __init__( self, hosts=None, prefix=&amp;quot;asgi:&amp;quot;, expiry=60, group_expiry=86400, capacity=100, channel_capacity=None, symmetric_encryption_keys=None, ):  通过分析 websocket 的日志，发现断开之后，执行重连的时候，reconnect-websocket 避免过度重连，会增加一个延时，调用 this.</description>
+    </item>
     
     <item>
       <title>React Native Deeplink</title>
@@ -444,38 +473,6 @@ Faster iterations RN 里面开发的时候，框架会在本地启动一个 serv
 其他人就不评论了，其实看的时候很多场景都有感触，但是也没记住那么多。看完之后还蛮有冲动再看一次的，但是剧集实在太长了，以后有时间看一下书吧，这个年代拍的电视剧，本身就有太多的忌讳，相信还是原著会更加精彩，而且初步估计，会感觉和电视剧是两个内容，呵呵。当年我高中的时候，拿到一本《平凡的世界》，那会简直就是一刻不停，连续看了几天把书看完了。现在不记得多少内容了，但是那会应该也是被书里描述的农村到城市的历程吸引了吧。现在看白鹿原，里面孩子们最后在县城省城工作，其实和现在的世道没个啥区别。而且其他的，比如这高房价物价，贪官私人关系，可能也可以类比。小老百姓真的可以踏实过日子么？
 踏实过日子，慢慢可能会让人把你玩死。另一个选择就是不甘于现状，当然也不一定求逆天改命，只求能在遇到事情的时候，能给自己多一些路。
 现在年纪大了，确实很多事情慢慢在看透，40 不惑不是都看明白了，是看明白的也就明白了，没看明白的就不看了，所谓看透。这个年纪看这种讲人一生的戏，看到后面那么多的生死，和自己的现实一应证，实在是有点抗不住。人生一辈子，到底是为什么活呢？越来越迷茫了。所以这帖子的英文取名为 Life。</description>
-    </item>
-    
-    <item>
-      <title>Encrypt and Security</title>
-      <link>https://wdicc.com/encrypt-and-security/</link>
-      <pubDate>Mon, 02 Oct 2017 13:26:39 +0800</pubDate>
-      
-      <guid>https://wdicc.com/encrypt-and-security/</guid>
-      <description>上周有同学分享了一下加密解密，感觉自己学到了一些东西，记录一下。
-加密 &amp; 解密 有时候面试的时候会遇到有人讲自己搞过的一些加密方法，会提到「对于 xx 我们使用 md5 加密」，md5 是一种加密方法么？我觉得不是。所谓加密，是对应解密的，不能还原原文的方法，就不应该算加密了吧。
-常常可以听到的，有对称加密和非对称加密。对称加密是指加密解密使用的是同一个密钥的方法，非对称的是指使用不同的密钥的方法。
-对称密钥加密的方法有 DES、3DES、AES、Blowfish、IDEA、RC5、RC6。我之前用过其中的 3DES 和 Blowfish。特点是速度快。
-非对称加密也叫公开密钥加密，方法有 RSA、ElGamal、背包算法、Rabin（RSA的特例）、迪菲－赫尔曼密钥交换协议中的公钥加密算法、椭圆曲线加密算法（英语：Elliptic Curve Cryptography, ECC）。基本都没怎么用过。。他的特点是其中一个公钥可以公开，公钥加密的信息只能通过私钥解密，只要保证私钥安全就可以。但是这个方法加解密速度较慢。
-分组模式 加密算法并不能说一次给多少数据都可以一次加密完毕，实际处理的时候是按块处理的，先按照一定逻辑分组。
-分组模式有 ECB, CBC, CFB, OFB, CTR等。ECB 就是最简单的，分组之后每块分别加密，然后组合起来。这个方法导致可以任意替换各组的位置而不影响解密。比如原来加密是「A 欠 B 1 万」，每个字刚好一个分组，那即使在不能解密的情况下，也可能导致收到的消息是 「B 欠 A 1 万」。所以就有了其它的那几个加密分组模式，其它的几个模式都会和前后的数据有一定的关系，这样就不能这样调换了。对于第一组数据，加密的时候会需要一个初始化的数据，就是 IV。
-散列算法 也就是 hash 算法。常见的 md5, sha1, sha256, sha512 等。这种是对内容产生一个摘要，是一个有损的过程，根据摘要值，不能得到原文。但是可以通过比对摘要来确认摘要是不是来自相同的内容(有一定的碰撞几率)。
-https https 是指基于 tls/ssl 协议基础上面跑的 http 协议。建立 ssl 握手之后，就是基于 http 协议的逻辑来在这个 ssl 通道上面传输了。
-握手验证过程中，有两个证书需要用到，一个是 CA Root certificate，还有一个是经过 CA 签名的 Web server certificate。CA 根证书是权威的 CA 机构给到各个浏览器和操作系统内置的一个公钥。Web 服务器证书是权威 CA 机构验证了网站的身份之后，使用 CA 的私钥对证书签名，签名就是根据证书内容先进行 Hash，然后使用私钥加密，把结果作为签名一起放到证书里面。</description>
-    </item>
-    
-    <item>
-      <title>Change Blog Theme to Hugo Classic</title>
-      <link>https://wdicc.com/change-blog-theme-to-hugo-classic/</link>
-      <pubDate>Sat, 30 Sep 2017 21:47:20 +0800</pubDate>
-      
-      <guid>https://wdicc.com/change-blog-theme-to-hugo-classic/</guid>
-      <description>一个主题看久了会腻，原来用的 hugo-fabric 也是我在最早的 jeklly 的 fabric 主题上修改的。那个主题偏暗，我把一些颜色调亮了一点，但是还是不是很舒服，对颜色搭配还是没有感觉。
-今天折腾了一下，把 theme 换到了 hugo-classic，这个也是 fork 自一个别人的主题，增加了一些缺失的内容
- 首页分页 disqus 支持 code 块颜色不是很明显的问题 css 全文输出  后面可能还想把 tags 页面做成横向的列表，目前那个有点太占位置了。不过目前还没找到比较好看一点的设计，遇到再说了。另外刚发现那个 code 块的空白太多了，可能回头也调整一下。
-已经弄了一个 tag 的样式，先这么看着吧。另外也修正了一下 code 的空白。
-发现 org 的 BEGIN_SRC 输出的时候，会加一个换行在第一行，这个导致多了一个空白行，稍微有点丑了，回头有时间再看看是哪里的问题吧。
-上面这个问题在 hugo 的 HEAD 版本里面已经修复了。</description>
     </item>
     
   </channel>
