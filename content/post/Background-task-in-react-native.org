@@ -1,0 +1,70 @@
+---
+title: "Background Task in React Native"
+date: 2018-09-08T16:06:18+08:00
+tags: ["react-native"]
+toc: true
+---
+react-native 支持 =setTimeout= 和 =setInterval= 这些 js 的方法来设置 timer 执行一些任务。但是对于长时间执行的任务，比如你想每 1 分钟都执行一下网络请求看看是不是有新的数据，这个时候会有一个黄条警告和你说不要这么做。
+
+我们有类似需求，就找到了 [[https://github.com/ocetnik/react-native-background-timer][react-native-background-timer]] 这个包。这个用起来和 js 的 setTimeout 的方法一样，可以一直运行。
+
+我们另外还使用了 websocket 来和服务器保持数据同步。这样就必须要保证有网络问题的时候，可以自动重连保证链接。我们找到了 [[https://github.com/pladaria/reconnecting-websocket][reconnecting-websocket]] 这个包，他提供了自动重连功能。这个包是基于 js 写的，没有任何的 native 代码。我们用的过程中发现时不时会出现断开的情况，因为并不能稳定复现，我们一开始也没有太多时间研究这个问题，所以这个 bug 几乎是持续了几个月。另外，也主要是因为我们还有 pc 设备，也用了 websocket，但是那边表现就很稳定，所以基本可以确定是 android 的问题。
+
+我们试过自己手动断网，和手动重启服务器的方式断开 websocket，然后发现他都会重连。出现 bug 的时候，都是比如放了一个晚上，第二天来了之后，发现断开了。或者有时候似乎又不会断，总之是不很好的稳定可以复现。
+
+一开始怀疑是 android 进入省电模式之后，应用会出问题，把设备一直接着电源之后，似乎发现好像好了，但是实际上还是会出现断开的情况。后来给 app 增加了 =REQUEST_IGNORE_BATTERY_OPTIMIZATIONS= 权限，试图解决，发现也不行。
+
+最近一个月总算有时间看看了，仔细研究了一下。给 app 增加了更多的 log，记录一下 websocket 的链接和断开的情况。发现一个情况，似乎整整 24h 的时候，会出现一个断开。断开之后有时候会连不上，有时候可以。因为是整整 24h，所以这个断开基本上可以肯定是 server 那边问题，但是断开不能重连依然是用户端这边的问题。
+
+后来我们找到了 24h 断开的原因，我们 websocket server 用的是 channel redis，[[https://github.com/django/channels_redis/blob/master/channels_redis/core.py#L149][里面默认是 24h 会断开]]。这个案子破了，定期倒是没问题，现在就是为啥不会重连的问题了。
+
+#+BEGIN_SRC python
+ def __init__(
+        self,
+        hosts=None,
+        prefix="asgi:",
+        expiry=60,
+        group_expiry=86400,
+        capacity=100,
+        channel_capacity=None,
+        symmetric_encryption_keys=None,
+    ):
+#+END_SRC
+
+通过分析 websocket 的日志，发现断开之后，执行重连的时候，reconnect-websocket 避免过度重连，会增加一个延时，调用 [[https://github.com/pladaria/reconnecting-websocket/blob/master/reconnecting-websocket.ts#L326][this._wait()]]，问题就出在了这里，我们发现这个 promise 会卡住不能 resolve，这里面调用的就是 =setTimeout= 。结合一开始说的，比较怀疑 rn 自己的 setTimeout 有问题，就试了一下使用 react-native-background-timer 来实现。改了之后运行了几天发现问题解决了。
+
+#+BEGIN_SRC javascript
+    private _wait(): Promise<void> {
+        return new Promise(resolve => {
+            setTimeout(resolve, this._getNextDelay());
+        });
+    }
+#+END_SRC
+
+继续看看为啥 rn 自己的 timer 有问题。
+
+找到了 [[https://github.com/facebook/react-native/blob/master/Libraries/Core/Timers/JSTimers.js][JSTimers.js]]，这里面通过调用 =Timing.createTimer= 来创建 timer 的。Timing.createTimer 这个 native 模块的代码在[[https://github.com/facebook/react-native/blob/master/ReactAndroid/src/main/java/com/facebook/react/modules/core/Timing.java#L324][这里]]。这代码里面用到的包不熟悉，看了半天觉得看不明白，但是看到了这些。
+
+#+BEGIN_SRC java
+  @Override
+  public void onHostPause() {
+    isPaused.set(true);
+    clearFrameCallback();
+    maybeIdleCallback();
+  }
+
+  @Override
+  public void onHostResume() {
+    isPaused.set(false);
+    // TODO(5195192) Investigate possible problems related to restarting all tasks at the same
+    // moment
+    setChoreographerCallback();
+    maybeSetChoreographerIdleCallback();
+  }
+#+END_SRC
+
+那个 =onHostPause= 很可疑，我们知道 android 黑屏的时候，是会调用 app 的 onPause 的。继续找这个类实现了 [[https://github.com/facebook/react-native/blob/master/ReactAndroid/src/main/java/com/facebook/react/bridge/LifecycleEventListener.java][LifecycleEventListener]] 这个接口，里面注释写和 active 切换有关系，实际就是和 onPause 这些 activity 的生命周期挂钩的。
+
+app 放到后台之后，会调用 onHostPause，然后 timer 就都不执行了，所以那个 promise 一直不能 resolve，然后 reconnect-websocket 就不会连接。
+
+RN 提供了 [[https://facebook.github.io/react-native/docs/headless-js-android.html][Headless JS]] 来执行后台任务。我们就是改造了一下 reconnect-websocket 用 react-native-background-timer 就解决问题了。有需要可以用这个 https://github.com/wd/reconnecting-websocket 。
