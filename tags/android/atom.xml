@@ -6,10 +6,24 @@
     <description>Recent content in Android on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 02 Sep 2018 08:00:16 +0800</lastBuildDate>
+    <lastBuildDate>Sun, 02 Dec 2018 16:52:34 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/tags/android/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Android Packaging</title>
+      <link>https://wdicc.com/android-packaging/</link>
+      <pubDate>Sun, 02 Dec 2018 16:52:34 +0800</pubDate>
+      
+      <guid>https://wdicc.com/android-packaging/</guid>
+      <description>国内市场因为 android 的发布渠道比较多，所以一般我们会想要追踪一下用户使用的包是从哪里下载安装的。
+Android 打包支持 buildTypes ，一般这个会用来区分不同的环境，比如 dev，beta，prod 等，不同环境可能会有一些不同的设置，比如 dev 会打开更多的日志输出什么的。
+ android{ buildTypes { debug { ... } release { ... } beta { ... } } }  还有一个支持是 productFlavors，一般用这个来区分不同的渠道，不同渠道也可以有一些不同的设置，类似上面的 buildTypes。
+ android { productFlavors { xiaomi {} baidu {} wandoujia {} x360 {} } productFlavors.all { flavor -&amp;gt; flavor.manifestPlaceholders = [CHANNEL_ID: name] } }  配合 AndroidManifext.xml 文件的配置
+ &amp;lt;meta-data android:name=&amp;quot;CHANNEL_ID&amp;quot; android:value=&amp;quot;${CHANNEL_ID}&amp;quot; /&amp;gt;  在代码里面取到这个，然后设置渠道。
+这样就可以打渠道包了 ./gradlew assembleWandoujiaRelease 编译 wandoujia 这个渠道的 releases 包。这个方式有一个问题是，每一个渠道包都需要从头编译一次，一个渠道 10 分钟，那所有渠道下来，就可能需要一个小时了，关键是很多无用功。</description>
+    </item>
     
     <item>
       <title>Android Custom</title>

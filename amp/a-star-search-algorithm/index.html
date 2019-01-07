@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>A* Search Algorithm | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+
+  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
+  <script src="https://wdicc.com//js/hljs.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">A* Search Algorithm</span></h1>
+
+<h2 class="date">2018/11/24</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/algorithm">algorithm</a> <a href="/tags/a">A*</a> 
+  
+  
+</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<main>
+<p>前段时间我们设想了一个需求，想帮助用户规划一下从 A -> B 的航线。对于路径规划从来没弄过，研究了一下，基本都在提这个 <a href="https://en.wikipedia.org/wiki/A*_search_algorithm" title="A 星寻路算法">A 星寻路算法</a>。</p>
+
+<ol>
+先贴几个文章：
+<li>简单的讲解的文章例如 https://www.jianshu.com/p/65282bd32391</li>
+<li>这个详细一点的 https://blog.csdn.net/DinnerHowe/article/details/79380317</li>
+</ol>
+
+<p>我写了一个简单的程序，这个程序没有做过任何的优化，只能说是解释了这个算法的逻辑而已，在终端里面可以可视化的把计算过程显示出来。效果可以看<a href="https://gist.github.com/wd/69469977bf76d9091ca01714eae08f37" title="这里">这里</a>。</p>
+
+<pre><code class="language-python">#!/usr/bin/python
+import sys
+import random
+
+
+RED = '\033[31m'
+GREEN = '\033[32m'
+GRAY = '\033[35m'
+NC = '\033[0m'
+
+class Point(object):
+    x = 0
+    y = 0
+    close = False
+    open = False
+    start = False
+    end = False
+    wall = False
+    H = 99
+    G = 99
+    parent = None
+
+    def __init__(self, **kwargs):
+        if 'x' in kwargs:
+            self.x = kwargs['x']
+
+        if 'y' in kwargs:
+            self.y = kwargs['y']
+
+        self.key = '{}-{}'.format(self.x, self.y)
+
+    def __str__(self):
+        return '{},H{:2},G{:2},F{:2},P{:3}'.format(
+                self.key,
+                self.H if self.H != 99 else '',
+                self.G if self.G != 99 else '',
+                self.G + self.H if self.G != 99 else '',
+                self.parent.key if self.parent else '')
+
+    def  __lt__(self, other):
+        return self.x &lt; other.x if self.y == other.y else self.y &lt; other.y
+
+
+def get_area(width, height):
+    area = {}
+    for i in range(width):
+        for j in range(height):
+            point = Point(x=i, y=j)
+
+            area[point.key] = point
+    return area
+
+def show_result(area_hash):
+    prev_y = -1
+
+    for point in sorted(area_hash.values()):
+        if ( prev_y != point.y ):
+            if (prev_y != -1):
+                print('')
+            prev_y = point.y
+
+        if point.start:
+            format = RED + 'S' + NC
+        elif point.end:
+            format = RED + 'E' + NC
+        elif point.wall:
+            format = GRAY + 'W' + NC
+        elif point.close:
+            format = GREEN + '0' + NC
+        else:
+            format = ' '
+        print((format + '({})  ').format(point), end='')
+    print('')
+
+def set_preset(area, start, end, wall):
+    area[start].start = True
+    area[end].end = True
+    for key in wall:
+        area[key].wall = True
+    return area
+
+def is_valid_point(point, width, height):
+    if point.wall or point.close:
+        return False
+
+    if point.x &lt; 0 or point.x &gt; width:
+        return False
+
+    if point.y &lt; 0 or point.y &gt; height:
+        return False
+
+    return True
+
+def get_around(area, point, width, height):
+    n = '{}-{}'.format(point.x, point.y - 1)
+    s = '{}-{}'.format(point.x, point.y + 1)
+    l = '{}-{}'.format(point.x - 1, point.y)
+    r = '{}-{}'.format(point.x + 1, point.y)
+
+    res = {}
+    for key in [n, s, l, r]:
+        if key in area and is_valid_point(area[key], width, height):
+            area[key].parent = point
+            area[key].G = area[key].G if area[key].G != 99 else (point.G if point.G != 99 else 0) + 1
+            res[key] = area[key]
+
+    return res
+
+def get_H(point, end_point):
+    return abs(point.x - end_point.x) + abs(point.y - end_point.y)
+
+step = 0
+opened = {}
+
+def go(area, start, end, width, height):
+    global step, opened
+    start_point = area[start]
+    end_point= area[end]
+    start_point.close = True
+
+    if start_point.key in opened:
+        del opened[start_point.key]
+
+    points = get_around(area, start_point, width, height)
+    opened.update(points)
+
+    rnd = random.choice(list(opened))
+    next_point = area[rnd]
+    for key, point in opened.items():
+        point.H = get_H(point, end_point)
+
+        if point.H + point.G &lt;= next_point.H + next_point.G:
+            next_point = point
+
+    print('step {}: {}'.format(step, next_point))
+    step += 1
+    if step &gt;= 3:
+        pass
+
+    if next_point and next_point.key != end:
+        go(area, next_point.key, end, width, height)
+
+def get_result(area, start, end):
+    print('{}{}{} &lt;- '.format(RED, area[end].key, NC), end='')
+    parent = area[end].parent
+    if(parent.key != start):
+        get_result(area, start, parent.key)
+    else:
+        print('{}{}{}'.format(RED, area[start].key, NC), end='')
+
+def main():
+    width = 10
+    height = 10
+    start = '1-3'
+    end = '8-4'
+    wall = ['2-2', '3-2', '3-3', '3-4', '3-5', '3-6', '5-4', '2-6', '1-6']
+
+    area = get_area(width, height)
+    area = set_preset(area, start, end, wall)
+    go(area, start, end, width,  height)
+    show_result(area)
+    get_result(area, start, end)
+
+if __name__ == '__main__':
+    main()
+</code></pre>
+
+<p>这个算法通过调整 G 和 H 的计算逻辑，可以平衡寻路速度和路径是否最短。另外，对于 open 列表的维护，也可以使用一些适合自己的数据结构来得到比较快速的查找。上面第二个帖子里面比较详细的列了一些改进算法的思路。</p>
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer style="clear:both">
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

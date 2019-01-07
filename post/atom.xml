@@ -6,10 +6,117 @@
     <description>Recent content in Posts on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 28 Sep 2018 10:33:30 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 05 Jan 2019 09:53:09 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/post/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Amap Work With Code Push</title>
+      <link>https://wdicc.com/amap-work-with-code-push/</link>
+      <pubDate>Sat, 05 Jan 2019 09:53:09 +0800</pubDate>
+      
+      <guid>https://wdicc.com/amap-work-with-code-push/</guid>
+      <description>我们 app 用了高德地图和 codepush，iOS 里面之前用的高德地图 sdk 的 5.x 版本，最近想升级到最新的 6.6.0 发现和 codepush 出现了 symbol 的冲突，主要是两个函数 aes_decrypt_key128 和 aes_encrypt_key128 。
+高德地图是不开源的，万幸我们有 codepush 的源码，所以思路是只需要把 codepush 里面冲突的函数改个名字就好了。
+改代码很简单，主要是怎么和项目集成。我用的是 patch-package ，做法如下。
+给 package.json 的 scripts 增加一个 postinstall
+&amp;quot;scripts&amp;quot;: { &amp;quot;postinstall&amp;quot;: &amp;quot;patch-package&amp;quot; }  然后就是改 node_modules/react-native-code-push 下面的文件，改完之后，执行一下 yarn patch-package react-native-code-push 会生成一个类似 patches/react-native-code-push+5.5.1.patch 的文件，确认一下这个文件里面是不是包含了你修改的内容。
+这就可以了，以后执行 yarn install 的时候会自动打这个 patch。
+这个方式比 fork 一份对方的代码好一点，有时候有些代码发到 npm 的是编译之后的版本，fork 之后也不好用，除非你也发布一个。用 patch 的方式会好一点，安装的还是对方发布的。</description>
+    </item>
+    
+    <item>
+      <title>Android Packaging</title>
+      <link>https://wdicc.com/android-packaging/</link>
+      <pubDate>Sun, 02 Dec 2018 16:52:34 +0800</pubDate>
+      
+      <guid>https://wdicc.com/android-packaging/</guid>
+      <description>国内市场因为 android 的发布渠道比较多，所以一般我们会想要追踪一下用户使用的包是从哪里下载安装的。
+Android 打包支持 buildTypes ，一般这个会用来区分不同的环境，比如 dev，beta，prod 等，不同环境可能会有一些不同的设置，比如 dev 会打开更多的日志输出什么的。
+ android{ buildTypes { debug { ... } release { ... } beta { ... } } }  还有一个支持是 productFlavors，一般用这个来区分不同的渠道，不同渠道也可以有一些不同的设置，类似上面的 buildTypes。
+ android { productFlavors { xiaomi {} baidu {} wandoujia {} x360 {} } productFlavors.all { flavor -&amp;gt; flavor.manifestPlaceholders = [CHANNEL_ID: name] } }  配合 AndroidManifext.xml 文件的配置
+ &amp;lt;meta-data android:name=&amp;quot;CHANNEL_ID&amp;quot; android:value=&amp;quot;${CHANNEL_ID}&amp;quot; /&amp;gt;  在代码里面取到这个，然后设置渠道。
+这样就可以打渠道包了 ./gradlew assembleWandoujiaRelease 编译 wandoujia 这个渠道的 releases 包。这个方式有一个问题是，每一个渠道包都需要从头编译一次，一个渠道 10 分钟，那所有渠道下来，就可能需要一个小时了，关键是很多无用功。</description>
+    </item>
+    
+    <item>
+      <title>A* Search Algorithm</title>
+      <link>https://wdicc.com/a-star-search-algorithm/</link>
+      <pubDate>Sat, 24 Nov 2018 14:48:04 +0800</pubDate>
+      
+      <guid>https://wdicc.com/a-star-search-algorithm/</guid>
+      <description>前段时间我们设想了一个需求，想帮助用户规划一下从 A - B 的航线。对于路径规划从来没弄过，研究了一下，基本都在提这个 A 星寻路算法。
+ 先贴几个文章： 简单的讲解的文章例如 https://www.jianshu.com/p/65282bd32391 这个详细一点的 https://blog.csdn.net/DinnerHowe/article/details/79380317  我写了一个简单的程序，这个程序没有做过任何的优化，只能说是解释了这个算法的逻辑而已，在终端里面可以可视化的把计算过程显示出来。效果可以看这里。
+#!/usr/bin/python import sys import random RED = &#39;\033[31m&#39; GREEN = &#39;\033[32m&#39; GRAY = &#39;\033[35m&#39; NC = &#39;\033[0m&#39; class Point(object): x = 0 y = 0 close = False open = False start = False end = False wall = False H = 99 G = 99 parent = None def __init__(self, **kwargs): if &#39;x&#39; in kwargs: self.</description>
+    </item>
+    
+    <item>
+      <title>Phpbb Auth Plugin</title>
+      <link>https://wdicc.com/phpbb-auth-plugin/</link>
+      <pubDate>Sat, 17 Nov 2018 21:15:50 +0800</pubDate>
+      
+      <guid>https://wdicc.com/phpbb-auth-plugin/</guid>
+      <description>这几天我们这里需要搞一个论坛，我搜了一些，选了 phpbb，这个毕竟年头比较久远，也支持 PostgreSQL。
+我们自己本身有自己的会员逻辑，所以就需要把他的登陆和我们自己的结合，而 phpbb 也支持自己作 Auth Plugin。
+ 涉及到的文件有几个 includes/auth/auth_foo.php：这个是具体的 auth 逻辑代码的地方。 config/default/container/services_auth.yml：这个是注册这个 auth 逻辑的地方。 template 模板文件：这个我没涉及到，所以没去了解。  service 文件的配置：
+auth.provider.skyreq: class: phpbb\auth\provider\foo arguments: - &#39;@dbal.conn&#39; - &#39;@config&#39; - &#39;@passwords.manager&#39; - &#39;@request&#39; - &#39;@user&#39; - &#39;@service_container&#39; - &#39;%core.root_path%&#39; - &#39;%core.php_ext%&#39; tags: - { name: auth.provider }  上面配置里面 arguments 指定的，是 auth_foo.php 的 constructor 接受的参数。可以需要什么配置什么，个数要对应。
+配置这个之后，只需要在 auth_foo.php 里面实现具体的逻辑就可以了。
+init_method 这个方法是在后台用户选中这个 auth 方法的时候执行的，比如你如果有一些配置的话就可以在这里验证。如果需要用户录入配置的话，还需要配合 template 文件，好提供录入的界面。我这里没有这个需求。
+login_method 这个方法是在用户登陆的时候会调用。会传入用户名和密码两个参数。实现逻辑可以参考 auth_db 这个模块。phpbb 为了安全，对于管理员用户会有一个二次验证的过程，管理员的 session 过期时间也会短一些。所以我们必须要实现这个，否则一个管理员就无法访问后台了。我这里是完全复制的 auth_db 的逻辑，里面改动了一点增加了一个硬编码只允许几个我指定的用户登陆。然后验证也完全用的 phpbb 的密码逻辑。</description>
+    </item>
+    
+    <item>
+      <title>Fear, trust and JavaScript: When types and functional programming fail</title>
+      <link>https://wdicc.com/fear-trust-and-javascript/</link>
+      <pubDate>Thu, 01 Nov 2018 12:56:20 +0800</pubDate>
+      
+      <guid>https://wdicc.com/fear-trust-and-javascript/</guid>
+      <description>翻译自 Fear, trust and JavaScript: When types and functional programming fail , 最早是 hacker news 看到的。
+只是翻译大意。
+作为开发人员，我们需要减少对代码执行失败的恐惧，增强对代码的信心。很多 javascript 开发人员从函数式编程语言和强类型语言里面借鉴思路来将信任交给工具和代码来减少恐惧。类似可选类型，函数转换，和只读化这些思想可以帮助写出更好的 javascript 代码。当把这些想法都加入到 javascript 里面，会有一些妥协，协作起来比较差，并且最终会导致将信任从开发人员交给代码和工具的想法失败。
+举例来看看 javascript 里面是如何在两种观点下面处理数据的：理解数据的结构和修改数据。
+Fear and the shape of data 在类似 javascript 的动态语言里面，很难知道你数据的结构。默认的方式是依赖公约(convention)。相信其它程序员和其它系统按照协议给你正确的数据。
+fetchUser(id).then( user =&amp;gt; { // Got my user! }) // Later render(user.name) // He has a name  我一般管这种方式叫「假装这是你要的」。在高可信的环境下，这个会工作的挺好。
+但是恐惧会悄悄的到来。代码的复杂度会增加。代码会是不同开发人员基于不同的公约(convention)开发的。你收到的数据来自于不可控的上游以及不稳定的格式。会开始看到空指针错误。对代码的信任会崩塌，对数据格式的疑问会引起焦虑而不是信任。
+ 这个数据里面到底有什么值？ 我可以删除里面的数据而不产生影响吗？ 我可以把这个数据传入这个函数吗？  例如下面这个。
+fetchUser(id).then( user =&amp;gt; { // Got my user! if(!</description>
+    </item>
+    
+    <item>
+      <title>Typescript and Jest</title>
+      <link>https://wdicc.com/typescript-and-jest/</link>
+      <pubDate>Thu, 01 Nov 2018 11:59:29 +0800</pubDate>
+      
+      <guid>https://wdicc.com/typescript-and-jest/</guid>
+      <description>最近在折腾 typescript，把很多项目改成了 ts 的。有一个老项目，改的过程中感觉各种不踏实，打算还是先写点测试用例，就折腾了一下 jest。各种坑。。。
+首先需要加一个 tsconfig.json
+{ &amp;quot;compilerOptions&amp;quot;: { &amp;quot;target&amp;quot;: &amp;quot;es2015&amp;quot;, &amp;quot;module&amp;quot;: &amp;quot;es2015&amp;quot;, &amp;quot;lib&amp;quot;: [ &amp;quot;es2015&amp;quot; ], &amp;quot;outDir&amp;quot;: &amp;quot;./lib&amp;quot;, &amp;quot;declaration&amp;quot;: true, &amp;quot;noEmit&amp;quot;: true, &amp;quot;moduleResolution&amp;quot;: &amp;quot;node&amp;quot;, &amp;quot;esModuleInterop&amp;quot;: true, &amp;quot;allowSyntheticDefaultImports&amp;quot;: true, /* Strict Type-checking */ &amp;quot;strict&amp;quot;: true, &amp;quot;strictNullChecks&amp;quot;: true, &amp;quot;noImplicitAny&amp;quot;: true, &amp;quot;noImplicitThis&amp;quot;: true, &amp;quot;alwaysStrict&amp;quot;: true, /* Additional Checks */ &amp;quot;noUnusedLocals&amp;quot;: true, /* Report errors on unused locals. */ &amp;quot;noUnusedParameters&amp;quot;: true, /* Report errors on unused parameters. */ &amp;quot;noImplicitReturns&amp;quot;: true, /* Report error when not all code paths in function return a value.</description>
+    </item>
+    
+    <item>
+      <title>Upgrade to React 16.3</title>
+      <link>https://wdicc.com/upgrade-to-react-16.3/</link>
+      <pubDate>Mon, 22 Oct 2018 16:21:30 +0800</pubDate>
+      
+      <guid>https://wdicc.com/upgrade-to-react-16.3/</guid>
+      <description>随着 React native 升级，React 也升级到了 16.5 了。原来的改成新的生命周期了。
+class ExampleComponent extends React.Component { static getDerivedStateFromProps(nextProps, prevState) { // Called after a component is instantiated or before it receives new props. // Return an object to update state in response to prop changes. // Return null to indicate no change to state. } UNSAFE_componentWillMount() { // New name for componentWillMount() // Indicates that this method can be unsafe for async rendering. // Prefer componentDidMount() instead.</description>
+    </item>
+    
+    <item>
+      <title>Cleanup Your Disk Space</title>
+      <link>https://wdicc.com/cleanup-your-disk-space/</link>
+      <pubDate>Fri, 12 Oct 2018 12:26:47 +0800</pubDate>
+      
+      <guid>https://wdicc.com/cleanup-your-disk-space/</guid>
+      <description>200 多 G 的空间，说没就没。搞个开发真不容易。
+清理 yarn npm 开发的 cache，这些有需要的会再次下载
+yarn cache clean npm cache clean  清理 gradle android 开发的 cache，这些有需要的话 android-studio 会在生成
+rm -rf ~/.gradle/  清理 xcode ios 开发的东西，这些清理掉了需要用的话 xcode 会再生成
+rm -rf ~/Library/Developer/  清理 brew 安装的软件的旧版本，这个执行之后 python 可能会不正常，执行一下 pyenv rehash 之类的命令
+brew cleanup  </description>
+    </item>
     
     <item>
       <title>R.I.P Maomao</title>
@@ -17,7 +124,7 @@
       <pubDate>Fri, 28 Sep 2018 10:33:30 +0800</pubDate>
       
       <guid>https://wdicc.com/r.i.p-maomao/</guid>
-      <description>毛毛应该是 2014 年上半年我从一个人家里抱回来的，到现在 14 岁多一点。从 2013.12.29 发现得了糖尿病，到现在是 4 年多一点，等于是大概 10 岁左右的时候得的。
+      <description>毛毛应该是 2004 年上半年我从一个人家里抱回来的，到现在 14 岁多一点。从 2013.12.29 发现得了糖尿病，到现在是 4 年多一点，等于是大概 10 岁左右的时候得的。
 前面 10 年是无忧无虑欢乐的 10 年，猫基本什么都不用管，只有刚开始第一次长假出去玩的时候，拜托过朋友给中间来看看。后面出去玩基本就把两只猫都扔家里了，给他们弄足够的水和吃的，最长出去玩的时间得有 10 天，回来猫只是会比较粘人，其它基本还好。
 自从毛毛病了之后，就和养了一个孩子一样，必须每天早晚 2 针胰岛素。参考上面的文章，通过自己学习，掌握了采血，通过稀释来配胰岛素等。所以开始还需要定期配好稀释好的胰岛素，一次大概配置 20 针左右，放到冰箱，然后每天 2 针，10 天左右就需要重新配置。配药的时候，需要注意量和不能有空气，每次和老婆就像吸毒人员一样，小心翼翼的配好。直到后面加了糖猫猫的群，发现了 bd 针，才开始不在自己稀释配药了。
 毛毛病了之后，我们基本就很难出远门了，因为必须要回来打针。所以出去几次远门都拜托朋友、cc 妈妈等过来给定期打针。直到今年，才开始尝试给带着猫回家，去了一趟我们家，一趟 cc 家，整体猫虽然很害怕，不过也还好，没出什么问题。
@@ -338,137 +445,6 @@ DNS 污染是通过修改或者限制 DNS 请求的数据，来让用户取到�
 如果想要翻墙，就需要避开上面这三种封禁的方法。我这里列了一些方式，https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/ 各有利弊。这里想讲的是梅林大致的逻辑。
 最主要的一个思路是使用 iptables 把一些包发给一些支持透明代理的软件，例如 ss-redir 或者 v2ray 的 dokodemo-door 协议的端口。这些软件会自动把数据请求通过代理请求到之后，返回给用户。
 -A PREROUTING -p tcp -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 443 dst -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 80 dst -j REDIRECT --to-ports 1080  第一句是把所有请求都转发到了 1080 端口，这样就是全部请求都走代理。第二三句是把所有 443 和 80 端口的请求都转发到了 1080 这个代理端口。如果只是想要某些网站走代理呢？那一个办法是在这个语句里面指定 --dest=12.</description>
-    </item>
-    
-    <item>
-      <title>GeoHash</title>
-      <link>https://wdicc.com/geohash/</link>
-      <pubDate>Thu, 25 Jan 2018 11:00:57 +0800</pubDate>
-      
-      <guid>https://wdicc.com/geohash/</guid>
-      <description>我们的应用里面，会有需要用户提交一些坐标点，然后还需要判断这些坐标点和其他坐标点是不是重合或者距离在一定范围内（例如 200M）。
-这个需求最简单的做法就是用户提交的时候，循环和所有需要判断的点比较一下就可以了，但是如果数据量比较大的情况下，这个消耗还是很可观的，因为无法提前索引。所以我们就想，是不是有更好的思路呢？
-一个比较简单的思路是，每次坐标点存储的时候都 hash 一下，一定范围内的，都 hash 到同一个值，这样比较的时候只需要做等于判断就可以了，这个可以索引。那么最简单的做法就是参考 https://en.wikipedia.org/wiki/Decimal_degrees 把坐标点的经纬度按照精度 round，例如 123.4567890123 和 123.4567894562 都 round 为 123.456789 ，但是这么做无法精确到想要的那个 200M。
-然后依据上面的思路，和四舍五入的思路，我琢磨是不是可以弄一个 x 舍 x+1 入这么个逻辑，把坐标轴分为 x 等份。然后我就可以通过自己定义 x 来做到想要的精度了（通过经纬度来定义实际距离应该本身就是有误差的，这个和把球面坐标系投影到平面坐标系的方法有关系）。
-按照上面 x 舍 x+1 入的逻辑，实际上是把平面分成了 n 个正方形，同一个正方形里面的，可以认为他们是符合条件的。但是，很明显在相邻的区域里面的，也有可能有符合条件的点，比如两个点分别在区域的这边和另一边。这些点怎么找到呢？
-有一个思路是先找到点所在的区域，然后把周围 8 个区域的点也找出来，这个查找是可以索引的，是 O(1) 的，然后再循环的和找出来的点单个做比较算距离，这个过程是 O(n)，但是 n 小了很多。
-上面是我山寨的一个思路，找了一下发现已经有了，就是 geohash，可以看参考链接，里面比较详细了。
-参考链接
- Geohash http://www.cnblogs.com/LBSer/p/3310455.html  </description>
-    </item>
-    
-    <item>
-      <title>SafeAreaView in RN</title>
-      <link>https://wdicc.com/safeareaview-in-rn/</link>
-      <pubDate>Thu, 25 Jan 2018 10:36:51 +0800</pubDate>
-      
-      <guid>https://wdicc.com/safeareaview-in-rn/</guid>
-      <description>iPhone X 整出来一个刘海和底部的下巴，app 需要做特殊处理，否则可能会顶部把内容显示到被刘海挡住的那部分里面，下面呢会显示到那个手势控制的里面，导致一些按钮不能点击。
-之前我们用的是 https://www.npmjs.com/package/react-native-iphone-x-helper 自己计算的。前几天升级 RN 翻 0.52 的 release Note 发现 RN 0.50 新增了一个叫做 SafeAreaView 的 view 来解决这个问题。
-用法也很简单，把你的内容包含到这里面就可以了。有下面两个方法。
-不用 SafeAreaView 来处理底部，比如显示的是一个列表什么的，底部不固定的，用户如果有需要点按会往上滚动出底部的手势区域然后点击。
-&amp;lt;SafeAreaView /&amp;gt;  使用 SafeAreaView 处理底部，比如底部是一排固定按钮，例如微信那样的，这个时候需要把底部区域让出来。
-&amp;lt;SafeAreaView&amp;gt; .... &amp;lt;/SafeAreaView&amp;gt;  SafeAreaView 本身支持设置背景色，但是不支持顶部和底部设置不同的颜色，思路是可以给 SafeAreaView 下面放两个 view 分别设置他们的颜色。代码我贴到参考链接 2 里面了。
-参考链接：
- https://github.com/facebook/react-native/commit/ad4b124 https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d  </description>
-    </item>
-    
-    <item>
-      <title>Best Practice for React-Native and Redux</title>
-      <link>https://wdicc.com/best-practice-for-react-native-redux/</link>
-      <pubDate>Sun, 26 Nov 2017 09:19:11 +0800</pubDate>
-      
-      <guid>https://wdicc.com/best-practice-for-react-native-redux/</guid>
-      <description>从 6 月到现在，在 RN 上面摸爬滚打了一段时间了，目前总算找到了一个适合我们自我感觉还可以的开发模式。
-一开始，我们使用的是传统的 React 的模式，然后一个 app 页面一个文件，通过 StackNavigator 组合到一起。这么做在我们的第一个 app 里面没觉得有什么问题，每个页面维护自己的数据，页面之间需要数据共享或者通讯的时候（比如从 list 到详情页面的时候，详情里面有一个改变状态的按钮，状态改变之后希望 list 的状态也跟着变化，这样用户返回之后能看到正确的数据）有 2 个方式。
- 通过 DeviceEventEmitter。 需要数据的页面订阅，然后在其他页面 emit event 之后前面的页面就可以收到。这个时候可以只通知改变的数据的字段，前一个页面直接去修改，这样可以避免重新刷新页面。也可以发一个简单的通知让其他页面去自己获取数据。   通过 navigator 提供的 params 属性。 StatckNavigator 提供了一个 params 属性。就是 this.props.navigation.state.params ，可以通过 setParams 来改变，或者通过类似 this.props.navigation.navigate(&#39;Login&#39;, {goBackToHome: true}) 的方式给，那个 goBackToHome 将来就会在 params 里面。  直到我们开始做第二个 app。
-第二个 app 是一个单页面 app，登录之后就只有一个页面了，有一个大地图，有左侧 sidebar，sidebar 里面的按钮点击还会出其他页面。这个肯定不能按照我们前面的思路来做了，我们按照组件，拆分了不同的文件，然后组合起来。这个时候更加会需要页面之间的通讯，并且这个时候可选项只有第一个了 DeviceEventEmitter ，因为都没有 navigate 什么事情。
-这个时候就发现一个问题，event 太多了，开始有点混乱了。emit event 之后，慢慢会发现不知道哪里有订阅，不好管理。这个 app 做完之后，就仔细研究了一下 redux。</description>
-    </item>
-    
-    <item>
-      <title>Podcasts 推荐</title>
-      <link>https://wdicc.com/podcasts/</link>
-      <pubDate>Sat, 25 Nov 2017 11:38:37 +0800</pubDate>
-      
-      <guid>https://wdicc.com/podcasts/</guid>
-      <description>也不知道从什么时候开始听播客的，现在几乎是 podcast 的重度用户。听播客比看东西省力，以前是上下班的时候想休息一下眼睛就听播客，现在每天开车上下班没法看东西，所以听的更多了。推荐一些我自己听的，下面排序是随机的，和推荐度无关。
-中文播客 迟早更新 http://www.weareones.com/2 这个是个夫妻档，主播任宁刚 30 岁，但是知识面还是挺广的，播客里面的内容很广，但是多与科技有些关系。主播枪枪和他是夫妻，挺有意思的。更新比较快，基本每周都有。
-Teahour http://teahour.fm/ 这个播客经常会请一些比较厉害的开发者和创始人来做访谈，谈的内容也基本是在科技圈。不过最近更新比较慢，前几天刚更新了一期，距上一期已经是 1 年左右了。但是听一听历史的 ep 有些也不过时。
-代码时间 http://codetimecn.com/ 这个播客也是请人来做访谈，不过聊的感觉有时候有点尴尬，也不知道为啥有这个感觉。也是很久更新一期，历史的也可以听听。
-checked http://checked.fm/ 这个播客有三个主播，2 个少数派的雇员，还有个妹子。都是年轻人，都挺有意思的。会讨论各种科技话题，科技热点事件，APP 使用经验等，更新也比较及时。
-机核网 https://www.g-cores.com/categories/9 一个游戏播客。机核网本身是个游戏咨询站。播客内容就是各种游戏相关的东西。我之前听过《血缘》和《黑魂》相关的。不过因为我游戏玩的其实没那么多，所以他们谈的很多游戏没玩过，后来也就不听了。
-比特新声 https://banlan.show/bitvoice 主播海龙是出国培训老师，主播有才是一个 soho 的程序员。一个文科一个理科，思想的一些碰撞还挺有意思的。谈论的话题基本是科技圈的居多，但是内容也比较广泛。
-UX Coffee 设计咖 http://uxcoffee.co/ 主要和谈论一些设计和用户体验相关的内容。主播应该在国外，会请一些在国外的华语开发者来访谈。
-「I/O」调频 http://dailyio.net/ 更新不多，貌似是一个人的独白，感觉听的不多，所以我也不记得大致内容了。
-内核恐慌 https://kernelpanic.fm/ 科技播客，内容还挺好的，可惜目前更新很少。最近几期《字谈字串》都是 4 个人串台。Rio 和吴涛其实还参加了近期的《迟早更新》，但是他们居然不更新自己的播客，发指。
-IT 公论 https://itgonglun.com/ 李如一和 Rio 主持。李如一好像挺有名的，不过我不是很熟悉。也是科技相关的播客。
-两个 iT 大叔 http://podcast.lengqidong.com/podcast.xml 没有找到他们的网站，只有一个 rss 地址了。这个是两个男主播，聊的内容大都和科技相关。
-ETW http://www.etw.fm/ 这个是两个驻美记者做的播客，两个妹子。聊各种热点话题，还是挺有意思的。
-英文播客 英文播客我基本只能听英语学习类的，其他的语速和发音会导致有不少听不懂。
-All Ears English https://www.allearsenglish.com/ 两个美国妹子，语速没有调慢，聊一些日常的用语什么的，感觉还是比较好懂的。</description>
-    </item>
-    
-    <item>
-      <title>草泥马</title>
-      <link>https://wdicc.com/freedom/</link>
-      <pubDate>Mon, 06 Nov 2017 18:47:41 +0800</pubDate>
-      
-      <guid>https://wdicc.com/freedom/</guid>
-      <description>我搜了一下我的帖子，GFW 这个 tag 最早在我的 「2006/12/01 咱也玩玩lilina」 这个帖子里面就出现了。里面提到 Google 有时候会撞墙，会导致 Google reader 也不能访问。我也忘记这个东西最早是什么时候进入我的生活的，从我的 blog 后面可以看到 09 年开始研究一些相关技术，到现在已经 8 年了。
-很多人说百度更懂中文。我从来没觉得，可能因为我中文搜的不多吧，不过就算是中文也更喜欢看 Google 里面的结果。百度里面巨量的重复内容，都是一个帖子被复制了很多次，浪费很多时间翻页之后你还是会发现没有你想要的结果。用 Google 的时候，如果前面 3 页（更多时候，1-2 页足够）还没有你想要的结果，那么要么是这个结果就是少，要么就是你的关键字不对，根据结果里面的一些信息，适当调整自己的关键字。
-因为本身是搞技术的，技术方面，国外的文章水分更少，并且自己也基本能看懂技术相关的英文内容，所以从来都不用百度。国内的各种论坛（也有一些例外的，比如 v2ex，rubychina 等），大量的顶，回复可见内容的帖子，基本没什么意义。不如直接看英文世界里面的情况来的直接。
-那会有一段时间还流行各种草泥马相关的东西，比如草泥马之歌。大家用这种方式自嘲，讽刺。当时总觉得这种东西不符合普世价值并不能长久，笑笑也就好了。这么一翻，就是 8 年。现在还每况愈下，一些稍微活跃一点的还有喝茶的待遇。
-这个帖子前几天就想写了，一忙忘记了，今天补上。我和图拉鼎同学并没有见过面。唯一的近距离接触，是当时他在北京 Canonical 公司的时候，有次要聚会，我和他在 qtalk 上面聊过，不过可惜我最后没参加（这段记忆也比较模糊了，可能会有记错），没有见面。后面更多的就是在微博看他在回到杭州后享受生活了。
-看看他的生活，就是一个普通宅男，聪明热爱生活，经常游荡在杭州的街巷，发现一些别人没注意到或者忽略的事物。写写代码，咖啡馆坐坐，找一个志同道合的朋友聊聊天，再普通不过了。偏偏就是这样的一个人都容不下，神经一点一点变的异常铭感，没有点神经病估计现在也不好当领导了。
-前两年，还有另外一个朋友开发了一款搭建高性能网站使用的服务器软件（和翻墙无关），本来一直在国外工作，回家探亲被限制出境，具体原因不聊了，后来解决了出去了。目前在国外成立的自己的公司，专门发扬自己的软件，也拿到了绿卡。估计以后也没兴趣回来了。
-目前这个形势下，无法预见我们自己哪天不会遇到问题，即使你自己学会了阉割自己，但你怎么知道他们的铭感点在哪里呢？也可能是「就是喜欢看你虽然不喜欢，但是又不得不一起建设社会主义的样子」呢？
-想起来一个大话西游里面大对白了
- 爱一个人需要理由么？ 需要吗？ 不需要吗？ 需要吗？ 不需要吗？ 等你真爱上一个人你就知道了  把里面的「爱」替换为「整」（等你真被整的时候就知道了）我感觉还是挺适合的。
-附送 草泥马之歌 给有兴趣的。</description>
-    </item>
-    
-    <item>
-      <title>Why I Am Not at React Native Developer(节译)</title>
-      <link>https://wdicc.com/why-i-am-not-at-react-native-developer/</link>
-      <pubDate>Thu, 02 Nov 2017 14:00:39 +0800</pubDate>
-      
-      <guid>https://wdicc.com/why-i-am-not-at-react-native-developer/</guid>
-      <description>翻译自这里 Why I&#39;m not a React Native Developer 。
-Introduction 很多人把 RN 作为下一个移动 app 的开发平台。切换开发平台有可能会有巨大的消耗也可能会改变你日常的工作流程。同时平台也可能会改变你开发使用的软件，需要你掌握一些特殊的工具和工作流，把你绑定到一个新的开发生态里面。
-Facebook 自己想要完全切换到 RN 来代替原来的 Native 开发。RN 开发团队也在努力做这个事情，他们搞了一个软件开发平台来代替传统的 Xcode/Swift/ObjC 开发模式。RN 团队到底对这个是一个怎么的态度，貌似还不太明确。
-我自己搞了几个月开发之后，我感觉这个平台不是我想要的一个，也不推荐其他人往里跳。
-Declarative style 在 RN 里面，UI 是一堆包含状态(state)的函数(function)和属性(props)。
-下面是个例子，假设我们需要在左上角有一个小正方形，如果用户连接了就显示红色，没连接显示绿色。
-在这种编程类型下，你指定所有更新 UI 需要的步骤。我们需要监听 isConnectd 来更新 view。我们告诉 iOS 如何计算状态。
-比较一下 RN 的模式。
-RN 让你在 render() 方法里面描述你的 UI。React 框架来保证 state 的变化会触发 re-rendering。对于数据的修改，会自动触发 UI 的改变。
-我想这是一种思考 UI 的很好的方式。这也是 MVC 模式的一种进化，View 只需要负责展示，不需要负责管理数据。
-Faster iterations RN 里面开发的时候，框架会在本地启动一个 server。你只需要编译一次，然后在 iOS 模拟器或者真机上面运行，RN 会保证你在 js 里面做的任何修改都会反馈到 app 里面。</description>
-    </item>
-    
-    <item>
-      <title>11 Mistakes During Use React Native(翻译)</title>
-      <link>https://wdicc.com/11-mistakes-during-use-react-native/</link>
-      <pubDate>Wed, 01 Nov 2017 19:12:24 +0800</pubDate>
-      
-      <guid>https://wdicc.com/11-mistakes-during-use-react-native/</guid>
-      <description>粗略的翻译自 11 mistakes I’ve made during React Native / Redux app development。
-一些可能会错误的评估  虽然有很多可以重复使用的组件，你还是需要分开考虑 iOS 和 Android 的布局。 当你评估表单实现的时候，应该要同时考虑表单的验证。开发 RN 比开发例如 Cordova 这样的 hybrid 的程序需要写的代码更多。 如果是基于一个已经有后端的 webapp 写代码，应该需要先去仔细看看后端提供的功能接口，因为你需要自己写逻辑，弄明白了 DB 结构数据关联，可以然你更好的规划你的 redux store。  尽量使用已有的组件 Google 一下就会发现，已经有大量的现成的组件，例如 buttons, footers 等。如果你没啥特殊要求，这些你都可以直接用。你要是有自己的特殊需要，也可以包装一下这些组件成你自己的，然后在里面自定义样式。不过你自己使用 View, Text, TouchableOpacity 等这些 RN 组件来自己包装对于你理解 RN 的工作原理。你自己打包的组件的版本也不会变，不像依赖外部模块。
-不要分开搞 iOS 和 Android 的布局 如果你有不同的布局需求，那就分开。否则，你可以使用 RN Platform 提供的 API 来做一些小的区分。
-如果布局很大不同，那就把布局内容放到不同的文件里面。
-你可以使用 index.ios.js 给 iOS 布局用，index.android.js 给 Android 用。
-共同的重复代码可以放到 helpers 里面。</description>
-    </item>
-    
-    <item>
-      <title>Howto Make react-redux Work With react-navigation</title>
-      <link>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</link>
-      <pubDate>Sat, 21 Oct 2017 08:19:28 +0800</pubDate>
-      
-      <guid>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</guid>
-      <description>这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 gist。
-/** * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理 * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合 * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做 * 参考： * https://github.com/jackielii/simplest-redux-example * http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html */ import React, { Component } from &#39;react&#39;; import { StyleSheet, Text, View, Button } from &#39;react-native&#39;; import { Provider, connect } from &#39;react-redux&#39;; import { createStore, combineReducers } from &#39;redux&#39;; import { StackNavigator, addNavigationHelpers } from &#39;react-navigation&#39;; // Home 页面，UI 组件 class MyHome extends Component { constructor(props) { super(props); console.</description>
     </item>
     
   </channel>

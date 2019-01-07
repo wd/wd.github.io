@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Android Packaging | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+
+  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
+  <script src="https://wdicc.com//js/hljs.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Android Packaging</span></h1>
+
+<h2 class="date">2018/12/02</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/android">android</a> 
+  
+  
+</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<main>
+<p>国内市场因为 android 的发布渠道比较多，所以一般我们会想要追踪一下用户使用的包是从哪里下载安装的。</p>
+
+<p>Android 打包支持 buildTypes ，一般这个会用来区分不同的环境，比如 dev，beta，prod 等，不同环境可能会有一些不同的设置，比如 dev 会打开更多的日志输出什么的。</p>
+
+<pre><code>    android{
+        buildTypes {
+            debug {
+                ...
+            }
+            release {
+                ...
+            }
+            beta {
+                ...
+            }
+        }
+    }
+</code></pre>
+
+<p>还有一个支持是 productFlavors，一般用这个来区分不同的渠道，不同渠道也可以有一些不同的设置，类似上面的 buildTypes。</p>
+
+<pre><code>    android {  
+        productFlavors {
+            xiaomi {}
+            baidu {}
+            wandoujia {}
+            x360 {}
+        }
+
+        productFlavors.all {
+            flavor -&gt; flavor.manifestPlaceholders = [CHANNEL_ID: name]
+        }
+    }
+</code></pre>
+
+<p>配合 <code>AndroidManifext.xml</code> 文件的配置</p>
+
+<pre><code>   &lt;meta-data android:name=&quot;CHANNEL_ID&quot; android:value=&quot;${CHANNEL_ID}&quot; /&gt;
+</code></pre>
+
+<p>在代码里面取到这个，然后设置渠道。</p>
+
+<p>这样就可以打渠道包了 <code>./gradlew assembleWandoujiaRelease</code> 编译 <code>wandoujia</code> 这个渠道的 <code>releases</code> 包。这个方式有一个问题是，每一个渠道包都需要从头编译一次，一个渠道 10 分钟，那所有渠道下来，就可能需要一个小时了，关键是很多无用功。</p>
+
+<p>受不了这个，然后发现了美团的思路。有一个民间的方案 https://github.com/GavinCT/AndroidMultiChannelBuildTool 。</p>
+
+<p>这个方案的主要思路是 apk 只编译一次，编译好之后，通过在 apk 里面增加不同名字的文件的方式来区分不同的渠道。app 运行的时候，读这个文件名字，然后设置对应的渠道。</p>
+
+<p>对于 v1 签名的 apk，在 META-INF 下面增加空文件不需要重新签名，所以只需要再次 zip 压缩就可以。</p>
+
+<p>对于 v2 签名的 apk，需要重新签名，可以使用 <code>apksigner</code> 这个程序，这个是 android sdk 带的。我的 mac 系统路径是 <code>~/Library/Android/sdk/build-tools/*/apksigner</code> ，因为会安装多个 build-tools 版本，所以会有多个，用哪个都可以。</p>
+
+<pre><code class="language-python">    cmd = [apksigner, &quot;sign&quot;, &quot;--ks&quot;, &quot;your_key_store_path&quot;, &quot;--ks-pass&quot;, &quot;pass:your_pass&quot;, &quot;--ks-key-alias&quot;, &quot;your_alias&quot;, apk]
+    check_call(cmd)
+</code></pre>
+
+<p>这样就可以了。</p>
+
+<p>我看美团似乎弄了一个新的版本 https://github.com/Meituan-Dianping/walle 看着挺复杂的，没研究过。</p>
+
+</main>
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+    <footer style="clear:both">
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

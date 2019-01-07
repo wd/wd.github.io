@@ -6,10 +6,850 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 28 Sep 2018 10:33:30 +0800</lastBuildDate>
+    <lastBuildDate>Sat, 05 Jan 2019 09:53:09 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Amap Work With Code Push</title>
+      <link>https://wdicc.com/amap-work-with-code-push/</link>
+      <pubDate>Sat, 05 Jan 2019 09:53:09 +0800</pubDate>
+      
+      <guid>https://wdicc.com/amap-work-with-code-push/</guid>
+      <description>&lt;p&gt;我们 app 用了高德地图和 codepush，iOS 里面之前用的高德地图 sdk 的 5.x 版本，最近想升级到最新的 6.6.0 发现和 codepush 出现了 symbol 的冲突，主要是两个函数 &lt;code&gt;aes_decrypt_key128&lt;/code&gt; 和 &lt;code&gt;aes_encrypt_key128&lt;/code&gt; 。&lt;/p&gt;
+
+&lt;p&gt;高德地图是不开源的，万幸我们有 codepush 的源码，所以思路是只需要把 codepush 里面冲突的函数改个名字就好了。&lt;/p&gt;
+
+&lt;p&gt;改代码很简单，主要是怎么和项目集成。我用的是 &lt;a href=&#34;https://github.com/ds300/patch-package#readme&#34; title=&#34;patch-package&#34;&gt;patch-package&lt;/a&gt; ，做法如下。&lt;/p&gt;
+
+&lt;p&gt;给 &lt;code&gt;package.json&lt;/code&gt; 的 scripts 增加一个 &lt;code&gt;postinstall&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt; &amp;quot;scripts&amp;quot;: {
+  &amp;quot;postinstall&amp;quot;: &amp;quot;patch-package&amp;quot;
+ }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后就是改 &lt;code&gt;node_modules/react-native-code-push&lt;/code&gt; 下面的文件，改完之后，执行一下 &lt;code&gt;yarn patch-package react-native-code-push&lt;/code&gt; 会生成一个类似 &lt;code&gt;patches/react-native-code-push+5.5.1.patch&lt;/code&gt; 的文件，确认一下这个文件里面是不是包含了你修改的内容。&lt;/p&gt;
+
+&lt;p&gt;这就可以了，以后执行 &lt;code&gt;yarn install&lt;/code&gt; 的时候会自动打这个 patch。&lt;/p&gt;
+
+&lt;p&gt;这个方式比 fork 一份对方的代码好一点，有时候有些代码发到 npm 的是编译之后的版本，fork 之后也不好用，除非你也发布一个。用 patch 的方式会好一点，安装的还是对方发布的。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Android Packaging</title>
+      <link>https://wdicc.com/android-packaging/</link>
+      <pubDate>Sun, 02 Dec 2018 16:52:34 +0800</pubDate>
+      
+      <guid>https://wdicc.com/android-packaging/</guid>
+      <description>&lt;p&gt;国内市场因为 android 的发布渠道比较多，所以一般我们会想要追踪一下用户使用的包是从哪里下载安装的。&lt;/p&gt;
+
+&lt;p&gt;Android 打包支持 buildTypes ，一般这个会用来区分不同的环境，比如 dev，beta，prod 等，不同环境可能会有一些不同的设置，比如 dev 会打开更多的日志输出什么的。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;    android{
+        buildTypes {
+            debug {
+                ...
+            }
+            release {
+                ...
+            }
+            beta {
+                ...
+            }
+        }
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;还有一个支持是 productFlavors，一般用这个来区分不同的渠道，不同渠道也可以有一些不同的设置，类似上面的 buildTypes。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;    android {  
+        productFlavors {
+            xiaomi {}
+            baidu {}
+            wandoujia {}
+            x360 {}
+        }
+
+        productFlavors.all {
+            flavor -&amp;gt; flavor.manifestPlaceholders = [CHANNEL_ID: name]
+        }
+    }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;配合 &lt;code&gt;AndroidManifext.xml&lt;/code&gt; 文件的配置&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;   &amp;lt;meta-data android:name=&amp;quot;CHANNEL_ID&amp;quot; android:value=&amp;quot;${CHANNEL_ID}&amp;quot; /&amp;gt;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在代码里面取到这个，然后设置渠道。&lt;/p&gt;
+
+&lt;p&gt;这样就可以打渠道包了 &lt;code&gt;./gradlew assembleWandoujiaRelease&lt;/code&gt; 编译 &lt;code&gt;wandoujia&lt;/code&gt; 这个渠道的 &lt;code&gt;releases&lt;/code&gt; 包。这个方式有一个问题是，每一个渠道包都需要从头编译一次，一个渠道 10 分钟，那所有渠道下来，就可能需要一个小时了，关键是很多无用功。&lt;/p&gt;
+
+&lt;p&gt;受不了这个，然后发现了美团的思路。有一个民间的方案 https://github.com/GavinCT/AndroidMultiChannelBuildTool 。&lt;/p&gt;
+
+&lt;p&gt;这个方案的主要思路是 apk 只编译一次，编译好之后，通过在 apk 里面增加不同名字的文件的方式来区分不同的渠道。app 运行的时候，读这个文件名字，然后设置对应的渠道。&lt;/p&gt;
+
+&lt;p&gt;对于 v1 签名的 apk，在 META-INF 下面增加空文件不需要重新签名，所以只需要再次 zip 压缩就可以。&lt;/p&gt;
+
+&lt;p&gt;对于 v2 签名的 apk，需要重新签名，可以使用 &lt;code&gt;apksigner&lt;/code&gt; 这个程序，这个是 android sdk 带的。我的 mac 系统路径是 &lt;code&gt;~/Library/Android/sdk/build-tools/*/apksigner&lt;/code&gt; ，因为会安装多个 build-tools 版本，所以会有多个，用哪个都可以。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;    cmd = [apksigner, &amp;quot;sign&amp;quot;, &amp;quot;--ks&amp;quot;, &amp;quot;your_key_store_path&amp;quot;, &amp;quot;--ks-pass&amp;quot;, &amp;quot;pass:your_pass&amp;quot;, &amp;quot;--ks-key-alias&amp;quot;, &amp;quot;your_alias&amp;quot;, apk]
+    check_call(cmd)
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样就可以了。&lt;/p&gt;
+
+&lt;p&gt;我看美团似乎弄了一个新的版本 https://github.com/Meituan-Dianping/walle 看着挺复杂的，没研究过。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>A* Search Algorithm</title>
+      <link>https://wdicc.com/a-star-search-algorithm/</link>
+      <pubDate>Sat, 24 Nov 2018 14:48:04 +0800</pubDate>
+      
+      <guid>https://wdicc.com/a-star-search-algorithm/</guid>
+      <description>&lt;p&gt;前段时间我们设想了一个需求，想帮助用户规划一下从 A -&gt; B 的航线。对于路径规划从来没弄过，研究了一下，基本都在提这个 &lt;a href=&#34;https://en.wikipedia.org/wiki/A*_search_algorithm&#34; title=&#34;A 星寻路算法&#34;&gt;A 星寻路算法&lt;/a&gt;。&lt;/p&gt;
+
+&lt;ol&gt;
+先贴几个文章：
+&lt;li&gt;简单的讲解的文章例如 https://www.jianshu.com/p/65282bd32391&lt;/li&gt;
+&lt;li&gt;这个详细一点的 https://blog.csdn.net/DinnerHowe/article/details/79380317&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;我写了一个简单的程序，这个程序没有做过任何的优化，只能说是解释了这个算法的逻辑而已，在终端里面可以可视化的把计算过程显示出来。效果可以看&lt;a href=&#34;https://gist.github.com/wd/69469977bf76d9091ca01714eae08f37&#34; title=&#34;这里&#34;&gt;这里&lt;/a&gt;。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;#!/usr/bin/python
+import sys
+import random
+
+
+RED = &#39;\033[31m&#39;
+GREEN = &#39;\033[32m&#39;
+GRAY = &#39;\033[35m&#39;
+NC = &#39;\033[0m&#39;
+
+class Point(object):
+    x = 0
+    y = 0
+    close = False
+    open = False
+    start = False
+    end = False
+    wall = False
+    H = 99
+    G = 99
+    parent = None
+
+    def __init__(self, **kwargs):
+        if &#39;x&#39; in kwargs:
+            self.x = kwargs[&#39;x&#39;]
+
+        if &#39;y&#39; in kwargs:
+            self.y = kwargs[&#39;y&#39;]
+
+        self.key = &#39;{}-{}&#39;.format(self.x, self.y)
+
+    def __str__(self):
+        return &#39;{},H{:2},G{:2},F{:2},P{:3}&#39;.format(
+                self.key,
+                self.H if self.H != 99 else &#39;&#39;,
+                self.G if self.G != 99 else &#39;&#39;,
+                self.G + self.H if self.G != 99 else &#39;&#39;,
+                self.parent.key if self.parent else &#39;&#39;)
+
+    def  __lt__(self, other):
+        return self.x &amp;lt; other.x if self.y == other.y else self.y &amp;lt; other.y
+
+
+def get_area(width, height):
+    area = {}
+    for i in range(width):
+        for j in range(height):
+            point = Point(x=i, y=j)
+
+            area[point.key] = point
+    return area
+
+def show_result(area_hash):
+    prev_y = -1
+
+    for point in sorted(area_hash.values()):
+        if ( prev_y != point.y ):
+            if (prev_y != -1):
+                print(&#39;&#39;)
+            prev_y = point.y
+
+        if point.start:
+            format = RED + &#39;S&#39; + NC
+        elif point.end:
+            format = RED + &#39;E&#39; + NC
+        elif point.wall:
+            format = GRAY + &#39;W&#39; + NC
+        elif point.close:
+            format = GREEN + &#39;0&#39; + NC
+        else:
+            format = &#39; &#39;
+        print((format + &#39;({})  &#39;).format(point), end=&#39;&#39;)
+    print(&#39;&#39;)
+
+def set_preset(area, start, end, wall):
+    area[start].start = True
+    area[end].end = True
+    for key in wall:
+        area[key].wall = True
+    return area
+
+def is_valid_point(point, width, height):
+    if point.wall or point.close:
+        return False
+
+    if point.x &amp;lt; 0 or point.x &amp;gt; width:
+        return False
+
+    if point.y &amp;lt; 0 or point.y &amp;gt; height:
+        return False
+
+    return True
+
+def get_around(area, point, width, height):
+    n = &#39;{}-{}&#39;.format(point.x, point.y - 1)
+    s = &#39;{}-{}&#39;.format(point.x, point.y + 1)
+    l = &#39;{}-{}&#39;.format(point.x - 1, point.y)
+    r = &#39;{}-{}&#39;.format(point.x + 1, point.y)
+
+    res = {}
+    for key in [n, s, l, r]:
+        if key in area and is_valid_point(area[key], width, height):
+            area[key].parent = point
+            area[key].G = area[key].G if area[key].G != 99 else (point.G if point.G != 99 else 0) + 1
+            res[key] = area[key]
+
+    return res
+
+def get_H(point, end_point):
+    return abs(point.x - end_point.x) + abs(point.y - end_point.y)
+
+step = 0
+opened = {}
+
+def go(area, start, end, width, height):
+    global step, opened
+    start_point = area[start]
+    end_point= area[end]
+    start_point.close = True
+
+    if start_point.key in opened:
+        del opened[start_point.key]
+
+    points = get_around(area, start_point, width, height)
+    opened.update(points)
+
+    rnd = random.choice(list(opened))
+    next_point = area[rnd]
+    for key, point in opened.items():
+        point.H = get_H(point, end_point)
+
+        if point.H + point.G &amp;lt;= next_point.H + next_point.G:
+            next_point = point
+
+    print(&#39;step {}: {}&#39;.format(step, next_point))
+    step += 1
+    if step &amp;gt;= 3:
+        pass
+
+    if next_point and next_point.key != end:
+        go(area, next_point.key, end, width, height)
+
+def get_result(area, start, end):
+    print(&#39;{}{}{} &amp;lt;- &#39;.format(RED, area[end].key, NC), end=&#39;&#39;)
+    parent = area[end].parent
+    if(parent.key != start):
+        get_result(area, start, parent.key)
+    else:
+        print(&#39;{}{}{}&#39;.format(RED, area[start].key, NC), end=&#39;&#39;)
+
+def main():
+    width = 10
+    height = 10
+    start = &#39;1-3&#39;
+    end = &#39;8-4&#39;
+    wall = [&#39;2-2&#39;, &#39;3-2&#39;, &#39;3-3&#39;, &#39;3-4&#39;, &#39;3-5&#39;, &#39;3-6&#39;, &#39;5-4&#39;, &#39;2-6&#39;, &#39;1-6&#39;]
+
+    area = get_area(width, height)
+    area = set_preset(area, start, end, wall)
+    go(area, start, end, width,  height)
+    show_result(area)
+    get_result(area, start, end)
+
+if __name__ == &#39;__main__&#39;:
+    main()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这个算法通过调整 G 和 H 的计算逻辑，可以平衡寻路速度和路径是否最短。另外，对于 open 列表的维护，也可以使用一些适合自己的数据结构来得到比较快速的查找。上面第二个帖子里面比较详细的列了一些改进算法的思路。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Phpbb Auth Plugin</title>
+      <link>https://wdicc.com/phpbb-auth-plugin/</link>
+      <pubDate>Sat, 17 Nov 2018 21:15:50 +0800</pubDate>
+      
+      <guid>https://wdicc.com/phpbb-auth-plugin/</guid>
+      <description>&lt;p&gt;这几天我们这里需要搞一个论坛，我搜了一些，选了 phpbb，这个毕竟年头比较久远，也支持 PostgreSQL。&lt;/p&gt;
+
+&lt;p&gt;我们自己本身有自己的会员逻辑，所以就需要把他的登陆和我们自己的结合，而 phpbb 也支持自己作 &lt;a href=&#34;https://wiki.phpbb.com/Authentication_plugins&#34; title=&#34;Auth Plugin&#34;&gt;Auth Plugin&lt;/a&gt;。&lt;/p&gt;
+
+&lt;ol&gt;
+涉及到的文件有几个
+&lt;li&gt;includes/auth/auth_foo.php：这个是具体的 auth 逻辑代码的地方。&lt;/li&gt;
+&lt;li&gt;config/default/container/services_auth.yml：这个是注册这个 auth 逻辑的地方。&lt;/li&gt;
+&lt;li&gt;template 模板文件：这个我没涉及到，所以没去了解。&lt;/li&gt;
+&lt;/ol&gt;
+
+&lt;p&gt;service 文件的配置：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-yml&#34;&gt;    auth.provider.skyreq:
+        class: phpbb\auth\provider\foo
+        arguments:
+            - &#39;@dbal.conn&#39;
+            - &#39;@config&#39;
+            - &#39;@passwords.manager&#39;
+            - &#39;@request&#39;
+            - &#39;@user&#39;
+            - &#39;@service_container&#39;
+            - &#39;%core.root_path%&#39;
+            - &#39;%core.php_ext%&#39;
+        tags:
+            - { name: auth.provider }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;上面配置里面 arguments 指定的，是 auth_foo.php 的 constructor 接受的参数。可以需要什么配置什么，个数要对应。&lt;/p&gt;
+
+&lt;p&gt;配置这个之后，只需要在 &lt;code&gt;auth_foo.php&lt;/code&gt; 里面实现具体的逻辑就可以了。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;init_method&lt;/code&gt; 这个方法是在后台用户选中这个 auth 方法的时候执行的，比如你如果有一些配置的话就可以在这里验证。如果需要用户录入配置的话，还需要配合 template 文件，好提供录入的界面。我这里没有这个需求。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;login_method&lt;/code&gt; 这个方法是在用户登陆的时候会调用。会传入用户名和密码两个参数。实现逻辑可以参考 auth_db 这个模块。phpbb 为了安全，对于管理员用户会有一个二次验证的过程，管理员的 session 过期时间也会短一些。所以我们必须要实现这个，否则一个管理员就无法访问后台了。我这里是完全复制的 auth_db 的逻辑，里面改动了一点增加了一个硬编码只允许几个我指定的用户登陆。然后验证也完全用的 phpbb 的密码逻辑。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;autologin_method&lt;/code&gt; 这个方法是在用户 session 创建的时候通过外部逻辑实现验证的时候调用。自己实现认证主要是在这里实现。我的需求是通过 cookie 验证，如果用户不存在，会直接新建一个用户，如果已经存在，会直接用那个用户登陆。这样一个用户在我的系统的其它页面登陆之后，访问 phpbb 就会自动登陆了。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;logout_method&lt;/code&gt; 登出的逻辑。我这没有需求，不希望用户从论坛登出。所以留空就可以了。&lt;/p&gt;
+
+&lt;p&gt;&lt;code&gt;validate_session_method&lt;/code&gt; session 验证逻辑，这个是验证一个用户的 session 是否有效。如果无效会触发自动登陆。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Fear, trust and JavaScript: When types and functional programming fail</title>
+      <link>https://wdicc.com/fear-trust-and-javascript/</link>
+      <pubDate>Thu, 01 Nov 2018 12:56:20 +0800</pubDate>
+      
+      <guid>https://wdicc.com/fear-trust-and-javascript/</guid>
+      <description>&lt;p&gt;翻译自 &lt;a href=&#34;https://www.reaktor.com/blog/fear-trust-and-javascript/&#34; title=&#34;Fear, trust and JavaScript: When types and functional programming fail&#34;&gt;Fear, trust and JavaScript: When types and functional programming fail&lt;/a&gt; , 最早是 &lt;a href=&#34;https://news.ycombinator.com/item?id=18314628&#34; title=&#34;hacker news&#34;&gt;hacker news&lt;/a&gt; 看到的。&lt;/p&gt;
+
+&lt;p&gt;只是翻译大意。&lt;/p&gt;
+
+&lt;p&gt;作为开发人员，我们需要减少对代码执行失败的恐惧，增强对代码的信心。很多 javascript 开发人员从函数式编程语言和强类型语言里面借鉴思路来将信任交给工具和代码来减少恐惧。类似可选类型，函数转换，和只读化这些思想可以帮助写出更好的 javascript 代码。当把这些想法都加入到 javascript 里面，会有一些妥协，协作起来比较差，并且最终会导致将信任从开发人员交给代码和工具的想法失败。&lt;/p&gt;
+
+&lt;p&gt;举例来看看 javascript 里面是如何在两种观点下面处理数据的：理解数据的结构和修改数据。&lt;/p&gt;
+
+&lt;h1 id=&#34;fear-and-the-shape-of-data&#34;&gt;Fear and the shape of data&lt;/h1&gt;
+
+&lt;p&gt;在类似 javascript 的动态语言里面，很难知道你数据的结构。默认的方式是依赖公约(convention)。相信其它程序员和其它系统按照协议给你正确的数据。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;fetchUser(id).then( user =&amp;gt; {
+ // Got my user!
+})
+
+// Later
+render(user.name) // He has a name
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;我一般管这种方式叫「假装这是你要的」。在高可信的环境下，这个会工作的挺好。&lt;/p&gt;
+
+&lt;p&gt;但是恐惧会悄悄的到来。代码的复杂度会增加。代码会是不同开发人员基于不同的公约(convention)开发的。你收到的数据来自于不可控的上游以及不稳定的格式。会开始看到空指针错误。对代码的信任会崩塌，对数据格式的疑问会引起焦虑而不是信任。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;这个数据里面到底有什么值？&lt;/li&gt;
+&lt;li&gt;我可以删除里面的数据而不产生影响吗？&lt;/li&gt;
+&lt;li&gt;我可以把这个数据传入这个函数吗？&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;例如下面这个。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;fetchUser(id).then( user =&amp;gt; {
+ // Got my user!
+ if(!user || !user.name) {
+   throw new Error(&#39;wat&#39;)
+ }
+})
+
+// Later
+if(user &amp;amp;&amp;amp; user.name) {
+  render(user.name)
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这是防御性编程(defensive programming)。在你不再信任你的代码会在适当的时候提供你期望的数据的时候会这么写。漂亮的代码会因为这些检查变得乱七八糟的，失去可读性，代码变得脆弱和很难改变。恐惧会增加，会越来越难相信代码会工作的很好。&lt;/p&gt;
+
+&lt;h2 id=&#34;optional-types-pretend-really-hard&#34;&gt;Optional types: Pretend really hard&lt;/h2&gt;
+
+&lt;p&gt;有一种消除恐惧的方法是通过 &lt;a href=&#34;https://www.typescriptlang.org/&#34; title=&#34;TypeScript&#34;&gt;TypeScript&lt;/a&gt; 或者 &lt;a href=&#34;https://flow.org/&#34; title=&#34;Flow&#34;&gt;Flow&lt;/a&gt; 引入可选的类型检查。接收到一个 user 之后，声明这是 User 类型，这以后只当作 User 类型用。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;interface User{
+  id: number
+  name: string
+  email?: string
+}
+
+fetchUser(id).then((user: User) =&amp;gt; {
+ // Got my User!
+})
+
+// Later
+render(user.name) // Compiler says he has a name
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样假装其实挺难的。你把你的信任转移到其它地方了。你依然相信其它系统会给你正确的数据结构。在代码里面，你信任你给那个数据赋予的类型，在你使用不当的时候，编译器会报错。代替相信开发人员知道数据的结构并且正确的使用它，你信任开发人员会写出正确的类型，信任编译器不会对这些类型撒谎。&lt;/p&gt;
+
+&lt;p&gt;增加类型设定并没有解决潜在的问题，它会提升数据在代码里面的一致性，但是对于外来数据没有任何限制。&lt;/p&gt;
+
+&lt;h2 id=&#34;validation-trust-but-validate&#34;&gt;Validation: Trust but validate&lt;/h2&gt;
+
+&lt;p&gt;在一个互相不太信任的环境里面，你或者需要在各种地方做数据校验。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;fetchUser(id).then(user =&amp;gt;{
+  const validationErrors = validate(user)
+  if (validationErrors) {
+    throw new Error(&#39;wat&#39;)
+  }
+ // got my User!
+})
+
+// Later
+render(user.name) //He has a name
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;你可以手动做这些，不过这些验证可能是临时的（应该是说不太通用），费力的，并且容易出错的。或者，你可以使用 &lt;a href=&#34;http://json-schema.org/&#34; title=&#34;JSON schema&#34;&gt;JSON schema&lt;/a&gt; 定义和 &lt;a href=&#34;https://github.com/epoberezkin/ajv&#34; title=&#34;ajv&#34;&gt;ajv&lt;/a&gt; 或者其它工具来验证数据是不是符合 schema 定义。这么做可以让其它用户复用，例如生成文档，但是这个似乎不那么明确也容易出错，因为你需要手动写这样的定义。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;{
+  &amp;quot;title&amp;quot;: &amp;quot;user&amp;quot;,
+  &amp;quot;type&amp;quot;: &amp;quot;object&amp;quot;,
+  &amp;quot;properties&amp;quot;: {
+    &amp;quot;id&amp;quot;: {
+      &amp;quot;type&amp;quot;: &amp;quot;integer&amp;quot;
+    },
+    &amp;quot;name&amp;quot;: {
+      &amp;quot;type&amp;quot;: &amp;quot;string&amp;quot;
+    },
+    &amp;quot;age&amp;quot;: {
+      &amp;quot;type&amp;quot;: &amp;quot;integer&amp;quot;
+    }
+  },
+  &amp;quot;required&amp;quot;: [&amp;quot;id&amp;quot;, &amp;quot;name&amp;quot;]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h2 id=&#34;optional-types-validation&#34;&gt;Optional types + validation&lt;/h2&gt;
+
+&lt;p&gt;或者你也可以同时使用类型检查和数据验证。类型检查减少内部对数据的恐惧，数据校验建立对外来数据的信任。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;interface User{
+  id: number
+  name: string
+  email?: string
+}
+
+fetchUser(id).then((user: User) =&amp;gt;{
+  const validationErrors = validate(user)
+  if (validationErrors) {
+    throw new Error(&#39;wat I trusted you&#39;)
+  }
+ // got my User!
+})
+
+// Later
+render(user.name) //He has a name
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;为了避免同时写两套类型定义给数据验证和类型检查，你可以使用 Typescript 和 Flow 或者使用类似 &lt;a href=&#34;https://github.com/pelotom/runtypes&#34; title=&#34;runtypes&#34;&gt;runtypes&lt;/a&gt;(TS), &lt;a href=&#34;https://github.com/seanhess/runtime-types&#34; title=&#34;runtime-types&#34;&gt;runtime-types&lt;/a&gt;(Flow) 或者 &lt;a href=&#34;https://github.com/YousefED/typescript-json-schema&#34; title=&#34;typescript-json-schema&#34;&gt;typescript-json-schema&lt;/a&gt;(TS) 这样的库。经过这几步之后，你可能开始信任你的数据了。但是这里还有更深的问题，等一会会说。&lt;/p&gt;
+
+&lt;h1 id=&#34;fear-and-changing-data&#34;&gt;Fear and changing data&lt;/h1&gt;
+
+&lt;p&gt;那么当改变数据的时候呢？默认情况下，javascript 里面的数据可以随意改变。举个例子，这个函数接收一个文档，然后改变了一个字段的格式，增加了一个字段。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;function formatDocument(doc, source) {
+  if(doc.creationDate) {
+    doc.creationDate = convertTimeToUtc(doc.creationDate)
+  } else {
+    doc.creationDate = null
+  }
+  doc.source = source
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;但是在这种风格下，数据流就很难掌控了，恐惧会开始出现。如果我们的数据在很多地方都用了呢？数据在我这里是什么值？如何才能相信数据在此时此刻是我期望的？这个例子比较无聊，但是问题在大量代码或者同步系统里面会变得更严重。&lt;/p&gt;
+
+&lt;p&gt;你想要依赖类型检查，但是这些类型定义也救不了你。在 typescript 和 flow 里面，下面的函数有相同的类型定义。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;function formatDocument(doc: Document, source: String) {
+  if(doc.creationDate) {
+    doc.creationDate = convertTimeToUtc(doc.creationDate)
+  } else {
+    doc.creationDate = null
+  }
+  doc.source = source
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;function formatDocument(doc: Document, source: String) {
+  if(doc.creationDate) {
+    doc.creationDate = convertTimeToUtc(doc.creationDate)
+  } else {
+    doc.creationDate = null
+  }
+  doc.source = source
+  child_process.exec(&amp;quot;sudo rm -rf /&amp;quot;)
+  launchRocket()
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;其中一个是你想要的，另一个会把城市炸飞。类型检查对这些无能为力。&lt;/p&gt;
+
+&lt;h2 id=&#34;convention-pretend-immutability&#34;&gt;Convention: Pretend immutability&lt;/h2&gt;
+
+&lt;p&gt;为了写更好的代码，你们团队决定使用只读风格来写代码。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;function formatDocument(doc: Document, source: String) {
+  return {
+    creationDate: sanitizeDate(doc.creationDate),
+    source: source,
+    text: doc.text
+  }
+  // Not mutating data
+  // Not deleting root dir
+  // Not launching rocket
+}
+
+function sanitizeDate(date) {
+  return date ? convertTimeToUtc(date) : null
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;你赞同使用 const 而不是 var，使用复制修改而不是直接修改。使用赋值来表示修改。开始使用三目运算符(ternary operator) 来代替 if 语句。函数返回新的值而不是修改。使用 map，filter，reduce 以及其它函数式的方法产生新的数据，而不是直接修改。&lt;/p&gt;
+
+&lt;p&gt;不可改变的数据约定在 javascript 世界里面会带来便利，在 javascript 生态里面工作的挺好。但是这个严重依赖于开发人员的自律和互相信任。你相信开发人员会按照协议例如避免直接修改数据或者在数据发生改变的时候明确的指出来。你可能需要更健壮一点的东西。&lt;/p&gt;
+
+&lt;h2 id=&#34;libraries-pretend-really-hard&#34;&gt;Libraries: Pretend really hard&lt;/h2&gt;
+
+&lt;p&gt;你可以通过使用数据转换和只读数据结构的辅助工具来把对开发人员的信任转移到工具上。可选的有例如 &lt;a href=&#34;http://ramdajs.com/&#34; title=&#34;Ramda&#34;&gt;Ramda&lt;/a&gt;，&lt;a href=&#34;https://github.com/calmm-js/partial.lenses&#34; title=&#34;partial.lenses&#34;&gt;partial.lenses&lt;/a&gt;，&lt;a href=&#34;https://github.com/gcanti/monocle-ts&#34; title=&#34;monocle-ts&#34;&gt;monocle-ts&lt;/a&gt; 以及其它的。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;import * as R from &#39;ramda&#39;
+function formatDocument(doc, source) {
+  const creationDate = sanitizeDate(creationDate)
+  // Return a new copy of the data
+  return R.merge(doc, {creationDate, source})
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这些工具的一个基本原则是把这些数据当作不可变的。但是 &lt;a href=&#34;http://ramdajs.com/0.14/docs/#assoc&#34; title=&#34;Ramda 也只是浅拷贝&#34;&gt;Ramda 也只是浅拷贝&lt;/a&gt;，不过如果对于不可变数据的约定足够，那大家还是可以假装它是。你可能会得到一点性能影响，但是你会得到对代码的信任。如果我们普遍使用这类工具以及这样的约定，会让这个工作的很好。&lt;/p&gt;
+
+&lt;p&gt;强制使用只读数据结构又想避免性能影响，可以试试看 &lt;a href=&#34;https://github.com/facebook/immutable-js&#34; title=&#34;Immutable.js&#34;&gt;Immutable.js&lt;/a&gt;， &lt;a href=&#34;https://github.com/rtfeldman/seamless-immutable&#34; title=&#34;seamless-immutable&#34;&gt;seamless-immutable&lt;/a&gt; 或者 &lt;a href=&#34;http://swannodette.github.io/mori/&#34; title=&#34;Mori&#34;&gt;Mori&lt;/a&gt;。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;import * as I from &#39;Immutablejs&#39;
+function formatDocument(doc, source) {
+  const creationDate = sanitizeDate(creationDate)
+  // Cant&#39;t mutate doc
+  return doc.merge({creationDate, source})
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这么做使得数据本身是不可变的，只能通过暴露出来的只读途径去使用数据。但是只会应用到这些数据内部的数据结构。大量的其它 javascript 代码依赖于 javascript 的原生数据结构，你得在这些数据类型间来回转换，对于原生的数据类型不再信任了。&lt;/p&gt;
+
+&lt;p&gt;这些方法都有自己的局限性，但是大部分都和类型检查冲突。&lt;/p&gt;
+
+&lt;h1 id=&#34;trusting-javascript&#34;&gt;Trusting JavaScript&lt;/h1&gt;
+
+&lt;p&gt;前面的例子引入了一些可以写出更高效的 javascript 代码的工具：类型检查，函数式转换，不可变数据结构。但是这些工具都有自己的局限性，很难一起配合。&lt;/p&gt;
+
+&lt;h2 id=&#34;optional-types-give-a-false-sense-of-security&#34;&gt;Optional types give a false sense of security&lt;/h2&gt;
+
+&lt;p&gt;对于 javascript 来说，类型检查设计之初就是可选的，并不是所有东西都被定义了类型，你也没法相信所有东西都有类型。Flow 不可靠，而 &lt;a href=&#34;https://www.typescriptlang.org/docs/handbook/type-compatibility.html&#34; title=&#34;typescript 故意不可靠&#34;&gt;typescript 故意不可靠&lt;/a&gt;，这意味着有些情况下类型是错误的但是编译器会忽略。&lt;/p&gt;
+
+&lt;p&gt;并且 javascript 的类型检查有时候会撒谎。javascript 有些东西很难或者说不可能通过 typescript 或者 flow 定义类型。&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;Higher order functions&lt;/li&gt;
+&lt;li&gt;Ramda 的 &lt;a href=&#34;http://ramdajs.com/0.14/docs/#call&#34; title=&#34;call&#34;&gt;call&lt;/a&gt;, &lt;a href=&#34;http://ramdajs.com/0.14/docs/#compose&#34; title=&#34;compose&#34;&gt;compose&lt;/a&gt;, &lt;a href=&#34;http://ramdajs.com/0.14/docs/#chain&#34; title=&#34;chain&#34;&gt;chain&lt;/a&gt;, &lt;a href=&#34;http://ramdajs.com/0.14/docs/#lift&#34; title=&#34;lift&#34;&gt;lift&lt;/a&gt;, and &lt;a href=&#34;http://ramdajs.com/0.14/docs/#lens&#34; title=&#34;lenses&#34;&gt;lenses&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;partial.lenses 的 &lt;a href=&#34;https://github.com/calmm-js/partial.lenses/issues/55&#34; title=&#34;functions&#34;&gt;functions&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Dynamic functions&lt;/li&gt;
+&lt;li&gt;Ramda 的 &lt;a href=&#34;http://ramdajs.com/0.14/docs/#invert&#34; title=&#34;invert&#34;&gt;invert&lt;/a&gt;, &lt;a href=&#34;http://ramdajs.com/0.14/docs/#dissoc&#34; title=&#34;dissoc&#34;&gt;dissoc&lt;/a&gt;, &lt;a href=&#34;http://ramdajs.com/0.14/docs/#mergeWith&#34; title=&#34;mergeWith&#34;&gt;mergeWith&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Immutable.js 的&lt;a href=&#34;https://github.com/facebook/immutable-js/blob/master/type-definitions/Immutable.d.ts&#34; title=&#34;几乎所有内容&#34;&gt;几乎所有内容&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Monkey-patched anything&lt;/li&gt;
+&lt;li&gt;AWS SDK 客户端 &lt;a href=&#34;https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/using-promises.html#w2ab1c17c15c14c17&#34; title=&#34;promises&#34;&gt;promises&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Bluebird &lt;a href=&#34;http://bluebirdjs.com/docs/api/promisification.html&#34; title=&#34;promisified APIs&#34;&gt;promisified APIs&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;Highly dynamic data structures&lt;/li&gt;
+&lt;li&gt;ElasticSearch &lt;a href=&#34;https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/api-reference.html#api-get&#34; title=&#34;schemas&#34;&gt;schemas&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;winston &lt;a href=&#34;https://github.com/winstonjs/winston#creating-your-own-logger&#34; title=&#34;custom loggers&#34;&gt;custom loggers&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;想要把这些的类型都痛够 typescript 或者 flow 定义出来，得牺牲下面的原则：&lt;/p&gt;
+
+&lt;ul&gt;
+&lt;li&gt;牺牲类型安全，也就使用类型检查的主要原因：使用 any 来定义他们，不对他们进行类型检查。&lt;/li&gt;
+&lt;li&gt;牺牲便利性：让这些方法不那么通用，以便可以定义更加准确的类型。&lt;/li&gt;
+&lt;li&gt;牺牲其它开发人员的时间：让使用这些函数的人提供正确的类型，例如 &lt;code&gt;Ramda.pipe&amp;lt;User, Array&amp;lt;string&amp;gt;, string, int&amp;gt;(..)&lt;/code&gt; 。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这样你开始混合使用这些工具，把他们的类型定义混合进来。这样把信任从工具的开发人员转移到了开发人员的类型定义上。这些库部分会包含 any 类型，调用这些方法会悄悄的失去对类型的检查。使用 Flow 的时候，如果一个文件没有 &lt;code&gt;@flow&lt;/code&gt; 注解，会默默的关闭类型检查。&lt;/p&gt;
+
+&lt;p&gt;你可以通过广泛的使用类型检查来避免这个问题，不允许使用 any 类型，设置检查工具对没有做类型检查的文件报错，以及其它的一些严格的设置。&lt;/p&gt;
+
+&lt;p&gt;但是这很像是在堵住一艘正在漏水的船的洞一样。问题不仅在于你不相信系统里面的类型，而是你认为可以。你依赖类型检查来告诉你修改有问题，但是因为有时候会使用 any 类型，或者使用某个库，或者某些问题导致类型检查被禁用，而并不会告诉你。JavaScript 里面的类型和其它语言里面的类型不一样：他们不能以相同的方式被信任。&lt;/p&gt;
+
+&lt;p&gt;最终，类型检查的有效性依赖于使用的团队的知识和信念。如果团队有比较高的信念和知识，他们就可以给更高的信任到类型检查上。但这取决于团队维持这个信任的的注意力和纪律性，恐惧会从许多微妙的途径蔓延开。&lt;/p&gt;
+
+&lt;h2 id=&#34;functional-programming-types-javascript-pick-two&#34;&gt;Functional programming. Types. JavaScript. Pick two&lt;/h2&gt;
+
+&lt;p&gt;类型检查和基础的函数式编程方法例如 maps，filters，reducers 等可以在 javascript 里面用的还可以。但是当你想要更深入一点的时候就会遇到问题。两个例子：&lt;/p&gt;
+
+&lt;p&gt;&lt;a href=&#34;https://github.com/facebook/immutable-js&#34; title=&#34;Immutable.js&#34;&gt;Immutable.js&lt;/a&gt; 是一个给 javascript 用的持久的，只读数据结构类型。提供了常用的 javascript 数据结构，不依赖于就地修改数据。包括了内置的用于 &lt;a href=&#34;https://github.com/facebook/immutable-js/blob/master/type-definitions/Immutable.d.ts&#34; title=&#34;typescript&#34;&gt;typescript&lt;/a&gt; 和 &lt;a href=&#34;https://github.com/facebook/immutable-js/blob/master/type-definitions/immutable.js.flow&#34; title=&#34;flow&#34;&gt;flow&lt;/a&gt; 的类型定义（可以点过去看看）。里面有数不清的 any 类型，禁用了对这些值的类型检查。这样依赖用户通过其它类型检查提供正确的类型的数据。基本上，你每次用这个库时，要么选择不使用类型检查，要不就需要额外的工作保证类型是正确的。这阻碍了函数式编程的使用。&lt;/p&gt;
+
+&lt;p&gt;Ramda 是另一个给 jvascript 使用的函数式编程工具。一些类型定义可以在&lt;a href=&#34;https://github.com/types/npm-ramda#status&#34; title=&#34;这里&#34;&gt;这里&lt;/a&gt;找到，以及这个评论：&lt;/p&gt;
+
+&lt;p&gt;“注意：很多 Ramda 里面的函数还不是很好定义类型，问题主要集中在偏函数应用(Partial Application)，柯里化(curring) 和 代码组合(composition) 上，尤其在表达通用类型上。是的，这些可能是你最初使用 Ramda 的原因，这些问题导致 Ramda 很难给 typescript 写类型定义。一些关于 TS 的链接在下面可以找到”&lt;/p&gt;
+
+&lt;p&gt;尽管有像 &lt;a href=&#34;https://github.com/gcanti&#34; title=&#34;Giulio Canti&#34;&gt;Giulio Canti&lt;/a&gt; 这样令人印象深刻的工作，每次你选择高级一点的函数式编程概念的时候，例如不可变数据结构，函数组合，科里化，你基本上需要选择抛弃类型检查或者更多的代码来保证类型检查工作正常。这回阻碍函数式编程。&lt;/p&gt;
+
+&lt;h2 id=&#34;why-we-can-t-have-nice-things-in-javascript&#34;&gt;Why we can’t have nice things in JavaScript&lt;/h2&gt;
+
+&lt;p&gt;不可变数据结构在广泛被使用的时候工作的会挺好。但是 javascript 生态设计是基于可变数据结构的，&lt;a href=&#34;http://tagide.com/blog/research/constraints&#34; title=&#34;你不可能通过一个工具库来强制不可变&#34;&gt;你不可能通过一个工具库来强制不可变&lt;/a&gt;，javascript 的类型检查也不足以处理作为库工具使用的不可变数据结构。&lt;/p&gt;
+
+&lt;p&gt;类型检查在被广泛使用的时候工作的挺好。但是 javascript 里面的类型检查在设计时就是可选的，为了兼容 javascript 做的一些妥协。&lt;/p&gt;
+
+&lt;p&gt;类型检查，不可变数据结构，以及函数式编程都互相支持，就像他们在其它语言里面一样。类型检查可以用来加强不可变数据，即使内部的数据结构是可变的或者类型在运行时不存在。类型检查可以帮助开发人员可以在使用函数组合或者使用 lenses 转换数据的时候能更好对接。能知道支持类型的时候函数转换会更加简单一点。知道数据是不可变的时候，函数转换会更加有效。&lt;/p&gt;
+
+&lt;h1 id=&#34;learning-to-code-with-fear&#34;&gt;Learning to code with fear&lt;/h1&gt;
+
+&lt;p&gt;怎么伴随着恐惧编程？写更好的 javascript。一开始就假设对代码不信任，学习更多的技巧来编写功能化的 javascript 来避免琐碎的部分。有必要的话引入类型检查。使用不可变数据，不过只在有需要的时候或者想要强制约定的时候使用。只在有意义的时候使用类型检查，在功能性数据处理或者不可变类型可以提供更多好处的时候抛弃他们。当不使用类型检查的时候，多使用组合函数或者 lenses(透镜？) 。&lt;/p&gt;
+
+&lt;p&gt;或者改变游戏使用 &lt;a href=&#34;http://www.purescript.org/&#34; title=&#34;Purescript&#34;&gt;Purescript&lt;/a&gt;。或者 &lt;a href=&#34;https://bucklescript.github.io/&#34; title=&#34;ReasonML&#34;&gt;ReasonML&lt;/a&gt;, &lt;a href=&#34;http://elm-lang.org/&#34; title=&#34;Elm&#34;&gt;Elm&lt;/a&gt;, 甚至 &lt;a href=&#34;https://clojurescript.org/&#34; title=&#34;ClojureScript&#34;&gt;ClojureScript&lt;/a&gt;。这些现在就可用。如果有需要，这些可以在 javascript 生态系统使用。这些从代码层面提供更高的信任，提供可以互相配合且工作的很好的不可变数据结构，函数式编程，以及类型系统。&lt;/p&gt;
+
+&lt;p&gt;使用其中的任何一个语言都不能解决你的所有问题。这会引入他们自己的一下问题。但是可能会给你更高层面的对代码的信任，以及增加或者减少信任更好的工具。&lt;a href=&#34;https://www.reaktor.com/blog/fear-trust-and-purescript&#34; title=&#34;我的下一篇文章，会探讨下如何在 purescript 里面把这些思想结合起来。&#34;&gt;我的下一篇文章，会探讨下如何在 purescript 里面把这些思想结合起来。&lt;/a&gt;（这个是这个哥们的另一篇文章，标题叫 Fear, trust and PureScript: Building on trust with types and functional programming，力挺 PureScript）。&lt;/p&gt;
+
+&lt;p&gt;但是在 javascript 里面，恐惧永远都伴随着你。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Typescript and Jest</title>
+      <link>https://wdicc.com/typescript-and-jest/</link>
+      <pubDate>Thu, 01 Nov 2018 11:59:29 +0800</pubDate>
+      
+      <guid>https://wdicc.com/typescript-and-jest/</guid>
+      <description>&lt;p&gt;最近在折腾 typescript，把很多项目改成了 ts 的。有一个老项目，改的过程中感觉各种不踏实，打算还是先写点测试用例，就折腾了一下 jest。各种坑。。。&lt;/p&gt;
+
+&lt;p&gt;首先需要加一个 &lt;code&gt;tsconfig.json&lt;/code&gt;&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;{
+  &amp;quot;compilerOptions&amp;quot;: {
+    &amp;quot;target&amp;quot;: &amp;quot;es2015&amp;quot;,
+    &amp;quot;module&amp;quot;: &amp;quot;es2015&amp;quot;,
+    &amp;quot;lib&amp;quot;: [
+      &amp;quot;es2015&amp;quot;
+    ],
+    &amp;quot;outDir&amp;quot;: &amp;quot;./lib&amp;quot;,
+    &amp;quot;declaration&amp;quot;: true,
+
+    &amp;quot;noEmit&amp;quot;: true,
+    &amp;quot;moduleResolution&amp;quot;: &amp;quot;node&amp;quot;,
+    &amp;quot;esModuleInterop&amp;quot;: true,
+    &amp;quot;allowSyntheticDefaultImports&amp;quot;: true,
+
+    /* Strict Type-checking */
+    &amp;quot;strict&amp;quot;: true,
+    &amp;quot;strictNullChecks&amp;quot;: true,
+    &amp;quot;noImplicitAny&amp;quot;: true,
+    &amp;quot;noImplicitThis&amp;quot;: true,
+    &amp;quot;alwaysStrict&amp;quot;: true,
+
+    /* Additional Checks */
+    &amp;quot;noUnusedLocals&amp;quot;: true,                /* Report errors on unused locals. */
+    &amp;quot;noUnusedParameters&amp;quot;: true,            /* Report errors on unused parameters. */
+    &amp;quot;noImplicitReturns&amp;quot;: true,             /* Report error when not all code paths in function return a value. */
+    &amp;quot;noFallthroughCasesInSwitch&amp;quot;: true,    /* Report errors for fallthrough cases in switch statement. */
+  },
+  &amp;quot;include&amp;quot;: [
+     &amp;quot;*.ts&amp;quot;
+  ],
+  &amp;quot;exclude&amp;quot;: [
+    &amp;quot;node_modules&amp;quot;,
+    &amp;quot;__tests__&amp;quot;
+  ]
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;然后安装一个 &lt;code&gt;typescript&lt;/code&gt; 就可以通过 &lt;code&gt;yarn tsc&lt;/code&gt; 命令编译了，生成的 js 在 &lt;code&gt;lib&lt;/code&gt; 下面。&lt;/p&gt;
+
+&lt;p&gt;测试如果是用 js 写，那么直接装 &lt;code&gt;jest&lt;/code&gt; 就可以了。但是我们既然项目都改成 ts 了，那么还是希望用 ts 写。那就需要用到 &lt;code&gt;ts-jest&lt;/code&gt; 。这货的配置可以写到 &lt;code&gt;package.json&lt;/code&gt; 里面。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;{
+ &amp;quot;name&amp;quot;: &#39;test-projct&#39;,
+ &amp;quot;version&amp;quot;: &amp;quot;0.0.1&amp;quot;,
+ ........
+ &amp;quot;jest&amp;quot;: {
+    &amp;quot;preset&amp;quot;: &amp;quot;ts-jest&amp;quot;,
+    &amp;quot;testEnvironment&amp;quot;: &amp;quot;node&amp;quot;,
+    &amp;quot;testMatch&amp;quot;: [ &amp;quot;**/__tests__/*-test.ts&amp;quot; ],
+    &amp;quot;globals&amp;quot;: {
+      &amp;quot;ts-jest&amp;quot;: {
+        &amp;quot;babelConfig&amp;quot;: true,
+        &amp;quot;isolatedModules&amp;quot;: true
+      }
+    }
+  }
+}
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;&lt;code&gt;isolatedModules&lt;/code&gt; 表示说测试的时候先不做 type 检查。我这情况是，要改那些文件比较大一时都弄不好，可能 type 只改了部分，但是这个时候改到某个方法的时候，需要先加测试，以免改前改后不一致，所以这个时候只能忽略掉 type 检查了。&lt;/p&gt;
+
+&lt;p&gt;这样配置之后，就可以用 ts 写 test 了。test 文件放到 &lt;code&gt;__tests__&lt;/code&gt; 目录里面，用 &lt;code&gt;*-test.ts&lt;/code&gt; 命名。这样这目录也可以放一些非测试用文件了，比如测试用例用到的一些 mock 文件之类。&lt;/p&gt;
+
+&lt;p&gt;这样看着一切美好。直到我遇到了一个问题，我的那些需要测试的方法，有些是私有的，又不想因为这个改成 public 的，那么是不是有办法可以测试？这样就找到了 &lt;code&gt;rewire&lt;/code&gt; ，这个可以把你的模块的内容随意替换组合，方便你做 mock。我要做的也覆盖了。这样完美了。&lt;/p&gt;
+
+&lt;p&gt;但是发现，rewire 不支持 typescript。在 ts 文件里面 rewire 一个模块之后，并没有多出来那些 &lt;code&gt;__get__&lt;/code&gt; 和 &lt;code&gt;__set__&lt;/code&gt; 方法。没仔细去研究代码，找到了 &lt;code&gt;babel-plugin-rewire&lt;/code&gt; ，给 &lt;code&gt;package.json&lt;/code&gt; 增加配置如下。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;  &amp;quot;babel&amp;quot;: {
+    &amp;quot;presets&amp;quot;: [
+      &amp;quot;env&amp;quot;
+    ],
+    &amp;quot;env&amp;quot;: {
+      &amp;quot;test&amp;quot;: {
+        &amp;quot;plugins&amp;quot;: [
+          &amp;quot;babel-plugin-rewire&amp;quot;
+        ]
+      }
+    }
+  }
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;发现还是不行，并没有什么效果。查了之后发现，是因为 ts-test 根本不会去调用 babel 的缘故，所以上面的那个 &lt;code&gt;babelConfig&lt;/code&gt; 就是这个用途，让 ts-test 去使用 babel。&lt;/p&gt;
+
+&lt;p&gt;目前还有一个问题是怎么让这个 package 在别人安装使用的时候自动编译为 js，这样让 js 用户也可以用。尝试过在 &lt;code&gt;package.json&lt;/code&gt; 里面增加 build 发现不行。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt; &amp;quot;scripts&amp;quot;: {
+    &amp;quot;build&amp;quot;: &amp;quot;tsc&amp;quot;,
+    &amp;quot;postinstall&amp;quot;: &amp;quot;[ -f ../../node_modules/.bin/tsc ] &amp;amp;&amp;amp; ../../node_modules/.bin/tsc || echo &#39;no typescript found, skip build&#39;&amp;quot;,
+    &amp;quot;test&amp;quot;: &amp;quot;jest&amp;quot;
+  },
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;安装这个模块之后在 &lt;code&gt;./node_modules/test-module/&lt;/code&gt; 下面执行 &lt;code&gt;tsc&lt;/code&gt; 并不会产出 &lt;code&gt;lib&lt;/code&gt; 目录的编译文件。&lt;/p&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Upgrade to React 16.3</title>
+      <link>https://wdicc.com/upgrade-to-react-16.3/</link>
+      <pubDate>Mon, 22 Oct 2018 16:21:30 +0800</pubDate>
+      
+      <guid>https://wdicc.com/upgrade-to-react-16.3/</guid>
+      <description>&lt;p&gt;随着 React native 升级，React 也升级到了 16.5 了。原来的改成新的生命周期了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;class ExampleComponent extends React.Component {
+  static getDerivedStateFromProps(nextProps, prevState) {
+    // Called after a component is instantiated or before it receives new props.
+    // Return an object to update state in response to prop changes.
+    // Return null to indicate no change to state.
+  }
+
+  UNSAFE_componentWillMount() {
+    // New name for componentWillMount()
+    // Indicates that this method can be unsafe for async rendering.
+    // Prefer componentDidMount() instead.
+  }
+
+  UNSAFE_componentWillUpdate(nextProps, nextState) {
+    // New name for componentWillUpdate()
+    // Indicates that this method can be unsafe for async rendering.
+    // Prefer componentDidUpdate() instead.
+  }
+
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    // New name for componentWillReceiveProps()
+    // Indicates that this method can be unsafe for async rendering.
+    // Prefer static getDerivedStateFromProps() instead.
+  }
+}
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;React 在后面的版本里面，这几个方法都会被加上 &lt;code&gt;UNSAFE_&lt;/code&gt; ，直到被移除。&lt;/p&gt;
+
+&lt;p&gt;我们在 &lt;code&gt;componentWillReceiveProps&lt;/code&gt; 里面主要是做了一个事情是根据后端反的数据来更新界面内容。因为我们用了 redux + saga，所以需要在这里做这个事情，如果是通过回调来更新数据的话，就不用这么麻烦了，直接在回调里面设置 state 就可以了。&lt;/p&gt;
+
+&lt;p&gt;因为在 &lt;code&gt;getDerivedStateFromProps&lt;/code&gt; 里面不让接触现在的 &lt;code&gt;this.props&lt;/code&gt; ，所以也不能简单的把原来 &lt;code&gt;componentWillReceiveProps&lt;/code&gt; 的代码直接复制过来用。解决思路下面的链接都提到了很多，我自己总结有那几个。&lt;/p&gt;
+
+&lt;h1 id=&#34;和-prevstate-做比较&#34;&gt;和 prevState 做比较&lt;/h1&gt;
+
+&lt;p&gt;比如想象一个页面有两个按钮，一个点了之后会 setState 为 &lt;code&gt;test1&lt;/code&gt; ，另一个按钮点了之后，会通过网络请求更新 store，然后更新 props 为 &lt;code&gt;test2&lt;/code&gt; ，那这个时候只需要和当前的 state 做比较就可以决定是不是要设置新的 state 了。&lt;/p&gt;
+
+&lt;h1 id=&#34;把-preprops-保存到-state-然后和-prevstate-做比较&#34;&gt;把 preProps 保存到 state 然后和 prevState 做比较&lt;/h1&gt;
+
+&lt;p&gt;这么做基本就和原来使用 &lt;code&gt;componentWillReceiveProps&lt;/code&gt; 基本一样了。没什么好说的了。&lt;/p&gt;
+
+&lt;h1 id=&#34;在-render-里面综合-state-和-props-的值&#34;&gt;在 render 里面综合 state 和 props 的值&lt;/h1&gt;
+
+&lt;p&gt;比如有时候页面显示的是用户录入和 props 的数据综合的，那可以在 render 里面做这个合并的工作。&lt;/p&gt;
+
+&lt;h1 id=&#34;参考链接&#34;&gt;参考链接&lt;/h1&gt;
+
+&lt;ul&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/reactjs/rfcs/blob/master/text/0006-static-lifecycle-methods.md#common-problems&#34; title=&#34;React 关于新的生命周期的 rfc&#34;&gt;React 关于新的生命周期的 rfc&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://reactjs.org/docs/react-component.html#unsafe_componentwillreceiveprops&#34; title=&#34;关于使用场景比较多升级的时候处理比较麻烦的 componentWillReceiveProps 方法&#34;&gt;关于使用场景比较多升级的时候处理比较麻烦的 componentWillReceiveProps 方法&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/reactjs/reactjs.org/issues/721&#34; title=&#34;关于 componentWillReceiveProps 方法和 getDerivedStateFromProps 的讨论&#34;&gt;关于 componentWillReceiveProps 方法和 getDerivedStateFromProps 的讨论&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://zhuanlan.zhihu.com/p/33925435&#34; title=&#34;关于新的生命周期国内人的中文解释&#34;&gt;关于新的生命周期国内人的中文解释&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/fi3ework/blog/issues/37&#34; title=&#34;另一篇国人的解释&#34;&gt;另一篇国人的解释&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html&#34; title=&#34;React 官方关于 getDerivedStateFromProps 使用的一些建议&#34;&gt;React 官方关于 getDerivedStateFromProps 使用的一些建议&lt;/a&gt;&lt;/li&gt;
+&lt;li&gt;&lt;a href=&#34;https://github.com/reactjs/rfcs/pull/40&#34; title=&#34;关于为啥不在 getDerivedStateFromProps 里面加一个 prevProps 的讨论&#34;&gt;关于为啥不在 getDerivedStateFromProps 里面加一个 prevProps 的讨论&lt;/a&gt;&lt;/li&gt;
+&lt;/ul&gt;
+</description>
+    </item>
+    
+    <item>
+      <title>Cleanup Your Disk Space</title>
+      <link>https://wdicc.com/cleanup-your-disk-space/</link>
+      <pubDate>Fri, 12 Oct 2018 12:26:47 +0800</pubDate>
+      
+      <guid>https://wdicc.com/cleanup-your-disk-space/</guid>
+      <description>&lt;p&gt;200 多 G 的空间，说没就没。搞个开发真不容易。&lt;/p&gt;
+
+&lt;p&gt;清理 yarn npm 开发的 cache，这些有需要的会再次下载&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;yarn cache clean
+npm cache clean
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;清理 gradle android 开发的 cache，这些有需要的话 android-studio 会在生成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rm -rf ~/.gradle/
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;清理 xcode ios 开发的东西，这些清理掉了需要用的话 xcode 会再生成&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;rm -rf ~/Library/Developer/
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;清理 brew 安装的软件的旧版本，这个执行之后 python 可能会不正常，执行一下 &lt;code&gt;pyenv rehash&lt;/code&gt; 之类的命令&lt;/p&gt;
+
+&lt;pre&gt;&lt;code&gt;brew cleanup
+&lt;/code&gt;&lt;/pre&gt;
+</description>
+    </item>
     
     <item>
       <title>R.I.P Maomao</title>
@@ -17,7 +857,7 @@
       <pubDate>Fri, 28 Sep 2018 10:33:30 +0800</pubDate>
       
       <guid>https://wdicc.com/r.i.p-maomao/</guid>
-      <description>&lt;p&gt;毛毛应该是 2014 年上半年&lt;a href=&#34;https://wdicc.com/about-mao/&#34; title=&#34;我从一个人家里抱回来的&#34;&gt;我从一个人家里抱回来的&lt;/a&gt;，到现在 14 岁多一点。&lt;a href=&#34;https://wdicc.com/diabetic-cat-maomao/&#34; title=&#34;从 2013.12.29 发现得了糖尿病&#34;&gt;从 2013.12.29 发现得了糖尿病&lt;/a&gt;，到现在是 4 年多一点，等于是大概 10 岁左右的时候得的。&lt;/p&gt;
+      <description>&lt;p&gt;毛毛应该是 2004 年上半年&lt;a href=&#34;https://wdicc.com/about-mao/&#34; title=&#34;我从一个人家里抱回来的&#34;&gt;我从一个人家里抱回来的&lt;/a&gt;，到现在 14 岁多一点。&lt;a href=&#34;https://wdicc.com/diabetic-cat-maomao/&#34; title=&#34;从 2013.12.29 发现得了糖尿病&#34;&gt;从 2013.12.29 发现得了糖尿病&lt;/a&gt;，到现在是 4 年多一点，等于是大概 10 岁左右的时候得的。&lt;/p&gt;
 
 &lt;p&gt;前面 10 年是无忧无虑欢乐的 10 年，猫基本什么都不用管，只有刚开始第一次长假出去玩的时候，拜托过朋友给中间来看看。后面出去玩基本就把两只猫都扔家里了，给他们弄足够的水和吃的，最长出去玩的时间得有 10 天，回来猫只是会比较粘人，其它基本还好。&lt;/p&gt;
 
@@ -1232,890 +2072,6 @@ ipset=/.ytimg.com/setmefree
 &lt;/code&gt;&lt;/pre&gt;
 
 &lt;p&gt;这样，对于列到 dnsmasq 那个里面的 ipset 部分的域名，全部会走代理了。对于其他地址的请求，不会有任何影响。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>GeoHash</title>
-      <link>https://wdicc.com/geohash/</link>
-      <pubDate>Thu, 25 Jan 2018 11:00:57 +0800</pubDate>
-      
-      <guid>https://wdicc.com/geohash/</guid>
-      <description>&lt;p&gt;我们的应用里面，会有需要用户提交一些坐标点，然后还需要判断这些坐标点和其他坐标点是不是重合或者距离在一定范围内（例如 200M）。&lt;/p&gt;
-
-&lt;p&gt;这个需求最简单的做法就是用户提交的时候，循环和所有需要判断的点比较一下就可以了，但是如果数据量比较大的情况下，这个消耗还是很可观的，因为无法提前索引。所以我们就想，是不是有更好的思路呢？&lt;/p&gt;
-
-&lt;p&gt;一个比较简单的思路是，每次坐标点存储的时候都 hash 一下，一定范围内的，都 hash 到同一个值，这样比较的时候只需要做等于判断就可以了，这个可以索引。那么最简单的做法就是参考 &lt;a href=&#34;https://en.wikipedia.org/wiki/Decimal_degrees&#34; title=&#34;https://en.wikipedia.org/wiki/Decimal_degrees&#34;&gt;https://en.wikipedia.org/wiki/Decimal_degrees&lt;/a&gt; 把坐标点的经纬度按照精度 round，例如 &lt;code&gt;123.4567890123&lt;/code&gt; 和 &lt;code&gt;123.4567894562&lt;/code&gt; 都 round 为 &lt;code&gt;123.456789&lt;/code&gt; ，但是这么做无法精确到想要的那个 200M。&lt;/p&gt;
-
-&lt;p&gt;然后依据上面的思路，和四舍五入的思路，我琢磨是不是可以弄一个 x 舍 x+1 入这么个逻辑，把坐标轴分为 x 等份。然后我就可以通过自己定义 x 来做到想要的精度了（通过经纬度来定义实际距离应该本身就是有误差的，这个和把球面坐标系投影到平面坐标系的方法有关系）。&lt;/p&gt;
-
-&lt;p&gt;按照上面 x 舍 x+1 入的逻辑，实际上是把平面分成了 n 个正方形，同一个正方形里面的，可以认为他们是符合条件的。但是，很明显在相邻的区域里面的，也有可能有符合条件的点，比如两个点分别在区域的这边和另一边。这些点怎么找到呢？&lt;/p&gt;
-
-&lt;p&gt;有一个思路是先找到点所在的区域，然后把周围 8 个区域的点也找出来，这个查找是可以索引的，是 O(1) 的，然后再循环的和找出来的点单个做比较算距离，这个过程是 O(n)，但是 n 小了很多。&lt;/p&gt;
-
-&lt;p&gt;上面是我山寨的一个思路，找了一下发现已经有了，就是 geohash，可以看参考链接，里面比较详细了。&lt;/p&gt;
-
-&lt;p&gt;参考链接&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://en.wikipedia.org/wiki/Geohash&#34; title=&#34;Geohash&#34;&gt;Geohash&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://www.cnblogs.com/LBSer/p/3310455.html&#34; title=&#34;http://www.cnblogs.com/LBSer/p/3310455.html&#34;&gt;http://www.cnblogs.com/LBSer/p/3310455.html&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>SafeAreaView in RN</title>
-      <link>https://wdicc.com/safeareaview-in-rn/</link>
-      <pubDate>Thu, 25 Jan 2018 10:36:51 +0800</pubDate>
-      
-      <guid>https://wdicc.com/safeareaview-in-rn/</guid>
-      <description>&lt;p&gt;iPhone X 整出来一个刘海和底部的下巴，app 需要做特殊处理，否则可能会顶部把内容显示到被刘海挡住的那部分里面，下面呢会显示到那个手势控制的里面，导致一些按钮不能点击。&lt;/p&gt;
-
-&lt;p&gt;之前我们用的是 &lt;a href=&#34;https://www.npmjs.com/package/react-native-iphone-x-helper&#34; title=&#34;https://www.npmjs.com/package/react-native-iphone-x-helper&#34;&gt;https://www.npmjs.com/package/react-native-iphone-x-helper&lt;/a&gt; 自己计算的。前几天升级 RN 翻 0.52 的 release Note 发现 RN 0.50 新增了一个叫做 &lt;code&gt;SafeAreaView&lt;/code&gt; 的 view 来解决这个问题。&lt;/p&gt;
-
-&lt;p&gt;用法也很简单，把你的内容包含到这里面就可以了。有下面两个方法。&lt;/p&gt;
-
-&lt;p&gt;不用 SafeAreaView 来处理底部，比如显示的是一个列表什么的，底部不固定的，用户如果有需要点按会往上滚动出底部的手势区域然后点击。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;&amp;lt;SafeAreaView /&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;使用 SafeAreaView 处理底部，比如底部是一排固定按钮，例如微信那样的，这个时候需要把底部区域让出来。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;&amp;lt;SafeAreaView&amp;gt;
-  ....
-&amp;lt;/SafeAreaView&amp;gt;
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;SafeAreaView 本身支持设置背景色，但是不支持顶部和底部设置不同的颜色，思路是可以给 SafeAreaView 下面放两个 view 分别设置他们的颜色。代码我贴到参考链接 2 里面了。&lt;/p&gt;
-
-&lt;p&gt;参考链接：&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/facebook/react-native/commit/ad4b124&#34; title=&#34;https://github.com/facebook/react-native/commit/ad4b124&#34;&gt;https://github.com/facebook/react-native/commit/ad4b124&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d&#34; title=&#34;https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d&#34;&gt;https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Best Practice for React-Native and Redux</title>
-      <link>https://wdicc.com/best-practice-for-react-native-redux/</link>
-      <pubDate>Sun, 26 Nov 2017 09:19:11 +0800</pubDate>
-      
-      <guid>https://wdicc.com/best-practice-for-react-native-redux/</guid>
-      <description>&lt;p&gt;从 6 月到现在，在 RN 上面摸爬滚打了一段时间了，目前总算找到了一个适合我们自我感觉还可以的开发模式。&lt;/p&gt;
-
-&lt;p&gt;一开始，我们使用的是传统的 React 的模式，然后一个 app 页面一个文件，通过 StackNavigator 组合到一起。这么做在我们的第一个 app 里面没觉得有什么问题，每个页面维护自己的数据，页面之间需要数据共享或者通讯的时候（比如从 list 到详情页面的时候，详情里面有一个改变状态的按钮，状态改变之后希望 list 的状态也跟着变化，这样用户返回之后能看到正确的数据）有 2 个方式。&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;通过 DeviceEventEmitter。&lt;/li&gt;
-  需要数据的页面订阅，然后在其他页面 emit event 之后前面的页面就可以收到。这个时候可以只通知改变的数据的字段，前一个页面直接去修改，这样可以避免重新刷新页面。也可以发一个简单的通知让其他页面去自己获取数据。
-&lt;/ul&gt;
-
-&lt;ul&gt;
-&lt;li&gt;通过 navigator 提供的 params 属性。&lt;/li&gt;
-  StatckNavigator 提供了一个 params 属性。就是 &lt;code&gt;this.props.navigation.state.params&lt;/code&gt; ，可以通过 setParams 来改变，或者通过类似 &lt;code&gt;this.props.navigation.navigate(&#39;Login&#39;, {goBackToHome: true})&lt;/code&gt; 的方式给，那个 &lt;code&gt;goBackToHome&lt;/code&gt; 将来就会在 params 里面。
-&lt;/ul&gt;
-
-&lt;p&gt;直到我们开始做第二个 app。&lt;/p&gt;
-
-&lt;p&gt;第二个 app 是一个单页面 app，登录之后就只有一个页面了，有一个大地图，有左侧 sidebar，sidebar 里面的按钮点击还会出其他页面。这个肯定不能按照我们前面的思路来做了，我们按照组件，拆分了不同的文件，然后组合起来。这个时候更加会需要页面之间的通讯，并且这个时候可选项只有第一个了 &lt;code&gt;DeviceEventEmitter&lt;/code&gt; ，因为都没有 navigate 什么事情。&lt;/p&gt;
-
-&lt;p&gt;这个时候就发现一个问题，event 太多了，开始有点混乱了。emit event 之后，慢慢会发现不知道哪里有订阅，不好管理。这个 app 做完之后，就仔细研究了一下 redux。&lt;/p&gt;
-
-&lt;p&gt;其实写第一个 app 的时候就知道 redux，但是很多概念看的云里雾里的，当时在 react 还没有吃透的情况下，根本没有能力把 redux 搞好。所以当时放弃了 redux。&lt;/p&gt;
-
-&lt;p&gt;了解 redux 之后，感觉这个东西是我们的药。统一的 state 管理，这不就不用考虑状态传递了么？所以一门心思开始研究 redux。刚好我们第一个 app 需要全新改版，我们就借机把我们的第一个 app 也重构到了 redux 实现。整体过程还是蛮舒服的，自己也总结了几条我们自己的使用的思路。&lt;/p&gt;
-
-&lt;h3 id=&#34;目录结构安排&#34;&gt;目录结构安排&lt;/h3&gt;
-
-&lt;p&gt;先大概看看我们 app 的目录结构。我们把所有的 js 文件都放到了 app 目录下面。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;app
-ios
-android
-index.js
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;然后 app 目录下面，分了 &lt;code&gt;actions&lt;/code&gt; ， &lt;code&gt;reducers&lt;/code&gt; ， &lt;code&gt;sagas&lt;/code&gt; ， &lt;code&gt;selector&lt;/code&gt; 几个目录。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;actions
-images
-index.js
-reducers
-sagas
-screens
-selectors
-utility
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;ul&gt;
-&lt;li&gt;actions 里面放的是 mapDispatchToProps 这个逻辑对应的东西。&lt;/li&gt;
-&lt;li&gt;reducers 里面放的是 reducers。&lt;/li&gt;
-&lt;li&gt;sagas 里面放的是所有网络请求相关的 actions 的处理逻辑。&lt;/li&gt;
-&lt;li&gt;seelctor 里面放的是 mapStateToProps 这个逻辑对应的东西。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;每个目录里面也都有一个自己的 index.js 把本目录里面的内容组合起来。通过最外面的 index.js 把这几个目录的逻辑组合起来。&lt;/p&gt;
-
-&lt;h3 id=&#34;给页面设计一个基类&#34;&gt;给页面设计一个基类&lt;/h3&gt;
-
-&lt;p&gt;这样会比较方便你去做一些所有页面都需要做的事情。&lt;/p&gt;
-
-&lt;h3 id=&#34;一个-app-一个统一的-store&#34;&gt;一个 app 一个统一的 store&lt;/h3&gt;
-
-&lt;p&gt;我们 app 还不大，所以这么设计也还好，如果页面比较复杂，我看也有组件使用自己的 store 的例子，这个还没有经验。这么做唯一一个问题就是，那个 store 里面的数据一直都在，多少会占用一些内存。不过我是觉得没啥了，其实这点内存占用不算啥。&lt;/p&gt;
-
-&lt;h3 id=&#34;store-设计和页面无关&#34;&gt;store 设计和页面无关&lt;/h3&gt;
-
-&lt;p&gt;Store 参考了一个文章统一设计，和页面无关。比如我们设计了 user, orders, orderDetail 这些 state，数据所有页面共享。否则如果按照页面来划分的话，某些页面之间如果有用到共享数据就要么多复制一份，那有点浪费了，要么就是会有点乱。&lt;/p&gt;
-
-&lt;h3 id=&#34;每个页面都使用自己的-props&#34;&gt;每个页面都使用自己的 props&lt;/h3&gt;
-
-&lt;p&gt;不在页面间交叉使用 props ，这样不会乱。并且因为我们是一个统一的 store，所以其实每次 props 变化，所有页面都会 render。这个我使用下面的一个思路来解决了。&lt;/p&gt;
-
-&lt;h3 id=&#34;shouldcomponentupdate&#34;&gt;shouldComponentUpdate&lt;/h3&gt;
-
-&lt;p&gt;这个就是在页面的基类里面，通过比较判断本页面的 props 是否有变化来解决前面那个 render 问题。&lt;/p&gt;
-
-&lt;h3 id=&#34;使用-reselect&#34;&gt;使用 reselect&lt;/h3&gt;
-
-&lt;p&gt;因为只要 state 发生变化 redux 就会调用 mapStateToProps 来计算 props，这个计算有一些消耗，毕竟一般也就其中一个页面的 props 需要计算。我们用这个 reselect 解决这个问题，一个页面的 props 需要的 state 没变化的时候，reselect 就可以把 cache 的数据直接返回就好了。&lt;/p&gt;
-
-&lt;h3 id=&#34;适当使用页面的-state&#34;&gt;适当使用页面的 state&lt;/h3&gt;
-
-&lt;p&gt;redux 的理念是所有页面的 state 都放到了 store 里面，你不需要做 setState 动作了。但是实际上有些时候适当使用 state 会让你的开发更加方便。比如表单验证，用户输入数据之后点击提交 ，如果通过发送 action 改变 state 然后再通过 selector 返回页面，那就有点太费劲了。而直接通过 setState 设定页面 state，然后在提交表单的时候读出来做验证就简单多了。&lt;/p&gt;
-
-&lt;p&gt;有时候页面的一些 state 是和 props 有关系的，这个时候可以使用 &lt;code&gt;componentWillReceiveProps(nextProps)&lt;/code&gt; 来判定，然后和 state 同步。&lt;/p&gt;
-
-&lt;h3 id=&#34;android-的返回按钮处理&#34;&gt;Android 的返回按钮处理&lt;/h3&gt;
-
-&lt;p&gt;android 有一个实体的返回按钮，StackNavigator 给出的&lt;a href=&#34;https://reactnavigation.org/docs/guides/redux#Handling-the-Hardware-Back-Button-in-Android&#34; title=&#34;方案&#34;&gt;方案&lt;/a&gt;是监听一个 &lt;code&gt;hardwareBackPress&lt;/code&gt; 事件，然后 &lt;code&gt;dispatch(NavigationActions.back())&lt;/code&gt; ，但是有一个问题是，有时候我们返回的时候还需要做一些自己的动作。比如清理 store 的数据，或者判断一下往哪里返什么的，比如用户刚提交了订单之后，给了一个按钮可以看订单详情，这个时候从详情返回就希望直接到首页，不要又返回新建订单的页面。&lt;/p&gt;
-
-&lt;p&gt;我们通过下面的思路做的&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;    onBackPress = () =&amp;gt; {
-        const { dispatch, nav } = this.props;
-
-        if (nav.index === 0) {
-            return false;
-        }
-        const {routes} = nav;
-        const {params} = routes[routes.length-1]
-
-        if(params &amp;amp;&amp;amp; params.goBack) {
-            params.goBack();
-        } else {
-            dispatch(NavigationActions.back());
-        }
-        return true;
-    };
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;然后在页面的基类里面&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;    constructor(props) {
-        super(props);
-        if (this.goBack)
-            this.props.navigation.setParams({ goBack: ()=&amp;gt;this.goBack() })
-    }
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;然后页面里面如果有自己的特殊逻辑，那就实现一个 &lt;code&gt;goBack&lt;/code&gt; 方法就好了。&lt;/p&gt;
-
-&lt;h3 id=&#34;表单的弹出页面-不一定需要使用-store&#34;&gt;表单的弹出页面，不一定需要使用 store&lt;/h3&gt;
-
-&lt;p&gt;比如一个下单页面，需要填联系人信息，这个时候我们一般会到一个联系人的页面来选择联系人。这个时候在这个页面选择的联系人，如何传递给上一个页面呢？有两个类型的方法。&lt;/p&gt;
-
-&lt;p&gt;第一个方法自然就是 redux 的方法，在选择页面点确定的时候，触发 action 通过 reducer 设置这个页面的 store，然后通过 selector 修改上一个页面的 props，这样就达到了传递的目的。&lt;/p&gt;
-
-&lt;p&gt;第二个方法是在新页面打开的时候，通过 navigater 传一个 callback 过去，那边选择好的时候，调用这个回调方法把数据传回来。&lt;/p&gt;
-
-&lt;p&gt;第一个方法贴合 redux 的做法，但是存在一个问题，如果这个新的选择页面在多个地方出现，那么就需要有一个区分，当前这个选择是给哪个地方服务的(因为必须得在 redux 的 store 里面做好区分，否则两个页面总是相同的状态)。另外还有一个数据清理的问题，否则下次在别的页面打开这个页面，会有上次的数据残留。&lt;/p&gt;
-
-&lt;p&gt;第二个方法土一点，但是没有上面的问题。不过要注意的是，如果新的页面有网络请求，那这个时候还需要和 saga thunk 这些关联，那么就总是会走到 redux 的 store，所以这个方法就不适用了。&lt;/p&gt;
-
-&lt;h3 id=&#34;参考文章&#34;&gt;参考文章&lt;/h3&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://wdicc.com/11-mistakes-during-use-react-native/&#34; title=&#34;11-mistakes-during-use-react-native&#34;&gt;11-mistakes-during-use-react-native&lt;/a&gt;&lt;/li&gt;
-&lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Podcasts 推荐</title>
-      <link>https://wdicc.com/podcasts/</link>
-      <pubDate>Sat, 25 Nov 2017 11:38:37 +0800</pubDate>
-      
-      <guid>https://wdicc.com/podcasts/</guid>
-      <description>
-
-&lt;p&gt;也不知道从什么时候开始听播客的，现在几乎是 podcast 的重度用户。听播客比看东西省力，以前是上下班的时候想休息一下眼睛就听播客，现在每天开车上下班没法看东西，所以听的更多了。推荐一些我自己听的，下面排序是随机的，和推荐度无关。&lt;/p&gt;
-
-&lt;h2 id=&#34;中文播客&#34;&gt;中文播客&lt;/h2&gt;
-
-&lt;h3 id=&#34;迟早更新&#34;&gt;迟早更新&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://www.weareones.com/2&#34;&gt;http://www.weareones.com/2&lt;/a&gt; 这个是个夫妻档，主播任宁刚 30 岁，但是知识面还是挺广的，播客里面的内容很广，但是多与科技有些关系。主播枪枪和他是夫妻，挺有意思的。更新比较快，基本每周都有。&lt;/p&gt;
-
-&lt;h3 id=&#34;teahour&#34;&gt;Teahour&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://teahour.fm/&#34;&gt;http://teahour.fm/&lt;/a&gt; 这个播客经常会请一些比较厉害的开发者和创始人来做访谈，谈的内容也基本是在科技圈。不过最近更新比较慢，前几天刚更新了一期，距上一期已经是 1 年左右了。但是听一听历史的 ep 有些也不过时。&lt;/p&gt;
-
-&lt;h3 id=&#34;代码时间&#34;&gt;代码时间&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://codetimecn.com/&#34;&gt;http://codetimecn.com/&lt;/a&gt; 这个播客也是请人来做访谈，不过聊的感觉有时候有点尴尬，也不知道为啥有这个感觉。也是很久更新一期，历史的也可以听听。&lt;/p&gt;
-
-&lt;h3 id=&#34;checked&#34;&gt;checked&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://checked.fm/&#34;&gt;http://checked.fm/&lt;/a&gt; 这个播客有三个主播，2 个少数派的雇员，还有个妹子。都是年轻人，都挺有意思的。会讨论各种科技话题，科技热点事件，APP 使用经验等，更新也比较及时。&lt;/p&gt;
-
-&lt;h3 id=&#34;机核网&#34;&gt;机核网&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://www.g-cores.com/categories/9&#34;&gt;https://www.g-cores.com/categories/9&lt;/a&gt; 一个游戏播客。机核网本身是个游戏咨询站。播客内容就是各种游戏相关的东西。我之前听过《血缘》和《黑魂》相关的。不过因为我游戏玩的其实没那么多，所以他们谈的很多游戏没玩过，后来也就不听了。&lt;/p&gt;
-
-&lt;h3 id=&#34;比特新声&#34;&gt;比特新声&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://banlan.show/bitvoice&#34;&gt;https://banlan.show/bitvoice&lt;/a&gt; 主播海龙是出国培训老师，主播有才是一个 soho 的程序员。一个文科一个理科，思想的一些碰撞还挺有意思的。谈论的话题基本是科技圈的居多，但是内容也比较广泛。&lt;/p&gt;
-
-&lt;h3 id=&#34;ux-coffee-设计咖&#34;&gt;UX Coffee 设计咖&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://uxcoffee.co/&#34;&gt;http://uxcoffee.co/&lt;/a&gt; 主要和谈论一些设计和用户体验相关的内容。主播应该在国外，会请一些在国外的华语开发者来访谈。&lt;/p&gt;
-
-&lt;h3 id=&#34;i-o-调频&#34;&gt;「I/O」调频&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://dailyio.net/&#34;&gt;http://dailyio.net/&lt;/a&gt; 更新不多，貌似是一个人的独白，感觉听的不多，所以我也不记得大致内容了。&lt;/p&gt;
-
-&lt;h3 id=&#34;内核恐慌&#34;&gt;内核恐慌&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://kernelpanic.fm/&#34;&gt;https://kernelpanic.fm/&lt;/a&gt; 科技播客，内容还挺好的，可惜目前更新很少。最近几期《字谈字串》都是 4 个人串台。Rio 和吴涛其实还参加了近期的《迟早更新》，但是他们居然不更新自己的播客，发指。&lt;/p&gt;
-
-&lt;h3 id=&#34;it-公论&#34;&gt;IT 公论&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://itgonglun.com/&#34;&gt;https://itgonglun.com/&lt;/a&gt; 李如一和 Rio 主持。李如一好像挺有名的，不过我不是很熟悉。也是科技相关的播客。&lt;/p&gt;
-
-&lt;h3 id=&#34;两个-it-大叔&#34;&gt;两个 iT 大叔&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://podcast.lengqidong.com/podcast.xml&#34;&gt;http://podcast.lengqidong.com/podcast.xml&lt;/a&gt; 没有找到他们的网站，只有一个 rss 地址了。这个是两个男主播，聊的内容大都和科技相关。&lt;/p&gt;
-
-&lt;h3 id=&#34;etw&#34;&gt;ETW&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://www.etw.fm/&#34;&gt;http://www.etw.fm/&lt;/a&gt; 这个是两个驻美记者做的播客，两个妹子。聊各种热点话题，还是挺有意思的。&lt;/p&gt;
-
-&lt;h2 id=&#34;英文播客&#34;&gt;英文播客&lt;/h2&gt;
-
-&lt;p&gt;英文播客我基本只能听英语学习类的，其他的语速和发音会导致有不少听不懂。&lt;/p&gt;
-
-&lt;h3 id=&#34;all-ears-english&#34;&gt;All Ears English&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://www.allearsenglish.com/&#34;&gt;https://www.allearsenglish.com/&lt;/a&gt; 两个美国妹子，语速没有调慢，聊一些日常的用语什么的，感觉还是比较好懂的。&lt;/p&gt;
-
-&lt;h3 id=&#34;潘吉jenny告诉你-学英语聊美国-开言英语&#34;&gt;潘吉Jenny告诉你|学英语聊美国|开言英语&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://openlanguage.com/library/learn-english/9/culture-show&#34;&gt;https://openlanguage.com/library/learn-english/9/culture-show&lt;/a&gt; 这个是一个中国人一个外国人搭配的播客。里面中文说的比较多，会讲解一些常用的词汇用语什么的。&lt;/p&gt;
-
-&lt;h3 id=&#34;culips-english&#34;&gt;Culips English&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://esl.culips.com/&#34;&gt;https://esl.culips.com/&lt;/a&gt; 主播都是外国人，语速应该是调整过感觉比较慢。有词汇讲解，也有普通的聊天。&lt;/p&gt;
-
-&lt;h3 id=&#34;the-english-we-speak&#34;&gt;The English We Speak&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;http://www.bbc.co.uk/programmes/p02pc9zn&#34;&gt;http://www.bbc.co.uk/programmes/p02pc9zn&lt;/a&gt; 主播是英国口音，内容都比较短，每次基本就是一二个词。&lt;/p&gt;
-
-&lt;h3 id=&#34;eslpod&#34;&gt;ESLPod&lt;/h3&gt;
-
-&lt;p&gt;&lt;a href=&#34;https://www.eslpod.com/&#34;&gt;https://www.eslpod.com/&lt;/a&gt; 这个是我很早以前听过的，目前这个没有免费的更新了，必须付费，年费还不低。不过这个是我听过觉得比较好的，会仔细用英文解释对话里面的单词。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>草泥马</title>
-      <link>https://wdicc.com/freedom/</link>
-      <pubDate>Mon, 06 Nov 2017 18:47:41 +0800</pubDate>
-      
-      <guid>https://wdicc.com/freedom/</guid>
-      <description>&lt;p&gt;我搜了一下我的帖子，GFW 这个 tag 最早在我的 「2006/12/01 咱也玩玩lilina」 这个帖子里面就出现了。里面提到 Google 有时候会撞墙，会导致 Google reader 也不能访问。我也忘记这个东西最早是什么时候进入我的生活的，从我的 blog 后面可以看到 09 年开始研究一些相关技术，到现在已经 8 年了。&lt;/p&gt;
-
-&lt;p&gt;很多人说百度更懂中文。我从来没觉得，可能因为我中文搜的不多吧，不过就算是中文也更喜欢看 Google 里面的结果。百度里面巨量的重复内容，都是一个帖子被复制了很多次，浪费很多时间翻页之后你还是会发现没有你想要的结果。用 Google 的时候，如果前面 3 页（更多时候，1-2 页足够）还没有你想要的结果，那么要么是这个结果就是少，要么就是你的关键字不对，根据结果里面的一些信息，适当调整自己的关键字。&lt;/p&gt;
-
-&lt;p&gt;因为本身是搞技术的，技术方面，国外的文章水分更少，并且自己也基本能看懂技术相关的英文内容，所以从来都不用百度。国内的各种论坛（也有一些例外的，比如 v2ex，rubychina 等），大量的顶，回复可见内容的帖子，基本没什么意义。不如直接看英文世界里面的情况来的直接。&lt;/p&gt;
-
-&lt;p&gt;那会有一段时间还流行各种草泥马相关的东西，比如草泥马之歌。大家用这种方式自嘲，讽刺。当时总觉得这种东西不符合普世价值并不能长久，笑笑也就好了。这么一翻，就是 8 年。现在还每况愈下，一些稍微活跃一点的还有喝茶的待遇。&lt;/p&gt;
-
-&lt;p&gt;这个帖子前几天就想写了，一忙忘记了，今天补上。我和图拉鼎同学并没有见过面。唯一的近距离接触，是当时他在北京 Canonical 公司的时候，有次要聚会，我和他在 qtalk 上面聊过，不过可惜我最后没参加（这段记忆也比较模糊了，可能会有记错），没有见面。后面更多的就是在微博看他在回到杭州后享受生活了。&lt;/p&gt;
-
-&lt;p&gt;看看他的生活，就是一个普通宅男，聪明热爱生活，经常游荡在杭州的街巷，发现一些别人没注意到或者忽略的事物。写写代码，咖啡馆坐坐，找一个志同道合的朋友聊聊天，再普通不过了。偏偏就是这样的一个人都容不下，神经一点一点变的异常铭感，没有点神经病估计现在也不好当领导了。&lt;/p&gt;
-
-&lt;p&gt;前两年，还有另外一个朋友开发了一款搭建高性能网站使用的服务器软件（和翻墙无关），本来一直在国外工作，回家探亲被限制出境，具体原因不聊了，后来解决了出去了。目前在国外成立的自己的公司，专门发扬自己的软件，也拿到了绿卡。估计以后也没兴趣回来了。&lt;/p&gt;
-
-&lt;p&gt;目前这个形势下，无法预见我们自己哪天不会遇到问题，即使你自己学会了阉割自己，但你怎么知道他们的铭感点在哪里呢？也可能是「就是喜欢看你虽然不喜欢，但是又不得不一起建设社会主义的样子」呢？&lt;/p&gt;
-
-&lt;p&gt;想起来一个大话西游里面大对白了&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;爱一个人需要理由么？&lt;/li&gt;
-&lt;li&gt;需要吗？&lt;/li&gt;
-&lt;li&gt;不需要吗？&lt;/li&gt;
-&lt;li&gt;需要吗？&lt;/li&gt;
-&lt;li&gt;不需要吗？&lt;/li&gt;
-&lt;li&gt;等你真爱上一个人你就知道了&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;把里面的「爱」替换为「整」（等你真被整的时候就知道了）我感觉还是挺适合的。&lt;/p&gt;
-
-&lt;p&gt;附送 &lt;a href=&#34;https://www.youtube.com/watch?v=01RPek5uAJ4&#34; title=&#34;草泥马之歌&#34;&gt;草泥马之歌&lt;/a&gt; 给有兴趣的。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Why I Am Not at React Native Developer(节译)</title>
-      <link>https://wdicc.com/why-i-am-not-at-react-native-developer/</link>
-      <pubDate>Thu, 02 Nov 2017 14:00:39 +0800</pubDate>
-      
-      <guid>https://wdicc.com/why-i-am-not-at-react-native-developer/</guid>
-      <description>&lt;p&gt;翻译自这里 &lt;a href=&#34;https://arielelkin.github.io/articles/why-im-not-a-react-native-developer.html#javascript&#34; title=&#34;Why I&#39;m not a React Native Developer&#34;&gt;Why I&#39;m not a React Native Developer&lt;/a&gt; 。&lt;/p&gt;
-
-&lt;h2 id=&#34;introduction&#34;&gt;Introduction&lt;/h2&gt;
-
-&lt;p&gt;很多人把 RN 作为下一个移动 app 的开发平台。切换开发平台有可能会有巨大的消耗也可能会改变你日常的工作流程。同时平台也可能会改变你开发使用的软件，需要你掌握一些特殊的工具和工作流，把你绑定到一个新的开发生态里面。&lt;/p&gt;
-
-&lt;p&gt;Facebook 自己想要完全切换到 RN 来代替原来的 Native 开发。RN 开发团队也在努力做这个事情，他们搞了一个软件开发平台来代替传统的 Xcode/Swift/ObjC 开发模式。RN 团队到底对这个是一个怎么的态度，貌似还不太明确。&lt;/p&gt;
-
-&lt;p&gt;我自己搞了几个月开发之后，我感觉这个平台不是我想要的一个，也不推荐其他人往里跳。&lt;/p&gt;
-
-&lt;h2 id=&#34;declarative-style&#34;&gt;Declarative style&lt;/h2&gt;
-
-&lt;p&gt;在 RN 里面，UI 是一堆包含状态(state)的函数(function)和属性(props)。&lt;/p&gt;
-
-&lt;p&gt;下面是个例子，假设我们需要在左上角有一个小正方形，如果用户连接了就显示红色，没连接显示绿色。&lt;/p&gt;
-
-&lt;p&gt;在这种编程类型下，你指定所有更新 UI 需要的步骤。我们需要监听 isConnectd 来更新 view。我们告诉 iOS 如何计算状态。&lt;/p&gt;
-
-&lt;p&gt;比较一下 RN 的模式。&lt;/p&gt;
-
-&lt;p&gt;RN 让你在 render() 方法里面描述你的 UI。React 框架来保证 state 的变化会触发 re-rendering。对于数据的修改，会自动触发 UI 的改变。&lt;/p&gt;
-
-&lt;p&gt;我想这是一种思考 UI 的很好的方式。这也是 MVC 模式的一种进化，View 只需要负责展示，不需要负责管理数据。&lt;/p&gt;
-
-&lt;h2 id=&#34;faster-iterations&#34;&gt;Faster iterations&lt;/h2&gt;
-
-&lt;p&gt;RN 里面开发的时候，框架会在本地启动一个 server。你只需要编译一次，然后在 iOS 模拟器或者真机上面运行，RN 会保证你在 js 里面做的任何修改都会反馈到 app 里面。&lt;/p&gt;
-
-&lt;ul&gt;
-你有两个选择:
-&lt;li&gt;Live Reloading。使用 CMD + R 快捷键。&lt;/li&gt;
-&lt;li&gt;Hot Reload。只更新你编辑的部分。比如你在编辑一个 table view 的一个 cell，你的修改会立刻可以看到，不用每次都从开始界面一步一步找过去。当前页面的状态也会一直保留，这就是所见即所得的编程体验。Xcode 没有这个。&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;这个比之前在 native 里面快太多了，在 native 里面有时候还需要在 ViewController 里面加一些 debug 方法，以便快速的找到需要的界面。&lt;/p&gt;
-
-&lt;h2 id=&#34;cross-platform&#34;&gt;Cross-platform&lt;/h2&gt;
-
-&lt;p&gt;跨平台。&lt;/p&gt;
-
-&lt;h2 id=&#34;uncertain-roadmap&#34;&gt;Uncertain roadmap&lt;/h2&gt;
-
-&lt;p&gt;担心 RN 团队没有对这个项目的长期的保证。&lt;/p&gt;
-
-&lt;p&gt;不像我们使用一些第三方库，如果那个库出点问题我们的项目也不至于出啥大问题。而 RN 是一整个软件开发平台，如果 facebook 停止维护 RN，我们的软件可能就停滞了，目前也没有一个 RN 替代。如果要自己搞，那还需要区了解 RN 的代码，React.js 的代码，RN CLI 工具，和 JavaScriptCore。社区会继续搞么？也许吧，可能不是我们熟悉的速度。&lt;/p&gt;
-
-&lt;p&gt;Github 上面 RN 大概 2 周就会发布一个新版本。&lt;/p&gt;
-
-&lt;h2 id=&#34;patently-daunting&#34;&gt;Patently daunting&lt;/h2&gt;
-
-&lt;h2 id=&#34;patently-silent&#34;&gt;Patently silent&lt;/h2&gt;
-
-&lt;h2 id=&#34;october-2017-update-facebook-relicensing&#34;&gt;October 2017 update: Facebook Relicensing&lt;/h2&gt;
-
-&lt;h2 id=&#34;javascript&#34;&gt;Javascript&lt;/h2&gt;
-
-&lt;ul&gt;
-我们应该从 RN 切换到 Swifh 一个比较重要的原因是「技术倒退」，你应该抛弃 JavsScript，这是一门
-&lt;li&gt;有缺陷的&lt;/li&gt;
-&lt;li&gt;不安全的&lt;/li&gt;
-&lt;li&gt;进化缓慢的语言&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;下面的例子都是基于 ES2016。&lt;/p&gt;
-
-&lt;h3 id=&#34;javascript-s-inadequacy&#34;&gt;Javascript’s inadequacy&lt;/h3&gt;
-
-&lt;p&gt;司机都喜欢开集成了很多安全措施的车。不是因为它们能让你开起来更简单，而是因为它们会降低你遇到事故的几率。&lt;/p&gt;
-
-&lt;p&gt;类似的，一门编程语言也应该提供一些能避免编程错误的安全措施。&lt;/p&gt;
-
-&lt;p&gt;ARC 刚加入 Object-C 的时候，我们可以选择关闭他，但是为啥不推荐呢，因为编译器可以比你更加准确的知道一个对象的生命周期。「编译器比你聪明」。&lt;/p&gt;
-
-&lt;h3 id=&#34;type-errors&#34;&gt;Type errors&lt;/h3&gt;
-
-&lt;p&gt;JavaScript 里面一个变量可以在任何时间编程任意类型。&lt;/p&gt;
-
-&lt;h3 id=&#34;lack-of-optionals&#34;&gt;Lack of optionals&lt;/h3&gt;
-
-&lt;p&gt;Objective-C 里面(以及其他语言里面)大量的错误是调用一个 nil 的对象上面的方法。&lt;/p&gt;
-
-&lt;p&gt;Swift 里面，会强制你做 nil 检查，如果你知道一个对象可能会是 nil。&lt;/p&gt;
-
-&lt;h3 id=&#34;lack-of-function-signature&#34;&gt;Lack of function signature&lt;/h3&gt;
-
-&lt;p&gt;JavaScript 里面函数没有返回类型。&lt;/p&gt;
-
-&lt;h3 id=&#34;immutability&#34;&gt;Immutability&lt;/h3&gt;
-
-&lt;p&gt;JavaScript 里面对不可变数据的支持很弱。&lt;/p&gt;
-
-&lt;h3 id=&#34;you-can-t-trust-arrays&#34;&gt;You can’t trust arrays&lt;/h3&gt;
-
-&lt;h3 id=&#34;poor-error-handling&#34;&gt;Poor error handling&lt;/h3&gt;
-
-&lt;h3 id=&#34;no-support-for-decimals&#34;&gt;No support for decimals&lt;/h3&gt;
-
-&lt;h3 id=&#34;dodgy-maths&#34;&gt;Dodgy maths&lt;/h3&gt;
-
-&lt;h3 id=&#34;unsafe-initialisation&#34;&gt;Unsafe initialisation&lt;/h3&gt;
-
-&lt;h3 id=&#34;optional-curly-braces-after-an-if&#34;&gt;Optional curly braces after an if&lt;/h3&gt;
-
-&lt;h3 id=&#34;ambiguous-curly-braces&#34;&gt;Ambiguous curly braces&lt;/h3&gt;
-
-&lt;h3 id=&#34;switch-fallthrough&#34;&gt;Switch fallthrough&lt;/h3&gt;
-
-&lt;h3 id=&#34;what-s-nothing&#34;&gt;What’s nothing?&lt;/h3&gt;
-
-&lt;h3 id=&#34;poor-expressivity&#34;&gt;Poor expressivity&lt;/h3&gt;
-
-&lt;h3 id=&#34;exceedingly-slow-evolution&#34;&gt;Exceedingly slow evolution&lt;/h3&gt;
-
-&lt;ul&gt;
-ES2016 提供了一些新的功能
-&lt;li&gt;The includes method for arrays.&lt;/li&gt;
-&lt;li&gt;The ** operator&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&#34;flow-to-the-rescue&#34;&gt;Flow to the rescue!&lt;/h3&gt;
-
-&lt;p&gt;Flow 是 Facebook 提出来解决上面那些问题的。这是一个 JavaScript 的静态类型检查工具。&lt;/p&gt;
-
-&lt;p&gt;回忆一下那些例子。&lt;/p&gt;
-
-&lt;h3 id=&#34;flow-s-like-flossing&#34;&gt;Flow’s like flossing&lt;/h3&gt;
-
-&lt;p&gt;Flow 修复了 JavaScript 那些问题了么？没有。&lt;/p&gt;
-
-&lt;p&gt;Flow 开发工程师虽然做了很多努力，但是他依然只是 JavaScript 的一个超集，基于一个很弱的根基。&lt;/p&gt;
-
-&lt;p&gt;github 上面大量的项目都没有使用 Flow。也没有一个 RN 的例子讲到了 flow。&lt;/p&gt;
-
-&lt;h2 id=&#34;the-javascript-ecosystem-balls-and-chains&#34;&gt;The Javascript Ecosystem: balls and chains&lt;/h2&gt;
-
-&lt;p&gt;JavaScript 的缺点让所有人都印象深刻，除了 JavaScript 开发。对于他们来说，上面提到的问题并没有那么糟糕。这是因为 JavaScript 开发并不觉得 js 语言有什么欠缺。&lt;/p&gt;
-
-&lt;p&gt;你说没有 immutability，那我们写一个库支持他，你说没有类型检查，那我们写一个库。&lt;/p&gt;
-
-&lt;p&gt;&#34;自由挖掘&#34;是指选择一门健全的语言。这么挖并没有很好的利用好精力。JS 总是让你开发一些其他语言默认就支持的东西。&lt;/p&gt;
-
-&lt;h3 id=&#34;chains&#34;&gt;Chains&lt;/h3&gt;
-
-&lt;p&gt;有条大鱼需要 JavaScript 来处理。这门语言考虑 billions 选择升级或者不升级他们流量起和网站的网络用户。这使得这门语言的开发不健全。&lt;/p&gt;
-
-&lt;p&gt;还记得 typeof(null) == &#39;object&#39; 么，已经有提案把 null 对象改成 null 了，但是「考虑到这会导致现有的大量网站出问题。」这个提案被否决了。ES6 里面 null 依然是个 object。&lt;/p&gt;
-
-&lt;ul&gt;
-JavaScript 的进化，需要考虑：
-&lt;li&gt;大量的旧版本流量起用户&lt;/li&gt;
-&lt;li&gt;一群不同的浏览器厂商&lt;/li&gt;
-&lt;li&gt;大量的网站和它们的开发&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;h3 id=&#34;wider-angles&#34;&gt;Wider angles&lt;/h3&gt;
-
-&lt;h2 id=&#34;dependencies&#34;&gt;Dependencies&lt;/h2&gt;
-
-&lt;p&gt;RN 项目有 648 项依赖(我刚看了一下是 603)。你的项目基于其他 600 多人的努力。这也就是说，你的项目也依赖于这 600 多自愿者能持续维护他们的项目。&lt;/p&gt;
-
-&lt;h2 id=&#34;better-alternatives&#34;&gt;Better alternatives&lt;/h2&gt;
-
-&lt;p&gt;广告时间。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>11 Mistakes During Use React Native(翻译)</title>
-      <link>https://wdicc.com/11-mistakes-during-use-react-native/</link>
-      <pubDate>Wed, 01 Nov 2017 19:12:24 +0800</pubDate>
-      
-      <guid>https://wdicc.com/11-mistakes-during-use-react-native/</guid>
-      <description>&lt;p&gt;粗略的翻译自 &lt;a href=&#34;https://medium.com/dailyjs/11-mistakes-ive-made-during-react-native-redux-app-development-8544e2be9a9&#34; title=&#34;11 mistakes I’ve made during React Native / Redux app development&#34;&gt;11 mistakes I’ve made during React Native / Redux app development&lt;/a&gt;。&lt;/p&gt;
-
-&lt;h2 id=&#34;一些可能会错误的评估&#34;&gt;一些可能会错误的评估&lt;/h2&gt;
-
-&lt;ol&gt;
-&lt;li&gt;虽然有很多可以重复使用的组件，你还是需要分开考虑 iOS 和 Android 的布局。&lt;/li&gt;
-&lt;li&gt;当你评估表单实现的时候，应该要同时考虑表单的验证。开发 RN 比开发例如 Cordova 这样的 hybrid 的程序需要写的代码更多。&lt;/li&gt;
-&lt;li&gt;如果是基于一个已经有后端的 webapp 写代码，应该需要先去仔细看看后端提供的功能接口，因为你需要自己写逻辑，弄明白了 DB 结构数据关联，可以然你更好的规划你的 redux store。&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;h2 id=&#34;尽量使用已有的组件&#34;&gt;尽量使用已有的组件&lt;/h2&gt;
-
-&lt;p&gt;Google 一下就会发现，已经有大量的现成的组件，例如 buttons, footers 等。如果你没啥特殊要求，这些你都可以直接用。你要是有自己的特殊需要，也可以包装一下这些组件成你自己的，然后在里面自定义样式。不过你自己使用 View, Text, TouchableOpacity 等这些 RN 组件来自己包装对于你理解 RN 的工作原理。你自己打包的组件的版本也不会变，不像依赖外部模块。&lt;/p&gt;
-
-&lt;h2 id=&#34;不要分开搞-ios-和-android-的布局&#34;&gt;不要分开搞 iOS 和 Android 的布局&lt;/h2&gt;
-
-&lt;p&gt;如果你有不同的布局需求，那就分开。否则，你可以使用 RN Platform 提供的 API 来做一些小的区分。&lt;/p&gt;
-
-&lt;p&gt;如果布局很大不同，那就把布局内容放到不同的文件里面。&lt;/p&gt;
-
-&lt;p&gt;你可以使用 index.ios.js 给 iOS 布局用，index.android.js 给 Android 用。&lt;/p&gt;
-
-&lt;p&gt;共同的重复代码可以放到 helpers 里面。&lt;/p&gt;
-
-&lt;h2 id=&#34;错误的-redux-store-规划&#34;&gt;错误的 redux store 规划&lt;/h2&gt;
-
-&lt;p&gt;在规划你的 app 的时候可能会花很多时间在布局上，少量时间在数据规划上。这是个错误。redux 可以帮我们很好的处理数据。如果能规划好他，这会是一个很有用的工具，否则可能会带来不好的结果。&lt;/p&gt;
-
-&lt;p&gt;在我刚开始规划的时候，想着 reducers 是每个 container 的数据层。所以，如果有登录，忘记密码，Todo 列表页面，那应该来说会有各自的 reducers: SignIn, Forgot, ToDoList。&lt;/p&gt;
-
-&lt;p&gt;后来才发现，数据没那么好管理。我有 Todo 详情页，用这个方式规划的话，就需要有一个 ToDoDetails reducer。这是个巨大的失误。当用户在 Todo 列表页面选择了一项的时候，我们需要把数据传递给 ToDoDetails reducer。这表示需要额外的 actions 来发送数据给 reducer，这不太合理。&lt;/p&gt;
-
-&lt;p&gt;做了一些调查之后，打算该改结构&lt;/p&gt;
-
-&lt;ol&gt;
-&lt;li&gt;Auth&lt;/li&gt;
-&lt;li&gt;Todos&lt;/li&gt;
-&lt;li&gt;Friends&lt;/li&gt;
-&lt;/ol&gt;
-
-&lt;p&gt;Auth 用来存放 token。Todos 和 Friends reducers 用来存放实体数据，从名字就能理解。当从列表打开 ToDo 详情的时候，只需要根据 id 从 Todos 里面查询就可以了。&lt;/p&gt;
-
-&lt;p&gt;不管多复杂的结构，都推荐你这么搞，这样你总是知道你应该去哪里找你的数据。&lt;/p&gt;
-
-&lt;h2 id=&#34;错误的项目结构&#34;&gt;错误的项目结构&lt;/h2&gt;
-
-&lt;p&gt;对于新手来说，规划项目结构是个比较难的事情。&lt;/p&gt;
-
-&lt;p&gt;得看看你的项目是大项目？巨大的？还是小的。有多少 screen，20？30？还是 5 个，或者是只有个 Hello world？&lt;/p&gt;
-
-&lt;p&gt;一开始我的项目结构如下：&lt;/p&gt;
-
-&lt;p&gt;图不贴了，可以看原文。简单讲就是把 reducers actions 等分开放到不同的目录里面。&lt;/p&gt;
-
-&lt;p&gt;如果你的项目不大，例如 10 来个 screen 这么搞是挺好的。如果比较大，可以考虑下下面这个方式：&lt;/p&gt;
-
-&lt;p&gt;就是按照 screen 划分目录，把这个 screen 对应的 actions reducers 等放到一个目录下面。这样可以清楚的知道一个 container 和 action 等的关系。&lt;/p&gt;
-
-&lt;p&gt;如果你有通用的 style 文件，可以建一个 styles/index.js 文件。&lt;/p&gt;
-
-&lt;p&gt;还有很多其他的结构类型，你需要找到适合你自己的。&lt;/p&gt;
-
-&lt;h2 id=&#34;container-里面错误的结构&#34;&gt;container 里面错误的结构&lt;/h2&gt;
-
-&lt;p&gt;其实简单概括就是，应该尽量封装你的组件，比如 form 表单里面的东西，应该适当的做一些封装，比如搞一个 FormItem 这样的组件出来，就不用重复的写 Text 和 TextInput 的组合了。&lt;/p&gt;
-
-&lt;p&gt;但是也要注意，不要为了封装而封装，原文里面有个例子，把组件搞了一个 setTitle 方法，然后根据 id 来设置 title。作者的意思是，Dumb 组件不应该加入业务逻辑进来，比如加一个 id 就需要修改一下这个组件。&lt;/p&gt;
-
-&lt;h2 id=&#34;内联样式&#34;&gt;内联样式&lt;/h2&gt;
-
-&lt;p&gt;就是这样的 &lt;code&gt;&amp;lt;View style={{flex:1, flexDirection:&#39;row&#39;, backgroundColor:&#39;transparent&#39;}}&amp;gt;&lt;/code&gt; ，慢慢会变得很难管理，也没法重用。应该一开始就把这个写入到单独的文件里面。&lt;/p&gt;
-
-&lt;h2 id=&#34;使用-redux-验证表单&#34;&gt;使用 redux 验证表单&lt;/h2&gt;
-
-&lt;p&gt;这个是我犯的一个错误，但也有可能适合你们。&lt;/p&gt;
-
-&lt;p&gt;如果需要通过 redux 验证表单，我们需要创建 action， action type 和 reducer 里面单独的字段。这么做有点太麻烦了。&lt;/p&gt;
-
-&lt;p&gt;所以我们决定使用 state。不用 reducers, types 等。只用一些在 container 范围的简单的函数。这么做让我们删除了 action，reducer 文件里面不必要的函数。也不用处理维护 store，这么做很适合我们的项目。&lt;/p&gt;
-
-&lt;h2 id=&#34;大量依赖-zindex&#34;&gt;大量依赖 zIndex&lt;/h2&gt;
-
-&lt;p&gt;从 web 过来的人会比较喜欢 css 里面的 z-index，可以控制显示哪一层。但是在 RN 里面，一开始没有这个，但是后来也加上了。一开始用的时候挺好的，但是直到我开始在 Android 上面跑。。。现在我都是在构建的时候就考虑好他们将来展示的顺序。&lt;/p&gt;
-
-&lt;h2 id=&#34;不阅读依赖的模块的代码&#34;&gt;不阅读依赖的模块的代码&lt;/h2&gt;
-
-&lt;p&gt;简单说就是用第三方模块的时候，看文档是必须的了，但是有时候也需要看看代码的。比如不工作了，或者和文档描述不一致啥的。看代码也能学习到如何构建自己的模块。&lt;/p&gt;
-
-&lt;h2 id=&#34;使用-panresonder-和-动画-api-的时候要小心&#34;&gt;使用 PanResonder 和 动画 API 的时候要小心&lt;/h2&gt;
-
-&lt;p&gt;RN 提供了你构建完全 native 体验的 app 的能力。例如布局，手势，动画。&lt;/p&gt;
-
-&lt;p&gt;默认提供了布局功能，当你使用 View, Text, TextInput 这些 RN 模块的时候，手势和动画需要使用 PanResonder 和动画 API 来提供手势和动画。&lt;/p&gt;
-
-&lt;p&gt;一开始可能会觉得好难，什么时候开始，什么时候结束，长按，短按等。RN 也确实没有把这些讲的足够清晰。作者提供了一个例子&lt;/p&gt;
-
-&lt;p&gt;开始我们初始化一个 PanResonder 对象，针对我们感兴趣的 onPanResponderGrand(当用户点击 button 的时候调用) 和 onPanResponderRelease(当用户手指离开屏幕的时候调用) 设置了一些 handler。&lt;/p&gt;
-
-&lt;p&gt;同时我们也设置了 Animated 对象来帮我们处理动画。设置他的取值为 0，然后定义 _setOpacity 方法来改变 this.opacityAnimated 的值。在渲染之前，给 this.opacityAnimated 赋值为通常情况下的值。我们不使用 View，使用 Animated.View 来动态修改透明度。&lt;/p&gt;
-
-&lt;p&gt;可以看到，这没啥难理解的。当然你需要阅读这些 API 的文档让你的 app 更完美。希望这个例子可以让你有一个好的开始。&lt;/p&gt;
-
-&lt;p&gt;React Naive 很不错，你几乎可以用它做任何事情。如果有不行的，你还可以通过 Swift/Object C 或者 Java 来配合 RN 完成。此外还有一个大的社区。&lt;/p&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Howto Make react-redux Work With react-navigation</title>
-      <link>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</link>
-      <pubDate>Sat, 21 Oct 2017 08:19:28 +0800</pubDate>
-      
-      <guid>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</guid>
-      <description>&lt;p&gt;这周花了一些时间研究 &lt;code&gt;react-redux&lt;/code&gt; 和怎么让它和 &lt;code&gt;react-navigation&lt;/code&gt; 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 &lt;a href=&#34;https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3&#34; title=&#34;gist&#34;&gt;gist&lt;/a&gt;。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;/**
- * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理
- * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合
- * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做
- * 参考：
- *  https://github.com/jackielii/simplest-redux-example
- *  http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html
- */
-
-import React, { Component } from &#39;react&#39;;
-import {
-    StyleSheet,
-    Text,
-    View,
-    Button
-} from &#39;react-native&#39;;
-
-import { Provider, connect } from &#39;react-redux&#39;;
-import { createStore, combineReducers } from &#39;redux&#39;;
-import { StackNavigator, addNavigationHelpers } from &#39;react-navigation&#39;;
-
-// Home 页面，UI 组件
-class MyHome extends Component {
-    constructor(props) {
-        super(props);
-        console.log(&#39;init home, props&#39;, props);
-    }
-
-    _nextPage() {
-        // navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样
-        let {navigation} = this.props;
-        navigation.navigate(&amp;quot;App&amp;quot;);
-    }
-
-    render() {
-        // 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4)
-        // 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5)
-        let {onIncButtonClicked} = this.props.screenProps.MyAppActions;
-
-        // 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面
-        return (
-            &amp;lt;View style={styles.container}&amp;gt;
-                &amp;lt;Button title=&amp;quot;Inc counter&amp;quot; onPress={onIncButtonClicked}&amp;gt;&amp;lt;/Button&amp;gt;
-                &amp;lt;Button title=&amp;quot;Next page&amp;quot; onPress={()=&amp;gt;this._nextPage()}&amp;gt;&amp;lt;/Button&amp;gt;
-            &amp;lt;/View&amp;gt;
-        )
-    }
-}
-
-// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新
-class ShowText extends Component {
-    render() {
-        let {counter} = this.props;
-
-        return (
-            &amp;lt;Text&amp;gt;{counter}&amp;lt;/Text&amp;gt;
-        )
-    }
-}
-
-// App 页面，UI 组件
-class MyApp extends Component {
-    constructor(props) {
-        super(props);
-        console.log(&#39;init App, props&#39;, props);
-    }
-
-    componentWillReceiveProps(newProps) {
-        console.log(&#39;myapp recive props&#39;, newProps);
-    }
-
-    render() {
-        // 组件的 state/props 获取，有自己的命名空间 (1)
-        let {counter} = this.props.screenProps.MyApp;
-        // 组件的 action props (5)
-        let {onIncButtonClicked, onDecButtonClicked} = this.props.screenProps.MyAppActions;
-
-        // 界面有一个计数器的结果，两个按钮
-        return (
-            &amp;lt;View style={styles.container}&amp;gt;
-                &amp;lt;ShowText counter={counter} /&amp;gt;
-                &amp;lt;Button title=&amp;quot;Inc counter&amp;quot; onPress={onIncButtonClicked}&amp;gt;&amp;lt;/Button&amp;gt;
-                &amp;lt;Button title=&amp;quot;Dec counter&amp;quot; onPress={onDecButtonClicked}&amp;gt;&amp;lt;/Button&amp;gt;
-            &amp;lt;/View&amp;gt;
-        )
-    }
-}
-
-// 初始化 StackNavigator，定义页面路由
-let AppNavigator = StackNavigator({
-    Home: {
-        screen: MyHome
-    },
-    App: {
-        screen: MyApp
-    }
-});
-
-// 包装一下 StackNavigator，因为有些参数需要定制一下
-class MyStackNavigator extends Component {
-    constructor(props) {
-        super(props);
-        console.log(&amp;quot;inside MyStackNavigator&amp;quot;, props);
-    }
-
-    render() {
-        // screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4)
-        // navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取
-        return (
-            &amp;lt;AppNavigator
-                screenProps={this.props}
-                navigation={addNavigationHelpers({
-                    dispatch: this.props.dispatch, // 通过 action props 定义 (2)
-                    state: this.props.nav, // 通过 state props 定义 (3)
-                })} /&amp;gt;
-        )
-    }
-}
-
-// 定义 state 和 props 的关系，所有 redux 应用都需要 (6)
-let mapStateToProps = (state, ownProps) =&amp;gt; {
-    console.log(&amp;quot;inside mapstate to props&amp;quot;, state, ownProps);
-    return {
-        // 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1)
-        &amp;quot;MyApp&amp;quot;: state.MyApp,
-        &amp;quot;MyHome&amp;quot;: state.MyHome,
-        // 定义 StackNavigator 的 state (3)
-        &amp;quot;nav&amp;quot;: state.nav
-    }
-};
-
-// 定义 action 和 props 的关系，所有 redux 应用都需要
-let mapDispatchToProps = (dispatch, ownProps) =&amp;gt; {
-    console.log(&amp;quot;inside map dispath to props&amp;quot;);
-    return {
-        // 这两个也是不同的命名空间，和上面使用的时候路径对应 (5)
-        &#39;MyAppActions&#39;: {
-            onIncButtonClicked: () =&amp;gt; {
-                let action = {
-                    type: &amp;quot;INC_COUNTER&amp;quot;,
-                    payload: 1
-                };
-
-                dispatch(action);
-            },
-            onDecButtonClicked: () =&amp;gt; {
-                let action = {
-                    type: &amp;quot;DEC_COUNTER&amp;quot;,
-                    payload: -1
-                };
-
-                dispatch(action);
-            }
-        },
-        &#39;MyHomeActions&#39;: {
-            onNextButtonClicked: () =&amp;gt; {
-                let action = {
-                    type: &amp;quot;NEXT_PAGE&amp;quot;
-                };
-
-                dispatch(action);
-            }
-        },
-        // 定义 StackNavigator 的 action props (2)
-        &#39;dispatch&#39;: dispatch
-    }
-}
-
-// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有
-// 所以从这里也能看出来，reducer 并不一定按照页面去分
-let homeReducer = (state, action) =&amp;gt; {
-    console.log(&amp;quot;inside home reducer&amp;quot;, state, action);
-    return state || {};
-};
-
-// 定义一个初始化的 state
-let myAppInitState = { &#39;counter&#39;: 10};
-// 定义 app 页面的 reducer
-let myAppReducer = (state = myAppInitState, action) =&amp;gt; {
-    // 收到的 state 实际上只是自己命名空间下的 (6)
-    console.log(&amp;quot;inside myAppReducer&amp;quot;, state, action);
-    let myState = state;
-    // 需要处理的 action 的逻辑
-    // 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action
-    switch (action.type) {
-        case &amp;quot;DEC_COUNTER&amp;quot;:
-        case &amp;quot;INC_COUNTER&amp;quot;:
-            // 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新
-            return Object.assign({}, myState, {
-                &#39;counter&#39;: myState.counter + action.payload
-            });
-        default:
-            return state;
-    }
-};
-
-// 定义一个 StackNavigator 用到的初始化状态，这个很重要
-const initialState = AppNavigator.router.getStateForAction(AppNavigator.router.getActionForPathAndParams(&#39;Home&#39;));
-// 定义 StackNavigator 的 reducer，代码直接复制来的
-const navReducer = (state = initialState, action) =&amp;gt; {
-    console.log(&amp;quot;inside nav reducer&amp;quot;, state, action);
-    const nextState = AppNavigator.router.getStateForAction(action, state);
-
-    // Simply return the original `state` if `nextState` is null or undefined.
-    return nextState || state;
-};
-
-// 创建 store
-let store = createStore(combineReducers({
-    // 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6)
-    // 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6)
-    MyApp: myAppReducer,
-    MyHome: homeReducer,
-    nav: navReducer
-}));
-
-// 让 redux 加持一下，保佑
-let App = connect(mapStateToProps, mapDispatchToProps)(MyStackNavigator);
-
-// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索
-export default class Root extends Component&amp;lt;{}&amp;gt; {
-    constructor(props) {
-        super(props);
-    }
-
-    render() {
-        return (
-            &amp;lt;Provider store={store}&amp;gt;
-                &amp;lt;App prop1=&amp;quot;prop1&amp;quot; /&amp;gt;
-            &amp;lt;/Provider&amp;gt;
-        );
-    }
-}
-
-
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: &#39;center&#39;,
-        alignItems: &#39;center&#39;,
-        backgroundColor: &#39;#F5FCFF&#39;,
-    },
-    welcome: {
-        fontSize: 20,
-        textAlign: &#39;center&#39;,
-        margin: 10,
-    },
-    instructions: {
-        textAlign: &#39;center&#39;,
-        color: &#39;#333333&#39;,
-        marginBottom: 5,
-    },
-});
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
