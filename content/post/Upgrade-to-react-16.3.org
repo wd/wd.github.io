@@ -1,0 +1,63 @@
+---
+title: "Upgrade to React 16.3"
+date: 2018-10-22T16:21:30+08:00
+tags: ["javascript", "react"]
+toc: true
+---
+随着 React native 升级，React 也升级到了 16.5 了。原来的改成新的生命周期了。
+
+#+BEGIN_SRC javascript
+class ExampleComponent extends React.Component {
+  static getDerivedStateFromProps(nextProps, prevState) {
+    // Called after a component is instantiated or before it receives new props.
+    // Return an object to update state in response to prop changes.
+    // Return null to indicate no change to state.
+  }
+
+  UNSAFE_componentWillMount() {
+    // New name for componentWillMount()
+    // Indicates that this method can be unsafe for async rendering.
+    // Prefer componentDidMount() instead.
+  }
+
+  UNSAFE_componentWillUpdate(nextProps, nextState) {
+    // New name for componentWillUpdate()
+    // Indicates that this method can be unsafe for async rendering.
+    // Prefer componentDidUpdate() instead.
+  }
+
+  UNSAFE_componentWillReceiveProps(nextProps) {
+    // New name for componentWillReceiveProps()
+    // Indicates that this method can be unsafe for async rendering.
+    // Prefer static getDerivedStateFromProps() instead.
+  }
+}
+#+END_SRC
+
+React 在后面的版本里面，这几个方法都会被加上 =UNSAFE_= ，直到被移除。
+
+我们在 =componentWillReceiveProps= 里面主要是做了一个事情是根据后端反的数据来更新界面内容。因为我们用了 redux + saga，所以需要在这里做这个事情，如果是通过回调来更新数据的话，就不用这么麻烦了，直接在回调里面设置 state 就可以了。
+
+因为在 =getDerivedStateFromProps= 里面不让接触现在的 =this.props= ，所以也不能简单的把原来 =componentWillReceiveProps= 的代码直接复制过来用。解决思路下面的链接都提到了很多，我自己总结有那几个。
+
+* 和 prevState 做比较
+
+比如想象一个页面有两个按钮，一个点了之后会 setState 为 =test1= ，另一个按钮点了之后，会通过网络请求更新 store，然后更新 props 为 =test2= ，那这个时候只需要和当前的 state 做比较就可以决定是不是要设置新的 state 了。
+
+* 把 preProps 保存到 state 然后和 prevState 做比较
+
+这么做基本就和原来使用 =componentWillReceiveProps= 基本一样了。没什么好说的了。
+
+* 在 render 里面综合 state 和 props 的值
+
+比如有时候页面显示的是用户录入和 props 的数据综合的，那可以在 render 里面做这个合并的工作。
+
+* 参考链接
+- [[https://github.com/reactjs/rfcs/blob/master/text/0006-static-lifecycle-methods.md#common-problems][React 关于新的生命周期的 rfc]]
+- [[https://reactjs.org/docs/react-component.html#unsafe_componentwillreceiveprops][关于使用场景比较多升级的时候处理比较麻烦的 componentWillReceiveProps 方法]]
+- [[https://github.com/reactjs/reactjs.org/issues/721][关于 componentWillReceiveProps 方法和 getDerivedStateFromProps 的讨论]]
+- [[https://zhuanlan.zhihu.com/p/33925435][关于新的生命周期国内人的中文解释]]
+- [[https://github.com/fi3ework/blog/issues/37][另一篇国人的解释]]
+- [[https://reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html][React 官方关于 getDerivedStateFromProps 使用的一些建议]]
+- [[https://github.com/reactjs/rfcs/pull/40][关于为啥不在 getDerivedStateFromProps 里面加一个 prevProps 的讨论]]
+

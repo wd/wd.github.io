@@ -1,0 +1,109 @@
+---
+title: "Typescript and Jest"
+date: 2018-11-01T11:59:29+08:00
+tags: ["typescript", "jest"]
+toc: true
+---
+最近在折腾 typescript，把很多项目改成了 ts 的。有一个老项目，改的过程中感觉各种不踏实，打算还是先写点测试用例，就折腾了一下 jest。各种坑。。。
+
+首先需要加一个 =tsconfig.json=
+
+#+BEGIN_SRC javascript
+{
+  "compilerOptions": {
+    "target": "es2015",
+    "module": "es2015",
+    "lib": [
+      "es2015"
+    ],
+    "outDir": "./lib",
+    "declaration": true,
+
+    "noEmit": true,
+    "moduleResolution": "node",
+    "esModuleInterop": true,
+    "allowSyntheticDefaultImports": true,
+
+    /* Strict Type-checking */
+    "strict": true,
+    "strictNullChecks": true,
+    "noImplicitAny": true,
+    "noImplicitThis": true,
+    "alwaysStrict": true,
+
+    /* Additional Checks */
+    "noUnusedLocals": true,                /* Report errors on unused locals. */
+    "noUnusedParameters": true,            /* Report errors on unused parameters. */
+    "noImplicitReturns": true,             /* Report error when not all code paths in function return a value. */
+    "noFallthroughCasesInSwitch": true,    /* Report errors for fallthrough cases in switch statement. */
+  },
+  "include": [
+     "*.ts"
+  ],
+  "exclude": [
+    "node_modules",
+    "__tests__"
+  ]
+}
+#+END_SRC
+
+然后安装一个 =typescript= 就可以通过 =yarn tsc= 命令编译了，生成的 js 在 =lib= 下面。
+
+测试如果是用 js 写，那么直接装 =jest= 就可以了。但是我们既然项目都改成 ts 了，那么还是希望用 ts 写。那就需要用到 =ts-jest= 。这货的配置可以写到 =package.json= 里面。
+
+#+BEGIN_SRC javascript
+{
+ "name": 'test-projct',
+ "version": "0.0.1",
+ ........
+ "jest": {
+    "preset": "ts-jest",
+    "testEnvironment": "node",
+    "testMatch": [ "**/__tests__/*-test.ts" ],
+    "globals": {
+      "ts-jest": {
+        "babelConfig": true,
+        "isolatedModules": true
+      }
+    }
+  }
+}
+
+#+END_SRC
+
+=isolatedModules= 表示说测试的时候先不做 type 检查。我这情况是，要改那些文件比较大一时都弄不好，可能 type 只改了部分，但是这个时候改到某个方法的时候，需要先加测试，以免改前改后不一致，所以这个时候只能忽略掉 type 检查了。
+
+这样配置之后，就可以用 ts 写 test 了。test 文件放到 =__tests__= 目录里面，用 =*-test.ts= 命名。这样这目录也可以放一些非测试用文件了，比如测试用例用到的一些 mock 文件之类。
+
+这样看着一切美好。直到我遇到了一个问题，我的那些需要测试的方法，有些是私有的，又不想因为这个改成 public 的，那么是不是有办法可以测试？这样就找到了 =rewire= ，这个可以把你的模块的内容随意替换组合，方便你做 mock。我要做的也覆盖了。这样完美了。
+
+但是发现，rewire 不支持 typescript。在 ts 文件里面 rewire 一个模块之后，并没有多出来那些 =__get__= 和 =__set__= 方法。没仔细去研究代码，找到了 =babel-plugin-rewire= ，给 =package.json= 增加配置如下。
+
+#+BEGIN_SRC javascript
+  "babel": {
+    "presets": [
+      "env"
+    ],
+    "env": {
+      "test": {
+        "plugins": [
+          "babel-plugin-rewire"
+        ]
+      }
+    }
+  }
+#+END_SRC
+
+发现还是不行，并没有什么效果。查了之后发现，是因为 ts-test 根本不会去调用 babel 的缘故，所以上面的那个 =babelConfig= 就是这个用途，让 ts-test 去使用 babel。
+
+目前还有一个问题是怎么让这个 package 在别人安装使用的时候自动编译为 js，这样让 js 用户也可以用。尝试过在 =package.json= 里面增加 build 发现不行。
+
+#+BEGIN_SRC javascript
+ "scripts": {
+    "build": "tsc",
+    "postinstall": "[ -f ../../node_modules/.bin/tsc ] && ../../node_modules/.bin/tsc || echo 'no typescript found, skip build'",
+    "test": "jest"
+  },
+#+END_SRC
+
+安装这个模块之后在 =./node_modules/test-module/= 下面执行 =tsc= 并不会产出 =lib= 目录的编译文件。

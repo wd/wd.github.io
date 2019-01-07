@@ -1,0 +1,46 @@
+---
+title: "Phpbb Auth Plugin"
+date: 2018-11-17T21:15:50+08:00
+tags: ["phpbb"]
+toc: true
+---
+这几天我们这里需要搞一个论坛，我搜了一些，选了 phpbb，这个毕竟年头比较久远，也支持 PostgreSQL。
+
+我们自己本身有自己的会员逻辑，所以就需要把他的登陆和我们自己的结合，而 phpbb 也支持自己作 [[https://wiki.phpbb.com/Authentication_plugins][Auth Plugin]]。
+
+涉及到的文件有几个
+1. includes/auth/auth_foo.php：这个是具体的 auth 逻辑代码的地方。
+2. config/default/container/services_auth.yml：这个是注册这个 auth 逻辑的地方。
+3. template 模板文件：这个我没涉及到，所以没去了解。
+
+service 文件的配置：
+
+#+BEGIN_SRC yml
+    auth.provider.skyreq:
+        class: phpbb\auth\provider\foo
+        arguments:
+            - '@dbal.conn'
+            - '@config'
+            - '@passwords.manager'
+            - '@request'
+            - '@user'
+            - '@service_container'
+            - '%core.root_path%'
+            - '%core.php_ext%'
+        tags:
+            - { name: auth.provider }
+#+END_SRC
+
+上面配置里面 arguments 指定的，是 auth_foo.php 的 constructor 接受的参数。可以需要什么配置什么，个数要对应。
+
+配置这个之后，只需要在 =auth_foo.php= 里面实现具体的逻辑就可以了。
+
+=init_method= 这个方法是在后台用户选中这个 auth 方法的时候执行的，比如你如果有一些配置的话就可以在这里验证。如果需要用户录入配置的话，还需要配合 template 文件，好提供录入的界面。我这里没有这个需求。
+
+=login_method= 这个方法是在用户登陆的时候会调用。会传入用户名和密码两个参数。实现逻辑可以参考 auth_db 这个模块。phpbb 为了安全，对于管理员用户会有一个二次验证的过程，管理员的 session 过期时间也会短一些。所以我们必须要实现这个，否则一个管理员就无法访问后台了。我这里是完全复制的 auth_db 的逻辑，里面改动了一点增加了一个硬编码只允许几个我指定的用户登陆。然后验证也完全用的 phpbb 的密码逻辑。
+
+=autologin_method= 这个方法是在用户 session 创建的时候通过外部逻辑实现验证的时候调用。自己实现认证主要是在这里实现。我的需求是通过 cookie 验证，如果用户不存在，会直接新建一个用户，如果已经存在，会直接用那个用户登陆。这样一个用户在我的系统的其它页面登陆之后，访问 phpbb 就会自动登陆了。
+
+=logout_method= 登出的逻辑。我这没有需求，不希望用户从论坛登出。所以留空就可以了。
+
+=validate_session_method= session 验证逻辑，这个是验证一个用户的 session 是否有效。如果无效会触发自动登陆。

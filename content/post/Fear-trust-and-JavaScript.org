@@ -1,0 +1,306 @@
+---
+title: "Fear, trust and JavaScript: When types and functional programming fail"
+date: 2018-11-01T12:56:20+08:00
+tags: ["javascript"]
+toc: true
+---
+翻译自 [[https://www.reaktor.com/blog/fear-trust-and-javascript/][Fear, trust and JavaScript: When types and functional programming fail]] , 最早是 [[https://news.ycombinator.com/item?id=18314628][hacker news]] 看到的。
+
+只是翻译大意。
+
+作为开发人员，我们需要减少对代码执行失败的恐惧，增强对代码的信心。很多 javascript 开发人员从函数式编程语言和强类型语言里面借鉴思路来将信任交给工具和代码来减少恐惧。类似可选类型，函数转换，和只读化这些思想可以帮助写出更好的 javascript 代码。当把这些想法都加入到 javascript 里面，会有一些妥协，协作起来比较差，并且最终会导致将信任从开发人员交给代码和工具的想法失败。
+
+举例来看看 javascript 里面是如何在两种观点下面处理数据的：理解数据的结构和修改数据。
+
+* Fear and the shape of data
+
+在类似 javascript 的动态语言里面，很难知道你数据的结构。默认的方式是依赖公约(convention)。相信其它程序员和其它系统按照协议给你正确的数据。
+
+#+BEGIN_SRC javascript
+fetchUser(id).then( user => {
+ // Got my user!
+})
+
+// Later
+render(user.name) // He has a name
+#+END_SRC
+
+我一般管这种方式叫「假装这是你要的」。在高可信的环境下，这个会工作的挺好。
+
+但是恐惧会悄悄的到来。代码的复杂度会增加。代码会是不同开发人员基于不同的公约(convention)开发的。你收到的数据来自于不可控的上游以及不稳定的格式。会开始看到空指针错误。对代码的信任会崩塌，对数据格式的疑问会引起焦虑而不是信任。
+
++ 这个数据里面到底有什么值？
++ 我可以删除里面的数据而不产生影响吗？
++ 我可以把这个数据传入这个函数吗？
+
+例如下面这个。
+
+#+BEGIN_SRC javascript
+fetchUser(id).then( user => {
+ // Got my user!
+ if(!user || !user.name) {
+   throw new Error('wat')
+ }
+})
+
+// Later
+if(user && user.name) {
+  render(user.name)
+}
+#+END_SRC
+
+这是防御性编程(defensive programming)。在你不再信任你的代码会在适当的时候提供你期望的数据的时候会这么写。漂亮的代码会因为这些检查变得乱七八糟的，失去可读性，代码变得脆弱和很难改变。恐惧会增加，会越来越难相信代码会工作的很好。
+
+** Optional types: Pretend really hard
+
+有一种消除恐惧的方法是通过 [[https://www.typescriptlang.org/][TypeScript]] 或者 [[https://flow.org/][Flow]] 引入可选的类型检查。接收到一个 user 之后，声明这是 User 类型，这以后只当作 User 类型用。
+
+#+BEGIN_SRC javascript
+interface User{
+  id: number
+  name: string
+  email?: string
+}
+
+fetchUser(id).then((user: User) => {
+ // Got my User!
+})
+
+// Later
+render(user.name) // Compiler says he has a name
+#+END_SRC
+
+这样假装其实挺难的。你把你的信任转移到其它地方了。你依然相信其它系统会给你正确的数据结构。在代码里面，你信任你给那个数据赋予的类型，在你使用不当的时候，编译器会报错。代替相信开发人员知道数据的结构并且正确的使用它，你信任开发人员会写出正确的类型，信任编译器不会对这些类型撒谎。
+
+增加类型设定并没有解决潜在的问题，它会提升数据在代码里面的一致性，但是对于外来数据没有任何限制。
+
+** Validation: Trust but validate
+
+在一个互相不太信任的环境里面，你或者需要在各种地方做数据校验。
+
+#+BEGIN_SRC javascript
+fetchUser(id).then(user =>{
+  const validationErrors = validate(user)
+  if (validationErrors) {
+    throw new Error('wat')
+  }
+ // got my User!
+})
+
+// Later
+render(user.name) //He has a name
+#+END_SRC
+
+你可以手动做这些，不过这些验证可能是临时的（应该是说不太通用），费力的，并且容易出错的。或者，你可以使用 [[http://json-schema.org/][JSON schema]] 定义和 [[https://github.com/epoberezkin/ajv][ajv]] 或者其它工具来验证数据是不是符合 schema 定义。这么做可以让其它用户复用，例如生成文档，但是这个似乎不那么明确也容易出错，因为你需要手动写这样的定义。
+
+#+BEGIN_SRC javascript
+{
+  "title": "user",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "integer"
+    },
+    "name": {
+      "type": "string"
+    },
+    "age": {
+      "type": "integer"
+    }
+  },
+  "required": ["id", "name"]
+}
+#+END_SRC
+
+** Optional types + validation
+
+或者你也可以同时使用类型检查和数据验证。类型检查减少内部对数据的恐惧，数据校验建立对外来数据的信任。
+
+#+BEGIN_SRC javascript
+interface User{
+  id: number
+  name: string
+  email?: string
+}
+
+fetchUser(id).then((user: User) =>{
+  const validationErrors = validate(user)
+  if (validationErrors) {
+    throw new Error('wat I trusted you')
+  }
+ // got my User!
+})
+
+// Later
+render(user.name) //He has a name
+#+END_SRC
+
+为了避免同时写两套类型定义给数据验证和类型检查，你可以使用 Typescript 和 Flow 或者使用类似 [[https://github.com/pelotom/runtypes][runtypes]](TS), [[https://github.com/seanhess/runtime-types][runtime-types]](Flow) 或者 [[https://github.com/YousefED/typescript-json-schema][typescript-json-schema]](TS) 这样的库。经过这几步之后，你可能开始信任你的数据了。但是这里还有更深的问题，等一会会说。
+
+* Fear and changing data
+
+那么当改变数据的时候呢？默认情况下，javascript 里面的数据可以随意改变。举个例子，这个函数接收一个文档，然后改变了一个字段的格式，增加了一个字段。
+
+#+BEGIN_SRC javascript
+function formatDocument(doc, source) {
+  if(doc.creationDate) {
+    doc.creationDate = convertTimeToUtc(doc.creationDate)
+  } else {
+    doc.creationDate = null
+  }
+  doc.source = source
+}
+#+END_SRC
+
+但是在这种风格下，数据流就很难掌控了，恐惧会开始出现。如果我们的数据在很多地方都用了呢？数据在我这里是什么值？如何才能相信数据在此时此刻是我期望的？这个例子比较无聊，但是问题在大量代码或者同步系统里面会变得更严重。
+
+你想要依赖类型检查，但是这些类型定义也救不了你。在 typescript 和 flow 里面，下面的函数有相同的类型定义。
+
+#+BEGIN_SRC javascript
+function formatDocument(doc: Document, source: String) {
+  if(doc.creationDate) {
+    doc.creationDate = convertTimeToUtc(doc.creationDate)
+  } else {
+    doc.creationDate = null
+  }
+  doc.source = source
+}
+#+END_SRC
+
+#+BEGIN_SRC javascript
+function formatDocument(doc: Document, source: String) {
+  if(doc.creationDate) {
+    doc.creationDate = convertTimeToUtc(doc.creationDate)
+  } else {
+    doc.creationDate = null
+  }
+  doc.source = source
+  child_process.exec("sudo rm -rf /")
+  launchRocket()
+}
+#+END_SRC
+
+其中一个是你想要的，另一个会把城市炸飞。类型检查对这些无能为力。
+
+** Convention: Pretend immutability
+
+为了写更好的代码，你们团队决定使用只读风格来写代码。
+
+#+BEGIN_SRC javascript
+function formatDocument(doc: Document, source: String) {
+  return {
+    creationDate: sanitizeDate(doc.creationDate),
+    source: source,
+    text: doc.text
+  }
+  // Not mutating data
+  // Not deleting root dir
+  // Not launching rocket
+}
+
+function sanitizeDate(date) {
+  return date ? convertTimeToUtc(date) : null
+}
+#+END_SRC
+
+你赞同使用 const 而不是 var，使用复制修改而不是直接修改。使用赋值来表示修改。开始使用三目运算符(ternary operator) 来代替 if 语句。函数返回新的值而不是修改。使用 map，filter，reduce 以及其它函数式的方法产生新的数据，而不是直接修改。
+
+不可改变的数据约定在 javascript 世界里面会带来便利，在 javascript 生态里面工作的挺好。但是这个严重依赖于开发人员的自律和互相信任。你相信开发人员会按照协议例如避免直接修改数据或者在数据发生改变的时候明确的指出来。你可能需要更健壮一点的东西。
+
+
+** Libraries: Pretend really hard
+  
+你可以通过使用数据转换和只读数据结构的辅助工具来把对开发人员的信任转移到工具上。可选的有例如 [[http://ramdajs.com/][Ramda]]，[[https://github.com/calmm-js/partial.lenses][partial.lenses]]，[[https://github.com/gcanti/monocle-ts][monocle-ts]] 以及其它的。
+
+#+BEGIN_SRC javascript
+import * as R from 'ramda'
+function formatDocument(doc, source) {
+  const creationDate = sanitizeDate(creationDate)
+  // Return a new copy of the data
+  return R.merge(doc, {creationDate, source})
+}
+#+END_SRC
+
+这些工具的一个基本原则是把这些数据当作不可变的。但是 [[http://ramdajs.com/0.14/docs/#assoc][Ramda 也只是浅拷贝]]，不过如果对于不可变数据的约定足够，那大家还是可以假装它是。你可能会得到一点性能影响，但是你会得到对代码的信任。如果我们普遍使用这类工具以及这样的约定，会让这个工作的很好。
+
+强制使用只读数据结构又想避免性能影响，可以试试看 [[https://github.com/facebook/immutable-js][Immutable.js]]， [[https://github.com/rtfeldman/seamless-immutable][seamless-immutable]] 或者 [[http://swannodette.github.io/mori/][Mori]]。
+
+#+BEGIN_SRC javascript
+import * as I from 'Immutablejs'
+function formatDocument(doc, source) {
+  const creationDate = sanitizeDate(creationDate)
+  // Cant't mutate doc
+  return doc.merge({creationDate, source})
+}
+#+END_SRC
+
+这么做使得数据本身是不可变的，只能通过暴露出来的只读途径去使用数据。但是只会应用到这些数据内部的数据结构。大量的其它 javascript 代码依赖于 javascript 的原生数据结构，你得在这些数据类型间来回转换，对于原生的数据类型不再信任了。
+
+这些方法都有自己的局限性，但是大部分都和类型检查冲突。
+
+* Trusting JavaScript
+
+前面的例子引入了一些可以写出更高效的 javascript 代码的工具：类型检查，函数式转换，不可变数据结构。但是这些工具都有自己的局限性，很难一起配合。
+
+** Optional types give a false sense of security
+
+对于 javascript 来说，类型检查设计之初就是可选的，并不是所有东西都被定义了类型，你也没法相信所有东西都有类型。Flow 不可靠，而 [[https://www.typescriptlang.org/docs/handbook/type-compatibility.html][typescript 故意不可靠]]，这意味着有些情况下类型是错误的但是编译器会忽略。
+
+并且 javascript 的类型检查有时候会撒谎。javascript 有些东西很难或者说不可能通过 typescript 或者 flow 定义类型。
+
++ Higher order functions
+  - Ramda 的 [[http://ramdajs.com/0.14/docs/#call][call]], [[http://ramdajs.com/0.14/docs/#compose][compose]], [[http://ramdajs.com/0.14/docs/#chain][chain]], [[http://ramdajs.com/0.14/docs/#lift][lift]], and [[http://ramdajs.com/0.14/docs/#lens][lenses]]
+  - partial.lenses 的 [[https://github.com/calmm-js/partial.lenses/issues/55][functions]]
++ Dynamic functions
+  - Ramda 的 [[http://ramdajs.com/0.14/docs/#invert][invert]], [[http://ramdajs.com/0.14/docs/#dissoc][dissoc]], [[http://ramdajs.com/0.14/docs/#mergeWith][mergeWith]]
+  - Immutable.js 的[[https://github.com/facebook/immutable-js/blob/master/type-definitions/Immutable.d.ts][几乎所有内容]]
++ Monkey-patched anything
+  - AWS SDK 客户端 [[https://docs.aws.amazon.com/sdk-for-javascript/v2/developer-guide/using-promises.html#w2ab1c17c15c14c17][promises]]
+  - Bluebird [[http://bluebirdjs.com/docs/api/promisification.html][promisified APIs]]
++ Highly dynamic data structures
+  - ElasticSearch [[https://www.elastic.co/guide/en/elasticsearch/client/javascript-api/current/api-reference.html#api-get][schemas]]
+  - winston [[https://github.com/winstonjs/winston#creating-your-own-logger][custom loggers]]
+
+想要把这些的类型都痛够 typescript 或者 flow 定义出来，得牺牲下面的原则：
+
++ 牺牲类型安全，也就使用类型检查的主要原因：使用 any 来定义他们，不对他们进行类型检查。
++ 牺牲便利性：让这些方法不那么通用，以便可以定义更加准确的类型。
++ 牺牲其它开发人员的时间：让使用这些函数的人提供正确的类型，例如 =Ramda.pipe<User, Array<string>, string, int>(..)= 。
+
+这样你开始混合使用这些工具，把他们的类型定义混合进来。这样把信任从工具的开发人员转移到了开发人员的类型定义上。这些库部分会包含 any 类型，调用这些方法会悄悄的失去对类型的检查。使用 Flow 的时候，如果一个文件没有 =@flow= 注解，会默默的关闭类型检查。
+
+你可以通过广泛的使用类型检查来避免这个问题，不允许使用 any 类型，设置检查工具对没有做类型检查的文件报错，以及其它的一些严格的设置。
+
+但是这很像是在堵住一艘正在漏水的船的洞一样。问题不仅在于你不相信系统里面的类型，而是你认为可以。你依赖类型检查来告诉你修改有问题，但是因为有时候会使用 any 类型，或者使用某个库，或者某些问题导致类型检查被禁用，而并不会告诉你。JavaScript 里面的类型和其它语言里面的类型不一样：他们不能以相同的方式被信任。
+
+最终，类型检查的有效性依赖于使用的团队的知识和信念。如果团队有比较高的信念和知识，他们就可以给更高的信任到类型检查上。但这取决于团队维持这个信任的的注意力和纪律性，恐惧会从许多微妙的途径蔓延开。
+
+** Functional programming. Types. JavaScript. Pick two
+
+类型检查和基础的函数式编程方法例如 maps，filters，reducers 等可以在 javascript 里面用的还可以。但是当你想要更深入一点的时候就会遇到问题。两个例子：
+
+[[https://github.com/facebook/immutable-js][Immutable.js]] 是一个给 javascript 用的持久的，只读数据结构类型。提供了常用的 javascript 数据结构，不依赖于就地修改数据。包括了内置的用于 [[https://github.com/facebook/immutable-js/blob/master/type-definitions/Immutable.d.ts][typescript]] 和 [[https://github.com/facebook/immutable-js/blob/master/type-definitions/immutable.js.flow][flow]] 的类型定义（可以点过去看看）。里面有数不清的 any 类型，禁用了对这些值的类型检查。这样依赖用户通过其它类型检查提供正确的类型的数据。基本上，你每次用这个库时，要么选择不使用类型检查，要不就需要额外的工作保证类型是正确的。这阻碍了函数式编程的使用。
+
+Ramda 是另一个给 jvascript 使用的函数式编程工具。一些类型定义可以在[[https://github.com/types/npm-ramda#status][这里]]找到，以及这个评论：
+
+“注意：很多 Ramda 里面的函数还不是很好定义类型，问题主要集中在偏函数应用(Partial Application)，柯里化(curring) 和 代码组合(composition) 上，尤其在表达通用类型上。是的，这些可能是你最初使用 Ramda 的原因，这些问题导致 Ramda 很难给 typescript 写类型定义。一些关于 TS 的链接在下面可以找到”
+
+尽管有像 [[https://github.com/gcanti][Giulio Canti]] 这样令人印象深刻的工作，每次你选择高级一点的函数式编程概念的时候，例如不可变数据结构，函数组合，科里化，你基本上需要选择抛弃类型检查或者更多的代码来保证类型检查工作正常。这回阻碍函数式编程。
+
+** Why we can’t have nice things in JavaScript
+
+不可变数据结构在广泛被使用的时候工作的会挺好。但是 javascript 生态设计是基于可变数据结构的，[[http://tagide.com/blog/research/constraints][你不可能通过一个工具库来强制不可变]]，javascript 的类型检查也不足以处理作为库工具使用的不可变数据结构。
+
+类型检查在被广泛使用的时候工作的挺好。但是 javascript 里面的类型检查在设计时就是可选的，为了兼容 javascript 做的一些妥协。
+
+类型检查，不可变数据结构，以及函数式编程都互相支持，就像他们在其它语言里面一样。类型检查可以用来加强不可变数据，即使内部的数据结构是可变的或者类型在运行时不存在。类型检查可以帮助开发人员可以在使用函数组合或者使用 lenses 转换数据的时候能更好对接。能知道支持类型的时候函数转换会更加简单一点。知道数据是不可变的时候，函数转换会更加有效。
+
+* Learning to code with fear
+
+怎么伴随着恐惧编程？写更好的 javascript。一开始就假设对代码不信任，学习更多的技巧来编写功能化的 javascript 来避免琐碎的部分。有必要的话引入类型检查。使用不可变数据，不过只在有需要的时候或者想要强制约定的时候使用。只在有意义的时候使用类型检查，在功能性数据处理或者不可变类型可以提供更多好处的时候抛弃他们。当不使用类型检查的时候，多使用组合函数或者 lenses(透镜？) 。
+
+或者改变游戏使用 [[http://www.purescript.org/][Purescript]]。或者 [[https://bucklescript.github.io/][ReasonML]], [[http://elm-lang.org/][Elm]], 甚至 [[https://clojurescript.org/][ClojureScript]]。这些现在就可用。如果有需要，这些可以在 javascript 生态系统使用。这些从代码层面提供更高的信任，提供可以互相配合且工作的很好的不可变数据结构，函数式编程，以及类型系统。
+
+使用其中的任何一个语言都不能解决你的所有问题。这会引入他们自己的一下问题。但是可能会给你更高层面的对代码的信任，以及增加或者减少信任更好的工具。[[https://www.reaktor.com/blog/fear-trust-and-purescript][我的下一篇文章，会探讨下如何在 purescript 里面把这些思想结合起来。]]（这个是这个哥们的另一篇文章，标题叫 Fear, trust and PureScript: Building on trust with types and functional programming，力挺 PureScript）。
+
+但是在 javascript 里面，恐惧永远都伴随着你。
