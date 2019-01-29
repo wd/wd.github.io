@@ -6,10 +6,27 @@
     <description>Recent content in Router on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Sun, 27 Mar 2016 11:50:38 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 10 Jan 2019 10:20:56 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/tags/router/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Iptv2</title>
+      <link>https://wdicc.com/iptv2/</link>
+      <pubDate>Thu, 10 Jan 2019 10:20:56 +0800</pubDate>
+      
+      <guid>https://wdicc.com/iptv2/</guid>
+      <description>之前写过一篇关于 iptv 的帖子，里面用到了一个副路由，这样我家里其实就有两个路由器，这样用了比较长一段时间。
+最近联通给换了一个光猫，很容易就可以 hack 进管理界面，就又折腾了一下 iptv 的事情。
+iptv 和上网通道都是通过一根光纤进来的，通过不同的 vlan 区分数据。vlan 是二层的，收到这些数据之后如果有必要，可以通过 vlan id 来过滤出来，比如有的光猫会提供把 iptv 流量过滤到 4 口，其他上网流量过滤到光猫的其他口。我之前的猫就这样设置的，看 iptv 只能连接光猫的 4 口。如果光猫允许设置，那可以把 iptv 流量打上 tag 继续发到比如 1 口，这样 1 口就又有上网流量，又有 iptv 流量了，下一级路由就可以只通过这一条线来收两个流量了。
+iptv 那个通道除了提供了组播数据（这个是具体的视频数据的来源）之外，还提供了一个只提供了必要的服务的互联网，比如提供了频道列表，各频道的节目表等等。
+有的光猫可能会提供 pppoe 拨号功能和 wifi，不过一般没人用，因为性能差。所以一般我们会配置光猫做桥接，把数据透传下来，让下一级来拨号和提供 wifi。
+（下面部分限于我自己的理解很有可能说错，欢迎指正）
+iptv vlan 我看也提供了路由功能，也可以桥接透传。比如我之前的方式就是使用了光猫提供的路由功能，接了一个路由器，以光猫为上级路由器，然后会获取到一个内网的 ip。然后二级路由器上通过 udpxy 提供服务给内网用户用。
+那这样的话，似乎可以直接在我的主路由上找一个网卡和光猫 iptv 口接起来，然后跑一个 dhcp 获取一下 ip 不就可以省掉副路由了么？不过我在 R6300v2 上尝试没成功。在新的软路由里面搞成功了。这里面也不需要跑 igmpproxy，我理解实际用的是上级光猫发过来的数据。
+然后 igmpproxy 是怎么回事呢，我理解比如 iptv 是接到了路由器而不是光猫的时候，那么就需要路由器把光猫的那些数据转发下去，这个时候光猫需要通过桥接方式把数据给过来，然后需要把数据发到下级路由，这个时候还不能直接让这个数据在 lan 里面乱跑，否则会影响我们的网速，通过 igmpproxy 可以把上级光猫给过来的组播数据转发到某个端口，然后下级设备比如你把 iptv 接到这个端口，就可以通过那个端口获取这些 iptv 的组播数据了。这样 iptv 就不用接到光猫了，接到你的路由器就可以了。</description>
+    </item>
     
     <item>
       <title>Custom Netgear r6300v2 wireless router</title>
