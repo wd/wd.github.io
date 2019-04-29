@@ -6,10 +6,32 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 26 Apr 2019 11:46:27 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 29 Apr 2019 14:41:12 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Debuging Django</title>
+      <link>https://wdicc.com/debuging-django/</link>
+      <pubDate>Mon, 29 Apr 2019 14:41:12 +0800</pubDate>
+      
+      <guid>https://wdicc.com/debuging-django/</guid>
+      <description>&lt;p&gt;起初 hackernews 看到一个文章 &lt;a href=&#34;https://news.ycombinator.com/item?id=19717786&#34; title=&#34;PySnooper: Never use print for debugging again&#34;&gt;PySnooper: Never use print for debugging again&lt;/a&gt;，觉得挺有意思的，结果把 hackernews 的讨论看了一下发现有意思东西更多一点，总结一下。&lt;/p&gt;
+
+&lt;ol&gt;
+&lt;li&gt;[https://github.com/cool-RR/pysnooper][PySnooper]]: Never use print for debugging again，只需要给函数加一个装时期，就可以把函数执行的每一步的结果都打印出来。&lt;/li&gt;
+&lt;li&gt;[https://django-extensions.readthedocs.io/en/latest/runserver_plus.html][django-extensions]] 的 runserver-plus 配合 &lt;a href=&#34;https://werkzeug.palletsprojects.com/en/0.15.x/debug/#using-the-debugger&#34; title=&#34;Werkzeug&#34;&gt;Werkzeug&lt;/a&gt; 可以实现在遇到异常的时候，支持在 web 上面调试代码，打印异常的时候的上下文内容什么的。&lt;/li&gt;
+&lt;li&gt;Python 自己的 &lt;a href=&#34;https://docs.python.org/3/library/functions.html#breakpoint&#34; title=&#34;breakpoint&#34;&gt;breakpoint&lt;/a&gt; 函数，执行到的时候默认会进入 pdb.set_trace() 状态方便你进行上下文调试。&lt;/li&gt;
+&lt;li&gt;[https://github.com/gruns/icecream][icecream]] 提供了一个方便的 ic 函数，可以无感的加入到你的代码里面，不影响你的代码的执行结果，但是会打印传给它的参数和执行结果。&lt;/li&gt;
+&lt;li&gt;[https://github.com/robdmc/behold][Behold]]: A debugging tool for large Python projects，可以替代你写冗长的打印命令。不过感觉它自己的语法似乎也并不方便。。。&lt;/li&gt;
+&lt;li&gt;VS Code 提供的 &lt;a href=&#34;https://code.visualstudio.com/docs/editor/debugging#_logpoints&#34; title=&#34;Logpoints&#34;&gt;Logpoints&lt;/a&gt; 和 Visual Studio 提供的 &lt;a href=&#34;https://docs.microsoft.com/en-us/visualstudio/debugger/using-breakpoints?view=vs-2019#BKMK_set_a_data_breakpoint_managed&#34; title=&#34;Break When Value Changes&#34;&gt;Break When Value Changes&lt;/a&gt;。&lt;/li&gt;
+&lt;li&gt;[https://github.com/cknd/stackprinter][stackprinter]] 可以让你的堆栈打印更友好，打印堆栈的时候还可以输出上下文的取值。&lt;/li&gt;
+&lt;li&gt;pdb, epdb，ipdb, 应该都是类似的东西，其中 pdb 是自带的。通过给代码增加 import ipdb ipdb.set_trace() 调试。&lt;/li&gt;
+&lt;li&gt;[https://github.com/tylerwince/pydbg][pydbg]] 替代 print 的。&lt;/li&gt;
+&lt;/ol&gt;
+</description>
+    </item>
     
     <item>
       <title>How to Create an Index in Django Without Downtime</title>
@@ -2696,49 +2718,6 @@ $ umount /mnt
 &lt;li&gt;&lt;a href=&#34;https://www.rodsbooks.com/efi-bootloaders/grub2.html&#34; title=&#34;Managing EFI Boot Loaders for Linux: Using GRUB 2&#34;&gt;Managing EFI Boot Loaders for Linux: Using GRUB 2&lt;/a&gt;&lt;/li&gt;
 &lt;li&gt;&lt;a href=&#34;https://www.gnu.org/software/grub/manual/grub/html_node/Installing-GRUB-using-grub_002dinstall.html&#34; title=&#34;4.1 Installing GRUB using grub-install&#34;&gt;4.1 Installing GRUB using grub-install&lt;/a&gt;&lt;/li&gt;
 &lt;/ul&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Redux Selector</title>
-      <link>https://wdicc.com/redux-selector/</link>
-      <pubDate>Sun, 13 May 2018 10:43:28 +0800</pubDate>
-      
-      <guid>https://wdicc.com/redux-selector/</guid>
-      <description>&lt;p&gt;redux 应用可以通过 selector 来做 state -&gt; props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的是这个 &lt;a href=&#34;https://github.com/reduxjs/reselect&#34; title=&#34;https://github.com/reduxjs/reselect&#34;&gt;https://github.com/reduxjs/reselect&lt;/a&gt;。&lt;/p&gt;
-
-&lt;p&gt;selector 主要是一个纯函数，给同样的输入，得到同样的输出，只处理数据，没有其他附加影响。这样就可以缓存中间结果了。&lt;/p&gt;
-
-&lt;p&gt;新建 selector 有两个方法，一个是直接定义函数，例如&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;const s1 = (state) =&amp;gt; {
-    // 经过计算
-    return state.user
-}
-const s2 = state =&amp;gt; state.data
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;另外一个方法是通过 &lt;code&gt;createSelector&lt;/code&gt; 函数来创建，例如&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;const s3 = createSelector(s1, s2, (s1, s2) =&amp;gt;{
-    // 经过计算
-    return xx
-})
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;实际上 selector 都是一些函数，具体用的是侯会执行这些函数，第一个方法创建的还好理解，第二个方法里面，会传什么参数呢？输入是什么呢？&lt;/p&gt;
-
-&lt;p&gt;实际上，第二个方法定义的 selector 执行的时候类似这样。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;const res = s3(s1(state), s2(state))
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;输入是里面 selector 的输入，然后不停嵌套到最初的数据。这样一个 selector 使用的方法就广泛了。比如&lt;/p&gt;
-
-&lt;pre&gt;&lt;code class=&#34;language-javascript&#34;&gt;const s1_res = s1(state) // 从其他地方或者逻辑获取到这个值
-
-const res = s3(s1_res, s2(state)) // 直接用来作为 s3 的输入
-&lt;/code&gt;&lt;/pre&gt;
 </description>
     </item>
     
