@@ -6,10 +6,26 @@
     <description>Recent content in Django on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 05 Jul 2017 18:07:50 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 26 Apr 2019 11:46:27 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/tags/django/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>How to Create an Index in Django Without Downtime</title>
+      <link>https://wdicc.com/how-to-create-an-index-in-django-without-downtime/</link>
+      <pubDate>Fri, 26 Apr 2019 11:46:27 +0800</pubDate>
+      
+      <guid>https://wdicc.com/how-to-create-an-index-in-django-without-downtime/</guid>
+      <description>django 自己带了一个 ORM 实现，基本可以通过 ORM 管理数据库，这样用户可以在不会 SQL 的情况下使用数据库。在对 model 的属性（字段）做了修改之后，通过执行 makemigrations 可以生成一个 migrate 文件，然后执行 migrate 命令可以把这些修改应用到数据库。同时在数据库里面，也会记录当前 migrate 执行的状态，这样能保证数据库的状态和 django 自己认为的数据库的状态是一致的。
+但是这里可能会有一个问题，我们有多个数据库环境，也有多个人一起开发，这样就会导致这个有点混乱，多个人修改 model 后都执行了 makemigrations 的话，可能会有冲突和问题（实际上 django 已经考虑过这个问题的，migrate 文件都是按照时间戳来命名的，冲突可能性也不大，但是为了避免新手加入弄不好，所以我们采取了另外一个方法做这个事情）。
+下面的内容翻译自 https://realpython.com/create-django-index-without-downtime/ ，我们使用了里面提到的 sqlmigrate 的方式。
+管理数据库变更在软件开发中是一个比较大的挑战。幸运的是，从 django 1.7 开始有了内置的数据库变更处理框架。这个框架对于处理数据库变更来说很强大很好用。但是为了保证框架提供的灵活性，有一些妥协在里面。为了理解 django 数据库变更框架的限制，我们将解决一个有名的问题：如何在不停机情况下通过 django 创建索引。
+ 在这个教程里面，你将学习到： django 是什么时候和如何产生数据库变更的 django 是如何执行变更的 如何按照需要编辑这些变更  这篇文章面向的是对 django 数据库变更（migrations）已经有所了解的人的。如果对这些还不了解，那可以先看看 Django Migrations: A Primer 。
+在 django 里面创建索引存在的问题 一个常见的变更是当你的数据增加的时候会需要建索引。索引可以查询的速度和应用的响应速度。
+大部分数据库里面增加索引需要在表上面加一个排它锁。当索引创建的时候，排它锁不允许进行数据修改（DML）操作，例如 UPDATE, INSERT, 和 DELETE 。
+当数据库执行这些操作的时候，会立刻加锁。例如如果一个用户登录的时候，django 会更新 auth_user 表的 last_login 字段。为了执行这个操作，数据库会先请求一个行锁，如果这行被其他连接加了锁，那你可能会得到一个数据库异常。</description>
+    </item>
     
     <item>
       <title>Django middleware</title>

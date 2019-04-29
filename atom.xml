@@ -6,10 +6,587 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 19 Apr 2019 15:38:57 +0800</lastBuildDate>
+    <lastBuildDate>Fri, 26 Apr 2019 11:46:27 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>How to Create an Index in Django Without Downtime</title>
+      <link>https://wdicc.com/how-to-create-an-index-in-django-without-downtime/</link>
+      <pubDate>Fri, 26 Apr 2019 11:46:27 +0800</pubDate>
+      
+      <guid>https://wdicc.com/how-to-create-an-index-in-django-without-downtime/</guid>
+      <description>&lt;p&gt;django 自己带了一个 ORM 实现，基本可以通过 ORM 管理数据库，这样用户可以在不会 SQL 的情况下使用数据库。在对 model 的属性（字段）做了修改之后，通过执行 &lt;code&gt;makemigrations&lt;/code&gt; 可以生成一个 migrate 文件，然后执行 &lt;code&gt;migrate&lt;/code&gt; 命令可以把这些修改应用到数据库。同时在数据库里面，也会记录当前 migrate 执行的状态，这样能保证数据库的状态和 django 自己认为的数据库的状态是一致的。&lt;/p&gt;
+
+&lt;p&gt;但是这里可能会有一个问题，我们有多个数据库环境，也有多个人一起开发，这样就会导致这个有点混乱，多个人修改 model 后都执行了 &lt;code&gt;makemigrations&lt;/code&gt; 的话，可能会有冲突和问题（实际上 django 已经考虑过这个问题的，migrate 文件都是按照时间戳来命名的，冲突可能性也不大，但是为了避免新手加入弄不好，所以我们采取了另外一个方法做这个事情）。&lt;/p&gt;
+
+&lt;p&gt;下面的内容翻译自 https://realpython.com/create-django-index-without-downtime/ ，我们使用了里面提到的 &lt;code&gt;sqlmigrate&lt;/code&gt; 的方式。&lt;/p&gt;
+
+&lt;p&gt;管理数据库变更在软件开发中是一个比较大的挑战。幸运的是，从 django 1.7 开始有了内置的数据库变更处理框架。这个框架对于处理数据库变更来说很强大很好用。但是为了保证框架提供的灵活性，有一些妥协在里面。为了理解 django 数据库变更框架的限制，我们将解决一个有名的问题：如何在不停机情况下通过 django 创建索引。&lt;/p&gt;
+
+&lt;ul&gt;
+在这个教程里面，你将学习到：
+&lt;li&gt;django 是什么时候和如何产生数据库变更的&lt;/li&gt;
+&lt;li&gt;django 是如何执行变更的&lt;/li&gt;
+&lt;li&gt;如何按照需要编辑这些变更&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;这篇文章面向的是对 django 数据库变更（migrations）已经有所了解的人的。如果对这些还不了解，那可以先看看 &lt;a href=&#34;https://realpython.com/django-migrations-a-primer/&#34; title=&#34;Django Migrations: A Primer&#34;&gt;Django Migrations: A Primer&lt;/a&gt; 。&lt;/p&gt;
+
+&lt;h1 id=&#34;在-django-里面创建索引存在的问题&#34;&gt;在 django 里面创建索引存在的问题&lt;/h1&gt;
+
+&lt;p&gt;一个常见的变更是当你的数据增加的时候会需要建索引。索引可以查询的速度和应用的响应速度。&lt;/p&gt;
+
+&lt;p&gt;大部分数据库里面增加索引需要在表上面加一个排它锁。当索引创建的时候，排它锁不允许进行数据修改（DML）操作，例如 UPDATE, INSERT, 和 DELETE 。&lt;/p&gt;
+
+&lt;p&gt;当数据库执行这些操作的时候，会立刻加锁。例如如果一个用户登录的时候，django 会更新 auth_user 表的 last_login 字段。为了执行这个操作，数据库会先请求一个行锁，如果这行被其他连接加了锁，那你可能会得到一个&lt;a href=&#34;https://docs.djangoproject.com/en/2.1/ref/exceptions/#database-exceptions&#34; title=&#34;数据库异常&#34;&gt;数据库异常&lt;/a&gt;。&lt;/p&gt;
+
+&lt;p&gt;锁表会让系统在做变更的时候不可用。表越大，创建索引的时间越长，系统不可用时间越长。&lt;/p&gt;
+
+&lt;p&gt;一些数据库提供了不锁表建索引的方法。例如，在 PostgreSQL 里面可以使用 &lt;a href=&#34;https://www.postgresql.org/docs/current/sql-createindex.html&#34; title=&#34;CONCURRENTLY&#34;&gt;CONCURRENTLY&lt;/a&gt; 关键字：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;CREATE INDEX CONCURRENTLY ix ON table (column);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在 Oracle 里面，有一个 ONLINE 选项允许在创建索引的时候执行 DML 操作：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;CREATE INDEX ix ON table (column) ONLINE;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在生成数据库变更的时候，django 不会使用这些关键字。执行这些变更创建索引会导致数据库增加表的排他锁，而阻止 DML 操作。&lt;/p&gt;
+
+&lt;p&gt;异步创建索引也有一些潜在的问题。最好提前了解一下自己数据库可能存在的问题。例如，在 PostgreSQL 里面异步创建索引的时候时间会比较长，因为它需要对表做一些额外的扫描。&lt;/p&gt;
+
+&lt;p&gt;这篇文章里面，会使用 django 的数据库变更在一个大表上面创建索引而不会带来停机时间。&lt;/p&gt;
+
+&lt;h1 id=&#34;配置&#34;&gt;配置&lt;/h1&gt;
+
+&lt;p&gt;这里将在一个叫 app 的应用里面使用一个 Sale 模型。在真实世界，类似 Sale 这样的模型一般是数据库的主要的表，会存储大量的数据。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;# models.py
+
+from django.db import models
+
+class Sale(models.Model):
+    sold_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+    charged_amount = models.PositiveIntegerField()
+To create the table, generate the initial migration and apply it:
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;生成初始的数据库变更，并创建这个表：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py makemigrations
+Migrations for &#39;app&#39;:
+  app/migrations/0001_initial.py
+    - Create model Sale
+
+$ python manage migrate
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0001_initial... OK
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;过一段时间，sales 表会变的很大，用户会开始抱怨访问起来比较慢。通过监控数据库，发现大量查询都使用了 sold_at 列。为了提速，你决定给这列加一个索引。&lt;/p&gt;
+
+&lt;p&gt;为了给 sold_at 加索引，对模型做如下变更：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;# models.py
+
+from django.db import models
+
+class Sale(models.Model):
+    sold_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,  # 变更在这里
+    )
+    charged_amount = models.PositiveIntegerField()
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;如果你执行这个数据库变更，django 会在表上面创建索引，表会加锁直到索引创建完毕。在一个很大的表上面创建索引的时候会需要一些时间，你想要避免停机。&lt;/p&gt;
+
+&lt;p&gt;在本地开发环境的时候，数据库比较小连接也不多，这个变更会很快执行完毕。但是，在有很多连接的大数据库，加锁创建索引会需要一些时间。&lt;/p&gt;
+
+&lt;p&gt;下面的步骤会讲如何通过修改 django 生成的数据库变更来达到不停机创建索引的操作。&lt;/p&gt;
+
+&lt;h1 id=&#34;fake-migration&#34;&gt;Fake Migration&lt;/h1&gt;
+
+&lt;p&gt;首先尝试手工建立这个索引。我们将生成这个数据库变更，但是并不用 django 执行。而使用在数据库里面手动执行的方式，然后让 django 相信我们已经做了这个变更。&lt;/p&gt;
+
+&lt;p&gt;首先，生成数据库变更：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;$ python manage.py makemigrations --name add_index_fake
+Migrations for &#39;app&#39;:
+  app/migrations/0002_add_index_fake.py
+    - Alter field sold_at on sale
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;使用 sqlmigrate 命令查看 django 在这次变更里面打算使用的 SQL：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py sqlmigrate app 0002
+
+BEGIN;
+--
+-- Alter field sold_at on sale
+--
+CREATE INDEX &amp;quot;app_sale_sold_at_b9438ae4&amp;quot; ON &amp;quot;app_sale&amp;quot; (&amp;quot;sold_at&amp;quot;);
+COMMIT;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;为了不加锁创建索引，需要对准备在数据执行的命令做一个修改，增加 CONCURRENTLY 关键字：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;app=# CREATE INDEX CONCURRENTLY &amp;quot;app_sale_sold_at_b9438ae4&amp;quot;
+ON &amp;quot;app_sale&amp;quot; (&amp;quot;sold_at&amp;quot;);
+
+CREATE INDEX
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;注意这里没有执行 BEGIN 和 COMMIT 部分，忽略掉这个可以避免数据库创建事务来执行，关于事务后面会讨论。&lt;/p&gt;
+
+&lt;p&gt;After you executed the command, if you try to apply migrations, then you will get the following error:
+执行之后，如果执行生成的数据库变更，会遇到下面的错误：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py migrate
+
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0002_add_index_fake...Traceback (most recent call last):
+  File &amp;quot;venv/lib/python3.7/site-packages/django/db/backends/utils.py&amp;quot;, line 85, in _execute
+    return self.cursor.execute(sql, params)
+
+
+psycopg2.ProgrammingError: relation &amp;quot;app_sale_sold_at_b9438ae4&amp;quot; already exists
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;django 会报错说这个索引已经存在了，所以没法继续执行这个数据库变更了。因为我们已经在数据库里面创建了这个索引，所以需要告诉 django 已经执行了。&lt;/p&gt;
+
+&lt;h2 id=&#34;how-to-fake-a-migration&#34;&gt;How to Fake a Migration&lt;/h2&gt;
+
+&lt;p&gt;django 提供了一个内置的方法来标记一个变更已经执行过了，就是使用 --fake 参数。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py migrate --fake
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0002_add_index_fake... FAKED
+Django didn’t raise an error this time. In fact, Django didn’t really apply any migration. It just marked it as executed (or FAKED).
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+使用 fake 的时候需要注意的几个问题：
+&lt;li&gt;手动执行的命令必须要和 django 生成的有相同的效果：记得使用 sqlmigrate 来生成 SQL。如果两个命令不一致，会导致数据库和 django 里面的模型之间的状态不一致。&lt;/li&gt;
+&lt;li&gt;其他没有执行的数据库变更也会 faked：如果有多个没有应用的数据库变更的时候，它们也会被 fake。执行变更前，确认是不是只有你想要的变更被 fake，否则可能会导致数据库和 django 不一致。有一个方式是指定需要 fake 的变更。&lt;/li&gt;
+&lt;li&gt;需要有直接连接数据库的权限：你需要在数据库执行那个 SQL。同时，在生产数据库执行命令是危险的，应该尽量避免。&lt;/li&gt;
+&lt;li&gt;自动化的工具可能需要调整：如果你有自动部署工具（例如 CI，CD 或者其他工具），可能需要对它们进行调整。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h2 id=&#34;cleanup&#34;&gt;Cleanup&lt;/h2&gt;
+
+&lt;p&gt;继续下一步之前，需要把数据库回复到初始的状态。执行下面的操作：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py migrate 0001
+Operations to perform:
+  Target specific migration: 0001_initial, from app
+Running migrations:
+  Rendering model states... DONE
+  Unapplying app.0002_add_index_fake... OK
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;django 把第二步做的修改回滚了，现在可以安全的把变更文件也删除了：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ rm app/migrations/0002_add_index_fake.py
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;确认下是不是都 ok 了：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py showmigrations app
+app
+ [X] 0001_initial
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;只有第一个变更被执行了，并且也没有其他变更了。&lt;/p&gt;
+
+&lt;h1 id=&#34;execute-raw-sql-in-migrations&#34;&gt;Execute Raw SQL in Migrations&lt;/h1&gt;
+
+&lt;p&gt;在上一个小节里面，通过在数据库直接执行 SQL 然后 fake 那个数据库变更达到我们的目的。还有一个更好的办法。&lt;/p&gt;
+
+&lt;p&gt;Django 提供了一个方法可以在数据库变更的时候通过 RunSQL 来执行原始 SQL。这里我们试着使用它来代替我们直接在数据库执行 sql。&lt;/p&gt;
+
+&lt;p&gt;首先，生成一个空的数据库变更：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py makemigrations app --empty --name add_index_runsql
+Migrations for &#39;app&#39;:
+  app/migrations/0002_add_index_runsql.py
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;编辑变更文件，增加一个 RunSQL 操作：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;# migrations/0002_add_index_runsql.py
+
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+    atomic = False
+
+    dependencies = [
+        (&#39;app&#39;, &#39;0001_initial&#39;),
+    ]
+
+    operations = [
+        migrations.RunSQL(
+            &#39;CREATE INDEX &amp;quot;app_sale_sold_at_b9438ae4&amp;quot; &#39;
+            &#39;ON &amp;quot;app_sale&amp;quot; (&amp;quot;sold_at&amp;quot;);&#39;,
+        ),
+    ]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;执行这个变更的时候，会有如下的输出：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py migrate
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0002_add_index_runsql... OK
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;看着好像没啥问题，但是其实有一个问题，再次生成数据库变更：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py makemigrations --name leftover_migration
+Migrations for &#39;app&#39;:
+  app/migrations/0003_leftover_migration.py
+    - Alter field sold_at on sale
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;django 又生成了一次相同的变更，这是怎么回事呢？&lt;/p&gt;
+
+&lt;h2 id=&#34;cleanup-1&#34;&gt;Cleanup&lt;/h2&gt;
+
+&lt;p&gt;Before we can answer that question, you need to clean up and undo the changes you made to the database. Start by deleting the last migration. It was not applied, so it’s safe to delete:
+回答那个问题前，先回滚一下对数据库做的操作。因为最后那个变更没有执行，所以可以直接删除：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ rm app/migrations/0003_leftover_migration.py
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;列出所有的变更：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py showmigrations app
+app
+ [X] 0001_initial
+ [X] 0002_add_index_runsql
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;第三个变更消失了，但是第二个变更已经执行了，所以还在。我们需要回滚到初始的状态，执行回滚的变更看看：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py migrate app 0001
+Operations to perform:
+  Target specific migration: 0001_initial, from app
+Running migrations:
+  Rendering model states... DONE
+  Unapplying app.0002_add_index_runsql...Traceback (most recent call last):
+
+NotImplementedError: You cannot reverse this operation
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;django 无法回滚那个数据库变更。&lt;/p&gt;
+
+&lt;h1 id=&#34;reverse-migration-operation&#34;&gt;Reverse Migration Operation&lt;/h1&gt;
+
+&lt;p&gt;To reverse a migration, Django executes an opposite action for every operation. In this case, the reverse of adding an index is to drop it. As you’ve already seen, when a migration is reversible, you can unapply it. Just like you can use checkout in Git, you can reverse a migration if you execute migrate to an earlier migration.
+回滚一个数据库变更，django 会执行一个反向的操作。我们这种情况下，增加索引的反向操作就是删除这个索引。就是你看到的，如果一个变更是可回滚的，那你可以回滚它。就和你可以在 git 里面使用 checkout 一样，你可以通过执行前一个变更来回滚后面的变更。&lt;/p&gt;
+
+&lt;p&gt;很多内置的变更都定义了回滚的操作。例如，增加一个字段的回滚操作是删除那个字段。增加一个模型的反向操作是删除那个对于的数据库表。&lt;/p&gt;
+
+&lt;p&gt;有一个操作是无法回滚的。例如，删除一个字段或者删除一个模型是无法回滚的，因为一旦这个操作执行了，数据就没了，回滚不了了。&lt;/p&gt;
+
+&lt;p&gt;在前一个小节，我们使用了 RunSQL 操作。当尝试回滚的时候遇到了错误。通过错误信息可知，有一些操作无法回滚。默认情况下 django 无法回滚原始 SQL。因为 django 不知道实际执行的是什么，不能自动产生回滚对应的操作。&lt;/p&gt;
+
+&lt;h2 id=&#34;how-to-make-a-migration-reversible&#34;&gt;How to Make a Migration Reversible&lt;/h2&gt;
+
+&lt;p&gt;想要一个数据库变更可以回滚，那里面的所有操作必须都是可以回滚的。不能只回滚一部分，所以某一个不可回滚的操作，会导致整个数据库变更都不能回滚。&lt;/p&gt;
+
+&lt;p&gt;为了使得 RunSQL 操作可以回滚，需要提供在回滚的时候执行的 SQL。可以通过 reverse_sql 参数提供。&lt;/p&gt;
+
+&lt;p&gt;增加索引的回滚操作是删除它。增加一个 reverse_sql 参数：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;# migrations/0002_add_index_runsql.py
+
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+    atomic = False
+
+    dependencies = [
+        (&#39;app&#39;, &#39;0001_initial&#39;),
+    ]
+
+    operations = [
+        migrations.RunSQL(
+            &#39;CREATE INDEX &amp;quot;app_sale_sold_at_b9438ae4&amp;quot; &#39;
+            &#39;ON &amp;quot;app_sale&amp;quot; (&amp;quot;sold_at&amp;quot;);&#39;,
+
+            reverse_sql=&#39;DROP INDEX &amp;quot;app_sale_sold_at_b9438ae4&amp;quot;;&#39;,
+        ),
+    ]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;再执行一下回滚看看：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py showmigrations app
+app
+ [X] 0001_initial
+ [X] 0002_add_index_runsql
+
+$ python manage.py migrate app 0001
+Operations to perform:
+  Target specific migration: 0001_initial, from app
+Running migrations:
+  Rendering model states... DONE
+ Unapplying app.0002_add_index_runsql... OK
+
+$ python manage.py showmigrations app
+app
+ [X] 0001_initial
+ [ ] 0002_add_index_runsql
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;第二个数据库变更也回滚了，索引被删除了。现在可以删除数据库变更文件了。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ rm app/migrations/0002_add_index_runsql.py
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;应该尽量提供一个 reverse_sql。当一个原始 SQL 操作不需要回滚操作的时候，可以通过 migrations.RunSQL.noop 标记这个操作是可以回滚的。&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;migrations.RunSQL(
+    sql=&#39;...&#39;,  # Your forward SQL here
+    reverse_sql=migrations.RunSQL.noop,
+),
+
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;h1 id=&#34;understand-model-state-and-database-state&#34;&gt;Understand Model State and Database State&lt;/h1&gt;
+
+&lt;p&gt;在上一步尝试通过手动执行 RunSQL 来创建索引的时候，即使数据库已经创建了索引，django 还是会生成对应的数据库变更。为了理解这是为什么，需要先理解 django 是如何决定生成一个新的数据库变更的。&lt;/p&gt;
+
+&lt;h2 id=&#34;when-django-generates-a-new-migration&#34;&gt;When Django Generates a New Migration&lt;/h2&gt;
+
+&lt;p&gt;Django 在生成和执行数据库变更的时候，同步数据库和模型之间的状态。例如，当给一个模型增加一个字段的时候，Django 会在数据库里面增加一列。当从模型删除一个字段的时候，Django 会从对应的表删除那个字段。&lt;/p&gt;
+
+&lt;p&gt;为了同步数据库到模型的状态，Django 会维护模型对应的状态。为了同步模型到数据库的状态，Django 生成数据库变更。生成的数据库变更会翻译成对应的不同类型的数据库里面可执行的操作。当所有的数据库变更执行之后，预期上数据库和模型之间就应该是一致的状态了。&lt;/p&gt;
+
+&lt;p&gt;为了得到数据库的状态，Django 会聚合之前的所有数据库变更。当聚合之后的状态和模型当前的状态不一致的时候，Django 会生成新的数据库变更。&lt;/p&gt;
+
+&lt;p&gt;上一个例子里面，我们使用原始 SQL 创建索引。因为我们用的不是常见的操作，Django 这个时候并不知道我们已经创建了这个索引。&lt;/p&gt;
+
+&lt;p&gt;当 Django 聚合所有的数据库变更，然后和模型当前的状态比较之后，发现少了一个索引。这就是为什么即使你手动创建了那个索引，Django 依然会认为缺少这个索引而产生对应的数据库变更。&lt;/p&gt;
+
+&lt;h2 id=&#34;how-to-separate-database-and-state-in-migrations&#34;&gt;How to Separate Database and State in Migrations&lt;/h2&gt;
+
+&lt;p&gt;因为 Django 不能用我们想要的方式创建索引，我们需要提供我们想要执行的 SQL 同时还需要告诉 Django 知道我们已经创建了。&lt;/p&gt;
+
+&lt;p&gt;换句话说，你需要在数据库里面执行一些语句，同时提供给 Django 对应的数据库变更来同步它内部的状态。Django 提供了一个特殊的数据库变更操作叫做 &lt;a href=&#34;https://docs.djangoproject.com/en/2.1/ref/migration-operations/#separatedatabaseandstate&#34; title=&#34;SeparateDatabaseAndState&#34;&gt;SeparateDatabaseAndState&lt;/a&gt; ，这个操作比较少见，一般只是在现在这种情况下才会使用。&lt;/p&gt;
+
+&lt;p&gt;修改一个数据库变更比从头写一个容易多了，所以我们先生成一个变更，然后再修改它：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py makemigrations --name add_index_separate_database_and_state
+
+Migrations for &#39;app&#39;:
+  app/migrations/0002_add_index_separate_database_and_state.py
+    - Alter field sold_at on sale
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;下面是 Django 生成的变更，和之前的一样：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
+
+# migrations/0002_add_index_separate_database_and_state.py
+
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        (&#39;app&#39;, &#39;0001_initial&#39;),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name=&#39;sale&#39;,
+            name=&#39;sold_at&#39;,
+            field=models.DateTimeField(
+                auto_now_add=True,
+                db_index=True,
+            ),
+        ),
+    ]
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;Django 给 sold_at 字段生成了一个 AlterField 操作。这个操作会创建索引并更新状态。我们希望保留这个操作，但是提供不同的命令在数据库执行。&lt;/p&gt;
+
+&lt;p&gt;再说一次，可以通过 django 来生成这个命令：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py sqlmigrate app 0002
+BEGIN;
+--
+-- Alter field sold_at on sale
+--
+CREATE INDEX &amp;quot;app_sale_sold_at_b9438ae4&amp;quot; ON &amp;quot;app_sale&amp;quot; (&amp;quot;sold_at&amp;quot;);
+COMMIT;
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;在适当的地方添加 CONCURRENTLY 关键字：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-sql&#34;&gt;CREATE INDEX CONCURRENTLY &amp;quot;app_sale_sold_at_b9438ae4&amp;quot;
+ON &amp;quot;app_sale&amp;quot; (&amp;quot;sold_at&amp;quot;);
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;接下来，编辑数据库变更文件，使用 SeparateDatabaseAndState 来执行修改后的 SQL：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;
+
+# migrations/0002_add_index_separate_database_and_state.py
+
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        (&#39;app&#39;, &#39;0001_initial&#39;),
+    ]
+
+    operations = [
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AlterField(
+                    model_name=&#39;sale&#39;,
+                    name=&#39;sold_at&#39;,
+                    field=models.DateTimeField(
+                        auto_now_add=True,
+                        db_index=True,
+                    ),
+                ),
+            ],
+
+            database_operations=[
+                migrations.RunSQL(sql=&amp;quot;&amp;quot;&amp;quot;
+                    CREATE INDEX CONCURRENTLY &amp;quot;app_sale_sold_at_b9438ae4&amp;quot;
+                    ON &amp;quot;app_sale&amp;quot; (&amp;quot;sold_at&amp;quot;);
+                &amp;quot;&amp;quot;&amp;quot;, reverse_sql=&amp;quot;&amp;quot;&amp;quot;
+                    DROP INDEX &amp;quot;app_sale_sold_at_b9438ae4&amp;quot;;
+                &amp;quot;&amp;quot;&amp;quot;),
+            ],
+        ),
+
+    ],
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;ul&gt;
+SeparateDatabaseAndState 操作接收两个列表参数：
+&lt;li&gt;state_operations 是应用到模型内部状态变更上面的。这些操作不会影响数据库。&lt;/li&gt;
+&lt;li&gt;database_operations 是应用的数据库的变更。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;我们保留了 django 产生的 state_operations 操作。这是我们使用 SeparateDatabaseAndState 的时候的通常的做法。注意字段上面增加了 db_index=True 。这个操作是让 django 知道那个字段上有一个索引。&lt;/p&gt;
+
+&lt;p&gt;然后在 django 生成的 SQL 的基础上增加了 CONCURRENTLY 关键字。然后使用了 &lt;a href=&#34;https://docs.djangoproject.com/en/2.1/ref/migration-operations/#runsql&#34; title=&#34;RunSQL&#34;&gt;RunSQL&lt;/a&gt; 这个特殊动作执行了一个原始 SQL。&lt;/p&gt;
+
+&lt;p&gt;执行这个数据库变更的时候，会有如下的输出：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py migrate app
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0002_add_index_separate_database_and_state...Traceback (most recent call last):
+  File &amp;quot;/venv/lib/python3.7/site-packages/django/db/backends/utils.py&amp;quot;, line 83, in _execute
+    return self.cursor.execute(sql)
+psycopg2.InternalError: CREATE INDEX CONCURRENTLY cannot run inside a transaction block
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;注意上面这个输出报错了。&lt;/p&gt;
+
+&lt;h1 id=&#34;non-atomic-migrations&#34;&gt;Non-Atomic Migrations&lt;/h1&gt;
+
+&lt;p&gt;在 SQL 里面，CREATE, DROP, ALTER, 和 TRUNCATE 操作是数据库定义语句（DDL）。在支持在事务里面执行 DDL 的数据库，例如 &lt;a href=&#34;https://wiki.postgresql.org/wiki/Transactional_DDL_in_PostgreSQL:_A_Competitive_Analysis#Transactional_DDL&#34; title=&#34;PostgreSQL&#34;&gt;PostgreSQL&lt;/a&gt;，Django 默认会在事务里面执行数据库变更操作。然而，按照上面的错误，PostgreSQL 不能在事务里面执行异步索引创建。&lt;/p&gt;
+
+&lt;p&gt;为了能在数据库变更里面异步创建索引，需要告诉 django 不要在事务里面执行这个变更。需要设置如下：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-python&#34;&gt;# migrations/0002_add_index_separate_database_and_state.py
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+    atomic = False
+
+    dependencies = [
+        (&#39;app&#39;, &#39;0001_initial&#39;),
+    ]
+
+    operations = [
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AlterField(
+                    model_name=&#39;sale&#39;,
+                    name=&#39;sold_at&#39;,
+                    field=models.DateTimeField(
+                        auto_now_add=True,
+                        db_index=True,
+                    ),
+                ),
+            ],
+
+            database_operations=[
+                migrations.RunSQL(sql=&amp;quot;&amp;quot;&amp;quot;
+                    CREATE INDEX CONCURRENTLY &amp;quot;app_sale_sold_at_b9438ae4&amp;quot;
+                    ON &amp;quot;app_sale&amp;quot; (&amp;quot;sold_at&amp;quot;);
+                &amp;quot;&amp;quot;&amp;quot;,
+                reverse_sql=&amp;quot;&amp;quot;&amp;quot;
+                    DROP INDEX &amp;quot;app_sale_sold_at_b9438ae4&amp;quot;;
+                &amp;quot;&amp;quot;&amp;quot;),
+            ],
+        ),
+
+    ],
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;之后就可以执行了：&lt;/p&gt;
+
+&lt;pre&gt;&lt;code class=&#34;language-shell&#34;&gt;$ python manage.py migrate app
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0002_add_index_separate_database_and_state... OK
+&lt;/code&gt;&lt;/pre&gt;
+
+&lt;p&gt;这样就执行了这个变更而没有任何停机时间。&lt;/p&gt;
+
+&lt;ul&gt;
+使用 SeparateDatabaseAndState 的时候还有一下需要考虑的问题：
+&lt;li&gt;数据库操作必须和状态操作一致：数据库状态和模型的状态不一致可能会导致很多问题。好的做法是在 state_operations 使用 django 产生的变更，然后 database_operations 使用编辑之后的 django 通过 sqlmigrate 产生的 SQL。（其实就是上面例子里面的方式）&lt;/li&gt;
+&lt;li&gt;非原子性的数据库操作在遇到错误的时候不能回滚：如果在执行数据库变更的时候遇到了错误，那你将不能回滚。这时候就必须整个回滚或者手动操作执行了。把尽量少的非原子性的操作放一起比较好。如果有其他的操作，可以把它们放到另一个单独的数据库变更里面。&lt;/li&gt;
+&lt;li&gt;数据库变更也可能和数据库类型有关：django 会根据使用的后端数据库类型产生 SQL。可能可以支持其他类型的数据库，但是并不能保证一定可以。如果需要支持不同数据库类型，那需要根据需要修改一下这个方案。&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;h1 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h1&gt;
+
+&lt;p&gt;这篇文章主要是解决了一个大量数据的数据库里面，想要提高用户响应速度，但是不想增加停机时间的问题。&lt;/p&gt;
+
+&lt;p&gt;（我感觉作者废话太多了，实在懒得翻译了。。。）&lt;/p&gt;
+
+&lt;p&gt;By the end of the tutorial, you managed to generate and safely modify a Django migration to achieve this goal. You tackled different problems along the way and managed to overcome them using built-in tools provided by the migrations framework.&lt;/p&gt;
+
+&lt;p&gt;In this tutorial, you learned the following:&lt;/p&gt;
+
+&lt;p&gt;How Django migrations work internally using model and database state, and when new migrations are generated
+How to execute custom SQL in migrations using the RunSQL action
+What reversible migrations are, and how to make a RunSQL action reversible
+What atomic migrations are, and how to change the default behavior according to your needs
+How to safely execute complex migrations in Django
+The separation between model and database state is an important concept. Once you understand it, and how to utilize it, you can overcome many limitations of the built-in migration operations. Some use cases that come to mind include adding an index that was already created in the database and providing vendor specific arguments to DDL commands.&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Readings</title>
@@ -2162,108 +2739,6 @@ const s2 = state =&amp;gt; state.data
 
 const res = s3(s1_res, s2(state)) // 直接用来作为 s3 的输入
 &lt;/code&gt;&lt;/pre&gt;
-</description>
-    </item>
-    
-    <item>
-      <title>Openwrt</title>
-      <link>https://wdicc.com/openwrt/</link>
-      <pubDate>Sun, 13 May 2018 10:01:39 +0800</pubDate>
-      
-      <guid>https://wdicc.com/openwrt/</guid>
-      <description>&lt;p&gt;前段时间还搞了一下 openwrt 定制，记录一下。&lt;/p&gt;
-
-&lt;p&gt;openwrt 提供了很方便的方式让你可以在 x86 机器上面定制路由器固件，到 &lt;a href=&#34;https://archive.openwrt.org/&#34; title=&#34;https://archive.openwrt.org/&#34;&gt;https://archive.openwrt.org/&lt;/a&gt; 下载对应的源码就可以。&lt;/p&gt;
-
-&lt;p&gt;比如我用的是这个 &lt;a href=&#34;https://archive.openwrt.org/barrier_breaker/14.07/ar71xx/generic/OpenWrt-ImageBuilder-ar71xx_generic-for-linux-x86_64.tar.bz2&#34; title=&#34;https://archive.openwrt.org/barrier_breaker/14.07/ar71xx/generic/OpenWrt-ImageBuilder-ar71xx_generic-for-linux-x86_64.tar.bz2&#34;&gt;https://archive.openwrt.org/barrier_breaker/14.07/ar71xx/generic/OpenWrt-ImageBuilder-ar71xx_generic-for-linux-x86_64.tar.bz2&lt;/a&gt; ， &lt;code&gt;barrier_breaker&lt;/code&gt; 是版本， &lt;code&gt;ar71xx&lt;/code&gt; 是 cpu 架构。解压之后目录类似如下&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;drwxr-xr-x 12 wd wd 4.0K Mar 29 17:18 .
-drwxr-xr-x  3 wd wd 4.0K Mar 26 20:32 ..
-drwxr-xr-x  3 wd wd 4.0K Mar 27 10:40 bin
-drwxr-xr-x  3 wd wd 4.0K Oct  1  2014 build_dir
--rw-r--r--  1 wd wd  94K Oct  1  2014 .config
-drwxr-xr-x  2 wd wd 4.0K Oct  1  2014 dl
-drwxr-xr-x  3 wd wd 4.0K Mar 26 20:37 include
--rw-r--r--  1 wd wd 5.0K Sep 21  2014 Makefile
--rw-r--r--  1 wd wd 570K Oct  1  2014 .packageinfo
-drwxr-xr-x  4 wd wd 4.0K Oct  1  2014 packages
--rw-r--r--  1 wd wd  331 Oct  1  2014 repositories.conf
--rw-r--r--  1 wd wd  11K Sep 21  2014 rules.mk
-drwxr-xr-x  4 wd wd 4.0K Sep 21  2014 scripts
-drwxr-xr-x  3 wd wd 4.0K Oct  1  2014 staging_dir
-drwxr-xr-x  3 wd wd 4.0K Oct  1  2014 target
--rw-r--r--  1 wd wd 128K Sep 21  2014 .targetinfo
-drwxr-xr-x  2 wd wd 4.0K Mar 27 10:40 tmp
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;编译的命令如下&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;make image \
-    PROFILE=TLWR703 \
-    PACKAGES=&amp;quot;firewall -ip6tables -kmod-ip6tables -kmod-ipv6 -odhcp6c -ppp -ppp-mod-pppoe -liblua -libubus-lua -libuci-lua -luci-app-firewall -luci-i18n-english -luci-lib-ipkg -luci-lib-lmo -luci-lib-sys -luci-proto-core -luci-proto-ppp -luci-sgi-cgi -luci-theme-base -luci-theme-openwrt kmod-mii kmod-usb-net kmod-usb-net-cdc-ether usb-modeswitch curl&amp;quot; \
-    FILES=files/
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;编译结果会放在 &lt;code&gt;bin/ar71xx/&lt;/code&gt; 下面&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;-rw-r--r-- 1 wd wd  827 May 13 10:08 md5sums
--rw-r--r-- 1 wd wd 2.2M May 13 10:08 openwrt-ar71xx-generic-root.squashfs
--rw-r--r-- 1 wd wd 1.9M May 13 10:08 openwrt-ar71xx-generic-root.squashfs-64k
--rw-r--r-- 1 wd wd 3.8M May 13 10:08 openwrt-ar71xx-generic-tl-wr703n-v1-squashfs-factory.bin
--rw-r--r-- 1 wd wd 2.9M May 13 10:08 openwrt-ar71xx-generic-tl-wr703n-v1-squashfs-sysupgrade.bin
--rw-r--r-- 1 wd wd 1.5M May 13 10:08 openwrt-ar71xx-generic-uImage-gzip.bin
--rw-r--r-- 1 wd wd 1.1M May 13 10:08 openwrt-ar71xx-generic-uImage-lzma.bin
--rwxr-xr-x 1 wd wd 3.2M May 13 10:08 openwrt-ar71xx-generic-vmlinux.bin
--rwxr-xr-x 1 wd wd 3.3M May 13 10:08 openwrt-ar71xx-generic-vmlinux.elf
--rw-r--r-- 1 wd wd 1.5M May 13 10:08 openwrt-ar71xx-generic-vmlinux.gz
--rw-r--r-- 1 wd wd 1.1M May 13 10:08 openwrt-ar71xx-generic-vmlinux.lzma
--rwxr-xr-x 1 wd wd 1.2M May 13 10:08 openwrt-ar71xx-generic-vmlinux-lzma.elf
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;那个 &lt;code&gt;openwrt-ar71xx-generic-tl-wr703n-v1-squashfs-factory.bin&lt;/code&gt; 就是我那个路由器的出厂固件。简直简单到没法说了。&lt;/p&gt;
-
-&lt;p&gt;前面那个编译命令里面， &lt;code&gt;PROFILE&lt;/code&gt; 是指定要编译的路由器，这个必须得是固件支持的，可以在 &lt;code&gt;target/linux/ar71xx/generic/profiles/&lt;/code&gt; 目录看到。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;00-default.mk  8devices.mk  atheros.mk   buffalo.mk  dragino.mk   ew.mk          jjplus.mk   netgear.mk   pcs.mk      rosewill.mk  tp-link.mk   wd.mk
-01-minimal.mk  alfa.mk      atlantis.mk  compex.mk   easylink.mk  gl-connect.mk  linksys.mk  oolite.mk    planex.mk   senao.mk     trendnet.mk  zcomax.mk
-02-ath5k.mk    allnet.mk    bhu.mk       d-link.mk   engenius.mk  hiwifi.mk      nclink.mk   openmesh.mk  redwave.mk  sitecom.mk   ubnt.mk      zyxel.mk
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;&lt;code&gt;PACKAGES&lt;/code&gt; 指定了要包含的包，可以在 &lt;code&gt;packages/&lt;/code&gt; 目录下面看到有的包。&lt;/p&gt;
-
-&lt;p&gt;&lt;code&gt;FILES&lt;/code&gt; 指定了自己定义要包含到固件里面的文件。可以把这个目录当作 &lt;code&gt;/&lt;/code&gt; 来放文件，比如你放到 &lt;code&gt;files/abc&lt;/code&gt; 下面的文件，将来会在路由器的 &lt;code&gt;/abc&lt;/code&gt; 下面。&lt;/p&gt;
-
-&lt;pre&gt;&lt;code&gt;.:
-etc
-
-./etc:
-banner  config  crontabs  dropbear  run.sh
-
-./etc/config:
-dropbear  firewall  network  system  wireless
-
-./etc/crontabs:
-root
-
-./etc/dropbear:
-authorized_keys
-&lt;/code&gt;&lt;/pre&gt;
-
-&lt;p&gt;后面还给 wr703n 接了一个华为 4g usb E8372h 型号，支持了 4g 上网。需要的包是这些， &lt;code&gt;kmod-mii kmod-usb-net kmod-usb-net-cdc-ether usb-modeswitch&lt;/code&gt; ，华为这个 usb 支持 ether 方式使用，并且 usb-modeswitch 直接就支持，不用自己配置。把 eth1 作为 wan 就可以了。&lt;/p&gt;
-
-&lt;p&gt;中国联通的信道&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;3G: WCDMA Band 1/8&lt;/li&gt;
-&lt;li&gt;4G: LTE-FDD 1/3/8  LTE-TDD 40/41&lt;/li&gt;
-&lt;/ul&gt;
-
-&lt;p&gt;参考的一些文章&lt;/p&gt;
-
-&lt;ul&gt;
-&lt;li&gt;&lt;a href=&#34;https://soha.moe/post/make-4g-wifi-ap-with-openwrt.html&#34; title=&#34;https://soha.moe/post/make-4g-wifi-ap-with-openwrt.html&#34;&gt;https://soha.moe/post/make-4g-wifi-ap-with-openwrt.html&lt;/a&gt;&lt;/li&gt;
-&lt;li&gt;&lt;a href=&#34;http://right.com.cn/forum/forum.php?mod=viewthread&amp;amp;action=printable&amp;amp;tid=209854&#34; title=&#34;http://right.com.cn/forum/forum.php?mod=viewthread&amp;amp;action=printable&amp;amp;tid=209854&#34;&gt;http://right.com.cn/forum/forum.php?mod=viewthread&amp;action=printable&amp;tid=209854&lt;/a&gt; 这个论坛里面之前有一个帖子帮助很大没保存&lt;/li&gt;
-&lt;/ul&gt;
 </description>
     </item>
     

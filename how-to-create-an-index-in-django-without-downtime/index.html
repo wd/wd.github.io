@@ -1,0 +1,1020 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
+    <title>How to Create an Index in Django Without Downtime | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+
+  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
+  <script src="https://wdicc.com//js/hljs.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/resume/">~/resume</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">How to Create an Index in Django Without Downtime</span></h1>
+
+<h2 class="date">2019/04/26</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/django">django</a> 
+  
+  
+</p>
+</div>
+
+
+
+
+
+
+
+
+
+<div id="TOC">
+    
+    <h4 class="text-muted">Table of Contents</h4>
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#%e5%9c%a8-django-%e9%87%8c%e9%9d%a2%e5%88%9b%e5%bb%ba%e7%b4%a2%e5%bc%95%e5%ad%98%e5%9c%a8%e7%9a%84%e9%97%ae%e9%a2%98"> 在 django 里面创建索引存在的问题 </a>
+                </li>
+                
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#%e9%85%8d%e7%bd%ae"> 配置 </a>
+                </li>
+                
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#fake-migration"> Fake Migration </a>
+                </li>
+                
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                    <ul class="toc-h2">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#how-to-fake-a-migration"> How to Fake a Migration </a>
+                </li>
+                
+                
+                    </ul>
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                    <ul class="toc-h2">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#cleanup"> Cleanup </a>
+                </li>
+                
+                
+                    </ul>
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#execute-raw-sql-in-migrations"> Execute Raw SQL in Migrations </a>
+                </li>
+                
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                    <ul class="toc-h2">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#cleanup"> Cleanup </a>
+                </li>
+                
+                
+                    </ul>
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#reverse-migration-operation"> Reverse Migration Operation </a>
+                </li>
+                
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                    <ul class="toc-h2">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#how-to-make-a-migration-reversible"> How to Make a Migration Reversible </a>
+                </li>
+                
+                
+                    </ul>
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#understand-model-state-and-database-state"> Understand Model State and Database State </a>
+                </li>
+                
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                    <ul class="toc-h2">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#when-django-generates-a-new-migration"> When Django Generates a New Migration </a>
+                </li>
+                
+                
+                    </ul>
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                    <ul class="toc-h2">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#how-to-separate-database-and-state-in-migrations"> How to Separate Database and State in Migrations </a>
+                </li>
+                
+                
+                    </ul>
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#non-atomic-migrations"> Non-Atomic Migrations </a>
+                </li>
+                
+                
+                    </ul>
+                
+            
+        
+    
+        
+        
+            
+                
+                
+                
+                    <ul class="toc-h1">
+                
+                
+                
+                
+                <li>
+                    <a href="/how-to-create-an-index-in-django-without-downtime/#conclusion"> Conclusion </a>
+                </li>
+                
+                
+                    </ul>
+                
+            
+        
+    
+</div>
+
+
+
+
+<main>
+<p>django 自己带了一个 ORM 实现，基本可以通过 ORM 管理数据库，这样用户可以在不会 SQL 的情况下使用数据库。在对 model 的属性（字段）做了修改之后，通过执行 <code>makemigrations</code> 可以生成一个 migrate 文件，然后执行 <code>migrate</code> 命令可以把这些修改应用到数据库。同时在数据库里面，也会记录当前 migrate 执行的状态，这样能保证数据库的状态和 django 自己认为的数据库的状态是一致的。</p>
+
+<p>但是这里可能会有一个问题，我们有多个数据库环境，也有多个人一起开发，这样就会导致这个有点混乱，多个人修改 model 后都执行了 <code>makemigrations</code> 的话，可能会有冲突和问题（实际上 django 已经考虑过这个问题的，migrate 文件都是按照时间戳来命名的，冲突可能性也不大，但是为了避免新手加入弄不好，所以我们采取了另外一个方法做这个事情）。</p>
+
+<p>下面的内容翻译自 https://realpython.com/create-django-index-without-downtime/ ，我们使用了里面提到的 <code>sqlmigrate</code> 的方式。</p>
+
+<p>管理数据库变更在软件开发中是一个比较大的挑战。幸运的是，从 django 1.7 开始有了内置的数据库变更处理框架。这个框架对于处理数据库变更来说很强大很好用。但是为了保证框架提供的灵活性，有一些妥协在里面。为了理解 django 数据库变更框架的限制，我们将解决一个有名的问题：如何在不停机情况下通过 django 创建索引。</p>
+
+<ul>
+在这个教程里面，你将学习到：
+<li>django 是什么时候和如何产生数据库变更的</li>
+<li>django 是如何执行变更的</li>
+<li>如何按照需要编辑这些变更</li>
+</ul>
+
+<p>这篇文章面向的是对 django 数据库变更（migrations）已经有所了解的人的。如果对这些还不了解，那可以先看看 <a href="https://realpython.com/django-migrations-a-primer/" title="Django Migrations: A Primer">Django Migrations: A Primer</a> 。</p>
+
+<h1 id="在-django-里面创建索引存在的问题">在 django 里面创建索引存在的问题</h1>
+
+<p>一个常见的变更是当你的数据增加的时候会需要建索引。索引可以查询的速度和应用的响应速度。</p>
+
+<p>大部分数据库里面增加索引需要在表上面加一个排它锁。当索引创建的时候，排它锁不允许进行数据修改（DML）操作，例如 UPDATE, INSERT, 和 DELETE 。</p>
+
+<p>当数据库执行这些操作的时候，会立刻加锁。例如如果一个用户登录的时候，django 会更新 auth_user 表的 last_login 字段。为了执行这个操作，数据库会先请求一个行锁，如果这行被其他连接加了锁，那你可能会得到一个<a href="https://docs.djangoproject.com/en/2.1/ref/exceptions/#database-exceptions" title="数据库异常">数据库异常</a>。</p>
+
+<p>锁表会让系统在做变更的时候不可用。表越大，创建索引的时间越长，系统不可用时间越长。</p>
+
+<p>一些数据库提供了不锁表建索引的方法。例如，在 PostgreSQL 里面可以使用 <a href="https://www.postgresql.org/docs/current/sql-createindex.html" title="CONCURRENTLY">CONCURRENTLY</a> 关键字：</p>
+
+<pre><code class="language-sql">CREATE INDEX CONCURRENTLY ix ON table (column);
+</code></pre>
+
+<p>在 Oracle 里面，有一个 ONLINE 选项允许在创建索引的时候执行 DML 操作：</p>
+
+<pre><code class="language-sql">CREATE INDEX ix ON table (column) ONLINE;
+</code></pre>
+
+<p>在生成数据库变更的时候，django 不会使用这些关键字。执行这些变更创建索引会导致数据库增加表的排他锁，而阻止 DML 操作。</p>
+
+<p>异步创建索引也有一些潜在的问题。最好提前了解一下自己数据库可能存在的问题。例如，在 PostgreSQL 里面异步创建索引的时候时间会比较长，因为它需要对表做一些额外的扫描。</p>
+
+<p>这篇文章里面，会使用 django 的数据库变更在一个大表上面创建索引而不会带来停机时间。</p>
+
+<h1 id="配置">配置</h1>
+
+<p>这里将在一个叫 app 的应用里面使用一个 Sale 模型。在真实世界，类似 Sale 这样的模型一般是数据库的主要的表，会存储大量的数据。</p>
+
+<pre><code class="language-python"># models.py
+
+from django.db import models
+
+class Sale(models.Model):
+    sold_at = models.DateTimeField(
+        auto_now_add=True,
+    )
+    charged_amount = models.PositiveIntegerField()
+To create the table, generate the initial migration and apply it:
+</code></pre>
+
+<p>生成初始的数据库变更，并创建这个表：</p>
+
+<pre><code class="language-shell">$ python manage.py makemigrations
+Migrations for 'app':
+  app/migrations/0001_initial.py
+    - Create model Sale
+
+$ python manage migrate
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0001_initial... OK
+</code></pre>
+
+<p>过一段时间，sales 表会变的很大，用户会开始抱怨访问起来比较慢。通过监控数据库，发现大量查询都使用了 sold_at 列。为了提速，你决定给这列加一个索引。</p>
+
+<p>为了给 sold_at 加索引，对模型做如下变更：</p>
+
+<pre><code class="language-python"># models.py
+
+from django.db import models
+
+class Sale(models.Model):
+    sold_at = models.DateTimeField(
+        auto_now_add=True,
+        db_index=True,  # 变更在这里
+    )
+    charged_amount = models.PositiveIntegerField()
+</code></pre>
+
+<p>如果你执行这个数据库变更，django 会在表上面创建索引，表会加锁直到索引创建完毕。在一个很大的表上面创建索引的时候会需要一些时间，你想要避免停机。</p>
+
+<p>在本地开发环境的时候，数据库比较小连接也不多，这个变更会很快执行完毕。但是，在有很多连接的大数据库，加锁创建索引会需要一些时间。</p>
+
+<p>下面的步骤会讲如何通过修改 django 生成的数据库变更来达到不停机创建索引的操作。</p>
+
+<h1 id="fake-migration">Fake Migration</h1>
+
+<p>首先尝试手工建立这个索引。我们将生成这个数据库变更，但是并不用 django 执行。而使用在数据库里面手动执行的方式，然后让 django 相信我们已经做了这个变更。</p>
+
+<p>首先，生成数据库变更：</p>
+
+<pre><code class="language-python">$ python manage.py makemigrations --name add_index_fake
+Migrations for 'app':
+  app/migrations/0002_add_index_fake.py
+    - Alter field sold_at on sale
+</code></pre>
+
+<p>使用 sqlmigrate 命令查看 django 在这次变更里面打算使用的 SQL：</p>
+
+<pre><code class="language-shell">$ python manage.py sqlmigrate app 0002
+
+BEGIN;
+--
+-- Alter field sold_at on sale
+--
+CREATE INDEX &quot;app_sale_sold_at_b9438ae4&quot; ON &quot;app_sale&quot; (&quot;sold_at&quot;);
+COMMIT;
+</code></pre>
+
+<p>为了不加锁创建索引，需要对准备在数据执行的命令做一个修改，增加 CONCURRENTLY 关键字：</p>
+
+<pre><code class="language-sql">app=# CREATE INDEX CONCURRENTLY &quot;app_sale_sold_at_b9438ae4&quot;
+ON &quot;app_sale&quot; (&quot;sold_at&quot;);
+
+CREATE INDEX
+</code></pre>
+
+<p>注意这里没有执行 BEGIN 和 COMMIT 部分，忽略掉这个可以避免数据库创建事务来执行，关于事务后面会讨论。</p>
+
+<p>After you executed the command, if you try to apply migrations, then you will get the following error:
+执行之后，如果执行生成的数据库变更，会遇到下面的错误：</p>
+
+<pre><code class="language-shell">$ python manage.py migrate
+
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0002_add_index_fake...Traceback (most recent call last):
+  File &quot;venv/lib/python3.7/site-packages/django/db/backends/utils.py&quot;, line 85, in _execute
+    return self.cursor.execute(sql, params)
+
+
+psycopg2.ProgrammingError: relation &quot;app_sale_sold_at_b9438ae4&quot; already exists
+</code></pre>
+
+<p>django 会报错说这个索引已经存在了，所以没法继续执行这个数据库变更了。因为我们已经在数据库里面创建了这个索引，所以需要告诉 django 已经执行了。</p>
+
+<h2 id="how-to-fake-a-migration">How to Fake a Migration</h2>
+
+<p>django 提供了一个内置的方法来标记一个变更已经执行过了，就是使用 --fake 参数。</p>
+
+<pre><code class="language-shell">$ python manage.py migrate --fake
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0002_add_index_fake... FAKED
+Django didn’t raise an error this time. In fact, Django didn’t really apply any migration. It just marked it as executed (or FAKED).
+
+</code></pre>
+
+<ul>
+使用 fake 的时候需要注意的几个问题：
+<li>手动执行的命令必须要和 django 生成的有相同的效果：记得使用 sqlmigrate 来生成 SQL。如果两个命令不一致，会导致数据库和 django 里面的模型之间的状态不一致。</li>
+<li>其他没有执行的数据库变更也会 faked：如果有多个没有应用的数据库变更的时候，它们也会被 fake。执行变更前，确认是不是只有你想要的变更被 fake，否则可能会导致数据库和 django 不一致。有一个方式是指定需要 fake 的变更。</li>
+<li>需要有直接连接数据库的权限：你需要在数据库执行那个 SQL。同时，在生产数据库执行命令是危险的，应该尽量避免。</li>
+<li>自动化的工具可能需要调整：如果你有自动部署工具（例如 CI，CD 或者其他工具），可能需要对它们进行调整。</li>
+</ul>
+
+<h2 id="cleanup">Cleanup</h2>
+
+<p>继续下一步之前，需要把数据库回复到初始的状态。执行下面的操作：</p>
+
+<pre><code class="language-shell">$ python manage.py migrate 0001
+Operations to perform:
+  Target specific migration: 0001_initial, from app
+Running migrations:
+  Rendering model states... DONE
+  Unapplying app.0002_add_index_fake... OK
+</code></pre>
+
+<p>django 把第二步做的修改回滚了，现在可以安全的把变更文件也删除了：</p>
+
+<pre><code class="language-shell">$ rm app/migrations/0002_add_index_fake.py
+</code></pre>
+
+<p>确认下是不是都 ok 了：</p>
+
+<pre><code class="language-shell">$ python manage.py showmigrations app
+app
+ [X] 0001_initial
+</code></pre>
+
+<p>只有第一个变更被执行了，并且也没有其他变更了。</p>
+
+<h1 id="execute-raw-sql-in-migrations">Execute Raw SQL in Migrations</h1>
+
+<p>在上一个小节里面，通过在数据库直接执行 SQL 然后 fake 那个数据库变更达到我们的目的。还有一个更好的办法。</p>
+
+<p>Django 提供了一个方法可以在数据库变更的时候通过 RunSQL 来执行原始 SQL。这里我们试着使用它来代替我们直接在数据库执行 sql。</p>
+
+<p>首先，生成一个空的数据库变更：</p>
+
+<pre><code class="language-shell">$ python manage.py makemigrations app --empty --name add_index_runsql
+Migrations for 'app':
+  app/migrations/0002_add_index_runsql.py
+</code></pre>
+
+<p>编辑变更文件，增加一个 RunSQL 操作：</p>
+
+<pre><code class="language-python"># migrations/0002_add_index_runsql.py
+
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+    atomic = False
+
+    dependencies = [
+        ('app', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.RunSQL(
+            'CREATE INDEX &quot;app_sale_sold_at_b9438ae4&quot; '
+            'ON &quot;app_sale&quot; (&quot;sold_at&quot;);',
+        ),
+    ]
+</code></pre>
+
+<p>执行这个变更的时候，会有如下的输出：</p>
+
+<pre><code class="language-shell">$ python manage.py migrate
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0002_add_index_runsql... OK
+</code></pre>
+
+<p>看着好像没啥问题，但是其实有一个问题，再次生成数据库变更：</p>
+
+<pre><code class="language-shell">$ python manage.py makemigrations --name leftover_migration
+Migrations for 'app':
+  app/migrations/0003_leftover_migration.py
+    - Alter field sold_at on sale
+</code></pre>
+
+<p>django 又生成了一次相同的变更，这是怎么回事呢？</p>
+
+<h2 id="cleanup-1">Cleanup</h2>
+
+<p>Before we can answer that question, you need to clean up and undo the changes you made to the database. Start by deleting the last migration. It was not applied, so it’s safe to delete:
+回答那个问题前，先回滚一下对数据库做的操作。因为最后那个变更没有执行，所以可以直接删除：</p>
+
+<pre><code class="language-shell">$ rm app/migrations/0003_leftover_migration.py
+</code></pre>
+
+<p>列出所有的变更：</p>
+
+<pre><code class="language-shell">$ python manage.py showmigrations app
+app
+ [X] 0001_initial
+ [X] 0002_add_index_runsql
+</code></pre>
+
+<p>第三个变更消失了，但是第二个变更已经执行了，所以还在。我们需要回滚到初始的状态，执行回滚的变更看看：</p>
+
+<pre><code class="language-shell">$ python manage.py migrate app 0001
+Operations to perform:
+  Target specific migration: 0001_initial, from app
+Running migrations:
+  Rendering model states... DONE
+  Unapplying app.0002_add_index_runsql...Traceback (most recent call last):
+
+NotImplementedError: You cannot reverse this operation
+</code></pre>
+
+<p>django 无法回滚那个数据库变更。</p>
+
+<h1 id="reverse-migration-operation">Reverse Migration Operation</h1>
+
+<p>To reverse a migration, Django executes an opposite action for every operation. In this case, the reverse of adding an index is to drop it. As you’ve already seen, when a migration is reversible, you can unapply it. Just like you can use checkout in Git, you can reverse a migration if you execute migrate to an earlier migration.
+回滚一个数据库变更，django 会执行一个反向的操作。我们这种情况下，增加索引的反向操作就是删除这个索引。就是你看到的，如果一个变更是可回滚的，那你可以回滚它。就和你可以在 git 里面使用 checkout 一样，你可以通过执行前一个变更来回滚后面的变更。</p>
+
+<p>很多内置的变更都定义了回滚的操作。例如，增加一个字段的回滚操作是删除那个字段。增加一个模型的反向操作是删除那个对于的数据库表。</p>
+
+<p>有一个操作是无法回滚的。例如，删除一个字段或者删除一个模型是无法回滚的，因为一旦这个操作执行了，数据就没了，回滚不了了。</p>
+
+<p>在前一个小节，我们使用了 RunSQL 操作。当尝试回滚的时候遇到了错误。通过错误信息可知，有一些操作无法回滚。默认情况下 django 无法回滚原始 SQL。因为 django 不知道实际执行的是什么，不能自动产生回滚对应的操作。</p>
+
+<h2 id="how-to-make-a-migration-reversible">How to Make a Migration Reversible</h2>
+
+<p>想要一个数据库变更可以回滚，那里面的所有操作必须都是可以回滚的。不能只回滚一部分，所以某一个不可回滚的操作，会导致整个数据库变更都不能回滚。</p>
+
+<p>为了使得 RunSQL 操作可以回滚，需要提供在回滚的时候执行的 SQL。可以通过 reverse_sql 参数提供。</p>
+
+<p>增加索引的回滚操作是删除它。增加一个 reverse_sql 参数：</p>
+
+<pre><code class="language-python"># migrations/0002_add_index_runsql.py
+
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+    atomic = False
+
+    dependencies = [
+        ('app', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.RunSQL(
+            'CREATE INDEX &quot;app_sale_sold_at_b9438ae4&quot; '
+            'ON &quot;app_sale&quot; (&quot;sold_at&quot;);',
+
+            reverse_sql='DROP INDEX &quot;app_sale_sold_at_b9438ae4&quot;;',
+        ),
+    ]
+</code></pre>
+
+<p>再执行一下回滚看看：</p>
+
+<pre><code class="language-shell">$ python manage.py showmigrations app
+app
+ [X] 0001_initial
+ [X] 0002_add_index_runsql
+
+$ python manage.py migrate app 0001
+Operations to perform:
+  Target specific migration: 0001_initial, from app
+Running migrations:
+  Rendering model states... DONE
+ Unapplying app.0002_add_index_runsql... OK
+
+$ python manage.py showmigrations app
+app
+ [X] 0001_initial
+ [ ] 0002_add_index_runsql
+</code></pre>
+
+<p>第二个数据库变更也回滚了，索引被删除了。现在可以删除数据库变更文件了。</p>
+
+<pre><code class="language-shell">$ rm app/migrations/0002_add_index_runsql.py
+</code></pre>
+
+<p>应该尽量提供一个 reverse_sql。当一个原始 SQL 操作不需要回滚操作的时候，可以通过 migrations.RunSQL.noop 标记这个操作是可以回滚的。</p>
+
+<pre><code class="language-python">migrations.RunSQL(
+    sql='...',  # Your forward SQL here
+    reverse_sql=migrations.RunSQL.noop,
+),
+
+</code></pre>
+
+<h1 id="understand-model-state-and-database-state">Understand Model State and Database State</h1>
+
+<p>在上一步尝试通过手动执行 RunSQL 来创建索引的时候，即使数据库已经创建了索引，django 还是会生成对应的数据库变更。为了理解这是为什么，需要先理解 django 是如何决定生成一个新的数据库变更的。</p>
+
+<h2 id="when-django-generates-a-new-migration">When Django Generates a New Migration</h2>
+
+<p>Django 在生成和执行数据库变更的时候，同步数据库和模型之间的状态。例如，当给一个模型增加一个字段的时候，Django 会在数据库里面增加一列。当从模型删除一个字段的时候，Django 会从对应的表删除那个字段。</p>
+
+<p>为了同步数据库到模型的状态，Django 会维护模型对应的状态。为了同步模型到数据库的状态，Django 生成数据库变更。生成的数据库变更会翻译成对应的不同类型的数据库里面可执行的操作。当所有的数据库变更执行之后，预期上数据库和模型之间就应该是一致的状态了。</p>
+
+<p>为了得到数据库的状态，Django 会聚合之前的所有数据库变更。当聚合之后的状态和模型当前的状态不一致的时候，Django 会生成新的数据库变更。</p>
+
+<p>上一个例子里面，我们使用原始 SQL 创建索引。因为我们用的不是常见的操作，Django 这个时候并不知道我们已经创建了这个索引。</p>
+
+<p>当 Django 聚合所有的数据库变更，然后和模型当前的状态比较之后，发现少了一个索引。这就是为什么即使你手动创建了那个索引，Django 依然会认为缺少这个索引而产生对应的数据库变更。</p>
+
+<h2 id="how-to-separate-database-and-state-in-migrations">How to Separate Database and State in Migrations</h2>
+
+<p>因为 Django 不能用我们想要的方式创建索引，我们需要提供我们想要执行的 SQL 同时还需要告诉 Django 知道我们已经创建了。</p>
+
+<p>换句话说，你需要在数据库里面执行一些语句，同时提供给 Django 对应的数据库变更来同步它内部的状态。Django 提供了一个特殊的数据库变更操作叫做 <a href="https://docs.djangoproject.com/en/2.1/ref/migration-operations/#separatedatabaseandstate" title="SeparateDatabaseAndState">SeparateDatabaseAndState</a> ，这个操作比较少见，一般只是在现在这种情况下才会使用。</p>
+
+<p>修改一个数据库变更比从头写一个容易多了，所以我们先生成一个变更，然后再修改它：</p>
+
+<pre><code class="language-shell">$ python manage.py makemigrations --name add_index_separate_database_and_state
+
+Migrations for 'app':
+  app/migrations/0002_add_index_separate_database_and_state.py
+    - Alter field sold_at on sale
+</code></pre>
+
+<p>下面是 Django 生成的变更，和之前的一样：</p>
+
+<pre><code class="language-python">
+
+# migrations/0002_add_index_separate_database_and_state.py
+
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('app', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.AlterField(
+            model_name='sale',
+            name='sold_at',
+            field=models.DateTimeField(
+                auto_now_add=True,
+                db_index=True,
+            ),
+        ),
+    ]
+</code></pre>
+
+<p>Django 给 sold_at 字段生成了一个 AlterField 操作。这个操作会创建索引并更新状态。我们希望保留这个操作，但是提供不同的命令在数据库执行。</p>
+
+<p>再说一次，可以通过 django 来生成这个命令：</p>
+
+<pre><code class="language-shell">$ python manage.py sqlmigrate app 0002
+BEGIN;
+--
+-- Alter field sold_at on sale
+--
+CREATE INDEX &quot;app_sale_sold_at_b9438ae4&quot; ON &quot;app_sale&quot; (&quot;sold_at&quot;);
+COMMIT;
+</code></pre>
+
+<p>在适当的地方添加 CONCURRENTLY 关键字：</p>
+
+<pre><code class="language-sql">CREATE INDEX CONCURRENTLY &quot;app_sale_sold_at_b9438ae4&quot;
+ON &quot;app_sale&quot; (&quot;sold_at&quot;);
+</code></pre>
+
+<p>接下来，编辑数据库变更文件，使用 SeparateDatabaseAndState 来执行修改后的 SQL：</p>
+
+<pre><code class="language-python">
+
+# migrations/0002_add_index_separate_database_and_state.py
+
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+
+    dependencies = [
+        ('app', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AlterField(
+                    model_name='sale',
+                    name='sold_at',
+                    field=models.DateTimeField(
+                        auto_now_add=True,
+                        db_index=True,
+                    ),
+                ),
+            ],
+
+            database_operations=[
+                migrations.RunSQL(sql=&quot;&quot;&quot;
+                    CREATE INDEX CONCURRENTLY &quot;app_sale_sold_at_b9438ae4&quot;
+                    ON &quot;app_sale&quot; (&quot;sold_at&quot;);
+                &quot;&quot;&quot;, reverse_sql=&quot;&quot;&quot;
+                    DROP INDEX &quot;app_sale_sold_at_b9438ae4&quot;;
+                &quot;&quot;&quot;),
+            ],
+        ),
+
+    ],
+</code></pre>
+
+<ul>
+SeparateDatabaseAndState 操作接收两个列表参数：
+<li>state_operations 是应用到模型内部状态变更上面的。这些操作不会影响数据库。</li>
+<li>database_operations 是应用的数据库的变更。</li>
+</ul>
+
+<p>我们保留了 django 产生的 state_operations 操作。这是我们使用 SeparateDatabaseAndState 的时候的通常的做法。注意字段上面增加了 db_index=True 。这个操作是让 django 知道那个字段上有一个索引。</p>
+
+<p>然后在 django 生成的 SQL 的基础上增加了 CONCURRENTLY 关键字。然后使用了 <a href="https://docs.djangoproject.com/en/2.1/ref/migration-operations/#runsql" title="RunSQL">RunSQL</a> 这个特殊动作执行了一个原始 SQL。</p>
+
+<p>执行这个数据库变更的时候，会有如下的输出：</p>
+
+<pre><code class="language-shell">$ python manage.py migrate app
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0002_add_index_separate_database_and_state...Traceback (most recent call last):
+  File &quot;/venv/lib/python3.7/site-packages/django/db/backends/utils.py&quot;, line 83, in _execute
+    return self.cursor.execute(sql)
+psycopg2.InternalError: CREATE INDEX CONCURRENTLY cannot run inside a transaction block
+</code></pre>
+
+<p>注意上面这个输出报错了。</p>
+
+<h1 id="non-atomic-migrations">Non-Atomic Migrations</h1>
+
+<p>在 SQL 里面，CREATE, DROP, ALTER, 和 TRUNCATE 操作是数据库定义语句（DDL）。在支持在事务里面执行 DDL 的数据库，例如 <a href="https://wiki.postgresql.org/wiki/Transactional_DDL_in_PostgreSQL:_A_Competitive_Analysis#Transactional_DDL" title="PostgreSQL">PostgreSQL</a>，Django 默认会在事务里面执行数据库变更操作。然而，按照上面的错误，PostgreSQL 不能在事务里面执行异步索引创建。</p>
+
+<p>为了能在数据库变更里面异步创建索引，需要告诉 django 不要在事务里面执行这个变更。需要设置如下：</p>
+
+<pre><code class="language-python"># migrations/0002_add_index_separate_database_and_state.py
+from django.db import migrations, models
+
+class Migration(migrations.Migration):
+    atomic = False
+
+    dependencies = [
+        ('app', '0001_initial'),
+    ]
+
+    operations = [
+        migrations.SeparateDatabaseAndState(
+            state_operations=[
+                migrations.AlterField(
+                    model_name='sale',
+                    name='sold_at',
+                    field=models.DateTimeField(
+                        auto_now_add=True,
+                        db_index=True,
+                    ),
+                ),
+            ],
+
+            database_operations=[
+                migrations.RunSQL(sql=&quot;&quot;&quot;
+                    CREATE INDEX CONCURRENTLY &quot;app_sale_sold_at_b9438ae4&quot;
+                    ON &quot;app_sale&quot; (&quot;sold_at&quot;);
+                &quot;&quot;&quot;,
+                reverse_sql=&quot;&quot;&quot;
+                    DROP INDEX &quot;app_sale_sold_at_b9438ae4&quot;;
+                &quot;&quot;&quot;),
+            ],
+        ),
+
+    ],
+</code></pre>
+
+<p>之后就可以执行了：</p>
+
+<pre><code class="language-shell">$ python manage.py migrate app
+Operations to perform:
+  Apply all migrations: app
+Running migrations:
+  Applying app.0002_add_index_separate_database_and_state... OK
+</code></pre>
+
+<p>这样就执行了这个变更而没有任何停机时间。</p>
+
+<ul>
+使用 SeparateDatabaseAndState 的时候还有一下需要考虑的问题：
+<li>数据库操作必须和状态操作一致：数据库状态和模型的状态不一致可能会导致很多问题。好的做法是在 state_operations 使用 django 产生的变更，然后 database_operations 使用编辑之后的 django 通过 sqlmigrate 产生的 SQL。（其实就是上面例子里面的方式）</li>
+<li>非原子性的数据库操作在遇到错误的时候不能回滚：如果在执行数据库变更的时候遇到了错误，那你将不能回滚。这时候就必须整个回滚或者手动操作执行了。把尽量少的非原子性的操作放一起比较好。如果有其他的操作，可以把它们放到另一个单独的数据库变更里面。</li>
+<li>数据库变更也可能和数据库类型有关：django 会根据使用的后端数据库类型产生 SQL。可能可以支持其他类型的数据库，但是并不能保证一定可以。如果需要支持不同数据库类型，那需要根据需要修改一下这个方案。</li>
+</ul>
+
+<h1 id="conclusion">Conclusion</h1>
+
+<p>这篇文章主要是解决了一个大量数据的数据库里面，想要提高用户响应速度，但是不想增加停机时间的问题。</p>
+
+<p>（我感觉作者废话太多了，实在懒得翻译了。。。）</p>
+
+<p>By the end of the tutorial, you managed to generate and safely modify a Django migration to achieve this goal. You tackled different problems along the way and managed to overcome them using built-in tools provided by the migrations framework.</p>
+
+<p>In this tutorial, you learned the following:</p>
+
+<p>How Django migrations work internally using model and database state, and when new migrations are generated
+How to execute custom SQL in migrations using the RunSQL action
+What reversible migrations are, and how to make a RunSQL action reversible
+What atomic migrations are, and how to change the default behavior according to your needs
+How to safely execute complex migrations in Django
+The separation between model and database state is an important concept. Once you understand it, and how to utilize it, you can overcome many limitations of the built-in migration operations. Some use cases that come to mind include adding an index that was already created in the database and providing vendor specific arguments to DDL commands.</p>
+
+</main>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+
+
+    <footer style="clear:both">
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+
