@@ -1,0 +1,77 @@
+---
+title: "Add Disk for Aws"
+date: 2019-06-19T15:29:33+08:00
+tags: ["aws"]
+toc: true
+---
+AWS 的 ec2 支持不停机扩展磁盘，体验还不错，记录一下操作。
+
+先看看磁盘是不是支持，例如下面的 GPT 的是支持的
+#+BEGIN_SRC 
+$ sudo gdisk -l /dev/xvda
+GPT fdisk (gdisk) version 0.8.10
+
+Partition table scan:
+  MBR: protective
+  BSD: not present
+  APM: not present
+  GPT: present
+
+Found valid GPT with protective MBR; using GPT.
+Disk /dev/xvda: 20971520 sectors, 10.0 GiB
+Logical sector size: 512 bytes
+Disk identifier (GUID): 826F22DD-540A-4299-AB06-F03EE98F1CAF
+Partition table holds up to 128 entries
+First usable sector is 34, last usable sector is 20971486
+Partitions will be aligned on 2048-sector boundaries
+Total free space is 2014 sectors (1007.0 KiB)
+
+Number  Start (sector)    End (sector)  Size       Code  Name
+   1            4096        20971486   10.0 GiB    8300  Linux
+ 128            2048            4095   1024.0 KiB  EF02  BIOS Boot Partition
+#+END_SRC
+
+目前磁盘大小
+#+BEGIN_SRC 
+$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        2.0G   56K  2.0G   1% /dev
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+/dev/xvda1      9.8G  7.3G  2.4G  76% /
+#+END_SRC
+
+去 aws 后台调整一下磁盘大小，只能增加不能减少。这个也可以通过 aws 的命令行来做。
+
+然后等后台显示完成之后，回来看磁盘大小，可以看到 =xvda= 已经是 15G 了， =xvda1= 还是 10G。
+#+BEGIN_SRC
+$ lsblk
+NAME    MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+xvda    202:0    0  15G  0 disk
+└─xvda1 202:1    0  10G  0 part /
+#+END_SRC
+
+扩展分区大小
+#+BEGIN_SRC 
+[wd@ba2 ~]$ sudo growpart /dev/xvda 1
+CHANGED: disk=/dev/xvda partition=1: start=4096 old: size=20967390,end=20971486 new: size=31453150,end=31457246
+#+END_SRC
+
+扩展文件系统大小
+#+BEGIN_SRC 
+$ sudo resize2fs /dev/xvda1
+resize2fs 1.42.12 (29-Aug-2014)
+Filesystem at /dev/xvda1 is mounted on /; on-line resizing required
+old_desc_blocks = 1, new_desc_blocks = 1
+The filesystem on /dev/xvda1 is now 3931643 (4k) blocks long.
+#+END_SRC
+
+看看大小
+#+BEGIN_SRC 
+$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        2.0G   56K  2.0G   1% /dev
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+/dev/xvda1       15G  7.3G  7.3G  50% /
+#+END_SRC
+
+参考链接: [[https://docs.amazonaws.cn/AWSEC2/latest/UserGuide/recognize-expanded-volume-linux.html][https://docs.amazonaws.cn/AWSEC2/latest/UserGuide/recognize-expanded-volume-linux.html]]
