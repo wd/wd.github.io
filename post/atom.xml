@@ -6,10 +6,40 @@
     <description>Recent content in Posts on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 29 Apr 2019 14:41:12 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 19 Jun 2019 15:38:56 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/post/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Django Testing</title>
+      <link>https://wdicc.com/django-testing/</link>
+      <pubDate>Wed, 19 Jun 2019 15:38:56 +0800</pubDate>
+      
+      <guid>https://wdicc.com/django-testing/</guid>
+      <description>Django 自己的 unittest 支持的挺好，一般只需要在 app 下面加一个 tests.py 在里面写 case 就可以了。case 对应的类继承 django.test.TestCase 就好。
+每一个测试类里面，都可以有一个 setUp 方法，是在 case 方法执行前执行，例如一些准备工作，和一个 tearDown 方法，在 case 执行之后执行，例如一些清理工作。还可以有若干个使用 test 开头的测试用例。
+case 我觉得一般可以分两种，方法测试，和接口测试。
+方法测试指针对一些工具方法什么的测试，当然这个说法并不严谨，将就理解吧。我把这些归类为不涉及到数据库操作的测试。
+接口测试，一般会涉及到数据库操作，需要验证登录啊，参数什么的。
+Django 里面，每个测试用例之间是通过事务互相隔离的，所以不用担心互相之间会有影响。
+接口测试可以通过 django.test.Client 来访问你的接口，然后比对返回结果，或者比对数据库的数据来验证。
+有时候一些接口是依赖已有数据的，比如一个返回所有用户的接口，那测试的时候数据库是需要有用户才能返回的。这个可以通过 fixture 来 moke 数据。
+fixture 就是一些 json 文件，里面放的是和 model 的数据，这样一个测试如果需要某几个 model 对应的表里面事先有数据，那可以把他们放到 fixture 文件里面，让 django 在运行之前先 load 到数据库就可以了。
+这些 json 文件自己编写会死，Django 提供了 manage.py dumpdata --indent 4 [app_label[.ModelName] [app_label[.ModelName] 功能，可以方便你导出数据库里面已有的数据。不指定 app_label 和 modelname 就会导出全部的，一般只导出自己需要的就好。注意 json 文件是可以支持缩进的。
+如果从比如开发库之类的倒数据，会觉得数据有点乱，从测试库倒数据似乎比较清净，因为每次测试都是一个空的数据库。有一个方法是在测试用例里面创建依赖的数据，但是测试执行完了再执行 manage.</description>
+    </item>
+    
+    <item>
+      <title>Add Disk for Aws</title>
+      <link>https://wdicc.com/add-disk-for-aws/</link>
+      <pubDate>Wed, 19 Jun 2019 15:29:33 +0800</pubDate>
+      
+      <guid>https://wdicc.com/add-disk-for-aws/</guid>
+      <description>AWS 的 ec2 支持不停机扩展磁盘，体验还不错，记录一下操作。
+先看看磁盘是不是支持，例如下面的 GPT 的是支持的
+$ sudo gdisk -l /dev/xvda GPT fdisk (gdisk) version 0.8.10 Partition table scan: MBR: protective BSD: not present APM: not present GPT: present Found valid GPT with protective MBR; using GPT. Disk /dev/xvda: 20971520 sectors, 10.0 GiB Logical sector size: 512 bytes Disk identifier (GUID): 826F22DD-540A-4299-AB06-F03EE98F1CAF Partition table holds up to 128 entries First usable sector is 34, last usable sector is 20971486 Partitions will be aligned on 2048-sector boundaries Total free space is 2014 sectors (1007.</description>
+    </item>
     
     <item>
       <title>Debuging Django</title>
@@ -410,34 +440,6 @@ GPT 分区 以前都是 MBR(Master Boot Record) 形式的分区，主分区 4 �
 我看我的 windows 10 机器预装就是用的这个分区格式。
 UEFI 系统 UEFI(Unified Extensible Firmware Interface) 是基于 BIOS 的 MBR 启动方式不同的东西，是基于单独的 EFI System Partition(ESP) 里面的数据启动的。里面的程序都需要和 UEFI firmware 的 bitness 一致，x86_64 啥的。
 所以我的 windows 10 在 ESP 分区里面已经放了一个自己的起动器。Linux 启动之后，可以查看 /sys/firmware/efi 看看是不是有，有的话表示 kernel 支持 efi，且和 firmware 的 bitness 一致。</description>
-    </item>
-    
-    <item>
-      <title>Redux Selector</title>
-      <link>https://wdicc.com/redux-selector/</link>
-      <pubDate>Sun, 13 May 2018 10:43:28 +0800</pubDate>
-      
-      <guid>https://wdicc.com/redux-selector/</guid>
-      <description>redux 应用可以通过 selector 来做 state - props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的是这个 https://github.com/reduxjs/reselect。
-selector 主要是一个纯函数，给同样的输入，得到同样的输出，只处理数据，没有其他附加影响。这样就可以缓存中间结果了。
-新建 selector 有两个方法，一个是直接定义函数，例如
-const s1 = (state) =&amp;gt; { // 经过计算 return state.user } const s2 = state =&amp;gt; state.data  另外一个方法是通过 createSelector 函数来创建，例如
-const s3 = createSelector(s1, s2, (s1, s2) =&amp;gt;{ // 经过计算 return xx })  实际上 selector 都是一些函数，具体用的是侯会执行这些函数，第一个方法创建的还好理解，第二个方法里面，会传什么参数呢？输入是什么呢？
-实际上，第二个方法定义的 selector 执行的时候类似这样。
-const res = s3(s1(state), s2(state))  输入是里面 selector 的输入，然后不停嵌套到最初的数据。这样一个 selector 使用的方法就广泛了。比如
-const s1_res = s1(state) // 从其他地方或者逻辑获取到这个值 const res = s3(s1_res, s2(state)) // 直接用来作为 s3 的输入  </description>
-    </item>
-    
-    <item>
-      <title>Openwrt</title>
-      <link>https://wdicc.com/openwrt/</link>
-      <pubDate>Sun, 13 May 2018 10:01:39 +0800</pubDate>
-      
-      <guid>https://wdicc.com/openwrt/</guid>
-      <description>前段时间还搞了一下 openwrt 定制，记录一下。
-openwrt 提供了很方便的方式让你可以在 x86 机器上面定制路由器固件，到 https://archive.openwrt.org/ 下载对应的源码就可以。
-比如我用的是这个 https://archive.openwrt.org/barrier_breaker/14.07/ar71xx/generic/OpenWrt-ImageBuilder-ar71xx_generic-for-linux-x86_64.tar.bz2 ， barrier_breaker 是版本， ar71xx 是 cpu 架构。解压之后目录类似如下
-drwxr-xr-x 12 wd wd 4.0K Mar 29 17:18 . drwxr-xr-x 3 wd wd 4.0K Mar 26 20:32 .. drwxr-xr-x 3 wd wd 4.0K Mar 27 10:40 bin drwxr-xr-x 3 wd wd 4.0K Oct 1 2014 build_dir -rw-r--r-- 1 wd wd 94K Oct 1 2014 .config drwxr-xr-x 2 wd wd 4.0K Oct 1 2014 dl drwxr-xr-x 3 wd wd 4.</description>
     </item>
     
   </channel>

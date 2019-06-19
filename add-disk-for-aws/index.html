@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
+    <title>Add Disk for Aws | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+
+  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
+  <script src="https://wdicc.com//js/hljs.js"></script>
+
+  <script>hljs.initHighlightingOnLoad();</script>
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/resume/">~/resume</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Add Disk for Aws</span></h1>
+
+<h2 class="date">2019/06/19</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/aws">aws</a> 
+  
+  
+</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<main>
+<p>AWS 的 ec2 支持不停机扩展磁盘，体验还不错，记录一下操作。</p>
+
+<p>先看看磁盘是不是支持，例如下面的 GPT 的是支持的</p>
+
+<pre><code>$ sudo gdisk -l /dev/xvda
+GPT fdisk (gdisk) version 0.8.10
+
+Partition table scan:
+  MBR: protective
+  BSD: not present
+  APM: not present
+  GPT: present
+
+Found valid GPT with protective MBR; using GPT.
+Disk /dev/xvda: 20971520 sectors, 10.0 GiB
+Logical sector size: 512 bytes
+Disk identifier (GUID): 826F22DD-540A-4299-AB06-F03EE98F1CAF
+Partition table holds up to 128 entries
+First usable sector is 34, last usable sector is 20971486
+Partitions will be aligned on 2048-sector boundaries
+Total free space is 2014 sectors (1007.0 KiB)
+
+Number  Start (sector)    End (sector)  Size       Code  Name
+   1            4096        20971486   10.0 GiB    8300  Linux
+ 128            2048            4095   1024.0 KiB  EF02  BIOS Boot Partition
+</code></pre>
+
+<p>目前磁盘大小</p>
+
+<pre><code>$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        2.0G   56K  2.0G   1% /dev
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+/dev/xvda1      9.8G  7.3G  2.4G  76% /
+</code></pre>
+
+<p>去 aws 后台调整一下磁盘大小，只能增加不能减少。这个也可以通过 aws 的命令行来做。</p>
+
+<p>然后等后台显示完成之后，回来看磁盘大小，可以看到 <code>xvda</code> 已经是 15G 了， <code>xvda1</code> 还是 10G。</p>
+
+<pre><code>$ lsblk
+NAME    MAJ:MIN RM SIZE RO TYPE MOUNTPOINT
+xvda    202:0    0  15G  0 disk
+└─xvda1 202:1    0  10G  0 part /
+</code></pre>
+
+<p>扩展分区大小</p>
+
+<pre><code>[wd@ba2 ~]$ sudo growpart /dev/xvda 1
+CHANGED: disk=/dev/xvda partition=1: start=4096 old: size=20967390,end=20971486 new: size=31453150,end=31457246
+</code></pre>
+
+<p>扩展文件系统大小</p>
+
+<pre><code>$ sudo resize2fs /dev/xvda1
+resize2fs 1.42.12 (29-Aug-2014)
+Filesystem at /dev/xvda1 is mounted on /; on-line resizing required
+old_desc_blocks = 1, new_desc_blocks = 1
+The filesystem on /dev/xvda1 is now 3931643 (4k) blocks long.
+</code></pre>
+
+<p>看看大小</p>
+
+<pre><code>$ df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        2.0G   56K  2.0G   1% /dev
+tmpfs           2.0G     0  2.0G   0% /dev/shm
+/dev/xvda1       15G  7.3G  7.3G  50% /
+</code></pre>
+
+<p>参考链接: <a href="https://docs.amazonaws.cn/AWSEC2/latest/UserGuide/recognize-expanded-volume-linux.html" title="https://docs.amazonaws.cn/AWSEC2/latest/UserGuide/recognize-expanded-volume-linux.html">https://docs.amazonaws.cn/AWSEC2/latest/UserGuide/recognize-expanded-volume-linux.html</a></p>
+
+</main>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+
+
+    <footer style="clear:both">
+      
+<script async src="//yihui.name/js/center-img.js"></script>
+
+      
+      <hr/>
+      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+

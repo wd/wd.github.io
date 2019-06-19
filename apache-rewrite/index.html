@@ -73,19 +73,6 @@
 
 
 <main>
-
-apache这里有一些奇怪的日志。<br />
-
-<span style="color: rgb(0, 0, 255)">211.90.119.118 - - [12/Apr/2006:00:00:12 +0800] "GET http://abc.com.cn/www/x.jsp HTTP/1.1" 200 2994 "-" "SEC-schx639 UP.Browser/4.1.26l"</span><br />
-
-通常GET这里都是“/www/x.jsp”的，可是这个是怎么产生的呢？通过浏览器访问http://abc.com.cn/http://abc.com.cn/www/x.jsp，也不能产生这种请求，后来查看apache手册，这个引号里面表示的是“请求的第一条信息”，google了一下才知道，可以用下面的方式产生这种日志。<br />
-
-<span style="color: rgb(0, 0, 255)">telnet abc.com.cn 80</span><br style="color: rgb(0, 0, 255)" /><span style="color: rgb(0, 0, 255)">GET http://abc.com.cn/www/x.jsp HTTP/1.1</span><br />
-
-<br>
-
-HUGOMORE42
-
 这样看来，这个请求应该是不正确的，“get /www/x.jsp HTTP/1.1”才对。这个请求被转发给weblogic之后，weblogic会处理不了，因为他会去找“http://abc.com.cn/http://abc.com.cn/www/x.jsp”这个文件，显然是找不到的。<br />
 
 不过幸好，weblogic有个PathTrim设置，将请求路径种的“http://abc.com.cn”给他去掉就可以了。<br />
