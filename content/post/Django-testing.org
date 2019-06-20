@@ -6,7 +6,41 @@ toc: true
 ---
 Django 自己的 unittest 支持的挺好，一般只需要在 app 下面加一个 tests.py 在里面写 case 就可以了。case 对应的类继承 =django.test.TestCase= 就好。
 
-每一个测试类里面，都可以有一个 =setUp= 方法，是在 case 方法执行前执行，例如一些准备工作，和一个 =tearDown= 方法，在 case 执行之后执行，例如一些清理工作。还可以有若干个使用 =test= 开头的测试用例。
+这个 =django.test.TestCase= 继承自 =unittest.TestCase= ，django 这个多了一个自动使用事务的功能，所以用 django 这个的话，每个测试用例执行前后会自动回滚数据库操作，这样不用你自己 cleanup 数据，还比较方便。
+
+** setUp 和 tearDown
+
+每一个测试类里面，都可以有一个 =setUp= 方法，是在 case 方法执行前执行，例如一些准备工作，和一个 =tearDown= 方法，在 case 执行之后执行，例如一些清理工作。还可以有若干个使用 =test_= 开头的测试用例，这些 =setUp= 其实类似于把每个测试用例里面共同的部分提取出来一样，不过是不用你在每个 case 里面单独调用了，会自动处理。
+
+** setUpClass 和 tearDownClass
+
+django 还提供了 =setUpClass= 和 =tearDownClass= ，类似上面的 =setUp= 方法，不过这个是每个 class 只会执行一次。另外按照[[https://medium.com/@nhatcuong/django-test-fixture-setup-setupclass-and-setuptestdata-72b6d944cdef][这里]]的说法， =setUpClass= 不会使用事务，不过我看源码(django 2.1.4) 好像是会的，我没测试。。
+
+#+BEGIN_SRC python
+    @classmethod
+    def setUpClass(cls):
+        super().setUpClass()
+        if not connections_support_transactions():
+            return
+        cls.cls_atomics = cls._enter_atomics()
+
+        if cls.fixtures:
+            for db_name in cls._databases_names(include_mirrors=False):
+                try:
+                    call_command('loaddata', *cls.fixtures, **{'verbosity': 0, 'database': db_name})
+                except Exception:
+                    cls._rollback_atomics(cls.cls_atomics)
+                    raise
+        try:
+            cls.setUpTestData()
+        except Exception:
+            cls._rollback_atomics(cls.cls_atomics)
+            raise
+#+END_SRC
+
+代码可以看到，还有一个 =setUpTestData= 可以用。如果只是准备数据库数据的话，感觉后面这个更精准一点。
+
+** 测试用例
 
 case 我觉得一般可以分两种，方法测试，和接口测试。
 
@@ -17,6 +51,8 @@ case 我觉得一般可以分两种，方法测试，和接口测试。
 Django 里面，每个测试用例之间是通过事务互相隔离的，所以不用担心互相之间会有影响。
 
 接口测试可以通过 =django.test.Client= 来访问你的接口，然后比对返回结果，或者比对数据库的数据来验证。
+
+** fixtures
 
 有时候一些接口是依赖已有数据的，比如一个返回所有用户的接口，那测试的时候数据库是需要有用户才能返回的。这个可以通过 fixture 来 moke 数据。
 
@@ -34,7 +70,11 @@ call_command(
 )
 #+END_SRC
 
+这个其实类似前面 =setUpClass= 里面的加载 fixtures 的代码用了类似的方法 =call_command('loaddata', *cls.fixtures, **{'verbosity': 0, 'database': db_name})= 。
+
 命令行执行测试的时候，会打印出来 dump 出来的数据，把他们存到一个 json 文件然后引入就可以了。
+
+** 给测试提速
 
 有一个提升测试速度的方法，是使用 =-k= 参数，这个参数会保留测试的数据库，不会每次都删除重建，这样节省一些时间。
 
