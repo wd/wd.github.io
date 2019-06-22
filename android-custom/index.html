@@ -10,11 +10,6 @@
 
   
   
-
-  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
-  <script src="https://wdicc.com//js/hljs.js"></script>
-
-  <script>hljs.initHighlightingOnLoad();</script>
   <nav>
     <ul>
       
@@ -140,14 +135,28 @@ Android 系统的 root 实际应该就是对系统 kernel 打了一个补丁，�
 <p>
 android 系统启动的时候会读取一些 xxx.rc，这些 rc 类似 linux 下面那些，但是不像 linux 那些都是脚本，是有一个自己的格式的内容。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">on property:sys.boot_completed=1
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">on property:sys.boot_completed=1
     start wd-post-boot
 
 service wd-post-boot /system/bin/sh /wd.post_boot.sh
     class late_start
     user root
     disabled
-    oneshot</code></pre></div>
+    oneshot</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 比如我上面这个，定义了一个 service <code class="verbatim">wd-post-boot</code> ，然后让他在 <code class="verbatim">sys.boot_completed</code> 这个 prop 值为 1 的时候执行一次。还有很多其它的方法，可以找 android 的文档看，我说的不能执行 iptables 就是这里的脚本里面不能执行。
 </p>

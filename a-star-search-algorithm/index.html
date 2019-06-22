@@ -10,11 +10,6 @@
 
   
   
-
-  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
-  <script src="https://wdicc.com//js/hljs.js"></script>
-
-  <script>hljs.initHighlightingOnLoad();</script>
   <nav>
     <ul>
       
@@ -103,171 +98,342 @@
 <p>
 我写了一个简单的程序，这个程序没有做过任何的优化，只能说是解释了这个算法的逻辑而已，在终端里面可以可视化的把计算过程显示出来。效果可以看<a href="https://gist.github.com/wd/69469977bf76d9091ca01714eae08f37">这里</a>。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/python</span>
-<span style="color:#f92672">import</span> sys
-<span style="color:#f92672">import</span> random
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">  9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 51
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 52
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 53
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 54
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 55
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 56
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 57
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 58
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 59
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 60
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 61
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 62
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 63
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 64
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 65
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 66
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 67
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 68
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 69
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 70
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 71
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 72
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 73
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 74
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 75
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 76
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 77
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 78
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 79
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 80
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 81
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 82
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 83
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 84
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 85
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 86
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 87
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 88
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 89
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 90
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 91
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 92
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 93
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 94
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 95
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 96
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 97
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 98
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 99
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">100
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">101
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">102
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">103
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">104
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">105
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">106
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">107
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">108
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">109
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">110
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">111
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">112
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">113
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">114
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">115
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">116
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">117
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">118
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">119
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">120
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">121
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">122
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">123
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">124
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">125
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">126
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">127
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">128
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">129
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">130
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">131
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">132
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">133
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">134
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">135
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">136
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">137
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">138
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">139
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">140
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">141
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">142
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">143
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">144
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">145
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">146
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">147
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">148
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">149
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">150
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">151
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">152
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">153
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">154
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">155
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">156
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">157
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">158
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">159
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">160
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">161
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">162
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">163
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">164
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">165
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#888">#!/usr/bin/python</span>
+<span style="color:#080;font-weight:bold">import</span> <span style="color:#0e84b5;font-weight:bold">sys</span>
+<span style="color:#080;font-weight:bold">import</span> <span style="color:#0e84b5;font-weight:bold">random</span>
 
 
-RED <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\033</span><span style="color:#e6db74">[31m&#39;</span>
-GREEN <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\033</span><span style="color:#e6db74">[32m&#39;</span>
-GRAY <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\033</span><span style="color:#e6db74">[35m&#39;</span>
-NC <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\033</span><span style="color:#e6db74">[0m&#39;</span>
+RED <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\033</span><span style="background-color:#fff0f0">[31m&#39;</span>
+GREEN <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\033</span><span style="background-color:#fff0f0">[32m&#39;</span>
+GRAY <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\033</span><span style="background-color:#fff0f0">[35m&#39;</span>
+NC <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\033</span><span style="background-color:#fff0f0">[0m&#39;</span>
 
-<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Point</span>(object):
-    x <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-    y <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-    close <span style="color:#f92672">=</span> False
-    open <span style="color:#f92672">=</span> False
-    start <span style="color:#f92672">=</span> False
-    end <span style="color:#f92672">=</span> False
-    wall <span style="color:#f92672">=</span> False
-    H <span style="color:#f92672">=</span> <span style="color:#ae81ff">99</span>
-    G <span style="color:#f92672">=</span> <span style="color:#ae81ff">99</span>
-    parent <span style="color:#f92672">=</span> None
+<span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">Point</span>(<span style="color:#007020">object</span>):
+    x <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">0</span>
+    y <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">0</span>
+    close <span style="color:#333">=</span> False
+    <span style="color:#007020">open</span> <span style="color:#333">=</span> False
+    start <span style="color:#333">=</span> False
+    end <span style="color:#333">=</span> False
+    wall <span style="color:#333">=</span> False
+    H <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">99</span>
+    G <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">99</span>
+    parent <span style="color:#333">=</span> None
 
-    <span style="color:#66d9ef">def</span> __init__(self, <span style="color:#f92672">**</span>kwargs):
-        <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;x&#39;</span> <span style="color:#f92672">in</span> kwargs:
-            self<span style="color:#f92672">.</span>x <span style="color:#f92672">=</span> kwargs[<span style="color:#e6db74">&#39;x&#39;</span>]
+    <span style="color:#080;font-weight:bold">def</span> __init__(self, <span style="color:#333">**</span>kwargs):
+        <span style="color:#080;font-weight:bold">if</span> <span style="background-color:#fff0f0">&#39;x&#39;</span> <span style="color:#000;font-weight:bold">in</span> kwargs:
+            self<span style="color:#333">.</span>x <span style="color:#333">=</span> kwargs[<span style="background-color:#fff0f0">&#39;x&#39;</span>]
 
-        <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;y&#39;</span> <span style="color:#f92672">in</span> kwargs:
-            self<span style="color:#f92672">.</span>y <span style="color:#f92672">=</span> kwargs[<span style="color:#e6db74">&#39;y&#39;</span>]
+        <span style="color:#080;font-weight:bold">if</span> <span style="background-color:#fff0f0">&#39;y&#39;</span> <span style="color:#000;font-weight:bold">in</span> kwargs:
+            self<span style="color:#333">.</span>y <span style="color:#333">=</span> kwargs[<span style="background-color:#fff0f0">&#39;y&#39;</span>]
 
-        self<span style="color:#f92672">.</span>key <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{}-{}&#39;</span><span style="color:#f92672">.</span>format(self<span style="color:#f92672">.</span>x, self<span style="color:#f92672">.</span>y)
+        self<span style="color:#333">.</span>key <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;{}-{}&#39;</span><span style="color:#333">.</span>format(self<span style="color:#333">.</span>x, self<span style="color:#333">.</span>y)
 
-    <span style="color:#66d9ef">def</span> __str__(self):
-        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#39;{},H{:2},G{:2},F{:2},P{:3}&#39;</span><span style="color:#f92672">.</span>format(
-                self<span style="color:#f92672">.</span>key,
-                self<span style="color:#f92672">.</span>H <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>H <span style="color:#f92672">!=</span> <span style="color:#ae81ff">99</span> <span style="color:#66d9ef">else</span> <span style="color:#e6db74">&#39;&#39;</span>,
-                self<span style="color:#f92672">.</span>G <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>G <span style="color:#f92672">!=</span> <span style="color:#ae81ff">99</span> <span style="color:#66d9ef">else</span> <span style="color:#e6db74">&#39;&#39;</span>,
-                self<span style="color:#f92672">.</span>G <span style="color:#f92672">+</span> self<span style="color:#f92672">.</span>H <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>G <span style="color:#f92672">!=</span> <span style="color:#ae81ff">99</span> <span style="color:#66d9ef">else</span> <span style="color:#e6db74">&#39;&#39;</span>,
-                self<span style="color:#f92672">.</span>parent<span style="color:#f92672">.</span>key <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>parent <span style="color:#66d9ef">else</span> <span style="color:#e6db74">&#39;&#39;</span>)
+    <span style="color:#080;font-weight:bold">def</span> __str__(self):
+        <span style="color:#080;font-weight:bold">return</span> <span style="background-color:#fff0f0">&#39;{},H{:2},G{:2},F{:2},P{:3}&#39;</span><span style="color:#333">.</span>format(
+                self<span style="color:#333">.</span>key,
+                self<span style="color:#333">.</span>H <span style="color:#080;font-weight:bold">if</span> self<span style="color:#333">.</span>H <span style="color:#333">!=</span> <span style="color:#00d;font-weight:bold">99</span> <span style="color:#080;font-weight:bold">else</span> <span style="background-color:#fff0f0">&#39;&#39;</span>,
+                self<span style="color:#333">.</span>G <span style="color:#080;font-weight:bold">if</span> self<span style="color:#333">.</span>G <span style="color:#333">!=</span> <span style="color:#00d;font-weight:bold">99</span> <span style="color:#080;font-weight:bold">else</span> <span style="background-color:#fff0f0">&#39;&#39;</span>,
+                self<span style="color:#333">.</span>G <span style="color:#333">+</span> self<span style="color:#333">.</span>H <span style="color:#080;font-weight:bold">if</span> self<span style="color:#333">.</span>G <span style="color:#333">!=</span> <span style="color:#00d;font-weight:bold">99</span> <span style="color:#080;font-weight:bold">else</span> <span style="background-color:#fff0f0">&#39;&#39;</span>,
+                self<span style="color:#333">.</span>parent<span style="color:#333">.</span>key <span style="color:#080;font-weight:bold">if</span> self<span style="color:#333">.</span>parent <span style="color:#080;font-weight:bold">else</span> <span style="background-color:#fff0f0">&#39;&#39;</span>)
 
-    <span style="color:#66d9ef">def</span>  __lt__(self, other):
-        <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>x <span style="color:#f92672">&lt;</span> other<span style="color:#f92672">.</span>x <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>y <span style="color:#f92672">==</span> other<span style="color:#f92672">.</span>y <span style="color:#66d9ef">else</span> self<span style="color:#f92672">.</span>y <span style="color:#f92672">&lt;</span> other<span style="color:#f92672">.</span>y
+    <span style="color:#080;font-weight:bold">def</span>  __lt__(self, other):
+        <span style="color:#080;font-weight:bold">return</span> self<span style="color:#333">.</span>x <span style="color:#333">&lt;</span> other<span style="color:#333">.</span>x <span style="color:#080;font-weight:bold">if</span> self<span style="color:#333">.</span>y <span style="color:#333">==</span> other<span style="color:#333">.</span>y <span style="color:#080;font-weight:bold">else</span> self<span style="color:#333">.</span>y <span style="color:#333">&lt;</span> other<span style="color:#333">.</span>y
 
 
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_area</span>(width, height):
-    area <span style="color:#f92672">=</span> {}
-    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(width):
-        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(height):
-            point <span style="color:#f92672">=</span> Point(x<span style="color:#f92672">=</span>i, y<span style="color:#f92672">=</span>j)
+<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">get_area</span>(width, height):
+    area <span style="color:#333">=</span> {}
+    <span style="color:#080;font-weight:bold">for</span> i <span style="color:#000;font-weight:bold">in</span> <span style="color:#007020">range</span>(width):
+        <span style="color:#080;font-weight:bold">for</span> j <span style="color:#000;font-weight:bold">in</span> <span style="color:#007020">range</span>(height):
+            point <span style="color:#333">=</span> Point(x<span style="color:#333">=</span>i, y<span style="color:#333">=</span>j)
 
-            area[point<span style="color:#f92672">.</span>key] <span style="color:#f92672">=</span> point
-    <span style="color:#66d9ef">return</span> area
+            area[point<span style="color:#333">.</span>key] <span style="color:#333">=</span> point
+    <span style="color:#080;font-weight:bold">return</span> area
 
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">show_result</span>(area_hash):
-    prev_y <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
+<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">show_result</span>(area_hash):
+    prev_y <span style="color:#333">=</span> <span style="color:#333">-</span><span style="color:#00d;font-weight:bold">1</span>
 
-    <span style="color:#66d9ef">for</span> point <span style="color:#f92672">in</span> sorted(area_hash<span style="color:#f92672">.</span>values()):
-        <span style="color:#66d9ef">if</span> ( prev_y <span style="color:#f92672">!=</span> point<span style="color:#f92672">.</span>y ):
-            <span style="color:#66d9ef">if</span> (prev_y <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
-                <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;&#39;</span>)
-            prev_y <span style="color:#f92672">=</span> point<span style="color:#f92672">.</span>y
+    <span style="color:#080;font-weight:bold">for</span> point <span style="color:#000;font-weight:bold">in</span> <span style="color:#007020">sorted</span>(area_hash<span style="color:#333">.</span>values()):
+        <span style="color:#080;font-weight:bold">if</span> ( prev_y <span style="color:#333">!=</span> point<span style="color:#333">.</span>y ):
+            <span style="color:#080;font-weight:bold">if</span> (prev_y <span style="color:#333">!=</span> <span style="color:#333">-</span><span style="color:#00d;font-weight:bold">1</span>):
+                <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0">&#39;&#39;</span>)
+            prev_y <span style="color:#333">=</span> point<span style="color:#333">.</span>y
 
-        <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>start:
-            format <span style="color:#f92672">=</span> RED <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;S&#39;</span> <span style="color:#f92672">+</span> NC
-        <span style="color:#66d9ef">elif</span> point<span style="color:#f92672">.</span>end:
-            format <span style="color:#f92672">=</span> RED <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;E&#39;</span> <span style="color:#f92672">+</span> NC
-        <span style="color:#66d9ef">elif</span> point<span style="color:#f92672">.</span>wall:
-            format <span style="color:#f92672">=</span> GRAY <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;W&#39;</span> <span style="color:#f92672">+</span> NC
-        <span style="color:#66d9ef">elif</span> point<span style="color:#f92672">.</span>close:
-            format <span style="color:#f92672">=</span> GREEN <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;0&#39;</span> <span style="color:#f92672">+</span> NC
-        <span style="color:#66d9ef">else</span>:
-            format <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39; &#39;</span>
-        <span style="color:#66d9ef">print</span>((format <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;({})  &#39;</span>)<span style="color:#f92672">.</span>format(point), end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>)
-    <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;&#39;</span>)
+        <span style="color:#080;font-weight:bold">if</span> point<span style="color:#333">.</span>start:
+            format <span style="color:#333">=</span> RED <span style="color:#333">+</span> <span style="background-color:#fff0f0">&#39;S&#39;</span> <span style="color:#333">+</span> NC
+        <span style="color:#080;font-weight:bold">elif</span> point<span style="color:#333">.</span>end:
+            format <span style="color:#333">=</span> RED <span style="color:#333">+</span> <span style="background-color:#fff0f0">&#39;E&#39;</span> <span style="color:#333">+</span> NC
+        <span style="color:#080;font-weight:bold">elif</span> point<span style="color:#333">.</span>wall:
+            format <span style="color:#333">=</span> GRAY <span style="color:#333">+</span> <span style="background-color:#fff0f0">&#39;W&#39;</span> <span style="color:#333">+</span> NC
+        <span style="color:#080;font-weight:bold">elif</span> point<span style="color:#333">.</span>close:
+            format <span style="color:#333">=</span> GREEN <span style="color:#333">+</span> <span style="background-color:#fff0f0">&#39;0&#39;</span> <span style="color:#333">+</span> NC
+        <span style="color:#080;font-weight:bold">else</span>:
+            format <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39; &#39;</span>
+        <span style="color:#080;font-weight:bold">print</span>((format <span style="color:#333">+</span> <span style="background-color:#fff0f0">&#39;({})  &#39;</span>)<span style="color:#333">.</span>format(point), end<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;&#39;</span>)
+    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0">&#39;&#39;</span>)
 
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">set_preset</span>(area, start, end, wall):
-    area[start]<span style="color:#f92672">.</span>start <span style="color:#f92672">=</span> True
-    area[end]<span style="color:#f92672">.</span>end <span style="color:#f92672">=</span> True
-    <span style="color:#66d9ef">for</span> key <span style="color:#f92672">in</span> wall:
-        area[key]<span style="color:#f92672">.</span>wall <span style="color:#f92672">=</span> True
-    <span style="color:#66d9ef">return</span> area
+<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">set_preset</span>(area, start, end, wall):
+    area[start]<span style="color:#333">.</span>start <span style="color:#333">=</span> True
+    area[end]<span style="color:#333">.</span>end <span style="color:#333">=</span> True
+    <span style="color:#080;font-weight:bold">for</span> key <span style="color:#000;font-weight:bold">in</span> wall:
+        area[key]<span style="color:#333">.</span>wall <span style="color:#333">=</span> True
+    <span style="color:#080;font-weight:bold">return</span> area
 
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">is_valid_point</span>(point, width, height):
-    <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>wall <span style="color:#f92672">or</span> point<span style="color:#f92672">.</span>close:
-        <span style="color:#66d9ef">return</span> False
+<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">is_valid_point</span>(point, width, height):
+    <span style="color:#080;font-weight:bold">if</span> point<span style="color:#333">.</span>wall <span style="color:#000;font-weight:bold">or</span> point<span style="color:#333">.</span>close:
+        <span style="color:#080;font-weight:bold">return</span> False
 
-    <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>x <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> point<span style="color:#f92672">.</span>x <span style="color:#f92672">&gt;</span> width:
-        <span style="color:#66d9ef">return</span> False
+    <span style="color:#080;font-weight:bold">if</span> point<span style="color:#333">.</span>x <span style="color:#333">&lt;</span> <span style="color:#00d;font-weight:bold">0</span> <span style="color:#000;font-weight:bold">or</span> point<span style="color:#333">.</span>x <span style="color:#333">&gt;</span> width:
+        <span style="color:#080;font-weight:bold">return</span> False
 
-    <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>y <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> point<span style="color:#f92672">.</span>y <span style="color:#f92672">&gt;</span> height:
-        <span style="color:#66d9ef">return</span> False
+    <span style="color:#080;font-weight:bold">if</span> point<span style="color:#333">.</span>y <span style="color:#333">&lt;</span> <span style="color:#00d;font-weight:bold">0</span> <span style="color:#000;font-weight:bold">or</span> point<span style="color:#333">.</span>y <span style="color:#333">&gt;</span> height:
+        <span style="color:#080;font-weight:bold">return</span> False
 
-    <span style="color:#66d9ef">return</span> True
+    <span style="color:#080;font-weight:bold">return</span> True
 
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_around</span>(area, point, width, height):
-    n <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{}-{}&#39;</span><span style="color:#f92672">.</span>format(point<span style="color:#f92672">.</span>x, point<span style="color:#f92672">.</span>y <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
-    s <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{}-{}&#39;</span><span style="color:#f92672">.</span>format(point<span style="color:#f92672">.</span>x, point<span style="color:#f92672">.</span>y <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)
-    l <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{}-{}&#39;</span><span style="color:#f92672">.</span>format(point<span style="color:#f92672">.</span>x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>, point<span style="color:#f92672">.</span>y)
-    r <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{}-{}&#39;</span><span style="color:#f92672">.</span>format(point<span style="color:#f92672">.</span>x <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, point<span style="color:#f92672">.</span>y)
+<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">get_around</span>(area, point, width, height):
+    n <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;{}-{}&#39;</span><span style="color:#333">.</span>format(point<span style="color:#333">.</span>x, point<span style="color:#333">.</span>y <span style="color:#333">-</span> <span style="color:#00d;font-weight:bold">1</span>)
+    s <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;{}-{}&#39;</span><span style="color:#333">.</span>format(point<span style="color:#333">.</span>x, point<span style="color:#333">.</span>y <span style="color:#333">+</span> <span style="color:#00d;font-weight:bold">1</span>)
+    l <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;{}-{}&#39;</span><span style="color:#333">.</span>format(point<span style="color:#333">.</span>x <span style="color:#333">-</span> <span style="color:#00d;font-weight:bold">1</span>, point<span style="color:#333">.</span>y)
+    r <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;{}-{}&#39;</span><span style="color:#333">.</span>format(point<span style="color:#333">.</span>x <span style="color:#333">+</span> <span style="color:#00d;font-weight:bold">1</span>, point<span style="color:#333">.</span>y)
 
-    res <span style="color:#f92672">=</span> {}
-    <span style="color:#66d9ef">for</span> key <span style="color:#f92672">in</span> [n, s, l, r]:
-        <span style="color:#66d9ef">if</span> key <span style="color:#f92672">in</span> area <span style="color:#f92672">and</span> is_valid_point(area[key], width, height):
-            area[key]<span style="color:#f92672">.</span>parent <span style="color:#f92672">=</span> point
-            area[key]<span style="color:#f92672">.</span>G <span style="color:#f92672">=</span> area[key]<span style="color:#f92672">.</span>G <span style="color:#66d9ef">if</span> area[key]<span style="color:#f92672">.</span>G <span style="color:#f92672">!=</span> <span style="color:#ae81ff">99</span> <span style="color:#66d9ef">else</span> (point<span style="color:#f92672">.</span>G <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>G <span style="color:#f92672">!=</span> <span style="color:#ae81ff">99</span> <span style="color:#66d9ef">else</span> <span style="color:#ae81ff">0</span>) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
-            res[key] <span style="color:#f92672">=</span> area[key]
+    res <span style="color:#333">=</span> {}
+    <span style="color:#080;font-weight:bold">for</span> key <span style="color:#000;font-weight:bold">in</span> [n, s, l, r]:
+        <span style="color:#080;font-weight:bold">if</span> key <span style="color:#000;font-weight:bold">in</span> area <span style="color:#000;font-weight:bold">and</span> is_valid_point(area[key], width, height):
+            area[key]<span style="color:#333">.</span>parent <span style="color:#333">=</span> point
+            area[key]<span style="color:#333">.</span>G <span style="color:#333">=</span> area[key]<span style="color:#333">.</span>G <span style="color:#080;font-weight:bold">if</span> area[key]<span style="color:#333">.</span>G <span style="color:#333">!=</span> <span style="color:#00d;font-weight:bold">99</span> <span style="color:#080;font-weight:bold">else</span> (point<span style="color:#333">.</span>G <span style="color:#080;font-weight:bold">if</span> point<span style="color:#333">.</span>G <span style="color:#333">!=</span> <span style="color:#00d;font-weight:bold">99</span> <span style="color:#080;font-weight:bold">else</span> <span style="color:#00d;font-weight:bold">0</span>) <span style="color:#333">+</span> <span style="color:#00d;font-weight:bold">1</span>
+            res[key] <span style="color:#333">=</span> area[key]
 
-    <span style="color:#66d9ef">return</span> res
+    <span style="color:#080;font-weight:bold">return</span> res
 
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_H</span>(point, end_point):
-    <span style="color:#66d9ef">return</span> abs(point<span style="color:#f92672">.</span>x <span style="color:#f92672">-</span> end_point<span style="color:#f92672">.</span>x) <span style="color:#f92672">+</span> abs(point<span style="color:#f92672">.</span>y <span style="color:#f92672">-</span> end_point<span style="color:#f92672">.</span>y)
+<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">get_H</span>(point, end_point):
+    <span style="color:#080;font-weight:bold">return</span> <span style="color:#007020">abs</span>(point<span style="color:#333">.</span>x <span style="color:#333">-</span> end_point<span style="color:#333">.</span>x) <span style="color:#333">+</span> <span style="color:#007020">abs</span>(point<span style="color:#333">.</span>y <span style="color:#333">-</span> end_point<span style="color:#333">.</span>y)
 
-step <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
-opened <span style="color:#f92672">=</span> {}
+step <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">0</span>
+opened <span style="color:#333">=</span> {}
 
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">go</span>(area, start, end, width, height):
-    <span style="color:#66d9ef">global</span> step, opened
-    start_point <span style="color:#f92672">=</span> area[start]
-    end_point<span style="color:#f92672">=</span> area[end]
-    start_point<span style="color:#f92672">.</span>close <span style="color:#f92672">=</span> True
+<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">go</span>(area, start, end, width, height):
+    <span style="color:#080;font-weight:bold">global</span> step, opened
+    start_point <span style="color:#333">=</span> area[start]
+    end_point<span style="color:#333">=</span> area[end]
+    start_point<span style="color:#333">.</span>close <span style="color:#333">=</span> True
 
-    <span style="color:#66d9ef">if</span> start_point<span style="color:#f92672">.</span>key <span style="color:#f92672">in</span> opened:
-        <span style="color:#66d9ef">del</span> opened[start_point<span style="color:#f92672">.</span>key]
+    <span style="color:#080;font-weight:bold">if</span> start_point<span style="color:#333">.</span>key <span style="color:#000;font-weight:bold">in</span> opened:
+        <span style="color:#080;font-weight:bold">del</span> opened[start_point<span style="color:#333">.</span>key]
 
-    points <span style="color:#f92672">=</span> get_around(area, start_point, width, height)
-    opened<span style="color:#f92672">.</span>update(points)
+    points <span style="color:#333">=</span> get_around(area, start_point, width, height)
+    opened<span style="color:#333">.</span>update(points)
 
-    rnd <span style="color:#f92672">=</span> random<span style="color:#f92672">.</span>choice(list(opened))
-    next_point <span style="color:#f92672">=</span> area[rnd]
-    <span style="color:#66d9ef">for</span> key, point <span style="color:#f92672">in</span> opened<span style="color:#f92672">.</span>items():
-        point<span style="color:#f92672">.</span>H <span style="color:#f92672">=</span> get_H(point, end_point)
+    rnd <span style="color:#333">=</span> random<span style="color:#333">.</span>choice(<span style="color:#007020">list</span>(opened))
+    next_point <span style="color:#333">=</span> area[rnd]
+    <span style="color:#080;font-weight:bold">for</span> key, point <span style="color:#000;font-weight:bold">in</span> opened<span style="color:#333">.</span>items():
+        point<span style="color:#333">.</span>H <span style="color:#333">=</span> get_H(point, end_point)
 
-        <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>H <span style="color:#f92672">+</span> point<span style="color:#f92672">.</span>G <span style="color:#f92672">&lt;=</span> next_point<span style="color:#f92672">.</span>H <span style="color:#f92672">+</span> next_point<span style="color:#f92672">.</span>G:
-            next_point <span style="color:#f92672">=</span> point
+        <span style="color:#080;font-weight:bold">if</span> point<span style="color:#333">.</span>H <span style="color:#333">+</span> point<span style="color:#333">.</span>G <span style="color:#333">&lt;=</span> next_point<span style="color:#333">.</span>H <span style="color:#333">+</span> next_point<span style="color:#333">.</span>G:
+            next_point <span style="color:#333">=</span> point
 
-    <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;step {}: {}&#39;</span><span style="color:#f92672">.</span>format(step, next_point))
-    step <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
-    <span style="color:#66d9ef">if</span> step <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">3</span>:
-        <span style="color:#66d9ef">pass</span>
+    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0">&#39;step {}: {}&#39;</span><span style="color:#333">.</span>format(step, next_point))
+    step <span style="color:#333">+=</span> <span style="color:#00d;font-weight:bold">1</span>
+    <span style="color:#080;font-weight:bold">if</span> step <span style="color:#333">&gt;=</span> <span style="color:#00d;font-weight:bold">3</span>:
+        <span style="color:#080;font-weight:bold">pass</span>
 
-    <span style="color:#66d9ef">if</span> next_point <span style="color:#f92672">and</span> next_point<span style="color:#f92672">.</span>key <span style="color:#f92672">!=</span> end:
-        go(area, next_point<span style="color:#f92672">.</span>key, end, width, height)
+    <span style="color:#080;font-weight:bold">if</span> next_point <span style="color:#000;font-weight:bold">and</span> next_point<span style="color:#333">.</span>key <span style="color:#333">!=</span> end:
+        go(area, next_point<span style="color:#333">.</span>key, end, width, height)
 
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_result</span>(area, start, end):
-    <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;{}{}{} &lt;- &#39;</span><span style="color:#f92672">.</span>format(RED, area[end]<span style="color:#f92672">.</span>key, NC), end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>)
-    parent <span style="color:#f92672">=</span> area[end]<span style="color:#f92672">.</span>parent
-    <span style="color:#66d9ef">if</span>(parent<span style="color:#f92672">.</span>key <span style="color:#f92672">!=</span> start):
-        get_result(area, start, parent<span style="color:#f92672">.</span>key)
-    <span style="color:#66d9ef">else</span>:
-        <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;{}{}{}&#39;</span><span style="color:#f92672">.</span>format(RED, area[start]<span style="color:#f92672">.</span>key, NC), end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>)
+<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">get_result</span>(area, start, end):
+    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0">&#39;{}{}{} &lt;- &#39;</span><span style="color:#333">.</span>format(RED, area[end]<span style="color:#333">.</span>key, NC), end<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;&#39;</span>)
+    parent <span style="color:#333">=</span> area[end]<span style="color:#333">.</span>parent
+    <span style="color:#080;font-weight:bold">if</span>(parent<span style="color:#333">.</span>key <span style="color:#333">!=</span> start):
+        get_result(area, start, parent<span style="color:#333">.</span>key)
+    <span style="color:#080;font-weight:bold">else</span>:
+        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0">&#39;{}{}{}&#39;</span><span style="color:#333">.</span>format(RED, area[start]<span style="color:#333">.</span>key, NC), end<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;&#39;</span>)
 
-<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">main</span>():
-    width <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
-    height <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
-    start <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1-3&#39;</span>
-    end <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;8-4&#39;</span>
-    wall <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#39;2-2&#39;</span>, <span style="color:#e6db74">&#39;3-2&#39;</span>, <span style="color:#e6db74">&#39;3-3&#39;</span>, <span style="color:#e6db74">&#39;3-4&#39;</span>, <span style="color:#e6db74">&#39;3-5&#39;</span>, <span style="color:#e6db74">&#39;3-6&#39;</span>, <span style="color:#e6db74">&#39;5-4&#39;</span>, <span style="color:#e6db74">&#39;2-6&#39;</span>, <span style="color:#e6db74">&#39;1-6&#39;</span>]
+<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">main</span>():
+    width <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">10</span>
+    height <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">10</span>
+    start <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;1-3&#39;</span>
+    end <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;8-4&#39;</span>
+    wall <span style="color:#333">=</span> [<span style="background-color:#fff0f0">&#39;2-2&#39;</span>, <span style="background-color:#fff0f0">&#39;3-2&#39;</span>, <span style="background-color:#fff0f0">&#39;3-3&#39;</span>, <span style="background-color:#fff0f0">&#39;3-4&#39;</span>, <span style="background-color:#fff0f0">&#39;3-5&#39;</span>, <span style="background-color:#fff0f0">&#39;3-6&#39;</span>, <span style="background-color:#fff0f0">&#39;5-4&#39;</span>, <span style="background-color:#fff0f0">&#39;2-6&#39;</span>, <span style="background-color:#fff0f0">&#39;1-6&#39;</span>]
 
-    area <span style="color:#f92672">=</span> get_area(width, height)
-    area <span style="color:#f92672">=</span> set_preset(area, start, end, wall)
+    area <span style="color:#333">=</span> get_area(width, height)
+    area <span style="color:#333">=</span> set_preset(area, start, end, wall)
     go(area, start, end, width,  height)
     show_result(area)
     get_result(area, start, end)
 
-<span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;__main__&#39;</span>:
-    main()</code></pre></div>
+<span style="color:#080;font-weight:bold">if</span> __name__ <span style="color:#333">==</span> <span style="background-color:#fff0f0">&#39;__main__&#39;</span>:
+    main()</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 这个算法通过调整 G 和 H 的计算逻辑，可以平衡寻路速度和路径是否最短。另外，对于 open 列表的维护，也可以使用一些适合自己的数据结构来得到比较快速的查找。上面第二个帖子里面比较详细的列了一些改进算法的思路。
 </p>

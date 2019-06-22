@@ -64,9 +64,9 @@ Enhance Existing Features  已完成？提升 FDW 的基础设计和 postgres_fd
 并发控制 13.2 事务隔离级别 SQL 标准定义了四个事务隔离级别。最严格的就是串行化(Serializable)，根据标准定义，任何并发的串行化事务如果在相同的时间使用相同的顺序执行，那么需要有相同的执行结果。其他的三个隔离级别，都定义了在并发事务互相影响的情况下，在各隔离级别下不允许出现的一些现象。根据标准，这些现象都不允许出现在串行化这个级别。(这并不令人惊讶 &amp;ndash; 如果为了事务的结果一致只允许同时运行一个事务，那怎么可能会出现因为事务互相影响产生的现象)。
 在各级别禁止的一些现象如下：
 脏读(dirty read)
-一个事务读取到另一个并发的事务还没有提交的数据。  不可重复读(nonrepeatable read)
-一个事务重复读取之前读过的数据的时候，发现数据已经被其他事务修改（就是在第一次读取之后做的提交)。  幻读(phantom read)
-一个事务重新执行一个查找符合条件的数据的查询的时候，发现返回的数据因为这期间别的事务做了提交而发生了变化。  四个事务隔离级别和对应的行为在表 13-1 中进行了描述。
+1  一个事务读取到另一个并发的事务还没有提交的数据。   不可重复读(nonrepeatable read)
+1  一个事务重复读取之前读过的数据的时候，发现数据已经被其他事务修改（就是在第一次读取之后做的提交)。   幻读(phantom read)
+1  一个事务重新执行一个查找符合条件的数据的查询的时候，发现返回的数据因为这期间别的事务做了提交而发生了变化。   四个事务隔离级别和对应的行为在表 13-1 中进行了描述。
 表 13-1 SQL 标准定义的事务隔离级别
 | 事务隔离级别 | 脏读 | 不可重复读 | 幻读 | |&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;-+&amp;mdash;&amp;mdash;&amp;ndash;+&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;+&amp;mdash;&amp;mdash;&amp;ndash;| | 读未提交(read uncommitted) | 可能 | 可能 | 可能 | | 读已提交(read committed) | 不可能 | 可能 | 可能 | | 可重复读(repeatable read) | 不可能 | 不可能 | 可能 | | 串行化(serializable) | 不可能 | 不可能 | 不可能 |</description>
     </item>

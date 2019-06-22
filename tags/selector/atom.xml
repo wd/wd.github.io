@@ -17,7 +17,7 @@
       <pubDate>Sun, 13 May 2018 10:43:28 +0800</pubDate>
       
       <guid>https://wdicc.com/redux-selector/</guid>
-      <description> redux 应用可以通过 selector 来做 state -&amp;gt; props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的是这个 https://github.com/reduxjs/reselect。  selector 主要是一个纯函数，给同样的输入，得到同样的输出，只处理数据，没有其他附加影响。这样就可以缓存中间结果了。  新建 selector 有两个方法，一个是直接定义函数，例如 const s1 = (state) =&amp;gt; { // 经过计算  return state.user } const s2 = state =&amp;gt; state.data   另外一个方法是通过 createSelector 函数来创建，例如 const s3 = createSelector(s1, s2, (s1, s2) =&amp;gt;{ // 经过计算  return xx })   实际上 selector 都是一些函数，具体用的是侯会执行这些函数，第一个方法创建的还好理解，第二个方法里面，会传什么参数呢？输入是什么呢？  实际上，第二个方法定义的 selector 执行的时候类似这样。 const res = s3(s1(state), s2(state))   输入是里面 selector 的输入，然后不停嵌套到最初的数据。这样一个 selector 使用的方法就广泛了。比如 const s1_res = s1(state) // 从其他地方或者逻辑获取到这个值  const res = s3(s1_res, s2(state)) // 直接用来作为 s3 的输入  </description>
+      <description> redux 应用可以通过 selector 来做 state -&amp;gt; props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的是这个 https://github.com/reduxjs/reselect。  selector 主要是一个纯函数，给同样的输入，得到同样的输出，只处理数据，没有其他附加影响。这样就可以缓存中间结果了。  新建 selector 有两个方法，一个是直接定义函数，例如 1 2 3 4 5  const s1 = (state) =&amp;gt; { // 经过计算  return state.user } const s2 = state =&amp;gt; state.data     另外一个方法是通过 createSelector 函数来创建，例如 1 2 3 4  const s3 = createSelector(s1, s2, (s1, s2) =&amp;gt;{ // 经过计算  return xx })     实际上 selector 都是一些函数，具体用的是侯会执行这些函数，第一个方法创建的还好理解，第二个方法里面，会传什么参数呢？输入是什么呢？  实际上，第二个方法定义的 selector 执行的时候类似这样。 1  const res = s3(s1(state), s2(state))     输入是里面 selector 的输入，然后不停嵌套到最初的数据。这样一个 selector 使用的方法就广泛了。比如 1 2 3  const s1_res = s1(state) // 从其他地方或者逻辑获取到这个值  const res = s3(s1_res, s2(state)) // 直接用来作为 s3 的输入    </description>
     </item>
     
   </channel>

@@ -17,7 +17,7 @@
       <pubDate>Mon, 02 Jul 2018 16:13:56 +0800</pubDate>
       
       <guid>https://wdicc.com/compile-kernel-module/</guid>
-      <description>使用 porteus 的时候，发现网卡不支持，找了一下发现有内核驱动可以用，那就需要编译一下内核的模块。  这里有一个帖子写了如何编译内核，主要步骤是先给内核打 aufs 的补丁，然后就是正常的 make config &amp;amp;&amp;amp; make &amp;amp;&amp;amp; make modules_install 了。  我这只是编译一个网卡驱动，操作步骤大概如下，把内核解压放到 /mnt/sda1/kernel 下面，然后把网卡驱动代码放到 /mnt/sda1/kernel/linux-4.16.3/drivers/net/wireless/rtl8821ce 下面。 # cd /mnt/sda1/kernel/linux-4.16.3/ # modprobe configs &amp;amp;&amp;amp; zcat /proc/config.gz &amp;gt; .config # make oldconfig # make prepare # make modules_prepare # export srctree=/mnt/sda1/kernel/linux-4.16.3 # ln -s /mnt/sda1/kernel/linux-4.16.3 /usr/src/linux # cd drivers/net/wireless/rtl8821ce # make  然后在这个目录下面会产生一个 rtl8821ce.ko 的文件。  如果是遇到自己用的内核有一个模块没编译，那可以用下面的方式 # after make modules_prepare # make modules SUBDIRS=drivers/firmware/efi/  这样会在 drivers/firmware/efi/ 目录下面产生一个 xx.</description>
+      <description>使用 porteus 的时候，发现网卡不支持，找了一下发现有内核驱动可以用，那就需要编译一下内核的模块。  这里有一个帖子写了如何编译内核，主要步骤是先给内核打 aufs 的补丁，然后就是正常的 make config &amp;amp;&amp;amp; make &amp;amp;&amp;amp; make modules_install 了。  我这只是编译一个网卡驱动，操作步骤大概如下，把内核解压放到 /mnt/sda1/kernel 下面，然后把网卡驱动代码放到 /mnt/sda1/kernel/linux-4.16.3/drivers/net/wireless/rtl8821ce 下面。 1 2 3 4 5 6 7 8 9  # cd /mnt/sda1/kernel/linux-4.16.3/ # modprobe configs &amp;amp;&amp;amp; zcat /proc/config.gz &amp;gt; .config # make oldconfig # make prepare # make modules_prepare # export srctree=/mnt/sda1/kernel/linux-4.16.3 # ln -s /mnt/sda1/kernel/linux-4.16.3 /usr/src/linux # cd drivers/net/wireless/rtl8821ce # make    然后在这个目录下面会产生一个 rtl8821ce.ko 的文件。  如果是遇到自己用的内核有一个模块没编译，那可以用下面的方式 1 2  # after make modules_prepare # make modules SUBDIRS=drivers/firmware/efi/    这样会在 drivers/firmware/efi/ 目录下面产生一个 xx.</description>
     </item>
     
     <item>
@@ -32,8 +32,8 @@ Linode 实际上已经提供了 4.9 的内核。打开 Dashboard，然后点击�
 然后执行 sudo dkpg -i ./linux-image-4.9.0-1-amd64-unsigned_4.9.2-2_amd64.deb，最后应该会提示一个错误，缺少依赖的包。这个时候执行 sudo apt-get -f install，会提示安装缺失的包。
 然后，还需要安装 grub。看你的情况。就刚才 profile 编辑的页面里面，kernel 右侧的选项里面，你看看你的是 grub2 还是 pv-grub。
  grub2: 参考这个
-$ sudo apt-get install grub2 $ sudo update-grub  pv-grub: 参考这个
-$ sudo apt-get install grub $ sudo mkdir /boot/grub $ sudo update-grub   然后在 profile 编辑页面里面，kernel 右侧选择对应的 grub 选项，重启 vps 就可以了。如果启动失败了，就在这个选项里面，选择之前的选项重启就可以恢复。</description>
+1 2  $ sudo apt-get install grub2 $ sudo update-grub   pv-grub: 参考这个
+1 2 3  $ sudo apt-get install grub $ sudo mkdir /boot/grub $ sudo update-grub    然后在 profile 编辑页面里面，kernel 右侧选择对应的 grub 选项，重启 vps 就可以了。如果启动失败了，就在这个选项里面，选择之前的选项重启就可以恢复。</description>
     </item>
     
     <item>

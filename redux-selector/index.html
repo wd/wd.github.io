@@ -10,11 +10,6 @@
 
   
   
-
-  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
-  <script src="https://wdicc.com//js/hljs.js"></script>
-
-  <script>hljs.initHighlightingOnLoad();</script>
   <nav>
     <ul>
       
@@ -82,35 +77,72 @@ selector 主要是一个纯函数，给同样的输入，得到同样的输出�
 <p>
 新建 selector 有两个方法，一个是直接定义函数，例如 
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">s1</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">state</span>) =&gt; {
-    <span style="color:#75715e">// 经过计算
-</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">user</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#080;font-weight:bold">const</span> s1 <span style="color:#333">=</span> (state) =&gt; {
+    <span style="color:#888">// 经过计算
+</span><span style="color:#888"></span>    <span style="color:#080;font-weight:bold">return</span> state.user
 }
-<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">s2</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">state</span> =&gt; <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">data</span>
-</code></pre></div>
+<span style="color:#080;font-weight:bold">const</span> s2 <span style="color:#333">=</span> state =&gt; state.data
+</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 另外一个方法是通过 <code class="verbatim">createSelector</code> 函数来创建，例如
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">s3</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">createSelector</span>(<span style="color:#a6e22e">s1</span>, <span style="color:#a6e22e">s2</span>, (<span style="color:#a6e22e">s1</span>, <span style="color:#a6e22e">s2</span>) =&gt;{
-    <span style="color:#75715e">// 经过计算
-</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">xx</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#080;font-weight:bold">const</span> s3 <span style="color:#333">=</span> createSelector(s1, s2, (s1, s2) =&gt;{
+    <span style="color:#888">// 经过计算
+</span><span style="color:#888"></span>    <span style="color:#080;font-weight:bold">return</span> xx
 })
-</code></pre></div>
+</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 实际上 selector 都是一些函数，具体用的是侯会执行这些函数，第一个方法创建的还好理解，第二个方法里面，会传什么参数呢？输入是什么呢？
 </p>
 <p>
 实际上，第二个方法定义的 selector 执行的时候类似这样。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">res</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">s3</span>(<span style="color:#a6e22e">s1</span>(<span style="color:#a6e22e">state</span>), <span style="color:#a6e22e">s2</span>(<span style="color:#a6e22e">state</span>))
-</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#080;font-weight:bold">const</span> res <span style="color:#333">=</span> s3(s1(state), s2(state))
+</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 输入是里面 selector 的输入，然后不停嵌套到最初的数据。这样一个 selector 使用的方法就广泛了。比如
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">s1_res</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">s1</span>(<span style="color:#a6e22e">state</span>) <span style="color:#75715e">// 从其他地方或者逻辑获取到这个值
-</span><span style="color:#75715e"></span>
-<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">res</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">s3</span>(<span style="color:#a6e22e">s1_res</span>, <span style="color:#a6e22e">s2</span>(<span style="color:#a6e22e">state</span>)) <span style="color:#75715e">// 直接用来作为 s3 的输入
-</span></code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#080;font-weight:bold">const</span> s1_res <span style="color:#333">=</span> s1(state) <span style="color:#888">// 从其他地方或者逻辑获取到这个值
+</span><span style="color:#888"></span>
+<span style="color:#080;font-weight:bold">const</span> res <span style="color:#333">=</span> s3(s1_res, s2(state)) <span style="color:#888">// 直接用来作为 s3 的输入
+</span></code></pre></td></tr></table>
+</div>
+</div>
 
 </main>
 

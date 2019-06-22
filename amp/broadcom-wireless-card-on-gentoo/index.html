@@ -10,11 +10,6 @@
 
   
   
-
-  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
-  <script src="https://wdicc.com//js/hljs.js"></script>
-
-  <script>hljs.initHighlightingOnLoad();</script>
   <nav>
     <ul>
       
@@ -83,16 +78,26 @@
 
 <main>
 <p>昨天又折腾了一下我的无线，是 dell 的本子，broadcom 的卡 BCM4313，准备写一下的时候，发现之前居然折腾过 <a href="/bcm4312broadcom-stawpa_supplicantkernel2-6-33/">BCM4312</a>。。感觉真蛋疼。。</p>
-
-<pre><code class="language-bash">$ lspci -vnn -d 14e4:
-02:00.0 Network controller [0280]: Broadcom Corporation BCM4313 802.11b/g/n Wireless LAN Controller [14e4:4727] (rev 01)
-        Subsystem: Dell Inspiron M5010 / XPS 8300 [1028:0010]
-        Flags: fast devsel, IRQ 17
-        Memory at e5300000 (64-bit, non-prefetchable) [size=16K]
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ lspci -vnn -d 14e4:
+<span style="color:#60e;font-weight:bold">02</span>:00.0 Network controller <span style="color:#333">[</span><span style="color:#60e;font-weight:bold">0280</span><span style="color:#333">]</span>: Broadcom Corporation BCM4313 <span style="color:#60e;font-weight:bold">802</span>.11b/g/n Wireless LAN Controller <span style="color:#333">[</span>14e4:4727<span style="color:#333">]</span> <span style="color:#333">(</span>rev <span style="color:#60e;font-weight:bold">01</span><span style="color:#333">)</span>
+        Subsystem: Dell Inspiron M5010 / XPS <span style="color:#60e;font-weight:bold">8300</span> <span style="color:#333">[</span><span style="color:#60e;font-weight:bold">1028</span>:0010<span style="color:#333">]</span>
+        Flags: fast devsel, IRQ <span style="color:#60e;font-weight:bold">17</span>
+        Memory at e5300000 <span style="color:#333">(</span><span style="color:#60e;font-weight:bold">64</span>-bit, non-prefetchable<span style="color:#333">)</span> <span style="color:#333">[</span><span style="color:#963">size</span><span style="color:#333">=</span>16K<span style="color:#333">]</span>
         Capabilities: &lt;access denied&gt;
-        Kernel modules: bcma
-</code></pre>
-
+        Kernel modules: bcma</code></pre></td></tr></table>
+</div>
+</div>
 <p>根据 <a href="http://wireless.kernel.org/en/users/Drivers/b43#bcm43xx.2C_b43legacy.2C_b43.2C_softmac.2C..._the_full_story">这里</a> ， BCM 的网卡有三种可用驱动</p>
 
 <ul>
@@ -104,11 +109,16 @@
 <p>另外，kernel 自带的 b43 和 brcmsmac 支持标准的 802.11 栈，可以通过 iw iwconfig 之类的工具来配置，获取状态。wl 就不行了。</p>
 
 <p>如果想使用 b43 或者 brcmsmac，需要选择下面的 kernel 选项，要注意都选择成 module，因为还需要加载 firmware，如果编译进内核那需要把 firmware 也编译到内核才可以。</p>
-
-<pre><code>Networking support  ---&gt;  Wireless  ---&gt; Generic IEEE 802.11 Networking Stack (mac80211)
-Device Drivers  ---&gt; Broadcom specific AMBA  ---&gt;  BCMA support
-</code></pre>
-
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">Networking support  ---&gt;  Wireless  ---&gt; Generic IEEE 802.11 Networking Stack (mac80211)
+Device Drivers  ---&gt; Broadcom specific AMBA  ---&gt;  BCMA support</pre></td></tr></table>
+</div>
+</div>
 <p>针对 b43 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom 43xx wireless support (mac80211 stack)</code>, 还需要安装 <code>sys-firmware/b43-firmware</code>。</p>
 
 <p>针对 brcmsmac 选择 <code>Device Drivers  ---&gt; Network device support  ---&gt;  Wireless LAN  ---&gt;  Broadcom IEEE802.11n PCIe SoftMAC WLAN driver</code>，还需要安装 <code>sys-kernel/linux-firmware</code>。</p>

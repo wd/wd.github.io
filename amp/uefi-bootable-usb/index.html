@@ -10,11 +10,6 @@
 
   
   
-
-  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
-  <script src="https://wdicc.com//js/hljs.js"></script>
-
-  <script>hljs.initHighlightingOnLoad();</script>
   <nav>
     <ul>
       
@@ -129,7 +124,20 @@ bcfg
 <p>
 通过 <a href="https://www.syslinux.org/wiki/index.php?title=Isohybrid#UEFI">isohybrid</a> 可以把一个 iso 做成支持 uefi 的格式，然后通过 dd 写入 u 盘之后，这个 u 盘就支持 uefi 启动了。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">mkisofs \
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">mkisofs \
  -o output.iso \
  -c boot/syslinux/isolinux.boot \
  -b boot/syslinux/isolinux.bin \
@@ -137,14 +145,26 @@ bcfg
  -eltorito-alt-boot \
  -eltorito-platform 0xEF -eltorito-boot isolinux/efiboot.img \
   -no-emul-boot \
- CD_ROOT</code></pre></div>
+ CD_ROOT</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 efiboot.img 实际是一个 iso 格式的磁盘 img，可以通过下面的方式产生
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">$ dd if=/dev/zero of=./efiboot.img bs=1M count=4
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">$ dd if=/dev/zero of=./efiboot.img bs=1M count=4
 $ mount efiboot.img ./mnt
 $ cp -r EFI /mnt
-$ umount /mnt</code></pre></div>
+$ umount /mnt</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 EFI/boot 目录是 efi 启动你自己定义的内容，然后执行 <code class="verbatim">isohybrid --uefi output.iso</code> 。
 </p>

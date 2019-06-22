@@ -10,11 +10,6 @@
 
   
   
-
-  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
-  <script src="https://wdicc.com//js/hljs.js"></script>
-
-  <script>hljs.initHighlightingOnLoad();</script>
   <nav>
     <ul>
       
@@ -128,11 +123,25 @@ grub 支持安装到 MBR 也支持安装到 ESP 分区。不过只是把内容�
 <p>
 类似这样，就是通过 uefi 启动了。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"># grub-install --target=x86_64-efi --efi-directory=/mnt/sda1 --bootloader-id=GRUB --boot-directory=/mnt/sda4/boot /dev/sda</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"># grub-install --target=x86_64-efi --efi-directory=/mnt/sda1 --bootloader-id=GRUB --boot-directory=/mnt/sda4/boot /dev/sda</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 也可以装到 MBR，就是通过传统的 bios 启动。可能需要加 <code class="verbatim">--force</code> ，我遇到的情况会提示 gpt 分区的 boot flag 没有，我这直接不理他加 force 就可以。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"># grub-install --boot-directory=/mnt/sda4/boot /dev/sda</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"># grub-install --boot-directory=/mnt/sda4/boot /dev/sda</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 grub 实际上是放到第一个分区前面的一部分空间里面的，传统的 MBR 方式分区软件一般会预留 31kb 从第 63 个扇区开始分区。对于 GPT 分区，因为会有一个 ESP 分区，grub 也可以直接利用这个，装到这个分区，ESP 分区会有一个 bootable flag，因为这等于是单独给 grub 用的分区，所以 grub 也不客气会直接覆盖里面的东西，用自己的文件系统格式，一般系统都不支持，这样也可以防止你自己或者被其他软件误操作。所以要注意，如果你打算用 efi 模式启动，那通过第一个方式用 <code class="verbatim">--efi-directory</code> 把 grub 装到这个分区，或者就还是用 mbr 方式好了。参考<a href="https://www.gnu.org/software/grub/manual/grub/html_node/BIOS-installation.html#BIOS-installation">这个</a>。
 </p>
@@ -160,8 +169,22 @@ UEFI 模式安装的 windows 可以参考<a href="https://wiki.archlinux.org/ind
 <p>
 文档里面写了 <code class="verbatim">search.file</code> 是 <code class="verbatim">search --file</code> 的 alias，但实际上还有坑在这里。区别的地方看下面
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">search.file /efi/Microsoft/Boot/bootmgfw.efi root</code></pre></div>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">search --file /efi/Microsoft/Boot/bootmgfw.efi --set root</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">search.file /efi/Microsoft/Boot/bootmgfw.efi root</code></pre></td></tr></table>
+</div>
+</div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">search --file /efi/Microsoft/Boot/bootmgfw.efi --set root</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 看到区别了吧，那个 root 相当于是自己定义的变量（实际上 grub2 会隐含的用到 root 变量，所以也不能完全说是自己定义的）。我在这个坑上面花了一些时间。
 </p>

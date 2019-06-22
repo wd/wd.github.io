@@ -10,11 +10,6 @@
 
   
   
-
-  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
-  <script src="https://wdicc.com//js/hljs.js"></script>
-
-  <script>hljs.initHighlightingOnLoad();</script>
   <nav>
     <ul>
       
@@ -83,14 +78,48 @@
 
 <main>
 <p>又理解了一下 python 的 metaclass 可以做什么，尝试记录一下。</p>
-
-<pre><code>class Meta(type):
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">class Meta(type):
     register = []
 
     def __new__(cls, class_name, parrent_class, params):
-        print(&quot;In meta new: {}, {}, {}, {}&quot;.format(cls, class_name, parrent_class, params))
+        print(&#34;In meta new: {}, {}, {}, {}&#34;.format(cls, class_name, parrent_class, params))
         cls.register.append(class_name)
-        params['test_prop'] = True
+        params[&#39;test_prop&#39;] = True
         # return super(Meta, cls).__new__(cls, class_name, parrent_class, params)
         # return type.__new__(cls, class_name, parrent_class, params)
         # return super(Meta, cls).__new__(type, class_name, parrent_class, params)
@@ -98,26 +127,25 @@
         return type(class_name, parrent_class, params)
 
     def __init__(self, class_name, parrent_class, params):
-        print(&quot;In meta init: {}, {}, {}&quot;.format(class_name, parrent_class, params))
+        print(&#34;In meta init: {}, {}, {}&#34;.format(class_name, parrent_class, params))
         super(Meta, self).__init__(class_name, parrent_class, params)
 
 
 class A(object, metaclass=Meta):
     pass
 
-print(&quot;register: {}&quot;.format(Meta.register))
-print(&quot;prop: {}&quot;.format(A.test_prop))
-print(&quot;register: {}&quot;.format(A.register))  # Error
+print(&#34;register: {}&#34;.format(Meta.register))
+print(&#34;prop: {}&#34;.format(A.test_prop))
+print(&#34;register: {}&#34;.format(A.register))  # Error
 
 # outputs:
-# In meta new: &lt;class '__main__.Meta'&gt;, A, (&lt;class 'object'&gt;,), {'__module__': '__main__', '__qualname__': 'A'}
-# In meta init: A, (&lt;class 'object'&gt;,), {'__module__': '__main__', '__qualname__': 'A'}
-# register: ['A']
+# In meta new: &lt;class &#39;__main__.Meta&#39;&gt;, A, (&lt;class &#39;object&#39;&gt;,), {&#39;__module__&#39;: &#39;__main__&#39;, &#39;__qualname__&#39;: &#39;A&#39;}
+# In meta init: A, (&lt;class &#39;object&#39;&gt;,), {&#39;__module__&#39;: &#39;__main__&#39;, &#39;__qualname__&#39;: &#39;A&#39;}
+# register: [&#39;A&#39;]
 # prop: True
-# AttributeError: type object 'A' has no attribute 'register'
-
-</code></pre>
-
+# AttributeError: type object &#39;A&#39; has no attribute &#39;register&#39;</pre></td></tr></table>
+</div>
+</div>
 <p>可以看到，在构造 <code>A</code> 的时候，<code>Meta</code> 这个类里面，<code>__new__</code> 和 <code>__init__</code> 都会被调用到。上面代码往 <code>A</code> 里面塞了一个属性。</p>
 
 <p>在 <code>__new__</code> 里面，有几个注释，可以去掉注释看看不同的效果。目前还有点疑惑，传给 <code>__new__</code> 第一个参数到底是什么。另外，开始对 <code>super</code> 也有点疑惑了，还在学习。</p>

@@ -10,11 +10,6 @@
 
   
   
-
-  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
-  <script src="https://wdicc.com//js/hljs.js"></script>
-
-  <script>hljs.initHighlightingOnLoad();</script>
   <nav>
     <ul>
       
@@ -136,11 +131,25 @@ django 是如何执行变更的
 <p>
 一些数据库提供了不锁表建索引的方法。例如，在 PostgreSQL 里面可以使用 <a href="https://www.postgresql.org/docs/current/sql-createindex.html">CONCURRENTLY</a> 关键字：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> CONCURRENTLY ix <span style="color:#66d9ef">ON</span> <span style="color:#66d9ef">table</span> (<span style="color:#66d9ef">column</span>);</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#080;font-weight:bold">CREATE</span> <span style="color:#080;font-weight:bold">INDEX</span> CONCURRENTLY ix <span style="color:#080;font-weight:bold">ON</span> <span style="color:#080;font-weight:bold">table</span> (<span style="color:#080;font-weight:bold">column</span>);</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 在 Oracle 里面，有一个 ONLINE 选项允许在创建索引的时候执行 DML 操作：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> ix <span style="color:#66d9ef">ON</span> <span style="color:#66d9ef">table</span> (<span style="color:#66d9ef">column</span>) ONLINE;</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#080;font-weight:bold">CREATE</span> <span style="color:#080;font-weight:bold">INDEX</span> ix <span style="color:#080;font-weight:bold">ON</span> <span style="color:#080;font-weight:bold">table</span> (<span style="color:#080;font-weight:bold">column</span>) ONLINE;</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 在生成数据库变更的时候，django 不会使用这些关键字。执行这些变更创建索引会导致数据库增加表的排他锁，而阻止 DML 操作。
 </p>
@@ -156,21 +165,51 @@ django 是如何执行变更的
 <p>
 这里将在一个叫 app 的应用里面使用一个 Sale 模型。在真实世界，类似 Sale 这样的模型一般是数据库的主要的表，会存储大量的数据。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># models.py</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#888"># models.py</span>
 
-<span style="color:#f92672">from</span> django.db <span style="color:#f92672">import</span> models
+<span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">django.db</span> <span style="color:#080;font-weight:bold">import</span> models
 
-<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Sale</span>(models<span style="color:#f92672">.</span>Model):
-    sold_at <span style="color:#f92672">=</span> models<span style="color:#f92672">.</span>DateTimeField(
-        auto_now_add<span style="color:#f92672">=</span>True,
+<span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">Sale</span>(models<span style="color:#333">.</span>Model):
+    sold_at <span style="color:#333">=</span> models<span style="color:#333">.</span>DateTimeField(
+        auto_now_add<span style="color:#333">=</span>True,
     )
-    charged_amount <span style="color:#f92672">=</span> models<span style="color:#f92672">.</span>PositiveIntegerField()
-To create the table, generate the initial migration <span style="color:#f92672">and</span> apply it:</code></pre></div>
+    charged_amount <span style="color:#333">=</span> models<span style="color:#333">.</span>PositiveIntegerField()
+To create the table, generate the initial migration <span style="color:#000;font-weight:bold">and</span> <span style="color:#007020">apply</span> it:</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 生成初始的数据库变更，并创建这个表：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py makemigrations
-Migrations <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;app&#39;</span>:
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py makemigrations
+Migrations <span style="color:#080;font-weight:bold">for</span> <span style="background-color:#fff0f0">&#39;app&#39;</span>:
   app/migrations/0001_initial.py
     - Create model Sale
 
@@ -178,23 +217,41 @@ $ python manage migrate
 Operations to perform:
   Apply all migrations: app
 Running migrations:
-  Applying app.0001_initial... OK</code></pre></div>
+  Applying app.0001_initial... OK</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 过一段时间，sales 表会变的很大，用户会开始抱怨访问起来比较慢。通过监控数据库，发现大量查询都使用了 sold_at 列。为了提速，你决定给这列加一个索引。
 </p>
 <p>
 为了给 sold_at 加索引，对模型做如下变更：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># models.py</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#888"># models.py</span>
 
-<span style="color:#f92672">from</span> django.db <span style="color:#f92672">import</span> models
+<span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">django.db</span> <span style="color:#080;font-weight:bold">import</span> models
 
-<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Sale</span>(models<span style="color:#f92672">.</span>Model):
-    sold_at <span style="color:#f92672">=</span> models<span style="color:#f92672">.</span>DateTimeField(
-        auto_now_add<span style="color:#f92672">=</span>True,
-        db_index<span style="color:#f92672">=</span>True,  <span style="color:#75715e"># 变更在这里</span>
+<span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">Sale</span>(models<span style="color:#333">.</span>Model):
+    sold_at <span style="color:#333">=</span> models<span style="color:#333">.</span>DateTimeField(
+        auto_now_add<span style="color:#333">=</span>True,
+        db_index<span style="color:#333">=</span>True,  <span style="color:#888"># 变更在这里</span>
     )
-    charged_amount <span style="color:#f92672">=</span> models<span style="color:#f92672">.</span>PositiveIntegerField()</code></pre></div>
+    charged_amount <span style="color:#333">=</span> models<span style="color:#333">.</span>PositiveIntegerField()</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 如果你执行这个数据库变更，django 会在表上面创建索引，表会加锁直到索引创建完毕。在一个很大的表上面创建索引的时候会需要一些时间，你想要避免停机。
 </p>
@@ -213,28 +270,62 @@ Fake Migration
 <p>
 首先，生成数据库变更：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#960050;background-color:#1e0010">$</span> python manage<span style="color:#f92672">.</span>py makemigrations <span style="color:#f92672">--</span>name add_index_fake
-Migrations <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;app&#39;</span>:
-  app<span style="color:#f92672">/</span>migrations<span style="color:#f92672">/</span><span style="color:#ae81ff">0002</span>_add_index_fake<span style="color:#f92672">.</span>py
-    <span style="color:#f92672">-</span> Alter field sold_at on sale</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#f00;background-color:#faa">$</span> python manage<span style="color:#333">.</span>py makemigrations <span style="color:#333">--</span>name add_index_fake
+Migrations <span style="color:#080;font-weight:bold">for</span> <span style="background-color:#fff0f0">&#39;app&#39;</span>:
+  app<span style="color:#333">/</span>migrations<span style="color:#333">/</span><span style="color:#40e;font-weight:bold">0002</span>_add_index_fake<span style="color:#333">.</span>py
+    <span style="color:#333">-</span> Alter field sold_at on sale</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 使用 sqlmigrate 命令查看 django 在这次变更里面打算使用的 SQL：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py sqlmigrate app <span style="color:#ae81ff">0002</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py sqlmigrate app <span style="color:#60e;font-weight:bold">0002</span>
 
 BEGIN;
 --
 -- Alter field sold_at on sale
 --
-CREATE INDEX <span style="color:#e6db74">&#34;app_sale_sold_at_b9438ae4&#34;</span> ON <span style="color:#e6db74">&#34;app_sale&#34;</span> <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;sold_at&#34;</span><span style="color:#f92672">)</span>;
-COMMIT;</code></pre></div>
+CREATE INDEX <span style="background-color:#fff0f0">&#34;app_sale_sold_at_b9438ae4&#34;</span> ON <span style="background-color:#fff0f0">&#34;app_sale&#34;</span> <span style="color:#333">(</span><span style="background-color:#fff0f0">&#34;sold_at&#34;</span><span style="color:#333">)</span>;
+COMMIT;</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 为了不加锁创建索引，需要对准备在数据执行的命令做一个修改，增加 CONCURRENTLY 关键字：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">app<span style="color:#f92672">=#</span> <span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> CONCURRENTLY <span style="color:#e6db74">&#34;app_sale_sold_at_b9438ae4&#34;</span>
-<span style="color:#66d9ef">ON</span> <span style="color:#e6db74">&#34;app_sale&#34;</span> (<span style="color:#e6db74">&#34;sold_at&#34;</span>);
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">app<span style="color:#333">=#</span> <span style="color:#080;font-weight:bold">CREATE</span> <span style="color:#080;font-weight:bold">INDEX</span> CONCURRENTLY <span style="background-color:#fff0f0">&#34;app_sale_sold_at_b9438ae4&#34;</span>
+<span style="color:#080;font-weight:bold">ON</span> <span style="background-color:#fff0f0">&#34;app_sale&#34;</span> (<span style="background-color:#fff0f0">&#34;sold_at&#34;</span>);
 
-<span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span></code></pre></div>
+<span style="color:#080;font-weight:bold">CREATE</span> <span style="color:#080;font-weight:bold">INDEX</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>
 注意这里没有执行 BEGIN 和 COMMIT 部分，忽略掉这个可以避免数据库创建事务来执行，关于事务后面会讨论。
 </p>
@@ -242,17 +333,34 @@ COMMIT;</code></pre></div>
 After you executed the command, if you try to apply migrations, then you will get the following error:
 执行之后，如果执行生成的数据库变更，会遇到下面的错误：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate
 
 Operations to perform:
   Apply all migrations: app
 Running migrations:
-  Applying app.0002_add_index_fake...Traceback <span style="color:#f92672">(</span>most recent call last<span style="color:#f92672">)</span>:
-  File <span style="color:#e6db74">&#34;venv/lib/python3.7/site-packages/django/db/backends/utils.py&#34;</span>, line <span style="color:#ae81ff">85</span>, in _execute
-    <span style="color:#66d9ef">return</span> self.cursor.execute<span style="color:#f92672">(</span>sql, params<span style="color:#f92672">)</span>
+  Applying app.0002_add_index_fake...Traceback <span style="color:#333">(</span>most recent call last<span style="color:#333">)</span>:
+  File <span style="background-color:#fff0f0">&#34;venv/lib/python3.7/site-packages/django/db/backends/utils.py&#34;</span>, line <span style="color:#60e;font-weight:bold">85</span>, in _execute
+    <span style="color:#080;font-weight:bold">return</span> self.cursor.execute<span style="color:#333">(</span>sql, params<span style="color:#333">)</span>
 
 
-psycopg2.ProgrammingError: relation <span style="color:#e6db74">&#34;app_sale_sold_at_b9438ae4&#34;</span> already exists</code></pre></div>
+psycopg2.ProgrammingError: relation <span style="background-color:#fff0f0">&#34;app_sale_sold_at_b9438ae4&#34;</span> already exists</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 django 会报错说这个索引已经存在了，所以没法继续执行这个数据库变更了。因为我们已经在数据库里面创建了这个索引，所以需要告诉 django 已经执行了。
 </p>
@@ -262,12 +370,24 @@ How to Fake a Migration
 <p>
 django 提供了一个内置的方法来标记一个变更已经执行过了，就是使用 –fake 参数。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate --fake
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate --fake
 Operations to perform:
   Apply all migrations: app
 Running migrations:
   Applying app.0002_add_index_fake... FAKED
-Django didn’t raise an error this time. In fact, Django didn’t really apply any migration. It just marked it as executed <span style="color:#f92672">(</span>or FAKED<span style="color:#f92672">)</span>.</code></pre></div>
+Django didn’t raise an error this time. In fact, Django didn’t really apply any migration. It just marked it as executed <span style="color:#333">(</span>or FAKED<span style="color:#333">)</span>.</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 使用 fake 的时候需要注意的几个问题：
 </p>
@@ -299,22 +419,50 @@ Cleanup
 <p>
 继续下一步之前，需要把数据库回复到初始的状态。执行下面的操作：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate <span style="color:#ae81ff">0001</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate <span style="color:#60e;font-weight:bold">0001</span>
 Operations to perform:
   Target specific migration: 0001_initial, from app
 Running migrations:
   Rendering model states... DONE
-  Unapplying app.0002_add_index_fake... OK</code></pre></div>
+  Unapplying app.0002_add_index_fake... OK</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 django 把第二步做的修改回滚了，现在可以安全的把变更文件也删除了：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ rm app/migrations/0002_add_index_fake.py</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ rm app/migrations/0002_add_index_fake.py</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 确认下是不是都 ok 了：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py showmigrations app
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py showmigrations app
 app
- <span style="color:#f92672">[</span>X<span style="color:#f92672">]</span> 0001_initial</code></pre></div>
+ <span style="color:#333">[</span>X<span style="color:#333">]</span> 0001_initial</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 只有第一个变更被执行了，并且也没有其他变更了。
 </p>
@@ -330,44 +478,97 @@ Django 提供了一个方法可以在数据库变更的时候通过 RunSQL 来�
 <p>
 首先，生成一个空的数据库变更：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py makemigrations app --empty --name add_index_runsql
-Migrations <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;app&#39;</span>:
-  app/migrations/0002_add_index_runsql.py</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py makemigrations app --empty --name add_index_runsql
+Migrations <span style="color:#080;font-weight:bold">for</span> <span style="background-color:#fff0f0">&#39;app&#39;</span>:
+  app/migrations/0002_add_index_runsql.py</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 编辑变更文件，增加一个 RunSQL 操作：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># migrations/0002_add_index_runsql.py</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#888"># migrations/0002_add_index_runsql.py</span>
 
-<span style="color:#f92672">from</span> django.db <span style="color:#f92672">import</span> migrations, models
+<span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">django.db</span> <span style="color:#080;font-weight:bold">import</span> migrations, models
 
-<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Migration</span>(migrations<span style="color:#f92672">.</span>Migration):
-    atomic <span style="color:#f92672">=</span> False
+<span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">Migration</span>(migrations<span style="color:#333">.</span>Migration):
+    atomic <span style="color:#333">=</span> False
 
-    dependencies <span style="color:#f92672">=</span> [
-        (<span style="color:#e6db74">&#39;app&#39;</span>, <span style="color:#e6db74">&#39;0001_initial&#39;</span>),
+    dependencies <span style="color:#333">=</span> [
+        (<span style="background-color:#fff0f0">&#39;app&#39;</span>, <span style="background-color:#fff0f0">&#39;0001_initial&#39;</span>),
     ]
 
-    operations <span style="color:#f92672">=</span> [
-        migrations<span style="color:#f92672">.</span>RunSQL(
-            <span style="color:#e6db74">&#39;CREATE INDEX &#34;app_sale_sold_at_b9438ae4&#34; &#39;</span>
-            <span style="color:#e6db74">&#39;ON &#34;app_sale&#34; (&#34;sold_at&#34;);&#39;</span>,
+    operations <span style="color:#333">=</span> [
+        migrations<span style="color:#333">.</span>RunSQL(
+            <span style="background-color:#fff0f0">&#39;CREATE INDEX &#34;app_sale_sold_at_b9438ae4&#34; &#39;</span>
+            <span style="background-color:#fff0f0">&#39;ON &#34;app_sale&#34; (&#34;sold_at&#34;);&#39;</span>,
         ),
-    ]</code></pre></div>
+    ]</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 执行这个变更的时候，会有如下的输出：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate
 Operations to perform:
   Apply all migrations: app
 Running migrations:
-  Applying app.0002_add_index_runsql... OK</code></pre></div>
+  Applying app.0002_add_index_runsql... OK</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 看着好像没啥问题，但是其实有一个问题，再次生成数据库变更：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py makemigrations --name leftover_migration
-Migrations <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;app&#39;</span>:
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py makemigrations --name leftover_migration
+Migrations <span style="color:#080;font-weight:bold">for</span> <span style="background-color:#fff0f0">&#39;app&#39;</span>:
   app/migrations/0003_leftover_migration.py
-    - Alter field sold_at on sale</code></pre></div>
+    - Alter field sold_at on sale</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 django 又生成了一次相同的变更，这是怎么回事呢？
 </p>
@@ -378,25 +579,56 @@ Cleanup
 Before we can answer that question, you need to clean up and undo the changes you made to the database. Start by deleting the last migration. It was not applied, so it’s safe to delete:
 回答那个问题前，先回滚一下对数据库做的操作。因为最后那个变更没有执行，所以可以直接删除：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ rm app/migrations/0003_leftover_migration.py</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ rm app/migrations/0003_leftover_migration.py</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 列出所有的变更：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py showmigrations app
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py showmigrations app
 app
- <span style="color:#f92672">[</span>X<span style="color:#f92672">]</span> 0001_initial
- <span style="color:#f92672">[</span>X<span style="color:#f92672">]</span> 0002_add_index_runsql</code></pre></div>
+ <span style="color:#333">[</span>X<span style="color:#333">]</span> 0001_initial
+ <span style="color:#333">[</span>X<span style="color:#333">]</span> 0002_add_index_runsql</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 第三个变更消失了，但是第二个变更已经执行了，所以还在。我们需要回滚到初始的状态，执行回滚的变更看看：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate app <span style="color:#ae81ff">0001</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate app <span style="color:#60e;font-weight:bold">0001</span>
 Operations to perform:
   Target specific migration: 0001_initial, from app
 Running migrations:
   Rendering model states... DONE
-  Unapplying app.0002_add_index_runsql...Traceback <span style="color:#f92672">(</span>most recent call last<span style="color:#f92672">)</span>:
+  Unapplying app.0002_add_index_runsql...Traceback <span style="color:#333">(</span>most recent call last<span style="color:#333">)</span>:
 
-NotImplementedError: You cannot reverse this operation</code></pre></div>
+NotImplementedError: You cannot reverse this operation</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 django 无法回滚那个数据库变更。
 </p>
@@ -428,34 +660,79 @@ How to Make a Migration Reversible
 <p>
 增加索引的回滚操作是删除它。增加一个 reverse_sql 参数：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># migrations/0002_add_index_runsql.py</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#888"># migrations/0002_add_index_runsql.py</span>
 
-<span style="color:#f92672">from</span> django.db <span style="color:#f92672">import</span> migrations, models
+<span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">django.db</span> <span style="color:#080;font-weight:bold">import</span> migrations, models
 
-<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Migration</span>(migrations<span style="color:#f92672">.</span>Migration):
-    atomic <span style="color:#f92672">=</span> False
+<span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">Migration</span>(migrations<span style="color:#333">.</span>Migration):
+    atomic <span style="color:#333">=</span> False
 
-    dependencies <span style="color:#f92672">=</span> [
-        (<span style="color:#e6db74">&#39;app&#39;</span>, <span style="color:#e6db74">&#39;0001_initial&#39;</span>),
+    dependencies <span style="color:#333">=</span> [
+        (<span style="background-color:#fff0f0">&#39;app&#39;</span>, <span style="background-color:#fff0f0">&#39;0001_initial&#39;</span>),
     ]
 
-    operations <span style="color:#f92672">=</span> [
-        migrations<span style="color:#f92672">.</span>RunSQL(
-            <span style="color:#e6db74">&#39;CREATE INDEX &#34;app_sale_sold_at_b9438ae4&#34; &#39;</span>
-            <span style="color:#e6db74">&#39;ON &#34;app_sale&#34; (&#34;sold_at&#34;);&#39;</span>,
+    operations <span style="color:#333">=</span> [
+        migrations<span style="color:#333">.</span>RunSQL(
+            <span style="background-color:#fff0f0">&#39;CREATE INDEX &#34;app_sale_sold_at_b9438ae4&#34; &#39;</span>
+            <span style="background-color:#fff0f0">&#39;ON &#34;app_sale&#34; (&#34;sold_at&#34;);&#39;</span>,
 
-            reverse_sql<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;DROP INDEX &#34;app_sale_sold_at_b9438ae4&#34;;&#39;</span>,
+            reverse_sql<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;DROP INDEX &#34;app_sale_sold_at_b9438ae4&#34;;&#39;</span>,
         ),
-    ]</code></pre></div>
+    ]</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 再执行一下回滚看看：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py showmigrations app
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py showmigrations app
 app
- <span style="color:#f92672">[</span>X<span style="color:#f92672">]</span> 0001_initial
- <span style="color:#f92672">[</span>X<span style="color:#f92672">]</span> 0002_add_index_runsql
+ <span style="color:#333">[</span>X<span style="color:#333">]</span> 0001_initial
+ <span style="color:#333">[</span>X<span style="color:#333">]</span> 0002_add_index_runsql
 
-$ python manage.py migrate app <span style="color:#ae81ff">0001</span>
+$ python manage.py migrate app <span style="color:#60e;font-weight:bold">0001</span>
 Operations to perform:
   Target specific migration: 0001_initial, from app
 Running migrations:
@@ -464,19 +741,38 @@ Running migrations:
 
 $ python manage.py showmigrations app
 app
- <span style="color:#f92672">[</span>X<span style="color:#f92672">]</span> 0001_initial
- <span style="color:#f92672">[</span> <span style="color:#f92672">]</span> 0002_add_index_runsql</code></pre></div>
+ <span style="color:#333">[</span>X<span style="color:#333">]</span> 0001_initial
+ <span style="color:#333">[</span> <span style="color:#333">]</span> 0002_add_index_runsql</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 第二个数据库变更也回滚了，索引被删除了。现在可以删除数据库变更文件了。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ rm app/migrations/0002_add_index_runsql.py</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ rm app/migrations/0002_add_index_runsql.py</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 应该尽量提供一个 reverse_sql。当一个原始 SQL 操作不需要回滚操作的时候，可以通过 migrations.RunSQL.noop 标记这个操作是可以回滚的。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">migrations<span style="color:#f92672">.</span>RunSQL(
-    sql<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;...&#39;</span>,  <span style="color:#75715e"># Your forward SQL here</span>
-    reverse_sql<span style="color:#f92672">=</span>migrations<span style="color:#f92672">.</span>RunSQL<span style="color:#f92672">.</span>noop,
-),</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">migrations<span style="color:#333">.</span>RunSQL(
+    sql<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;...&#39;</span>,  <span style="color:#888"># Your forward SQL here</span>
+    reverse_sql<span style="color:#333">=</span>migrations<span style="color:#333">.</span>RunSQL<span style="color:#333">.</span>noop,
+),</code></pre></td></tr></table>
+</div>
+</div>
 <h1 id="headline-10">
 Understand Model State and Database State
 </h1>
@@ -513,91 +809,191 @@ How to Separate Database and State in Migrations
 <p>
 修改一个数据库变更比从头写一个容易多了，所以我们先生成一个变更，然后再修改它：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py makemigrations --name add_index_separate_database_and_state
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py makemigrations --name add_index_separate_database_and_state
 
-Migrations <span style="color:#66d9ef">for</span> <span style="color:#e6db74">&#39;app&#39;</span>:
+Migrations <span style="color:#080;font-weight:bold">for</span> <span style="background-color:#fff0f0">&#39;app&#39;</span>:
   app/migrations/0002_add_index_separate_database_and_state.py
-    - Alter field sold_at on sale</code></pre></div>
+    - Alter field sold_at on sale</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 下面是 Django 生成的变更，和之前的一样：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">
-<span style="color:#75715e"># migrations/0002_add_index_separate_database_and_state.py</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">
+<span style="color:#888"># migrations/0002_add_index_separate_database_and_state.py</span>
 
-<span style="color:#f92672">from</span> django.db <span style="color:#f92672">import</span> migrations, models
+<span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">django.db</span> <span style="color:#080;font-weight:bold">import</span> migrations, models
 
-<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Migration</span>(migrations<span style="color:#f92672">.</span>Migration):
+<span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">Migration</span>(migrations<span style="color:#333">.</span>Migration):
 
-    dependencies <span style="color:#f92672">=</span> [
-        (<span style="color:#e6db74">&#39;app&#39;</span>, <span style="color:#e6db74">&#39;0001_initial&#39;</span>),
+    dependencies <span style="color:#333">=</span> [
+        (<span style="background-color:#fff0f0">&#39;app&#39;</span>, <span style="background-color:#fff0f0">&#39;0001_initial&#39;</span>),
     ]
 
-    operations <span style="color:#f92672">=</span> [
-        migrations<span style="color:#f92672">.</span>AlterField(
-            model_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;sale&#39;</span>,
-            name<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;sold_at&#39;</span>,
-            field<span style="color:#f92672">=</span>models<span style="color:#f92672">.</span>DateTimeField(
-                auto_now_add<span style="color:#f92672">=</span>True,
-                db_index<span style="color:#f92672">=</span>True,
+    operations <span style="color:#333">=</span> [
+        migrations<span style="color:#333">.</span>AlterField(
+            model_name<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;sale&#39;</span>,
+            name<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;sold_at&#39;</span>,
+            field<span style="color:#333">=</span>models<span style="color:#333">.</span>DateTimeField(
+                auto_now_add<span style="color:#333">=</span>True,
+                db_index<span style="color:#333">=</span>True,
             ),
         ),
-    ]</code></pre></div>
+    ]</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 Django 给 sold_at 字段生成了一个 AlterField 操作。这个操作会创建索引并更新状态。我们希望保留这个操作，但是提供不同的命令在数据库执行。
 </p>
 <p>
 再说一次，可以通过 django 来生成这个命令：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py sqlmigrate app <span style="color:#ae81ff">0002</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py sqlmigrate app <span style="color:#60e;font-weight:bold">0002</span>
 BEGIN;
 --
 -- Alter field sold_at on sale
 --
-CREATE INDEX <span style="color:#e6db74">&#34;app_sale_sold_at_b9438ae4&#34;</span> ON <span style="color:#e6db74">&#34;app_sale&#34;</span> <span style="color:#f92672">(</span><span style="color:#e6db74">&#34;sold_at&#34;</span><span style="color:#f92672">)</span>;
-COMMIT;</code></pre></div>
+CREATE INDEX <span style="background-color:#fff0f0">&#34;app_sale_sold_at_b9438ae4&#34;</span> ON <span style="background-color:#fff0f0">&#34;app_sale&#34;</span> <span style="color:#333">(</span><span style="background-color:#fff0f0">&#34;sold_at&#34;</span><span style="color:#333">)</span>;
+COMMIT;</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 在适当的地方添加 CONCURRENTLY 关键字：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#66d9ef">CREATE</span> <span style="color:#66d9ef">INDEX</span> CONCURRENTLY <span style="color:#e6db74">&#34;app_sale_sold_at_b9438ae4&#34;</span>
-<span style="color:#66d9ef">ON</span> <span style="color:#e6db74">&#34;app_sale&#34;</span> (<span style="color:#e6db74">&#34;sold_at&#34;</span>);</code></pre></div>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="color:#080;font-weight:bold">CREATE</span> <span style="color:#080;font-weight:bold">INDEX</span> CONCURRENTLY <span style="background-color:#fff0f0">&#34;app_sale_sold_at_b9438ae4&#34;</span>
+<span style="color:#080;font-weight:bold">ON</span> <span style="background-color:#fff0f0">&#34;app_sale&#34;</span> (<span style="background-color:#fff0f0">&#34;sold_at&#34;</span>);</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 接下来，编辑数据库变更文件，使用 SeparateDatabaseAndState 来执行修改后的 SQL：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">
-<span style="color:#75715e"># migrations/0002_add_index_separate_database_and_state.py</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">
+<span style="color:#888"># migrations/0002_add_index_separate_database_and_state.py</span>
 
-<span style="color:#f92672">from</span> django.db <span style="color:#f92672">import</span> migrations, models
+<span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">django.db</span> <span style="color:#080;font-weight:bold">import</span> migrations, models
 
-<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Migration</span>(migrations<span style="color:#f92672">.</span>Migration):
+<span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">Migration</span>(migrations<span style="color:#333">.</span>Migration):
 
-    dependencies <span style="color:#f92672">=</span> [
-        (<span style="color:#e6db74">&#39;app&#39;</span>, <span style="color:#e6db74">&#39;0001_initial&#39;</span>),
+    dependencies <span style="color:#333">=</span> [
+        (<span style="background-color:#fff0f0">&#39;app&#39;</span>, <span style="background-color:#fff0f0">&#39;0001_initial&#39;</span>),
     ]
 
-    operations <span style="color:#f92672">=</span> [
-        migrations<span style="color:#f92672">.</span>SeparateDatabaseAndState(
-            state_operations<span style="color:#f92672">=</span>[
-                migrations<span style="color:#f92672">.</span>AlterField(
-                    model_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;sale&#39;</span>,
-                    name<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;sold_at&#39;</span>,
-                    field<span style="color:#f92672">=</span>models<span style="color:#f92672">.</span>DateTimeField(
-                        auto_now_add<span style="color:#f92672">=</span>True,
-                        db_index<span style="color:#f92672">=</span>True,
+    operations <span style="color:#333">=</span> [
+        migrations<span style="color:#333">.</span>SeparateDatabaseAndState(
+            state_operations<span style="color:#333">=</span>[
+                migrations<span style="color:#333">.</span>AlterField(
+                    model_name<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;sale&#39;</span>,
+                    name<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;sold_at&#39;</span>,
+                    field<span style="color:#333">=</span>models<span style="color:#333">.</span>DateTimeField(
+                        auto_now_add<span style="color:#333">=</span>True,
+                        db_index<span style="color:#333">=</span>True,
                     ),
                 ),
             ],
 
-            database_operations<span style="color:#f92672">=</span>[
-                migrations<span style="color:#f92672">.</span>RunSQL(sql<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;&#34;
-</span><span style="color:#e6db74">                    CREATE INDEX CONCURRENTLY &#34;app_sale_sold_at_b9438ae4&#34;
-</span><span style="color:#e6db74">                    ON &#34;app_sale&#34; (&#34;sold_at&#34;);
-</span><span style="color:#e6db74">                &#34;&#34;&#34;</span>, reverse_sql<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;&#34;
-</span><span style="color:#e6db74">                    DROP INDEX &#34;app_sale_sold_at_b9438ae4&#34;;
-</span><span style="color:#e6db74">                &#34;&#34;&#34;</span>),
+            database_operations<span style="color:#333">=</span>[
+                migrations<span style="color:#333">.</span>RunSQL(sql<span style="color:#333">=</span><span style="background-color:#fff0f0">&#34;&#34;&#34;
+</span><span style="background-color:#fff0f0">                    CREATE INDEX CONCURRENTLY &#34;app_sale_sold_at_b9438ae4&#34;
+</span><span style="background-color:#fff0f0">                    ON &#34;app_sale&#34; (&#34;sold_at&#34;);
+</span><span style="background-color:#fff0f0">                &#34;&#34;&#34;</span>, reverse_sql<span style="color:#333">=</span><span style="background-color:#fff0f0">&#34;&#34;&#34;
+</span><span style="background-color:#fff0f0">                    DROP INDEX &#34;app_sale_sold_at_b9438ae4&#34;;
+</span><span style="background-color:#fff0f0">                &#34;&#34;&#34;</span>),
             ],
         ),
 
-    ],</code></pre></div>
+    ],</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 SeparateDatabaseAndState 操作接收两个列表参数：
 </p>
@@ -622,14 +1018,28 @@ database_operations 是应用的数据库的变更。
 <p>
 执行这个数据库变更的时候，会有如下的输出：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate app
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate app
 Operations to perform:
   Apply all migrations: app
 Running migrations:
-  Applying app.0002_add_index_separate_database_and_state...Traceback <span style="color:#f92672">(</span>most recent call last<span style="color:#f92672">)</span>:
-  File <span style="color:#e6db74">&#34;/venv/lib/python3.7/site-packages/django/db/backends/utils.py&#34;</span>, line <span style="color:#ae81ff">83</span>, in _execute
-    <span style="color:#66d9ef">return</span> self.cursor.execute<span style="color:#f92672">(</span>sql<span style="color:#f92672">)</span>
-psycopg2.InternalError: CREATE INDEX CONCURRENTLY cannot run inside a transaction block</code></pre></div>
+  Applying app.0002_add_index_separate_database_and_state...Traceback <span style="color:#333">(</span>most recent call last<span style="color:#333">)</span>:
+  File <span style="background-color:#fff0f0">&#34;/venv/lib/python3.7/site-packages/django/db/backends/utils.py&#34;</span>, line <span style="color:#60e;font-weight:bold">83</span>, in _execute
+    <span style="color:#080;font-weight:bold">return</span> self.cursor.execute<span style="color:#333">(</span>sql<span style="color:#333">)</span>
+psycopg2.InternalError: CREATE INDEX CONCURRENTLY cannot run inside a transaction block</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 注意上面这个输出报错了。
 </p>
@@ -642,49 +1052,101 @@ Non-Atomic Migrations
 <p>
 为了能在数据库变更里面异步创建索引，需要告诉 django 不要在事务里面执行这个变更。需要设置如下：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e"># migrations/0002_add_index_separate_database_and_state.py</span>
-<span style="color:#f92672">from</span> django.db <span style="color:#f92672">import</span> migrations, models
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#888"># migrations/0002_add_index_separate_database_and_state.py</span>
+<span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">django.db</span> <span style="color:#080;font-weight:bold">import</span> migrations, models
 
-<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Migration</span>(migrations<span style="color:#f92672">.</span>Migration):
-    atomic <span style="color:#f92672">=</span> False
+<span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">Migration</span>(migrations<span style="color:#333">.</span>Migration):
+    atomic <span style="color:#333">=</span> False
 
-    dependencies <span style="color:#f92672">=</span> [
-        (<span style="color:#e6db74">&#39;app&#39;</span>, <span style="color:#e6db74">&#39;0001_initial&#39;</span>),
+    dependencies <span style="color:#333">=</span> [
+        (<span style="background-color:#fff0f0">&#39;app&#39;</span>, <span style="background-color:#fff0f0">&#39;0001_initial&#39;</span>),
     ]
 
-    operations <span style="color:#f92672">=</span> [
-        migrations<span style="color:#f92672">.</span>SeparateDatabaseAndState(
-            state_operations<span style="color:#f92672">=</span>[
-                migrations<span style="color:#f92672">.</span>AlterField(
-                    model_name<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;sale&#39;</span>,
-                    name<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;sold_at&#39;</span>,
-                    field<span style="color:#f92672">=</span>models<span style="color:#f92672">.</span>DateTimeField(
-                        auto_now_add<span style="color:#f92672">=</span>True,
-                        db_index<span style="color:#f92672">=</span>True,
+    operations <span style="color:#333">=</span> [
+        migrations<span style="color:#333">.</span>SeparateDatabaseAndState(
+            state_operations<span style="color:#333">=</span>[
+                migrations<span style="color:#333">.</span>AlterField(
+                    model_name<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;sale&#39;</span>,
+                    name<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;sold_at&#39;</span>,
+                    field<span style="color:#333">=</span>models<span style="color:#333">.</span>DateTimeField(
+                        auto_now_add<span style="color:#333">=</span>True,
+                        db_index<span style="color:#333">=</span>True,
                     ),
                 ),
             ],
 
-            database_operations<span style="color:#f92672">=</span>[
-                migrations<span style="color:#f92672">.</span>RunSQL(sql<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;&#34;
-</span><span style="color:#e6db74">                    CREATE INDEX CONCURRENTLY &#34;app_sale_sold_at_b9438ae4&#34;
-</span><span style="color:#e6db74">                    ON &#34;app_sale&#34; (&#34;sold_at&#34;);
-</span><span style="color:#e6db74">                &#34;&#34;&#34;</span>,
-                reverse_sql<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;&#34;&#34;
-</span><span style="color:#e6db74">                    DROP INDEX &#34;app_sale_sold_at_b9438ae4&#34;;
-</span><span style="color:#e6db74">                &#34;&#34;&#34;</span>),
+            database_operations<span style="color:#333">=</span>[
+                migrations<span style="color:#333">.</span>RunSQL(sql<span style="color:#333">=</span><span style="background-color:#fff0f0">&#34;&#34;&#34;
+</span><span style="background-color:#fff0f0">                    CREATE INDEX CONCURRENTLY &#34;app_sale_sold_at_b9438ae4&#34;
+</span><span style="background-color:#fff0f0">                    ON &#34;app_sale&#34; (&#34;sold_at&#34;);
+</span><span style="background-color:#fff0f0">                &#34;&#34;&#34;</span>,
+                reverse_sql<span style="color:#333">=</span><span style="background-color:#fff0f0">&#34;&#34;&#34;
+</span><span style="background-color:#fff0f0">                    DROP INDEX &#34;app_sale_sold_at_b9438ae4&#34;;
+</span><span style="background-color:#fff0f0">                &#34;&#34;&#34;</span>),
             ],
         ),
 
-    ],</code></pre></div>
+    ],</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 之后就可以执行了：
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate app
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python manage.py migrate app
 Operations to perform:
   Apply all migrations: app
 Running migrations:
-  Applying app.0002_add_index_separate_database_and_state... OK</code></pre></div>
+  Applying app.0002_add_index_separate_database_and_state... OK</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 这样就执行了这个变更而没有任何停机时间。
 </p>

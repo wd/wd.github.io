@@ -10,11 +10,6 @@
 
   
   
-
-  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
-  <script src="https://wdicc.com//js/hljs.js"></script>
-
-  <script>hljs.initHighlightingOnLoad();</script>
   <nav>
     <ul>
       
@@ -113,27 +108,54 @@
 <p>上面说到这些，都可以自己测试一下，测试也并不一定需要搭一个服务器端配合，以及使用复杂的抓包专鉴，其实使用 <code>nc</code> 就可以。</p>
 
 <p>使用 <code>nc -l 9999</code> 就可以启动一个监听在 9999 端口的 socket 服务器。之后使用 python 或者 curl 之类的程序请求，就能立刻看到请求发送过来的 http 信息，这个对于学习 http 协议其实也很方便。</p>
-
-<pre><code>$ nc -l 9999
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ nc -l 9999
 GET / HTTP/1.1
 Accept-Encoding: identity
 Connection: close
 Cookie: QN2=test; QN1=ClbaCVfZF5lfszBALzTIAg==
 User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_11_6)  AppleWebKit/537.36 (KHTML, like Gecko) Chrome/52.0.2743.116 Safari/537.36
-Host: localhost:9999
-
-</code></pre>
-
+Host: localhost:9999</pre></td></tr></table>
+</div>
+</div>
 <p>收到的上面这个请求，可以看到发送过来了 2 个 cookie。</p>
 
 <p>如果还想测试数据返回的情况，那么可以写一个 <code>test.resp</code> 文件，内容如下</p>
-
-<pre><code>$ cat test.resp
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">$ cat test.resp
 HTTP/1.1 200 OK
 Date: Sun, 18 Oct 2009 08:56:53 GMT
 Server: Apache/2.2.14 (Win32)
 Last-Modified: Sat, 20 Nov 2004 07:16:26 GMT
-ETag: &quot;10000000565a5-2c-3e94b66c2e680&quot;
+ETag: &#34;10000000565a5-2c-3e94b66c2e680&#34;
 Set-Cookie: QN1=ClbaCVfZF5lfszBALzTIAg==; expires=Thu, 31-Dec-37 23:55:55 GMT; path=/
 Set-Cookie: QN2=test; expires=Thu, 31-Dec-37 23:55:55 GMT; path=/; secure; httponly
 Accept-Ranges: bytes
@@ -142,9 +164,9 @@ Connection: close
 Content-Type: text/html
 X-Pad: avoid browser bug
 
-&lt;html&gt;&lt;body&gt;&lt;h1&gt;It works!&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;
-</code></pre>
-
+&lt;html&gt;&lt;body&gt;&lt;h1&gt;It works!&lt;/h1&gt;&lt;/body&gt;&lt;/html&gt;</pre></td></tr></table>
+</div>
+</div>
 <p>然后使用 <code>nc -l 9999 &lt; test.resp</code> 命令启动服务，客户端来请求的时候，就会返回上面 <code>test.resp</code> 里面的内容。</p>
 
 </main>

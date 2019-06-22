@@ -33,10 +33,10 @@
 获取当前路径的绝对路径 比较常见的需求可能是获取相对路径，这样方便程序复制到其他目录也可以运行。使用 $(dirname $0) 就可以获取相对路径，不过这里说的是绝对路径。
 其实也简单，相对路径加上当前目录，那不就是绝对路径么。不过是，有时候 $(dirname $0) 取到的也可能是绝对路径（一般期望相对路径的程序也能跑通，所以不大关心）。
 可以用下面的做法，大意是先判断一下获取到的路径是不是 / 开头，如果是，那就不处理，如果不是，那就把当前的路径附加上去得到一个绝对路径。
-PG_DIR=&amp;quot;$(dirname $0)/../&amp;quot; echo &amp;quot;$PG_DIR&amp;quot; | grep -q ^/ if [ $? -ne 0 ];then PG_DIR=&amp;quot;$(pwd)/$PG_DIR&amp;quot; fi  使用 getopt 获取命令行参数 获取参数比较常见的做法是取 $1 $2 这些，不过不太专业，这里说的是类似于 --prefix=/path/to/install -v 这种。
+1 2 3 4 5 6 7  PG_DIR=&amp;#34;$(dirname $0)/../&amp;#34; echo &amp;#34;$PG_DIR&amp;#34; | grep -q ^/ if [ $? -ne 0 ];then PG_DIR=&amp;#34;$(pwd)/$PG_DIR&amp;#34; fi   使用 getopt 获取命令行参数 获取参数比较常见的做法是取 $1 $2 这些，不过不太专业，这里说的是类似于 --prefix=/path/to/install -v 这种。
 bash 本身提供了一个内部命令 getopts 来做这个事情，不过那个只能支持 short_opts，就是类似 -v 这种，不支持长的。
 getopt 是一个 GNU 程序，他支持 long_opts。下面是个例子。代码基本来自网上。
-ARGS=$(getopt -a -o h -l initdb::,help -- &amp;quot;$@&amp;quot;) [ $? -ne 0 ] &amp;amp;&amp;amp; usage eval set -- &amp;quot;${ARGS}&amp;quot; while true do case $1 in --initdb) initdb $2 ;; -h|--help) usage; ;; --) shift break ;; esac shift done  解释一下上面的参数的含义: * -o 参数指定的就是短参数，我试过，貌似还得指定至少一个短参数。 * -l 参数指定的就是长参数。 * 多个参数用逗号 , 分隔。 * 参数后面跟一个冒号 : 表示这个参数(option)必须要给一个参数(argument)，类似上面的 --prefix=/path/to/install 这种。 * 参数后面跟2个冒号 :: 表示这个参数后面的参数可有可无。比如例子里面的 --initdb</description>
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21  ARGS=$(getopt -a -o h -l initdb::,help -- &amp;#34;$@&amp;#34;) [ $?</description>
     </item>
     
     <item>

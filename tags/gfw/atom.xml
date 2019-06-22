@@ -17,7 +17,7 @@
       <pubDate>Thu, 15 Feb 2018 08:56:03 +0800</pubDate>
       
       <guid>https://wdicc.com/go-across-the-gfw/</guid>
-      <description>一直用的是梅林里面自带的方案来处理翻墙，后来想在公司的服务器上面也搞一下这个事情，至少把 Google 等常用站点能翻出去，就研究了一下原理。  目前墙有两个基本措施需要我们去跨越。1 DNS 污染。 2 数据包解析劫持。3 ip 封禁。  DNS 污染是通过修改或者限制 DNS 请求的数据，来让用户取到一个错误的 ip 而导致用户不能访问正确的网站的方法。一些比较大的网站都被做了 DNS 污染，比如 Google，youtube，facebook，twitter 等。  数据包解析是指在出国的核心路由上面，分析用户要访问的网站和发送的数据，然后发现问题之后，从中间给用户和网站发送 rst 数据包，让双方断开连接的一种方法。这样就算是用户通过指定 host 等方法避开了 DNS 污染，也可以进一步阻止请求。这种方法对于 https 的请求应该是没有效果的。所以有时候可以通过指定 host 的方法访问到 google。  对于上面的避开措施，第三种方法就起作用了，就是直接封禁 ip。这样就算指定了 host 也不能访问。  如果想要翻墙，就需要避开上面这三种封禁的方法。我这里列了一些方式，https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/ 各有利弊。这里想讲的是梅林大致的逻辑。  最主要的一个思路是使用 iptables 把一些包发给一些支持透明代理的软件，例如 ss-redir 或者 v2ray 的 dokodemo-door 协议的端口。这些软件会自动把数据请求通过代理请求到之后，返回给用户。 -A PREROUTING -p tcp -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 443 dst -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 80 dst -j REDIRECT --to-ports 1080  第一句是把所有请求都转发到了 1080 端口，这样就是全部请求都走代理。第二三句是把所有 443 和 80 端口的请求都转发到了 1080 这个代理端口。如果只是想要某些网站走代理呢？那一个办法是在这个语句里面指定 --dest=12.</description>
+      <description>一直用的是梅林里面自带的方案来处理翻墙，后来想在公司的服务器上面也搞一下这个事情，至少把 Google 等常用站点能翻出去，就研究了一下原理。  目前墙有两个基本措施需要我们去跨越。1 DNS 污染。 2 数据包解析劫持。3 ip 封禁。  DNS 污染是通过修改或者限制 DNS 请求的数据，来让用户取到一个错误的 ip 而导致用户不能访问正确的网站的方法。一些比较大的网站都被做了 DNS 污染，比如 Google，youtube，facebook，twitter 等。  数据包解析是指在出国的核心路由上面，分析用户要访问的网站和发送的数据，然后发现问题之后，从中间给用户和网站发送 rst 数据包，让双方断开连接的一种方法。这样就算是用户通过指定 host 等方法避开了 DNS 污染，也可以进一步阻止请求。这种方法对于 https 的请求应该是没有效果的。所以有时候可以通过指定 host 的方法访问到 google。  对于上面的避开措施，第三种方法就起作用了，就是直接封禁 ip。这样就算指定了 host 也不能访问。  如果想要翻墙，就需要避开上面这三种封禁的方法。我这里列了一些方式，https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/ 各有利弊。这里想讲的是梅林大致的逻辑。  最主要的一个思路是使用 iptables 把一些包发给一些支持透明代理的软件，例如 ss-redir 或者 v2ray 的 dokodemo-door 协议的端口。这些软件会自动把数据请求通过代理请求到之后，返回给用户。 1 2 3 4  -A PREROUTING -p tcp -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 443 dst -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 80 dst -j REDIRECT --to-ports 1080    第一句是把所有请求都转发到了 1080 端口，这样就是全部请求都走代理。第二三句是把所有 443 和 80 端口的请求都转发到了 1080 这个代理端口。如果只是想要某些网站走代理呢？那一个办法是在这个语句里面指定 --dest=12.</description>
     </item>
     
     <item>
@@ -41,7 +41,7 @@
 安装 opkg 之前先得了解下，梅林固件分两部分存储，一部分是系统区，一部分是自定义区。系统区应该是你刷的固件所在的地方，是不能修改的，自定义区是可以存放一些自己定义的脚本的。每次系统启动的时候，你的一些自定义的东西都是存在自定义区加载的。自定义区就是 /jffs 分区。想要使用，得在 系统管理 -&amp;gt; 系统设置 里面，打开 JFFS 的配置，允许执行上面的脚本。
 因为系统自带的 /jffs 分区只有 60M 左右，而我们装包的时候很容易就超过这个限制了，我现在已经用了 8xM 空间。所以最好还是用一个 u 盘来做这个事情。每次想要自动加载 u 盘，启动 u 盘里面的程序的话，还需要一些自定义的脚本来做这个事情。
 先把 opkg 配置好，需要先准备好 /opt 目录。
-mkdir -p /tmp/opt mount -t ext4 -o rw,noatime /dev/sda1 /opt  上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</description>
+1 2  mkdir -p /tmp/opt mount -t ext4 -o rw,noatime /dev/sda1 /opt   上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</description>
     </item>
     
     <item>

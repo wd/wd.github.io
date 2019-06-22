@@ -17,7 +17,7 @@
       <pubDate>Fri, 30 Jun 2017 20:47:56 +0800</pubDate>
       
       <guid>https://wdicc.com/emacs-as-python-ide/</guid>
-      <description>最近 python 写的比较多，比较了几个编辑器，最后还是留下了 emacs。  主要比较了 emacs 和 pycharm。pycharm 绝对是一个很强的 IDE，几乎可以补全任何东西，写代码各种提示。比如 Django 里面定义一个 model User 之后，就可以 User. 之后提示 objects ，这个是依据 metaclass 来补全的。另外还有比如写 User.objects.get(|) 的时候，光标在竖线那个位置，会提示 User 的字段，这个相当好用。这两个只是皮毛，实在是太好用了。  但是为什么还要用 emacs 呢？emacs 的编辑器功能太好用了。比如 &amp;lt; 到页首， &amp;gt; 到页尾， C-x b 切换 buffer，还有切换 frame，等等快捷键非常舒服，完全不用鼠标。不过也可能是我习惯了 emacs 的快捷键了。在 pycharm 里面时不时就不行，比如选择一段文字，纯键盘需要按 -&amp;gt; 配合才可以，那还不如用鼠标算了。  其实如果一上手就用 pycharm，那绝对会觉得很爽。  emacs 写 python 在原生的 python-mode 基础上有两个好用的选择，一个是 anaconda-mode，一个是 elpy。 anaconda-mode 相对来说比较简陋一点，但是补全什么的没问题，缺少重构功能。两个的工作模式都是会启动一个补全用的进程，然后通过 lisp 和这个进程交互获取补全信息。 anaconda-mode 遇到的问题和解决   anaconda-mode 我遇到一个问题，为了下载 emacs 的 package 方便，我设置了代理，这个代理导致 anaconda-mode 和补全进程交互的时候，连接不能断开，就会不停的新建连接，一会就打开文件数满了，可以参观这个 issue。主要是设置了 no_proxy 解决。 (setq url-proxy-services &amp;#39;((&amp;#34;no_proxy&amp;#34; .</description>
+      <description>最近 python 写的比较多，比较了几个编辑器，最后还是留下了 emacs。  主要比较了 emacs 和 pycharm。pycharm 绝对是一个很强的 IDE，几乎可以补全任何东西，写代码各种提示。比如 Django 里面定义一个 model User 之后，就可以 User. 之后提示 objects ，这个是依据 metaclass 来补全的。另外还有比如写 User.objects.get(|) 的时候，光标在竖线那个位置，会提示 User 的字段，这个相当好用。这两个只是皮毛，实在是太好用了。  但是为什么还要用 emacs 呢？emacs 的编辑器功能太好用了。比如 &amp;lt; 到页首， &amp;gt; 到页尾， C-x b 切换 buffer，还有切换 frame，等等快捷键非常舒服，完全不用鼠标。不过也可能是我习惯了 emacs 的快捷键了。在 pycharm 里面时不时就不行，比如选择一段文字，纯键盘需要按 -&amp;gt; 配合才可以，那还不如用鼠标算了。  其实如果一上手就用 pycharm，那绝对会觉得很爽。  emacs 写 python 在原生的 python-mode 基础上有两个好用的选择，一个是 anaconda-mode，一个是 elpy。 anaconda-mode 相对来说比较简陋一点，但是补全什么的没问题，缺少重构功能。两个的工作模式都是会启动一个补全用的进程，然后通过 lisp 和这个进程交互获取补全信息。 anaconda-mode 遇到的问题和解决   anaconda-mode 我遇到一个问题，为了下载 emacs 的 package 方便，我设置了代理，这个代理导致 anaconda-mode 和补全进程交互的时候，连接不能断开，就会不停的新建连接，一会就打开文件数满了，可以参观这个 issue。主要是设置了 no_proxy 解决。 1 2 3 4  (setq url-proxy-services &amp;#39;((&amp;#34;no_proxy&amp;#34; .</description>
     </item>
     
     <item>
@@ -39,7 +39,7 @@ __new__ 的一些规则:
       <guid>https://wdicc.com/python-inherit-and-super/</guid>
       <description>又学习了一个 python 的继承。有很多帖子都有介绍，比如理解 Python super，python super()。
 先看一个例子，这个是第一个文章里面的。
-class Root(object): def __init__(self): print(&amp;quot;this is Root&amp;quot;) class B(Root): def __init__(self): print(&amp;quot;enter B&amp;quot;) super(B, self).__init__() print(&amp;quot;leave B&amp;quot;) class C(Root): def __init__(self): print(&amp;quot;enter C&amp;quot;) super(C, self).__init__() print(&amp;quot;leave C&amp;quot;) class D(C): def __init__(self): print(&amp;quot;enter D&amp;quot;) super(D, self).__init__() print(&amp;quot;leave D&amp;quot;) class E(D, B): def __init__(self): print(&amp;quot;enter E&amp;quot;) super(E, self).__init__() print(&amp;quot;leave E&amp;quot;) e = E() print(e.__class__.mro()) # results: # enter E # enter D # enter C # enter B # this is Root # leave B # leave C # leave D # leave E # [&amp;lt;class &#39;__main__.</description>
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46  class Root(object): def __init__(self): print(&amp;#34;this is Root&amp;#34;) class B(Root): def __init__(self): print(&amp;#34;enter B&amp;#34;) super(B, self).__init__() print(&amp;#34;leave B&amp;#34;) class C(Root): def __init__(self): print(&amp;#34;enter C&amp;#34;) super(C, self).</description>
     </item>
     
     <item>
@@ -49,7 +49,7 @@ class Root(object): def __init__(self): print(&amp;quot;this is Root&amp;quot;) 
       
       <guid>https://wdicc.com/python-metaclass/</guid>
       <description>又理解了一下 python 的 metaclass 可以做什么，尝试记录一下。
-class Meta(type): register = [] def __new__(cls, class_name, parrent_class, params): print(&amp;quot;In meta new: {}, {}, {}, {}&amp;quot;.format(cls, class_name, parrent_class, params)) cls.register.append(class_name) params[&#39;test_prop&#39;] = True # return super(Meta, cls).__new__(cls, class_name, parrent_class, params) # return type.__new__(cls, class_name, parrent_class, params) # return super(Meta, cls).__new__(type, class_name, parrent_class, params) # return type.__new__(type, class_name, parrent_class, params) return type(class_name, parrent_class, params) def __init__(self, class_name, parrent_class, params): print(&amp;quot;In meta init: {}, {}, {}&amp;quot;.format(class_name, parrent_class, params)) super(Meta, self).</description>
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31  class Meta(type): register = [] def __new__(cls, class_name, parrent_class, params): print(&amp;#34;In meta new: {}, {}, {}, {}&amp;#34;.format(cls, class_name, parrent_class, params)) cls.register.append(class_name) params[&amp;#39;test_prop&amp;#39;] = True # return super(Meta, cls).__new__(cls, class_name, parrent_class, params) # return type.</description>
     </item>
     
     <item>
@@ -60,8 +60,7 @@ class Meta(type): register = [] def __new__(cls, class_name, parrent_class, para
       <guid>https://wdicc.com/decorator-in-python/</guid>
       <description>最近学习了一下 python 的 decorator（装饰器），看的是这篇，Python修饰器的函数式编程， 觉得挺有意思的，写点东西记录一下。
 装饰器简单讲就是返回一个函数的函数/类。看个简单的例子。
-#!/usr/bin/python # -*- coding: utf-8 -*- def dec1(fn): print(&#39;inside dec1&#39;) def wrapper(): print(&#39;inside wrapper&#39;) return fn() return wrapper @dec1 def f1(): print(&#39;inside f1&#39;) if __name__ == &#39;__main__&#39;: print(&#39;begin exec&#39;) f1() print(&#39;end exec&#39;) # 执行结果: # inside dec1 # begin exec # inside wrapper # inside f1 # end exec  看上面例子能看到，装饰器生效有 2 个步骤，第一个是装饰，第二个是执行。上面装饰器的效果，和下面的代码的效果是一样。
-#!/usr/bin/python # -*- coding: utf-8 -*- def dec1(fn): print(&#39;inside dec1&#39;) def wrapper(): print(&#39;inside wrapper&#39;) return fn() return wrapper # @dec1 def f1(): print(&#39;inside f1&#39;) if __name__ == &#39;__main__&#39;: print(&#39;begin exec&#39;) dec1(f1)() print(&#39;end exec&#39;) # 执行结果: # begin exec # inside dec1 # inside wrapper # inside f1 # end exec  可以看到除了 「begin/end exec」，其他部分执行结果是一样的。所以理解装饰器，就把 @dec1 换成 dec1(fn)() 这么理解就可以了。</description>
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28  #!/usr/bin/python # -*- coding: utf-8 -*- def dec1(fn): print(&amp;#39;inside dec1&amp;#39;) def wrapper(): print(&amp;#39;inside wrapper&amp;#39;) return fn() return wrapper @dec1 def f1(): print(&amp;#39;inside f1&amp;#39;) if __name__ == &amp;#39;__main__&amp;#39;: print(&amp;#39;begin exec&amp;#39;) f1() print(&amp;#39;end exec&amp;#39;) # 执行结果: # inside dec1 # begin exec # inside wrapper # inside f1 # end exec   看上面例子能看到，装饰器生效有 2 个步骤，第一个是装饰，第二个是执行。上面装饰器的效果，和下面的代码的效果是一样。</description>
     </item>
     
     <item>

@@ -10,11 +10,6 @@
 
   
   
-
-  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
-  <script src="https://wdicc.com//js/hljs.js"></script>
-
-  <script>hljs.initHighlightingOnLoad();</script>
   <nav>
     <ul>
       
@@ -93,11 +88,16 @@
 <p>因为系统自带的 /jffs 分区只有 60M 左右，而我们装包的时候很容易就超过这个限制了，我现在已经用了 8xM 空间。所以最好还是用一个 u 盘来做这个事情。每次想要自动加载 u 盘，启动 u 盘里面的程序的话，还需要一些自定义的脚本来做这个事情。</p>
 
 <p>先把 opkg 配置好，需要先准备好 /opt 目录。</p>
-
-<pre><code>mkdir -p /tmp/opt
-mount -t ext4 -o rw,noatime /dev/sda1 /opt
-</code></pre>
-
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">mkdir -p /tmp/opt
+mount -t ext4 -o rw,noatime /dev/sda1 /opt</pre></td></tr></table>
+</div>
+</div>
 <p>上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</p>
 
 <p>然后参考 <a href="https://github.com/Entware/entware">https://github.com/Entware/entware</a> 操作就可以了，可以看到他会在 /opt 给你安装一陀东西。因为这个是 u 盘，所以东西重启也不会丢失。</p>
@@ -105,23 +105,40 @@ mount -t ext4 -o rw,noatime /dev/sda1 /opt
 <p>然后参考<a href="https://github.com/RMerl/asuswrt-merlin/wiki/User-scripts">梅林的 wiki</a>，它允许用户在 <code>/jffs/scripts</code> 自定义一些启动脚本，来支持我们自动挂载和启动 u 盘上面的程序。</p>
 
 <p>post-mount 内容如下，前面几个注释的是调试用的。最后一个 if 里面内容是执行一些 opkg 安装的程序的启动脚本，这个后面说。</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="color:#579">#!/bin/sh
+</span><span style="color:#579"></span>
+<span style="color:#888">#echo $(date) &gt; /tmp/000service-start</span>
+<span style="color:#888">#echo &#34;$1&#34; &gt;&gt; /tmp/000service-start</span>
+<span style="color:#888">#ls /dev/sda* &gt;&gt; /tmp/000service-start</span>
 
-<pre><code>#!/bin/sh
-
-#echo $(date) &gt; /tmp/000service-start
-#echo &quot;$1&quot; &gt;&gt; /tmp/000service-start
-#ls /dev/sda* &gt;&gt; /tmp/000service-start
-
-if [ -b /dev/sda1 ];then
+<span style="color:#080;font-weight:bold">if</span> <span style="color:#333">[</span> -b /dev/sda1 <span style="color:#333">]</span>;<span style="color:#080;font-weight:bold">then</span>
         mkdir -p /tmp/opt
         mount -t ext4 -o rw,noatime /dev/sda1 /opt
-fi
+<span style="color:#080;font-weight:bold">fi</span>
 
-if [ -x /opt/bin/opkg ];then
+<span style="color:#080;font-weight:bold">if</span> <span style="color:#333">[</span> -x /opt/bin/opkg <span style="color:#333">]</span>;<span style="color:#080;font-weight:bold">then</span>
         /opt/etc/init.d/rc.unslung start
-fi
-</code></pre>
-
+<span style="color:#080;font-weight:bold">fi</span></pre></td></tr></table>
+</div>
+</div>
 <p>要记得 <code>sudo chmod +x post-mount</code>，然后可以重启路由器看看是不是启动之后就能看到 /opt 有了你上次安装的程序了。</p>
 
 <p>上面一阶段搞定之后，就可以装一些软件了，比如我装了 vim, tcpdump，bind-dig, haproxy。opkg 的命令使用可以参考这里 <a href="https://wiki.openwrt.org/doc/techref/opkg">https://wiki.openwrt.org/doc/techref/opkg</a> 。</p>
@@ -129,8 +146,28 @@ fi
 <p>接着上面的话题，本来打算装好 tcpdump 来调试的，然后发现可以比较方便的启动 haproxy 之后，就打算用 haproxy 弄了，路由表太多，分析比较麻烦，还是走简单的吧。。</p>
 
 <p><code>/opt/etc/haproxy.cfg</code> 如下，把 IP 和 PORT 改成你自己的。</p>
-
-<pre><code>global
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">global
         ulimit-n  331071
 
 defaults
@@ -146,52 +183,102 @@ frontend ss-in
         default_backend ss-out
 
 backend ss-out
-        server server1 IP:远端PORT maxconn 20480
-</code></pre>
-
+        server server1 IP:远端PORT maxconn 20480</pre></td></tr></table>
+</div>
+</div>
 <p><code>/opt/etc/init.d/S001haproxy.sh</code> 如下，<code>sudo chmod +x /etc/init.d/S001haproxy.sh</code></p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="color:#579">#!/bin/sh
+</span><span style="color:#579"></span>
+<span style="color:#963">haproxy_bin</span><span style="color:#333">=</span>/opt/sbin/haproxy
+<span style="color:#963">haproxy_cfg</span><span style="color:#333">=</span>/opt/etc/haproxy.cfg
+<span style="color:#963">pid</span><span style="color:#333">=</span>/opt/var/run/haproxy.pid
 
-<pre><code>#!/bin/sh
+<span style="color:#963">action</span><span style="color:#333">=</span><span style="color:#963">$1</span>
 
-haproxy_bin=/opt/sbin/haproxy
-haproxy_cfg=/opt/etc/haproxy.cfg
-pid=/opt/var/run/haproxy.pid
+<span style="color:#080;font-weight:bold">if</span> <span style="color:#333">[</span> -z <span style="background-color:#fff0f0">&#34;</span><span style="color:#963">$action</span><span style="background-color:#fff0f0">&#34;</span> <span style="color:#333">]</span>;<span style="color:#080;font-weight:bold">then</span>
+        <span style="color:#007020">printf</span> <span style="background-color:#fff0f0">&#34;Usage: </span><span style="color:#963">$0</span><span style="background-color:#fff0f0"> {start|stop|restart}\n&#34;</span> &gt;&amp;<span style="color:#60e;font-weight:bold">2</span>
+        <span style="color:#007020">exit</span> <span style="color:#60e;font-weight:bold">1</span>
+<span style="color:#080;font-weight:bold">fi</span>
 
-action=$1
-
-if [ -z &quot;$action&quot; ];then
-        printf &quot;Usage: $0 {start|stop|restart}\n&quot; &gt;&amp;2
-        exit 1
-fi
-
-case &quot;$action&quot; in
-        start)
-                $haproxy_bin -f $haproxy_cfg -p $pid -D
+<span style="color:#080;font-weight:bold">case</span> <span style="background-color:#fff0f0">&#34;</span><span style="color:#963">$action</span><span style="background-color:#fff0f0">&#34;</span> in
+        start<span style="color:#333">)</span>
+                <span style="color:#963">$haproxy_bin</span> -f <span style="color:#963">$haproxy_cfg</span> -p <span style="color:#963">$pid</span> -D
                 ;;
-        stop)
-                kill $(cat $pid)
+        stop<span style="color:#333">)</span>
+                <span style="color:#007020">kill</span> <span style="color:#080;font-weight:bold">$(</span>cat <span style="color:#963">$pid</span><span style="color:#080;font-weight:bold">)</span>
                 ;;
-        restart)
-                kill $(cat $pid)
-                $haproxy_bin -f $haproxy_cfg -p $pid -D
+        restart<span style="color:#333">)</span>
+                <span style="color:#007020">kill</span> <span style="color:#080;font-weight:bold">$(</span>cat <span style="color:#963">$pid</span><span style="color:#080;font-weight:bold">)</span>
+                <span style="color:#963">$haproxy_bin</span> -f <span style="color:#963">$haproxy_cfg</span> -p <span style="color:#963">$pid</span> -D
                 ;;
-esac
-</code></pre>
-
+<span style="color:#080;font-weight:bold">esac</span></pre></td></tr></table>
+</div>
+</div>
 <p>因为前面在 post-mount 最后一个 if 里面的语句，这样启动路由器就会自动启动 haproxy 了。</p>
 
 <p>想使用这个端口转发，还需要在路由器配置界面里面增加一个到路由器 ip 的映射，然后还需要一个 <code>/jffs/scripts/firewall-start</code> 如下</p>
-
-<pre><code>#!/bin/sh
-
-iptables -I INPUT -i ppp0 -p tcp --destination-port PORT -j ACCEPT
-</code></pre>
-
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="color:#579">#!/bin/sh
+</span><span style="color:#579"></span>
+iptables -I INPUT -i ppp0 -p tcp --destination-port PORT -j ACCEPT</pre></td></tr></table>
+</div>
+</div>
 <p>我使用的过程中还发现一个问题，pkg.entware.net 貌似被墙了。。虽然配置了翻墙但是不太明白为什么路由器上面时好时坏，而我局域网内的 mac 访问总是 ok 的，很奇怪。路由器上面不能访问有个办法是通过 mac 代理一下。</p>
 
 <p>mac 上面启动一个 ngx，配置如下，使用 nginx -p ./ -c nginx.conf 启动。</p>
-
-<pre><code>events {
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">events {
   worker_connections 1024;
 }
 
@@ -203,9 +290,9 @@ http {
            proxy_pass http://pkg.entware.net;
       }
   }
-}
-</code></pre>
-
+}</pre></td></tr></table>
+</div>
+</div>
 <p>然后修改路由器上面 /opt/etc/opkg.conf <code>src/gz packages http://MAC_IP:8000/binaries/armv7</code>，然后就可以了。</p>
 
 <p>写完自己看发现这不是一份操作指南，只能算是一些提示，如果有人照着做能不能成功可能还是得看自己。。。</p>

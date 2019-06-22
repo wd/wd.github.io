@@ -10,11 +10,6 @@
 
   
   
-
-  <link rel="stylesheet" href="https://wdicc.com//css/hljs.css">
-  <script src="https://wdicc.com//js/hljs.js"></script>
-
-  <script>hljs.initHighlightingOnLoad();</script>
   <nav>
     <ul>
       
@@ -103,46 +98,94 @@ react-native 支持 <code class="verbatim">setTimeout</code> 和 <code class="ve
 <p>
 后来我们找到了 24h 断开的原因，我们 websocket server 用的是 channel redis，<a href="https://github.com/django/channels_redis/blob/master/channels_redis/core.py#L149">里面默认是 24h 会断开</a>。这个案子破了，定期倒是没问题，现在就是为啥不会重连的问题了。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"> <span style="color:#66d9ef">def</span> __init__(
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"> <span style="color:#080;font-weight:bold">def</span> __init__(
         self,
-        hosts<span style="color:#f92672">=</span>None,
-        prefix<span style="color:#f92672">=</span><span style="color:#e6db74">&#34;asgi:&#34;</span>,
-        expiry<span style="color:#f92672">=</span><span style="color:#ae81ff">60</span>,
-        group_expiry<span style="color:#f92672">=</span><span style="color:#ae81ff">86400</span>,
-        capacity<span style="color:#f92672">=</span><span style="color:#ae81ff">100</span>,
-        channel_capacity<span style="color:#f92672">=</span>None,
-        symmetric_encryption_keys<span style="color:#f92672">=</span>None,
-    ):</code></pre></div>
+        hosts<span style="color:#333">=</span>None,
+        prefix<span style="color:#333">=</span><span style="background-color:#fff0f0">&#34;asgi:&#34;</span>,
+        expiry<span style="color:#333">=</span><span style="color:#00d;font-weight:bold">60</span>,
+        group_expiry<span style="color:#333">=</span><span style="color:#00d;font-weight:bold">86400</span>,
+        capacity<span style="color:#333">=</span><span style="color:#00d;font-weight:bold">100</span>,
+        channel_capacity<span style="color:#333">=</span>None,
+        symmetric_encryption_keys<span style="color:#333">=</span>None,
+    ):</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 通过分析 websocket 的日志，发现断开之后，执行重连的时候，reconnect-websocket 避免过度重连，会增加一个延时，调用 <a href="https://github.com/pladaria/reconnecting-websocket/blob/master/reconnecting-websocket.ts#L326">this._wait()</a>，问题就出在了这里，我们发现这个 promise 会卡住不能 resolve，这里面调用的就是 <code class="verbatim">setTimeout</code> 。结合一开始说的，比较怀疑 rn 自己的 setTimeout 有问题，就试了一下使用 react-native-background-timer 来实现。改了之后运行了几天发现问题解决了。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript">    <span style="color:#66d9ef">private</span> <span style="color:#a6e22e">_wait</span>()<span style="color:#f92672">:</span> Promise<span style="color:#f92672">&lt;</span><span style="color:#66d9ef">void</span><span style="color:#f92672">&gt;</span> {
-        <span style="color:#66d9ef">return</span> <span style="color:#66d9ef">new</span> Promise(<span style="color:#a6e22e">resolve</span> =&gt; {
-            <span style="color:#a6e22e">setTimeout</span>(<span style="color:#a6e22e">resolve</span>, <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">_getNextDelay</span>());
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript">    <span style="color:#080;font-weight:bold">private</span> _wait()<span style="color:#333">:</span> <span style="color:#007020">Promise</span><span style="color:#333">&lt;</span><span style="color:#080;font-weight:bold">void</span><span style="color:#333">&gt;</span> {
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#080;font-weight:bold">new</span> <span style="color:#007020">Promise</span>(resolve =&gt; {
+            setTimeout(resolve, <span style="color:#080;font-weight:bold">this</span>._getNextDelay());
         });
     }
-</code></pre></div>
+</code></pre></td></tr></table>
+</div>
+</div>
 <p>
 继续看看为啥 rn 自己的 timer 有问题。
 </p>
 <p>
 找到了 <a href="https://github.com/facebook/react-native/blob/master/Libraries/Core/Timers/JSTimers.js">JSTimers.js</a>，这里面通过调用 <code class="verbatim">Timing.createTimer</code> 来创建 timer 的。Timing.createTimer 这个 native 模块的代码在<a href="https://github.com/facebook/react-native/blob/master/ReactAndroid/src/main/java/com/facebook/react/modules/core/Timing.java#L324">这里</a>。这代码里面用到的包不熟悉，看了半天觉得看不明白，但是看到了这些。
 </p>
-<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">  <span style="color:#a6e22e">@Override</span>
-  <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onHostPause</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-    isPaused<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span><span style="color:#66d9ef">true</span><span style="color:#f92672">);</span>
-    clearFrameCallback<span style="color:#f92672">();</span>
-    maybeIdleCallback<span style="color:#f92672">();</span>
-  <span style="color:#f92672">}</span>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-java" data-lang="java">  <span style="color:#555;font-weight:bold">@Override</span>
+  <span style="color:#080;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">void</span> <span style="color:#06b;font-weight:bold">onHostPause</span><span style="color:#333">()</span> <span style="color:#333">{</span>
+    isPaused<span style="color:#333">.</span><span style="color:#00c">set</span><span style="color:#333">(</span><span style="color:#080;font-weight:bold">true</span><span style="color:#333">);</span>
+    clearFrameCallback<span style="color:#333">();</span>
+    maybeIdleCallback<span style="color:#333">();</span>
+  <span style="color:#333">}</span>
 
-  <span style="color:#a6e22e">@Override</span>
-  <span style="color:#66d9ef">public</span> <span style="color:#66d9ef">void</span> <span style="color:#a6e22e">onHostResume</span><span style="color:#f92672">()</span> <span style="color:#f92672">{</span>
-    isPaused<span style="color:#f92672">.</span><span style="color:#a6e22e">set</span><span style="color:#f92672">(</span><span style="color:#66d9ef">false</span><span style="color:#f92672">);</span>
-    <span style="color:#75715e">// TODO(5195192) Investigate possible problems related to restarting all tasks at the same
-</span><span style="color:#75715e"></span>    <span style="color:#75715e">// moment
-</span><span style="color:#75715e"></span>    setChoreographerCallback<span style="color:#f92672">();</span>
-    maybeSetChoreographerIdleCallback<span style="color:#f92672">();</span>
-  <span style="color:#f92672">}</span></code></pre></div>
+  <span style="color:#555;font-weight:bold">@Override</span>
+  <span style="color:#080;font-weight:bold">public</span> <span style="color:#339;font-weight:bold">void</span> <span style="color:#06b;font-weight:bold">onHostResume</span><span style="color:#333">()</span> <span style="color:#333">{</span>
+    isPaused<span style="color:#333">.</span><span style="color:#00c">set</span><span style="color:#333">(</span><span style="color:#080;font-weight:bold">false</span><span style="color:#333">);</span>
+    <span style="color:#888">// TODO(5195192) Investigate possible problems related to restarting all tasks at the same
+</span><span style="color:#888"></span>    <span style="color:#888">// moment
+</span><span style="color:#888"></span>    setChoreographerCallback<span style="color:#333">();</span>
+    maybeSetChoreographerIdleCallback<span style="color:#333">();</span>
+  <span style="color:#333">}</span></code></pre></td></tr></table>
+</div>
+</div>
 <p>
 那个 <code class="verbatim">onHostPause</code> 很可疑，我们知道 android 黑屏的时候，是会调用 app 的 onPause 的。继续找这个类实现了 <a href="https://github.com/facebook/react-native/blob/master/ReactAndroid/src/main/java/com/facebook/react/bridge/LifecycleEventListener.java">LifecycleEventListener</a> 这个接口，里面注释写和 active 切换有关系，实际就是和 onPause 这些 activity 的生命周期挂钩的。
 </p>
