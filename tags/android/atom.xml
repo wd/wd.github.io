@@ -17,12 +17,7 @@
       <pubDate>Sun, 02 Dec 2018 16:52:34 +0800</pubDate>
       
       <guid>https://wdicc.com/android-packaging/</guid>
-      <description>国内市场因为 android 的发布渠道比较多，所以一般我们会想要追踪一下用户使用的包是从哪里下载安装的。
-Android 打包支持 buildTypes ，一般这个会用来区分不同的环境，比如 dev，beta，prod 等，不同环境可能会有一些不同的设置，比如 dev 会打开更多的日志输出什么的。
- android{ buildTypes { debug { ... } release { ... } beta { ... } } }  还有一个支持是 productFlavors，一般用这个来区分不同的渠道，不同渠道也可以有一些不同的设置，类似上面的 buildTypes。
- android { productFlavors { xiaomi {} baidu {} wandoujia {} x360 {} } productFlavors.all { flavor -&amp;gt; flavor.manifestPlaceholders = [CHANNEL_ID: name] } }  配合 AndroidManifext.xml 文件的配置
- &amp;lt;meta-data android:name=&amp;quot;CHANNEL_ID&amp;quot; android:value=&amp;quot;${CHANNEL_ID}&amp;quot; /&amp;gt;  在代码里面取到这个，然后设置渠道。
-这样就可以打渠道包了 ./gradlew assembleWandoujiaRelease 编译 wandoujia 这个渠道的 releases 包。这个方式有一个问题是，每一个渠道包都需要从头编译一次，一个渠道 10 分钟，那所有渠道下来，就可能需要一个小时了，关键是很多无用功。</description>
+      <description>国内市场因为 android 的发布渠道比较多，所以一般我们会想要追踪一下用户使用的包是从哪里下载安装的。  Android 打包支持 buildTypes ，一般这个会用来区分不同的环境，比如 dev，beta，prod 等，不同环境可能会有一些不同的设置，比如 dev 会打开更多的日志输出什么的。 android{ buildTypes { debug { ... } release { ... } beta { ... } } }  还有一个支持是 productFlavors，一般用这个来区分不同的渠道，不同渠道也可以有一些不同的设置，类似上面的 buildTypes。 android { productFlavors { xiaomi {} baidu {} wandoujia {} x360 {} } productFlavors.all { flavor -&amp;gt; flavor.manifestPlaceholders = [CHANNEL_ID: name] } }  配合 AndroidManifext.xml 文件的配置 &amp;lt;meta-data android:name=&amp;#34;CHANNEL_ID&amp;#34; android:value=&amp;#34;${CHANNEL_ID}&amp;#34; /&amp;gt;  在代码里面取到这个，然后设置渠道。  这样就可以打渠道包了 ./gradlew assembleWandoujiaRelease 编译 wandoujia 这个渠道的 releases 包。这个方式有一个问题是，每一个渠道包都需要从头编译一次，一个渠道 10 分钟，那所有渠道下来，就可能需要一个小时了，关键是很多无用功。  受不了这个，然后发现了美团的思路。有一个民间的方案 https://github.</description>
     </item>
     
     <item>
@@ -31,10 +26,7 @@ Android 打包支持 buildTypes ，一般这个会用来区分不同的环境，
       <pubDate>Sun, 02 Sep 2018 08:00:16 +0800</pubDate>
       
       <guid>https://wdicc.com/android-custom/</guid>
-      <description>我们给用户的设备，有 android pad 和 pc。pc 系统我之前基于 porteus 定制了一个，勉强可以用。apad 的系统一直没搞好。
-Android 系统必须要解锁之后才可以定制系统，否则没有 root 权限，system 分区的数据不能修改。
- Android 系统有四个重要的分区。 boot ，和 linux 的类似，里面有 kernel 和 ramdisk，ramdisk 应该是在启动之后会成为 / 分区 recovery ，恢复分区，如果想对系统分区做什么操作，可以使用这里的程序引导系统，这个时候允许你进行一些操作。默认的 recovery 只能 wipe 和刷系统。自定义的 recovery 比较厉害，可以支持备份啊啥的一堆事情，比如 twrp 还有图形界面。 system ，系统分区，系统程序都在这里，包括系统自带的一些 app 等等。正常情况对这个分区是不能修改的，系统分区都是只读的。 data ，数据分区，这个分区是给用户使用的。用户安装的一下 app 以及一些数据都在这里。wipe 的时候就是会清空这个分区的数据。大家熟悉的 sdcard 那个分区，其实数据也是在这里的。data 分区里面 app 只能读取自己的数据，无法访问别的 app 的。但是放在 /sdcard 分区的数据，大家都可以访问（当然，还得有 sdcard 的权限）  前三个分区都可以定制。首先需要解锁 bootloader，这个各个定制版都可能有区别，比如华为我记得还需要去他们网站获取一个解锁码，获取的时候会提示你解锁之后就不给保了。原生的 android 都是去开发者选项里面打开，然后在启动的时候进 bootloader，执行 fastboot oem unlock-go 。解锁的时候会自动 reset 系统，注意先备份数据。
-解锁之后，就可以刷自己的 recovery 了。刷之前建议先备份一下 boot recovery system 分区，以方便自己回头可以刷回来。我用的是 twrp，其它的好像现在也么看到。这个得找和你的手机匹配的才行。具体方法是执行 fastboot boot twrpxxxxx.</description>
+      <description>我们给用户的设备，有 android pad 和 pc。pc 系统我之前基于 porteus 定制了一个，勉强可以用。apad 的系统一直没搞好。  Android 系统必须要解锁之后才可以定制系统，否则没有 root 权限，system 分区的数据不能修改。  Android 系统有四个重要的分区。    boot ，和 linux 的类似，里面有 kernel 和 ramdisk，ramdisk 应该是在启动之后会成为 / 分区    recovery ，恢复分区，如果想对系统分区做什么操作，可以使用这里的程序引导系统，这个时候允许你进行一些操作。默认的 recovery 只能 wipe 和刷系统。自定义的 recovery 比较厉害，可以支持备份啊啥的一堆事情，比如 twrp 还有图形界面。    system ，系统分区，系统程序都在这里，包括系统自带的一些 app 等等。正常情况对这个分区是不能修改的，系统分区都是只读的。    data ，数据分区，这个分区是给用户使用的。用户安装的一下 app 以及一些数据都在这里。wipe 的时候就是会清空这个分区的数据。大家熟悉的 sdcard 那个分区，其实数据也是在这里的。data 分区里面 app 只能读取自己的数据，无法访问别的 app 的。但是放在 /sdcard 分区的数据，大家都可以访问（当然，还得有 sdcard 的权限）    前三个分区都可以定制。首先需要解锁 bootloader，这个各个定制版都可能有区别，比如华为我记得还需要去他们网站获取一个解锁码，获取的时候会提示你解锁之后就不给保了。原生的 android 都是去开发者选项里面打开，然后在启动的时候进 bootloader，执行 fastboot oem unlock-go 。解锁的时候会自动 reset 系统，注意先备份数据。  解锁之后，就可以刷自己的 recovery 了。刷之前建议先备份一下 boot recovery system 分区，以方便自己回头可以刷回来。我用的是 twrp，其它的好像现在也么看到。这个得找和你的手机匹配的才行。具体方法是执行 fastboot boot twrpxxxxx.</description>
     </item>
     
     <item>

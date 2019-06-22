@@ -78,157 +78,106 @@
 
 
 
-<div id="TOC">
-    
-    <h4 class="text-muted">Table of Contents</h4>
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                
-                
-                
-                <li>
-                    <a href="/amp/upgrade-to-react-16.3/#%e5%92%8c-prevstate-%e5%81%9a%e6%af%94%e8%be%83"> 和 prevState 做比较 </a>
-                </li>
-                
-                
-                    </ul>
-                
-            
-        
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                
-                
-                
-                <li>
-                    <a href="/amp/upgrade-to-react-16.3/#%e6%8a%8a-preprops-%e4%bf%9d%e5%ad%98%e5%88%b0-state-%e7%84%b6%e5%90%8e%e5%92%8c-prevstate-%e5%81%9a%e6%af%94%e8%be%83"> 把 preProps 保存到 state 然后和 prevState 做比较 </a>
-                </li>
-                
-                
-                    </ul>
-                
-            
-        
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                
-                
-                
-                <li>
-                    <a href="/amp/upgrade-to-react-16.3/#%e5%9c%a8-render-%e9%87%8c%e9%9d%a2%e7%bb%bc%e5%90%88-state-%e5%92%8c-props-%e7%9a%84%e5%80%bc"> 在 render 里面综合 state 和 props 的值 </a>
-                </li>
-                
-                
-                    </ul>
-                
-            
-        
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                
-                
-                
-                <li>
-                    <a href="/amp/upgrade-to-react-16.3/#%e5%8f%82%e8%80%83%e9%93%be%e6%8e%a5"> 参考链接 </a>
-                </li>
-                
-                
-                    </ul>
-                
-            
-        
-    
-</div>
-
 
 
 
 <main>
-<p>随着 React native 升级，React 也升级到了 16.5 了。原来的改成新的生命周期了。</p>
 
-<pre><code class="language-javascript">class ExampleComponent extends React.Component {
-  static getDerivedStateFromProps(nextProps, prevState) {
-    // Called after a component is instantiated or before it receives new props.
-    // Return an object to update state in response to prop changes.
-    // Return null to indicate no change to state.
-  }
+<p>
+随着 React native 升级，React 也升级到了 16.5 了。原来的改成新的生命周期了。
+</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ExampleComponent</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">React</span>.<span style="color:#a6e22e">Component</span> {
+  <span style="color:#66d9ef">static</span> <span style="color:#a6e22e">getDerivedStateFromProps</span>(<span style="color:#a6e22e">nextProps</span>, <span style="color:#a6e22e">prevState</span>) {
+    <span style="color:#75715e">// Called after a component is instantiated or before it receives new props.
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// Return an object to update state in response to prop changes.
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// Return null to indicate no change to state.
+</span><span style="color:#75715e"></span>  }
 
-  UNSAFE_componentWillMount() {
-    // New name for componentWillMount()
-    // Indicates that this method can be unsafe for async rendering.
-    // Prefer componentDidMount() instead.
-  }
+  <span style="color:#a6e22e">UNSAFE_componentWillMount</span>() {
+    <span style="color:#75715e">// New name for componentWillMount()
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// Indicates that this method can be unsafe for async rendering.
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// Prefer componentDidMount() instead.
+</span><span style="color:#75715e"></span>  }
 
-  UNSAFE_componentWillUpdate(nextProps, nextState) {
-    // New name for componentWillUpdate()
-    // Indicates that this method can be unsafe for async rendering.
-    // Prefer componentDidUpdate() instead.
-  }
+  <span style="color:#a6e22e">UNSAFE_componentWillUpdate</span>(<span style="color:#a6e22e">nextProps</span>, <span style="color:#a6e22e">nextState</span>) {
+    <span style="color:#75715e">// New name for componentWillUpdate()
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// Indicates that this method can be unsafe for async rendering.
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// Prefer componentDidUpdate() instead.
+</span><span style="color:#75715e"></span>  }
 
-  UNSAFE_componentWillReceiveProps(nextProps) {
-    // New name for componentWillReceiveProps()
-    // Indicates that this method can be unsafe for async rendering.
-    // Prefer static getDerivedStateFromProps() instead.
-  }
+  <span style="color:#a6e22e">UNSAFE_componentWillReceiveProps</span>(<span style="color:#a6e22e">nextProps</span>) {
+    <span style="color:#75715e">// New name for componentWillReceiveProps()
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// Indicates that this method can be unsafe for async rendering.
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// Prefer static getDerivedStateFromProps() instead.
+</span><span style="color:#75715e"></span>  }
 }
-</code></pre>
-
-<p>React 在后面的版本里面，这几个方法都会被加上 <code>UNSAFE_</code> ，直到被移除。</p>
-
-<p>我们在 <code>componentWillReceiveProps</code> 里面主要是做了一个事情是根据后端反的数据来更新界面内容。因为我们用了 redux + saga，所以需要在这里做这个事情，如果是通过回调来更新数据的话，就不用这么麻烦了，直接在回调里面设置 state 就可以了。</p>
-
-<p>因为在 <code>getDerivedStateFromProps</code> 里面不让接触现在的 <code>this.props</code> ，所以也不能简单的把原来 <code>componentWillReceiveProps</code> 的代码直接复制过来用。解决思路下面的链接都提到了很多，我自己总结有那几个。</p>
-
-<h1 id="和-prevstate-做比较">和 prevState 做比较</h1>
-
-<p>比如想象一个页面有两个按钮，一个点了之后会 setState 为 <code>test1</code> ，另一个按钮点了之后，会通过网络请求更新 store，然后更新 props 为 <code>test2</code> ，那这个时候只需要和当前的 state 做比较就可以决定是不是要设置新的 state 了。</p>
-
-<h1 id="把-preprops-保存到-state-然后和-prevstate-做比较">把 preProps 保存到 state 然后和 prevState 做比较</h1>
-
-<p>这么做基本就和原来使用 <code>componentWillReceiveProps</code> 基本一样了。没什么好说的了。</p>
-
-<h1 id="在-render-里面综合-state-和-props-的值">在 render 里面综合 state 和 props 的值</h1>
-
-<p>比如有时候页面显示的是用户录入和 props 的数据综合的，那可以在 render 里面做这个合并的工作。</p>
-
-<h1 id="参考链接">参考链接</h1>
-
+</code></pre></div>
+<p>
+React 在后面的版本里面，这几个方法都会被加上 <code class="verbatim">UNSAFE_</code> ，直到被移除。
+</p>
+<p>
+我们在 <code class="verbatim">componentWillReceiveProps</code> 里面主要是做了一个事情是根据后端反的数据来更新界面内容。因为我们用了 redux + saga，所以需要在这里做这个事情，如果是通过回调来更新数据的话，就不用这么麻烦了，直接在回调里面设置 state 就可以了。
+</p>
+<p>
+因为在 <code class="verbatim">getDerivedStateFromProps</code> 里面不让接触现在的 <code class="verbatim">this.props</code> ，所以也不能简单的把原来 <code class="verbatim">componentWillReceiveProps</code> 的代码直接复制过来用。解决思路下面的链接都提到了很多，我自己总结有那几个。
+</p>
+<h1 id="headline-1">
+和 prevState 做比较
+</h1>
+<p>
+比如想象一个页面有两个按钮，一个点了之后会 setState 为 <code class="verbatim">test1</code> ，另一个按钮点了之后，会通过网络请求更新 store，然后更新 props 为 <code class="verbatim">test2</code> ，那这个时候只需要和当前的 state 做比较就可以决定是不是要设置新的 state 了。
+</p>
+<h1 id="headline-2">
+把 preProps 保存到 state 然后和 prevState 做比较
+</h1>
+<p>
+这么做基本就和原来使用 <code class="verbatim">componentWillReceiveProps</code> 基本一样了。没什么好说的了。
+</p>
+<h1 id="headline-3">
+在 render 里面综合 state 和 props 的值
+</h1>
+<p>
+比如有时候页面显示的是用户录入和 props 的数据综合的，那可以在 render 里面做这个合并的工作。
+</p>
+<h1 id="headline-4">
+参考链接
+</h1>
 <ul>
-<li><a href="https://github.com/reactjs/rfcs/blob/master/text/0006-static-lifecycle-methods.md#common-problems" title="React 关于新的生命周期的 rfc">React 关于新的生命周期的 rfc</a></li>
-<li><a href="https://reactjs.org/docs/react-component.html#unsafe_componentwillreceiveprops" title="关于使用场景比较多升级的时候处理比较麻烦的 componentWillReceiveProps 方法">关于使用场景比较多升级的时候处理比较麻烦的 componentWillReceiveProps 方法</a></li>
-<li><a href="https://github.com/reactjs/reactjs.org/issues/721" title="关于 componentWillReceiveProps 方法和 getDerivedStateFromProps 的讨论">关于 componentWillReceiveProps 方法和 getDerivedStateFromProps 的讨论</a></li>
-<li><a href="https://zhuanlan.zhihu.com/p/33925435" title="关于新的生命周期国内人的中文解释">关于新的生命周期国内人的中文解释</a></li>
-<li><a href="https://github.com/fi3ework/blog/issues/37" title="另一篇国人的解释">另一篇国人的解释</a></li>
-<li><a href="https://reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html" title="React 官方关于 getDerivedStateFromProps 使用的一些建议">React 官方关于 getDerivedStateFromProps 使用的一些建议</a></li>
-<li><a href="https://github.com/reactjs/rfcs/pull/40" title="关于为啥不在 getDerivedStateFromProps 里面加一个 prevProps 的讨论">关于为啥不在 getDerivedStateFromProps 里面加一个 prevProps 的讨论</a></li>
+<li>
+<p>
+<a href="https://github.com/reactjs/rfcs/blob/master/text/0006-static-lifecycle-methods.md#common-problems">React 关于新的生命周期的 rfc</a>
+</p>
+</li>
+<li>
+<p>
+<a href="https://reactjs.org/docs/react-component.html#unsafe_componentwillreceiveprops">关于使用场景比较多升级的时候处理比较麻烦的 componentWillReceiveProps 方法</a>
+</p>
+</li>
+<li>
+<p>
+<a href="https://github.com/reactjs/reactjs.org/issues/721">关于 componentWillReceiveProps 方法和 getDerivedStateFromProps 的讨论</a>
+</p>
+</li>
+<li>
+<p>
+<a href="https://zhuanlan.zhihu.com/p/33925435">关于新的生命周期国内人的中文解释</a>
+</p>
+</li>
+<li>
+<p>
+<a href="https://github.com/fi3ework/blog/issues/37">另一篇国人的解释</a>
+</p>
+</li>
+<li>
+<p>
+<a href="https://reactjs.org/blog/2018/06/07/you-probably-dont-need-derived-state.html">React 官方关于 getDerivedStateFromProps 使用的一些建议</a>
+</p>
+</li>
+<li>
+<p>
+<a href="https://github.com/reactjs/rfcs/pull/40">关于为啥不在 getDerivedStateFromProps 里面加一个 prevProps 的讨论</a>
+</p>
+</li>
 </ul>
 
 </main>
@@ -263,9 +212,6 @@
 
 
     <footer style="clear:both">
-      
-<script async src="//yihui.name/js/center-img.js"></script>
-
       
       <hr/>
       Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>

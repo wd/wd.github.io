@@ -17,8 +17,7 @@
       <pubDate>Mon, 22 Oct 2018 16:21:30 +0800</pubDate>
       
       <guid>https://wdicc.com/upgrade-to-react-16.3/</guid>
-      <description>随着 React native 升级，React 也升级到了 16.5 了。原来的改成新的生命周期了。
-class ExampleComponent extends React.Component { static getDerivedStateFromProps(nextProps, prevState) { // Called after a component is instantiated or before it receives new props. // Return an object to update state in response to prop changes. // Return null to indicate no change to state. } UNSAFE_componentWillMount() { // New name for componentWillMount() // Indicates that this method can be unsafe for async rendering. // Prefer componentDidMount() instead.</description>
+      <description>随着 React native 升级，React 也升级到了 16.5 了。原来的改成新的生命周期了。 class ExampleComponent extends React.Component { static getDerivedStateFromProps(nextProps, prevState) { // Called after a component is instantiated or before it receives new props.  // Return an object to update state in response to prop changes.  // Return null to indicate no change to state.  } UNSAFE_componentWillMount() { // New name for componentWillMount()  // Indicates that this method can be unsafe for async rendering.</description>
     </item>
     
     <item>
@@ -27,12 +26,7 @@ class ExampleComponent extends React.Component { static getDerivedStateFromProps
       <pubDate>Mon, 03 Sep 2018 18:00:56 +0800</pubDate>
       
       <guid>https://wdicc.com/react-native-deeplink/</guid>
-      <description>App 一般都支持类似 coolflight://list 这样的链接，可以直接打开 app 并打开列表，这个就是 deeplink。
-这个需要对 native 代码做一些修改，可以参考这里的修改，ios 和 android 都有写。这里有一个需要注意的是，对于 android 有一个配置是
- &amp;lt;data android:scheme=&amp;quot;mychat&amp;quot; android:host=&amp;quot;mychat&amp;quot; /&amp;gt;  这个里面配置 host 的话，后面使用的时候就需要类似 mychat://mychat/list 这样的方式了，就是多了一层 mychat。这样也会导致 ios 和 android 的链接不统一，我查了文档也没有查到没有设置 host 会有什么问题，我就去掉了，去掉之后，ios 和 android 的链接就统一了。都是 mychat://list
-另外 android 还有一个需要注意的地方是，activity 的 launchmod 需要设置为 singleTask 要不会导致每次通过 deeplink 打开 app 都会新建一个，导致你有多个 js 在后台跑。
-&amp;lt;activity android:name=&amp;quot;.MainActivity&amp;quot; android:launchMode=&amp;quot;singleTask&amp;quot;&amp;gt;  在 js 里面可以使用 Linking.openURL(url).catch(err =&amp;gt; console.error(&#39;An error occurred&#39;, err)) 打开一个 deeplink ，可以是别的 app 的，也可以是自己的。
-然后就是在 js 里面处理对应的 deeplink 了。</description>
+      <description>App 一般都支持类似 coolflight://list 这样的链接，可以直接打开 app 并打开列表，这个就是 deeplink。  这个需要对 native 代码做一些修改，可以参考这里的修改，ios 和 android 都有写。这里有一个需要注意的是，对于 android 有一个配置是 &amp;lt;data android:scheme=&amp;#34;mychat&amp;#34; android:host=&amp;#34;mychat&amp;#34; /&amp;gt;  这个里面配置 host 的话，后面使用的时候就需要类似 mychat://mychat/list 这样的方式了，就是多了一层 mychat。这样也会导致 ios 和 android 的链接不统一，我查了文档也没有查到没有设置 host 会有什么问题，我就去掉了，去掉之后，ios 和 android 的链接就统一了。都是 mychat://list  另外 android 还有一个需要注意的地方是，activity 的 launchmod 需要设置为 singleTask 要不会导致每次通过 deeplink 打开 app 都会新建一个，导致你有多个 js 在后台跑。 &amp;lt;activity android:name=&amp;#34;.MainActivity&amp;#34; android:launchMode=&amp;#34;singleTask&amp;#34;&amp;gt;  在 js 里面可以使用 Linking.openURL(url).catch(err =&amp;gt; console.error(&amp;#39;An error occurred&amp;#39;, err)) 打开一个 deeplink ，可以是别的 app 的，也可以是自己的。  然后就是在 js 里面处理对应的 deeplink 了。 componentDidMount() { Linking.</description>
     </item>
     
     <item>
@@ -41,13 +35,7 @@ class ExampleComponent extends React.Component { static getDerivedStateFromProps
       <pubDate>Sun, 02 Sep 2018 19:18:16 +0800</pubDate>
       
       <guid>https://wdicc.com/react-mobx/</guid>
-      <description>我们之前用的是 redux 来做的统一 store，最近一个新项目有同学用了 mobx，就了解了一下，刚开始看的时候，感觉比 redux 好啊？
-mobx 的逻辑是自动收集 store 属性被哪些 dom 使用，然后在属性被改变的时候，自动更新 dom。这样的模式显然比 redux 的 action，reducer，selector 那一套简单多了。
-给对应的组件加上 @observer 装饰器之后，store 改变就会自动重现渲染组件。store 可以用下面的模式给到组件
-const store = new TodoList(); &amp;lt;TodoListView todoList={store} /&amp;gt;  也可以用 @inject 装饰器
-@inject(store =&amp;gt; store) @observer class TodoListView { }  之后都通过 this.props 引用。
-一切都很美好，直到我看到了这个，这里列了一些 mobx 的坑。比如有讲到，mobx 为了能监控到对 store 的依赖和修改，其实是把 store 属性做了修改，所以 store 有一个属性是一个 Map，那么实际得到的是一个和 ES6 Map api 类似的一个对象，但是并不是原生的 Map。比如有一个属性是 Object，你给加了一个 key，例如 store.object[&#39;a&#39;] = &#39;test&#39;，那么这个修改并不能被监视，具体看那个文档吧。
-写 Javascript 基本就是从一个小坑爬出来掉到一个大坑里面。</description>
+      <description>我们之前用的是 redux 来做的统一 store，最近一个新项目有同学用了 mobx，就了解了一下，刚开始看的时候，感觉比 redux 好啊？  mobx 的逻辑是自动收集 store 属性被哪些 dom 使用，然后在属性被改变的时候，自动更新 dom。这样的模式显然比 redux 的 action，reducer，selector 那一套简单多了。  给对应的组件加上 @observer 装饰器之后，store 改变就会自动重现渲染组件。store 可以用下面的模式给到组件 const store = new TodoList(); &amp;lt;TodoListView todoList={store} /&amp;gt;   也可以用 @inject 装饰器 @inject(store =&amp;gt; store) @observer class TodoListView { }   之后都通过 this.props 引用。  一切都很美好，直到我看到了这个，这里列了一些 mobx 的坑。比如有讲到，mobx 为了能监控到对 store 的依赖和修改，其实是把 store 属性做了修改，所以 store 有一个属性是一个 Map，那么实际得到的是一个和 ES6 Map api 类似的一个对象，但是并不是原生的 Map。比如有一个属性是 Object，你给加了一个 key，例如 store.</description>
     </item>
     
     <item>
@@ -56,12 +44,7 @@ const store = new TodoList(); &amp;lt;TodoListView todoList={store} /&amp;gt;  �
       <pubDate>Sat, 24 Mar 2018 08:44:39 +0800</pubDate>
       
       <guid>https://wdicc.com/react-native-compnent-reuse/</guid>
-      <description>做功能的时候，一般我们会适当的封装一些组件出来共享，这样好管理和维护，这个大家估计都会这么做。有时候手机上面因为屏幕小，填一些表单的时候，会需要到另外一个页面去维护选择一些内容，那这个页面是页面还是组件呢？
-我总结下来，所有需要填写的页面，都应该按照组件的思维来封。因为他们实际上很可能会被多次复用，一个路径上面可能会出现多次。当然，普通页面也可能会出现多次，出现多次的展示页面如果是相同的内容，那 store 里面用一个按说也没问题，如果是不同的内容，那应该会有一个 id 来区分不同的内容，这个时候 store 里面存一个用这个 id 做 key 的 map 就可以了。
-继续说填写页面。比如我们的新建订单的页面，会有两个入口，一个是全新的，一个是从历史订单复制的。从历史订单复制的，就需要在 store 里面先把已有的数据放一份，再进入新建页面，如果用户点了返回按键，还需要把 store 里面的状态清掉，否则下次进入的时候还会有出来上次的数据。
-如果按照组件的思维封装，那数据入口只有 props，store 里面不会有，就不用考虑清数据的问题。至于返回的数据，根据页面情况，一般是有两个途径，一个是需要把数据返回给上一个页面的，一个是直接把数据通过网络请求发送的。对于第一个，可以通过 callback 方法给上一个页面，对于第二个，通过 action 来做就可以了。
-我们需要把页面里面的数据区分一下 private 数据和 public 数据。对于 private 数据每次使用基本不一样，通过 props 传递进来。而 public 数据基本是相同的，那通过 store 存下来，必要的时候更新就可以了。
-我们使用的是 reac-navigation，使用的时候，可以通过 navigate(&#39;newPage&#39;, {prop1: &#39;prop1 value&#39;, callback: func1}) 这种方法来把数据和 callback 方法传递过去。那个页面处理完毕之后，通过 callback 把数据返回来。这样就不用费力把数据通过 action - reducer - selector 传到上一个页面了，并且页面再次使用也不用操心上一次使用的时候的残留数据了，页面被复用也不会互相干扰。</description>
+      <description> 做功能的时候，一般我们会适当的封装一些组件出来共享，这样好管理和维护，这个大家估计都会这么做。有时候手机上面因为屏幕小，填一些表单的时候，会需要到另外一个页面去维护选择一些内容，那这个页面是页面还是组件呢？  我总结下来，所有需要填写的页面，都应该按照组件的思维来封。因为他们实际上很可能会被多次复用，一个路径上面可能会出现多次。当然，普通页面也可能会出现多次，出现多次的展示页面如果是相同的内容，那 store 里面用一个按说也没问题，如果是不同的内容，那应该会有一个 id 来区分不同的内容，这个时候 store 里面存一个用这个 id 做 key 的 map 就可以了。  继续说填写页面。比如我们的新建订单的页面，会有两个入口，一个是全新的，一个是从历史订单复制的。从历史订单复制的，就需要在 store 里面先把已有的数据放一份，再进入新建页面，如果用户点了返回按键，还需要把 store 里面的状态清掉，否则下次进入的时候还会有出来上次的数据。  如果按照组件的思维封装，那数据入口只有 props，store 里面不会有，就不用考虑清数据的问题。至于返回的数据，根据页面情况，一般是有两个途径，一个是需要把数据返回给上一个页面的，一个是直接把数据通过网络请求发送的。对于第一个，可以通过 callback 方法给上一个页面，对于第二个，通过 action 来做就可以了。  我们需要把页面里面的数据区分一下 private 数据和 public 数据。对于 private 数据每次使用基本不一样，通过 props 传递进来。而 public 数据基本是相同的，那通过 store 存下来，必要的时候更新就可以了。  我们使用的是 reac-navigation，使用的时候，可以通过 navigate(&amp;#39;newPage&amp;#39;, {prop1: &amp;#39;prop1 value&amp;#39;, callback: func1}) 这种方法来把数据和 callback 方法传递过去。那个页面处理完毕之后，通过 callback 把数据返回来。这样就不用费力把数据通过 action -&amp;gt; reducer -&amp;gt; selector 传到上一个页面了，并且页面再次使用也不用操心上一次使用的时候的残留数据了，页面被复用也不会互相干扰。 </description>
     </item>
     
     <item>

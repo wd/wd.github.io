@@ -17,11 +17,7 @@
       <pubDate>Sun, 16 Sep 2018 16:36:17 +0800</pubDate>
       
       <guid>https://wdicc.com/typescript-for-react-native/</guid>
-      <description>前几天研究 settimeout 的问题的时候，发现 react-native-background-timer 自己没有 typescript 的 type 文件，但是有人给写了一个 @types/react-native-background-timer，这个包算偏门了，都有人写了 type 文件，我感觉是时候试试看 typescript 了。
-搜了一下，发现没有多少在 rn 里面使用 ts 的，有一些关于 react 的，又很奇怪，大都基于 webpack 的。后来找到一篇官方的 blog 上面的，然后结合自己的研究，找到了思路。我是基于已有项目来做的，那个 blog 是基于新项目，大同小异。
-首先装几个包，这几个包里面， =typescript 提供 typescript 的编译器， react-native-typescript-transformer 提供了从 ts 代码到 js 代码的转换支持， @types 的两个包提供了 react 和 react-native 的 type 文件。
-$ yarn add -D typescript react-native-typescript-transformer @types/react @types/react-native  在项目的根目录还需要准几个文件。 tsconfig.json，你的目录里面可能已经有一个 jsconfig.json 了，那个是给 eslint 用的。tsconfig.json 同时给 typescript 和 tslint 使用。
-{ &amp;quot;compilerOptions&amp;quot;: { &amp;quot;target&amp;quot;: &amp;quot;es2015&amp;quot;, &amp;quot;module&amp;quot;: &amp;quot;es2015&amp;quot;, &amp;quot;lib&amp;quot;: [ &amp;quot;es2015&amp;quot; ], &amp;quot;jsx&amp;quot;: &amp;quot;react&amp;quot;, &amp;quot;noEmit&amp;quot;: true, &amp;quot;moduleResolution&amp;quot;: &amp;quot;node&amp;quot;, &amp;quot;strict&amp;quot;: true, &amp;quot;esModuleInterop&amp;quot;: true, &amp;quot;types&amp;quot;: [ &amp;quot;react&amp;quot;, &amp;quot;react-native&amp;quot; ], &amp;quot;allowSyntheticDefaultImports&amp;quot;: true }, &amp;quot;include&amp;quot;: [ &amp;quot;.</description>
+      <description>前几天研究 settimeout 的问题的时候，发现 react-native-background-timer 自己没有 typescript 的 type 文件，但是有人给写了一个 @types/react-native-background-timer，这个包算偏门了，都有人写了 type 文件，我感觉是时候试试看 typescript 了。  搜了一下，发现没有多少在 rn 里面使用 ts 的，有一些关于 react 的，又很奇怪，大都基于 webpack 的。后来找到一篇官方的 blog 上面的，然后结合自己的研究，找到了思路。我是基于已有项目来做的，那个 blog 是基于新项目，大同小异。  首先装几个包，这几个包里面， =typescript 提供 typescript 的编译器， react-native-typescript-transformer 提供了从 ts 代码到 js 代码的转换支持， @types 的两个包提供了 react 和 react-native 的 type 文件。 $ yarn add -D typescript react-native-typescript-transformer @types/react @types/react-native  在项目的根目录还需要准几个文件。 tsconfig.json，你的目录里面可能已经有一个 jsconfig.json 了，那个是给 eslint 用的。tsconfig.json 同时给 typescript 和 tslint 使用。 { &amp;#34;compilerOptions&amp;#34;: { &amp;#34;target&amp;#34;: &amp;#34;es2015&amp;#34;, &amp;#34;module&amp;#34;: &amp;#34;es2015&amp;#34;, &amp;#34;lib&amp;#34;: [ &amp;#34;es2015&amp;#34; ], &amp;#34;jsx&amp;#34;: &amp;#34;react&amp;#34;, &amp;#34;noEmit&amp;#34;: true, &amp;#34;moduleResolution&amp;#34;: &amp;#34;node&amp;#34;, &amp;#34;strict&amp;#34;: true, &amp;#34;esModuleInterop&amp;#34;: true, &amp;#34;types&amp;#34;: [ &amp;#34;react&amp;#34;, &amp;#34;react-native&amp;#34; ], &amp;#34;allowSyntheticDefaultImports&amp;#34;: true }, &amp;#34;include&amp;#34;: [ &amp;#34;.</description>
     </item>
     
     <item>
@@ -30,14 +26,7 @@ $ yarn add -D typescript react-native-typescript-transformer @types/react @types
       <pubDate>Sat, 08 Sep 2018 16:06:18 +0800</pubDate>
       
       <guid>https://wdicc.com/background-task-in-react-native/</guid>
-      <description>react-native 支持 setTimeout 和 setInterval 这些 js 的方法来设置 timer 执行一些任务。但是对于长时间执行的任务，比如你想每 1 分钟都执行一下网络请求看看是不是有新的数据，这个时候会有一个黄条警告和你说不要这么做。
-我们有类似需求，就找到了 react-native-background-timer 这个包。这个用起来和 js 的 setTimeout 的方法一样，可以一直运行。
-我们另外还使用了 websocket 来和服务器保持数据同步。这样就必须要保证有网络问题的时候，可以自动重连保证链接。我们找到了 reconnecting-websocket 这个包，他提供了自动重连功能。这个包是基于 js 写的，没有任何的 native 代码。我们用的过程中发现时不时会出现断开的情况，因为并不能稳定复现，我们一开始也没有太多时间研究这个问题，所以这个 bug 几乎是持续了几个月。另外，也主要是因为我们还有 pc 设备，也用了 websocket，但是那边表现就很稳定，所以基本可以确定是 android 的问题。
-我们试过自己手动断网，和手动重启服务器的方式断开 websocket，然后发现他都会重连。出现 bug 的时候，都是比如放了一个晚上，第二天来了之后，发现断开了。或者有时候似乎又不会断，总之是不很好的稳定可以复现。
-一开始怀疑是 android 进入省电模式之后，应用会出问题，把设备一直接着电源之后，似乎发现好像好了，但是实际上还是会出现断开的情况。后来给 app 增加了 REQUEST_IGNORE_BATTERY_OPTIMIZATIONS 权限，试图解决，发现也不行。
-最近一个月总算有时间看看了，仔细研究了一下。给 app 增加了更多的 log，记录一下 websocket 的链接和断开的情况。发现一个情况，似乎整整 24h 的时候，会出现一个断开。断开之后有时候会连不上，有时候可以。因为是整整 24h，所以这个断开基本上可以肯定是 server 那边问题，但是断开不能重连依然是用户端这边的问题。
-后来我们找到了 24h 断开的原因，我们 websocket server 用的是 channel redis，里面默认是 24h 会断开。这个案子破了，定期倒是没问题，现在就是为啥不会重连的问题了。
-def __init__( self, hosts=None, prefix=&amp;quot;asgi:&amp;quot;, expiry=60, group_expiry=86400, capacity=100, channel_capacity=None, symmetric_encryption_keys=None, ):  通过分析 websocket 的日志，发现断开之后，执行重连的时候，reconnect-websocket 避免过度重连，会增加一个延时，调用 this.</description>
+      <description>react-native 支持 setTimeout 和 setInterval 这些 js 的方法来设置 timer 执行一些任务。但是对于长时间执行的任务，比如你想每 1 分钟都执行一下网络请求看看是不是有新的数据，这个时候会有一个黄条警告和你说不要这么做。  我们有类似需求，就找到了 react-native-background-timer 这个包。这个用起来和 js 的 setTimeout 的方法一样，可以一直运行。  我们另外还使用了 websocket 来和服务器保持数据同步。这样就必须要保证有网络问题的时候，可以自动重连保证链接。我们找到了 reconnecting-websocket 这个包，他提供了自动重连功能。这个包是基于 js 写的，没有任何的 native 代码。我们用的过程中发现时不时会出现断开的情况，因为并不能稳定复现，我们一开始也没有太多时间研究这个问题，所以这个 bug 几乎是持续了几个月。另外，也主要是因为我们还有 pc 设备，也用了 websocket，但是那边表现就很稳定，所以基本可以确定是 android 的问题。  我们试过自己手动断网，和手动重启服务器的方式断开 websocket，然后发现他都会重连。出现 bug 的时候，都是比如放了一个晚上，第二天来了之后，发现断开了。或者有时候似乎又不会断，总之是不很好的稳定可以复现。  一开始怀疑是 android 进入省电模式之后，应用会出问题，把设备一直接着电源之后，似乎发现好像好了，但是实际上还是会出现断开的情况。后来给 app 增加了 REQUEST_IGNORE_BATTERY_OPTIMIZATIONS 权限，试图解决，发现也不行。  最近一个月总算有时间看看了，仔细研究了一下。给 app 增加了更多的 log，记录一下 websocket 的链接和断开的情况。发现一个情况，似乎整整 24h 的时候，会出现一个断开。断开之后有时候会连不上，有时候可以。因为是整整 24h，所以这个断开基本上可以肯定是 server 那边问题，但是断开不能重连依然是用户端这边的问题。  后来我们找到了 24h 断开的原因，我们 websocket server 用的是 channel redis，里面默认是 24h 会断开。这个案子破了，定期倒是没问题，现在就是为啥不会重连的问题了。 def __init__( self, hosts=None, prefix=&amp;#34;asgi:&amp;#34;, expiry=60, group_expiry=86400, capacity=100, channel_capacity=None, symmetric_encryption_keys=None, ):  通过分析 websocket 的日志，发现断开之后，执行重连的时候，reconnect-websocket 避免过度重连，会增加一个延时，调用 this.</description>
     </item>
     
     <item>
@@ -46,12 +35,7 @@ def __init__( self, hosts=None, prefix=&amp;quot;asgi:&amp;quot;, expiry=60, gro
       <pubDate>Sat, 24 Mar 2018 08:44:39 +0800</pubDate>
       
       <guid>https://wdicc.com/react-native-compnent-reuse/</guid>
-      <description>做功能的时候，一般我们会适当的封装一些组件出来共享，这样好管理和维护，这个大家估计都会这么做。有时候手机上面因为屏幕小，填一些表单的时候，会需要到另外一个页面去维护选择一些内容，那这个页面是页面还是组件呢？
-我总结下来，所有需要填写的页面，都应该按照组件的思维来封。因为他们实际上很可能会被多次复用，一个路径上面可能会出现多次。当然，普通页面也可能会出现多次，出现多次的展示页面如果是相同的内容，那 store 里面用一个按说也没问题，如果是不同的内容，那应该会有一个 id 来区分不同的内容，这个时候 store 里面存一个用这个 id 做 key 的 map 就可以了。
-继续说填写页面。比如我们的新建订单的页面，会有两个入口，一个是全新的，一个是从历史订单复制的。从历史订单复制的，就需要在 store 里面先把已有的数据放一份，再进入新建页面，如果用户点了返回按键，还需要把 store 里面的状态清掉，否则下次进入的时候还会有出来上次的数据。
-如果按照组件的思维封装，那数据入口只有 props，store 里面不会有，就不用考虑清数据的问题。至于返回的数据，根据页面情况，一般是有两个途径，一个是需要把数据返回给上一个页面的，一个是直接把数据通过网络请求发送的。对于第一个，可以通过 callback 方法给上一个页面，对于第二个，通过 action 来做就可以了。
-我们需要把页面里面的数据区分一下 private 数据和 public 数据。对于 private 数据每次使用基本不一样，通过 props 传递进来。而 public 数据基本是相同的，那通过 store 存下来，必要的时候更新就可以了。
-我们使用的是 reac-navigation，使用的时候，可以通过 navigate(&#39;newPage&#39;, {prop1: &#39;prop1 value&#39;, callback: func1}) 这种方法来把数据和 callback 方法传递过去。那个页面处理完毕之后，通过 callback 把数据返回来。这样就不用费力把数据通过 action - reducer - selector 传到上一个页面了，并且页面再次使用也不用操心上一次使用的时候的残留数据了，页面被复用也不会互相干扰。</description>
+      <description> 做功能的时候，一般我们会适当的封装一些组件出来共享，这样好管理和维护，这个大家估计都会这么做。有时候手机上面因为屏幕小，填一些表单的时候，会需要到另外一个页面去维护选择一些内容，那这个页面是页面还是组件呢？  我总结下来，所有需要填写的页面，都应该按照组件的思维来封。因为他们实际上很可能会被多次复用，一个路径上面可能会出现多次。当然，普通页面也可能会出现多次，出现多次的展示页面如果是相同的内容，那 store 里面用一个按说也没问题，如果是不同的内容，那应该会有一个 id 来区分不同的内容，这个时候 store 里面存一个用这个 id 做 key 的 map 就可以了。  继续说填写页面。比如我们的新建订单的页面，会有两个入口，一个是全新的，一个是从历史订单复制的。从历史订单复制的，就需要在 store 里面先把已有的数据放一份，再进入新建页面，如果用户点了返回按键，还需要把 store 里面的状态清掉，否则下次进入的时候还会有出来上次的数据。  如果按照组件的思维封装，那数据入口只有 props，store 里面不会有，就不用考虑清数据的问题。至于返回的数据，根据页面情况，一般是有两个途径，一个是需要把数据返回给上一个页面的，一个是直接把数据通过网络请求发送的。对于第一个，可以通过 callback 方法给上一个页面，对于第二个，通过 action 来做就可以了。  我们需要把页面里面的数据区分一下 private 数据和 public 数据。对于 private 数据每次使用基本不一样，通过 props 传递进来。而 public 数据基本是相同的，那通过 store 存下来，必要的时候更新就可以了。  我们使用的是 reac-navigation，使用的时候，可以通过 navigate(&amp;#39;newPage&amp;#39;, {prop1: &amp;#39;prop1 value&amp;#39;, callback: func1}) 这种方法来把数据和 callback 方法传递过去。那个页面处理完毕之后，通过 callback 把数据返回来。这样就不用费力把数据通过 action -&amp;gt; reducer -&amp;gt; selector 传到上一个页面了，并且页面再次使用也不用操心上一次使用的时候的残留数据了，页面被复用也不会互相干扰。 </description>
     </item>
     
     <item>
@@ -60,11 +44,7 @@ def __init__( self, hosts=None, prefix=&amp;quot;asgi:&amp;quot;, expiry=60, gro
       <pubDate>Sun, 26 Nov 2017 09:19:11 +0800</pubDate>
       
       <guid>https://wdicc.com/best-practice-for-react-native-redux/</guid>
-      <description>从 6 月到现在，在 RN 上面摸爬滚打了一段时间了，目前总算找到了一个适合我们自我感觉还可以的开发模式。
-一开始，我们使用的是传统的 React 的模式，然后一个 app 页面一个文件，通过 StackNavigator 组合到一起。这么做在我们的第一个 app 里面没觉得有什么问题，每个页面维护自己的数据，页面之间需要数据共享或者通讯的时候（比如从 list 到详情页面的时候，详情里面有一个改变状态的按钮，状态改变之后希望 list 的状态也跟着变化，这样用户返回之后能看到正确的数据）有 2 个方式。
- 通过 DeviceEventEmitter。 需要数据的页面订阅，然后在其他页面 emit event 之后前面的页面就可以收到。这个时候可以只通知改变的数据的字段，前一个页面直接去修改，这样可以避免重新刷新页面。也可以发一个简单的通知让其他页面去自己获取数据。   通过 navigator 提供的 params 属性。 StatckNavigator 提供了一个 params 属性。就是 this.props.navigation.state.params ，可以通过 setParams 来改变，或者通过类似 this.props.navigation.navigate(&#39;Login&#39;, {goBackToHome: true}) 的方式给，那个 goBackToHome 将来就会在 params 里面。  直到我们开始做第二个 app。
-第二个 app 是一个单页面 app，登录之后就只有一个页面了，有一个大地图，有左侧 sidebar，sidebar 里面的按钮点击还会出其他页面。这个肯定不能按照我们前面的思路来做了，我们按照组件，拆分了不同的文件，然后组合起来。这个时候更加会需要页面之间的通讯，并且这个时候可选项只有第一个了 DeviceEventEmitter ，因为都没有 navigate 什么事情。
-这个时候就发现一个问题，event 太多了，开始有点混乱了。emit event 之后，慢慢会发现不知道哪里有订阅，不好管理。这个 app 做完之后，就仔细研究了一下 redux。</description>
+      <description>从 6 月到现在，在 RN 上面摸爬滚打了一段时间了，目前总算找到了一个适合我们自我感觉还可以的开发模式。  一开始，我们使用的是传统的 React 的模式，然后一个 app 页面一个文件，通过 StackNavigator 组合到一起。这么做在我们的第一个 app 里面没觉得有什么问题，每个页面维护自己的数据，页面之间需要数据共享或者通讯的时候（比如从 list 到详情页面的时候，详情里面有一个改变状态的按钮，状态改变之后希望 list 的状态也跟着变化，这样用户返回之后能看到正确的数据）有 2 个方式。    通过 DeviceEventEmitter。 需要数据的页面订阅，然后在其他页面 emit event 之后前面的页面就可以收到。这个时候可以只通知改变的数据的字段，前一个页面直接去修改，这样可以避免重新刷新页面。也可以发一个简单的通知让其他页面去自己获取数据。    通过 navigator 提供的 params 属性。 StatckNavigator 提供了一个 params 属性。就是 this.props.navigation.state.params ，可以通过 setParams 来改变，或者通过类似 this.props.navigation.navigate(&amp;#39;Login&amp;#39;, {goBackToHome: true}) 的方式给，那个 goBackToHome 将来就会在 params 里面。    直到我们开始做第二个 app。  第二个 app 是一个单页面 app，登录之后就只有一个页面了，有一个大地图，有左侧 sidebar，sidebar 里面的按钮点击还会出其他页面。这个肯定不能按照我们前面的思路来做了，我们按照组件，拆分了不同的文件，然后组合起来。这个时候更加会需要页面之间的通讯，并且这个时候可选项只有第一个了 DeviceEventEmitter ，因为都没有 navigate 什么事情。  这个时候就发现一个问题，event 太多了，开始有点混乱了。emit event 之后，慢慢会发现不知道哪里有订阅，不好管理。这个 app 做完之后，就仔细研究了一下 redux。  其实写第一个 app 的时候就知道 redux，但是很多概念看的云里雾里的，当时在 react 还没有吃透的情况下，根本没有能力把 redux 搞好。所以当时放弃了 redux。  了解 redux 之后，感觉这个东西是我们的药。统一的 state 管理，这不就不用考虑状态传递了么？所以一门心思开始研究 redux。刚好我们第一个 app 需要全新改版，我们就借机把我们的第一个 app 也重构到了 redux 实现。整体过程还是蛮舒服的，自己也总结了几条我们自己的使用的思路。 目录结构安排   先大概看看我们 app 的目录结构。我们把所有的 js 文件都放到了 app 目录下面。 app ios android index.</description>
     </item>
     
     <item>
@@ -73,8 +53,7 @@ def __init__( self, hosts=None, prefix=&amp;quot;asgi:&amp;quot;, expiry=60, gro
       <pubDate>Sat, 21 Oct 2017 08:19:28 +0800</pubDate>
       
       <guid>https://wdicc.com/howto-make-react-redux-work-with-react-navigation/</guid>
-      <description>这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 gist。
-/** * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理 * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合 * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做 * 参考： * https://github.com/jackielii/simplest-redux-example * http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html */ import React, { Component } from &#39;react&#39;; import { StyleSheet, Text, View, Button } from &#39;react-native&#39;; import { Provider, connect } from &#39;react-redux&#39;; import { createStore, combineReducers } from &#39;redux&#39;; import { StackNavigator, addNavigationHelpers } from &#39;react-navigation&#39;; // Home 页面，UI 组件 class MyHome extends Component { constructor(props) { super(props); console.</description>
+      <description>这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 gist。 /** * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理 * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合 * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做 * 参考： * https://github.com/jackielii/simplest-redux-example * http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html */ import React, { Component } from &amp;#39;react&amp;#39;; import { StyleSheet, Text, View, Button } from &amp;#39;react-native&amp;#39;; import { Provider, connect } from &amp;#39;react-redux&amp;#39;; import { createStore, combineReducers } from &amp;#39;redux&amp;#39;; import { StackNavigator, addNavigationHelpers } from &amp;#39;react-navigation&amp;#39;; // Home 页面，UI 组件 class MyHome extends Component { constructor(props) { super(props); console.</description>
     </item>
     
     <item>

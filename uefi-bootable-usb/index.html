@@ -78,163 +78,58 @@
 
 
 
-<div id="TOC">
-    
-    <h4 class="text-muted">Table of Contents</h4>
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                
-                
-                
-                <li>
-                    <a href="/uefi-bootable-usb/#uefi-shell"> UEFI shell </a>
-                </li>
-                
-                
-                    </ul>
-                
-            
-        
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                    <ul class="toc-h2">
-                
-                
-                
-                
-                <li>
-                    <a href="/uefi-bootable-usb/#map"> map </a>
-                </li>
-                
-                
-                    </ul>
-                
-                    </ul>
-                
-            
-        
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                    <ul class="toc-h2">
-                
-                
-                
-                
-                <li>
-                    <a href="/uefi-bootable-usb/#ls"> ls </a>
-                </li>
-                
-                
-                    </ul>
-                
-                    </ul>
-                
-            
-        
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                    <ul class="toc-h2">
-                
-                
-                
-                
-                <li>
-                    <a href="/uefi-bootable-usb/#bcfg"> bcfg </a>
-                </li>
-                
-                
-                    </ul>
-                
-                    </ul>
-                
-            
-        
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                
-                
-                
-                <li>
-                    <a href="/uefi-bootable-usb/#%e8%87%aa%e5%b7%b1%e5%88%b6%e4%bd%9c-iso"> 自己制作 iso </a>
-                </li>
-                
-                
-                    </ul>
-                
-            
-        
-    
-</div>
-
 
 
 
 <main>
-<h1 id="uefi-shell">UEFI shell</h1>
 
-<p>UEFI firmware 应该会读取设备里面的分区，找到 ESP 然后再读里面的内容。我看到最简单的方式是把 u 盘格式化成 fat 然后建一个目录 <code>/boot/efi</code> 然后下载一个 <a href="https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface#UEFI_Shell" title="uefi shell">uefi shell</a> 把 .efi 文件放到这个目录 <code>/boot/efi/shellx64.efi</code> ，然后启动的时候就多了一个 uefi 菜单了，选择之后可以进入一个 uefi shell。</p>
-
-<p>uefi shell 里面有几个命令可以用。</p>
-
-<h2 id="map">map</h2>
-
-<p><code>map</code> 可以列出来当前机器的磁盘情况，找到你的 esp 分区。</p>
-
-<h2 id="ls">ls</h2>
-
-<p><code>ls</code> 可以列出来磁盘目录里面的内容，比如 <code>ls fs0:\boot</code> ，注意磁盘和目录之间用 <code>:</code> ，目录层级之间用 <code>\</code> 。</p>
-
-<h2 id="bcfg">bcfg</h2>
-
-<p>可以通过 <code>bcfg boot dump -v</code> 列出来当前所有的 efi 菜单，注意每个项目都有一个序号，后面会用到。</p>
-
-<p>比如我想自己加一个菜单进去，那就找到最后那个的序号，然后执行 <code>bcfg add 8 fs0:\boot\grub\grubx64.efi GRUB</code> (fat 系统不区分大小写)，指向我自己通过 <code>grub-install --efi-directory=/mnt/sda1/</code> 放到 esp 分区的 grub 的 efi ，这样启动的时候就多了一个 GRUB 的选项，通过这个选项就可以进入 linux，然后使用更方便的 efibootmgr 来编辑这个菜单了。</p>
-
-<ul>
+<h1 id="headline-1">
+UEFI shell
+</h1>
+<p>
+UEFI firmware 应该会读取设备里面的分区，找到 ESP 然后再读里面的内容。我看到最简单的方式是把 u 盘格式化成 fat 然后建一个目录 <code class="verbatim">/boot/efi</code> 然后下载一个 <a href="https://wiki.archlinux.org/index.php/Unified_Extensible_Firmware_Interface#UEFI_Shell">uefi shell</a> 把 .efi 文件放到这个目录 <code class="verbatim">/boot/efi/shellx64.efi</code> ，然后启动的时候就多了一个 uefi 菜单了，选择之后可以进入一个 uefi shell。
+</p>
+<p>
+uefi shell 里面有几个命令可以用。
+</p>
+<h2 id="headline-2">
+map
+</h2>
+<p>
+<code class="verbatim">map</code> 可以列出来当前机器的磁盘情况，找到你的 esp 分区。
+</p>
+<h2 id="headline-3">
+ls
+</h2>
+<p>
+<code class="verbatim">ls</code> 可以列出来磁盘目录里面的内容，比如 <code class="verbatim">ls fs0:\boot</code> ，注意磁盘和目录之间用 <code class="verbatim">:</code> ，目录层级之间用 <code class="verbatim">\</code> 。
+</p>
+<h2 id="headline-4">
+bcfg
+</h2>
+<p>
+可以通过 <code class="verbatim">bcfg boot dump -v</code> 列出来当前所有的 efi 菜单，注意每个项目都有一个序号，后面会用到。
+</p>
+<p>
+比如我想自己加一个菜单进去，那就找到最后那个的序号，然后执行 <code class="verbatim">bcfg add 8 fs0:\boot\grub\grubx64.efi GRUB</code> (fat 系统不区分大小写)，指向我自己通过 <code class="verbatim">grub-install --efi-directory=/mnt/sda1/</code> 放到 esp 分区的 grub 的 efi ，这样启动的时候就多了一个 GRUB 的选项，通过这个选项就可以进入 linux，然后使用更方便的 efibootmgr 来编辑这个菜单了。
+</p>
+<p>
 参考:
-<li><a href="https://wiki.archlinux.org/index.php/EFISTUB#UEFI_Shell" title="UEFI Shell">UEFI Shell</a></li>
+</p>
+<ul>
+<li>
+<p>
+<a href="https://wiki.archlinux.org/index.php/EFISTUB#UEFI_Shell">UEFI Shell</a>
+</p>
+</li>
 </ul>
-
-<h1 id="自己制作-iso">自己制作 iso</h1>
-
-<p>通过 <a href="https://www.syslinux.org/wiki/index.php?title=Isohybrid#UEFI" title="isohybrid">isohybrid</a> 可以把一个 iso 做成支持 uefi 的格式，然后通过 dd 写入 u 盘之后，这个 u 盘就支持 uefi 启动了。</p>
-
-<pre><code>mkisofs \
+<h1 id="headline-5">
+自己制作 iso
+</h1>
+<p>
+通过 <a href="https://www.syslinux.org/wiki/index.php?title=Isohybrid#UEFI">isohybrid</a> 可以把一个 iso 做成支持 uefi 的格式，然后通过 dd 写入 u 盘之后，这个 u 盘就支持 uefi 启动了。
+</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">mkisofs \
  -o output.iso \
  -c boot/syslinux/isolinux.boot \
  -b boot/syslinux/isolinux.bin \
@@ -242,18 +137,17 @@
  -eltorito-alt-boot \
  -eltorito-platform 0xEF -eltorito-boot isolinux/efiboot.img \
   -no-emul-boot \
- CD_ROOT
-</code></pre>
-
-<p>efiboot.img 实际是一个 iso 格式的磁盘 img，可以通过下面的方式产生</p>
-
-<pre><code>$ dd if=/dev/zero of=./efiboot.img bs=1M count=4
+ CD_ROOT</code></pre></div>
+<p>
+efiboot.img 实际是一个 iso 格式的磁盘 img，可以通过下面的方式产生
+</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">$ dd if=/dev/zero of=./efiboot.img bs=1M count=4
 $ mount efiboot.img ./mnt
 $ cp -r EFI /mnt
-$ umount /mnt
-</code></pre>
-
-<p>EFI/boot 目录是 efi 启动你自己定义的内容，然后执行 <code>isohybrid --uefi output.iso</code> 。</p>
+$ umount /mnt</code></pre></div>
+<p>
+EFI/boot 目录是 efi 启动你自己定义的内容，然后执行 <code class="verbatim">isohybrid --uefi output.iso</code> 。
+</p>
 
 </main>
 
@@ -287,9 +181,6 @@ $ umount /mnt
 
 
     <footer style="clear:both">
-      
-<script async src="//yihui.name/js/center-img.js"></script>
-
       
       <hr/>
       Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>

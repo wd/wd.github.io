@@ -73,25 +73,37 @@
 
 
 <main>
-<p>Django 提供了 <a href="https://docs.djangoproject.com/en/1.11/topics/http/middleware/" title="middleware">middleware</a> 来让你 hack Request 和 Response。用的时候有几个问题需要注意一下。</p>
 
-<h1 id="call-方法"><code>__call__</code> 方法</h1>
-
-<p><code>__call__</code> 方法实际上就是最早收到 request 的地方，如果不关心 view，那么就可以在这里做你想要做的事情。比如认证用户啥的。这个实际上应该就是早期的 <code>process_request</code> 。</p>
-
-<h1 id="process-view-方法">process_view 方法</h1>
-
-<p><code>process_view</code> 方法会接收到 view_func 和其参数，如果想要针对这些东西处理，可以在这里动作。比如我们所有 api 请求的 POST 的 body 里面都是固定格式的 json 数据，我就在这里检查了 json 的格式，并把解析结果给到了 view_func。</p>
-
-<p>如果不打算对 view_func 做什么事情，那就最好做完想做的事情，直接返回 <code>None</code> 就可以。否则处理完毕之后，返回一个 response 对象。</p>
-
-<p>要注意的是，这里最好不要产生 exception，产生了会把逻辑跑到 Middleware 的 exception 逻辑里面。所以最好对自己的代码段加上 try-except 逻辑。</p>
-
-<p>另外，这里可以对 view_func 做调用，直接返回 view_func 的结果或者处理之后的结果，只要保证是个 response 对象就可以了。也可以不做调用，返回 <code>None</code> ，后续 django 也会调用。要注意的是，如果你对 view_func 做了调用，那么在捕捉到错误的时候，except 里面应该也需要返回一个 response 对象，不能返回 <code>None</code> 了，否则 djangon 还会再次调用这个 view_func 。</p>
-
-<h1 id="process-exception-方法">process_exception 方法</h1>
-
-<p><code>process_exception</code> 方法是在 view 报错的情况下会调用。我在这里统一返回了 server error 的 json，http 状态是 200 的。</p>
+<p>
+Django 提供了 <a href="https://docs.djangoproject.com/en/1.11/topics/http/middleware/">middleware</a> 来让你 hack Request 和 Response。用的时候有几个问题需要注意一下。
+</p>
+<h1 id="headline-1">
+<code class="verbatim">__call__</code> 方法
+</h1>
+<p>
+<code class="verbatim">__call__</code> 方法实际上就是最早收到 request 的地方，如果不关心 view，那么就可以在这里做你想要做的事情。比如认证用户啥的。这个实际上应该就是早期的 <code class="verbatim">process_request</code> 。
+</p>
+<h1 id="headline-2">
+process_view 方法
+</h1>
+<p>
+<code class="verbatim">process_view</code> 方法会接收到 view_func 和其参数，如果想要针对这些东西处理，可以在这里动作。比如我们所有 api 请求的 POST 的 body 里面都是固定格式的 json 数据，我就在这里检查了 json 的格式，并把解析结果给到了 view_func。
+</p>
+<p>
+如果不打算对 view_func 做什么事情，那就最好做完想做的事情，直接返回 <code class="verbatim">None</code> 就可以。否则处理完毕之后，返回一个 response 对象。
+</p>
+<p>
+要注意的是，这里最好不要产生 exception，产生了会把逻辑跑到 Middleware 的 exception 逻辑里面。所以最好对自己的代码段加上 try-except 逻辑。
+</p>
+<p>
+另外，这里可以对 view_func 做调用，直接返回 view_func 的结果或者处理之后的结果，只要保证是个 response 对象就可以了。也可以不做调用，返回 <code class="verbatim">None</code> ，后续 django 也会调用。要注意的是，如果你对 view_func 做了调用，那么在捕捉到错误的时候，except 里面应该也需要返回一个 response 对象，不能返回 <code class="verbatim">None</code> 了，否则 djangon 还会再次调用这个 view_func 。
+</p>
+<h1 id="headline-3">
+process_exception 方法
+</h1>
+<p>
+<code class="verbatim">process_exception</code> 方法是在 view 报错的情况下会调用。我在这里统一返回了 server error 的 json，http 状态是 200 的。
+</p>
 
 </main>
 
@@ -125,9 +137,6 @@
 
 
     <footer style="clear:both">
-      
-<script async src="//yihui.name/js/center-img.js"></script>
-
       
       <hr/>
       Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>

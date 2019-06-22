@@ -73,29 +73,35 @@
 
 
 <main>
-<p>我们之前用的是 redux 来做的统一 store，最近一个新项目有同学用了 mobx，就了解了一下，刚开始看的时候，感觉比 redux 好啊？</p>
-
-<p>mobx 的逻辑是自动收集 store 属性被哪些 dom 使用，然后在属性被改变的时候，自动更新 dom。这样的模式显然比 redux 的 action，reducer，selector 那一套简单多了。</p>
-
-<p>给对应的组件加上 <code>@observer</code> 装饰器之后，store 改变就会自动重现渲染组件。store 可以用下面的模式给到组件</p>
-
-<pre><code class="language-javascript">const store = new TodoList();
-&lt;TodoListView todoList={store} /&gt;
-</code></pre>
-
-<p>也可以用 <code>@inject</code> 装饰器</p>
-
-<pre><code class="language-javascript">@inject(store =&gt; store)
-@observer
-class TodoListView {
+<p>
+我们之前用的是 redux 来做的统一 store，最近一个新项目有同学用了 mobx，就了解了一下，刚开始看的时候，感觉比 redux 好啊？
+</p>
+<p>
+mobx 的逻辑是自动收集 store 属性被哪些 dom 使用，然后在属性被改变的时候，自动更新 dom。这样的模式显然比 redux 的 action，reducer，selector 那一套简单多了。
+</p>
+<p>
+给对应的组件加上 <code class="verbatim">@observer</code> 装饰器之后，store 改变就会自动重现渲染组件。store 可以用下面的模式给到组件
+</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">store</span> <span style="color:#f92672">=</span> <span style="color:#66d9ef">new</span> <span style="color:#a6e22e">TodoList</span>();
+<span style="color:#f92672">&lt;</span><span style="color:#a6e22e">TodoListView</span> <span style="color:#a6e22e">todoList</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">store</span>} <span style="color:#f92672">/&gt;</span>
+</code></pre></div>
+<p>
+也可以用 <code class="verbatim">@inject</code> 装饰器
+</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#960050;background-color:#1e0010">@</span><span style="color:#a6e22e">inject</span>(<span style="color:#a6e22e">store</span> =&gt; <span style="color:#a6e22e">store</span>)
+<span style="color:#960050;background-color:#1e0010">@</span><span style="color:#a6e22e">observer</span>
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">TodoListView</span> {
 }
-</code></pre>
-
-<p>之后都通过 <code>this.props</code> 引用。</p>
-
-<p>一切都很美好，直到我看到了<a href="https://mobx.js.org/best/react.html" title="这个">这个</a>，这里列了一些 mobx 的坑。比如有讲到，mobx 为了能监控到对 store 的依赖和修改，其实是把 store 属性做了修改，所以 store 有一个属性是一个 Map，那么实际得到的是一个和 ES6 Map api 类似的一个对象，但是并不是原生的 Map。比如有一个属性是 Object，你给加了一个 key，例如 store.object['a'] = 'test'，那么这个修改并不能被监视，具体看那个文档吧。</p>
-
-<p>写 Javascript 基本就是从一个小坑爬出来掉到一个大坑里面。</p>
+</code></pre></div>
+<p>
+之后都通过 <code class="verbatim">this.props</code> 引用。
+</p>
+<p>
+一切都很美好，直到我看到了<a href="https://mobx.js.org/best/react.html">这个</a>，这里列了一些 mobx 的坑。比如有讲到，mobx 为了能监控到对 store 的依赖和修改，其实是把 store 属性做了修改，所以 store 有一个属性是一个 Map，那么实际得到的是一个和 ES6 Map api 类似的一个对象，但是并不是原生的 Map。比如有一个属性是 Object，你给加了一个 key，例如 store.object[&#39;a&#39;] = &#39;test&#39;，那么这个修改并不能被监视，具体看那个文档吧。
+</p>
+<p>
+写 Javascript 基本就是从一个小坑爬出来掉到一个大坑里面。
+</p>
 
 </main>
 
@@ -129,9 +135,6 @@ class TodoListView {
 
 
     <footer style="clear:both">
-      
-<script async src="//yihui.name/js/center-img.js"></script>
-
       
       <hr/>
       Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>

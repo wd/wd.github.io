@@ -78,217 +78,108 @@
 
 
 
-<div id="TOC">
-    
-    <h4 class="text-muted">Table of Contents</h4>
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                    <ul class="toc-h2">
-                
-                
-                
-                
-                <li>
-                    <a href="/django-testing/#setup-%e5%92%8c-teardown"> setUp 和 tearDown </a>
-                </li>
-                
-                
-                    </ul>
-                
-                    </ul>
-                
-            
-        
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                    <ul class="toc-h2">
-                
-                
-                
-                
-                <li>
-                    <a href="/django-testing/#setupclass-%e5%92%8c-teardownclass"> setUpClass 和 tearDownClass </a>
-                </li>
-                
-                
-                    </ul>
-                
-                    </ul>
-                
-            
-        
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                    <ul class="toc-h2">
-                
-                
-                
-                
-                <li>
-                    <a href="/django-testing/#%e6%b5%8b%e8%af%95%e7%94%a8%e4%be%8b"> 测试用例 </a>
-                </li>
-                
-                
-                    </ul>
-                
-                    </ul>
-                
-            
-        
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                    <ul class="toc-h2">
-                
-                
-                
-                
-                <li>
-                    <a href="/django-testing/#fixtures"> fixtures </a>
-                </li>
-                
-                
-                    </ul>
-                
-                    </ul>
-                
-            
-        
-    
-        
-        
-            
-                
-                
-                
-                    <ul class="toc-h1">
-                
-                    <ul class="toc-h2">
-                
-                
-                
-                
-                <li>
-                    <a href="/django-testing/#%e7%bb%99%e6%b5%8b%e8%af%95%e6%8f%90%e9%80%9f"> 给测试提速 </a>
-                </li>
-                
-                
-                    </ul>
-                
-                    </ul>
-                
-            
-        
-    
-</div>
-
 
 
 
 <main>
-<p>Django 自己的 unittest 支持的挺好，一般只需要在 app 下面加一个 tests.py 在里面写 case 就可以了。case 对应的类继承 <code>django.test.TestCase</code> 就好。</p>
 
-<p>这个 <code>django.test.TestCase</code> 继承自 <code>unittest.TestCase</code> ，django 这个多了一个自动使用事务的功能，所以用 django 这个的话，每个测试用例执行前后会自动回滚数据库操作，这样不用你自己 cleanup 数据，还比较方便。</p>
+<p>
+Django 自己的 unittest 支持的挺好，一般只需要在 app 下面加一个 tests.py 在里面写 case 就可以了。case 对应的类继承 <code class="verbatim">django.test.TestCase</code> 就好。
+</p>
+<p>
+这个 <code class="verbatim">django.test.TestCase</code> 继承自 <code class="verbatim">unittest.TestCase</code> ，django 这个多了一个自动使用事务的功能，所以用 django 这个的话，每个测试用例执行前后会自动回滚数据库操作，这样不用你自己 cleanup 数据，还比较方便。
+</p>
+<h2 id="headline-1">
+setUp 和 tearDown
+</h2>
+<p>
+每一个测试类里面，都可以有一个 <code class="verbatim">setUp</code> 方法，是在 case 方法执行前执行，例如一些准备工作，和一个 <code class="verbatim">tearDown</code> 方法，在 case 执行之后执行，例如一些清理工作。还可以有若干个使用 <code class="verbatim">test_</code> 开头的测试用例，这些 <code class="verbatim">setUp</code> 其实类似于把每个测试用例里面共同的部分提取出来一样，不过是不用你在每个 case 里面单独调用了，会自动处理。
+</p>
+<h2 id="headline-2">
+setUpClass 和 tearDownClass
+</h2>
+<p>
+django 还提供了 <code class="verbatim">setUpClass</code> 和 <code class="verbatim">tearDownClass</code> ，类似上面的 <code class="verbatim">setUp</code> 方法，不过这个是每个 class 只会执行一次。另外按照<a href="https://medium.com/@nhatcuong/django-test-fixture-setup-setupclass-and-setuptestdata-72b6d944cdef">这里</a>的说法， <code class="verbatim">setUpClass</code> 不会使用事务，不过我看源码(django 2.1.4) 好像是会的，我没测试。。
+</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">    <span style="color:#a6e22e">@classmethod</span>
+    <span style="color:#66d9ef">def</span> <span style="color:#a6e22e">setUpClass</span>(cls):
+        super()<span style="color:#f92672">.</span>setUpClass()
+        <span style="color:#66d9ef">if</span> <span style="color:#f92672">not</span> connections_support_transactions():
+            <span style="color:#66d9ef">return</span>
+        cls<span style="color:#f92672">.</span>cls_atomics <span style="color:#f92672">=</span> cls<span style="color:#f92672">.</span>_enter_atomics()
 
-<h2 id="setup-和-teardown">setUp 和 tearDown</h2>
-
-<p>每一个测试类里面，都可以有一个 <code>setUp</code> 方法，是在 case 方法执行前执行，例如一些准备工作，和一个 <code>tearDown</code> 方法，在 case 执行之后执行，例如一些清理工作。还可以有若干个使用 <code>test_</code> 开头的测试用例，这些 <code>setUp</code> 其实类似于把每个测试用例里面共同的部分提取出来一样，不过是不用你在每个 case 里面单独调用了，会自动处理。</p>
-
-<h2 id="setupclass-和-teardownclass">setUpClass 和 tearDownClass</h2>
-
-<p>django 还提供了 <code>setUpClass</code> 和 <code>tearDownClass</code> ，类似上面的 <code>setUp</code> 方法，不过这个是每个 class 只会执行一次。另外按照<a href="https://medium.com/@nhatcuong/django-test-fixture-setup-setupclass-and-setuptestdata-72b6d944cdef" title="这里">这里</a>的说法， <code>setUpClass</code> 不会使用事务，不过我看源码(django 2.1.4) 好像是会的，我没测试。。</p>
-
-<pre><code class="language-python">    @classmethod
-    def setUpClass(cls):
-        super().setUpClass()
-        if not connections_support_transactions():
-            return
-        cls.cls_atomics = cls._enter_atomics()
-
-        if cls.fixtures:
-            for db_name in cls._databases_names(include_mirrors=False):
-                try:
-                    call_command('loaddata', *cls.fixtures, **{'verbosity': 0, 'database': db_name})
-                except Exception:
-                    cls._rollback_atomics(cls.cls_atomics)
-                    raise
-        try:
-            cls.setUpTestData()
-        except Exception:
-            cls._rollback_atomics(cls.cls_atomics)
-            raise
-</code></pre>
-
-<p>代码可以看到，还有一个 <code>setUpTestData</code> 可以用。如果只是准备数据库数据的话，感觉后面这个更精准一点。</p>
-
-<h2 id="测试用例">测试用例</h2>
-
-<p>case 我觉得一般可以分两种，方法测试，和接口测试。</p>
-
-<p>方法测试指针对一些工具方法什么的测试，当然这个说法并不严谨，将就理解吧。我把这些归类为不涉及到数据库操作的测试。</p>
-
-<p>接口测试，一般会涉及到数据库操作，需要验证登录啊，参数什么的。</p>
-
-<p>Django 里面，每个测试用例之间是通过事务互相隔离的，所以不用担心互相之间会有影响。</p>
-
-<p>接口测试可以通过 <code>django.test.Client</code> 来访问你的接口，然后比对返回结果，或者比对数据库的数据来验证。</p>
-
-<h2 id="fixtures">fixtures</h2>
-
-<p>有时候一些接口是依赖已有数据的，比如一个返回所有用户的接口，那测试的时候数据库是需要有用户才能返回的。这个可以通过 fixture 来 moke 数据。</p>
-
-<p><code>fixture</code> 就是一些 json 文件，里面放的是和 model 的数据，这样一个测试如果需要某几个 model 对应的表里面事先有数据，那可以把他们放到 fixture 文件里面，让 django 在运行之前先 load 到数据库就可以了。</p>
-
-<p>这些 json 文件自己编写会死，Django 提供了 <code>manage.py dumpdata --indent 4 [app_label[.ModelName] [app_label[.ModelName]</code> 功能，可以方便你导出数据库里面已有的数据。不指定 app_label 和 modelname 就会导出全部的，一般只导出自己需要的就好。注意 json 文件是可以支持缩进的。</p>
-
-<p>如果从比如开发库之类的倒数据，会觉得数据有点乱，从测试库倒数据似乎比较清净，因为每次测试都是一个空的数据库。有一个方法是在测试用例里面创建依赖的数据，但是测试执行完了再执行 <code>manage.py dumpdata</code> 已经什么数据都没有了。这个时候可以在测试用例里面使用 <code>django.core.management.call_command</code> 来执行 dump，例如</p>
-
-<pre><code class="language-python">call_command(
-    'dumpdata',
-    '--indent', '4',
-    'app_label', 'ModelName',
-    'app_label', 'ModelName'
-)
-</code></pre>
-
-<p>这个其实类似前面 <code>setUpClass</code> 里面的加载 fixtures 的代码用了类似的方法 <code>call_command('loaddata', *cls.fixtures, **{'verbosity': 0, 'database': db_name})</code> 。</p>
-
-<p>命令行执行测试的时候，会打印出来 dump 出来的数据，把他们存到一个 json 文件然后引入就可以了。</p>
-
-<h2 id="给测试提速">给测试提速</h2>
-
-<p>有一个提升测试速度的方法，是使用 <code>-k</code> 参数，这个参数会保留测试的数据库，不会每次都删除重建，这样节省一些时间。</p>
-
-<p>还可以使用 <code>--parallel N</code> 参数来增加并行数量。如果你用 coverage 那整个命令是类似这样的 <code>coverage run --parallel-mode --concurrency=multiprocessing manage.py test -k --parallel 3</code> 。使用并行之后，会发现 coverage 不工作了，这是因为并行的时候，每个线程都会单独写一个 coverage 结果文件，所以执行 <code>coverage report</code> 之前，执行一下 <code>coverage combine</code> 合并到一个文件就可以了。</p>
-
-<p>Django 还是做的挺不错的。测试这么方便，实际很适合使用 TDD 方式开发。</p>
+        <span style="color:#66d9ef">if</span> cls<span style="color:#f92672">.</span>fixtures:
+            <span style="color:#66d9ef">for</span> db_name <span style="color:#f92672">in</span> cls<span style="color:#f92672">.</span>_databases_names(include_mirrors<span style="color:#f92672">=</span>False):
+                <span style="color:#66d9ef">try</span>:
+                    call_command(<span style="color:#e6db74">&#39;loaddata&#39;</span>, <span style="color:#f92672">*</span>cls<span style="color:#f92672">.</span>fixtures, <span style="color:#f92672">**</span>{<span style="color:#e6db74">&#39;verbosity&#39;</span>: <span style="color:#ae81ff">0</span>, <span style="color:#e6db74">&#39;database&#39;</span>: db_name})
+                <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span>:
+                    cls<span style="color:#f92672">.</span>_rollback_atomics(cls<span style="color:#f92672">.</span>cls_atomics)
+                    <span style="color:#66d9ef">raise</span>
+        <span style="color:#66d9ef">try</span>:
+            cls<span style="color:#f92672">.</span>setUpTestData()
+        <span style="color:#66d9ef">except</span> <span style="color:#a6e22e">Exception</span>:
+            cls<span style="color:#f92672">.</span>_rollback_atomics(cls<span style="color:#f92672">.</span>cls_atomics)
+            <span style="color:#66d9ef">raise</span></code></pre></div>
+<p>
+代码可以看到，还有一个 <code class="verbatim">setUpTestData</code> 可以用。如果只是准备数据库数据的话，感觉后面这个更精准一点。
+</p>
+<h2 id="headline-3">
+测试用例
+</h2>
+<p>
+case 我觉得一般可以分两种，方法测试，和接口测试。
+</p>
+<p>
+方法测试指针对一些工具方法什么的测试，当然这个说法并不严谨，将就理解吧。我把这些归类为不涉及到数据库操作的测试。
+</p>
+<p>
+接口测试，一般会涉及到数据库操作，需要验证登录啊，参数什么的。
+</p>
+<p>
+Django 里面，每个测试用例之间是通过事务互相隔离的，所以不用担心互相之间会有影响。
+</p>
+<p>
+接口测试可以通过 <code class="verbatim">django.test.Client</code> 来访问你的接口，然后比对返回结果，或者比对数据库的数据来验证。
+</p>
+<h2 id="headline-4">
+fixtures
+</h2>
+<p>
+有时候一些接口是依赖已有数据的，比如一个返回所有用户的接口，那测试的时候数据库是需要有用户才能返回的。这个可以通过 fixture 来 moke 数据。
+</p>
+<p>
+<code class="verbatim">fixture</code> 就是一些 json 文件，里面放的是和 model 的数据，这样一个测试如果需要某几个 model 对应的表里面事先有数据，那可以把他们放到 fixture 文件里面，让 django 在运行之前先 load 到数据库就可以了。
+</p>
+<p>
+这些 json 文件自己编写会死，Django 提供了 <code class="verbatim">manage.py dumpdata --indent 4 [app_label[.ModelName] [app_label[.ModelName]</code> 功能，可以方便你导出数据库里面已有的数据。不指定 app_label 和 modelname 就会导出全部的，一般只导出自己需要的就好。注意 json 文件是可以支持缩进的。
+</p>
+<p>
+如果从比如开发库之类的倒数据，会觉得数据有点乱，从测试库倒数据似乎比较清净，因为每次测试都是一个空的数据库。有一个方法是在测试用例里面创建依赖的数据，但是测试执行完了再执行 <code class="verbatim">manage.py dumpdata</code> 已经什么数据都没有了。这个时候可以在测试用例里面使用 <code class="verbatim">django.core.management.call_command</code> 来执行 dump，例如 
+</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">call_command(
+    <span style="color:#e6db74">&#39;dumpdata&#39;</span>,
+    <span style="color:#e6db74">&#39;--indent&#39;</span>, <span style="color:#e6db74">&#39;4&#39;</span>,
+    <span style="color:#e6db74">&#39;app_label&#39;</span>, <span style="color:#e6db74">&#39;ModelName&#39;</span>,
+    <span style="color:#e6db74">&#39;app_label&#39;</span>, <span style="color:#e6db74">&#39;ModelName&#39;</span>
+)</code></pre></div>
+<p>
+这个其实类似前面 <code class="verbatim">setUpClass</code> 里面的加载 fixtures 的代码用了类似的方法 <code class="verbatim">call_command(&#39;loaddata&#39;, *cls.fixtures, **{&#39;verbosity&#39;: 0, &#39;database&#39;: db_name})</code> 。
+</p>
+<p>
+命令行执行测试的时候，会打印出来 dump 出来的数据，把他们存到一个 json 文件然后引入就可以了。
+</p>
+<h2 id="headline-5">
+给测试提速
+</h2>
+<p>
+有一个提升测试速度的方法，是使用 <code class="verbatim">-k</code> 参数，这个参数会保留测试的数据库，不会每次都删除重建，这样节省一些时间。
+</p>
+<p>
+还可以使用 <code class="verbatim">--parallel N</code> 参数来增加并行数量。如果你用 coverage 那整个命令是类似这样的 <code class="verbatim">coverage run --parallel-mode --concurrency=multiprocessing manage.py test -k --parallel 3</code> 。使用并行之后，会发现 coverage 不工作了，这是因为并行的时候，每个线程都会单独写一个 coverage 结果文件，所以执行 <code class="verbatim">coverage report</code> 之前，执行一下 <code class="verbatim">coverage combine</code> 合并到一个文件就可以了。
+</p>
+<p>
+Django 还是做的挺不错的。测试这么方便，实际很适合使用 TDD 方式开发。
+</p>
 
 </main>
 
@@ -322,9 +213,6 @@
 
 
     <footer style="clear:both">
-      
-<script async src="//yihui.name/js/center-img.js"></script>
-
       
       <hr/>
       Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>

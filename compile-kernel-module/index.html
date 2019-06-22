@@ -73,13 +73,16 @@
 
 
 <main>
-<p>使用 porteus 的时候，发现网卡不支持，找了一下发现有内核驱动可以用，那就需要编译一下内核的模块。</p>
-
-<p><a href="http://www.porteus.org/component/content/article/20-tutorials/development/91-compilation-and-usage-of-custom-porteus-kernel.html" title="这里">这里</a>有一个帖子写了如何编译内核，主要步骤是先给内核打 aufs 的补丁，然后就是正常的 make config && make && make modules_install 了。</p>
-
-<p>我这只是编译一个网卡驱动，操作步骤大概如下，把内核解压放到 /mnt/sda1/kernel 下面，然后把网卡驱动代码放到 /mnt/sda1/kernel/linux-4.16.3/drivers/net/wireless/rtl8821ce 下面。</p>
-
-<pre><code># cd /mnt/sda1/kernel/linux-4.16.3/
+<p>
+使用 porteus 的时候，发现网卡不支持，找了一下发现有内核驱动可以用，那就需要编译一下内核的模块。
+</p>
+<p>
+<a href="http://www.porteus.org/component/content/article/20-tutorials/development/91-compilation-and-usage-of-custom-porteus-kernel.html">这里</a>有一个帖子写了如何编译内核，主要步骤是先给内核打 aufs 的补丁，然后就是正常的 make config &amp;&amp; make &amp;&amp; make modules_install 了。
+</p>
+<p>
+我这只是编译一个网卡驱动，操作步骤大概如下，把内核解压放到 /mnt/sda1/kernel 下面，然后把网卡驱动代码放到 /mnt/sda1/kernel/linux-4.16.3/drivers/net/wireless/rtl8821ce 下面。
+</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"># cd /mnt/sda1/kernel/linux-4.16.3/
 # modprobe configs &amp;&amp; zcat /proc/config.gz &gt; .config
 # make oldconfig
 # make prepare
@@ -87,20 +90,21 @@
 # export srctree=/mnt/sda1/kernel/linux-4.16.3
 # ln -s /mnt/sda1/kernel/linux-4.16.3 /usr/src/linux
 # cd drivers/net/wireless/rtl8821ce
-# make
-</code></pre>
-
-<p>然后在这个目录下面会产生一个 rtl8821ce.ko 的文件。</p>
-
-<p>如果是遇到自己用的内核有一个模块没编译，那可以用下面的方式</p>
-
-<pre><code># after make modules_prepare
-# make modules SUBDIRS=drivers/firmware/efi/
-</code></pre>
-
-<p>这样会在 drivers/firmware/efi/ 目录下面产生一个 xx.ko 之类的文件。</p>
-
-<p>把上面产生的 ko 文件放到你的 linux 的对应目录就可以使用 modprob 加载了，例如 <code>/lib/modules/4.16.3-porteus/kernel/drivers/net/wireless/8821ce.ko</code> 。</p>
+# make</code></pre></div>
+<p>
+然后在这个目录下面会产生一个 rtl8821ce.ko 的文件。
+</p>
+<p>
+如果是遇到自己用的内核有一个模块没编译，那可以用下面的方式
+</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"># after make modules_prepare
+# make modules SUBDIRS=drivers/firmware/efi/</code></pre></div>
+<p>
+这样会在 drivers/firmware/efi/ 目录下面产生一个 xx.ko 之类的文件。
+</p>
+<p>
+把上面产生的 ko 文件放到你的 linux 的对应目录就可以使用 modprob 加载了，例如 <code class="verbatim">/lib/modules/4.16.3-porteus/kernel/drivers/net/wireless/8821ce.ko</code> 。
+</p>
 
 </main>
 
@@ -134,9 +138,6 @@
 
 
     <footer style="clear:both">
-      
-<script async src="//yihui.name/js/center-img.js"></script>
-
       
       <hr/>
       Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>

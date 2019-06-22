@@ -82,184 +82,195 @@
 
 
 <main>
-<p>前段时间我们设想了一个需求，想帮助用户规划一下从 A -> B 的航线。对于路径规划从来没弄过，研究了一下，基本都在提这个 <a href="https://en.wikipedia.org/wiki/A*_search_algorithm" title="A 星寻路算法">A 星寻路算法</a>。</p>
-
-<ol>
+<p>
+前段时间我们设想了一个需求，想帮助用户规划一下从 A -&gt; B 的航线。对于路径规划从来没弄过，研究了一下，基本都在提这个 <a href="https://en.wikipedia.org/wiki/A*_search_algorithm">A 星寻路算法</a>。
+</p>
+<p>
 先贴几个文章：
-<li>简单的讲解的文章例如 https://www.jianshu.com/p/65282bd32391</li>
-<li>这个详细一点的 https://blog.csdn.net/DinnerHowe/article/details/79380317</li>
+</p>
+<ol>
+<li>
+<p>
+简单的讲解的文章例如 <a href="https://www.jianshu.com/p/65282bd32391">https://www.jianshu.com/p/65282bd32391</a>
+</p>
+</li>
+<li>
+<p>
+这个详细一点的 <a href="https://blog.csdn.net/DinnerHowe/article/details/79380317">https://blog.csdn.net/DinnerHowe/article/details/79380317</a>
+</p>
+</li>
 </ol>
-
-<p>我写了一个简单的程序，这个程序没有做过任何的优化，只能说是解释了这个算法的逻辑而已，在终端里面可以可视化的把计算过程显示出来。效果可以看<a href="https://gist.github.com/wd/69469977bf76d9091ca01714eae08f37" title="这里">这里</a>。</p>
-
-<pre><code class="language-python">#!/usr/bin/python
-import sys
-import random
-
-
-RED = '\033[31m'
-GREEN = '\033[32m'
-GRAY = '\033[35m'
-NC = '\033[0m'
-
-class Point(object):
-    x = 0
-    y = 0
-    close = False
-    open = False
-    start = False
-    end = False
-    wall = False
-    H = 99
-    G = 99
-    parent = None
-
-    def __init__(self, **kwargs):
-        if 'x' in kwargs:
-            self.x = kwargs['x']
-
-        if 'y' in kwargs:
-            self.y = kwargs['y']
-
-        self.key = '{}-{}'.format(self.x, self.y)
-
-    def __str__(self):
-        return '{},H{:2},G{:2},F{:2},P{:3}'.format(
-                self.key,
-                self.H if self.H != 99 else '',
-                self.G if self.G != 99 else '',
-                self.G + self.H if self.G != 99 else '',
-                self.parent.key if self.parent else '')
-
-    def  __lt__(self, other):
-        return self.x &lt; other.x if self.y == other.y else self.y &lt; other.y
+<p>
+我写了一个简单的程序，这个程序没有做过任何的优化，只能说是解释了这个算法的逻辑而已，在终端里面可以可视化的把计算过程显示出来。效果可以看<a href="https://gist.github.com/wd/69469977bf76d9091ca01714eae08f37">这里</a>。
+</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#75715e">#!/usr/bin/python</span>
+<span style="color:#f92672">import</span> sys
+<span style="color:#f92672">import</span> random
 
 
-def get_area(width, height):
-    area = {}
-    for i in range(width):
-        for j in range(height):
-            point = Point(x=i, y=j)
+RED <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\033</span><span style="color:#e6db74">[31m&#39;</span>
+GREEN <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\033</span><span style="color:#e6db74">[32m&#39;</span>
+GRAY <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\033</span><span style="color:#e6db74">[35m&#39;</span>
+NC <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;</span><span style="color:#ae81ff">\033</span><span style="color:#e6db74">[0m&#39;</span>
 
-            area[point.key] = point
-    return area
+<span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Point</span>(object):
+    x <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+    y <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+    close <span style="color:#f92672">=</span> False
+    open <span style="color:#f92672">=</span> False
+    start <span style="color:#f92672">=</span> False
+    end <span style="color:#f92672">=</span> False
+    wall <span style="color:#f92672">=</span> False
+    H <span style="color:#f92672">=</span> <span style="color:#ae81ff">99</span>
+    G <span style="color:#f92672">=</span> <span style="color:#ae81ff">99</span>
+    parent <span style="color:#f92672">=</span> None
 
-def show_result(area_hash):
-    prev_y = -1
+    <span style="color:#66d9ef">def</span> __init__(self, <span style="color:#f92672">**</span>kwargs):
+        <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;x&#39;</span> <span style="color:#f92672">in</span> kwargs:
+            self<span style="color:#f92672">.</span>x <span style="color:#f92672">=</span> kwargs[<span style="color:#e6db74">&#39;x&#39;</span>]
 
-    for point in sorted(area_hash.values()):
-        if ( prev_y != point.y ):
-            if (prev_y != -1):
-                print('')
-            prev_y = point.y
+        <span style="color:#66d9ef">if</span> <span style="color:#e6db74">&#39;y&#39;</span> <span style="color:#f92672">in</span> kwargs:
+            self<span style="color:#f92672">.</span>y <span style="color:#f92672">=</span> kwargs[<span style="color:#e6db74">&#39;y&#39;</span>]
 
-        if point.start:
-            format = RED + 'S' + NC
-        elif point.end:
-            format = RED + 'E' + NC
-        elif point.wall:
-            format = GRAY + 'W' + NC
-        elif point.close:
-            format = GREEN + '0' + NC
-        else:
-            format = ' '
-        print((format + '({})  ').format(point), end='')
-    print('')
+        self<span style="color:#f92672">.</span>key <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{}-{}&#39;</span><span style="color:#f92672">.</span>format(self<span style="color:#f92672">.</span>x, self<span style="color:#f92672">.</span>y)
 
-def set_preset(area, start, end, wall):
-    area[start].start = True
-    area[end].end = True
-    for key in wall:
-        area[key].wall = True
-    return area
+    <span style="color:#66d9ef">def</span> __str__(self):
+        <span style="color:#66d9ef">return</span> <span style="color:#e6db74">&#39;{},H{:2},G{:2},F{:2},P{:3}&#39;</span><span style="color:#f92672">.</span>format(
+                self<span style="color:#f92672">.</span>key,
+                self<span style="color:#f92672">.</span>H <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>H <span style="color:#f92672">!=</span> <span style="color:#ae81ff">99</span> <span style="color:#66d9ef">else</span> <span style="color:#e6db74">&#39;&#39;</span>,
+                self<span style="color:#f92672">.</span>G <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>G <span style="color:#f92672">!=</span> <span style="color:#ae81ff">99</span> <span style="color:#66d9ef">else</span> <span style="color:#e6db74">&#39;&#39;</span>,
+                self<span style="color:#f92672">.</span>G <span style="color:#f92672">+</span> self<span style="color:#f92672">.</span>H <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>G <span style="color:#f92672">!=</span> <span style="color:#ae81ff">99</span> <span style="color:#66d9ef">else</span> <span style="color:#e6db74">&#39;&#39;</span>,
+                self<span style="color:#f92672">.</span>parent<span style="color:#f92672">.</span>key <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>parent <span style="color:#66d9ef">else</span> <span style="color:#e6db74">&#39;&#39;</span>)
 
-def is_valid_point(point, width, height):
-    if point.wall or point.close:
-        return False
+    <span style="color:#66d9ef">def</span>  __lt__(self, other):
+        <span style="color:#66d9ef">return</span> self<span style="color:#f92672">.</span>x <span style="color:#f92672">&lt;</span> other<span style="color:#f92672">.</span>x <span style="color:#66d9ef">if</span> self<span style="color:#f92672">.</span>y <span style="color:#f92672">==</span> other<span style="color:#f92672">.</span>y <span style="color:#66d9ef">else</span> self<span style="color:#f92672">.</span>y <span style="color:#f92672">&lt;</span> other<span style="color:#f92672">.</span>y
 
-    if point.x &lt; 0 or point.x &gt; width:
-        return False
 
-    if point.y &lt; 0 or point.y &gt; height:
-        return False
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_area</span>(width, height):
+    area <span style="color:#f92672">=</span> {}
+    <span style="color:#66d9ef">for</span> i <span style="color:#f92672">in</span> range(width):
+        <span style="color:#66d9ef">for</span> j <span style="color:#f92672">in</span> range(height):
+            point <span style="color:#f92672">=</span> Point(x<span style="color:#f92672">=</span>i, y<span style="color:#f92672">=</span>j)
 
-    return True
+            area[point<span style="color:#f92672">.</span>key] <span style="color:#f92672">=</span> point
+    <span style="color:#66d9ef">return</span> area
 
-def get_around(area, point, width, height):
-    n = '{}-{}'.format(point.x, point.y - 1)
-    s = '{}-{}'.format(point.x, point.y + 1)
-    l = '{}-{}'.format(point.x - 1, point.y)
-    r = '{}-{}'.format(point.x + 1, point.y)
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">show_result</span>(area_hash):
+    prev_y <span style="color:#f92672">=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
 
-    res = {}
-    for key in [n, s, l, r]:
-        if key in area and is_valid_point(area[key], width, height):
-            area[key].parent = point
-            area[key].G = area[key].G if area[key].G != 99 else (point.G if point.G != 99 else 0) + 1
-            res[key] = area[key]
+    <span style="color:#66d9ef">for</span> point <span style="color:#f92672">in</span> sorted(area_hash<span style="color:#f92672">.</span>values()):
+        <span style="color:#66d9ef">if</span> ( prev_y <span style="color:#f92672">!=</span> point<span style="color:#f92672">.</span>y ):
+            <span style="color:#66d9ef">if</span> (prev_y <span style="color:#f92672">!=</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>):
+                <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;&#39;</span>)
+            prev_y <span style="color:#f92672">=</span> point<span style="color:#f92672">.</span>y
 
-    return res
+        <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>start:
+            format <span style="color:#f92672">=</span> RED <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;S&#39;</span> <span style="color:#f92672">+</span> NC
+        <span style="color:#66d9ef">elif</span> point<span style="color:#f92672">.</span>end:
+            format <span style="color:#f92672">=</span> RED <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;E&#39;</span> <span style="color:#f92672">+</span> NC
+        <span style="color:#66d9ef">elif</span> point<span style="color:#f92672">.</span>wall:
+            format <span style="color:#f92672">=</span> GRAY <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;W&#39;</span> <span style="color:#f92672">+</span> NC
+        <span style="color:#66d9ef">elif</span> point<span style="color:#f92672">.</span>close:
+            format <span style="color:#f92672">=</span> GREEN <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;0&#39;</span> <span style="color:#f92672">+</span> NC
+        <span style="color:#66d9ef">else</span>:
+            format <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39; &#39;</span>
+        <span style="color:#66d9ef">print</span>((format <span style="color:#f92672">+</span> <span style="color:#e6db74">&#39;({})  &#39;</span>)<span style="color:#f92672">.</span>format(point), end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>)
+    <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;&#39;</span>)
 
-def get_H(point, end_point):
-    return abs(point.x - end_point.x) + abs(point.y - end_point.y)
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">set_preset</span>(area, start, end, wall):
+    area[start]<span style="color:#f92672">.</span>start <span style="color:#f92672">=</span> True
+    area[end]<span style="color:#f92672">.</span>end <span style="color:#f92672">=</span> True
+    <span style="color:#66d9ef">for</span> key <span style="color:#f92672">in</span> wall:
+        area[key]<span style="color:#f92672">.</span>wall <span style="color:#f92672">=</span> True
+    <span style="color:#66d9ef">return</span> area
 
-step = 0
-opened = {}
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">is_valid_point</span>(point, width, height):
+    <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>wall <span style="color:#f92672">or</span> point<span style="color:#f92672">.</span>close:
+        <span style="color:#66d9ef">return</span> False
 
-def go(area, start, end, width, height):
-    global step, opened
-    start_point = area[start]
-    end_point= area[end]
-    start_point.close = True
+    <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>x <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> point<span style="color:#f92672">.</span>x <span style="color:#f92672">&gt;</span> width:
+        <span style="color:#66d9ef">return</span> False
 
-    if start_point.key in opened:
-        del opened[start_point.key]
+    <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>y <span style="color:#f92672">&lt;</span> <span style="color:#ae81ff">0</span> <span style="color:#f92672">or</span> point<span style="color:#f92672">.</span>y <span style="color:#f92672">&gt;</span> height:
+        <span style="color:#66d9ef">return</span> False
 
-    points = get_around(area, start_point, width, height)
-    opened.update(points)
+    <span style="color:#66d9ef">return</span> True
 
-    rnd = random.choice(list(opened))
-    next_point = area[rnd]
-    for key, point in opened.items():
-        point.H = get_H(point, end_point)
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_around</span>(area, point, width, height):
+    n <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{}-{}&#39;</span><span style="color:#f92672">.</span>format(point<span style="color:#f92672">.</span>x, point<span style="color:#f92672">.</span>y <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>)
+    s <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{}-{}&#39;</span><span style="color:#f92672">.</span>format(point<span style="color:#f92672">.</span>x, point<span style="color:#f92672">.</span>y <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>)
+    l <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{}-{}&#39;</span><span style="color:#f92672">.</span>format(point<span style="color:#f92672">.</span>x <span style="color:#f92672">-</span> <span style="color:#ae81ff">1</span>, point<span style="color:#f92672">.</span>y)
+    r <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;{}-{}&#39;</span><span style="color:#f92672">.</span>format(point<span style="color:#f92672">.</span>x <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>, point<span style="color:#f92672">.</span>y)
 
-        if point.H + point.G &lt;= next_point.H + next_point.G:
-            next_point = point
+    res <span style="color:#f92672">=</span> {}
+    <span style="color:#66d9ef">for</span> key <span style="color:#f92672">in</span> [n, s, l, r]:
+        <span style="color:#66d9ef">if</span> key <span style="color:#f92672">in</span> area <span style="color:#f92672">and</span> is_valid_point(area[key], width, height):
+            area[key]<span style="color:#f92672">.</span>parent <span style="color:#f92672">=</span> point
+            area[key]<span style="color:#f92672">.</span>G <span style="color:#f92672">=</span> area[key]<span style="color:#f92672">.</span>G <span style="color:#66d9ef">if</span> area[key]<span style="color:#f92672">.</span>G <span style="color:#f92672">!=</span> <span style="color:#ae81ff">99</span> <span style="color:#66d9ef">else</span> (point<span style="color:#f92672">.</span>G <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>G <span style="color:#f92672">!=</span> <span style="color:#ae81ff">99</span> <span style="color:#66d9ef">else</span> <span style="color:#ae81ff">0</span>) <span style="color:#f92672">+</span> <span style="color:#ae81ff">1</span>
+            res[key] <span style="color:#f92672">=</span> area[key]
 
-    print('step {}: {}'.format(step, next_point))
-    step += 1
-    if step &gt;= 3:
-        pass
+    <span style="color:#66d9ef">return</span> res
 
-    if next_point and next_point.key != end:
-        go(area, next_point.key, end, width, height)
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_H</span>(point, end_point):
+    <span style="color:#66d9ef">return</span> abs(point<span style="color:#f92672">.</span>x <span style="color:#f92672">-</span> end_point<span style="color:#f92672">.</span>x) <span style="color:#f92672">+</span> abs(point<span style="color:#f92672">.</span>y <span style="color:#f92672">-</span> end_point<span style="color:#f92672">.</span>y)
 
-def get_result(area, start, end):
-    print('{}{}{} &lt;- '.format(RED, area[end].key, NC), end='')
-    parent = area[end].parent
-    if(parent.key != start):
-        get_result(area, start, parent.key)
-    else:
-        print('{}{}{}'.format(RED, area[start].key, NC), end='')
+step <span style="color:#f92672">=</span> <span style="color:#ae81ff">0</span>
+opened <span style="color:#f92672">=</span> {}
 
-def main():
-    width = 10
-    height = 10
-    start = '1-3'
-    end = '8-4'
-    wall = ['2-2', '3-2', '3-3', '3-4', '3-5', '3-6', '5-4', '2-6', '1-6']
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">go</span>(area, start, end, width, height):
+    <span style="color:#66d9ef">global</span> step, opened
+    start_point <span style="color:#f92672">=</span> area[start]
+    end_point<span style="color:#f92672">=</span> area[end]
+    start_point<span style="color:#f92672">.</span>close <span style="color:#f92672">=</span> True
 
-    area = get_area(width, height)
-    area = set_preset(area, start, end, wall)
+    <span style="color:#66d9ef">if</span> start_point<span style="color:#f92672">.</span>key <span style="color:#f92672">in</span> opened:
+        <span style="color:#66d9ef">del</span> opened[start_point<span style="color:#f92672">.</span>key]
+
+    points <span style="color:#f92672">=</span> get_around(area, start_point, width, height)
+    opened<span style="color:#f92672">.</span>update(points)
+
+    rnd <span style="color:#f92672">=</span> random<span style="color:#f92672">.</span>choice(list(opened))
+    next_point <span style="color:#f92672">=</span> area[rnd]
+    <span style="color:#66d9ef">for</span> key, point <span style="color:#f92672">in</span> opened<span style="color:#f92672">.</span>items():
+        point<span style="color:#f92672">.</span>H <span style="color:#f92672">=</span> get_H(point, end_point)
+
+        <span style="color:#66d9ef">if</span> point<span style="color:#f92672">.</span>H <span style="color:#f92672">+</span> point<span style="color:#f92672">.</span>G <span style="color:#f92672">&lt;=</span> next_point<span style="color:#f92672">.</span>H <span style="color:#f92672">+</span> next_point<span style="color:#f92672">.</span>G:
+            next_point <span style="color:#f92672">=</span> point
+
+    <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;step {}: {}&#39;</span><span style="color:#f92672">.</span>format(step, next_point))
+    step <span style="color:#f92672">+=</span> <span style="color:#ae81ff">1</span>
+    <span style="color:#66d9ef">if</span> step <span style="color:#f92672">&gt;=</span> <span style="color:#ae81ff">3</span>:
+        <span style="color:#66d9ef">pass</span>
+
+    <span style="color:#66d9ef">if</span> next_point <span style="color:#f92672">and</span> next_point<span style="color:#f92672">.</span>key <span style="color:#f92672">!=</span> end:
+        go(area, next_point<span style="color:#f92672">.</span>key, end, width, height)
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">get_result</span>(area, start, end):
+    <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;{}{}{} &lt;- &#39;</span><span style="color:#f92672">.</span>format(RED, area[end]<span style="color:#f92672">.</span>key, NC), end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>)
+    parent <span style="color:#f92672">=</span> area[end]<span style="color:#f92672">.</span>parent
+    <span style="color:#66d9ef">if</span>(parent<span style="color:#f92672">.</span>key <span style="color:#f92672">!=</span> start):
+        get_result(area, start, parent<span style="color:#f92672">.</span>key)
+    <span style="color:#66d9ef">else</span>:
+        <span style="color:#66d9ef">print</span>(<span style="color:#e6db74">&#39;{}{}{}&#39;</span><span style="color:#f92672">.</span>format(RED, area[start]<span style="color:#f92672">.</span>key, NC), end<span style="color:#f92672">=</span><span style="color:#e6db74">&#39;&#39;</span>)
+
+<span style="color:#66d9ef">def</span> <span style="color:#a6e22e">main</span>():
+    width <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
+    height <span style="color:#f92672">=</span> <span style="color:#ae81ff">10</span>
+    start <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;1-3&#39;</span>
+    end <span style="color:#f92672">=</span> <span style="color:#e6db74">&#39;8-4&#39;</span>
+    wall <span style="color:#f92672">=</span> [<span style="color:#e6db74">&#39;2-2&#39;</span>, <span style="color:#e6db74">&#39;3-2&#39;</span>, <span style="color:#e6db74">&#39;3-3&#39;</span>, <span style="color:#e6db74">&#39;3-4&#39;</span>, <span style="color:#e6db74">&#39;3-5&#39;</span>, <span style="color:#e6db74">&#39;3-6&#39;</span>, <span style="color:#e6db74">&#39;5-4&#39;</span>, <span style="color:#e6db74">&#39;2-6&#39;</span>, <span style="color:#e6db74">&#39;1-6&#39;</span>]
+
+    area <span style="color:#f92672">=</span> get_area(width, height)
+    area <span style="color:#f92672">=</span> set_preset(area, start, end, wall)
     go(area, start, end, width,  height)
     show_result(area)
     get_result(area, start, end)
 
-if __name__ == '__main__':
-    main()
-</code></pre>
-
-<p>这个算法通过调整 G 和 H 的计算逻辑，可以平衡寻路速度和路径是否最短。另外，对于 open 列表的维护，也可以使用一些适合自己的数据结构来得到比较快速的查找。上面第二个帖子里面比较详细的列了一些改进算法的思路。</p>
+<span style="color:#66d9ef">if</span> __name__ <span style="color:#f92672">==</span> <span style="color:#e6db74">&#39;__main__&#39;</span>:
+    main()</code></pre></div>
+<p>
+这个算法通过调整 G 和 H 的计算逻辑，可以平衡寻路速度和路径是否最短。另外，对于 open 列表的维护，也可以使用一些适合自己的数据结构来得到比较快速的查找。上面第二个帖子里面比较详细的列了一些改进算法的思路。
+</p>
 
 </main>
 
@@ -293,9 +304,6 @@ if __name__ == '__main__':
 
 
     <footer style="clear:both">
-      
-<script async src="//yihui.name/js/center-img.js"></script>
-
       
       <hr/>
       Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>

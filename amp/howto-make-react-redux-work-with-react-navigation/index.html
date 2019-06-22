@@ -82,262 +82,263 @@
 
 
 <main>
-<p>这周花了一些时间研究 <code>react-redux</code> 和怎么让它和 <code>react-navigation</code> 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 <a href="https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3" title="gist">gist</a>。</p>
+<p>
+这周花了一些时间研究 <code class="verbatim">react-redux</code> 和怎么让它和 <code class="verbatim">react-navigation</code> 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 <a href="https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3">gist</a>。
+</p>
+<div class="highlight"><pre style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#75715e">/**
+</span><span style="color:#75715e"> * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理
+</span><span style="color:#75715e"> * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合
+</span><span style="color:#75715e"> * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做
+</span><span style="color:#75715e"> * 参考：
+</span><span style="color:#75715e"> *  https://github.com/jackielii/simplest-redux-example
+</span><span style="color:#75715e"> *  http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html
+</span><span style="color:#75715e"> */</span>
 
-<pre><code class="language-javascript">/**
- * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理
- * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合
- * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做
- * 参考：
- *  https://github.com/jackielii/simplest-redux-example
- *  http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html
- */
+<span style="color:#66d9ef">import</span> <span style="color:#a6e22e">React</span>, { <span style="color:#a6e22e">Component</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#39;react&#39;</span>;
+<span style="color:#66d9ef">import</span> {
+    <span style="color:#a6e22e">StyleSheet</span>,
+    <span style="color:#a6e22e">Text</span>,
+    <span style="color:#a6e22e">View</span>,
+    <span style="color:#a6e22e">Button</span>
+} <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#39;react-native&#39;</span>;
 
-import React, { Component } from 'react';
-import {
-    StyleSheet,
-    Text,
-    View,
-    Button
-} from 'react-native';
+<span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">Provider</span>, <span style="color:#a6e22e">connect</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#39;react-redux&#39;</span>;
+<span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">createStore</span>, <span style="color:#a6e22e">combineReducers</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#39;redux&#39;</span>;
+<span style="color:#66d9ef">import</span> { <span style="color:#a6e22e">StackNavigator</span>, <span style="color:#a6e22e">addNavigationHelpers</span> } <span style="color:#a6e22e">from</span> <span style="color:#e6db74">&#39;react-navigation&#39;</span>;
 
-import { Provider, connect } from 'react-redux';
-import { createStore, combineReducers } from 'redux';
-import { StackNavigator, addNavigationHelpers } from 'react-navigation';
-
-// Home 页面，UI 组件
-class MyHome extends Component {
-    constructor(props) {
-        super(props);
-        console.log('init home, props', props);
+<span style="color:#75715e">// Home 页面，UI 组件
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyHome</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Component</span> {
+    <span style="color:#a6e22e">constructor</span>(<span style="color:#a6e22e">props</span>) {
+        <span style="color:#66d9ef">super</span>(<span style="color:#a6e22e">props</span>);
+        <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#39;init home, props&#39;</span>, <span style="color:#a6e22e">props</span>);
     }
 
-    _nextPage() {
-        // navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样
-        let {navigation} = this.props;
-        navigation.navigate(&quot;App&quot;);
+    <span style="color:#a6e22e">_nextPage</span>() {
+        <span style="color:#75715e">// navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">let</span> {<span style="color:#a6e22e">navigation</span>} <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">props</span>;
+        <span style="color:#a6e22e">navigation</span>.<span style="color:#a6e22e">navigate</span>(<span style="color:#e6db74">&#34;App&#34;</span>);
     }
 
-    render() {
-        // 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4)
-        // 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5)
-        let {onIncButtonClicked} = this.props.screenProps.MyAppActions;
+    <span style="color:#a6e22e">render</span>() {
+        <span style="color:#75715e">// 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4)
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5)
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">let</span> {<span style="color:#a6e22e">onIncButtonClicked</span>} <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">props</span>.<span style="color:#a6e22e">screenProps</span>.<span style="color:#a6e22e">MyAppActions</span>;
 
-        // 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面
-        return (
-            &lt;View style={styles.container}&gt;
-                &lt;Button title=&quot;Inc counter&quot; onPress={onIncButtonClicked}&gt;&lt;/Button&gt;
-                &lt;Button title=&quot;Next page&quot; onPress={()=&gt;this._nextPage()}&gt;&lt;/Button&gt;
-            &lt;/View&gt;
+        <span style="color:#75715e">// 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> (
+            <span style="color:#f92672">&lt;</span><span style="color:#a6e22e">View</span> <span style="color:#a6e22e">style</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">styles</span>.<span style="color:#a6e22e">container</span>}<span style="color:#f92672">&gt;</span>
+                <span style="color:#f92672">&lt;</span><span style="color:#a6e22e">Button</span> <span style="color:#a6e22e">title</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Inc counter&#34;</span> <span style="color:#a6e22e">onPress</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">onIncButtonClicked</span>}<span style="color:#f92672">&gt;&lt;</span><span style="color:#960050;background-color:#1e0010">/Button&gt;</span>
+                <span style="color:#f92672">&lt;</span><span style="color:#a6e22e">Button</span> <span style="color:#a6e22e">title</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Next page&#34;</span> <span style="color:#a6e22e">onPress</span><span style="color:#f92672">=</span>{()=&gt;<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">_nextPage</span>()}<span style="color:#f92672">&gt;&lt;</span><span style="color:#960050;background-color:#1e0010">/Button&gt;</span>
+            <span style="color:#f92672">&lt;</span><span style="color:#960050;background-color:#1e0010">/View&gt;</span>
         )
     }
 }
 
-// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新
-class ShowText extends Component {
-    render() {
-        let {counter} = this.props;
+<span style="color:#75715e">// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">ShowText</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Component</span> {
+    <span style="color:#a6e22e">render</span>() {
+        <span style="color:#66d9ef">let</span> {<span style="color:#a6e22e">counter</span>} <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">props</span>;
 
-        return (
-            &lt;Text&gt;{counter}&lt;/Text&gt;
+        <span style="color:#66d9ef">return</span> (
+            <span style="color:#f92672">&lt;</span><span style="color:#a6e22e">Text</span><span style="color:#f92672">&gt;</span>{<span style="color:#a6e22e">counter</span>}<span style="color:#f92672">&lt;</span><span style="color:#960050;background-color:#1e0010">/Text&gt;</span>
         )
     }
 }
 
-// App 页面，UI 组件
-class MyApp extends Component {
-    constructor(props) {
-        super(props);
-        console.log('init App, props', props);
+<span style="color:#75715e">// App 页面，UI 组件
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyApp</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Component</span> {
+    <span style="color:#a6e22e">constructor</span>(<span style="color:#a6e22e">props</span>) {
+        <span style="color:#66d9ef">super</span>(<span style="color:#a6e22e">props</span>);
+        <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#39;init App, props&#39;</span>, <span style="color:#a6e22e">props</span>);
     }
 
-    componentWillReceiveProps(newProps) {
-        console.log('myapp recive props', newProps);
+    <span style="color:#a6e22e">componentWillReceiveProps</span>(<span style="color:#a6e22e">newProps</span>) {
+        <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#39;myapp recive props&#39;</span>, <span style="color:#a6e22e">newProps</span>);
     }
 
-    render() {
-        // 组件的 state/props 获取，有自己的命名空间 (1)
-        let {counter} = this.props.screenProps.MyApp;
-        // 组件的 action props (5)
-        let {onIncButtonClicked, onDecButtonClicked} = this.props.screenProps.MyAppActions;
+    <span style="color:#a6e22e">render</span>() {
+        <span style="color:#75715e">// 组件的 state/props 获取，有自己的命名空间 (1)
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">let</span> {<span style="color:#a6e22e">counter</span>} <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">props</span>.<span style="color:#a6e22e">screenProps</span>.<span style="color:#a6e22e">MyApp</span>;
+        <span style="color:#75715e">// 组件的 action props (5)
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">let</span> {<span style="color:#a6e22e">onIncButtonClicked</span>, <span style="color:#a6e22e">onDecButtonClicked</span>} <span style="color:#f92672">=</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">props</span>.<span style="color:#a6e22e">screenProps</span>.<span style="color:#a6e22e">MyAppActions</span>;
 
-        // 界面有一个计数器的结果，两个按钮
-        return (
-            &lt;View style={styles.container}&gt;
-                &lt;ShowText counter={counter} /&gt;
-                &lt;Button title=&quot;Inc counter&quot; onPress={onIncButtonClicked}&gt;&lt;/Button&gt;
-                &lt;Button title=&quot;Dec counter&quot; onPress={onDecButtonClicked}&gt;&lt;/Button&gt;
-            &lt;/View&gt;
+        <span style="color:#75715e">// 界面有一个计数器的结果，两个按钮
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> (
+            <span style="color:#f92672">&lt;</span><span style="color:#a6e22e">View</span> <span style="color:#a6e22e">style</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">styles</span>.<span style="color:#a6e22e">container</span>}<span style="color:#f92672">&gt;</span>
+                <span style="color:#f92672">&lt;</span><span style="color:#a6e22e">ShowText</span> <span style="color:#a6e22e">counter</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">counter</span>} <span style="color:#f92672">/&gt;</span>
+                <span style="color:#f92672">&lt;</span><span style="color:#a6e22e">Button</span> <span style="color:#a6e22e">title</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Inc counter&#34;</span> <span style="color:#a6e22e">onPress</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">onIncButtonClicked</span>}<span style="color:#f92672">&gt;&lt;</span><span style="color:#960050;background-color:#1e0010">/Button&gt;</span>
+                <span style="color:#f92672">&lt;</span><span style="color:#a6e22e">Button</span> <span style="color:#a6e22e">title</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;Dec counter&#34;</span> <span style="color:#a6e22e">onPress</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">onDecButtonClicked</span>}<span style="color:#f92672">&gt;&lt;</span><span style="color:#960050;background-color:#1e0010">/Button&gt;</span>
+            <span style="color:#f92672">&lt;</span><span style="color:#960050;background-color:#1e0010">/View&gt;</span>
         )
     }
 }
 
-// 初始化 StackNavigator，定义页面路由
-let AppNavigator = StackNavigator({
-    Home: {
-        screen: MyHome
+<span style="color:#75715e">// 初始化 StackNavigator，定义页面路由
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">AppNavigator</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">StackNavigator</span>({
+    <span style="color:#a6e22e">Home</span><span style="color:#f92672">:</span> {
+        <span style="color:#a6e22e">screen</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">MyHome</span>
     },
-    App: {
-        screen: MyApp
+    <span style="color:#a6e22e">App</span><span style="color:#f92672">:</span> {
+        <span style="color:#a6e22e">screen</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">MyApp</span>
     }
 });
 
-// 包装一下 StackNavigator，因为有些参数需要定制一下
-class MyStackNavigator extends Component {
-    constructor(props) {
-        super(props);
-        console.log(&quot;inside MyStackNavigator&quot;, props);
+<span style="color:#75715e">// 包装一下 StackNavigator，因为有些参数需要定制一下
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">class</span> <span style="color:#a6e22e">MyStackNavigator</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Component</span> {
+    <span style="color:#a6e22e">constructor</span>(<span style="color:#a6e22e">props</span>) {
+        <span style="color:#66d9ef">super</span>(<span style="color:#a6e22e">props</span>);
+        <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#34;inside MyStackNavigator&#34;</span>, <span style="color:#a6e22e">props</span>);
     }
 
-    render() {
-        // screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4)
-        // navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取
-        return (
-            &lt;AppNavigator
-                screenProps={this.props}
-                navigation={addNavigationHelpers({
-                    dispatch: this.props.dispatch, // 通过 action props 定义 (2)
-                    state: this.props.nav, // 通过 state props 定义 (3)
-                })} /&gt;
+    <span style="color:#a6e22e">render</span>() {
+        <span style="color:#75715e">// screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4)
+</span><span style="color:#75715e"></span>        <span style="color:#75715e">// navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取
+</span><span style="color:#75715e"></span>        <span style="color:#66d9ef">return</span> (
+            <span style="color:#f92672">&lt;</span><span style="color:#a6e22e">AppNavigator</span>
+                <span style="color:#a6e22e">screenProps</span><span style="color:#f92672">=</span>{<span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">props</span>}
+                <span style="color:#a6e22e">navigation</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">addNavigationHelpers</span>({
+                    <span style="color:#a6e22e">dispatch</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">props</span>.<span style="color:#a6e22e">dispatch</span>, <span style="color:#75715e">// 通过 action props 定义 (2)
+</span><span style="color:#75715e"></span>                    <span style="color:#a6e22e">state</span><span style="color:#f92672">:</span> <span style="color:#66d9ef">this</span>.<span style="color:#a6e22e">props</span>.<span style="color:#a6e22e">nav</span>, <span style="color:#75715e">// 通过 state props 定义 (3)
+</span><span style="color:#75715e"></span>                })} <span style="color:#f92672">/&gt;</span>
         )
     }
 }
 
-// 定义 state 和 props 的关系，所有 redux 应用都需要 (6)
-let mapStateToProps = (state, ownProps) =&gt; {
-    console.log(&quot;inside mapstate to props&quot;, state, ownProps);
-    return {
-        // 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1)
-        &quot;MyApp&quot;: state.MyApp,
-        &quot;MyHome&quot;: state.MyHome,
-        // 定义 StackNavigator 的 state (3)
-        &quot;nav&quot;: state.nav
+<span style="color:#75715e">// 定义 state 和 props 的关系，所有 redux 应用都需要 (6)
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">mapStateToProps</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">state</span>, <span style="color:#a6e22e">ownProps</span>) =&gt; {
+    <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#34;inside mapstate to props&#34;</span>, <span style="color:#a6e22e">state</span>, <span style="color:#a6e22e">ownProps</span>);
+    <span style="color:#66d9ef">return</span> {
+        <span style="color:#75715e">// 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1)
+</span><span style="color:#75715e"></span>        <span style="color:#e6db74">&#34;MyApp&#34;</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">MyApp</span>,
+        <span style="color:#e6db74">&#34;MyHome&#34;</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">MyHome</span>,
+        <span style="color:#75715e">// 定义 StackNavigator 的 state (3)
+</span><span style="color:#75715e"></span>        <span style="color:#e6db74">&#34;nav&#34;</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">state</span>.<span style="color:#a6e22e">nav</span>
     }
 };
 
-// 定义 action 和 props 的关系，所有 redux 应用都需要
-let mapDispatchToProps = (dispatch, ownProps) =&gt; {
-    console.log(&quot;inside map dispath to props&quot;);
-    return {
-        // 这两个也是不同的命名空间，和上面使用的时候路径对应 (5)
-        'MyAppActions': {
-            onIncButtonClicked: () =&gt; {
-                let action = {
-                    type: &quot;INC_COUNTER&quot;,
-                    payload: 1
+<span style="color:#75715e">// 定义 action 和 props 的关系，所有 redux 应用都需要
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">mapDispatchToProps</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">dispatch</span>, <span style="color:#a6e22e">ownProps</span>) =&gt; {
+    <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#34;inside map dispath to props&#34;</span>);
+    <span style="color:#66d9ef">return</span> {
+        <span style="color:#75715e">// 这两个也是不同的命名空间，和上面使用的时候路径对应 (5)
+</span><span style="color:#75715e"></span>        <span style="color:#e6db74">&#39;MyAppActions&#39;</span><span style="color:#f92672">:</span> {
+            <span style="color:#a6e22e">onIncButtonClicked</span><span style="color:#f92672">:</span> () =&gt; {
+                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">action</span> <span style="color:#f92672">=</span> {
+                    <span style="color:#a6e22e">type</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;INC_COUNTER&#34;</span>,
+                    <span style="color:#a6e22e">payload</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>
                 };
 
-                dispatch(action);
+                <span style="color:#a6e22e">dispatch</span>(<span style="color:#a6e22e">action</span>);
             },
-            onDecButtonClicked: () =&gt; {
-                let action = {
-                    type: &quot;DEC_COUNTER&quot;,
-                    payload: -1
+            <span style="color:#a6e22e">onDecButtonClicked</span><span style="color:#f92672">:</span> () =&gt; {
+                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">action</span> <span style="color:#f92672">=</span> {
+                    <span style="color:#a6e22e">type</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;DEC_COUNTER&#34;</span>,
+                    <span style="color:#a6e22e">payload</span><span style="color:#f92672">:</span> <span style="color:#f92672">-</span><span style="color:#ae81ff">1</span>
                 };
 
-                dispatch(action);
+                <span style="color:#a6e22e">dispatch</span>(<span style="color:#a6e22e">action</span>);
             }
         },
-        'MyHomeActions': {
-            onNextButtonClicked: () =&gt; {
-                let action = {
-                    type: &quot;NEXT_PAGE&quot;
+        <span style="color:#e6db74">&#39;MyHomeActions&#39;</span><span style="color:#f92672">:</span> {
+            <span style="color:#a6e22e">onNextButtonClicked</span><span style="color:#f92672">:</span> () =&gt; {
+                <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">action</span> <span style="color:#f92672">=</span> {
+                    <span style="color:#a6e22e">type</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#34;NEXT_PAGE&#34;</span>
                 };
 
-                dispatch(action);
+                <span style="color:#a6e22e">dispatch</span>(<span style="color:#a6e22e">action</span>);
             }
         },
-        // 定义 StackNavigator 的 action props (2)
-        'dispatch': dispatch
+        <span style="color:#75715e">// 定义 StackNavigator 的 action props (2)
+</span><span style="color:#75715e"></span>        <span style="color:#e6db74">&#39;dispatch&#39;</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">dispatch</span>
     }
 }
 
-// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有
-// 所以从这里也能看出来，reducer 并不一定按照页面去分
-let homeReducer = (state, action) =&gt; {
-    console.log(&quot;inside home reducer&quot;, state, action);
-    return state || {};
+<span style="color:#75715e">// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有
+</span><span style="color:#75715e">// 所以从这里也能看出来，reducer 并不一定按照页面去分
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">homeReducer</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">state</span>, <span style="color:#a6e22e">action</span>) =&gt; {
+    <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#34;inside home reducer&#34;</span>, <span style="color:#a6e22e">state</span>, <span style="color:#a6e22e">action</span>);
+    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">state</span> <span style="color:#f92672">||</span> {};
 };
 
-// 定义一个初始化的 state
-let myAppInitState = { 'counter': 10};
-// 定义 app 页面的 reducer
-let myAppReducer = (state = myAppInitState, action) =&gt; {
-    // 收到的 state 实际上只是自己命名空间下的 (6)
-    console.log(&quot;inside myAppReducer&quot;, state, action);
-    let myState = state;
-    // 需要处理的 action 的逻辑
-    // 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action
-    switch (action.type) {
-        case &quot;DEC_COUNTER&quot;:
-        case &quot;INC_COUNTER&quot;:
-            // 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新
-            return Object.assign({}, myState, {
-                'counter': myState.counter + action.payload
+<span style="color:#75715e">// 定义一个初始化的 state
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">myAppInitState</span> <span style="color:#f92672">=</span> { <span style="color:#e6db74">&#39;counter&#39;</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">10</span>};
+<span style="color:#75715e">// 定义 app 页面的 reducer
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">myAppReducer</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">state</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">myAppInitState</span>, <span style="color:#a6e22e">action</span>) =&gt; {
+    <span style="color:#75715e">// 收到的 state 实际上只是自己命名空间下的 (6)
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#34;inside myAppReducer&#34;</span>, <span style="color:#a6e22e">state</span>, <span style="color:#a6e22e">action</span>);
+    <span style="color:#66d9ef">let</span> <span style="color:#a6e22e">myState</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">state</span>;
+    <span style="color:#75715e">// 需要处理的 action 的逻辑
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">switch</span> (<span style="color:#a6e22e">action</span>.<span style="color:#a6e22e">type</span>) {
+        <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;DEC_COUNTER&#34;</span><span style="color:#f92672">:</span>
+        <span style="color:#66d9ef">case</span> <span style="color:#e6db74">&#34;INC_COUNTER&#34;</span><span style="color:#f92672">:</span>
+            <span style="color:#75715e">// 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新
+</span><span style="color:#75715e"></span>            <span style="color:#66d9ef">return</span> Object.<span style="color:#a6e22e">assign</span>({}, <span style="color:#a6e22e">myState</span>, {
+                <span style="color:#e6db74">&#39;counter&#39;</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">myState</span>.<span style="color:#a6e22e">counter</span> <span style="color:#f92672">+</span> <span style="color:#a6e22e">action</span>.<span style="color:#a6e22e">payload</span>
             });
-        default:
-            return state;
+        <span style="color:#66d9ef">default</span><span style="color:#f92672">:</span>
+            <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">state</span>;
     }
 };
 
-// 定义一个 StackNavigator 用到的初始化状态，这个很重要
-const initialState = AppNavigator.router.getStateForAction(AppNavigator.router.getActionForPathAndParams('Home'));
-// 定义 StackNavigator 的 reducer，代码直接复制来的
-const navReducer = (state = initialState, action) =&gt; {
-    console.log(&quot;inside nav reducer&quot;, state, action);
-    const nextState = AppNavigator.router.getStateForAction(action, state);
+<span style="color:#75715e">// 定义一个 StackNavigator 用到的初始化状态，这个很重要
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">initialState</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">AppNavigator</span>.<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">getStateForAction</span>(<span style="color:#a6e22e">AppNavigator</span>.<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">getActionForPathAndParams</span>(<span style="color:#e6db74">&#39;Home&#39;</span>));
+<span style="color:#75715e">// 定义 StackNavigator 的 reducer，代码直接复制来的
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">const</span> <span style="color:#a6e22e">navReducer</span> <span style="color:#f92672">=</span> (<span style="color:#a6e22e">state</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">initialState</span>, <span style="color:#a6e22e">action</span>) =&gt; {
+    <span style="color:#a6e22e">console</span>.<span style="color:#a6e22e">log</span>(<span style="color:#e6db74">&#34;inside nav reducer&#34;</span>, <span style="color:#a6e22e">state</span>, <span style="color:#a6e22e">action</span>);
+    <span style="color:#66d9ef">const</span> <span style="color:#a6e22e">nextState</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">AppNavigator</span>.<span style="color:#a6e22e">router</span>.<span style="color:#a6e22e">getStateForAction</span>(<span style="color:#a6e22e">action</span>, <span style="color:#a6e22e">state</span>);
 
-    // Simply return the original `state` if `nextState` is null or undefined.
-    return nextState || state;
+    <span style="color:#75715e">// Simply return the original `state` if `nextState` is null or undefined.
+</span><span style="color:#75715e"></span>    <span style="color:#66d9ef">return</span> <span style="color:#a6e22e">nextState</span> <span style="color:#f92672">||</span> <span style="color:#a6e22e">state</span>;
 };
 
-// 创建 store
-let store = createStore(combineReducers({
-    // 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6)
-    // 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6)
-    MyApp: myAppReducer,
-    MyHome: homeReducer,
-    nav: navReducer
+<span style="color:#75715e">// 创建 store
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">store</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">createStore</span>(<span style="color:#a6e22e">combineReducers</span>({
+    <span style="color:#75715e">// 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6)
+</span><span style="color:#75715e"></span>    <span style="color:#75715e">// 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6)
+</span><span style="color:#75715e"></span>    <span style="color:#a6e22e">MyApp</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">myAppReducer</span>,
+    <span style="color:#a6e22e">MyHome</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">homeReducer</span>,
+    <span style="color:#a6e22e">nav</span><span style="color:#f92672">:</span> <span style="color:#a6e22e">navReducer</span>
 }));
 
-// 让 redux 加持一下，保佑
-let App = connect(mapStateToProps, mapDispatchToProps)(MyStackNavigator);
+<span style="color:#75715e">// 让 redux 加持一下，保佑
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">let</span> <span style="color:#a6e22e">App</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">connect</span>(<span style="color:#a6e22e">mapStateToProps</span>, <span style="color:#a6e22e">mapDispatchToProps</span>)(<span style="color:#a6e22e">MyStackNavigator</span>);
 
-// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索
-export default class Root extends Component&lt;{}&gt; {
-    constructor(props) {
-        super(props);
+<span style="color:#75715e">// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索
+</span><span style="color:#75715e"></span><span style="color:#66d9ef">export</span> <span style="color:#66d9ef">default</span> <span style="color:#66d9ef">class</span> <span style="color:#a6e22e">Root</span> <span style="color:#66d9ef">extends</span> <span style="color:#a6e22e">Component</span><span style="color:#f92672">&lt;</span>{}<span style="color:#f92672">&gt;</span> {
+    <span style="color:#a6e22e">constructor</span>(<span style="color:#a6e22e">props</span>) {
+        <span style="color:#66d9ef">super</span>(<span style="color:#a6e22e">props</span>);
     }
 
-    render() {
-        return (
-            &lt;Provider store={store}&gt;
-                &lt;App prop1=&quot;prop1&quot; /&gt;
-            &lt;/Provider&gt;
+    <span style="color:#a6e22e">render</span>() {
+        <span style="color:#66d9ef">return</span> (
+            <span style="color:#f92672">&lt;</span><span style="color:#a6e22e">Provider</span> <span style="color:#a6e22e">store</span><span style="color:#f92672">=</span>{<span style="color:#a6e22e">store</span>}<span style="color:#f92672">&gt;</span>
+                <span style="color:#f92672">&lt;</span><span style="color:#a6e22e">App</span> <span style="color:#a6e22e">prop1</span><span style="color:#f92672">=</span><span style="color:#e6db74">&#34;prop1&#34;</span> <span style="color:#f92672">/&gt;</span>
+            <span style="color:#f92672">&lt;</span><span style="color:#960050;background-color:#1e0010">/Provider&gt;</span>
         );
     }
 }
 
 
-const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-        justifyContent: 'center',
-        alignItems: 'center',
-        backgroundColor: '#F5FCFF',
+<span style="color:#66d9ef">const</span> <span style="color:#a6e22e">styles</span> <span style="color:#f92672">=</span> <span style="color:#a6e22e">StyleSheet</span>.<span style="color:#a6e22e">create</span>({
+    <span style="color:#a6e22e">container</span><span style="color:#f92672">:</span> {
+        <span style="color:#a6e22e">flex</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">1</span>,
+        <span style="color:#a6e22e">justifyContent</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;center&#39;</span>,
+        <span style="color:#a6e22e">alignItems</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;center&#39;</span>,
+        <span style="color:#a6e22e">backgroundColor</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;#F5FCFF&#39;</span>,
     },
-    welcome: {
-        fontSize: 20,
-        textAlign: 'center',
-        margin: 10,
+    <span style="color:#a6e22e">welcome</span><span style="color:#f92672">:</span> {
+        <span style="color:#a6e22e">fontSize</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">20</span>,
+        <span style="color:#a6e22e">textAlign</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;center&#39;</span>,
+        <span style="color:#a6e22e">margin</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">10</span>,
     },
-    instructions: {
-        textAlign: 'center',
-        color: '#333333',
-        marginBottom: 5,
+    <span style="color:#a6e22e">instructions</span><span style="color:#f92672">:</span> {
+        <span style="color:#a6e22e">textAlign</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;center&#39;</span>,
+        <span style="color:#a6e22e">color</span><span style="color:#f92672">:</span> <span style="color:#e6db74">&#39;#333333&#39;</span>,
+        <span style="color:#a6e22e">marginBottom</span><span style="color:#f92672">:</span> <span style="color:#ae81ff">5</span>,
     },
 });
-</code></pre>
+</code></pre></div>
 
 </main>
 
@@ -371,9 +372,6 @@ const styles = StyleSheet.create({
 
 
     <footer style="clear:both">
-      
-<script async src="//yihui.name/js/center-img.js"></script>
-
       
       <hr/>
       Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
