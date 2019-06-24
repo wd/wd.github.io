@@ -6,7 +6,7 @@ toc: true
 comment: false
 ---
 
-做过很多岗位，整理总结一下自己的工作经历。 English version [[/resume-en/][here]].
+做过很多岗位，整理总结一下自己的工作经历。 English version [here](/resume-en/).
 
 ## 工作经历
 

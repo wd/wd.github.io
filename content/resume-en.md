@@ -6,6 +6,8 @@ toc: true
 comment: false
 ---
 
+中文版[这里](/resume/)。
+
 ## Experience
 
 ### BrilliantAero.com (2017 - present), Co-founder, tech and product leader
