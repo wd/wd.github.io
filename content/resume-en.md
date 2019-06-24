@@ -14,7 +14,7 @@ comment: false
 
 Build and lead both engineer team and product team, wrote application for iOS, Android, setup website. Mainly using JavaScript, Python, and React Native related technology.
 
-### Qunar.com (2010 - 2016) senior technical director
+### Qunar.com (2010 - 2016), senior technical director
 
 - Build up a team to analyse data for Vacation BU, including log collection, ETL, and displays.
 - Build up a team to operation and maintain more than hundred PostgreSQL servers, and setup the monitor system.
@@ -27,7 +27,7 @@ Analyze data for linezing.com which collecting data/logs from taobao.com using H
 
 ### Yahoo China (2007 - 2009), SRE
 
-Wrote a nagios plugin to do centralize monitoring. Basic SRE duty.
+Wrote a Nagios plugin to do centralize monitoring. Basic SRE duty.
 
 ## Education
 
