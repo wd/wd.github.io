@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
+    <title>Logging in Celery and Django | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/resume/">~/resume</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Logging in Celery and Django</span></h1>
+
+<h2 class="date">2019/07/05</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/celery">celery</a> <a href="/tags/django">django</a> <a href="/tags/logging">logging</a> 
+  
+  
+</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<main>
+<p>
+Celery can work with django, it&#39;s very simple.
+</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">__future__</span> <span style="color:#080;font-weight:bold">import</span> absolute_import
+<span style="color:#080;font-weight:bold">import</span> <span style="color:#0e84b5;font-weight:bold">os</span>
+<span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">celery</span> <span style="color:#080;font-weight:bold">import</span> Celery
+<span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">django.conf</span> <span style="color:#080;font-weight:bold">import</span> settings
+
+<span style="color:#888"># set the default Django settings module for the &#39;celery&#39; program.</span>
+os<span style="color:#333">.</span>environ<span style="color:#333">.</span>setdefault(<span style="background-color:#fff0f0">&#39;DJANGO_SETTINGS_MODULE&#39;</span>, <span style="background-color:#fff0f0">&#39;your_app.settings&#39;</span>)
+app <span style="color:#333">=</span> Celery(<span style="background-color:#fff0f0">&#39;you_app&#39;</span>)
+
+<span style="color:#888"># Using a string here means the worker will not have to</span>
+<span style="color:#888"># pickle the object when using Windows.</span>
+app<span style="color:#333">.</span>config_from_object(<span style="background-color:#fff0f0">&#39;django.conf:settings&#39;</span>)
+app<span style="color:#333">.</span>autodiscover_tasks(<span style="color:#080;font-weight:bold">lambda</span>: settings<span style="color:#333">.</span>INSTALLED_APPS)</code></pre></td></tr></table>
+</div>
+</div>
+<p>
+Then write some task files named <code>tasks.py</code> under your apps directory, celery will auto discovery and run these tasks.
+</p>
+<p>
+We can set celery options in django settings file, all the support settings can be found <a href="http://docs.celeryproject.org/en/latest/userguide/configuration.html#new-lowercase-settings">here</a> . The only one option we should take a look is <code>CELERYD_HIJACK_ROOT_LOGGER</code> , it&#39;s default value is <code>True</code> , which means celery will hijack the loging facility, and your settings in django settings file will not work. You can check the code in <code>celery/app/log.py</code> .
+</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">            <span style="color:#080;font-weight:bold">if</span> self<span style="color:#333">.</span>app<span style="color:#333">.</span>conf<span style="color:#333">.</span>worker_hijack_root_logger:
+                root<span style="color:#333">.</span>handlers <span style="color:#333">=</span> []
+                get_logger(<span style="background-color:#fff0f0">&#39;celery&#39;</span>)<span style="color:#333">.</span>handlers <span style="color:#333">=</span> []
+                get_logger(<span style="background-color:#fff0f0">&#39;celery.task&#39;</span>)<span style="color:#333">.</span>handlers <span style="color:#333">=</span> []
+                get_logger(<span style="background-color:#fff0f0">&#39;celery.redirected&#39;</span>)<span style="color:#333">.</span>handlers <span style="color:#333">=</span> []</code></pre></td></tr></table>
+</div>
+</div>
+<p>
+Celery will generate 3 logger <code>celery</code>, <code>celery.task</code> and <code>celery.redirected</code>, we can directly set one handler for <code>celery</code> to handle all these logs.
+</p>
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">        <span style="background-color:#fff0f0">&#39;celery&#39;</span>: {
+            <span style="background-color:#fff0f0">&#39;handlers&#39;</span>: [<span style="background-color:#fff0f0">&#39;celery&#39;</span>, <span style="background-color:#fff0f0">&#39;mail_admin&#39;</span>],
+            <span style="background-color:#fff0f0">&#39;level&#39;</span>: <span style="background-color:#fff0f0">&#39;INFO&#39;</span>,
+            <span style="background-color:#fff0f0">&#39;propagate&#39;</span>: False
+        },</code></pre></td></tr></table>
+</div>
+</div>
+
+</main>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+
+
+    <footer style="clear:both">
+      
+      <hr/>
+      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+
