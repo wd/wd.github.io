@@ -1,0 +1,46 @@
+---
+title: "Logging in Celery and Django"
+date: 2019-07-05T14:26:24+08:00
+tags: ["celery", "django", 'logging']
+toc: true
+---
+
+Celery can work with django, it's very simple.
+
+#+BEGIN_SRC python
+from __future__ import absolute_import
+import os
+from celery import Celery
+from django.conf import settings
+
+# set the default Django settings module for the 'celery' program.
+os.environ.setdefault('DJANGO_SETTINGS_MODULE', 'your_app.settings')
+app = Celery('you_app')
+
+# Using a string here means the worker will not have to
+# pickle the object when using Windows.
+app.config_from_object('django.conf:settings')
+app.autodiscover_tasks(lambda: settings.INSTALLED_APPS)
+#+END_SRC
+
+Then write some task files named ~tasks.py~ under your apps directory, celery will auto discovery and run these tasks.
+
+We can set celery options in django settings file, all the support settings can be found [[http://docs.celeryproject.org/en/latest/userguide/configuration.html#new-lowercase-settings][here]] . The only one option we should take a look is ~CELERYD_HIJACK_ROOT_LOGGER~ , it's default value is ~True~ , which means celery will hijack the loging facility, and your settings in django settings file will not work. You can check the code in ~celery/app/log.py~ .
+
+#+BEGIN_SRC python
+            if self.app.conf.worker_hijack_root_logger:
+                root.handlers = []
+                get_logger('celery').handlers = []
+                get_logger('celery.task').handlers = []
+                get_logger('celery.redirected').handlers = []
+#+END_SRC
+
+Celery will generate 3 logger ~celery~, ~celery.task~ and ~celery.redirected~, we can directly set one handler for ~celery~ to handle all these logs.
+
+#+BEGIN_SRC python
+        'celery': {
+            'handlers': ['celery', 'mail_admin'],
+            'level': 'INFO',
+            'propagate': False
+        },
+#+END_SRC
