@@ -199,7 +199,11 @@ It’s easier to be gentle with yourself, and do not be hard on yourself, when y
       <pubDate>Fri, 05 Jul 2019 14:26:24 +0800</pubDate>
       
       <guid>https://wdicc.com/logging-in-celery-and-django/</guid>
-      <description>&lt;p&gt;
+      <description>
+&lt;h2 id=&#34;headline-1&#34;&gt;
+Get celery work with django
+&lt;/h2&gt;
+&lt;p&gt;
 Celery can work with django, it&amp;#39;s very simple.
 &lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
@@ -238,7 +242,13 @@ app&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;autodiscover_tasks(&lt;s
 Then write some task files named &lt;code&gt;tasks.py&lt;/code&gt; under your apps directory, celery will auto discovery and run these tasks.
 &lt;/p&gt;
 &lt;p&gt;
-We can set celery options in django settings file, all the support settings can be found &lt;a href=&#34;http://docs.celeryproject.org/en/latest/userguide/configuration.html#new-lowercase-settings&#34;&gt;here&lt;/a&gt; . The only one option we should take a look is &lt;code&gt;CELERYD_HIJACK_ROOT_LOGGER&lt;/code&gt; , it&amp;#39;s default value is &lt;code&gt;True&lt;/code&gt; , which means celery will hijack the loging facility, and your settings in django settings file will not work. You can check the code in &lt;code&gt;celery/app/log.py&lt;/code&gt; .
+We can set celery options in django settings file, all the support settings can be founded &lt;a href=&#34;http://docs.celeryproject.org/en/latest/userguide/configuration.html#new-lowercase-settings&#34;&gt;here&lt;/a&gt; . 
+&lt;/p&gt;
+&lt;h2 id=&#34;headline-2&#34;&gt;
+Logging for celery
+&lt;/h2&gt;
+&lt;p&gt;
+By default, celery will setup it&amp;#39;s own logger, even if you have setuped in django. You can use the &lt;code&gt;setup_logging&lt;/code&gt; signal to disable this behaviour.
 &lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
 &lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
@@ -249,15 +259,18 @@ We can set celery options in django settings file, all the support settings can 
 &lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
 &lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
-&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;            &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;if&lt;/span&gt; self&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;app&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;conf&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;worker_hijack_root_logger:
-                root&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;handlers &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; []
-                get_logger(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery&amp;#39;&lt;/span&gt;)&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;handlers &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; []
-                get_logger(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery.task&amp;#39;&lt;/span&gt;)&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;handlers &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; []
-                get_logger(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery.redirected&amp;#39;&lt;/span&gt;)&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;handlers &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; []&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#0e84b5;font-weight:bold&#34;&gt;celery&lt;/span&gt; &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;import&lt;/span&gt; signals
+
+&lt;span style=&#34;color:#555;font-weight:bold&#34;&gt;@signals.setup_logging.connect&lt;/span&gt;
+&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;on_celery_setup_logging&lt;/span&gt;(&lt;span style=&#34;color:#333&#34;&gt;**&lt;/span&gt;kwargs):
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;pass&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
 &lt;p&gt;
-Celery will generate 3 logger &lt;code&gt;celery&lt;/code&gt;, &lt;code&gt;celery.task&lt;/code&gt; and &lt;code&gt;celery.redirected&lt;/code&gt;, we can directly set one handler for &lt;code&gt;celery&lt;/code&gt; to handle all these logs.
+And there is also an option named &lt;code&gt;CELERYD_HIJACK_ROOT_LOGGER&lt;/code&gt; , I don&amp;#39;t know exactly what is this option for, but maybe you can set this to true if the logging still not working properly.
+&lt;/p&gt;
+&lt;p&gt;
+Logs generated by celery are all use &lt;code&gt;celery&lt;/code&gt; logger as parent. So we can set a handler named &lt;code&gt;celery&lt;/code&gt; to handle these logs.
 &lt;/p&gt;
 &lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
 &lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
@@ -269,12 +282,116 @@ Celery will generate 3 logger &lt;code&gt;celery&lt;/code&gt;, &lt;code&gt;celer
 &lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
 &lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
 &lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;        &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery&amp;#39;&lt;/span&gt;: {
-            &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;handlers&amp;#39;&lt;/span&gt;: [&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery&amp;#39;&lt;/span&gt;, &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;mail_admin&amp;#39;&lt;/span&gt;],
+            &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;handlers&amp;#39;&lt;/span&gt;: [&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery&amp;#39;&lt;/span&gt;],
             &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;level&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;INFO&amp;#39;&lt;/span&gt;,
             &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;propagate&amp;#39;&lt;/span&gt;: False
         },&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
 &lt;/div&gt;
 &lt;/div&gt;
+&lt;p&gt;
+If you need to setup your logger use a handler can auto rotate log files, you must pay attention here.
+&lt;/p&gt;
+&lt;p&gt;
+The log settings configured in django will be used by &lt;code&gt;django&lt;/code&gt; , &lt;code&gt;celery-worker&lt;/code&gt; , &lt;code&gt;celery-beat&lt;/code&gt; , these offen diffent processes, if you run them on the same node, all of these process will try to write logs to the smae files. And also will try to rotate the log files. So if the file is rotated by an other process, the logs generated by this process will no longer write into the file, logs will be lost.
+&lt;/p&gt;
+&lt;p&gt;
+To avoid this problem, we should setup loger for django and celery seperatlly. We can use &lt;code&gt;signals.setup_logging&lt;/code&gt; to setup logger for celery.
+&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#555;font-weight:bold&#34;&gt;@signals.setup_logging.connect&lt;/span&gt;
+&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;on_celery_setup_logging&lt;/span&gt;(&lt;span style=&#34;color:#333&#34;&gt;**&lt;/span&gt;kwargs):
+    config &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; {
+        &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;version&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;1&lt;/span&gt;,
+        &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;disable_existing_loggers&amp;#39;&lt;/span&gt;: False,
+        &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;formatters&amp;#39;&lt;/span&gt;: {
+            &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;default&amp;#39;&lt;/span&gt;: {
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;format&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;&lt;/span&gt;&lt;span style=&#34;background-color:#eee&#34;&gt;%(asctime)s&lt;/span&gt;&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&lt;/span&gt;&lt;span style=&#34;background-color:#eee&#34;&gt;%(process)d&lt;/span&gt;&lt;span style=&#34;background-color:#fff0f0&#34;&gt;/&lt;/span&gt;&lt;span style=&#34;background-color:#eee&#34;&gt;%(thread)d&lt;/span&gt;&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&lt;/span&gt;&lt;span style=&#34;background-color:#eee&#34;&gt;%(name)s&lt;/span&gt;&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&lt;/span&gt;&lt;span style=&#34;background-color:#eee&#34;&gt;%(funcName)s&lt;/span&gt;&lt;span style=&#34;background-color:#fff0f0&#34;&gt; &lt;/span&gt;&lt;span style=&#34;background-color:#eee&#34;&gt;%(lineno)s&lt;/span&gt;&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&lt;/span&gt;&lt;span style=&#34;background-color:#eee&#34;&gt;%(levelname)s&lt;/span&gt;&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&lt;/span&gt;&lt;span style=&#34;background-color:#eee&#34;&gt;%(message)s&lt;/span&gt;&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;&lt;/span&gt;,
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;datefmt&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#34;%Y/%m/&lt;/span&gt;&lt;span style=&#34;background-color:#eee&#34;&gt;%d&lt;/span&gt;&lt;span style=&#34;background-color:#fff0f0&#34;&gt; %H:%M:%S&amp;#34;&lt;/span&gt;
+            }
+        },
+        &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;handlers&amp;#39;&lt;/span&gt;: {
+            &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery&amp;#39;&lt;/span&gt;: {
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;level&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;INFO&amp;#39;&lt;/span&gt;,
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;class&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;logging.handlers.TimedRotatingFileHandler&amp;#39;&lt;/span&gt;,
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;filename&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;/logs/celery.log&amp;#39;&lt;/span&gt;,
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;when&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;midnight&amp;#39;&lt;/span&gt;,
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;interval&amp;#39;&lt;/span&gt;: &lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;1&lt;/span&gt;,
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;formatter&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;default&amp;#39;&lt;/span&gt;
+            },
+            &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;default&amp;#39;&lt;/span&gt;: {
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;level&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;DEBUG&amp;#39;&lt;/span&gt;,
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;class&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;logging.StreamHandler&amp;#39;&lt;/span&gt;,
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;formatter&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;default&amp;#39;&lt;/span&gt;
+            }
+        },
+        &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;loggers&amp;#39;&lt;/span&gt;: {
+            &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery&amp;#39;&lt;/span&gt;: {
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;handlers&amp;#39;&lt;/span&gt;: [&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery&amp;#39;&lt;/span&gt;],
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;level&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;INFO&amp;#39;&lt;/span&gt;,
+                &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;propagate&amp;#39;&lt;/span&gt;: False
+            },
+        },
+        &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;root&amp;#39;&lt;/span&gt;: {
+            &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;handlers&amp;#39;&lt;/span&gt;: [&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;default&amp;#39;&lt;/span&gt;],
+            &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;level&amp;#39;&lt;/span&gt;: &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;DEBUG&amp;#39;&lt;/span&gt;
+        },
+    }
+
+    logging&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;config&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;dictConfig(config)
+    logging&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;getLogger(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery.app.trace&amp;#39;&lt;/span&gt;)&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;disabled &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; False
+    logging&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;getLogger(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery.app.worker&amp;#39;&lt;/span&gt;)&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;disabled &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; False
+    logging&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;getLogger(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;celery.beat&amp;#39;&lt;/span&gt;)&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;disabled &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; False&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+Maybe you noticed the setttings for &lt;code&gt;celery.app.trace&lt;/code&gt; , I don&amp;#39;t know why the logger is disable by default, so we have to enable it manually.
+&lt;/p&gt;
 </description>
     </item>
     
@@ -2751,6 +2868,135 @@ broker 这个词在计算机领域也有，做代理，分发这类事情的，�
 &lt;p&gt;
 一定避免遇事只是自己发愁，还有各种刻意遮掩的情况，多发挥集体智慧。
 &lt;/p&gt;
+&lt;h2 id=&#34;headline-4&#34;&gt;
+你打算在这个事情上面投入多久
+&lt;/h2&gt;
+&lt;p&gt;
+如果不是热爱一个事情，恐怕大部分时候很难坚持下去，遇到挫折的时候容易放弃。创业这个事情基本上不会是一个短期的事情，尤其对于创始人来说，一般需要至少 5 年才能看到成效，想上市的话，可能需要 10 年之后才能看到。
+&lt;/p&gt;
+&lt;h2 id=&#34;headline-5&#34;&gt;
+搞明白增长点
+&lt;/h2&gt;
+&lt;p&gt;
+创业之前肯定大家都会有一个有一个预期的增长点，比如用户量，收入，或者市场占有率什么的，这些是用来评估你公司市值的主要手段。那么如果找到一个可以实现的增长点，这个是需要在整个创业过程中思考的。要注意是可以实现的，还没有实现的，可以一时拿出去忽悠人，但是如果过 1-2 年依然不见成效，那会被人厌烦。当然如果在这个时间段里面发现了其他的可实现的增长点也可以可以的，主要是搞的时间越长，留给你可以继续吹牛的时间的就越短，利用好这些时间。
+&lt;/p&gt;
+&lt;h2 id=&#34;headline-6&#34;&gt;
+那些必须搞明白而一开始搞不明白的问题
+&lt;/h2&gt;
+&lt;p&gt;
+一些必须解决的问题，不会自己消失，在整个过程中需要持续的投入去想办法解决，如果确实觉得那也可以提前思考退路，早一点想多一些时间，总比到最后钱花没了也还是死在了这些一开始就存在的问题上面。
+&lt;/p&gt;
+&lt;h2 id=&#34;headline-7&#34;&gt;
+Notes
+&lt;/h2&gt;
+&lt;h3 id=&#34;headline-8&#34;&gt;
+&lt;a href=&#34;http://simplebits.com/2019/06/25/dribbble.html&#34;&gt;WHAT I LEARNED CO-FOUNDING DRIBBBLE&lt;/a&gt; 
+&lt;/h3&gt;
+&lt;p&gt;
+作者指出来几个地方，我大致总结一下。
+&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;
+&lt;p&gt;
+找一个合的来的比较熟悉的合伙人。和结婚一样，以后会有大量的时间和这个合伙人一起度过。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+一开始他们邀请一些内测用户的时候，会给一个免费的 T-shirt，这样会让对方有一点愧疚感，而更加好的测试。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+前 100 个用户很重要。你得仔细听他们的反馈啥的。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+你还得自己决定走那条路，用户会有很多的建议意见，但是最后怎么做还是取决于你自己。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+不要害怕丢弃一些东西，比如可能是花了很多会议，时间，精力做出来的东西。可以多内部测试，不着急发布。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+慢慢小迭代，别一次步子太大，容易伤害已经熟悉你的产品的用户，导致他们离开。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+干自己也不清楚的事情也没啥，可以笑对自己犯的错误是一种好品质。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+脸皮要厚。多看看正向的事情，有那么多喜欢用你的东西的用户呢。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+别跟风流行的东西，这些东西会不停的变的，主要是看是否有益于解决你面对的问题。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+另一个别着急跟风的原因是，很多东西会消失，没啥。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+流行的东西会消失，现在做的东西也会没有，但是人不会啦，人是最重要的。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+多搞搞业余的项目让你跟上时代。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+没有 13 。。。因为不吉利。。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+别迷信。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+找个好律师和会计。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+要认识到自己有时候很固执。比如纠结输出的 HTML 代码格式拒绝使用 SASS，但是实际上大家都已经不直接看源码啦，而是通过 dev tools 看。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+通过写作，分享你学会的东西。也不用担心自己是不是专家啦，总是会有人受益的。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+别融资。融资容易导致公司目标变化，可能失去初心。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+注意身体健康。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;
+适当的时候能放得下。
+&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ol&gt;
 </description>
     </item>
     
