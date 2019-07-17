@@ -6,10 +6,19 @@
     <description>Recent content in Posts on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 08 Jul 2019 14:33:00 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 17 Jul 2019 11:36:20 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/post/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Use Anki to Leaning English</title>
+      <link>https://wdicc.com/use-anki-to-leaning-english/</link>
+      <pubDate>Wed, 17 Jul 2019 11:36:20 +0800</pubDate>
+      
+      <guid>https://wdicc.com/use-anki-to-leaning-english/</guid>
+      <description></description>
+    </item>
     
     <item>
       <title>English Learning Notes From Culips</title>
@@ -270,15 +279,6 @@
       
       <guid>https://wdicc.com/boot-linux-through-pxe/</guid>
       <description>测试 porteus 的时候，每次都是做好 iso 之后写到一个 u 盘，然后用 u 盘启动看看效果，发现有点蛋疼，这浪费时间不说，我的 u 盘寿命估计也得少一截。就研究了一下 pxe 启动，这样每次改完之后通过 pxe 直接读取我改了之后的 iso 引导 linux 就好了。  我这看 pxe 启动主要需要做两个事情，一个是 dhcp 的时候广播 tftp 的信息，一个是通过 nfs 共享给那个系统需要读取的文件。nfs 共享也可以改用 http 等其他服务。 dnsmasq   广播 tftp 的信息，可以通过 dnsmasq 来做。dhcp 部分就不贴了，只贴 tftp 相关的。 1 2 3  tftp-root=/srv/pxe/boot dhcp-boot=/pxelinux.0 enable-tftp    网卡启动的时候会获取 /pxelinux.0 然后获取 /pxelinux.cfg/default （这个实际上有一个判断顺序，方便给不同的机器不同的配置）。然后根据这里面的配置，获取内核信息。然后加载内核。 nfs   加载内核之后还需要系统文件，这个时候貌似有几个选择，比如通过 http 发送。我这用的是 nfs。想要通过 nfs 发送，内核得能支持 nfs mount。各 linux 的做法貌似不太一样。  配置 nfs 的目录，在 /etc/exports 里面加入类似这样的信息。 1 2  /srv/pxe/porteus *(ro,fsid=0,no_subtree_check) /srv/pxe/storage *(rw,fsid=1,no_root_squash,no_subtree_check)    然后 exportfs -rv ，这样 nfs 设置好了。  我这 export 的目录和上面 tftp-root 的目录不一样，有的发行版可能会按照 tftp-root 的设置来读取，这个还得区分发行版看。 其他   上面的例子只是写了一个大高，是实际使用相差很大。比如如何得到 pxelinux.</description>
-    </item>
-    
-    <item>
-      <title>Install Porteus to HD</title>
-      <link>https://wdicc.com/install-porteus-to-hd/</link>
-      <pubDate>Mon, 02 Jul 2018 16:23:54 +0800</pubDate>
-      
-      <guid>https://wdicc.com/install-porteus-to-hd/</guid>
-      <description>Porteus 是一个很好玩的系统，他基于 aufs 弄出来的一个「只读」系统，说是只读，实际上他也可以把修改保存到一个硬盘目录，然后启动的时候自动加载这些修改，这样就修改都还在。但是如果把这个目录删除，那么修改就都没有了，这就是所谓的只读。  我开始的需求是需要搞一个 linux，然后给用户使用，并且希望用户只能用浏览器，不能使用其他东西，因为我们提供的服务就是一个网页。不能使用其他东西是为了避免使用的时候导致系统奔溃什么的，还得派人花时间去维护。然后看到有人推荐 Kiosk，看了一下感觉这个东西太完美了，就是我想要的东西。然后就开始研究这个系统。研究的过程中发现了他是基于 Porteus 的，就开始看 porteus。  Kiosk 确实也不错，但是我使用的时候想要定制支持中文输入法，打印机等设备，然后发现他阉割加定制的太多了，导致我看了几天居然还没有找到他的入口在哪里，尝试想搞定输入法，费了很多劲。kiosk 使用的是 openbox + tint2 ，后面看了 porteus 之后，他支持 mate，kde 这些桌面，并且也直接就支持 scim，所以打算还是基于这个定制比较简单一点。  具体定制就不多说了，主要是定制好 iso 之后，怎么安装到硬盘。  其实也相当简单，只需要把 u 盘上面的内容复制到一个硬盘分区，然后安装一个 bootloader 就可以了。  安装 bootloader 的时候由于对这个东西不是特别熟悉，以及这么多年不搞 linux 之后又出来很多新的概念，所以走了一些弯路，一番学习之后，发现简单的很。可以参考这里。  然后就是需要弄一个 grub.cfg 就可以了。 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 32 33 34 35 36 37 38 39 40 41 42 43 44 45 46 47 48 49  set timeout=1 set superusers=root password_pbkdf2 root grub.</description>
     </item>
     
   </channel>
