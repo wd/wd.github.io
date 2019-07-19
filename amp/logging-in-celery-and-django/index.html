@@ -218,11 +218,6 @@ To avoid this problem, we should setup loger for django and celery seperatlly. W
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#555;font-weight:bold">@signals.setup_logging.connect</span>
@@ -239,10 +234,8 @@ To avoid this problem, we should setup loger for django and celery seperatlly. W
         <span style="background-color:#fff0f0">&#39;handlers&#39;</span>: {
             <span style="background-color:#fff0f0">&#39;celery&#39;</span>: {
                 <span style="background-color:#fff0f0">&#39;level&#39;</span>: <span style="background-color:#fff0f0">&#39;INFO&#39;</span>,
-                <span style="background-color:#fff0f0">&#39;class&#39;</span>: <span style="background-color:#fff0f0">&#39;logging.handlers.TimedRotatingFileHandler&#39;</span>,
+                <span style="background-color:#fff0f0">&#39;class&#39;</span>: <span style="background-color:#fff0f0">&#39;logging.FileHandler&#39;</span>,
                 <span style="background-color:#fff0f0">&#39;filename&#39;</span>: <span style="background-color:#fff0f0">&#39;/logs/celery.log&#39;</span>,
-                <span style="background-color:#fff0f0">&#39;when&#39;</span>: <span style="background-color:#fff0f0">&#39;midnight&#39;</span>,
-                <span style="background-color:#fff0f0">&#39;interval&#39;</span>: <span style="color:#00d;font-weight:bold">1</span>,
                 <span style="background-color:#fff0f0">&#39;formatter&#39;</span>: <span style="background-color:#fff0f0">&#39;default&#39;</span>
             },
             <span style="background-color:#fff0f0">&#39;default&#39;</span>: {
@@ -264,17 +257,20 @@ To avoid this problem, we should setup loger for django and celery seperatlly. W
         },
     }
 
-    logging<span style="color:#333">.</span>config<span style="color:#333">.</span>dictConfig(config)
-    logging<span style="color:#333">.</span>getLogger(<span style="background-color:#fff0f0">&#39;celery.app.trace&#39;</span>)<span style="color:#333">.</span>disabled <span style="color:#333">=</span> False
-    logging<span style="color:#333">.</span>getLogger(<span style="background-color:#fff0f0">&#39;celery.app.worker&#39;</span>)<span style="color:#333">.</span>disabled <span style="color:#333">=</span> False
-    logging<span style="color:#333">.</span>getLogger(<span style="background-color:#fff0f0">&#39;celery.beat&#39;</span>)<span style="color:#333">.</span>disabled <span style="color:#333">=</span> False</code></pre></td></tr></table>
+    logging<span style="color:#333">.</span>config<span style="color:#333">.</span>dictConfig(config)</code></pre></td></tr></table>
 </div>
 </div>
 <p>
-Maybe you noticed the setttings for <code>celery.app.trace</code> , I don&#39;t know why the logger is disable by default(haven&#39;t found the root case yet), so we have to enable it manually.
+Please notice that you didn&#39;t have <code>disable_existing_loggers</code> set to <code>True</code> in django settings files, or it will be disalbe celery logging before your setup.
 </p>
 <p>
-And you also need to pay more attention here, if your <code>celery-worker</code> and <code>celery-beat</code> are still runing on the same server speartly, they still will try to access the same logging files. Celery provide an option the run worker and beat at same time, just user command like <code>celery -A gafly worker -l info --beat -s /logs/celerybeat-schedule</code> , the worker and the beat will run in one process.
+And you also need to pay more attention here, if your <code>celery-worker</code> and <code>celery-beat</code> are still runing on the same server speartly, they still will try to access the same logging files. Celery provide an option the run worker and beat at same time, just user command like <code>celery -A gafly worker -l info --beat -s /logs/celerybeat-schedule</code> , the worker and the beat will run at the sametime.
+</p>
+<p>
+Celery worker is working in a multi-process mode, so If you can&#39;t use <code>logging.handlers.TimedRotatingFileHandler</code> to auto rotate the logs, otherwise the log file will be rotated by multi-process, there will be a problem.
+</p>
+<p>
+You can use <code>logrotate</code> provided by the system to rotate the logs, or maybe your celery is running by <code>supervisord</code>, you can just set celery output logs to stdout, and let supervisord to write, manage and rotate your logs.
 </p>
 
 </main>
