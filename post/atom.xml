@@ -6,10 +6,19 @@
     <description>Recent content in Posts on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 17 Jul 2019 11:36:20 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 17 Jul 2019 15:27:48 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/post/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Best Pratice for Celery</title>
+      <link>https://wdicc.com/best-pratice-for-celery/</link>
+      <pubDate>Wed, 17 Jul 2019 15:27:48 +0800</pubDate>
+      
+      <guid>https://wdicc.com/best-pratice-for-celery/</guid>
+      <description>Celery beat and worker   Celery works with two separate parts, the beat and the worker. The beat is the control center which determine when and where to send the tasks, there should be only one beat in each celery network. The worker is the one who runs the tasks and send the results back to the beat, there could be lots of works in each network. Result backend   Result backend is the place where task results stored.</description>
+    </item>
     
     <item>
       <title>Use Anki to Leaning English</title>
@@ -270,15 +279,6 @@
       
       <guid>https://wdicc.com/android-custom/</guid>
       <description>我们给用户的设备，有 android pad 和 pc。pc 系统我之前基于 porteus 定制了一个，勉强可以用。apad 的系统一直没搞好。  Android 系统必须要解锁之后才可以定制系统，否则没有 root 权限，system 分区的数据不能修改。  Android 系统有四个重要的分区。    boot ，和 linux 的类似，里面有 kernel 和 ramdisk，ramdisk 应该是在启动之后会成为 / 分区    recovery ，恢复分区，如果想对系统分区做什么操作，可以使用这里的程序引导系统，这个时候允许你进行一些操作。默认的 recovery 只能 wipe 和刷系统。自定义的 recovery 比较厉害，可以支持备份啊啥的一堆事情，比如 twrp 还有图形界面。    system ，系统分区，系统程序都在这里，包括系统自带的一些 app 等等。正常情况对这个分区是不能修改的，系统分区都是只读的。    data ，数据分区，这个分区是给用户使用的。用户安装的一下 app 以及一些数据都在这里。wipe 的时候就是会清空这个分区的数据。大家熟悉的 sdcard 那个分区，其实数据也是在这里的。data 分区里面 app 只能读取自己的数据，无法访问别的 app 的。但是放在 /sdcard 分区的数据，大家都可以访问（当然，还得有 sdcard 的权限）    前三个分区都可以定制。首先需要解锁 bootloader，这个各个定制版都可能有区别，比如华为我记得还需要去他们网站获取一个解锁码，获取的时候会提示你解锁之后就不给保了。原生的 android 都是去开发者选项里面打开，然后在启动的时候进 bootloader，执行 fastboot oem unlock-go 。解锁的时候会自动 reset 系统，注意先备份数据。  解锁之后，就可以刷自己的 recovery 了。刷之前建议先备份一下 boot recovery system 分区，以方便自己回头可以刷回来。我用的是 twrp，其它的好像现在也么看到。这个得找和你的手机匹配的才行。具体方法是执行 fastboot boot twrpxxxxx.</description>
-    </item>
-    
-    <item>
-      <title>Boot Linux Through PXE</title>
-      <link>https://wdicc.com/boot-linux-through-pxe/</link>
-      <pubDate>Mon, 02 Jul 2018 16:47:31 +0800</pubDate>
-      
-      <guid>https://wdicc.com/boot-linux-through-pxe/</guid>
-      <description>测试 porteus 的时候，每次都是做好 iso 之后写到一个 u 盘，然后用 u 盘启动看看效果，发现有点蛋疼，这浪费时间不说，我的 u 盘寿命估计也得少一截。就研究了一下 pxe 启动，这样每次改完之后通过 pxe 直接读取我改了之后的 iso 引导 linux 就好了。  我这看 pxe 启动主要需要做两个事情，一个是 dhcp 的时候广播 tftp 的信息，一个是通过 nfs 共享给那个系统需要读取的文件。nfs 共享也可以改用 http 等其他服务。 dnsmasq   广播 tftp 的信息，可以通过 dnsmasq 来做。dhcp 部分就不贴了，只贴 tftp 相关的。 1 2 3  tftp-root=/srv/pxe/boot dhcp-boot=/pxelinux.0 enable-tftp    网卡启动的时候会获取 /pxelinux.0 然后获取 /pxelinux.cfg/default （这个实际上有一个判断顺序，方便给不同的机器不同的配置）。然后根据这里面的配置，获取内核信息。然后加载内核。 nfs   加载内核之后还需要系统文件，这个时候貌似有几个选择，比如通过 http 发送。我这用的是 nfs。想要通过 nfs 发送，内核得能支持 nfs mount。各 linux 的做法貌似不太一样。  配置 nfs 的目录，在 /etc/exports 里面加入类似这样的信息。 1 2  /srv/pxe/porteus *(ro,fsid=0,no_subtree_check) /srv/pxe/storage *(rw,fsid=1,no_root_squash,no_subtree_check)    然后 exportfs -rv ，这样 nfs 设置好了。  我这 export 的目录和上面 tftp-root 的目录不一样，有的发行版可能会按照 tftp-root 的设置来读取，这个还得区分发行版看。 其他   上面的例子只是写了一个大高，是实际使用相差很大。比如如何得到 pxelinux.</description>
     </item>
     
   </channel>

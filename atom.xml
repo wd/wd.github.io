@@ -5,10 +5,126 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Wed, 17 Jul 2019 11:36:20 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 17 Jul 2019 15:27:48 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Best Pratice for Celery</title>
+      <link>https://wdicc.com/best-pratice-for-celery/</link>
+      <pubDate>Wed, 17 Jul 2019 15:27:48 +0800</pubDate>
+      
+      <guid>https://wdicc.com/best-pratice-for-celery/</guid>
+      <description>
+&lt;h2 id=&#34;headline-1&#34;&gt;
+Celery beat and worker
+&lt;/h2&gt;
+&lt;p&gt;
+Celery works with two separate parts, the beat and the worker. The beat is the control center which determine when and where to send the tasks, there should be only one beat in each celery network. The worker is the one who runs the tasks and send the results back to the beat, there could be lots of works in each network.
+&lt;/p&gt;
+&lt;h2 id=&#34;headline-2&#34;&gt;
+Result backend
+&lt;/h2&gt;
+&lt;p&gt;
+Result backend is the place where task results stored. By default, celery support many storage types, like PostgreSQL, Redis, etc. If you store the results in the database, you may need to clean the old data from the database periodically. I use Redis as the result backend, it will expire the old data automatically.
+&lt;/p&gt;
+&lt;h2 id=&#34;headline-3&#34;&gt;
+Broker
+&lt;/h2&gt;
+&lt;p&gt;
+Broker is used to communicate among the workers and the beta. Celery support Redis, RabbitMQ, etc. as it’s broker. I use Redis too, in a different database with the result backend.
+&lt;/p&gt;
+&lt;h2 id=&#34;headline-4&#34;&gt;
+Scheduler
+&lt;/h2&gt;
+&lt;p&gt;
+Scheduler is the place where you can add periodically tasks. The tasks store in a local database file by default. You can specify the file by &lt;code&gt;-s /home/celery/var/run/celerybeat-schedule&lt;/code&gt;, you also can use a custom scheduler like a &lt;a href=&#34;http://docs.celeryproject.org/en/master/userguide/periodic-tasks.html#id8&#34;&gt;database table&lt;/a&gt;, but I think the default method is more simple and convenient to use. The only problem is when you want to migrate the scheduler to an other server, you may also need to transfer the database file.
+&lt;/p&gt;
+&lt;h2 id=&#34;headline-5&#34;&gt;
+Running commands
+&lt;/h2&gt;
+&lt;p&gt;
+You can run the worker like:
+&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;$ celery -A proj beat&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+And also can run the beat with the worker:
+&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;$ celery -A proj worker —beat&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+Or run the beat separately like:
+&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;$ celery -A proj beat -s /home/celery/var/run/celerybeat-schedule&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;h2 id=&#34;headline-6&#34;&gt;
+Monitoring
+&lt;/h2&gt;
+&lt;p&gt;
+Celery has provided some command to show it&amp;#39;s running status.
+&lt;/p&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-shell&#34; data-lang=&#34;shell&#34;&gt;// List active nodes in this cluster
+$ celery -A proj status
+
+// inspect tasks
+$ celery -A proj inspect active
+$ celery -A proj inspect scheduled
+$ celery -A proj inspect reserved
+$ celery -A proj inspect revoked
+
+// Curses Celery task monitor
+$ celery -A proj events&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+Also, there is a web-monitor named &lt;a href=&#34;https://flower.readthedocs.io/en/latest/&#34;&gt;Flower&lt;/a&gt;. It can connect to the broker and inspect the task status in real-time.
+&lt;/p&gt;
+&lt;h2 id=&#34;headline-7&#34;&gt;
+It&amp;#39;s better to not mix configurations with django
+&lt;/h2&gt;
+&lt;p&gt;
+You maybe want to check my &lt;a href=&#34;https://wdicc.com/logging-in-celery-and-django/&#34;&gt;last post for celery and django&lt;/a&gt;, the log files will be both processed by django and celery but by different process, this may cause some problems. 
+&lt;/p&gt;
+&lt;p&gt;
+You can put some common settings like redis, database in a sperate file, and import in django and celery, but don&amp;#39;t import django settings into celery.
+&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Use Anki to Leaning English</title>
