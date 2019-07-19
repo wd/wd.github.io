@@ -77,10 +77,8 @@ def on_celery_setup_logging(**kwargs):
         'handlers': {
             'celery': {
                 'level': 'INFO',
-                'class': 'logging.handlers.TimedRotatingFileHandler',
+                'class': 'logging.FileHandler',
                 'filename': '/logs/celery.log',
-                'when': 'midnight',
-                'interval': 1,
                 'formatter': 'default'
             },
             'default': {
@@ -103,11 +101,12 @@ def on_celery_setup_logging(**kwargs):
     }
 
     logging.config.dictConfig(config)
-    logging.getLogger('celery.app.trace').disabled = False
-    logging.getLogger('celery.app.worker').disabled = False
-    logging.getLogger('celery.beat').disabled = False
 #+END_SRC
 
-Maybe you noticed the setttings for ~celery.app.trace~ , I don't know why the logger is disable by default(haven't found the root case yet), so we have to enable it manually.
+Please notice that you didn't have ~disable_existing_loggers~ set to ~True~ in django settings files, or it will be disalbe celery logging before your setup.
 
-And you also need to pay more attention here, if your ~celery-worker~ and ~celery-beat~ are still runing on the same server speartly, they still will try to access the same logging files. Celery provide an option the run worker and beat at same time, just user command like ~celery -A gafly worker -l info --beat -s /logs/celerybeat-schedule~ , the worker and the beat will run in one process.
+And you also need to pay more attention here, if your ~celery-worker~ and ~celery-beat~ are still runing on the same server speartly, they still will try to access the same logging files. Celery provide an option the run worker and beat at same time, just user command like ~celery -A gafly worker -l info --beat -s /logs/celerybeat-schedule~ , the worker and the beat will run at the sametime.
+
+Celery worker is working in a multi-process mode, so If you can't use ~logging.handlers.TimedRotatingFileHandler~ to auto rotate the logs, otherwise the log file will be rotated by multi-process, there will be a problem.
+
+You can use ~logrotate~ provided by the system to rotate the logs, or maybe your celery is running by ~supervisord~, you can just set celery output logs to stdout, and let supervisord to write, manage and rotate your logs.

@@ -1,0 +1,71 @@
+---
+title: "Best Pratice for Celery"
+date: 2019-07-17T15:27:48+08:00
+tags: ["celery", "django"]
+toc: true
+draft: true
+---
+
+** Celery beat and worker
+
+Celery works with two separate parts, the beat and the worker. The beat is the control center which determine when and where to send the tasks, there should be only one beat in each celery network. The worker is the one who runs the tasks and send the results back to the beat, there could be lots of works in each network.
+
+** Result backend
+
+Result backend is the place where task results stored. By default, celery support many storage types, like PostgreSQL, Redis, etc. If you store the results in the database, you may need to clean the old data from the database periodically. I use Redis as the result backend, it will expire the old data automatically.
+
+** Broker
+
+Broker is used to communicate among the workers and the beta. Celery support Redis, RabbitMQ, etc. as it’s broker. I use Redis too, in a different database with the result backend.
+
+** Scheduler
+
+Scheduler is the place where you can add periodically tasks. The tasks store in a local database file by default. You can specify the file by ~-s /home/celery/var/run/celerybeat-schedule~, you also can use a custom scheduler like a [[http://docs.celeryproject.org/en/master/userguide/periodic-tasks.html#id8][database table]], but I think the default method is more simple and convenient to use. The only problem is when you want to migrate the scheduler to an other server, you may also need to transfer the database file.
+
+** Running commands
+
+You can run the worker like:
+
+#+BEGIN_SRC text
+$ celery -A proj beat
+#+END_SRC
+
+And also can run the beat with the worker:
+
+#+BEGIN_SRC text
+$ celery -A proj worker —beat
+#+END_SRC
+
+Or run the beat separately like:
+
+#+BEGIN_SRC text
+$ celery -A proj beat -s /home/celery/var/run/celerybeat-schedule
+#+END_SRC
+
+** Monitoring
+
+Celery has provided some command to show it's running status.
+
+#+BEGIN_SRC shell
+// List active nodes in this cluster
+$ celery -A proj status
+
+// inspect tasks
+$ celery -A proj inspect active
+$ celery -A proj inspect scheduled
+$ celery -A proj inspect reserved
+$ celery -A proj inspect revoked
+
+// Curses Celery task monitor
+$ celery -A proj events
+
+#+END_SRC
+
+Also, there is a web-monitor named [[https://flower.readthedocs.io/en/latest/][Flower]]. It can connect to the broker and inspect the task status in real-time.
+
+** It's better to not mix configurations with django
+
+You maybe want to check my [[/logging-in-celery-and-django/][last post for celery and django]], the log files will be both processed by django and celery but by different process, this may cause some problems. 
+
+You can put some common settings like redis, database in a sperate file, and import in django and celery, but don't import django settings into celery.
+
