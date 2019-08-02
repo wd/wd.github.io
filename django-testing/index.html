@@ -96,6 +96,7 @@ setUpClass 和 tearDownClass
 <p>
 django 还提供了 <code class="verbatim">setUpClass</code> 和 <code class="verbatim">tearDownClass</code> ，类似上面的 <code class="verbatim">setUp</code> 方法，不过这个是每个 class 只会执行一次。另外按照<a href="https://medium.com/@nhatcuong/django-test-fixture-setup-setupclass-and-setuptestdata-72b6d944cdef">这里</a>的说法， <code class="verbatim">setUpClass</code> 不会使用事务，不过我看源码(django 2.1.4) 好像是会的，我没测试。。
 </p>
+<div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
@@ -140,6 +141,7 @@ django 还提供了 <code class="verbatim">setUpClass</code> 和 <code class="ve
             <span style="color:#080;font-weight:bold">raise</span></code></pre></td></tr></table>
 </div>
 </div>
+</div>
 <p>
 代码可以看到，还有一个 <code class="verbatim">setUpTestData</code> 可以用。如果只是准备数据库数据的话，感觉后面这个更精准一点。
 </p>
@@ -176,6 +178,7 @@ fixtures
 <p>
 如果从比如开发库之类的倒数据，会觉得数据有点乱，从测试库倒数据似乎比较清净，因为每次测试都是一个空的数据库。有一个方法是在测试用例里面创建依赖的数据，但是测试执行完了再执行 <code class="verbatim">manage.py dumpdata</code> 已经什么数据都没有了。这个时候可以在测试用例里面使用 <code class="verbatim">django.core.management.call_command</code> 来执行 dump，例如 
 </p>
+<div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -192,6 +195,7 @@ fixtures
     <span style="background-color:#fff0f0">&#39;app_label&#39;</span>, <span style="background-color:#fff0f0">&#39;ModelName&#39;</span>,
     <span style="background-color:#fff0f0">&#39;app_label&#39;</span>, <span style="background-color:#fff0f0">&#39;ModelName&#39;</span>
 )</code></pre></td></tr></table>
+</div>
 </div>
 </div>
 <p>
@@ -211,6 +215,35 @@ fixtures
 </p>
 <p>
 Django 还是做的挺不错的。测试这么方便，实际很适合使用 TDD 方式开发。
+</p>
+<h2 id="headline-6">
+其他
+</h2>
+<p>
+看到<a href="https://adamj.eu/tech/2019/07/15/djangos-test-case-classes-and-a-three-times-speed-up/">一篇文章</a>，从 <code>TransactionTestCase</code> 替换到 <code>TestCase</code> 速度提升了 3 倍。
+</p>
+<p>
+Django 里面有三个测试类
+</p>
+<ol>
+<li>
+<p>
+<code>SimpleTestCase</code> 是最简单的。提供 <code>unittest.TestCase</code> 基础的功能。默认屏蔽了数据库的访问，因为对数据库里面的修改没有隔离，所以应该在没有数据库操作的时候使用他。
+</p>
+</li>
+<li>
+<p>
+<code>TransactionTestCase</code> 继承自 <code>SimpleTestCase</code> ，允许数据库操作，测试完毕之后会删除数据库里面的所有数据。会比较慢。
+</p>
+</li>
+<li>
+<p>
+<code>TestCase</code> 是我们平时用的。继承自 <code>TransactionTestCase</code> ，使用事务来回滚所有操作，这样比遍历所有表快一点，这样你的操作也不能真实的提交，但是我们跑测试的时候一般也不需要提交。
+</p>
+</li>
+</ol>
+<p>
+<code>TransactionTestCase</code> 允许你的代码自己使用和管理事务， <code>TestCase</code> 自己使用了事务。
 </p>
 
 </main>

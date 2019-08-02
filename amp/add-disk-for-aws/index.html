@@ -83,6 +83,7 @@ AWS 的 ec2 支持不停机扩展磁盘，体验还不错，记录一下操作�
 <p>
 先看看磁盘是不是支持，例如下面的 GPT 的是支持的
 </p>
+<div class="src src-text">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
@@ -131,9 +132,11 @@ Number  Start (sector)    End (sector)  Size       Code  Name
  128            2048            4095   1024.0 KiB  EF02  BIOS Boot Partition</code></pre></td></tr></table>
 </div>
 </div>
+</div>
 <p>
 目前磁盘大小
 </p>
+<div class="src src-text">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -150,12 +153,14 @@ tmpfs           2.0G     0  2.0G   0% /dev/shm
 /dev/xvda1      9.8G  7.3G  2.4G  76% /</code></pre></td></tr></table>
 </div>
 </div>
+</div>
 <p>
 去 aws 后台调整一下磁盘大小，只能增加不能减少。这个也可以通过 aws 的命令行来做。
 </p>
 <p>
 然后等后台显示完成之后，回来看磁盘大小，可以看到 <code class="verbatim">xvda</code> 已经是 15G 了， <code class="verbatim">xvda1</code> 还是 10G。
 </p>
+<div class="src src-text">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -170,9 +175,11 @@ xvda    202:0    0  15G  0 disk
 └─xvda1 202:1    0  10G  0 part /</code></pre></td></tr></table>
 </div>
 </div>
+</div>
 <p>
 扩展分区大小
 </p>
+<div class="src src-text">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -183,9 +190,11 @@ xvda    202:0    0  15G  0 disk
 CHANGED: disk=/dev/xvda partition=1: start=4096 old: size=20967390,end=20971486 new: size=31453150,end=31457246</code></pre></td></tr></table>
 </div>
 </div>
+</div>
 <p>
 扩展文件系统大小
 </p>
+<div class="src src-text">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -202,9 +211,11 @@ old_desc_blocks = 1, new_desc_blocks = 1
 The filesystem on /dev/xvda1 is now 3931643 (4k) blocks long.</code></pre></td></tr></table>
 </div>
 </div>
+</div>
 <p>
 看看大小
 </p>
+<div class="src src-text">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -219,6 +230,7 @@ Filesystem      Size  Used Avail Use% Mounted on
 devtmpfs        2.0G   56K  2.0G   1% /dev
 tmpfs           2.0G     0  2.0G   0% /dev/shm
 /dev/xvda1       15G  7.3G  7.3G  50% /</code></pre></td></tr></table>
+</div>
 </div>
 </div>
 <p>

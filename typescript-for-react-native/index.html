@@ -86,6 +86,7 @@
 <p>
 首先装几个包，这几个包里面， <code class="verbatim">=typescript</code> 提供 typescript 的编译器， <code class="verbatim">react-native-typescript-transformer</code> 提供了从 ts 代码到 js 代码的转换支持， @types 的两个包提供了 react 和 react-native 的 type 文件。
 </p>
+<div class="src src-bash">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -94,9 +95,11 @@
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash">$ yarn add -D typescript react-native-typescript-transformer @types/react @types/react-native</code></pre></td></tr></table>
 </div>
 </div>
+</div>
 <p>
 在项目的根目录还需要准几个文件。 tsconfig.json，你的目录里面可能已经有一个 <code class="verbatim">jsconfig.json</code> 了，那个是给 eslint 用的。tsconfig.json 同时给 typescript 和 tslint 使用。
 </p>
+<div class="src src-javascript">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
@@ -154,12 +157,14 @@
 </code></pre></td></tr></table>
 </div>
 </div>
+</div>
 <p>
 这里面的 include/exclude 按照需要调整，注意里面没有 output，我们并不需要 typescript 输出 js 文件。（当然，也可以用输出 js 文件的方式来做这个事情，但是这样就不太好自动化了，细节不说了）
 </p>
 <p>
 然后还需要一个 rn-cli.config.js，这个是给 <code class="verbatim">react-native-typescript-transformer</code> 用的。
 </p>
+<div class="src src-javascript">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -183,12 +188,14 @@
 </code></pre></td></tr></table>
 </div>
 </div>
+</div>
 <p>
 然后就可以写一些 <code class="verbatim">.ts</code> 文件了。 <code class="verbatim">.ts</code> 文件表示只有 js 代码， <code class="verbatim">.tsx</code> 文件表示里面有 react 代码。写完之后可以执行一下 <code class="verbatim">yarn tsc</code> 看看，是否有错误。没有错误的话，也可以在模拟器里面看看自己的 ts 代码是不是确实可以执行。
 </p>
 <p>
 你的代码可以在模拟器里面执行，主要是下面这段代码的作用。 <code class="verbatim">ts.transpileModule</code> 会把 ts 代码转换成 js 代码，最终执行的是 js 代码。这里有一个需要注意的地方就是这里不管 ts 的语法错误，也就是你比如定义了一个 type 是 string 类型的变量，你给他做了 number 类型的赋值，这个在 js 里面是可以的，ts 是不允许的，但是这里并不会看到错误。执行 <code class="verbatim">yarn tsc</code> 可以看到错误提示。
 </p>
+<div class="src src-javascript">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
@@ -230,6 +237,7 @@
 </code></pre></td></tr></table>
 </div>
 </div>
+</div>
 <p>
 所以保证代码符合 typescript 有下面几个方法：
 </p>
@@ -253,6 +261,7 @@
 <p>
 为了保证这个，我在 git 的 commit-hook 里面增加了一个 hook。放到 <code class="verbatim">.git/hooks/pre-commit</code> 就可以。
 </p>
+<div class="src src-bash">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
@@ -277,9 +286,11 @@
 <span style="color:#080;font-weight:bold">fi</span></code></pre></td></tr></table>
 </div>
 </div>
+</div>
 <p>
 但是 git 的 hooks 文件并不是 repo 的一部份，如何保证大家都是一样的配置呢？有一个 npm 包可以做这个事情。。 <code class="verbatim">yarn add -D pre-commit</code> ，然后在 package.json 里面增加一些配置。
 </p>
+<div class="src src-javascript">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
@@ -305,6 +316,7 @@
         <span style="background-color:#fff0f0">&#34;precommit&#34;</span>
     ],
 </code></pre></td></tr></table>
+</div>
 </div>
 </div>
 <p>
