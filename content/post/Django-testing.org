@@ -81,3 +81,15 @@ call_command(
 还可以使用 =--parallel N= 参数来增加并行数量。如果你用 coverage 那整个命令是类似这样的 =coverage run --parallel-mode --concurrency=multiprocessing manage.py test -k --parallel 3= 。使用并行之后，会发现 coverage 不工作了，这是因为并行的时候，每个线程都会单独写一个 coverage 结果文件，所以执行 =coverage report= 之前，执行一下 =coverage combine= 合并到一个文件就可以了。
 
 Django 还是做的挺不错的。测试这么方便，实际很适合使用 TDD 方式开发。
+
+** 其他
+看到[[https://adamj.eu/tech/2019/07/15/djangos-test-case-classes-and-a-three-times-speed-up/][一篇文章]]，从 ~TransactionTestCase~ 替换到 ~TestCase~ 速度提升了 3 倍。
+
+Django 里面有三个测试类
+1. ~SimpleTestCase~ 是最简单的。提供 ~unittest.TestCase~ 基础的功能。默认屏蔽了数据库的访问，因为对数据库里面的修改没有隔离，所以应该在没有数据库操作的时候使用他。
+2. ~TransactionTestCase~ 继承自 ~SimpleTestCase~ ，允许数据库操作，测试完毕之后会删除数据库里面的所有数据。会比较慢。
+3. ~TestCase~ 是我们平时用的。继承自 ~TransactionTestCase~ ，使用事务来回滚所有操作，这样比遍历所有表快一点，这样你的操作也不能真实的提交，但是我们跑测试的时候一般也不需要提交。
+
+~TransactionTestCase~ 允许你的代码自己使用和管理事务， ~TestCase~ 自己使用了事务。
+
+
