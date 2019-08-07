@@ -6,10 +6,19 @@
     <description>Recent content in python on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Fri, 30 Jun 2017 20:47:56 +0800</lastBuildDate>
+    <lastBuildDate>Wed, 07 Aug 2019 16:53:09 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/tags/python/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>An Interesting Python Function</title>
+      <link>https://wdicc.com/an-interesting-python-function/</link>
+      <pubDate>Wed, 07 Aug 2019 16:53:09 +0800</pubDate>
+      
+      <guid>https://wdicc.com/an-interesting-python-function/</guid>
+      <description>  这里看到的，感觉挺有意思的，记录一下。题目来自这里。  如何让下面这个函数返回 True ？ 1 2 3 4 5  def check(x): if x+1 is 1+x: return False if x+2 is not 2+x: return True    解法1: 自定义类  1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16  def check(x): if x+1 is 1+x: return False if x+2 is not 2+x: return False return True class Test(int): def __add__(self, v): if v == 1: return 0 else: return v print(check(Test())) # output: True     如果一个对象是在 + 的左侧，那会调用 __add__ ，如果在右侧，会调用 __radd__ 。上面的 Test 类继承自 int，重写了其中的 __add__ 方法，但是保留了 __radd__ ，所以上面的例子里面， Test()+1 会返回 0， 1+test() 会返回 1。 Test()+2 会返回 2， 2+Test() 也会返回 2。 解法2:特殊的整数  1 2 3 4 5 6 7 8 9  def check(x): if x+1 is 1+x: return False if x+2 is not 2+x: return False return True print(check(-7)) # output: True     只有 -7 可以。python 里面对于 -5 - 256 这些整数会提前生成，这些都是单例。所以 -7+1 is 1-7 是 False ，以及 -7+2 is not 2-7 是 False ，两个 if 条件都不成立。 </description>
+    </item>
     
     <item>
       <title>Emacs as python IDE</title>
