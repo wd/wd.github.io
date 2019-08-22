@@ -1,0 +1,222 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
+    <title>Emacs as Python IDE Again | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/resume/">~/resume</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Emacs as Python IDE Again</span></h1>
+
+<h2 class="date">2019/08/13</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/"></a> 
+  
+  
+</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<main>
+<p>
+<a href="/emacs-as-python-ide/">上一篇</a>里面说了使用 emacs 编辑 python 文件的方式，已经过去 2 年了，时代变了。更新一下。
+</p>
+<p>
+随着 vscode 横空出世，带来了 LSP，这个东西是所有编辑器都可以受益的，有人开发了 lsp-mode，目前我感觉 lsp 比 jedi 好用多了。
+</p>
+<p>
+elpy 目前还不支持 lsp。所以放弃了 elpy 了。
+</p>
+<p>
+主要配置如下。使用了 <code class="verbatim">lsp-python-ms</code> 和 <code class="verbatim">lsp-mode</code>, <code class="verbatim">pipenv</code> 。我原来用 pyenv + virtualvenv，pipenv 是把两个整合的东西。pipenv 还支持 lock，以后估计会流行吧。
+</p>
+<div class="src src-lisp">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-lisp" data-lang="lisp">(<span style="color:#06b;font-weight:bold">use-package</span> <span style="color:#963">lsp-python-ms</span>
+  <span style="color:#a60;background-color:#fff0f0">:ensure</span> <span style="color:#036;font-weight:bold">t</span>
+  <span style="color:#a60;background-color:#fff0f0">:demand</span> <span style="color:#036;font-weight:bold">nil</span>
+  <span style="color:#a60;background-color:#fff0f0">:config</span>
+
+  <span style="color:#888">;;(setq lsp-python-ms-extra-paths &#34;&#34;)</span>
+  (<span style="color:#080;font-weight:bold">setq</span> <span style="color:#963">lsp-python-ms-executable</span>
+        (<span style="color:#06b;font-weight:bold">string-trim</span> (<span style="color:#963">shell-command-to-string</span>
+                      <span style="background-color:#fff0f0">&#34;find ~/.vscode/extensions/ -name &#39;Microsoft.Python.LanguageServer&#39; | sort | tail -1&#34;</span>)))
+  <span style="color:#888">;; for dev build of language server</span>
+  (<span style="color:#080;font-weight:bold">setq</span> <span style="color:#963">lsp-python-ms-dir</span>
+        (<span style="color:#963">file-name-directory</span> <span style="color:#963">lsp-python-ms-executable</span>)))
+
+
+(<span style="color:#06b;font-weight:bold">use-package</span> <span style="color:#963">lsp-mode</span>
+  <span style="color:#a60;background-color:#fff0f0">:ensure</span> <span style="color:#036;font-weight:bold">t</span>
+  <span style="color:#a60;background-color:#fff0f0">:commands</span> <span style="color:#963">lsp</span>
+  <span style="color:#a60;background-color:#fff0f0">:hook</span>  (<span style="color:#963">python-mode</span> <span style="color:#333">.</span> (<span style="color:#007020">lambda</span> ()
+                          (<span style="color:#963">pipenv-activate</span>)
+                          (<span style="color:#06b;font-weight:bold">require</span> <span style="color:#a60;background-color:#fff0f0">&#39;lsp-python-ms</span>)
+                          (<span style="color:#963">lsp</span>)))
+  <span style="color:#a60;background-color:#fff0f0">:config</span>
+
+  (<span style="color:#080;font-weight:bold">setq</span> <span style="color:#963">lsp-auto-configure</span> <span style="color:#036;font-weight:bold">nil</span>)
+
+  (<span style="color:#06b;font-weight:bold">use-package</span> <span style="color:#963">pipenv</span>
+    <span style="color:#a60;background-color:#fff0f0">:ensure</span> <span style="color:#036;font-weight:bold">t</span>
+    <span style="color:#a60;background-color:#fff0f0">:init</span>
+    (<span style="color:#080;font-weight:bold">setq</span>
+     <span style="color:#963">pipenv-projectile-after-switch-function</span>
+     <span style="color:#06b;font-weight:bold">#&#39;</span><span style="color:#963">pipenv-projectile-after-switch-extended</span>))
+
+  (<span style="color:#06b;font-weight:bold">use-package</span> <span style="color:#963">company-lsp</span>
+    <span style="color:#a60;background-color:#fff0f0">:ensure</span> <span style="color:#036;font-weight:bold">t</span>
+    <span style="color:#a60;background-color:#fff0f0">:config</span>
+    (<span style="color:#963">add-to-list</span> <span style="color:#a60;background-color:#fff0f0">&#39;company-backends</span> <span style="color:#a60;background-color:#fff0f0">&#39;company-lsp</span>)
+    )
+)</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+lsp server 实际上有好几个，不过我觉得微软的那个似乎比较好用。 <code class="verbatim">lsp-python-ms</code> 是使用了微软的 lsp server，你可以自己编译一个，也可以直接使用 vscode 里面的，这样省去了自己编译的麻烦。
+</p>
+<p>
+lsp-mode 自带使用那个 lsp-ui 来显示一些信息我感觉很慢不好用，所以通过 <code class="verbatim">lsp-auto-configure</code> 把他禁用了，我弄了一下也没有办法让这货和 <code class="verbatim">flycheck-flake8</code> 一起好好工作，我还是喜欢 flake8 所以就这样了。
+</p>
+
+</main>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+
+
+    <footer style="clear:both">
+      
+      <hr/>
+      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+
