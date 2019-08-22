@@ -1,0 +1,60 @@
+---
+title: "Emacs as Python IDE Again"
+date: 2019-08-13T14:56:02+08:00
+tags: [""]
+toc: true
+---
+
+[[/emacs-as-python-ide/][上一篇]]里面说了使用 emacs 编辑 python 文件的方式，已经过去 2 年了，时代变了。更新一下。
+
+随着 vscode 横空出世，带来了 LSP，这个东西是所有编辑器都可以受益的，有人开发了 lsp-mode，目前我感觉 lsp 比 jedi 好用多了。
+
+elpy 目前还不支持 lsp。所以放弃了 elpy 了。
+
+主要配置如下。使用了 =lsp-python-ms= 和 =lsp-mode=, =pipenv= 。我原来用 pyenv + virtualvenv，pipenv 是把两个整合的东西。pipenv 还支持 lock，以后估计会流行吧。
+
+#+BEGIN_SRC lisp
+(use-package lsp-python-ms
+  :ensure t
+  :demand nil
+  :config
+
+  ;;(setq lsp-python-ms-extra-paths "")
+  (setq lsp-python-ms-executable
+        (string-trim (shell-command-to-string
+                      "find ~/.vscode/extensions/ -name 'Microsoft.Python.LanguageServer' | sort | tail -1")))
+  ;; for dev build of language server
+  (setq lsp-python-ms-dir
+        (file-name-directory lsp-python-ms-executable)))
+
+
+(use-package lsp-mode
+  :ensure t
+  :commands lsp
+  :hook  (python-mode . (lambda ()
+                          (pipenv-activate)
+                          (require 'lsp-python-ms)
+                          (lsp)))
+  :config
+
+  (setq lsp-auto-configure nil)
+
+  (use-package pipenv
+    :ensure t
+    :init
+    (setq
+     pipenv-projectile-after-switch-function
+     #'pipenv-projectile-after-switch-extended))
+
+  (use-package company-lsp
+    :ensure t
+    :config
+    (add-to-list 'company-backends 'company-lsp)
+    )
+)
+#+END_SRC
+
+lsp server 实际上有好几个，不过我觉得微软的那个似乎比较好用。 =lsp-python-ms= 是使用了微软的 lsp server，你可以自己编译一个，也可以直接使用 vscode 里面的，这样省去了自己编译的麻烦。
+
+lsp-mode 自带使用那个 lsp-ui 来显示一些信息我感觉很慢不好用，所以通过 =lsp-auto-configure= 把他禁用了，我弄了一下也没有办法让这货和 =flycheck-flake8= 一起好好工作，我还是喜欢 flake8 所以就这样了。
+

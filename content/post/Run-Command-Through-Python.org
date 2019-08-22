@@ -1,0 +1,46 @@
+---
+title: "Run Command Through Python"
+date: 2019-08-13T14:53:34+08:00
+tags: ["python"]
+toc: true
+---
+
+通过 python 执行命令有很多方法。
+
+最简单的 =os.system(command)= , command 是要执行的命令，一个包括命令和参数的字符串。产生的输出会直接打印到 stdout 。返回值是命令执行的退出值。
+
+然后就是 =os.spawn*= ，这个我感觉有点丧心病狂了。
+- os.spawnl(mode, path, ...)
+- os.spawnle(mode, path, ..., env)
+- os.spawnlp(mode, file, ...)
+- os.spawnlpe(mode, file, ..., env)
+- os.spawnv(mode, path, args)
+- os.spawnve(mode, path, args, env)
+- os.spawnvp(mode, file, args)
+- os.spawnvpe(mode, file, args, env)
+
+这些主要是命令输入的方式，和环境变量的控制不一样， =l= 是类似 os.spawnlp(os.P_WAIT, ='cp', 'cp', 'index.html', '/dev/null'= ) 这样的模式设置命令, =v= 是类似 os.spawnvp(os.P_WAIT, 'cp', =['cp', 'index.html', '/dev/null']= ) 这样的模式。 =l= 适合命令参数固定的模式， =v= 适合不固定的。
+
+带 =p= 的会使用 =PATH= 环境变量来查找要执行的命令，要不你应该是需要使用命令的全路径。
+
+带 =e= 的是可以设置额外的环境变量。
+
+然后是 =mode= ，有两个， =P_NOWAIT= 是类似后台执行命令，不会等命令执行完毕，会返回一个命令的 pid。 =P_WAIT= 是等待命令执行完毕，返回命令的退出值，或者返回被 kill 发送的 singnal 。
+
+上面这些都没有输入输出什么事情，如果你想操作输入输出，那需要用后面的。
+
+然后就是 =subprocess= 了，这个提供了很强的控制能力。
+
+=subprocess.run= 这个是执行之后等着命令完成之后返回 =subprocess.CompletedProcess= 根据你对 run 的参数，可以得到命令的 stdout，退出值什么的。
+
+=subprocess.Popen= 这个可以说是最自由的了，应该可以说完全兼容上面的所有命令。有几个参数说明下。
+
+=shell= 会起一个 shell 在 shell 里面执行你的命令，这样 shell 的一些特性就可以使用了，比如 =&= , =&>/dev/null= 这些东西。是的，如果你不指定 =shell=True= 那这些东西是没什么用的，比如并不能把 stdout 的内容重定向到一个文件。
+
+=Popen()= 这个语句执行的时候是不会等命令执行完毕的，如果需要等，那可以随后执行 =p.wait()= 。
+
+=stdout= 可能会想捕获程序的输出来判断程序是不是正常执行，那你需要设置 stdout 这个参数为 =subprocess.PIPE= 然后通过 =p.stdout= 来得到输出。这个是个类似文件句柄的东西，可以使用 =read= 来读取，但是使用的时候要注意，因为你的程序一直在运行，那 read 不会获取到 EOF，实际就会产生阻塞，一般可以通过类似 =read(111)= 这样获取指定数量的内容，避免阻塞。另外还有一个，一旦你的程序退出，这个文件句柄就没有了，你的程序也会 crash 退出。
+
+如果想要程序一直运行，但是 python 脚本又不想一直运行，还想获取输出的内容怎么办？我找到的方法是写一个临时文件，写到文件的话退出 python 程序就不会对运行的程序有任何影响了。
+
+
