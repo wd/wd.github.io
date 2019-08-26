@@ -56,7 +56,7 @@ toc: true
 2. Python 采用 GIL(global interpreter lock) 机制保证同一时刻只有一条线程可以向前执行。GIL 实际就是一把互斥锁(mutual-exclusion lock, mutex)，用以防止 CPython 受到占先式多线程切换(preemptive multithreading) 操作的干扰。GIL 会使得 Python 代码无法并行，但是对于系统调用却不影响，执行系统调用的时候会释放 GIL，直到执行完毕。这样可以在执行 I/O 操作的同时，执行一些运算操作。
 3. GIL 并不会处理程序逻辑上面的数据安全，如果需要避免线程竞争导致的数据破坏，那需要自己加锁，可是使用 Lock 类。
 4. Queue 类具备阻塞式的队列操作，能够指定缓冲区大小，还支持 join 方法，可以方便的实现队列。
-5. 线程启动时的开销比较大，可以使用协程(coroutine) 。 ~FIXME~
+5. 线程启动时的开销比较大，可以使用协程(coroutine) 。使用协程可以让程序看似并行执行，而又避免了多线程需要处理锁的麻烦。（描述可能有误）
 6. 对于密集计算型程序，可以使用多进程来跑多个 CPU。使用 ~ProcessPoolExecutor~ 替代 ~ThreadPoolExecutor~ ，multiprocessing 模块会使用 pickle 把数据库序列化，通过 locl socket 发送到子进程。还可以使用 multiprocessing 提供的高级机制，例如共享内存(shared memory)，跨进程锁(cross-process lock)，队列(queue)，代理(proxy)等实现自己的逻辑。
 
 ** 内置模块
@@ -109,7 +109,7 @@ Python 类的特殊方法：
 2. ~__call__~: 直接调用一个对象的实例的时候会执行这个。
 3. ~__len__~: 支持 ~len(obj)~ 函数。
 4. ~__getitem__~: 支持 ~bar[0]~ 这样的方式索引。
-5. ~__set__~: 描述符协议，支持赋值语句。 ~FIXME~
+5. ~__set__~: 描述符协议，支持赋值语句。
 6. ~__get__~: 描述符协议，支持读取。
 7. ~__getattr__~: 读取某个对象的属性的时候，属性字典里面没有的时候调用。 ~setattr~ 可以给对象增加属性。 ~hasattr~ 可以判断是否有这个属性。
 8. ~__setattr__~: 对属性赋值的时候会调用，无论是直接赋值还是通过 ~setattr~ 。
