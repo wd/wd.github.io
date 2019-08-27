@@ -5,10 +5,413 @@
     <description>Recent content in Home on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Mon, 26 Aug 2019 09:53:26 +0800</lastBuildDate>
+    <lastBuildDate>Tue, 27 Aug 2019 10:49:51 +0800</lastBuildDate>
     
         <atom:link href="https://wdicc.com/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Python Coroutine</title>
+      <link>https://wdicc.com/python-coroutine/</link>
+      <pubDate>Tue, 27 Aug 2019 10:49:51 +0800</pubDate>
+      
+      <guid>https://wdicc.com/python-coroutine/</guid>
+      <description>&lt;p&gt;
+协程 coroutine 不知道是从什么时候开始的，感觉我第一次看到是 lua 里面支持 yield 。后面看到就是 javascript 里面的 Promise，async 和 await。
+&lt;/p&gt;
+&lt;p&gt;
+以前写 Javascript 的时候容易会遇到 callback hell，似乎 Promise 就是出来解决这个问题的，让你可以用同步的方式写异步程序。例如你有三个异步请求可以同时发出去，而后面的结果又需要这三个的结果都回来才能继续，那就可以用类似下面的伪代码，整体执行时间是最长的那个。
+&lt;/p&gt;
+&lt;div class=&#34;src src-javascript&#34;&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-javascript&#34; data-lang=&#34;javascript&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-javascript&#34; data-lang=&#34;javascript&#34;&gt;res1 &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;await&lt;/span&gt; test1
+res2 &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;await&lt;/span&gt; test2
+console.log(res1, res2)
+&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+Python 里面似乎也类似。我目前理解主要就是让程序可以「同步」执行，但是又避免了需要维护锁的问题，没有锁就不会有死锁了吧。。。
+&lt;/p&gt;
+&lt;p&gt;
+解释下同步，主要是针对对于 cpu 资源的占用。对于计算型的程序，实际上每时每刻都在利用 cpu 做计算，这样就算把计算拆分成了多个计算程序，让他们同时运行，那同一时刻还是只有一个程序在利用 cpu 资源执行，这样并行实际并不能提升效率。所以对于纯计算型任务，可以通过多进程利用多个 cpu。
+&lt;/p&gt;
+&lt;p&gt;
+但是实际我们的程序执行的时候，并不全是 cpu 计算，有时候会需要等网络 io，文件 io 等，做这些事情的时候实际上 cpu 是空闲的。协程就是让这些程序在等待的时候，把控制权交出来，让其他程序运行。那个 &lt;code&gt;yield&lt;/code&gt; 关键字就是做这个事情的， &lt;code&gt;yield&lt;/code&gt; 很像 &lt;code&gt;return&lt;/code&gt; ，遇到的时候就会返回，暂停程序的执行，等到适当的时候又可以从暂停的地方继续执行。
+&lt;/p&gt;
+&lt;p&gt;
+以前是使用 &lt;code&gt;@asyncio.coroutine&lt;/code&gt; 和 &lt;code&gt;yield from&lt;/code&gt; 来创建协程，似乎 3.10 之后那个装饰器就要被废弃了，替代使用 &lt;code&gt;async/await&lt;/code&gt; 来创建，直接替换就可以。
+&lt;/p&gt;
+&lt;div class=&#34;src src-python&#34;&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#555;font-weight:bold&#34;&gt;@asyncio.coroutine&lt;/span&gt;
+&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;old_style_coroutine&lt;/span&gt;():
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;yield&lt;/span&gt; &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#0e84b5;font-weight:bold&#34;&gt;asyncio.sleep&lt;/span&gt;(&lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;1&lt;/span&gt;)
+
+async &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;main&lt;/span&gt;():
+    await old_style_coroutine()&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+Python 的&lt;a href=&#34;https://docs.python.org/zh-cn/3/library/asyncio-task.html&#34;&gt;协程文档&lt;/a&gt;提供了一些例子，摘取一些。
+&lt;/p&gt;
+&lt;div class=&#34;src src-python&#34;&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;6
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#0e84b5;font-weight:bold&#34;&gt;asyncio&lt;/span&gt;
+
+async &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;test&lt;/span&gt;():
+    asynio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;sleep(&lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;1&lt;/span&gt;)
+
+asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;run(test())&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+定义这样的 &lt;code&gt;test&lt;/code&gt; 函数叫做 &lt;code class=&#34;verbatim&#34;&gt;协程函数&lt;/code&gt; ， &lt;code&gt;test()&lt;/code&gt; 返回的叫做 &lt;code class=&#34;verbatim&#34;&gt;协程对象&lt;/code&gt; ，和普通函数不一样， &lt;code&gt;test()&lt;/code&gt; 并不会执行这个函数，需要使用协程相关的命令才行，例如 &lt;code&gt;asyncio.run(test())&lt;/code&gt; 。
+&lt;/p&gt;
+&lt;div class=&#34;src src-python&#34;&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#0e84b5;font-weight:bold&#34;&gt;asyncio&lt;/span&gt;
+
+async &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;nested&lt;/span&gt;():
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;started&amp;#39;&lt;/span&gt;)
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;42&lt;/span&gt;
+
+async &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;main&lt;/span&gt;():
+    &lt;span style=&#34;color:#888&#34;&gt;# Schedule nested() to run soon concurrently&lt;/span&gt;
+    &lt;span style=&#34;color:#888&#34;&gt;# with &amp;#34;main()&amp;#34;.&lt;/span&gt;
+    task &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;create_task(nested())
+
+    &lt;span style=&#34;color:#888&#34;&gt;# &amp;#34;task&amp;#34; can now be used to cancel &amp;#34;nested()&amp;#34;, or&lt;/span&gt;
+    &lt;span style=&#34;color:#888&#34;&gt;# can simply be awaited to wait until it is complete:&lt;/span&gt;
+    await asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;sleep(&lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;5&lt;/span&gt;)
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;after sleep&amp;#39;&lt;/span&gt;)
+    await task
+asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;run(main())&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+类似这个例子， &lt;code&gt;nested&lt;/code&gt; 这个函数实际是在 task 赋值的时候就开始执行了。但是在等到了 &lt;code&gt;await task&lt;/code&gt; 才获取他的结果。当然如果那个 &lt;code&gt;nested&lt;/code&gt; 执行时间比较长，那等到了 await 语句的时候，会等他执行完毕才继续。
+&lt;/p&gt;
+&lt;p&gt;
+这个和那个 javascript 的简单例子就比较像了，整体执行时间就是长的那个，就是并行的感觉。 &lt;code&gt;asyncio&lt;/code&gt; 还提供了 &lt;code&gt;asyncio.gather()&lt;/code&gt; ，提供了方便的方法把并行的任务绑定在一起，
+&lt;/p&gt;
+&lt;p&gt;
+使用 asyncio 的话，协程里面执行的东西也需要是协程友好的，如果执行原始的阻塞的代码，那这部分代码无法并行。比如把上面的代码修改一下。
+&lt;/p&gt;
+&lt;div class=&#34;src src-python&#34;&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#0e84b5;font-weight:bold&#34;&gt;asyncio&lt;/span&gt;
+&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;from&lt;/span&gt; &lt;span style=&#34;color:#0e84b5;font-weight:bold&#34;&gt;time&lt;/span&gt; &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;import&lt;/span&gt; time, sleep
+
+async &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;nested&lt;/span&gt;():
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;started&amp;#39;&lt;/span&gt;)
+    sleep(&lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;1&lt;/span&gt;)
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;after 1s&amp;#39;&lt;/span&gt;)
+    await asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;sleep(&lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;2&lt;/span&gt;)
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;return&lt;/span&gt; &lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;42&lt;/span&gt;
+
+async &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;main&lt;/span&gt;():
+    &lt;span style=&#34;color:#888&#34;&gt;# Schedule nested() to run soon concurrently&lt;/span&gt;
+    &lt;span style=&#34;color:#888&#34;&gt;# with &amp;#34;main()&amp;#34;.&lt;/span&gt;
+    task &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;create_task(nested())
+
+    &lt;span style=&#34;color:#888&#34;&gt;# &amp;#34;task&amp;#34; can now be used to cancel &amp;#34;nested()&amp;#34;, or&lt;/span&gt;
+    &lt;span style=&#34;color:#888&#34;&gt;# can simply be awaited to wait until it is complete:&lt;/span&gt;
+    await asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;gather(asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;sleep(&lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;5&lt;/span&gt;), task)
+
+start &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; time()
+asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;run(main())
+&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;print&lt;/span&gt;(time() &lt;span style=&#34;color:#333&#34;&gt;-&lt;/span&gt; start)
+
+&lt;span style=&#34;color:#888&#34;&gt;# started&lt;/span&gt;
+&lt;span style=&#34;color:#888&#34;&gt;# after 1s&lt;/span&gt;
+&lt;span style=&#34;color:#888&#34;&gt;# 6.005960941314697&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+可以看到输出，是 6 秒，本身按照前面说的，最长的协程时间应该是 5 秒的，但是整体执行了 6 秒，因为其中 &lt;code&gt;sleep(1)&lt;/code&gt; 这一秒执行的时候其他协程无法执行。摘抄文档里面的说明。
+&lt;/p&gt;
+&lt;div class=&#34;src src-text&#34;&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;2
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-text&#34; data-lang=&#34;text&#34;&gt;不应该直接调用阻塞( CPU 绑定)代码。例如，如果一个函数执行1秒的 CPU 密集型计算，那么所有并发异步任务和 IO 操作都将延迟1秒。
+可以使用执行器在不同的线程甚至不同的进程中运行任务，以避免使用事件循环阻塞OS线程。有关详细信息，请参见 loop.run_in_executor() 方法。&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+所以就有一堆的 &lt;code&gt;asyncio.xx&lt;/code&gt; 出现了，比如 &lt;code&gt;asyncio.open_connection&lt;/code&gt;, &lt;code&gt;asyncio.Lock&lt;/code&gt;, &lt;code&gt;asyncio.create_subprocess_shell&lt;/code&gt;, &lt;code&gt;asyncio.Queue&lt;/code&gt; 等。下面这个是一个 &lt;code&gt;Queue&lt;/code&gt; 的例子。
+&lt;/p&gt;
+&lt;div class=&#34;src src-python&#34;&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;27
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;28
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;29
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;30
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;31
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;32
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;33
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;34
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;35
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;36
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;37
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;38
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;39
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;40
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;41
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;42
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;43
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;44
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;45
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;46
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;47
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;48
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;49
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;50
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;51
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;52
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;53
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#0e84b5;font-weight:bold&#34;&gt;asyncio&lt;/span&gt;
+&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#0e84b5;font-weight:bold&#34;&gt;random&lt;/span&gt;
+&lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;import&lt;/span&gt; &lt;span style=&#34;color:#0e84b5;font-weight:bold&#34;&gt;time&lt;/span&gt;
+
+
+async &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;worker&lt;/span&gt;(name, queue):
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;while&lt;/span&gt; True:
+        &lt;span style=&#34;color:#888&#34;&gt;# Get a &amp;#34;work item&amp;#34; out of the queue.&lt;/span&gt;
+        sleep_for &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; await queue&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;get()
+
+        &lt;span style=&#34;color:#888&#34;&gt;# Sleep for the &amp;#34;sleep_for&amp;#34; seconds.&lt;/span&gt;
+        await asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;sleep(sleep_for)
+
+        &lt;span style=&#34;color:#888&#34;&gt;# Notify the queue that the &amp;#34;work item&amp;#34; has been processed.&lt;/span&gt;
+        queue&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;task_done()
+
+        &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;print&lt;/span&gt;(f&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;{name} has slept for {sleep_for:.2f} seconds&amp;#39;&lt;/span&gt;)
+
+
+async &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;main&lt;/span&gt;():
+    &lt;span style=&#34;color:#888&#34;&gt;# Create a queue that we will use to store our &amp;#34;workload&amp;#34;.&lt;/span&gt;
+    queue &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;Queue()
+
+    &lt;span style=&#34;color:#888&#34;&gt;# Generate random timings and put them into the queue.&lt;/span&gt;
+    total_sleep_time &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; &lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;0&lt;/span&gt;
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;for&lt;/span&gt; _ &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#007020&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;20&lt;/span&gt;):
+        sleep_for &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; random&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;uniform(&lt;span style=&#34;color:#60e;font-weight:bold&#34;&gt;0.05&lt;/span&gt;, &lt;span style=&#34;color:#60e;font-weight:bold&#34;&gt;1.0&lt;/span&gt;)
+        total_sleep_time &lt;span style=&#34;color:#333&#34;&gt;+=&lt;/span&gt; sleep_for
+        queue&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;put_nowait(sleep_for)
+
+    &lt;span style=&#34;color:#888&#34;&gt;# Create three worker tasks to process the queue concurrently.&lt;/span&gt;
+    tasks &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; []
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;for&lt;/span&gt; i &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;in&lt;/span&gt; &lt;span style=&#34;color:#007020&#34;&gt;range&lt;/span&gt;(&lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;3&lt;/span&gt;):
+        task &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;create_task(worker(f&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;worker-{i}&amp;#39;&lt;/span&gt;, queue))
+        tasks&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;append(task)
+
+    &lt;span style=&#34;color:#888&#34;&gt;# Wait until the queue is fully processed.&lt;/span&gt;
+    started_at &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; time&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;monotonic()
+    await queue&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;join()
+    total_slept_for &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; time&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;monotonic() &lt;span style=&#34;color:#333&#34;&gt;-&lt;/span&gt; started_at
+
+    &lt;span style=&#34;color:#888&#34;&gt;# Cancel our worker tasks.&lt;/span&gt;
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;for&lt;/span&gt; task &lt;span style=&#34;color:#000;font-weight:bold&#34;&gt;in&lt;/span&gt; tasks:
+        task&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;cancel()
+    &lt;span style=&#34;color:#888&#34;&gt;# Wait until all worker tasks are cancelled.&lt;/span&gt;
+    await asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;gather(&lt;span style=&#34;color:#333&#34;&gt;*&lt;/span&gt;tasks, return_exceptions&lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt;True)
+
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;====&amp;#39;&lt;/span&gt;)
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;print&lt;/span&gt;(f&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;3 workers slept in parallel for {total_slept_for:.2f} seconds&amp;#39;&lt;/span&gt;)
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;print&lt;/span&gt;(f&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;total expected sleep time: {total_sleep_time:.2f} seconds&amp;#39;&lt;/span&gt;)
+
+
+asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;run(main())&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+这里面需要注意的是 &lt;code&gt;task&lt;/code&gt; 赋值的时候，实际 worker 就开始运行了。接下来会程序会在 &lt;code&gt;await queue.join()&lt;/code&gt; 等待队列都标记为 &lt;code&gt;queue.task_done()&lt;/code&gt; ，这个标记动作完全是你的程序自己控制的，如果消耗了一个队列元素，但是标记了 2 次，那会发现队列没有执行完毕就会令 &lt;code&gt;await queue.join()&lt;/code&gt; 执行完毕。在已有的 queue 都消耗完毕之后，所有的 worker 都会等待在 &lt;code&gt;sleep_for = await queue.get()&lt;/code&gt; ，所以 &lt;code&gt;queue.join&lt;/code&gt; 之后还需要执行 &lt;code&gt;task.cancel&lt;/code&gt; 取消任务的继续执行。要注意 &lt;code&gt;task.cancel&lt;/code&gt; 语句执行也是异步的，也并不是执行完毕任务就会结束了，相当于只是请求任务取消，还需要去用 &lt;code&gt;await task&lt;/code&gt; 来确认是真的取消了。
+&lt;/p&gt;
+&lt;p&gt;
+asyncio 的核心是事件循环 loop，可以通过 &lt;code&gt;asyncio.get_event_loop()&lt;/code&gt; 来获取当前 loop，然后通过 &lt;code&gt;loop.run_until_complete(future)&lt;/code&gt; 这样的命令来执行协程。以及还有一些 &lt;code&gt;loop.xxx&lt;/code&gt; 方法来创建任务和管理协程。这些似乎是 low level api，一般不用。
+&lt;/p&gt;
+&lt;p&gt;
+low level api 还有一个 Future，说是 Task 的父类，更底层。感觉 Future 可以用来联系多个协程用的。对于 &lt;code&gt;await future&lt;/code&gt; 语句，只有 &lt;code&gt;future.set_result()&lt;/code&gt; 被调用的时候才会继续执行。这样比如有多个协程要执行，其中有些又有依赖，那就可以创建一个 feture，然后在被依赖的协程里面计算完毕的时候，执行 future.set_result() ，然后依赖他的协程里面 await future 就会获取到执行结果，也就可以继续执行了。
+&lt;/p&gt;
+&lt;div class=&#34;src src-python&#34;&gt;
+&lt;div class=&#34;highlight&#34;&gt;&lt;div style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;
+&lt;table style=&#34;border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;&#34;&gt;&lt;tr&gt;&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 1
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 2
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 3
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 4
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 5
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 6
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 7
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 8
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt; 9
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;10
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;11
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;12
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;13
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;14
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;15
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;16
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;17
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;18
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;19
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;20
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;21
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;22
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;23
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;24
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;25
+&lt;/span&gt;&lt;span style=&#34;margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f&#34;&gt;26
+&lt;/span&gt;&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;
+&lt;td style=&#34;vertical-align:top;padding:0;margin:0;border:0;&#34;&gt;
+&lt;pre style=&#34;background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4&#34;&gt;&lt;code class=&#34;language-python&#34; data-lang=&#34;python&#34;&gt;async &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;set_after&lt;/span&gt;(fut, delay, value):
+    &lt;span style=&#34;color:#888&#34;&gt;# Sleep for *delay* seconds.&lt;/span&gt;
+    await asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;sleep(delay)
+
+    &lt;span style=&#34;color:#888&#34;&gt;# Set *value* as a result of *fut* Future.&lt;/span&gt;
+    fut&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;set_result(value)
+
+async &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;def&lt;/span&gt; &lt;span style=&#34;color:#06b;font-weight:bold&#34;&gt;main&lt;/span&gt;():
+    &lt;span style=&#34;color:#888&#34;&gt;# Get the current event loop.&lt;/span&gt;
+    loop &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; asyncio&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;get_running_loop()
+
+    &lt;span style=&#34;color:#888&#34;&gt;# Create a new Future object.&lt;/span&gt;
+    fut &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; loop&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;create_future()
+
+    &lt;span style=&#34;color:#888&#34;&gt;# Run &amp;#34;set_after()&amp;#34; coroutine in a parallel Task.&lt;/span&gt;
+    &lt;span style=&#34;color:#888&#34;&gt;# We are using the low-level &amp;#34;loop.create_task()&amp;#34; API here because&lt;/span&gt;
+    &lt;span style=&#34;color:#888&#34;&gt;# we already have a reference to the event loop at hand.&lt;/span&gt;
+    &lt;span style=&#34;color:#888&#34;&gt;# Otherwise we could have just used &amp;#34;asyncio.create_task()&amp;#34;.&lt;/span&gt;
+    task &lt;span style=&#34;color:#333&#34;&gt;=&lt;/span&gt; loop&lt;span style=&#34;color:#333&#34;&gt;.&lt;/span&gt;create_task(
+        set_after(fut, &lt;span style=&#34;color:#00d;font-weight:bold&#34;&gt;1&lt;/span&gt;, &lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;... world&amp;#39;&lt;/span&gt;))
+
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;print&lt;/span&gt;(&lt;span style=&#34;background-color:#fff0f0&#34;&gt;&amp;#39;hello ...&amp;#39;&lt;/span&gt;)
+    await task
+
+    &lt;span style=&#34;color:#888&#34;&gt;# Wait until *fut* has a result (1 second) and print it.&lt;/span&gt;
+    &lt;span style=&#34;color:#080;font-weight:bold&#34;&gt;print&lt;/span&gt;(await fut)&lt;/code&gt;&lt;/pre&gt;&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;p&gt;
+上面这个例子是把文档里面改了一下，那个 task 里面会执行 fut.set_result，如果去掉这句，await task 是可以执行完毕的，但是 await fut 就会一直等待了。
+&lt;/p&gt;
+</description>
+    </item>
     
     <item>
       <title>Book Review of Effective Python: 59 Specific Ways to Write Better Python</title>
