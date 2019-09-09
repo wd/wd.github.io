@@ -1,0 +1,958 @@
+---
+title: "Notes for CPython Internals"
+date: 2019-09-05T12:43:42+08:00
+tags: ["python", "cpython"]
+toc: true
+---
+视频地址[[https://www.youtube.com/watch?list=PLzV58Zm8FuBL6OAv1Yu6AwXZrnsFbbR0S&index=1][这里]]。
+
+** Python 源码
+
+~Include/opcode.h~ 里面定义了所有 opcode。 ~Modules~ 里面是一些 c 实现的模块， ~Lib~ 里面是用 python 实现的模块。 ~Objects~ 里面是部分 python 对象对应的 c 实现。
+
+~Python~ 目录里面是 python core， ~Python/ceval.c~ 里面定义了 python interpreter 主要的循环，找那个 ~for(;;)~ 就可以，这个循环里面有一个巨长的 ~switch (opcode)~ 。
+
+** Opcode 和 interpreter 循环
+
+test.py
+
+#+begin_src python
+x = 1
+y = 2
+print(x + y)
+#+end_src
+
+使用内置的 ~compile(source, filename, 'exec')~ 函数可以把代码编译成 ~code object~ , code object 有一个 ~co_code~ 属性，里面包含了代码的 bytecode。
+
+#+begin_src python
+>> c = compile(open('test.py').read(), 'test.py', 'exec')
+>>> c
+<code object <module> at 0x102daed20, file "test.py", line 1>
+>>> c.co_code
+b'd\x00Z\x00d\x01Z\x01e\x02e\x00e\x01\x17\x00\x83\x01\x01\x00d\x02S\x00'
+>>> [co for co in c.co_code]
+[100, 0, 90, 0, 100, 1, 90, 1, 101, 2, 101, 0, 101, 1, 23, 0, 131, 1, 1, 0, 100, 2, 83, 0]
+>>> len(c.co_code)
+24
+#+end_src
+
+使用内置的 ~dis~ 模块可以直观的看到 opcode。我看[[https://docs.python.org/3/library/dis.html][文档]]说的 3.6 以后每个 code 是 2 个字节。
+
+#+begin_src shell
+$ python -m dis test.py
+  1           0 LOAD_CONST               0 (1)
+              2 STORE_NAME               0 (x)
+
+  2           4 LOAD_CONST               1 (2)
+              6 STORE_NAME               1 (y)
+
+  3           8 LOAD_NAME                2 (print)
+             10 LOAD_NAME                0 (x)
+             12 LOAD_NAME                1 (y)
+             14 BINARY_ADD
+             16 CALL_FUNCTION            1
+             18 POP_TOP
+             20 LOAD_CONST               2 (None)
+             22 RETURN_VALUE
+#+end_src
+
+#+begin_quote
+Changed in version 3.6: Use 2 bytes for each instruction. Previously the number of bytes varied by instruction.
+#+end_quote
+
+对应 ~LOAD_CONST~ 的 opcode 是 ~100~ ，这个可以到 ~Include/opcode.h~ 里面查。
+
+我看 2.7 里面 ~Python/ceval.c~ 的 ~PyEval_EvalFrameEx~ 这个函数是包含那个死循环的函数，而 3.7 里面是 ~_PyEval_EvalFrameDefault~ ，这里面主要包含了那个 ~for(;;)~ 循环，输入一个 ~PyFrameObject~ ，然后一个个 opcode 处理。 ~PyObject **stack_pointer;  /* Next free slot in value stack */~  定义了 value stack，然后这后面定义了一堆的宏，方便写代码。。。后面就是从栈上取到 opcode，取到 oparg ，不同的 opcode 的 arg 数量也不一样，在 opcode.h 里面有定义。
+
+#+begin_src c
+    first_instr = (_Py_CODEUNIT *) PyBytes_AS_STRING(co->co_code);
+...
+    next_instr = first_instr;
+....
+            opcode = _Py_OPCODE(*next_instr);
+#+end_src
+
+#+begin_src c
+#define PREDICT(op) \
+    do{ \
+        _Py_CODEUNIT word = *next_instr; \
+        opcode = _Py_OPCODE(word); \
+        if (opcode == op){ \
+            oparg = _Py_OPARG(word); \
+            next_instr++; \
+            goto PRED_##op; \
+        } \
+    } while(0)
+#endif
+#define PREDICTED(op)           PRED_##op:
+#+end_src
+
+opcode 就是从 co_code 里面取到的 bytecode，oparg 类似从 co_code 里面循环取，直到遇到下一个 opcode。
+
+每个 opcode 可能经过的流程是：
+- 从 oparg 取变量的值放到 value stack，给下一个 opcode 使用。
+- 从 value stack 取数据。
+- 使用 c 的方法做一些运算。
+- 增减引用计数。
+- 把结果放回到 value stack。
+
+#+begin_src c
+    co = f->f_code;
+    names = co->co_names;
+    consts = co->co_consts;
+    fastlocals = f->f_localsplus;
+    freevars = f->f_localsplus + co->co_nlocals;
+#+end_src
+
+从这里能看到 ~PyFrameObject~ 包含了 code object，还包含了一些其他的，看着像是变量信息。
+
+这个网站 [[http://www.pythontutor.com/visualize.html#code=def%2520foo%2528%2529%253A%250A%2520%2520%2520%2520x%2520%253D%25201%250A%2520%2520%2520%2520print%25281%2529%250A%2520%2520%2520%2520%250Afoo%2528%2529&cumulative=false&curInstr=4&heapPrimitives=nevernest&mode=display&origin=opt-frontend.js&py=3&rawInputLstJSON=%255B%255D&textReferences=false][pythontutor.com]] 可以可视化的观看 python 代码执行的情况，和各个 Frame 以及作用域的变量的情况。同时居然还有 Java Tutor,  C Tutor,  C++ Tutor,  JavaScript Tutor,  Ruby Tutor 。
+
+Function 变量（使用 def xxx 创建的变量），实际是对某一个 function object 的引用，里面 code object 似乎应该是 immutable 的，所以相同的代码实际上只需要一个 code object 就可以了。
+
+在 ~Include/code.h~ 里面有 ~PyCodeObject~ 的定义。包括了参数数量，代码 bytecode，本地变量信息什么的。
+
+#+begin_src c
+typedef struct {
+    PyObject_HEAD
+    int co_argcount;            /* #arguments, except *args */
+    int co_kwonlyargcount;      /* #keyword only arguments */
+    int co_nlocals;             /* #local variables */
+    int co_stacksize;           /* #entries needed for evaluation stack */
+    int co_flags;               /* CO_..., see below */
+    int co_firstlineno;         /* first source line number */
+    PyObject *co_code;          /* instruction opcodes */
+    PyObject *co_consts;        /* list (constants used) */
+    PyObject *co_names;         /* list of strings (names used) */
+    PyObject *co_varnames;      /* tuple of strings (local variable names) */
+    PyObject *co_freevars;      /* tuple of strings (free variable names) */
+    PyObject *co_cellvars;      /* tuple of strings (cell variable names) */
+    /* The rest aren't used in either hash or comparisons, except for co_name,
+       used in both. This is done to preserve the name and line number
+       for tracebacks and debuggers; otherwise, constant de-duplication
+       would collapse identical functions/lambdas defined on different lines.
+    */
+    Py_ssize_t *co_cell2arg;    /* Maps cell vars which are arguments. */
+    PyObject *co_filename;      /* unicode (where it was loaded from) */
+    PyObject *co_name;          /* unicode (name, for reference) */
+    PyObject *co_lnotab;        /* string (encoding addr<->lineno mapping) See
+                                   Objects/lnotab_notes.txt for details. */
+    void *co_zombieframe;       /* for optimization only (see frameobject.c) */
+    PyObject *co_weakreflist;   /* to support weakrefs to code objects */
+    /* Scratch space for extra data relating to the code object.
+       Type is a void* to keep the format private in codeobject.c to force
+       people to go through the proper APIs. */
+    void *co_extra;
+} PyCodeObject;
+#+end_src
+
+在 ~Include/frameobject.h~ 里面有 ~PyFrameObject~ 的定义。可以看到包含了一个 ~PyCodeObject~ ，还有 ~*f_globals~ ~*f_locals~ 变量表，每个 frame 有自己的全局本地变量表。 ~f_back~ 是上一个 frame 的信息，frame stack 是一个链表。
+
+#+begin_src c
+ypedef struct _frame {
+    PyObject_VAR_HEAD
+    struct _frame *f_back;      /* previous frame, or NULL */
+    PyCodeObject *f_code;       /* code segment */
+    PyObject *f_builtins;       /* builtin symbol table (PyDictObject) */
+    PyObject *f_globals;        /* global symbol table (PyDictObject) */
+    PyObject *f_locals;         /* local symbol table (any mapping) */
+    PyObject **f_valuestack;    /* points after the last local */
+    /* Next free slot in f_valuestack.  Frame creation sets to f_valuestack.
+       Frame evaluation usually NULLs it, but a frame that yields sets it
+       to the current stack top. */
+    PyObject **f_stacktop;
+    PyObject *f_trace;          /* Trace function */
+    char f_trace_lines;         /* Emit per-line trace events? */
+    char f_trace_opcodes;       /* Emit per-opcode trace events? */
+
+    /* Borrowed reference to a generator, or NULL */
+    PyObject *f_gen;
+
+    int f_lasti;                /* Last instruction if called */
+    /* Call PyFrame_GetLineNumber() instead of reading this field
+       directly.  As of 2.3 f_lineno is only valid when tracing is
+       active (i.e. when f_trace is set).  At other times we use
+       PyCode_Addr2Line to calculate the line from the current
+       bytecode index. */
+    int f_lineno;               /* Current line number */
+    int f_iblock;               /* index in f_blockstack */
+    char f_executing;           /* whether the frame is still executing */
+    PyTryBlock f_blockstack[CO_MAXBLOCKS]; /* for try and loop blocks */
+    PyObject *f_localsplus[1];  /* locals+stack, dynamically sized */
+} PyFrameObject;
+#+end_src
+
+所以 ~PyObject * PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)~ 接收一个 ~PyFrameObject~ 参数，然后处理这个 frame 里面的 bytecodes，然后 return 一个 ~PyObject~ 。
+
+code object 包含代码的字节码，和一些内部的常量信息。function 包含 code object 以及一些环境信息，比如全局变量什么的，就像是一个普通不可变对象。 frame 包含 code object 以及一些环境信息，还有参数信息，是运行时的，同一个 function 可以有不同的 frame ，比如写一个递归函数， function 就那一个，但是每次递归都会产生不同的 frame。frame 很像是一个 function object 的实例，当然实际还有一个 global frame。
+
+2.7 里面，对于 ~CALL_FUNCTION~ 这个 code，会执行 ~fast_function~ 这个函数，会使用 ~PyFrame_New()~ 创建新的 frame，以及会从 frame 的 stack 复制参数到本地的 stack 创建局部变量。3.7 里面似乎变了。
+
+** PyObject 
+
+python 3.7 [[https://docs.python.org/3/c-api/long.html][没有 PyIntObject 了]]，2.7 似乎还有。
+
+#+begin_quote
+All integers are implemented as “long” integer objects of arbitrary size.
+#+end_quote
+
+所以 int 的 add 方法实现是在 ~Objects/longobject.c~ 里面。
+
+#+begin_src c
+static PyLongObject *
+x_add(PyLongObject *a, PyLongObject *b)
+{
+    Py_ssize_t size_a = Py_ABS(Py_SIZE(a)), size_b = Py_ABS(Py_SIZE(b));
+    PyLongObject *z;
+    Py_ssize_t i;
+    digit carry = 0;
+
+    /* Ensure a is the larger of the two: */
+    if (size_a < size_b) {
+        { PyLongObject *temp = a; a = b; b = temp; }
+        { Py_ssize_t size_temp = size_a;
+            size_a = size_b;
+            size_b = size_temp; }
+    }
+    z = _PyLong_New(size_a+1);
+    if (z == NULL)
+        return NULL;
+    for (i = 0; i < size_b; ++i) {
+        carry += a->ob_digit[i] + b->ob_digit[i];
+        z->ob_digit[i] = carry & PyLong_MASK;
+        carry >>= PyLong_SHIFT;
+    }
+    for (; i < size_a; ++i) {
+        carry += a->ob_digit[i];
+        z->ob_digit[i] = carry & PyLong_MASK;
+        carry >>= PyLong_SHIFT;
+    }
+    z->ob_digit[i] = carry;
+    return long_normalize(z);
+}
+#+end_src
+
+python 里面万物皆对象，每一个对象都是 ~PyObject~ 的子类型。在 ~Include/object.h~ 里面有 ~PyObject~ 和 ~PyVarObject~ 的定义。每个 ~PyObject~ 都有一个 refcnt 和 type ，不同的 type 还会有不同的扩展字段。
+
+#+begin_src c
+#define _PyObject_HEAD_EXTRA
+typedef struct _object {
+    _PyObject_HEAD_EXTRA
+    Py_ssize_t ob_refcnt;
+    struct _typeobject *ob_type;
+} PyObject;
+
+typedef struct {
+    PyObject ob_base;
+    Py_ssize_t ob_size; /* Number of items in variable part */
+} PyVarObject;
+#+end_src
+
+这个文件前面部分有一些注释，可以一看。每个对象都有一个引用计数字段和 type 字段。引用计数给垃圾回收用的。type 字段定义这具体是个什么类型的数据。对象一旦创建地址和大小就不会变了，这样就让引用一个对象变得简单了，因为不需要因为对象大小改变而需要挪动地方改变地址，这样也不用需要更新所有引用这个地址的变量的引用地址。
+
+#+begin_quote
+An object has a 'reference count' that is increased or decreased when a
+pointer to the object is copied or deleted; when the reference count
+reaches zero there are no references to the object left and it can be
+removed from the heap.
+
+An object has a 'type' that determines what it represents and what kind
+of data it contains.  An object's type is fixed when it is created.
+Types themselves are represented as objects; an object contains a
+pointer to the corresponding type object.  The type itself has a type
+pointer pointing to the object representing the type 'type', which
+contains a pointer to itself!).
+
+Objects do not float around in memory; once allocated an object keeps
+the same size and address.  Objects that must hold variable-size data
+can contain pointers to variable-size parts of the object.  Not all
+objects of the same type have the same size; but the size cannot change
+after allocation.  (These restrictions are made so a reference to an
+object can be simply a pointer -- moving an object would require
+updating all the pointers, and changing an object's size would require
+moving it if there was another object right next to it.)
+
+Objects are always accessed through pointers of the type 'PyObject *'.
+The type 'PyObject' is a structure that only contains the reference count
+and the type pointer.  The actual memory allocated for an object
+contains other data that can only be accessed after casting the pointer
+to a pointer to a longer structure type.  This longer type must start
+with the reference count and type fields; the macro PyObject_HEAD should be
+used for this (to accommodate for future changes).  The implementation
+of a particular object type can cast the object pointer to the proper
+type and back.
+
+A standard interface exists for objects that contain an array of items
+whose size is determined when the object is allocated.
+#+end_quote
+
+在 ~Include/longobject.h~ 和 ~Include/longintrepr.h~ 里面定义了 ~PyLongObject~ ，在 ~PyObject~ 多了一个 size 和一个 value 字段。
+
+#+begin_src c
+#define PyObject_VAR_HEAD      PyVarObject ob_base;
+
+struct _longobject {
+    PyObject_VAR_HEAD
+    digit ob_digit[1];
+};
+
+typedef struct _longobject PyLongObject; /* Revealed in longintrepr.h */
+#+end_src
+
+2.7 里面有 ~PyStringObject~ ，但是 3.7 里面没有了，后面都是基于 3.7 的代码的。
+
+我猜是使用 ~PyUnicodeObject~ 的。 ~PyASCIIObject~ 有一些字段（内容比较长，下面有删节），有一个 ~interned~ 表示这个是不是内部提前缓存了，比如常用的字串 'hello' 这个对象会提前生成好。
+
+#+begin_src c
+typedef struct {
+    PyObject_HEAD
+    Py_ssize_t length;          /* Number of code points in the string */
+    Py_hash_t hash;             /* Hash value; -1 if not set */
+    struct {
+        /*
+           SSTATE_NOT_INTERNED (0)
+           SSTATE_INTERNED_MORTAL (1)
+           SSTATE_INTERNED_IMMORTAL (2)
+
+           If interned != SSTATE_NOT_INTERNED, the two references from the
+           dictionary to this object are *not* counted in ob_refcnt.
+         */
+        unsigned int interned:2;
+       /* Character size:
+
+           - PyUnicode_WCHAR_KIND (0):
+           - PyUnicode_1BYTE_KIND (1):
+           - PyUnicode_2BYTE_KIND (2):
+           - PyUnicode_4BYTE_KIND (4):
+        */
+        unsigned int kind:3;
+        unsigned int compact:1;
+        unsigned int ascii:1;
+        unsigned int ready:1;
+        unsigned int :24;
+   } state;
+    wchar_t *wstr;              /* wchar_t representation (null-terminated) */
+} PyASCIIObject;
+        
+/* Non-ASCII strings allocated through PyUnicode_New use the
+   PyCompactUnicodeObject structure. state.compact is set, and the data
+   immediately follow the structure. */
+typedef struct {
+    PyASCIIObject _base;
+    Py_ssize_t utf8_length;     /* Number of bytes in utf8, excluding the
+                                 * terminating \0. */
+    char *utf8;                 /* UTF-8 representation (null-terminated) */
+    Py_ssize_t wstr_length;     /* Number of code points in wstr, possible
+                                 * surrogates count as two code points. */
+} PyCompactUnicodeObject;
+
+/* Strings allocated through PyUnicode_FromUnicode(NULL, len) use the
+   PyUnicodeObject structure. The actual string data is initially in the wstr
+   block, and copied into the data block using _PyUnicode_Ready. */
+typedef struct {
+    PyCompactUnicodeObject _base;
+    union {
+        void *any;
+        Py_UCS1 *latin1;
+        Py_UCS2 *ucs2;
+        Py_UCS4 *ucs4;
+    } data;                     /* Canonical, smallest-form Unicode buffer */
+} PyUnicodeObject;
+#+end_src
+
+#+begin_src python
+>>> a='hello'
+>>> b='hello'
+>>> a is b
+True
+>>> id(a)
+4439401168
+>>> id(b)
+4439401168
+#+end_src
+
+对于字符串 ~==~ 操作， ~COMPARE_OP~ 从 ~Python/ceval.c~ 里面，然后调用 ~cmp_outcome~ 然后调用 ~Objects/object.c~ 里面的 ~PyObject_RichCompare -> do_richcompare~ 。然后会调用 ~v->ob_type->tp_richcompare~ ，然后会到 ~Objects/unicodeobject.c~ 里面的 ~PyUnicode_RichCompare~ 
+
+#+begin_src c
+        TARGET(COMPARE_OP) {
+            PyObject *right = POP();
+            PyObject *left = TOP();
+            PyObject *res = cmp_outcome(oparg, left, right);
+            Py_DECREF(left);
+            Py_DECREF(right);
+            SET_TOP(res);
+            if (res == NULL)
+                goto error;
+            PREDICT(POP_JUMP_IF_FALSE);
+            PREDICT(POP_JUMP_IF_TRUE);
+            DISPATCH();
+        }
+#+end_src
+
+会先比较地址，然后使用 ~unicode_compare_eq~ 这个会先比较长度，如果长度一样，继续使用 ~PyUnicode_KIND~ 比较下 ~kind~ ， kind 可以看前面 struct 里面定义的， 然后会使用 ~memcmp~ 。
+
+#+begin_src c
+PyObject *
+PyUnicode_RichCompare(PyObject *left, PyObject *right, int op)
+{
+    int result;
+
+    if (!PyUnicode_Check(left) || !PyUnicode_Check(right))
+        Py_RETURN_NOTIMPLEMENTED;
+
+    if (PyUnicode_READY(left) == -1 ||
+        PyUnicode_READY(right) == -1)
+        return NULL;
+
+    if (left == right) {
+        switch (op) {
+        case Py_EQ:
+        case Py_LE:
+        case Py_GE:
+            /* a string is equal to itself */
+            Py_RETURN_TRUE;
+        case Py_NE:
+        case Py_LT:
+        case Py_GT:
+            Py_RETURN_FALSE;
+        default:
+            PyErr_BadArgument();
+            return NULL;
+        }
+    }
+    else if (op == Py_EQ || op == Py_NE) {
+        result = unicode_compare_eq(left, right);
+        result ^= (op == Py_NE);
+        return PyBool_FromLong(result);
+    }
+    else {
+        result = unicode_compare(left, right);
+        Py_RETURN_RICHCOMPARE(result, 0, op);
+    }
+}
+#+end_src
+
+对于 code object 也有一个 ~code_richcompare~ ，会逐个比较 name, argcount, locales, constants 等等。
+
+** Code Object, Function Object, closures
+
+~PyFunctionObject~ 定义在 ~Include/funcobject.h~ 里面。 code 是一个 code object，globals 是全局变量，defaults 是默认参数。
+
+#+begin_src c
+typedef struct {
+    PyObject_HEAD
+    PyObject *func_code;        /* A code object, the __code__ attribute */
+    PyObject *func_globals;     /* A dictionary (other mappings won't do) */
+    PyObject *func_defaults;    /* NULL or a tuple */
+    PyObject *func_kwdefaults;  /* NULL or a dict */
+    PyObject *func_closure;     /* NULL or a tuple of cell objects */
+    PyObject *func_doc;         /* The __doc__ attribute, can be anything */
+    PyObject *func_name;        /* The __name__ attribute, a string object */
+    PyObject *func_dict;        /* The __dict__ attribute, a dict or NULL */
+    PyObject *func_weakreflist; /* List of weak references */
+    PyObject *func_module;      /* The __module__ attribute, can be anything */
+    PyObject *func_annotations; /* Annotations, a dict or NULL */
+    PyObject *func_qualname;    /* The qualified name */
+
+    /* Invariant:
+     *     func_closure contains the bindings for func_code->co_freevars, so
+     *     PyTuple_Size(func_closure) == PyCode_GetNumFree(func_code)
+     *     (func_closure may be NULL if PyCode_GetNumFree(func_code) == 0).
+     */
+} PyFunctionObject;
+#+end_src
+
+使用 ~PyFunction_New~ 创建 ~PyFunctionObject~ ，可以看到输入是 code object 和 global 环境。
+
+#+begin_src c
+PyObject * PyFunction_New(PyObject *code, PyObject *globals)
+#+end_src
+
+对 function object 的一些属性的定义，有的是只读的，有的可以修改。
+
+#+begin_src c
+static PyMemberDef func_memberlist[] = {
+    {"__closure__",   T_OBJECT,     OFF(func_closure),
+     RESTRICTED|READONLY},
+    {"__doc__",       T_OBJECT,     OFF(func_doc), PY_WRITE_RESTRICTED},
+    {"__globals__",   T_OBJECT,     OFF(func_globals),
+     RESTRICTED|READONLY},
+    {"__module__",    T_OBJECT,     OFF(func_module), PY_WRITE_RESTRICTED},
+    {NULL}  /* Sentinel */
+};
+
+static PyGetSetDef func_getsetlist[] = {
+    {"__code__", (getter)func_get_code, (setter)func_set_code},
+    {"__defaults__", (getter)func_get_defaults,
+     (setter)func_set_defaults},
+    {"__kwdefaults__", (getter)func_get_kwdefaults,
+     (setter)func_set_kwdefaults},
+    {"__annotations__", (getter)func_get_annotations,
+     (setter)func_set_annotations},
+    {"__dict__", PyObject_GenericGetDict, PyObject_GenericSetDict},
+    {"__name__", (getter)func_get_name, (setter)func_set_name},
+    {"__qualname__", (getter)func_get_qualname, (setter)func_set_qualname},
+    {NULL} /* Sentinel */
+};
+#+end_src
+
+~tp_call~ 是函数被 call 的时候调用的，对应的是 ~function_call~ 这个方法，这里面会继续调用 ~Objects/call.c~ 里面的  ~_PyFunction_FastCallDict~ 继续调用 ~Python/ceval.c~ 的 ~_PyEval_EvalCodeWithName -> PyEval_EvalFrameEx~ ，最终回到了 ~PyEval_EvalFrameEx~ 这个调用。
+
+#+begin_src c
+function_call(PyObject *func, PyObject *args, PyObject *kwargs)
+#+end_src
+
+test.py 如下
+
+#+begin_src python
+x = 50
+
+def foo(x):
+    def bar(y):
+        return x + y
+    return bar
+
+b1 = foo(10)
+b2 = foo(20)
+#+end_src
+
+[[http://www.pythontutor.com/visualize.html#code=x%2520%253D%252050%250A%250Adef%2520foo%2528x%2529%253A%250A%2520%2520%2520%2520def%2520bar%2528y%2529%253A%250A%2520%2520%2520%2520%2520%2520%2520%2520return%2520x%2520%252B%2520y%250A%2520%2520%2520%2520return%2520bar%250A%250Ab1%2520%253D%2520foo%252810%2529%250Ab2%2520%253D%2520foo%252820%2529&cumulative=false&curInstr=10&heapPrimitives=nevernest&mode=display&origin=opt-frontend.js&py=3&rawInputLstJSON=%255B%255D&textReferences=false][可视化]]，可以看到每次函数调用都会创建一个 frame，并且 closure 因为引用了外函数的局部变量，会导致外部函数不能回收（灰色的部分）。
+
+#+begin_src python
+>>> import test
+>>> import dis
+>>> dis.dis(test)
+Disassembly of b1:
+  5           0 LOAD_DEREF               0 (x)
+              2 LOAD_FAST                0 (y)
+              4 BINARY_ADD
+              6 RETURN_VALUE
+
+Disassembly of b2:
+  5           0 LOAD_DEREF               0 (x)
+              2 LOAD_FAST                0 (y)
+              4 BINARY_ADD
+              6 RETURN_VALUE
+
+Disassembly of foo:
+  4           0 LOAD_CLOSURE             0 (x)
+              2 BUILD_TUPLE              1
+              4 LOAD_CONST               1 (<code object bar at 0x10eae4420, file "/Users/wd/t/test.py", line 4>)
+              6 LOAD_CONST               2 ('foo.<locals>.bar')
+              8 MAKE_FUNCTION            8
+             10 STORE_FAST               1 (bar)
+
+  6          12 LOAD_FAST                1 (bar)
+             14 RETURN_VALUE
+
+Disassembly of <code object bar at 0x10eae4420, file "/Users/wd/t/test.py", line 4>:
+  5           0 LOAD_DEREF               0 (x)
+              2 LOAD_FAST                0 (y)
+              4 BINARY_ADD
+              6 RETURN_VALUE
+
+>>> test.b1
+<function foo.<locals>.bar at 0x10eb1c378>
+>>> test.b2
+<function foo.<locals>.bar at 0x10eb1c400>
+>>> test.b1 == test.b2
+False
+>>> test.b1.__code__
+<code object bar at 0x10eae4420, file "/Users/wd/t/test.py", line 4>
+>>> test.b1.__code__ == test.b2.__code__
+True
+>>> test.b1.__code__ is test.b2.__code__
+True
+>>> test.b1.__closure__[0].cell_contents
+10
+>>> test.b2.__closure__[0].cell_contents
+20
+>>> test.b1.__code__.co_freevars
+('x',)
+#+end_src
+
+code 里面包含 x 这个 freevar，参考前面 PyFunctionObject 的定义，里面有一段 ~func_closure contains the bindings for func_code->co_freevars~ 。
+
+上面这个例子里面，x 是通过 ~LOAD_DEREF~ 里面调用 ~PyCell_GET~ 取到的，是从那个 cell 里面取到的。感觉似乎是意思是说，普通 function 和 closure 的区别是 closure 包含了一个 ~__closure__~ 属性里面包含了对变量的引用。
+
+** Iterators
+
+#+begin_src python
+>>> a = [1,2,3]
+>>> a
+[1, 2, 3]
+>>> i = a.__iter__()
+>>> i
+<list_iterator object at 0x10819a0b8>
+>>> j = a.__iter__()
+>>> j
+<list_iterator object at 0x10819a1d0>
+#+end_src
+
+i 和 j 分别是不同的 iterator object。下面是 test.py
+
+#+begin_src python
+a = ['a', 'b', 'c']
+for e in a:
+    print(e)
+#+end_src
+
+这个是字节码，GET_ITER 生成一个 iterator object，这个会调用 ~Objects/abstract.c~ 里面的 ~PyObject_GetIter~ 。
+
+#+begin_src
+  1           0 LOAD_CONST               0 ('a')
+              2 LOAD_CONST               1 ('b')
+              4 LOAD_CONST               2 ('c')
+              6 BUILD_LIST               3
+              8 STORE_NAME               0 (a)
+
+  2          10 SETUP_LOOP              20 (to 32)
+             12 LOAD_NAME                0 (a)
+             14 GET_ITER
+        >>   16 FOR_ITER                12 (to 30)
+             18 STORE_NAME               1 (e)
+
+  3          20 LOAD_NAME                2 (print)
+             22 LOAD_NAME                1 (e)
+             24 CALL_FUNCTION            1
+             26 POP_TOP
+             28 JUMP_ABSOLUTE           16
+        >>   30 POP_BLOCK
+        >>   32 LOAD_CONST               3 (None)
+             34 RETURN_VALUE
+#+end_src
+
+首先会看看是不是有 ~tp_iter~ 定义，内置的 sequance 对象没有，然后会使用 ~PySeqIter_New~ 生成 sequance object.
+
+#+begin_src c
+PyObject *
+PyObject_GetIter(PyObject *o)
+{
+    PyTypeObject *t = o->ob_type;
+    getiterfunc f;
+
+    f = t->tp_iter;
+    if (f == NULL) {
+        if (PySequence_Check(o))
+            return PySeqIter_New(o);
+        return type_error("'%.200s' object is not iterable", o);
+    }
+    else {
+        PyObject *res = (*f)(o);
+        if (res != NULL && !PyIter_Check(res)) {
+            PyErr_Format(PyExc_TypeError,
+                         "iter() returned non-iterator "
+                         "of type '%.100s'",
+                         res->ob_type->tp_name);
+            Py_DECREF(res);
+            res = NULL;
+        }
+        return res;
+    }
+}
+#+end_src
+
+这个 object 里面，it_index 初始化的时候指向了 0 ，it_seq 指向那个输入的 seq。
+
+#+begin_src c
+typedef struct {
+    PyObject_HEAD
+    Py_ssize_t it_index;
+    PyObject *it_seq; /* Set to NULL when iterator is exhausted */
+} seqiterobject;
+
+PyObject *
+PySeqIter_New(PyObject *seq)
+{
+    seqiterobject *it;
+
+    if (!PySequence_Check(seq)) {
+        PyErr_BadInternalCall();
+        return NULL;
+    }
+    it = PyObject_GC_New(seqiterobject, &PySeqIter_Type);
+    if (it == NULL)
+        return NULL;
+    it->it_index = 0;
+    Py_INCREF(seq);
+    it->it_seq = seq;
+    _PyObject_GC_TRACK(it);
+    return (PyObject *)it;
+}
+#+end_src
+
+迭代的时候，主要调用的是 ~FOR_ITER~ ，会调用 ~tp_iternext~ ，对于列表来说是 ~Objects/iterobject.c~ 里面的 ~iter_iternext~ 方法。里面主要就是 ~PySequence_GetItem(seq, it->it_index)~ 会根据 index 获取元素，成功之后还会自增 index。如果 result 是 NULL 会把 it_seq 设置为 NULL，然后返回一个 NULL。 ~FOR_ITER~ 遇到 NULL 会根据代码有无 try except 决定是抛异常还是到 expect 处理。
+
+#+begin_src c
+tatic PyObject *
+iter_iternext(PyObject *iterator)
+{
+    seqiterobject *it;
+    PyObject *seq;
+    PyObject *result;
+
+    assert(PySeqIter_Check(iterator));
+    it = (seqiterobject *)iterator;
+    seq = it->it_seq;
+    if (seq == NULL)
+        return NULL;
+    if (it->it_index == PY_SSIZE_T_MAX) {
+        PyErr_SetString(PyExc_OverflowError,
+                        "iter index too large");
+        return NULL;
+    }
+
+    result = PySequence_GetItem(seq, it->it_index);
+    if (result != NULL) {
+        it->it_index++;
+        return result;
+    }
+    if (PyErr_ExceptionMatches(PyExc_IndexError) ||
+        PyErr_ExceptionMatches(PyExc_StopIteration))
+    {
+        PyErr_Clear();
+        it->it_seq = NULL;
+        Py_DECREF(seq);
+    }
+    return NULL;
+}
+#+end_src
+
+如果是自己实现一个可迭代的对象，需要实现 ~__iter__~  方法，提供一个返回 iter object 的方法，返回的这个 object 需要有 ~__next__~ 方法（python2 是 ~next~ 方法）。还需要注意适当的时候抛出 ~StopIteration~ 异常。
+
+#+begin_src python
+class Counter(object):
+    def __init__(self, low, high):
+        self.cur = low
+        self.high = high
+
+    def __iter__(self):
+        return self
+
+    def __next__(self):
+        if self.cur > self.high:
+            raise StopIteration
+        else:
+            self.cur += 1
+            return self.cur - 1
+
+      
+#+end_src
+
+主要的字节码如下，类似内置的支持迭代的对象，也会有 GET_ITER 和 FOR_ITER ，还内置的并没有区别。
+
+#+begin_src
+  1           0 LOAD_BUILD_CLASS
+              2 LOAD_CONST               0 (<code object Counter at 0x108e494b0, file "test.py", line 1>)
+              4 LOAD_CONST               1 ('Counter')
+              6 MAKE_FUNCTION            0
+              8 LOAD_CONST               1 ('Counter')
+             10 LOAD_NAME                0 (object)
+             12 CALL_FUNCTION            3
+             14 STORE_NAME               1 (Counter)
+
+ 16          16 LOAD_NAME                1 (Counter)
+             18 LOAD_CONST               2 (3)
+             20 LOAD_CONST               3 (6)
+             22 CALL_FUNCTION            2
+             24 STORE_NAME               2 (a)
+
+ 17          26 SETUP_LOOP              20 (to 48)
+             28 LOAD_NAME                2 (a)
+             30 GET_ITER
+        >>   32 FOR_ITER                12 (to 46)
+             34 STORE_NAME               3 (elt)
+
+ 18          36 LOAD_NAME                4 (print)
+             38 LOAD_NAME                3 (elt)
+             40 CALL_FUNCTION            1
+             42 POP_TOP
+             44 JUMP_ABSOLUTE           32
+        >>   46 POP_BLOCK
+        >>   48 LOAD_CONST               4 (None)
+             50 RETURN_VALUE
+#+end_src
+
+** User-defined classes and objects
+
+python 对象的属性是存在一个字典里面，所以可以方便的任意增减。
+
+#+begin_src python
+>>> from test import Counter
+>>> a  = Counter(1,3)
+>>> a
+<Counter object at 0x10d7fa0b8>
+>>> a.__dict__
+{'cur': 1, 'high': 3}
+>>> a.ff = 3
+>>> a.__dict__
+{'cur': 1, 'high': 3, 'ff': 3}
+>>> del a.ff
+>>> a.__dict__
+{'cur': 1, 'high': 3}
+#+end_src
+
+创建对象的时候是使用 ~LOAD_BUILD_CLASS~ 。
+
+#+begin_quote
+Pushes builtins.__build_class__() onto the stack. It is later called by CALL_FUNCTION to construct a class.
+#+end_quote
+
+然后 python 3 没有 ~PyClassObject~ 了，迁移到了 ~PyTypeObject~ ，在 ~Objects/object.h~ 里面定义。下面两个是 ~PyMethodObject~ 和 ~PyInstanceMethodObject~ 。类实例化的时候，会调用 ~tp_new -> method_new -> PyMethod_New~ ，然后会返回一个 ~PyMethodObject~ 。这样对应的还有一套 ~tp_new -> instancemethod_new -> PyInstanceMethod_New~ ，返回的是 ~PyInstanceMethodObject~ 。
+
+#+begin_src c
+typedef struct {
+    PyObject_HEAD
+    PyObject *im_func;   /* The callable object implementing the method */
+    PyObject *im_self;   /* The instance it is bound to */
+    PyObject *im_weakreflist; /* List of weak references */
+} PyMethodObject;
+
+typedef struct {
+    PyObject_HEAD
+    PyObject *func;
+} PyInstanceMethodObject;
+#+end_src
+
+这两个的区别代码里面有简单的写了一句，还不是特别清楚是什么具体区别，看着感觉像是实例方法和类方法的区别。 ~PyMethod_New~ 返回的是一个带了 self, weakreflist 这些内容的对象。 ~PyInstanceMethod_New~ 只是返回了一个方法。
+
+#+begin_src c
+/* Method objects are used for bound instance methods returned by
+   instancename.methodname. ClassName.methodname returns an ordinary
+   function.
+ */
+PyObject *
+PyMethod_New(PyObject *func, PyObject *self)
+
+
+// instance method
+PyInstanceMethod_New(PyObject *func) {
+#+end_src
+
+给前面的 Counter 加一个 ~test~ 方法，看下面的 bound method 和 unbound method 应该就是上面的 PyMethod 和 PyInstancemethod 的区别吧。
+
+#+begin_src python
+>>> from test import Counter
+>>> Counter
+<class 'test.Counter'>
+>>> dir(Counter)
+['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__iter__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__next__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__']
+>>> Counter.__dict__
+mappingproxy({'__module__': 'test', '__init__': <function Counter.__init__ at 0x102043378>, '__iter__': <function Counter.__iter__ at 0x102043400>, '__next__': <function Counter.__next__ at 0x102043488>, '__dict__': <attribute '__dict__' of 'Counter' objects>, '__weakref__': <attribute '__weakref__' of 'Counter' objects>, '__doc__': None})
+>>>
+>>>
+>>>
+>>> counter = Counter(1,3)
+>>> counter.__dict__
+{'cur': 1, 'high': 3}
+>>> dir(counter)
+['__class__', '__delattr__', '__dict__', '__dir__', '__doc__', '__eq__', '__format__', '__ge__', '__getattribute__', '__gt__', '__hash__', '__init__', '__init_subclass__', '__iter__', '__le__', '__lt__', '__module__', '__ne__', '__new__', '__next__', '__reduce__', '__reduce_ex__', '__repr__', '__setattr__', '__sizeof__', '__str__', '__subclasshook__', '__weakref__', 'cur', 'high']
+>>>
+>>>
+>>>
+>>> Counter.test
+<function Counter.test at 0x10bbc7488>
+>>> counter.test
+<bound method Counter.test of <test.Counter object at 0x10bbc30f0>>
+#+end_src
+
+** Generators
+
+Python3 文档关于 interator 的说明，主要是 ~__next__()~ 和 ~__iter__()~ 方法，前面那个例子里面有。
+
+#+begin_quote
+An object representing a stream of data. Repeated calls to the iterator’s __next__() method (or passing it to the built-in function next()) return successive items in the stream. When no more data are available a StopIteration exception is raised instead. At this point, the iterator object is exhausted and any further calls to its __next__() method just raise StopIteration again. Iterators are required to have an __iter__() method that returns the iterator object itself so every iterator is also iterable and may be used in most places where other iterables are accepted. One notable exception is code which attempts multiple iteration passes. A container object (such as a list) produces a fresh new iterator each time you pass it to the iter() function or use it in a for loop. Attempting this with an iterator will just return the same exhausted iterator object used in the previous iteration pass, making it appear like an empty container.
+#+end_quote
+
+
+Generator 的说明，主要是使用 yield 返回一系列数据。
+
+#+begin_quote
+A function which returns a generator iterator. It looks like a normal function except that it contains yield expressions for producing a series of values usable in a for-loop or that can be retrieved one at a time with the next() function.
+
+Usually refers to a generator function, but may refer to a generator iterator in some contexts. In cases where the intended meaning isn’t clear, using the full terms avoids ambiguity.
+#+end_quote
+
+test.py 如下，这个也一样可以实现类似前面 Counter 类的功能。使用了生成器。
+
+#+begin_src python
+def counter(low, high):
+    cur = low
+    while cur < high:
+        yield cur
+        cur += 1
+
+c = counter(3, 5)
+for elt in c:
+    print(elt)
+#+end_src
+
+这个是 counter 方法的字节码。 ~YIELD_VALUE~ 是核心。
+
+#+begin_src python
+Disassembly of <code object counter at 0x10c778c90, file "test.py", line 1>:
+  2           0 LOAD_FAST                0 (low)
+              2 STORE_FAST               2 (cur)
+
+  3           4 SETUP_LOOP              26 (to 32)
+        >>    6 LOAD_FAST                2 (cur)
+              8 LOAD_FAST                1 (high)
+             10 COMPARE_OP               0 (<)
+             12 POP_JUMP_IF_FALSE       30
+
+  4          14 LOAD_FAST                2 (cur)
+             16 YIELD_VALUE
+             18 POP_TOP
+
+  5          20 LOAD_FAST                2 (cur)
+             22 LOAD_CONST               1 (1)
+             24 INPLACE_ADD
+             26 STORE_FAST               2 (cur)
+             28 JUMP_ABSOLUTE            6
+        >>   30 POP_BLOCK
+        >>   32 LOAD_CONST               0 (None)
+             34 RETURN_VALUE
+#+end_src
+
+~PyGenObject~ 的定义在 ~Include/genobject.h~ 里面。可以看到这个对象包含了自己的 ~_frame~ ，因为每次调用需要考虑到上次调用的时候 frame 包含的变量信息。 ~_code~ 是对应的 code object。
+
+#+begin_src c
+#define _PyGenObject_HEAD(prefix)                                           \
+    PyObject_HEAD                                                           \
+    /* Note: gi_frame can be NULL if the generator is "finished" */         \
+    struct _frame *prefix##_frame;                                          \
+    /* True if generator is being executed. */                              \
+    char prefix##_running;                                                  \
+    /* The code object backing the generator */                             \
+    PyObject *prefix##_code;                                                \
+    /* List of weak reference. */                                           \
+    PyObject *prefix##_weakreflist;                                         \
+    /* Name of the generator. */                                            \
+    PyObject *prefix##_name;                                                \
+    /* Qualified name of the generator. */                                  \
+    PyObject *prefix##_qualname;                                            \
+    _PyErr_StackItem prefix##_exc_state;
+
+typedef struct {
+    /* The gi_ prefix is intended to remind of generator-iterator. */
+    _PyGenObject_HEAD(gi)
+} PyGenObject;
+#+end_src
+
+通过 tp_iter 获取 inter 的时候，会通过 ~PyObject_SelfIter~ 返回 object 自己。 ~tp_iternext~ 会调用 ~gen_iternext -> gen_send_ex~ 实际就是调用 send 方法。send 方法接受 args 参数，会作为 yield 语句的返回值。下面代码，执行前会设置 running 为 1，然后在 frame f 上面执行代码，执行完毕之后，设置 running 为 0。
+
+#+begin_src c
+gen_send_ex(PyGenObject *gen, PyObject *arg, int exc, int closing) {
+.....
+    gen->gi_running = 1;
+    gen->gi_exc_state.previous_item = tstate->exc_info;
+    tstate->exc_info = &gen->gi_exc_state;
+    result = PyEval_EvalFrameEx(f, exc);
+    tstate->exc_info = gen->gi_exc_state.previous_item;
+    gen->gi_exc_state.previous_item = NULL;
+    gen->gi_running = 0;
+....
+}
+#+end_src
+
+
