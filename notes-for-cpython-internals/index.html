@@ -1,0 +1,2000 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
+    <title>Notes for CPython Internals | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/resume/">~/resume</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">Notes for CPython Internals</span></h1>
+
+<h2 class="date">2019/09/05</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/python">python</a> <a href="/tags/cpython">cpython</a> 
+  
+  
+</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<main>
+
+<p>
+视频地址<a href="https://www.youtube.com/watch?list=PLzV58Zm8FuBL6OAv1Yu6AwXZrnsFbbR0S&amp;index=1">这里</a>。
+</p>
+<h2 id="headline-1">
+Python 源码
+</h2>
+<p>
+<code>Include/opcode.h</code> 里面定义了所有 opcode。 <code>Modules</code> 里面是一些 c 实现的模块， <code>Lib</code> 里面是用 python 实现的模块。 <code>Objects</code> 里面是部分 python 对象对应的 c 实现。
+</p>
+<p>
+<code>Python</code> 目录里面是 python core， <code>Python/ceval.c</code> 里面定义了 python interpreter 主要的循环，找那个 <code>for(;;)</code> 就可以，这个循环里面有一个巨长的 <code>switch (opcode)</code> 。
+</p>
+<h2 id="headline-2">
+Opcode 和 interpreter 循环
+</h2>
+<p>
+test.py
+</p>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">x <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">1</span>
+y <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">2</span>
+<span style="color:#080;font-weight:bold">print</span>(x <span style="color:#333">+</span> y)</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+使用内置的 <code>compile(source, filename, &#39;exec&#39;)</code> 函数可以把代码编译成 <code>code object</code> , code object 有一个 <code>co_code</code> 属性，里面包含了代码的 bytecode。
+</p>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#333">&gt;&gt;</span> c <span style="color:#333">=</span> <span style="color:#007020">compile</span>(<span style="color:#007020">open</span>(<span style="background-color:#fff0f0">&#39;test.py&#39;</span>)<span style="color:#333">.</span>read(), <span style="background-color:#fff0f0">&#39;test.py&#39;</span>, <span style="background-color:#fff0f0">&#39;exec&#39;</span>)
+<span style="color:#333">&gt;&gt;&gt;</span> c
+<span style="color:#333">&lt;</span>code <span style="color:#007020">object</span> <span style="color:#333">&lt;</span>module<span style="color:#333">&gt;</span> at <span style="color:#058;font-weight:bold">0x102daed20</span>, <span style="color:#007020">file</span> <span style="background-color:#fff0f0">&#34;test.py&#34;</span>, line <span style="color:#00d;font-weight:bold">1</span><span style="color:#333">&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> c<span style="color:#333">.</span>co_code
+<span style="background-color:#fff0f0">b</span><span style="background-color:#fff0f0">&#39;d</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\x00</span><span style="background-color:#fff0f0">Z</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\x00</span><span style="background-color:#fff0f0">d</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\x01</span><span style="background-color:#fff0f0">Z</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\x01</span><span style="background-color:#fff0f0">e</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\x02</span><span style="background-color:#fff0f0">e</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\x00</span><span style="background-color:#fff0f0">e</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\x01\x17\x00\x83\x01\x01\x00</span><span style="background-color:#fff0f0">d</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\x02</span><span style="background-color:#fff0f0">S</span><span style="color:#666;background-color:#fff0f0;font-weight:bold">\x00</span><span style="background-color:#fff0f0">&#39;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> [co <span style="color:#080;font-weight:bold">for</span> co <span style="color:#000;font-weight:bold">in</span> c<span style="color:#333">.</span>co_code]
+[<span style="color:#00d;font-weight:bold">100</span>, <span style="color:#00d;font-weight:bold">0</span>, <span style="color:#00d;font-weight:bold">90</span>, <span style="color:#00d;font-weight:bold">0</span>, <span style="color:#00d;font-weight:bold">100</span>, <span style="color:#00d;font-weight:bold">1</span>, <span style="color:#00d;font-weight:bold">90</span>, <span style="color:#00d;font-weight:bold">1</span>, <span style="color:#00d;font-weight:bold">101</span>, <span style="color:#00d;font-weight:bold">2</span>, <span style="color:#00d;font-weight:bold">101</span>, <span style="color:#00d;font-weight:bold">0</span>, <span style="color:#00d;font-weight:bold">101</span>, <span style="color:#00d;font-weight:bold">1</span>, <span style="color:#00d;font-weight:bold">23</span>, <span style="color:#00d;font-weight:bold">0</span>, <span style="color:#00d;font-weight:bold">131</span>, <span style="color:#00d;font-weight:bold">1</span>, <span style="color:#00d;font-weight:bold">1</span>, <span style="color:#00d;font-weight:bold">0</span>, <span style="color:#00d;font-weight:bold">100</span>, <span style="color:#00d;font-weight:bold">2</span>, <span style="color:#00d;font-weight:bold">83</span>, <span style="color:#00d;font-weight:bold">0</span>]
+<span style="color:#333">&gt;&gt;&gt;</span> <span style="color:#007020">len</span>(c<span style="color:#333">.</span>co_code)
+<span style="color:#00d;font-weight:bold">24</span></code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+使用内置的 <code>dis</code> 模块可以直观的看到 opcode。我看<a href="https://docs.python.org/3/library/dis.html">文档</a>说的 3.6 以后每个 code 是 2 个字节。
+</p>
+<div class="src src-shell">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-shell" data-lang="shell">$ python -m dis test.py
+  <span style="color:#60e;font-weight:bold">1</span>           <span style="color:#60e;font-weight:bold">0</span> LOAD_CONST               <span style="color:#60e;font-weight:bold">0</span> <span style="color:#333">(</span><span style="color:#60e;font-weight:bold">1</span><span style="color:#333">)</span>
+              <span style="color:#60e;font-weight:bold">2</span> STORE_NAME               <span style="color:#60e;font-weight:bold">0</span> <span style="color:#333">(</span>x<span style="color:#333">)</span>
+
+  <span style="color:#60e;font-weight:bold">2</span>           <span style="color:#60e;font-weight:bold">4</span> LOAD_CONST               <span style="color:#60e;font-weight:bold">1</span> <span style="color:#333">(</span><span style="color:#60e;font-weight:bold">2</span><span style="color:#333">)</span>
+              <span style="color:#60e;font-weight:bold">6</span> STORE_NAME               <span style="color:#60e;font-weight:bold">1</span> <span style="color:#333">(</span>y<span style="color:#333">)</span>
+
+  <span style="color:#60e;font-weight:bold">3</span>           <span style="color:#60e;font-weight:bold">8</span> LOAD_NAME                <span style="color:#60e;font-weight:bold">2</span> <span style="color:#333">(</span>print<span style="color:#333">)</span>
+             <span style="color:#60e;font-weight:bold">10</span> LOAD_NAME                <span style="color:#60e;font-weight:bold">0</span> <span style="color:#333">(</span>x<span style="color:#333">)</span>
+             <span style="color:#60e;font-weight:bold">12</span> LOAD_NAME                <span style="color:#60e;font-weight:bold">1</span> <span style="color:#333">(</span>y<span style="color:#333">)</span>
+             <span style="color:#60e;font-weight:bold">14</span> BINARY_ADD
+             <span style="color:#60e;font-weight:bold">16</span> CALL_FUNCTION            <span style="color:#60e;font-weight:bold">1</span>
+             <span style="color:#60e;font-weight:bold">18</span> POP_TOP
+             <span style="color:#60e;font-weight:bold">20</span> LOAD_CONST               <span style="color:#60e;font-weight:bold">2</span> <span style="color:#333">(</span>None<span style="color:#333">)</span>
+             <span style="color:#60e;font-weight:bold">22</span> RETURN_VALUE</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<blockquote>
+<p>
+Changed in version 3.6: Use 2 bytes for each instruction. Previously the number of bytes varied by instruction.
+</p>
+</blockquote>
+<p>
+对应 <code>LOAD_CONST</code> 的 opcode 是 <code>100</code> ，这个可以到 <code>Include/opcode.h</code> 里面查。
+</p>
+<p>
+我看 2.7 里面 <code>Python/ceval.c</code> 的 <code>PyEval_EvalFrameEx</code> 这个函数是包含那个死循环的函数，而 3.7 里面是 <code>_PyEval_EvalFrameDefault</code> ，这里面主要包含了那个 <code>for(;;)</code> 循环，输入一个 <code>PyFrameObject</code> ，然后一个个 opcode 处理。 <code>PyObject **stack_pointer;  /* Next free slot in value stack */</code>  定义了 value stack，然后这后面定义了一堆的宏，方便写代码。。。后面就是从栈上取到 opcode，取到 oparg ，不同的 opcode 的 arg 数量也不一样，在 opcode.h 里面有定义。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">    first_instr <span style="color:#333">=</span> (_Py_CODEUNIT <span style="color:#333">*</span>) PyBytes_AS_STRING(co<span style="color:#333">-&gt;</span>co_code);
+...
+    next_instr <span style="color:#333">=</span> first_instr;
+....
+            opcode <span style="color:#333">=</span> _Py_OPCODE(<span style="color:#333">*</span>next_instr);</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#579">#define PREDICT(op) \
+</span><span style="color:#579">    do{ \
+</span><span style="color:#579">        _Py_CODEUNIT word = *next_instr; \
+</span><span style="color:#579">        opcode = _Py_OPCODE(word); \
+</span><span style="color:#579">        if (opcode == op){ \
+</span><span style="color:#579">            oparg = _Py_OPARG(word); \
+</span><span style="color:#579">            next_instr++; \
+</span><span style="color:#579">            goto PRED_##op; \
+</span><span style="color:#579">        } \
+</span><span style="color:#579">    } while(0)
+</span><span style="color:#579">#endif
+</span><span style="color:#579">#define PREDICTED(op)           PRED_##op:</span></code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+opcode 就是从 co_code 里面取到的 bytecode，oparg 类似从 co_code 里面循环取，直到遇到下一个 opcode。
+</p>
+<p>
+每个 opcode 可能经过的流程是：
+</p>
+<ul>
+<li>
+<p>
+从 oparg 取变量的值放到 value stack，给下一个 opcode 使用。
+</p>
+</li>
+<li>
+<p>
+从 value stack 取数据。
+</p>
+</li>
+<li>
+<p>
+使用 c 的方法做一些运算。
+</p>
+</li>
+<li>
+<p>
+增减引用计数。
+</p>
+</li>
+<li>
+<p>
+把结果放回到 value stack。
+</p>
+</li>
+</ul>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">    co <span style="color:#333">=</span> f<span style="color:#333">-&gt;</span>f_code;
+    names <span style="color:#333">=</span> co<span style="color:#333">-&gt;</span>co_names;
+    consts <span style="color:#333">=</span> co<span style="color:#333">-&gt;</span>co_consts;
+    fastlocals <span style="color:#333">=</span> f<span style="color:#333">-&gt;</span>f_localsplus;
+    freevars <span style="color:#333">=</span> f<span style="color:#333">-&gt;</span>f_localsplus <span style="color:#333">+</span> co<span style="color:#333">-&gt;</span>co_nlocals;</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+从这里能看到 <code>PyFrameObject</code> 包含了 code object，还包含了一些其他的，看着像是变量信息。
+</p>
+<p>
+这个网站 <a href="http://www.pythontutor.com/visualize.html#code=def%2520foo%2528%2529%253A%250A%2520%2520%2520%2520x%2520%253D%25201%250A%2520%2520%2520%2520print%25281%2529%250A%2520%2520%2520%2520%250Afoo%2528%2529&amp;cumulative=false&amp;curInstr=4&amp;heapPrimitives=nevernest&amp;mode=display&amp;origin=opt-frontend.js&amp;py=3&amp;rawInputLstJSON=%255B%255D&amp;textReferences=false">pythontutor.com</a> 可以可视化的观看 python 代码执行的情况，和各个 Frame 以及作用域的变量的情况。同时居然还有 Java Tutor,  C Tutor,  C++ Tutor,  JavaScript Tutor,  Ruby Tutor 。
+</p>
+<p>
+Function 变量（使用 def xxx 创建的变量），实际是对某一个 function object 的引用，里面 code object 似乎应该是 immutable 的，所以相同的代码实际上只需要一个 code object 就可以了。
+</p>
+<p>
+在 <code>Include/code.h</code> 里面有 <code>PyCodeObject</code> 的定义。包括了参数数量，代码 bytecode，本地变量信息什么的。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> {
+    PyObject_HEAD
+    <span style="color:#339;font-weight:bold">int</span> co_argcount;            <span style="color:#888">/* #arguments, except *args */</span>
+    <span style="color:#339;font-weight:bold">int</span> co_kwonlyargcount;      <span style="color:#888">/* #keyword only arguments */</span>
+    <span style="color:#339;font-weight:bold">int</span> co_nlocals;             <span style="color:#888">/* #local variables */</span>
+    <span style="color:#339;font-weight:bold">int</span> co_stacksize;           <span style="color:#888">/* #entries needed for evaluation stack */</span>
+    <span style="color:#339;font-weight:bold">int</span> co_flags;               <span style="color:#888">/* CO_..., see below */</span>
+    <span style="color:#339;font-weight:bold">int</span> co_firstlineno;         <span style="color:#888">/* first source line number */</span>
+    PyObject <span style="color:#333">*</span>co_code;          <span style="color:#888">/* instruction opcodes */</span>
+    PyObject <span style="color:#333">*</span>co_consts;        <span style="color:#888">/* list (constants used) */</span>
+    PyObject <span style="color:#333">*</span>co_names;         <span style="color:#888">/* list of strings (names used) */</span>
+    PyObject <span style="color:#333">*</span>co_varnames;      <span style="color:#888">/* tuple of strings (local variable names) */</span>
+    PyObject <span style="color:#333">*</span>co_freevars;      <span style="color:#888">/* tuple of strings (free variable names) */</span>
+    PyObject <span style="color:#333">*</span>co_cellvars;      <span style="color:#888">/* tuple of strings (cell variable names) */</span>
+    <span style="color:#888">/* The rest aren&#39;t used in either hash or comparisons, except for co_name,
+</span><span style="color:#888">       used in both. This is done to preserve the name and line number
+</span><span style="color:#888">       for tracebacks and debuggers; otherwise, constant de-duplication
+</span><span style="color:#888">       would collapse identical functions/lambdas defined on different lines.
+</span><span style="color:#888">    */</span>
+    Py_ssize_t <span style="color:#333">*</span>co_cell2arg;    <span style="color:#888">/* Maps cell vars which are arguments. */</span>
+    PyObject <span style="color:#333">*</span>co_filename;      <span style="color:#888">/* unicode (where it was loaded from) */</span>
+    PyObject <span style="color:#333">*</span>co_name;          <span style="color:#888">/* unicode (name, for reference) */</span>
+    PyObject <span style="color:#333">*</span>co_lnotab;        <span style="color:#888">/* string (encoding addr&lt;-&gt;lineno mapping) See
+</span><span style="color:#888">                                   Objects/lnotab_notes.txt for details. */</span>
+    <span style="color:#339;font-weight:bold">void</span> <span style="color:#333">*</span>co_zombieframe;       <span style="color:#888">/* for optimization only (see frameobject.c) */</span>
+    PyObject <span style="color:#333">*</span>co_weakreflist;   <span style="color:#888">/* to support weakrefs to code objects */</span>
+    <span style="color:#888">/* Scratch space for extra data relating to the code object.
+</span><span style="color:#888">       Type is a void* to keep the format private in codeobject.c to force
+</span><span style="color:#888">       people to go through the proper APIs. */</span>
+    <span style="color:#339;font-weight:bold">void</span> <span style="color:#333">*</span>co_extra;
+} PyCodeObject;</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+在 <code>Include/frameobject.h</code> 里面有 <code>PyFrameObject</code> 的定义。可以看到包含了一个 <code>PyCodeObject</code> ，还有 <code>*f_globals</code> <code>*f_locals</code> 变量表，每个 frame 有自己的全局本地变量表。 <code>f_back</code> 是上一个 frame 的信息，frame stack 是一个链表。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">ypedef <span style="color:#080;font-weight:bold">struct</span> _frame {
+    PyObject_VAR_HEAD
+    <span style="color:#080;font-weight:bold">struct</span> _frame <span style="color:#333">*</span>f_back;      <span style="color:#888">/* previous frame, or NULL */</span>
+    PyCodeObject <span style="color:#333">*</span>f_code;       <span style="color:#888">/* code segment */</span>
+    PyObject <span style="color:#333">*</span>f_builtins;       <span style="color:#888">/* builtin symbol table (PyDictObject) */</span>
+    PyObject <span style="color:#333">*</span>f_globals;        <span style="color:#888">/* global symbol table (PyDictObject) */</span>
+    PyObject <span style="color:#333">*</span>f_locals;         <span style="color:#888">/* local symbol table (any mapping) */</span>
+    PyObject <span style="color:#333">**</span>f_valuestack;    <span style="color:#888">/* points after the last local */</span>
+    <span style="color:#888">/* Next free slot in f_valuestack.  Frame creation sets to f_valuestack.
+</span><span style="color:#888">       Frame evaluation usually NULLs it, but a frame that yields sets it
+</span><span style="color:#888">       to the current stack top. */</span>
+    PyObject <span style="color:#333">**</span>f_stacktop;
+    PyObject <span style="color:#333">*</span>f_trace;          <span style="color:#888">/* Trace function */</span>
+    <span style="color:#339;font-weight:bold">char</span> f_trace_lines;         <span style="color:#888">/* Emit per-line trace events? */</span>
+    <span style="color:#339;font-weight:bold">char</span> f_trace_opcodes;       <span style="color:#888">/* Emit per-opcode trace events? */</span>
+
+    <span style="color:#888">/* Borrowed reference to a generator, or NULL */</span>
+    PyObject <span style="color:#333">*</span>f_gen;
+
+    <span style="color:#339;font-weight:bold">int</span> f_lasti;                <span style="color:#888">/* Last instruction if called */</span>
+    <span style="color:#888">/* Call PyFrame_GetLineNumber() instead of reading this field
+</span><span style="color:#888">       directly.  As of 2.3 f_lineno is only valid when tracing is
+</span><span style="color:#888">       active (i.e. when f_trace is set).  At other times we use
+</span><span style="color:#888">       PyCode_Addr2Line to calculate the line from the current
+</span><span style="color:#888">       bytecode index. */</span>
+    <span style="color:#339;font-weight:bold">int</span> f_lineno;               <span style="color:#888">/* Current line number */</span>
+    <span style="color:#339;font-weight:bold">int</span> f_iblock;               <span style="color:#888">/* index in f_blockstack */</span>
+    <span style="color:#339;font-weight:bold">char</span> f_executing;           <span style="color:#888">/* whether the frame is still executing */</span>
+    PyTryBlock f_blockstack[CO_MAXBLOCKS]; <span style="color:#888">/* for try and loop blocks */</span>
+    PyObject <span style="color:#333">*</span>f_localsplus[<span style="color:#00d;font-weight:bold">1</span>];  <span style="color:#888">/* locals+stack, dynamically sized */</span>
+} PyFrameObject;</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+所以 <code>PyObject * PyEval_EvalFrameEx(PyFrameObject *f, int throwflag)</code> 接收一个 <code>PyFrameObject</code> 参数，然后处理这个 frame 里面的 bytecodes，然后 return 一个 <code>PyObject</code> 。
+</p>
+<p>
+code object 包含代码的字节码，和一些内部的常量信息。function 包含 code object 以及一些环境信息，比如全局变量什么的，就像是一个普通不可变对象。 frame 包含 code object 以及一些环境信息，还有参数信息，是运行时的，同一个 function 可以有不同的 frame ，比如写一个递归函数， function 就那一个，但是每次递归都会产生不同的 frame。frame 很像是一个 function object 的实例，当然实际还有一个 global frame。
+</p>
+<p>
+2.7 里面，对于 <code>CALL_FUNCTION</code> 这个 code，会执行 <code>fast_function</code> 这个函数，会使用 <code>PyFrame_New()</code> 创建新的 frame，以及会从 frame 的 stack 复制参数到本地的 stack 创建局部变量。3.7 里面似乎变了。
+</p>
+<h2 id="headline-3">
+PyObject 
+</h2>
+<p>
+python 3.7 <a href="https://docs.python.org/3/c-api/long.html">没有 PyIntObject 了</a>，2.7 似乎还有。
+</p>
+<blockquote>
+<p>
+All integers are implemented as “long” integer objects of arbitrary size.
+</p>
+</blockquote>
+<p>
+所以 int 的 add 方法实现是在 <code>Objects/longobject.c</code> 里面。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#080;font-weight:bold">static</span> PyLongObject <span style="color:#333">*</span>
+<span style="color:#06b;font-weight:bold">x_add</span>(PyLongObject <span style="color:#333">*</span>a, PyLongObject <span style="color:#333">*</span>b)
+{
+    Py_ssize_t size_a <span style="color:#333">=</span> Py_ABS(Py_SIZE(a)), size_b <span style="color:#333">=</span> Py_ABS(Py_SIZE(b));
+    PyLongObject <span style="color:#333">*</span>z;
+    Py_ssize_t i;
+    digit carry <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">0</span>;
+
+    <span style="color:#888">/* Ensure a is the larger of the two: */</span>
+    <span style="color:#080;font-weight:bold">if</span> (size_a <span style="color:#333">&lt;</span> size_b) {
+        { PyLongObject <span style="color:#333">*</span>temp <span style="color:#333">=</span> a; a <span style="color:#333">=</span> b; b <span style="color:#333">=</span> temp; }
+        { Py_ssize_t size_temp <span style="color:#333">=</span> size_a;
+            size_a <span style="color:#333">=</span> size_b;
+            size_b <span style="color:#333">=</span> size_temp; }
+    }
+    z <span style="color:#333">=</span> _PyLong_New(size_a<span style="color:#333">+</span><span style="color:#00d;font-weight:bold">1</span>);
+    <span style="color:#080;font-weight:bold">if</span> (z <span style="color:#333">==</span> <span style="color:#007020">NULL</span>)
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#007020">NULL</span>;
+    <span style="color:#080;font-weight:bold">for</span> (i <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">0</span>; i <span style="color:#333">&lt;</span> size_b; <span style="color:#333">++</span>i) {
+        carry <span style="color:#333">+=</span> a<span style="color:#333">-&gt;</span>ob_digit[i] <span style="color:#333">+</span> b<span style="color:#333">-&gt;</span>ob_digit[i];
+        z<span style="color:#333">-&gt;</span>ob_digit[i] <span style="color:#333">=</span> carry <span style="color:#333">&amp;</span> PyLong_MASK;
+        carry <span style="color:#333">&gt;&gt;=</span> PyLong_SHIFT;
+    }
+    <span style="color:#080;font-weight:bold">for</span> (; i <span style="color:#333">&lt;</span> size_a; <span style="color:#333">++</span>i) {
+        carry <span style="color:#333">+=</span> a<span style="color:#333">-&gt;</span>ob_digit[i];
+        z<span style="color:#333">-&gt;</span>ob_digit[i] <span style="color:#333">=</span> carry <span style="color:#333">&amp;</span> PyLong_MASK;
+        carry <span style="color:#333">&gt;&gt;=</span> PyLong_SHIFT;
+    }
+    z<span style="color:#333">-&gt;</span>ob_digit[i] <span style="color:#333">=</span> carry;
+    <span style="color:#080;font-weight:bold">return</span> long_normalize(z);
+}</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+python 里面万物皆对象，每一个对象都是 <code>PyObject</code> 的子类型。在 <code>Include/object.h</code> 里面有 <code>PyObject</code> 和 <code>PyVarObject</code> 的定义。每个 <code>PyObject</code> 都有一个 refcnt 和 type ，不同的 type 还会有不同的扩展字段。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#579">#define _PyObject_HEAD_EXTRA
+</span><span style="color:#579"></span><span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> _object {
+    _PyObject_HEAD_EXTRA
+    Py_ssize_t ob_refcnt;
+    <span style="color:#080;font-weight:bold">struct</span> _typeobject <span style="color:#333">*</span>ob_type;
+} PyObject;
+
+<span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> {
+    PyObject ob_base;
+    Py_ssize_t ob_size; <span style="color:#888">/* Number of items in variable part */</span>
+} PyVarObject;</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+这个文件前面部分有一些注释，可以一看。每个对象都有一个引用计数字段和 type 字段。引用计数给垃圾回收用的。type 字段定义这具体是个什么类型的数据。对象一旦创建地址和大小就不会变了，这样就让引用一个对象变得简单了，因为不需要因为对象大小改变而需要挪动地方改变地址，这样也不用需要更新所有引用这个地址的变量的引用地址。
+</p>
+<blockquote>
+<p>
+An object has a &#39;reference count&#39; that is increased or decreased when a
+pointer to the object is copied or deleted; when the reference count
+reaches zero there are no references to the object left and it can be
+removed from the heap.
+</p>
+<p>
+An object has a &#39;type&#39; that determines what it represents and what kind
+of data it contains.  An object&#39;s type is fixed when it is created.
+Types themselves are represented as objects; an object contains a
+pointer to the corresponding type object.  The type itself has a type
+pointer pointing to the object representing the type &#39;type&#39;, which
+contains a pointer to itself!).
+</p>
+<p>
+Objects do not float around in memory; once allocated an object keeps
+the same size and address.  Objects that must hold variable-size data
+can contain pointers to variable-size parts of the object.  Not all
+objects of the same type have the same size; but the size cannot change
+after allocation.  (These restrictions are made so a reference to an
+object can be simply a pointer – moving an object would require
+updating all the pointers, and changing an object&#39;s size would require
+moving it if there was another object right next to it.)
+</p>
+<p>
+Objects are always accessed through pointers of the type &#39;PyObject *&#39;.
+The type &#39;PyObject&#39; is a structure that only contains the reference count
+and the type pointer.  The actual memory allocated for an object
+contains other data that can only be accessed after casting the pointer
+to a pointer to a longer structure type.  This longer type must start
+with the reference count and type fields; the macro PyObject_HEAD should be
+used for this (to accommodate for future changes).  The implementation
+of a particular object type can cast the object pointer to the proper
+type and back.
+</p>
+<p>
+A standard interface exists for objects that contain an array of items
+whose size is determined when the object is allocated.
+</p>
+</blockquote>
+<p>
+在 <code>Include/longobject.h</code> 和 <code>Include/longintrepr.h</code> 里面定义了 <code>PyLongObject</code> ，在 <code>PyObject</code> 多了一个 size 和一个 value 字段。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#579">#define PyObject_VAR_HEAD      PyVarObject ob_base;
+</span><span style="color:#579"></span>
+<span style="color:#080;font-weight:bold">struct</span> _longobject {
+    PyObject_VAR_HEAD
+    digit ob_digit[<span style="color:#00d;font-weight:bold">1</span>];
+};
+
+<span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> _longobject PyLongObject; <span style="color:#888">/* Revealed in longintrepr.h */</span></code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+2.7 里面有 <code>PyStringObject</code> ，但是 3.7 里面没有了，后面都是基于 3.7 的代码的。
+</p>
+<p>
+我猜是使用 <code>PyUnicodeObject</code> 的。 <code>PyASCIIObject</code> 有一些字段（内容比较长，下面有删节），有一个 <code>interned</code> 表示这个是不是内部提前缓存了，比如常用的字串 &#39;hello&#39; 这个对象会提前生成好。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">51
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">52
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">53
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">54
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> {
+    PyObject_HEAD
+    Py_ssize_t length;          <span style="color:#888">/* Number of code points in the string */</span>
+    Py_hash_t hash;             <span style="color:#888">/* Hash value; -1 if not set */</span>
+    <span style="color:#080;font-weight:bold">struct</span> {
+        <span style="color:#888">/*
+</span><span style="color:#888">           SSTATE_NOT_INTERNED (0)
+</span><span style="color:#888">           SSTATE_INTERNED_MORTAL (1)
+</span><span style="color:#888">           SSTATE_INTERNED_IMMORTAL (2)
+</span><span style="color:#888">
+</span><span style="color:#888">           If interned != SSTATE_NOT_INTERNED, the two references from the
+</span><span style="color:#888">           dictionary to this object are *not* counted in ob_refcnt.
+</span><span style="color:#888">         */</span>
+        <span style="color:#339;font-weight:bold">unsigned</span> <span style="color:#339;font-weight:bold">int</span> <span style="color:#970;font-weight:bold">interned</span>:<span style="color:#00d;font-weight:bold">2</span>;
+       <span style="color:#888">/* Character size:
+</span><span style="color:#888">
+</span><span style="color:#888">           - PyUnicode_WCHAR_KIND (0):
+</span><span style="color:#888">           - PyUnicode_1BYTE_KIND (1):
+</span><span style="color:#888">           - PyUnicode_2BYTE_KIND (2):
+</span><span style="color:#888">           - PyUnicode_4BYTE_KIND (4):
+</span><span style="color:#888">        */</span>
+        <span style="color:#339;font-weight:bold">unsigned</span> <span style="color:#339;font-weight:bold">int</span> <span style="color:#970;font-weight:bold">kind</span>:<span style="color:#00d;font-weight:bold">3</span>;
+        <span style="color:#339;font-weight:bold">unsigned</span> <span style="color:#339;font-weight:bold">int</span> <span style="color:#970;font-weight:bold">compact</span>:<span style="color:#00d;font-weight:bold">1</span>;
+        <span style="color:#339;font-weight:bold">unsigned</span> <span style="color:#339;font-weight:bold">int</span> <span style="color:#970;font-weight:bold">ascii</span>:<span style="color:#00d;font-weight:bold">1</span>;
+        <span style="color:#339;font-weight:bold">unsigned</span> <span style="color:#339;font-weight:bold">int</span> <span style="color:#970;font-weight:bold">ready</span>:<span style="color:#00d;font-weight:bold">1</span>;
+        <span style="color:#339;font-weight:bold">unsigned</span> <span style="color:#339;font-weight:bold">int</span> <span style="color:#333">:</span><span style="color:#00d;font-weight:bold">24</span>;
+   } state;
+    wchar_t <span style="color:#333">*</span>wstr;              <span style="color:#888">/* wchar_t representation (null-terminated) */</span>
+} PyASCIIObject;
+        
+<span style="color:#888">/* Non-ASCII strings allocated through PyUnicode_New use the
+</span><span style="color:#888">   PyCompactUnicodeObject structure. state.compact is set, and the data
+</span><span style="color:#888">   immediately follow the structure. */</span>
+<span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> {
+    PyASCIIObject _base;
+    Py_ssize_t utf8_length;     <span style="color:#888">/* Number of bytes in utf8, excluding the
+</span><span style="color:#888">                                 * terminating \0. */</span>
+    <span style="color:#339;font-weight:bold">char</span> <span style="color:#333">*</span>utf8;                 <span style="color:#888">/* UTF-8 representation (null-terminated) */</span>
+    Py_ssize_t wstr_length;     <span style="color:#888">/* Number of code points in wstr, possible
+</span><span style="color:#888">                                 * surrogates count as two code points. */</span>
+} PyCompactUnicodeObject;
+
+<span style="color:#888">/* Strings allocated through PyUnicode_FromUnicode(NULL, len) use the
+</span><span style="color:#888">   PyUnicodeObject structure. The actual string data is initially in the wstr
+</span><span style="color:#888">   block, and copied into the data block using _PyUnicode_Ready. */</span>
+<span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> {
+    PyCompactUnicodeObject _base;
+    <span style="color:#080;font-weight:bold">union</span> {
+        <span style="color:#339;font-weight:bold">void</span> <span style="color:#333">*</span>any;
+        Py_UCS1 <span style="color:#333">*</span>latin1;
+        Py_UCS2 <span style="color:#333">*</span>ucs2;
+        Py_UCS4 <span style="color:#333">*</span>ucs4;
+    } data;                     <span style="color:#888">/* Canonical, smallest-form Unicode buffer */</span>
+} PyUnicodeObject;</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#333">&gt;&gt;&gt;</span> a<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;hello&#39;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> b<span style="color:#333">=</span><span style="background-color:#fff0f0">&#39;hello&#39;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> a <span style="color:#000;font-weight:bold">is</span> b
+True
+<span style="color:#333">&gt;&gt;&gt;</span> <span style="color:#007020">id</span>(a)
+<span style="color:#00d;font-weight:bold">4439401168</span>
+<span style="color:#333">&gt;&gt;&gt;</span> <span style="color:#007020">id</span>(b)
+<span style="color:#00d;font-weight:bold">4439401168</span></code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+对于字符串 <code>==</code> 操作， <code>COMPARE_OP</code> 从 <code>Python/ceval.c</code> 里面，然后调用 <code>cmp_outcome</code> 然后调用 <code>Objects/object.c</code> 里面的 <code>PyObject_RichCompare -&gt; do_richcompare</code> 。然后会调用 <code>v-&gt;ob_type-&gt;tp_richcompare</code> ，然后会到 <code>Objects/unicodeobject.c</code> 里面的 <code>PyUnicode_RichCompare</code> 
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">        TARGET(COMPARE_OP) {
+            PyObject <span style="color:#333">*</span>right <span style="color:#333">=</span> POP();
+            PyObject <span style="color:#333">*</span>left <span style="color:#333">=</span> TOP();
+            PyObject <span style="color:#333">*</span>res <span style="color:#333">=</span> cmp_outcome(oparg, left, right);
+            Py_DECREF(left);
+            Py_DECREF(right);
+            SET_TOP(res);
+            <span style="color:#080;font-weight:bold">if</span> (res <span style="color:#333">==</span> <span style="color:#007020">NULL</span>)
+                <span style="color:#080;font-weight:bold">goto</span> error;
+            PREDICT(POP_JUMP_IF_FALSE);
+            PREDICT(POP_JUMP_IF_TRUE);
+            DISPATCH();
+        }</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+会先比较地址，然后使用 <code>unicode_compare_eq</code> 这个会先比较长度，如果长度一样，继续使用 <code>PyUnicode_KIND</code> 比较下 <code>kind</code> ， kind 可以看前面 struct 里面定义的， 然后会使用 <code>memcmp</code> 。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">PyObject <span style="color:#333">*</span>
+<span style="color:#06b;font-weight:bold">PyUnicode_RichCompare</span>(PyObject <span style="color:#333">*</span>left, PyObject <span style="color:#333">*</span>right, <span style="color:#339;font-weight:bold">int</span> op)
+{
+    <span style="color:#339;font-weight:bold">int</span> result;
+
+    <span style="color:#080;font-weight:bold">if</span> (<span style="color:#333">!</span>PyUnicode_Check(left) <span style="color:#333">||</span> <span style="color:#333">!</span>PyUnicode_Check(right))
+        Py_RETURN_NOTIMPLEMENTED;
+
+    <span style="color:#080;font-weight:bold">if</span> (PyUnicode_READY(left) <span style="color:#333">==</span> <span style="color:#333">-</span><span style="color:#00d;font-weight:bold">1</span> <span style="color:#333">||</span>
+        PyUnicode_READY(right) <span style="color:#333">==</span> <span style="color:#333">-</span><span style="color:#00d;font-weight:bold">1</span>)
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#007020">NULL</span>;
+
+    <span style="color:#080;font-weight:bold">if</span> (left <span style="color:#333">==</span> right) {
+        <span style="color:#080;font-weight:bold">switch</span> (op) {
+        <span style="color:#080;font-weight:bold">case</span> <span style="color:#970;font-weight:bold">Py_EQ</span>:
+        <span style="color:#080;font-weight:bold">case</span> <span style="color:#970;font-weight:bold">Py_LE</span>:
+        <span style="color:#080;font-weight:bold">case</span> <span style="color:#970;font-weight:bold">Py_GE</span>:
+            <span style="color:#888">/* a string is equal to itself */</span>
+            Py_RETURN_TRUE;
+        <span style="color:#080;font-weight:bold">case</span> <span style="color:#970;font-weight:bold">Py_NE</span>:
+        <span style="color:#080;font-weight:bold">case</span> <span style="color:#970;font-weight:bold">Py_LT</span>:
+        <span style="color:#080;font-weight:bold">case</span> <span style="color:#970;font-weight:bold">Py_GT</span>:
+            Py_RETURN_FALSE;
+        <span style="color:#080;font-weight:bold">default</span><span style="color:#333">:</span>
+            PyErr_BadArgument();
+            <span style="color:#080;font-weight:bold">return</span> <span style="color:#007020">NULL</span>;
+        }
+    }
+    <span style="color:#080;font-weight:bold">else</span> <span style="color:#080;font-weight:bold">if</span> (op <span style="color:#333">==</span> Py_EQ <span style="color:#333">||</span> op <span style="color:#333">==</span> Py_NE) {
+        result <span style="color:#333">=</span> unicode_compare_eq(left, right);
+        result <span style="color:#333">^=</span> (op <span style="color:#333">==</span> Py_NE);
+        <span style="color:#080;font-weight:bold">return</span> PyBool_FromLong(result);
+    }
+    <span style="color:#080;font-weight:bold">else</span> {
+        result <span style="color:#333">=</span> unicode_compare(left, right);
+        Py_RETURN_RICHCOMPARE(result, <span style="color:#00d;font-weight:bold">0</span>, op);
+    }
+}</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+对于 code object 也有一个 <code>code_richcompare</code> ，会逐个比较 name, argcount, locales, constants 等等。
+</p>
+<h2 id="headline-4">
+Code Object, Function Object, closures
+</h2>
+<p>
+<code>PyFunctionObject</code> 定义在 <code>Include/funcobject.h</code> 里面。 code 是一个 code object，globals 是全局变量，defaults 是默认参数。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> {
+    PyObject_HEAD
+    PyObject <span style="color:#333">*</span>func_code;        <span style="color:#888">/* A code object, the __code__ attribute */</span>
+    PyObject <span style="color:#333">*</span>func_globals;     <span style="color:#888">/* A dictionary (other mappings won&#39;t do) */</span>
+    PyObject <span style="color:#333">*</span>func_defaults;    <span style="color:#888">/* NULL or a tuple */</span>
+    PyObject <span style="color:#333">*</span>func_kwdefaults;  <span style="color:#888">/* NULL or a dict */</span>
+    PyObject <span style="color:#333">*</span>func_closure;     <span style="color:#888">/* NULL or a tuple of cell objects */</span>
+    PyObject <span style="color:#333">*</span>func_doc;         <span style="color:#888">/* The __doc__ attribute, can be anything */</span>
+    PyObject <span style="color:#333">*</span>func_name;        <span style="color:#888">/* The __name__ attribute, a string object */</span>
+    PyObject <span style="color:#333">*</span>func_dict;        <span style="color:#888">/* The __dict__ attribute, a dict or NULL */</span>
+    PyObject <span style="color:#333">*</span>func_weakreflist; <span style="color:#888">/* List of weak references */</span>
+    PyObject <span style="color:#333">*</span>func_module;      <span style="color:#888">/* The __module__ attribute, can be anything */</span>
+    PyObject <span style="color:#333">*</span>func_annotations; <span style="color:#888">/* Annotations, a dict or NULL */</span>
+    PyObject <span style="color:#333">*</span>func_qualname;    <span style="color:#888">/* The qualified name */</span>
+
+    <span style="color:#888">/* Invariant:
+</span><span style="color:#888">     *     func_closure contains the bindings for func_code-&gt;co_freevars, so
+</span><span style="color:#888">     *     PyTuple_Size(func_closure) == PyCode_GetNumFree(func_code)
+</span><span style="color:#888">     *     (func_closure may be NULL if PyCode_GetNumFree(func_code) == 0).
+</span><span style="color:#888">     */</span>
+} PyFunctionObject;</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+使用 <code>PyFunction_New</code> 创建 <code>PyFunctionObject</code> ，可以看到输入是 code object 和 global 环境。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">PyObject <span style="color:#333">*</span> PyFunction_New(PyObject <span style="color:#333">*</span>code, PyObject <span style="color:#333">*</span>globals)</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+对 function object 的一些属性的定义，有的是只读的，有的可以修改。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#080;font-weight:bold">static</span> PyMemberDef func_memberlist[] <span style="color:#333">=</span> {
+    {<span style="background-color:#fff0f0">&#34;__closure__&#34;</span>,   T_OBJECT,     OFF(func_closure),
+     RESTRICTED<span style="color:#333">|</span>READONLY},
+    {<span style="background-color:#fff0f0">&#34;__doc__&#34;</span>,       T_OBJECT,     OFF(func_doc), PY_WRITE_RESTRICTED},
+    {<span style="background-color:#fff0f0">&#34;__globals__&#34;</span>,   T_OBJECT,     OFF(func_globals),
+     RESTRICTED<span style="color:#333">|</span>READONLY},
+    {<span style="background-color:#fff0f0">&#34;__module__&#34;</span>,    T_OBJECT,     OFF(func_module), PY_WRITE_RESTRICTED},
+    {<span style="color:#007020">NULL</span>}  <span style="color:#888">/* Sentinel */</span>
+};
+
+<span style="color:#080;font-weight:bold">static</span> PyGetSetDef func_getsetlist[] <span style="color:#333">=</span> {
+    {<span style="background-color:#fff0f0">&#34;__code__&#34;</span>, (getter)func_get_code, (setter)func_set_code},
+    {<span style="background-color:#fff0f0">&#34;__defaults__&#34;</span>, (getter)func_get_defaults,
+     (setter)func_set_defaults},
+    {<span style="background-color:#fff0f0">&#34;__kwdefaults__&#34;</span>, (getter)func_get_kwdefaults,
+     (setter)func_set_kwdefaults},
+    {<span style="background-color:#fff0f0">&#34;__annotations__&#34;</span>, (getter)func_get_annotations,
+     (setter)func_set_annotations},
+    {<span style="background-color:#fff0f0">&#34;__dict__&#34;</span>, PyObject_GenericGetDict, PyObject_GenericSetDict},
+    {<span style="background-color:#fff0f0">&#34;__name__&#34;</span>, (getter)func_get_name, (setter)func_set_name},
+    {<span style="background-color:#fff0f0">&#34;__qualname__&#34;</span>, (getter)func_get_qualname, (setter)func_set_qualname},
+    {<span style="color:#007020">NULL</span>} <span style="color:#888">/* Sentinel */</span>
+};</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+<code>tp_call</code> 是函数被 call 的时候调用的，对应的是 <code>function_call</code> 这个方法，这里面会继续调用 <code>Objects/call.c</code> 里面的  <code>_PyFunction_FastCallDict</code> 继续调用 <code>Python/ceval.c</code> 的 <code>_PyEval_EvalCodeWithName -&gt; PyEval_EvalFrameEx</code> ，最终回到了 <code>PyEval_EvalFrameEx</code> 这个调用。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">function_call(PyObject <span style="color:#333">*</span>func, PyObject <span style="color:#333">*</span>args, PyObject <span style="color:#333">*</span>kwargs)</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+test.py 如下
+</p>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">x <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">50</span>
+
+<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">foo</span>(x):
+    <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">bar</span>(y):
+        <span style="color:#080;font-weight:bold">return</span> x <span style="color:#333">+</span> y
+    <span style="color:#080;font-weight:bold">return</span> bar
+
+b1 <span style="color:#333">=</span> foo(<span style="color:#00d;font-weight:bold">10</span>)
+b2 <span style="color:#333">=</span> foo(<span style="color:#00d;font-weight:bold">20</span>)</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+<a href="http://www.pythontutor.com/visualize.html#code=x%2520%253D%252050%250A%250Adef%2520foo%2528x%2529%253A%250A%2520%2520%2520%2520def%2520bar%2528y%2529%253A%250A%2520%2520%2520%2520%2520%2520%2520%2520return%2520x%2520%252B%2520y%250A%2520%2520%2520%2520return%2520bar%250A%250Ab1%2520%253D%2520foo%252810%2529%250Ab2%2520%253D%2520foo%252820%2529&amp;cumulative=false&amp;curInstr=10&amp;heapPrimitives=nevernest&amp;mode=display&amp;origin=opt-frontend.js&amp;py=3&amp;rawInputLstJSON=%255B%255D&amp;textReferences=false">可视化</a>，可以看到每次函数调用都会创建一个 frame，并且 closure 因为引用了外函数的局部变量，会导致外部函数不能回收（灰色的部分）。
+</p>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">33
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">34
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">35
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">36
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">37
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">38
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">39
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">40
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">41
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">42
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">43
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">44
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">45
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">46
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">47
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">48
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">49
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">50
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#333">&gt;&gt;&gt;</span> <span style="color:#080;font-weight:bold">import</span> <span style="color:#0e84b5;font-weight:bold">test</span>
+<span style="color:#333">&gt;&gt;&gt;</span> <span style="color:#080;font-weight:bold">import</span> <span style="color:#0e84b5;font-weight:bold">dis</span>
+<span style="color:#333">&gt;&gt;&gt;</span> dis<span style="color:#333">.</span>dis(test)
+Disassembly of b1:
+  <span style="color:#00d;font-weight:bold">5</span>           <span style="color:#00d;font-weight:bold">0</span> LOAD_DEREF               <span style="color:#00d;font-weight:bold">0</span> (x)
+              <span style="color:#00d;font-weight:bold">2</span> LOAD_FAST                <span style="color:#00d;font-weight:bold">0</span> (y)
+              <span style="color:#00d;font-weight:bold">4</span> BINARY_ADD
+              <span style="color:#00d;font-weight:bold">6</span> RETURN_VALUE
+
+Disassembly of b2:
+  <span style="color:#00d;font-weight:bold">5</span>           <span style="color:#00d;font-weight:bold">0</span> LOAD_DEREF               <span style="color:#00d;font-weight:bold">0</span> (x)
+              <span style="color:#00d;font-weight:bold">2</span> LOAD_FAST                <span style="color:#00d;font-weight:bold">0</span> (y)
+              <span style="color:#00d;font-weight:bold">4</span> BINARY_ADD
+              <span style="color:#00d;font-weight:bold">6</span> RETURN_VALUE
+
+Disassembly of foo:
+  <span style="color:#00d;font-weight:bold">4</span>           <span style="color:#00d;font-weight:bold">0</span> LOAD_CLOSURE             <span style="color:#00d;font-weight:bold">0</span> (x)
+              <span style="color:#00d;font-weight:bold">2</span> BUILD_TUPLE              <span style="color:#00d;font-weight:bold">1</span>
+              <span style="color:#00d;font-weight:bold">4</span> LOAD_CONST               <span style="color:#00d;font-weight:bold">1</span> (<span style="color:#333">&lt;</span>code <span style="color:#007020">object</span> bar at <span style="color:#058;font-weight:bold">0x10eae4420</span>, <span style="color:#007020">file</span> <span style="background-color:#fff0f0">&#34;/Users/wd/t/test.py&#34;</span>, line <span style="color:#00d;font-weight:bold">4</span><span style="color:#333">&gt;</span>)
+              <span style="color:#00d;font-weight:bold">6</span> LOAD_CONST               <span style="color:#00d;font-weight:bold">2</span> (<span style="background-color:#fff0f0">&#39;foo.&lt;locals&gt;.bar&#39;</span>)
+              <span style="color:#00d;font-weight:bold">8</span> MAKE_FUNCTION            <span style="color:#00d;font-weight:bold">8</span>
+             <span style="color:#00d;font-weight:bold">10</span> STORE_FAST               <span style="color:#00d;font-weight:bold">1</span> (bar)
+
+  <span style="color:#00d;font-weight:bold">6</span>          <span style="color:#00d;font-weight:bold">12</span> LOAD_FAST                <span style="color:#00d;font-weight:bold">1</span> (bar)
+             <span style="color:#00d;font-weight:bold">14</span> RETURN_VALUE
+
+Disassembly of <span style="color:#333">&lt;</span>code <span style="color:#007020">object</span> bar at <span style="color:#058;font-weight:bold">0x10eae4420</span>, <span style="color:#007020">file</span> <span style="background-color:#fff0f0">&#34;/Users/wd/t/test.py&#34;</span>, line <span style="color:#00d;font-weight:bold">4</span><span style="color:#333">&gt;</span>:
+  <span style="color:#00d;font-weight:bold">5</span>           <span style="color:#00d;font-weight:bold">0</span> LOAD_DEREF               <span style="color:#00d;font-weight:bold">0</span> (x)
+              <span style="color:#00d;font-weight:bold">2</span> LOAD_FAST                <span style="color:#00d;font-weight:bold">0</span> (y)
+              <span style="color:#00d;font-weight:bold">4</span> BINARY_ADD
+              <span style="color:#00d;font-weight:bold">6</span> RETURN_VALUE
+
+<span style="color:#333">&gt;&gt;&gt;</span> test<span style="color:#333">.</span>b1
+<span style="color:#333">&lt;</span>function foo<span style="color:#333">.&lt;</span><span style="color:#007020">locals</span><span style="color:#333">&gt;.</span>bar at <span style="color:#058;font-weight:bold">0x10eb1c378</span><span style="color:#333">&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> test<span style="color:#333">.</span>b2
+<span style="color:#333">&lt;</span>function foo<span style="color:#333">.&lt;</span><span style="color:#007020">locals</span><span style="color:#333">&gt;.</span>bar at <span style="color:#058;font-weight:bold">0x10eb1c400</span><span style="color:#333">&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> test<span style="color:#333">.</span>b1 <span style="color:#333">==</span> test<span style="color:#333">.</span>b2
+False
+<span style="color:#333">&gt;&gt;&gt;</span> test<span style="color:#333">.</span>b1<span style="color:#333">.</span>__code__
+<span style="color:#333">&lt;</span>code <span style="color:#007020">object</span> bar at <span style="color:#058;font-weight:bold">0x10eae4420</span>, <span style="color:#007020">file</span> <span style="background-color:#fff0f0">&#34;/Users/wd/t/test.py&#34;</span>, line <span style="color:#00d;font-weight:bold">4</span><span style="color:#333">&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> test<span style="color:#333">.</span>b1<span style="color:#333">.</span>__code__ <span style="color:#333">==</span> test<span style="color:#333">.</span>b2<span style="color:#333">.</span>__code__
+True
+<span style="color:#333">&gt;&gt;&gt;</span> test<span style="color:#333">.</span>b1<span style="color:#333">.</span>__code__ <span style="color:#000;font-weight:bold">is</span> test<span style="color:#333">.</span>b2<span style="color:#333">.</span>__code__
+True
+<span style="color:#333">&gt;&gt;&gt;</span> test<span style="color:#333">.</span>b1<span style="color:#333">.</span>__closure__[<span style="color:#00d;font-weight:bold">0</span>]<span style="color:#333">.</span>cell_contents
+<span style="color:#00d;font-weight:bold">10</span>
+<span style="color:#333">&gt;&gt;&gt;</span> test<span style="color:#333">.</span>b2<span style="color:#333">.</span>__closure__[<span style="color:#00d;font-weight:bold">0</span>]<span style="color:#333">.</span>cell_contents
+<span style="color:#00d;font-weight:bold">20</span>
+<span style="color:#333">&gt;&gt;&gt;</span> test<span style="color:#333">.</span>b1<span style="color:#333">.</span>__code__<span style="color:#333">.</span>co_freevars
+(<span style="background-color:#fff0f0">&#39;x&#39;</span>,)</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+code 里面包含 x 这个 freevar，参考前面 PyFunctionObject 的定义，里面有一段 <code>func_closure contains the bindings for func_code-&gt;co_freevars</code> 。
+</p>
+<p>
+上面这个例子里面，x 是通过 <code>LOAD_DEREF</code> 里面调用 <code>PyCell_GET</code> 取到的，是从那个 cell 里面取到的。感觉似乎是意思是说，普通 function 和 closure 的区别是 closure 包含了一个 <code>__closure__</code> 属性里面包含了对变量的引用。
+</p>
+<h2 id="headline-5">
+Iterators
+</h2>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#333">&gt;&gt;&gt;</span> a <span style="color:#333">=</span> [<span style="color:#00d;font-weight:bold">1</span>,<span style="color:#00d;font-weight:bold">2</span>,<span style="color:#00d;font-weight:bold">3</span>]
+<span style="color:#333">&gt;&gt;&gt;</span> a
+[<span style="color:#00d;font-weight:bold">1</span>, <span style="color:#00d;font-weight:bold">2</span>, <span style="color:#00d;font-weight:bold">3</span>]
+<span style="color:#333">&gt;&gt;&gt;</span> i <span style="color:#333">=</span> a<span style="color:#333">.</span>__iter__()
+<span style="color:#333">&gt;&gt;&gt;</span> i
+<span style="color:#333">&lt;</span>list_iterator <span style="color:#007020">object</span> at <span style="color:#058;font-weight:bold">0x10819a0b8</span><span style="color:#333">&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> j <span style="color:#333">=</span> a<span style="color:#333">.</span>__iter__()
+<span style="color:#333">&gt;&gt;&gt;</span> j
+<span style="color:#333">&lt;</span>list_iterator <span style="color:#007020">object</span> at <span style="color:#058;font-weight:bold">0x10819a1d0</span><span style="color:#333">&gt;</span></code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+i 和 j 分别是不同的 iterator object。下面是 test.py
+</p>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">a <span style="color:#333">=</span> [<span style="background-color:#fff0f0">&#39;a&#39;</span>, <span style="background-color:#fff0f0">&#39;b&#39;</span>, <span style="background-color:#fff0f0">&#39;c&#39;</span>]
+<span style="color:#080;font-weight:bold">for</span> e <span style="color:#000;font-weight:bold">in</span> a:
+    <span style="color:#080;font-weight:bold">print</span>(e)</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+这个是字节码，GET_ITER 生成一个 iterator object，这个会调用 <code>Objects/abstract.c</code> 里面的 <code>PyObject_GetIter</code> 。
+</p>
+<div class="src src-text">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">  1           0 LOAD_CONST               0 (&#39;a&#39;)
+              2 LOAD_CONST               1 (&#39;b&#39;)
+              4 LOAD_CONST               2 (&#39;c&#39;)
+              6 BUILD_LIST               3
+              8 STORE_NAME               0 (a)
+
+  2          10 SETUP_LOOP              20 (to 32)
+             12 LOAD_NAME                0 (a)
+             14 GET_ITER
+        &gt;&gt;   16 FOR_ITER                12 (to 30)
+             18 STORE_NAME               1 (e)
+
+  3          20 LOAD_NAME                2 (print)
+             22 LOAD_NAME                1 (e)
+             24 CALL_FUNCTION            1
+             26 POP_TOP
+             28 JUMP_ABSOLUTE           16
+        &gt;&gt;   30 POP_BLOCK
+        &gt;&gt;   32 LOAD_CONST               3 (None)
+             34 RETURN_VALUE</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+首先会看看是不是有 <code>tp_iter</code> 定义，内置的 sequance 对象没有，然后会使用 <code>PySeqIter_New</code> 生成 sequance object.
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">PyObject <span style="color:#333">*</span>
+<span style="color:#06b;font-weight:bold">PyObject_GetIter</span>(PyObject <span style="color:#333">*</span>o)
+{
+    PyTypeObject <span style="color:#333">*</span>t <span style="color:#333">=</span> o<span style="color:#333">-&gt;</span>ob_type;
+    getiterfunc f;
+
+    f <span style="color:#333">=</span> t<span style="color:#333">-&gt;</span>tp_iter;
+    <span style="color:#080;font-weight:bold">if</span> (f <span style="color:#333">==</span> <span style="color:#007020">NULL</span>) {
+        <span style="color:#080;font-weight:bold">if</span> (PySequence_Check(o))
+            <span style="color:#080;font-weight:bold">return</span> PySeqIter_New(o);
+        <span style="color:#080;font-weight:bold">return</span> type_error(<span style="background-color:#fff0f0">&#34;&#39;%.200s&#39; object is not iterable&#34;</span>, o);
+    }
+    <span style="color:#080;font-weight:bold">else</span> {
+        PyObject <span style="color:#333">*</span>res <span style="color:#333">=</span> (<span style="color:#333">*</span>f)(o);
+        <span style="color:#080;font-weight:bold">if</span> (res <span style="color:#333">!=</span> <span style="color:#007020">NULL</span> <span style="color:#333">&amp;&amp;</span> <span style="color:#333">!</span>PyIter_Check(res)) {
+            PyErr_Format(PyExc_TypeError,
+                         <span style="background-color:#fff0f0">&#34;iter() returned non-iterator &#34;</span>
+                         <span style="background-color:#fff0f0">&#34;of type &#39;%.100s&#39;&#34;</span>,
+                         res<span style="color:#333">-&gt;</span>ob_type<span style="color:#333">-&gt;</span>tp_name);
+            Py_DECREF(res);
+            res <span style="color:#333">=</span> <span style="color:#007020">NULL</span>;
+        }
+        <span style="color:#080;font-weight:bold">return</span> res;
+    }
+}</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+这个 object 里面，it_index 初始化的时候指向了 0 ，it_seq 指向那个输入的 seq。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> {
+    PyObject_HEAD
+    Py_ssize_t it_index;
+    PyObject <span style="color:#333">*</span>it_seq; <span style="color:#888">/* Set to NULL when iterator is exhausted */</span>
+} seqiterobject;
+
+PyObject <span style="color:#333">*</span>
+<span style="color:#06b;font-weight:bold">PySeqIter_New</span>(PyObject <span style="color:#333">*</span>seq)
+{
+    seqiterobject <span style="color:#333">*</span>it;
+
+    <span style="color:#080;font-weight:bold">if</span> (<span style="color:#333">!</span>PySequence_Check(seq)) {
+        PyErr_BadInternalCall();
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#007020">NULL</span>;
+    }
+    it <span style="color:#333">=</span> PyObject_GC_New(seqiterobject, <span style="color:#333">&amp;</span>PySeqIter_Type);
+    <span style="color:#080;font-weight:bold">if</span> (it <span style="color:#333">==</span> <span style="color:#007020">NULL</span>)
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#007020">NULL</span>;
+    it<span style="color:#333">-&gt;</span>it_index <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">0</span>;
+    Py_INCREF(seq);
+    it<span style="color:#333">-&gt;</span>it_seq <span style="color:#333">=</span> seq;
+    _PyObject_GC_TRACK(it);
+    <span style="color:#080;font-weight:bold">return</span> (PyObject <span style="color:#333">*</span>)it;
+}</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+迭代的时候，主要调用的是 <code>FOR_ITER</code> ，会调用 <code>tp_iternext</code> ，对于列表来说是 <code>Objects/iterobject.c</code> 里面的 <code>iter_iternext</code> 方法。里面主要就是 <code>PySequence_GetItem(seq, it-&gt;it_index)</code> 会根据 index 获取元素，成功之后还会自增 index。如果 result 是 NULL 会把 it_seq 设置为 NULL，然后返回一个 NULL。 <code>FOR_ITER</code> 遇到 NULL 会根据代码有无 try except 决定是抛异常还是到 expect 处理。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">31
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">32
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">tatic PyObject <span style="color:#333">*</span>
+<span style="color:#06b;font-weight:bold">iter_iternext</span>(PyObject <span style="color:#333">*</span>iterator)
+{
+    seqiterobject <span style="color:#333">*</span>it;
+    PyObject <span style="color:#333">*</span>seq;
+    PyObject <span style="color:#333">*</span>result;
+
+    assert(PySeqIter_Check(iterator));
+    it <span style="color:#333">=</span> (seqiterobject <span style="color:#333">*</span>)iterator;
+    seq <span style="color:#333">=</span> it<span style="color:#333">-&gt;</span>it_seq;
+    <span style="color:#080;font-weight:bold">if</span> (seq <span style="color:#333">==</span> <span style="color:#007020">NULL</span>)
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#007020">NULL</span>;
+    <span style="color:#080;font-weight:bold">if</span> (it<span style="color:#333">-&gt;</span>it_index <span style="color:#333">==</span> PY_SSIZE_T_MAX) {
+        PyErr_SetString(PyExc_OverflowError,
+                        <span style="background-color:#fff0f0">&#34;iter index too large&#34;</span>);
+        <span style="color:#080;font-weight:bold">return</span> <span style="color:#007020">NULL</span>;
+    }
+
+    result <span style="color:#333">=</span> PySequence_GetItem(seq, it<span style="color:#333">-&gt;</span>it_index);
+    <span style="color:#080;font-weight:bold">if</span> (result <span style="color:#333">!=</span> <span style="color:#007020">NULL</span>) {
+        it<span style="color:#333">-&gt;</span>it_index<span style="color:#333">++</span>;
+        <span style="color:#080;font-weight:bold">return</span> result;
+    }
+    <span style="color:#080;font-weight:bold">if</span> (PyErr_ExceptionMatches(PyExc_IndexError) <span style="color:#333">||</span>
+        PyErr_ExceptionMatches(PyExc_StopIteration))
+    {
+        PyErr_Clear();
+        it<span style="color:#333">-&gt;</span>it_seq <span style="color:#333">=</span> <span style="color:#007020">NULL</span>;
+        Py_DECREF(seq);
+    }
+    <span style="color:#080;font-weight:bold">return</span> <span style="color:#007020">NULL</span>;
+}</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+如果是自己实现一个可迭代的对象，需要实现 <code>__iter__</code>  方法，提供一个返回 iter object 的方法，返回的这个 object 需要有 <code>__next__</code> 方法（python2 是 <code>next</code> 方法）。还需要注意适当的时候抛出 <code>StopIteration</code> 异常。
+</p>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">Counter</span>(<span style="color:#007020">object</span>):
+    <span style="color:#080;font-weight:bold">def</span> __init__(self, low, high):
+        self<span style="color:#333">.</span>cur <span style="color:#333">=</span> low
+        self<span style="color:#333">.</span>high <span style="color:#333">=</span> high
+
+    <span style="color:#080;font-weight:bold">def</span> __iter__(self):
+        <span style="color:#080;font-weight:bold">return</span> self
+
+    <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">__next__</span>(self):
+        <span style="color:#080;font-weight:bold">if</span> self<span style="color:#333">.</span>cur <span style="color:#333">&gt;</span> self<span style="color:#333">.</span>high:
+            <span style="color:#080;font-weight:bold">raise</span> <span style="color:#f00;font-weight:bold">StopIteration</span>
+        <span style="color:#080;font-weight:bold">else</span>:
+            self<span style="color:#333">.</span>cur <span style="color:#333">+=</span> <span style="color:#00d;font-weight:bold">1</span>
+            <span style="color:#080;font-weight:bold">return</span> self<span style="color:#333">.</span>cur <span style="color:#333">-</span> <span style="color:#00d;font-weight:bold">1</span></code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+主要的字节码如下，类似内置的支持迭代的对象，也会有 GET_ITER 和 FOR_ITER ，还内置的并没有区别。
+</p>
+<div class="src src-text">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">  1           0 LOAD_BUILD_CLASS
+              2 LOAD_CONST               0 (&lt;code object Counter at 0x108e494b0, file &#34;test.py&#34;, line 1&gt;)
+              4 LOAD_CONST               1 (&#39;Counter&#39;)
+              6 MAKE_FUNCTION            0
+              8 LOAD_CONST               1 (&#39;Counter&#39;)
+             10 LOAD_NAME                0 (object)
+             12 CALL_FUNCTION            3
+             14 STORE_NAME               1 (Counter)
+
+ 16          16 LOAD_NAME                1 (Counter)
+             18 LOAD_CONST               2 (3)
+             20 LOAD_CONST               3 (6)
+             22 CALL_FUNCTION            2
+             24 STORE_NAME               2 (a)
+
+ 17          26 SETUP_LOOP              20 (to 48)
+             28 LOAD_NAME                2 (a)
+             30 GET_ITER
+        &gt;&gt;   32 FOR_ITER                12 (to 46)
+             34 STORE_NAME               3 (elt)
+
+ 18          36 LOAD_NAME                4 (print)
+             38 LOAD_NAME                3 (elt)
+             40 CALL_FUNCTION            1
+             42 POP_TOP
+             44 JUMP_ABSOLUTE           32
+        &gt;&gt;   46 POP_BLOCK
+        &gt;&gt;   48 LOAD_CONST               4 (None)
+             50 RETURN_VALUE</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<h2 id="headline-6">
+User-defined classes and objects
+</h2>
+<p>
+python 对象的属性是存在一个字典里面，所以可以方便的任意增减。
+</p>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#333">&gt;&gt;&gt;</span> <span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">test</span> <span style="color:#080;font-weight:bold">import</span> Counter
+<span style="color:#333">&gt;&gt;&gt;</span> a  <span style="color:#333">=</span> Counter(<span style="color:#00d;font-weight:bold">1</span>,<span style="color:#00d;font-weight:bold">3</span>)
+<span style="color:#333">&gt;&gt;&gt;</span> a
+<span style="color:#333">&lt;</span>Counter <span style="color:#007020">object</span> at <span style="color:#058;font-weight:bold">0x10d7fa0b8</span><span style="color:#333">&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> a<span style="color:#333">.</span>__dict__
+{<span style="background-color:#fff0f0">&#39;cur&#39;</span>: <span style="color:#00d;font-weight:bold">1</span>, <span style="background-color:#fff0f0">&#39;high&#39;</span>: <span style="color:#00d;font-weight:bold">3</span>}
+<span style="color:#333">&gt;&gt;&gt;</span> a<span style="color:#333">.</span>ff <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">3</span>
+<span style="color:#333">&gt;&gt;&gt;</span> a<span style="color:#333">.</span>__dict__
+{<span style="background-color:#fff0f0">&#39;cur&#39;</span>: <span style="color:#00d;font-weight:bold">1</span>, <span style="background-color:#fff0f0">&#39;high&#39;</span>: <span style="color:#00d;font-weight:bold">3</span>, <span style="background-color:#fff0f0">&#39;ff&#39;</span>: <span style="color:#00d;font-weight:bold">3</span>}
+<span style="color:#333">&gt;&gt;&gt;</span> <span style="color:#080;font-weight:bold">del</span> a<span style="color:#333">.</span>ff
+<span style="color:#333">&gt;&gt;&gt;</span> a<span style="color:#333">.</span>__dict__
+{<span style="background-color:#fff0f0">&#39;cur&#39;</span>: <span style="color:#00d;font-weight:bold">1</span>, <span style="background-color:#fff0f0">&#39;high&#39;</span>: <span style="color:#00d;font-weight:bold">3</span>}</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+创建对象的时候是使用 <code>LOAD_BUILD_CLASS</code> 。
+</p>
+<blockquote>
+<p>
+Pushes builtins.__build_class__() onto the stack. It is later called by CALL_FUNCTION to construct a class.
+</p>
+</blockquote>
+<p>
+然后 python 3 没有 <code>PyClassObject</code> 了，迁移到了 <code>PyTypeObject</code> ，在 <code>Objects/object.h</code> 里面定义。下面两个是 <code>PyMethodObject</code> 和 <code>PyInstanceMethodObject</code> 。类实例化的时候，会调用 <code>tp_new -&gt; method_new -&gt; PyMethod_New</code> ，然后会返回一个 <code>PyMethodObject</code> 。这样对应的还有一套 <code>tp_new -&gt; instancemethod_new -&gt; PyInstanceMethod_New</code> ，返回的是 <code>PyInstanceMethodObject</code> 。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> {
+    PyObject_HEAD
+    PyObject <span style="color:#333">*</span>im_func;   <span style="color:#888">/* The callable object implementing the method */</span>
+    PyObject <span style="color:#333">*</span>im_self;   <span style="color:#888">/* The instance it is bound to */</span>
+    PyObject <span style="color:#333">*</span>im_weakreflist; <span style="color:#888">/* List of weak references */</span>
+} PyMethodObject;
+
+<span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> {
+    PyObject_HEAD
+    PyObject <span style="color:#333">*</span>func;
+} PyInstanceMethodObject;</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+这两个的区别代码里面有简单的写了一句，还不是特别清楚是什么具体区别，看着感觉像是实例方法和类方法的区别。 <code>PyMethod_New</code> 返回的是一个带了 self, weakreflist 这些内容的对象。 <code>PyInstanceMethod_New</code> 只是返回了一个方法。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#888">/* Method objects are used for bound instance methods returned by
+</span><span style="color:#888">   instancename.methodname. ClassName.methodname returns an ordinary
+</span><span style="color:#888">   function.
+</span><span style="color:#888"> */</span>
+PyObject <span style="color:#333">*</span>
+<span style="color:#06b;font-weight:bold">PyMethod_New</span>(PyObject <span style="color:#333">*</span>func, PyObject <span style="color:#333">*</span>self)
+
+
+<span style="color:#888">// instance method
+</span><span style="color:#888"></span>PyInstanceMethod_New(PyObject <span style="color:#333">*</span>func) {</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+给前面的 Counter 加一个 <code>test</code> 方法，看下面的 bound method 和 unbound method 应该就是上面的 PyMethod 和 PyInstancemethod 的区别吧。
+</p>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#333">&gt;&gt;&gt;</span> <span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">test</span> <span style="color:#080;font-weight:bold">import</span> Counter
+<span style="color:#333">&gt;&gt;&gt;</span> Counter
+<span style="color:#333">&lt;</span><span style="color:#080;font-weight:bold">class</span> <span style="color:#f00;background-color:#faa">&#39;</span><span style="color:#b06;font-weight:bold">test</span><span style="color:#333">.</span>Counter<span style="background-color:#fff0f0">&#39;&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> <span style="color:#007020">dir</span>(Counter)
+[<span style="background-color:#fff0f0">&#39;__class__&#39;</span>, <span style="background-color:#fff0f0">&#39;__delattr__&#39;</span>, <span style="background-color:#fff0f0">&#39;__dict__&#39;</span>, <span style="background-color:#fff0f0">&#39;__dir__&#39;</span>, <span style="background-color:#fff0f0">&#39;__doc__&#39;</span>, <span style="background-color:#fff0f0">&#39;__eq__&#39;</span>, <span style="background-color:#fff0f0">&#39;__format__&#39;</span>, <span style="background-color:#fff0f0">&#39;__ge__&#39;</span>, <span style="background-color:#fff0f0">&#39;__getattribute__&#39;</span>, <span style="background-color:#fff0f0">&#39;__gt__&#39;</span>, <span style="background-color:#fff0f0">&#39;__hash__&#39;</span>, <span style="background-color:#fff0f0">&#39;__init__&#39;</span>, <span style="background-color:#fff0f0">&#39;__init_subclass__&#39;</span>, <span style="background-color:#fff0f0">&#39;__iter__&#39;</span>, <span style="background-color:#fff0f0">&#39;__le__&#39;</span>, <span style="background-color:#fff0f0">&#39;__lt__&#39;</span>, <span style="background-color:#fff0f0">&#39;__module__&#39;</span>, <span style="background-color:#fff0f0">&#39;__ne__&#39;</span>, <span style="background-color:#fff0f0">&#39;__new__&#39;</span>, <span style="background-color:#fff0f0">&#39;__next__&#39;</span>, <span style="background-color:#fff0f0">&#39;__reduce__&#39;</span>, <span style="background-color:#fff0f0">&#39;__reduce_ex__&#39;</span>, <span style="background-color:#fff0f0">&#39;__repr__&#39;</span>, <span style="background-color:#fff0f0">&#39;__setattr__&#39;</span>, <span style="background-color:#fff0f0">&#39;__sizeof__&#39;</span>, <span style="background-color:#fff0f0">&#39;__str__&#39;</span>, <span style="background-color:#fff0f0">&#39;__subclasshook__&#39;</span>, <span style="background-color:#fff0f0">&#39;__weakref__&#39;</span>]
+<span style="color:#333">&gt;&gt;&gt;</span> Counter<span style="color:#333">.</span>__dict__
+mappingproxy({<span style="background-color:#fff0f0">&#39;__module__&#39;</span>: <span style="background-color:#fff0f0">&#39;test&#39;</span>, <span style="background-color:#fff0f0">&#39;__init__&#39;</span>: <span style="color:#333">&lt;</span>function Counter<span style="color:#333">.</span>__init__ at <span style="color:#058;font-weight:bold">0x102043378</span><span style="color:#333">&gt;</span>, <span style="background-color:#fff0f0">&#39;__iter__&#39;</span>: <span style="color:#333">&lt;</span>function Counter<span style="color:#333">.</span>__iter__ at <span style="color:#058;font-weight:bold">0x102043400</span><span style="color:#333">&gt;</span>, <span style="background-color:#fff0f0">&#39;__next__&#39;</span>: <span style="color:#333">&lt;</span>function Counter<span style="color:#333">.</span>__next__ at <span style="color:#058;font-weight:bold">0x102043488</span><span style="color:#333">&gt;</span>, <span style="background-color:#fff0f0">&#39;__dict__&#39;</span>: <span style="color:#333">&lt;</span>attribute <span style="background-color:#fff0f0">&#39;__dict__&#39;</span> of <span style="background-color:#fff0f0">&#39;Counter&#39;</span> objects<span style="color:#333">&gt;</span>, <span style="background-color:#fff0f0">&#39;__weakref__&#39;</span>: <span style="color:#333">&lt;</span>attribute <span style="background-color:#fff0f0">&#39;__weakref__&#39;</span> of <span style="background-color:#fff0f0">&#39;Counter&#39;</span> objects<span style="color:#333">&gt;</span>, <span style="background-color:#fff0f0">&#39;__doc__&#39;</span>: None})
+<span style="color:#333">&gt;&gt;&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> counter <span style="color:#333">=</span> Counter(<span style="color:#00d;font-weight:bold">1</span>,<span style="color:#00d;font-weight:bold">3</span>)
+<span style="color:#333">&gt;&gt;&gt;</span> counter<span style="color:#333">.</span>__dict__
+{<span style="background-color:#fff0f0">&#39;cur&#39;</span>: <span style="color:#00d;font-weight:bold">1</span>, <span style="background-color:#fff0f0">&#39;high&#39;</span>: <span style="color:#00d;font-weight:bold">3</span>}
+<span style="color:#333">&gt;&gt;&gt;</span> <span style="color:#007020">dir</span>(counter)
+[<span style="background-color:#fff0f0">&#39;__class__&#39;</span>, <span style="background-color:#fff0f0">&#39;__delattr__&#39;</span>, <span style="background-color:#fff0f0">&#39;__dict__&#39;</span>, <span style="background-color:#fff0f0">&#39;__dir__&#39;</span>, <span style="background-color:#fff0f0">&#39;__doc__&#39;</span>, <span style="background-color:#fff0f0">&#39;__eq__&#39;</span>, <span style="background-color:#fff0f0">&#39;__format__&#39;</span>, <span style="background-color:#fff0f0">&#39;__ge__&#39;</span>, <span style="background-color:#fff0f0">&#39;__getattribute__&#39;</span>, <span style="background-color:#fff0f0">&#39;__gt__&#39;</span>, <span style="background-color:#fff0f0">&#39;__hash__&#39;</span>, <span style="background-color:#fff0f0">&#39;__init__&#39;</span>, <span style="background-color:#fff0f0">&#39;__init_subclass__&#39;</span>, <span style="background-color:#fff0f0">&#39;__iter__&#39;</span>, <span style="background-color:#fff0f0">&#39;__le__&#39;</span>, <span style="background-color:#fff0f0">&#39;__lt__&#39;</span>, <span style="background-color:#fff0f0">&#39;__module__&#39;</span>, <span style="background-color:#fff0f0">&#39;__ne__&#39;</span>, <span style="background-color:#fff0f0">&#39;__new__&#39;</span>, <span style="background-color:#fff0f0">&#39;__next__&#39;</span>, <span style="background-color:#fff0f0">&#39;__reduce__&#39;</span>, <span style="background-color:#fff0f0">&#39;__reduce_ex__&#39;</span>, <span style="background-color:#fff0f0">&#39;__repr__&#39;</span>, <span style="background-color:#fff0f0">&#39;__setattr__&#39;</span>, <span style="background-color:#fff0f0">&#39;__sizeof__&#39;</span>, <span style="background-color:#fff0f0">&#39;__str__&#39;</span>, <span style="background-color:#fff0f0">&#39;__subclasshook__&#39;</span>, <span style="background-color:#fff0f0">&#39;__weakref__&#39;</span>, <span style="background-color:#fff0f0">&#39;cur&#39;</span>, <span style="background-color:#fff0f0">&#39;high&#39;</span>]
+<span style="color:#333">&gt;&gt;&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> Counter<span style="color:#333">.</span>test
+<span style="color:#333">&lt;</span>function Counter<span style="color:#333">.</span>test at <span style="color:#058;font-weight:bold">0x10bbc7488</span><span style="color:#333">&gt;</span>
+<span style="color:#333">&gt;&gt;&gt;</span> counter<span style="color:#333">.</span>test
+<span style="color:#333">&lt;</span>bound method Counter<span style="color:#333">.</span>test of <span style="color:#333">&lt;</span>test<span style="color:#333">.</span>Counter <span style="color:#007020">object</span> at <span style="color:#058;font-weight:bold">0x10bbc30f0</span><span style="color:#333">&gt;&gt;</span></code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<h2 id="headline-7">
+Generators
+</h2>
+<p>
+Python3 文档关于 interator 的说明，主要是 <code>__next__()</code> 和 <code>__iter__()</code> 方法，前面那个例子里面有。
+</p>
+<blockquote>
+<p>
+An object representing a stream of data. Repeated calls to the iterator’s __next__() method (or passing it to the built-in function next()) return successive items in the stream. When no more data are available a StopIteration exception is raised instead. At this point, the iterator object is exhausted and any further calls to its __next__() method just raise StopIteration again. Iterators are required to have an __iter__() method that returns the iterator object itself so every iterator is also iterable and may be used in most places where other iterables are accepted. One notable exception is code which attempts multiple iteration passes. A container object (such as a list) produces a fresh new iterator each time you pass it to the iter() function or use it in a for loop. Attempting this with an iterator will just return the same exhausted iterator object used in the previous iteration pass, making it appear like an empty container.
+</p>
+</blockquote>
+<p>
+Generator 的说明，主要是使用 yield 返回一系列数据。
+</p>
+<blockquote>
+<p>
+A function which returns a generator iterator. It looks like a normal function except that it contains yield expressions for producing a series of values usable in a for-loop or that can be retrieved one at a time with the next() function.
+</p>
+<p>
+Usually refers to a generator function, but may refer to a generator iterator in some contexts. In cases where the intended meaning isn’t clear, using the full terms avoids ambiguity.
+</p>
+</blockquote>
+<p>
+test.py 如下，这个也一样可以实现类似前面 Counter 类的功能。使用了生成器。
+</p>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">9
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">counter</span>(low, high):
+    cur <span style="color:#333">=</span> low
+    <span style="color:#080;font-weight:bold">while</span> cur <span style="color:#333">&lt;</span> high:
+        <span style="color:#080;font-weight:bold">yield</span> cur
+        cur <span style="color:#333">+=</span> <span style="color:#00d;font-weight:bold">1</span>
+
+c <span style="color:#333">=</span> counter(<span style="color:#00d;font-weight:bold">3</span>, <span style="color:#00d;font-weight:bold">5</span>)
+<span style="color:#080;font-weight:bold">for</span> elt <span style="color:#000;font-weight:bold">in</span> c:
+    <span style="color:#080;font-weight:bold">print</span>(elt)</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+这个是 counter 方法的字节码。 <code>YIELD_VALUE</code> 是核心。
+</p>
+<div class="src src-python">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">Disassembly of <span style="color:#333">&lt;</span>code <span style="color:#007020">object</span> counter at <span style="color:#058;font-weight:bold">0x10c778c90</span>, <span style="color:#007020">file</span> <span style="background-color:#fff0f0">&#34;test.py&#34;</span>, line <span style="color:#00d;font-weight:bold">1</span><span style="color:#333">&gt;</span>:
+  <span style="color:#00d;font-weight:bold">2</span>           <span style="color:#00d;font-weight:bold">0</span> LOAD_FAST                <span style="color:#00d;font-weight:bold">0</span> (low)
+              <span style="color:#00d;font-weight:bold">2</span> STORE_FAST               <span style="color:#00d;font-weight:bold">2</span> (cur)
+
+  <span style="color:#00d;font-weight:bold">3</span>           <span style="color:#00d;font-weight:bold">4</span> SETUP_LOOP              <span style="color:#00d;font-weight:bold">26</span> (to <span style="color:#00d;font-weight:bold">32</span>)
+        <span style="color:#333">&gt;&gt;</span>    <span style="color:#00d;font-weight:bold">6</span> LOAD_FAST                <span style="color:#00d;font-weight:bold">2</span> (cur)
+              <span style="color:#00d;font-weight:bold">8</span> LOAD_FAST                <span style="color:#00d;font-weight:bold">1</span> (high)
+             <span style="color:#00d;font-weight:bold">10</span> COMPARE_OP               <span style="color:#00d;font-weight:bold">0</span> (<span style="color:#333">&lt;</span>)
+             <span style="color:#00d;font-weight:bold">12</span> POP_JUMP_IF_FALSE       <span style="color:#00d;font-weight:bold">30</span>
+
+  <span style="color:#00d;font-weight:bold">4</span>          <span style="color:#00d;font-weight:bold">14</span> LOAD_FAST                <span style="color:#00d;font-weight:bold">2</span> (cur)
+             <span style="color:#00d;font-weight:bold">16</span> YIELD_VALUE
+             <span style="color:#00d;font-weight:bold">18</span> POP_TOP
+
+  <span style="color:#00d;font-weight:bold">5</span>          <span style="color:#00d;font-weight:bold">20</span> LOAD_FAST                <span style="color:#00d;font-weight:bold">2</span> (cur)
+             <span style="color:#00d;font-weight:bold">22</span> LOAD_CONST               <span style="color:#00d;font-weight:bold">1</span> (<span style="color:#00d;font-weight:bold">1</span>)
+             <span style="color:#00d;font-weight:bold">24</span> INPLACE_ADD
+             <span style="color:#00d;font-weight:bold">26</span> STORE_FAST               <span style="color:#00d;font-weight:bold">2</span> (cur)
+             <span style="color:#00d;font-weight:bold">28</span> JUMP_ABSOLUTE            <span style="color:#00d;font-weight:bold">6</span>
+        <span style="color:#333">&gt;&gt;</span>   <span style="color:#00d;font-weight:bold">30</span> POP_BLOCK
+        <span style="color:#333">&gt;&gt;</span>   <span style="color:#00d;font-weight:bold">32</span> LOAD_CONST               <span style="color:#00d;font-weight:bold">0</span> (None)
+             <span style="color:#00d;font-weight:bold">34</span> RETURN_VALUE</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+<code>PyGenObject</code> 的定义在 <code>Include/genobject.h</code> 里面。可以看到这个对象包含了自己的 <code>_frame</code> ，因为每次调用需要考虑到上次调用的时候 frame 包含的变量信息。 <code>_code</code> 是对应的 code object。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="color:#579">#define _PyGenObject_HEAD(prefix)                                           \
+</span><span style="color:#579">    PyObject_HEAD                                                           \
+</span><span style="color:#579">    </span><span style="color:#888">/* Note: gi_frame can be NULL if the generator is &#34;finished&#34; */</span><span style="color:#579">         \
+</span><span style="color:#579">    struct _frame *prefix##_frame;                                          \
+</span><span style="color:#579">    </span><span style="color:#888">/* True if generator is being executed. */</span><span style="color:#579">                              \
+</span><span style="color:#579">    char prefix##_running;                                                  \
+</span><span style="color:#579">    </span><span style="color:#888">/* The code object backing the generator */</span><span style="color:#579">                             \
+</span><span style="color:#579">    PyObject *prefix##_code;                                                \
+</span><span style="color:#579">    </span><span style="color:#888">/* List of weak reference. */</span><span style="color:#579">                                           \
+</span><span style="color:#579">    PyObject *prefix##_weakreflist;                                         \
+</span><span style="color:#579">    </span><span style="color:#888">/* Name of the generator. */</span><span style="color:#579">                                            \
+</span><span style="color:#579">    PyObject *prefix##_name;                                                \
+</span><span style="color:#579">    </span><span style="color:#888">/* Qualified name of the generator. */</span><span style="color:#579">                                  \
+</span><span style="color:#579">    PyObject *prefix##_qualname;                                            \
+</span><span style="color:#579">    _PyErr_StackItem prefix##_exc_state;
+</span><span style="color:#579"></span>
+<span style="color:#080;font-weight:bold">typedef</span> <span style="color:#080;font-weight:bold">struct</span> {
+    <span style="color:#888">/* The gi_ prefix is intended to remind of generator-iterator. */</span>
+    _PyGenObject_HEAD(gi)
+} PyGenObject;</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+通过 tp_iter 获取 inter 的时候，会通过 <code>PyObject_SelfIter</code> 返回 object 自己。 <code>tp_iternext</code> 会调用 <code>gen_iternext -&gt; gen_send_ex</code> 实际就是调用 send 方法。send 方法接受 args 参数，会作为 yield 语句的返回值。下面代码，执行前会设置 running 为 1，然后在 frame f 上面执行代码，执行完毕之后，设置 running 为 0。
+</p>
+<div class="src src-c">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-c" data-lang="c">gen_send_ex(PyGenObject <span style="color:#333">*</span>gen, PyObject <span style="color:#333">*</span>arg, <span style="color:#339;font-weight:bold">int</span> exc, <span style="color:#339;font-weight:bold">int</span> closing) {
+.....
+    gen<span style="color:#333">-&gt;</span>gi_running <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">1</span>;
+    gen<span style="color:#333">-&gt;</span>gi_exc_state.previous_item <span style="color:#333">=</span> tstate<span style="color:#333">-&gt;</span>exc_info;
+    tstate<span style="color:#333">-&gt;</span>exc_info <span style="color:#333">=</span> <span style="color:#333">&amp;</span>gen<span style="color:#333">-&gt;</span>gi_exc_state;
+    result <span style="color:#333">=</span> PyEval_EvalFrameEx(f, exc);
+    tstate<span style="color:#333">-&gt;</span>exc_info <span style="color:#333">=</span> gen<span style="color:#333">-&gt;</span>gi_exc_state.previous_item;
+    gen<span style="color:#333">-&gt;</span>gi_exc_state.previous_item <span style="color:#333">=</span> <span style="color:#007020">NULL</span>;
+    gen<span style="color:#333">-&gt;</span>gi_running <span style="color:#333">=</span> <span style="color:#00d;font-weight:bold">0</span>;
+....
+}</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+
+</main>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+
+
+    <footer style="clear:both">
+      
+      <hr/>
+      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+
