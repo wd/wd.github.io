@@ -6,10 +6,19 @@
     <description>Recent content in Posts on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Tue, 08 Oct 2019 12:47:56 +0800</lastBuildDate>
+    <lastBuildDate>Mon, 14 Oct 2019 10:57:29 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/post/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>New Way to Go Across the GFW</title>
+      <link>https://wdicc.com/new-way-to-go-across-the-gfw/</link>
+      <pubDate>Mon, 14 Oct 2019 10:57:29 +0800</pubDate>
+      
+      <guid>https://wdicc.com/new-way-to-go-across-the-gfw/</guid>
+      <description>家里路由器用了一段时间的国内定制的梅林系统，还给这个系统做过一个插件使用 v2ray。后面试过换个软路由，使用的 openwrt，然后找到一个新的项目 ss-tproxy ，用起来也还可以，不过是基于 shell 脚本的，以及基于自己的理解，感觉他添加的 iptables 规则有点多，我自己也还想要做到观看 Netflix 使用不同的代理（因为自己的代理 ip 被 Netflix 识别了，没法看，只好找一家机场买了一个服务看，当然又不想所有流量都走机场），所以自己折腾了一个，实现原理就是前面那篇文章。  一开始是基于 v2ray 做的，尽量傻瓜化，只需要提供可用的 outbound 就可以，会自己产生用到的配置文件。实际运行起来发现内存用量有点大，用到 swap 之后路由器变慢，挺讨厌的。然后就琢磨使用 ss 加混淆吧，用了一下速度还不错，但是很快就发现会被断流。没办法，只能还是用回 v2ray，本来想试试看给路由器接一个树莓派吧，里面跑 v2ray，这样也不会影响路由器，但是自己的树莓派不知道哪里去了。。。这也是我那个程序三个运行模式的来源。  后面十一期间那个机场居然公开公布用户的信息，让我觉得机场还是不靠谱，想试试看之前看到的通过 SNI 方式解决看 Netflix 的方案，找了一家试了一下，也还可以。这样我就不用再需要在路由器上面分流了，只需要在 vps 上面配置一下 dnsmasq 就可以了。这样更方便。  这样路由器只需要能解决 gfwlist 里面的域名可以正常访问就可以了。然后看到很多地方提到 v2ray 的 sniffing 功能。之前其实也看到过，忽略掉了。这个功能实际上可以做到解决 dns 污染问题，而不用你还得想办法去劫持系统的 dns。这个可以做到，把用户请求里面的域名交给代理去解析，忽略已有的解析结果，这样不管污染没污染都不会有什么影响了，因为完全不会用国内的解析结果。  然后再配合一个 gfwlist 的域名列表，设置合适的路由，就都 ok 了。  我这有一个示例的 v2ray 配置文件，只需要配置好里面的 outbound 就好了，注意要保留那个 tag 名字，或者你也可以自己修改，和下面的 routing 里面的 tag 对应就可以。那个 ip 列表是解决 telegram 的使用的。还需要配合一个 gfwlist sites 列表，可以直接下载这个。  v2ray 在路由器跑有时候内存问题什么的，看着不太稳定，所以我还搭了一个检查程序，如果发现奔溃了自动重启一下。里面需要改一下 v2ray 的路径 /opt/svgfw/bin/v2ray -config /opt/gfw/config.</description>
+    </item>
     
     <item>
       <title>Drive in the US</title>
@@ -270,15 +279,6 @@
       
       <guid>https://wdicc.com/amap-work-with-code-push/</guid>
       <description> 我们 app 用了高德地图和 codepush，iOS 里面之前用的高德地图 sdk 的 5.x 版本，最近想升级到最新的 6.6.0 发现和 codepush 出现了 symbol 的冲突，主要是两个函数 aes_decrypt_key128 和 aes_encrypt_key128 。  高德地图是不开源的，万幸我们有 codepush 的源码，所以思路是只需要把 codepush 里面冲突的函数改个名字就好了。  改代码很简单，主要是怎么和项目集成。我用的是 patch-package ，做法如下。  给 package.json 的 scripts 增加一个 postinstall 1 2 3  &amp;#34;scripts&amp;#34;: { &amp;#34;postinstall&amp;#34;: &amp;#34;patch-package&amp;#34; }      然后就是改 node_modules/react-native-code-push 下面的文件，改完之后，执行一下 yarn patch-package react-native-code-push 会生成一个类似 patches/react-native-code-push+5.5.1.patch 的文件，确认一下这个文件里面是不是包含了你修改的内容。  这就可以了，以后执行 yarn install 的时候会自动打这个 patch。  这个方式比 fork 一份对方的代码好一点，有时候有些代码发到 npm 的是编译之后的版本，fork 之后也不好用，除非你也发布一个。用 patch 的方式会好一点，安装的还是对方发布的。 </description>
-    </item>
-    
-    <item>
-      <title>Android Packaging</title>
-      <link>https://wdicc.com/android-packaging/</link>
-      <pubDate>Sun, 02 Dec 2018 16:52:34 +0800</pubDate>
-      
-      <guid>https://wdicc.com/android-packaging/</guid>
-      <description>国内市场因为 android 的发布渠道比较多，所以一般我们会想要追踪一下用户使用的包是从哪里下载安装的。  Android 打包支持 buildTypes ，一般这个会用来区分不同的环境，比如 dev，beta，prod 等，不同环境可能会有一些不同的设置，比如 dev 会打开更多的日志输出什么的。 1 2 3 4 5 6 7 8 9 10 11 12 13  android{ buildTypes { debug { ... } release { ... } beta { ... } } }     还有一个支持是 productFlavors，一般用这个来区分不同的渠道，不同渠道也可以有一些不同的设置，类似上面的 buildTypes。 1 2 3 4 5 6 7 8 9 10 11 12  android { productFlavors { xiaomi {} baidu {} wandoujia {} x360 {} } productFlavors.</description>
     </item>
     
   </channel>
