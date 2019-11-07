@@ -6,7 +6,8 @@ toc: true
 comment: false
 ---
 
-做过很多岗位，整理总结一下自己的工作经历。 English version [here](/resume-en/).
+- [PDF](/resume.pdf)
+- [English version](/resume-en/)
 
 ## 工作经历
 
@@ -24,10 +25,11 @@ comment: false
 
 ### 去哪儿网（2010 - 2016），高级技术总监
 
+- 团队：离开的时候整个团队大概 30 多人。
 - 数据工作：带领团队建立了度假部门的统计体系，包括日志收集分析入库展示等工作。
 - PostgreSQL DBA 团队：带领团队维护公司几百个 pg 实例，建立了相应的监控体系。
-- 广告系统：带领团队负责了公司的 CPM 广告系统，之后还开发了度假部门的 CPC 广告系统。日 pv 达十亿。
-- 度假无线团队：开发维护去哪儿 APP 里面度假模块（iOS, Android），还有 HTML5 版本的度假网站。
+- 广告系统：带领团队负责公司的 CPM/CPC 广告系统，日 pv 达十亿。
+- 度假无线团队：开发维护去哪儿 APP 里面度假模块（iOS, Android）， HTML5 版本的度假网站。
 
 主要开发语言比较多，基本主流的都用了，包括 Perl，Lua，Python, Java 等。
 
