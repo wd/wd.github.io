@@ -1,0 +1,64 @@
+---
+title: "Upgrade RN From 0.57 to 0.61"
+date: 2019-11-07T12:21:57+08:00
+tags: ["react-native", "cocoa", "ios", "android"]
+toc: true
+---
+
+好久没升级 app 使用的 RN 了，前几天看见已经是 0.61 了，我们用的还是 0.57，已经差了好几个版本了，有必要跟进一下了。
+
+首先那个 react-native-git-upgrade 被抛弃了，提供了一个 [[https://react-native-community.github.io/upgrade-helper/?from=0.57.2&to=0.61.4][web 的 diff 工具]]，自己给代码应用 diff 就好了。我的做法是，建一个分支，先把所有除了 android 目录之外的修改了，然后调试搞定 iOS 的编译。搞定之后再搞 android 的。
+
+建议使用 ~yarn ios/android~ 这样的命令来运行看错误什么的，如果遇到问题，命令行会提示你一些操作，有的按照操作修改就行。
+
+** iOS
+
+iOS 这边主要是改进了模块的集成方法，官方支持了 cocoapods。最早的时候，增加模块的时候，如果有 native 代码，需要自己去添加到自己的工程里面。后面有了 =react-native link= 之后，一般只需要 link 一下就可以了。所以后面官方支持了自动 link 的功能，add 一个模块之后就会给你自动 link 了，不用你自己再操作了。再后面，大家广泛使用 cocoapods 之后，慢慢的一些 rn 模块就增加了自己的 =.podspec= 文件，这样就可以允许通过 cocoapods 引用这些依赖了，这样增加依赖还不用修改项目文件， =Podfile= 和 =Podfile.lock= 还可以增加到版本管理里面，也很方便。
+
+现在到了 0.61 官方支持了 cocoapods，意思是你 add 一个模块之后，会自动给你通过 Podfile 引用到项目里面。怎么做到的呢？主要是通过 cocoapods 的 ~use_native_modules!~ 模块来做到的。这个模块会自动分析你添加的依赖，里面如果有提供 =.podspec= 文件的，就会自动给加入到 pod 的项目引用里面。原来的那些通过 link 方式加入的模块，就可以从 xcode 项目里面删除了，通过 =react-native unlink= 命令，或者自己手动删除都可以。一般来说 xcode 项目里面 Libraries 里面就应该都没有了，全部都到了 Pods -> Developent Pods 里面了。以及看看 xcode 项目 General -> Frameworks, Libraries, and Embedded Content 里面添加到一些依赖也都可以去掉了。还需要注意的是，以前通过这个地方添加的一些依赖，可能需要你在 podfile 里面添加，比如我这就添加了 ~pod 'React-RCTPushNotification', :path => '../node_modules/react-native/Libraries/PushNotificationIOS'~ 还有几个其他的，看你编译的时候缺少什么吧，搜一下就知道需要加什么了。
+
+这样基本上 iOS 就应该没什么问题了。当然 cocoapods 怎么用总是需要学学的。
+
+** Android
+
+Android 这边历史上也是最开始需要自己手动增加模块的引用，修改 ~MainApplication.java~ 文件。后面有了 link 也一样可以自动引用了。现在呢，又改了新的方式，不在修改这个文件了，而是在编译的时候自动生成一个包含了引用的文件，然后在这个文件里面引用那个文件就好了。这样增加新的模块的时候，项目文件就没有改动了。
+
+所以也类似的需要你删除项目里面原来增加的一堆东西，包括 ~MainApplication.java~, ~settings.gradle~, ~app/build.gradle~ 这几个，就是原来增加一个模块需要修改的那三个文件。这个通过那个 unlink 会自动给你处理，如果处理有问题的你可以手动删除掉。
+
+Android 因为升级到了 AndroidX 的支持，所以一堆的依赖没有了，导致一些旧的插件不能编译了，缺少依赖包，这个有人做了一个工具 [[https://github.com/mikehardy/jetifier][jetifier]]，自动处理这个事情。他做的事情就是把依赖的模块的 android 代码里面对比如 ~import android.support.annotation.Nullable~ 修改成 ~import androidx.annotation.Nullable~ ，这样就可以编译了。
+
+自己项目里面的一些依赖如果有问题，需要自己升级到 AndroidX 的支持。
+
+上面那个 diff 工具推荐的 gradle 编译的内存居然是 64M 的，太小了，一般都需要修改一下。
+
+~gradle.properties~ 文件增加
+
+#+BEGIN_SRC 
+org.gradle.jvmargs=-Xmx2048m -XX:MaxPermSize=512m -XX:+HeapDumpOnOutOfMemoryError -Dfile.encoding=UTF-8
+#+END_SRC
+
+~gradlew~ 文件，修改
+
+#+BEGIN_SRC 
+DEFAULT_JVM_OPTS='"-Xmx1024m" "-Xms1024m"'
+#+END_SRC
+
+** 其他
+
+关于自动 link 可以看看[[https://github.com/react-native-community/cli/blob/master/docs/autolinking.md][这个]]，里面也讲了如果不需要自动 link 可以通过项目根部放一个 ~react-native.config.js~ 来配置。
+
+对于 code-push ，一般是多个环境使用不同的 key，自动 link 产生的代码固定读取资源文件里面的 ~reactNativeCodePush_androidDeploymentKey~ 这个配置，可以通过在 ~app/build.gradle~ 里面配置来做到不同环境使用不同的 key，类似下面这样。
+
+#+BEGIN_SRC gradle
+android {
+    buildTypes {
+        beta {
+            resValue "string", "reactNativeCodePush_androidDeploymentKey", "xsdfsdf"
+        }
+
+        release {
+            resValue "string", "reactNativeCodePush_androidDeploymentKey", "sdfwef"
+        }
+    }
+}
+#+END_SRC

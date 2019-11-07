@@ -1,0 +1,129 @@
+---
+title: "Some Interview Questions"
+date: 2019-10-17T10:57:42+08:00
+tags: ["interview"]
+toc: true
+---
+
+Notes for some interview questions.
+
+** OSI 7 layers
+
+1. Physical layer.
+2. Data link layer. Switches are working on this layer, so when we talk about mac address, node to node connection, it's all happened here.
+3. Network layer. IP/ICMP protocol are for this layer. IP address, router, routing to other routers hanppend at this layer.
+4. Transport layer. TCP/UDP protocol are for this layer, it defines how packet data forward, and the packet speed, rate, etc.
+5. Session layer. SSL/TLS may be present at this layer.
+6. Presentation layer. PNG/JPEG encoding?
+7. Application layer. This is the layer we interactive with everyday, http, ftp, ssh are present at this layer.
+
+Just remember 'All People Seem To Need Data Processing', the first letter present the layer order.
+
+** DNS
+
+DNS records:
+1. A: Which IP address is/are a domain point to.
+2. CNAME: A domain can point to an other domain name.
+3. PTR: Reverse record for IP, find which domain point to this IP address.
+4. DNSKEY: KSK/ZSK, the public key to decrypt and check RRSIG.
+5. RRSIG: The DNS record digital signature, we can use the DNSKEY decrypt and check the hash value to determine if the dns record has been modified.
+6. DS: A digital signature that generate by upper authority use DNSKEY and their private key. So we can use the upper authority's DNSKEY to decrypt and check if the DNSKEY returned by these level has been modified.
+ 
+DNS server  
+1. Authoritative DNS: Authoritative dns holds the actual DNS records for that domain.
+2. Recursive  resolver: Recursive resolver not holds the actual DNS records, it will request records from an authoritative DNS. The DNS resolve processing is, DNS resolver -> Root server(.) -> TLD server(.com) -> Authoritative server.
+
+** anycast/unicast/broadcast/multicast
+
+1. unicast: One node to one node
+2. multicast: One node to multiple nodes at same time
+3. broadcast: One node to all nodes
+4. anycast: One node to multiple nodes, but to one node at exact the moment, use route to control what server will be connected. We can use Border Gateway Protocol (BGP) and Autonomous Systems (AS) to depoly an anycast ip.
+
+** Traceroute / MTR
+1. ping: Send ICMP packet to determine weather the destination host is alive.
+2. Traceroute: Print the route to the dest, and the connectability to each hop host use UDP packet
+2. MTR: Combine ping and traceroute, send ICMP packet to every hop, can be set to use UDP or TCP instead.
+
+How can we know each hop is? It Use TTL trick to check the router’s ip and response time. But sometimes a router many be just drop the TTL exceeded packet and will not make a response.
+
+** HTTPS
+   
+[https://robertheaton.com/2014/03/27/how-does-https-actually-work/]
+
+Symmetric algorithm and asymmetric encryption.
+
+0. Use previous session secret to connected the server. ~RTT0~
+1. ClientHello: ssl version, cipher suites, random number 1 ~RTT1~
+2. ServerHello: confirmed ssl version, cipher suites, and server certificate, random number 2 ~RTT2~
+3. Client check the certificate use root CAs (public key) integrated with the browser or the system, check the digital signature hash value to determine if the certificate is modified or invalid (may be the valid time is expired).
+4. Client generate random number 3, and generate session secret use the number 1-3 and the server’s public key, send to server. ~RTT3~
+5. server decrypt the session secret and check if it’s correct, then use this session secret to encrypt data with client.
+
+** TLS/SSL
+1. SSL fist developed by Netscape, it’s first just for http connection. SSLv2, v3
+2. TLS is an open standard, designed to be application independent. TLS1.2, 1.3
+
+** DoT/DoH
+1. DoT: DNS over TLS, like HTTP over TLS, port 853.
+2. DoH: DNS over HTTPS, port 443.
+
+** IPv6
+1. ipv4: 2(2 hexadecimal character) x 4(groups) x 4(each hexadecimal character changes to 4 binary number) = 32 bit
+2. ipv6: 4(4 hexadecimal character) x 8(groups) x 4 = 128 bit
+
+':' is named as colon in English.
+
+1. link local: `FE80::/10` like 169.x, not routed internally or externally.
+2. unique local: `FC00::/7 and FC00:: - FDFF::` like 192.x, not routed on internet.
+3. global unicast: public address, `200::/3`, routed on internet.
+4. `::/128`: 0.0.0.0.
+5.  `FF00::/8`: broadcast address.
+6. `::1/128 `: 127.0.0.1.
+
+** DDoS
+DDos is distributed denial-of-service.
+1. Gain control of a network of online machines in order to carry out an attack.
+2. Causing the targeted server or network to overflow capacity.
+3. Application Layer Attack: HTTP flood.
+4. Protocol Attack: SYN Flood.
+5. Amplification: DNS, NTP.
+   1. Black Hole Routing
+   2. Rate Limiting
+   3. Web Application Firewall
+   4. Anycast Network Diffusion
+
+ref link: https://www.cloudflare.com/learning/ddos/what-is-a-ddos-attack/
+
+** DNS hijack
+1. hijack the DNS results, lead the user to the fishing site.
+2. Use HTTPS to avoid.
+
+** XSS
+XSS is cross site scripting.   
+1. When a site is allowing user upload image or submit form and then display the post and didn't processe correctly , it maybe cause a XSS attack.
+2. User can post some text include a script tag, and if the tag haven’t escaped correctly, every user viewing this post will run the script which the hosted by the attacker, and this can be lead lots of problems, like steal user login credentials, monitor user.
+
+** SQL injection
+1. When developer use an user input to generate a SQL to run in the database, if haven’t processed correctly there maybe a SQL injection. Attacker could submit some string to change the perpose of the query.
+2. Always use prepare to run the sql, and quote the user's inputs.
+
+** Ansible
+1. Do not need to run daemons, and don't need databases, very minimal installation requirements.
+2. Connecting to a server using SSH (or WS-Man/WinRM for Windows), copies the Python code over, executes it and then removes itself.
+
+** Salt
+1. mast-slave stack
+2. Hierarchical masters
+
+** Optimise web performance
+1. Use HTTP2: Gain the performance provide by http2, change multiple connection to 1 connection per domain, reduce http requests.
+2. Merge and MInifying javascript/css.
+3. Image lazy-load, reduce image quality, use PNG or Web.P.
+4. Set correct cache header, use browser cache.
+5. Nginx gzip.
+6. Use anycast to avoid DDOS attack, and give user the nearest data center.
+7. Use CDN or cache layer in web deployment.
+8. Separate css/js domains with data api to decrease header size, bandwidth, and increase the request limit per domain.
+9. Use iconfonts to replace icon image, merge separate small images into one to reduce user requests.
+10. DNS prefetch.

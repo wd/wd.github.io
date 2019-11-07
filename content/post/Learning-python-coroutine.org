@@ -1,0 +1,84 @@
+---
+title: "Learning Python Coroutine"
+date: 2019-10-17T10:49:40+08:00
+tags: ["python", "coroutine"]
+toc: true
+---
+看了一个视频 [[https://www.youtube.com/watch?time_continue=1780&v=GSk0tIjDT10][OSB 2015 - How Do Python Coroutines Work?]]，从头开始讲 coroutine 是怎么抽象出来的，感觉好厉害。自己写了一点程序学习了一下。之前写的关于 [[https://wdicc.com/python-coroutine/][coroutine]] 的帖子。
+
+先准备一个 ~server.py~ ，可以接受客户端请求。要注意的是要使用 ~Threading~ ，或者 ~fork~ 的 server，要不服务端执行并不支持并发，需要处理完一个才能处理下一个，这样会发现虽然客户端那边请求是并发的，但是返回结果的时候是顺序的。
+
+#+begin_src python
+import socketserver
+from time import sleep
+
+HOST = '127.0.0.1'
+PORT = 2045
+
+class MyTCPHandler(socketserver.BaseRequestHandler):
+    def handle(self):
+        data = self.request.recv(1024)
+        sleep(1)
+        self.request.sendall('{} ok'.format(data.decode()).encode())
+
+
+def run():
+    server = socketserver.ThreadingTCPServer((HOST, PORT), MyTCPHandler)
+    server.serve_forever()
+
+if __name__ == '__main__':
+    run()
+#+end_src
+
+然后是 ~client.py~ ，可以比较下里面 ~sync_call~ 和 ~async_call~ 的区别。
+
+#+begin_src python
+import socket
+from time import time
+import asyncio
+
+HOST = '127.0.0.1'
+PORT = 2045
+
+start = time()
+
+def get(path):
+    print('get {}'.format(path))
+    s = socket.socket()
+    s.connect((HOST, PORT))
+
+    s.sendall(path.encode())
+
+    chunk = s.recv(100)
+    print('get {}'.format(chunk.decode()))
+
+def sync_call():
+    get('/bar')
+    get('/foo')
+
+
+async def async_get(path):
+    print('get {}'.format(path))
+    reader, writer = await asyncio.open_connection(HOST, PORT)
+
+    writer.write(path.encode())
+    await writer.drain()
+
+    chunk = await reader.read(100)
+    print('get {}'.format(chunk.decode()))
+
+def async_call():
+    loop = asyncio.get_event_loop()
+
+    t1 = loop.create_task(async_get('/bar'))
+    t2 = loop.create_task(async_get('/foo'))
+
+    loop.run_until_complete(asyncio.gather(t1, t2))
+
+if __name__ == "__main__":
+    #sync_call()
+    async_call()
+    print('total {:.2f} seconds'.format(time() - start))
+#+end_src
+
+这里网络请求也需要使用非阻塞的库。创建 task 实际有挺多方法的，这里随便用了一个。
