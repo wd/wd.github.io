@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="zh-cn">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
+    <title>ST_Buffer in Postgis | wd and cc</title>
+    <link rel="stylesheet" href="/css/style.css" />
+    <link rel="stylesheet" href="/css/fonts.css" />
+    <header>
+
+  
+  
+  <nav>
+    <ul>
+      
+      
+      <li class="pull-left ">
+        <a href="https://wdicc.com/">/home/wd and cc</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/tags/">~/tags</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="/resume/">~/resume</a>
+      </li>
+      
+      
+      <li class="pull-left ">
+        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
+      </li>
+      
+
+      
+      
+      <li class="pull-right">
+        <a href="/atom.xml">~/subscribe</a>
+      </li>
+      
+
+    </ul>
+  </nav>
+</header>
+
+  </head>
+
+  <body>
+    <br/>
+
+<div class="article-meta">
+<h1><span class="title">ST_Buffer in Postgis</span></h1>
+
+<h2 class="date">2019/12/04</h2>
+<p class="terms">
+  
+  
+  
+  
+  Tags: <a href="/tags/postgis">postgis</a> <a href="/tags/postgresql">postgresql</a> 
+  
+  
+</p>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+
+<main>
+
+<p>
+Postgis 一直没仔细用过，总是临到用时看看文档，这不又遇到问题了，折腾半天。
+</p>
+<p>
+我们最近有一个需求是，需要把一些原有的多边形范围扩大 50 公里，然后和其他的图形比较看是否有包含关系。是否有包含这个不用看也知道，gis 肯定有现成的函数，那么问题就在于怎么扩大一个多边形的范围。
+</p>
+<p>
+主要查到几个函数， <a href="https://postgis.net/docs/ST_Expand.html">ST_Expand</a> 和 <a href="https://postgis.net/docs/ST_Buffer.html">ST_Buffer</a>。st_expand 可以从 x,y,z 方向扩展，显然不适合我这里的情况，我这不是正南正北的多边形。那就只有 st_buffer 了。
+</p>
+<h2 id="headline-1">
+ST_Buffer
+</h2>
+<p>
+ST_Buffer 的语法如下
+</p>
+<div class="src src-text">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
+</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">geometry ST_Buffer(geometry g1, float radius_of_buffer, text buffer_style_parameters=&#39;&#39;);
+
+geometry ST_Buffer(geometry g1, float radius_of_buffer, integer num_seg_quarter_circle);
+
+geography ST_Buffer(geography g1, float radius_of_buffer, text buffer_style_parameters);
+
+geography ST_Buffer(geography g1, float radius_of_buffer, integer num_seg_quarter_circle);</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+第一个参数是 geometry 或者 geography 类型的。这又是什么？找到一篇<a href="https://postgis.net/workshops/postgis-intro/geography.html">参考文章</a>，下面会详细一点说。
+第二个参数是 radius_of_buffer，就是扩大的范围了，但是单位是啥？然后文档里面的解释是 <code class="verbatim">Units of radius are measured in units of the spatial reference system</code> ，这又是啥意思呢，就是取决于你的投影系统是什么。
+</p>
+<h2 id="headline-2">
+Geometry 和 Geography
+</h2>
+<p>
+地理坐标系不像是 Mercator（墨卡托）坐标系，不是笛卡尔坐标（就是我们常见的横竖轴 xy 坐标那种）。地理坐标系表达的是一个点在球体上面的位置，通过他和子午线（经度）以及赤道（纬度）的角度来表示。
+</p>
+<p>
+地球毕竟不是一个完美的球体，所以就算是地理坐标系，也有不同的大地测量系统（Geodetic datum）,这样同一个位置，不通的测量系统下，坐标会有一些差别。所以给一个 GPS 坐标点还需要指定对应的测量体系。我们常见的就是 WGS84 (EPSG：4326)。
+</p>
+<p>
+地理坐标系只能通过地球仪这样的数据展示，不是二维的。大家也不可能都抱着地球仪跑，所以就有了投影映射到平面的需求。
+</p>
+<p>
+常见的平面投影方式就是 Mercator，也就是 EPSG:3857。球体映射到平面肯定会有地方有失真啦，具体问题可以参考投影方式的说明吧，我们日常使用一般可以忽略这个问题。
+</p>
+<p>
+Postgis 里面两种类型 geometry 和 geography。一般使用 geometry, 4326 存数据，使用 geography 计算距离。
+</p>
+<p>
+那么上面的 radius_of_buffer 来说，对于 geometry 数据，是度数。对于 geography 数据，是我们常见的距离（米）。
+</p>
+<h2 id="headline-3">
+使用 ST_Buffer 扩展多边形
+</h2>
+<p>
+我们数据库里面存的数据是 GeometryField，所以一种方法如下，把数据 cast 成 Geography 类型的做计算。
+</p>
+<div class="src src-sql">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">st_buffer(gis_data::Geography, <span style="color:#00d;font-weight:bold">50000</span>, <span style="background-color:#fff0f0">&#39;endcap=round join=mitre mitre_limit=2&#39;</span>)</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+另一种方法如下，使用 st_transform 转成 3857 再做计算。
+</p>
+<div class="src src-sql">
+<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
+<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+</span></code></pre></td>
+<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">st_buffer(st_transform(gis_data, <span style="color:#00d;font-weight:bold">3857</span>), <span style="color:#00d;font-weight:bold">50000</span>, <span style="background-color:#fff0f0">&#39;endcap=round join=mitre mitre_limit=2&#39;</span>)</code></pre></td></tr></table>
+</div>
+</div>
+</div>
+<p>
+计算完毕得到的是 Geography 数据，如果想要存回去，还需要转成 Geometry，通过 cast 或者 st_transform 都可以完成。
+</p>
+<h2 id="headline-4">
+参考文章
+</h2>
+<ol>
+<li>
+<p>
+<a href="https://www.cnblogs.com/E7868A/p/11460865.html"><a href="https://www.cnblogs.com/E7868A/p/11460865.html">https://www.cnblogs.com/E7868A/p/11460865.html</a></a>
+</p>
+</li>
+</ol>
+
+</main>
+
+
+<section id="comment">
+    <h2 class="title">Comments</h2>
+    <div id="disqus_thread" aria-live="polite">
+        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+</section>
+
+
+    
+     <script type="text/javascript">
+        var disqus_config = function () {
+            this.page.url = '';
+            this.page.identifier = '';
+        };
+
+        (function() {
+          var d = document, s = d.createElement('script');
+          s.src = '//wdicc.disqus.com/embed.js';
+          s.setAttribute('data-timestamp', +new Date());
+          (d.head || d.body).appendChild(s);
+        })();
+     </script>
+    
+
+
+
+
+
+    <footer style="clear:both">
+      
+      <hr/>
+      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      
+    </footer>
+  </body>
+</html>
+
