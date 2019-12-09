@@ -6,7 +6,8 @@ toc: true
 comment: false
 ---
 
-中文版[这里](/resume/)。
+- [PDF](/resume-en.pdf)
+- [中文版](/resume/)
 
 ## About Me
 
@@ -30,6 +31,9 @@ Preferred locations:
 ### BrilliantAero.com (2017 - present), Co-founder, tech and product leader
 
 Build and lead both engineer team and product team, wrote application for iOS, Android, setup website. Mainly using JavaScript, Python, and React Native related technology.
+
+
+
 
 ### Qunar.com (2010 - 2016), senior technical director
 
