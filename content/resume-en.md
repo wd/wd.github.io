@@ -2,7 +2,7 @@
 title: “Resume”
 date: 2019-02-12T15:14:28+08:00
 tags: [“简历”, “resume”]
-toc: true
+toc: false
 comment: false
 ---
 
