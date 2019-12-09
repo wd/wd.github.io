@@ -9,25 +9,14 @@ comment: false
 - [PDF](/resume.pdf)
 - [English version](/resume-en/)
 
-## 关于我
-
-在很多岗位工作过，有大型团队管理经验。希望的岗位
-- 广告系统开发方向
-- SRE
-- DBA
-
-地点：
-- 新加坡
-- 北京
-- 伦敦
-- 北美
+在很多岗位工作过，有大型团队管理经验。希望的岗位：广告系统，SRE，DBA。地点：新加坡，北京，伦敦，北美。
 
 ## 工作经历
 
 ### 新晨航空（2017 - 现在），公司合伙人，技术和产品负责人
 
 - 组建团队：招聘产品技术设计 10 人左右。
-- 办公环境：搭建办公室开发用服务器，Debian, Gitlab, Prometheus, VPN, Wiki, NFS, DNS, 翻墙等。
+- 办公环境：搭建办公室开发用服务器，Debian, GitLab, Prometheus, VPN, Wiki, NFS, DNS, 翻墙等。
 - 后端：使用 Django 搭建后端开发框架，使用了 Celery, Channels 等。数据库使用的是 PostgreSQL + Redis。
   - 搭起来必要的框架之后后续就没参与太多代码编写了，主要做架构上面的控制。
   - 使用 Celery 跑定时任务，Redis 做 broker。
@@ -57,7 +46,7 @@ comment: false
 - PostgreSQL DBA 团队：带领团队维护公司几百个实例，建立了相应的监控体系。
   - 监控系统一开始使用 Nagios，遇到瓶颈之后使用 Gearman 扩展到多机，发现性能还是不行，后统一切换为 Zabbix 被动发现+检测方式。
   - 把数据库一些状态表信息例如索引使用次数，数据库大小等通过 Nagios 收集画图，方便看到历史信息排错。
-  - 把数据库的查询 SQL 情况放到 Elastict Search 引擎，方便定位。
+  - 把数据库的查询 SQL 情况放到 Elastic Search 引擎，方便排查慢查询，频繁的查询等。
   - 尝试使用 Pacemaker + Etcd 实现集群集中部署和管理，做了一半没做完。😭
 - 广告系统：带领团队负责公司的 CPM/CPC 广告系统，日 PV 达十亿。
   - 熟悉广告系统的各必备模块，例如广告展示引擎，防作弊，点击服务，计费体系，广告售卖逻辑等。
