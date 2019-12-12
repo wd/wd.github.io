@@ -1,0 +1,125 @@
+---
+title: "Add an Force Sync Button in Django Admin"
+date: 2019-12-12T13:33:15+08:00
+tags: ["django", "python"]
+toc: true
+---
+我们的系统里面需要和外部的系统同步一些数据，为了保证数据正确处理，增加了一个队列。队列是通过一个 celery 里面的定时任务同步的。定时任务设置是 5 分钟一次，那有时候测试的时候或者出错的时候就可能会想要立刻执行下同步，好看看执行结果，要不很有可能等到下次执行的时候还是有问题，这就有点浪费时间了。
+
+自然就想在 Django admin 后台增加一个按钮，点一下就执行一下同步功能。Django 提供了一个 ~admin.ModelAdmin.change_list_template~ 变量来让你自己定义 list 模版，我们就用这个实现了。
+
+~admin.py~ 的代码如下。
+
+#+BEGIN_SRC python
+class TestAdmin(admin.ModelAdmin):
+    change_list_template = "test/change_list.html"
+
+    def get_urls(self):
+        urls = super().get_urls()
+
+        my_urls = [
+            url(r'^$', self.force_sync),
+        ]
+        return my_urls + urls
+
+    def force_sync(self, request):
+        force_sync = request.GET.get('force_sync')
+        if force_sync:
+            logger.info('Force sync start')
+            ret = manual_syn_task()
+            logger.info('Force sync done, ret: {}'.format(ret))
+
+        return self.changelist_view(request)
+#+END_SRC
+
+~test/change_list.html~ 模版文件的代码如下
+
+#+BEGIN_SRC html
+{% extends 'admin/change_list.html' %}
+
+{% load i18n admin_static %}
+
+{% block object-tools-items %}
+{{ block.super }}
+<li>
+    <a href="{% url 'admin:app_list' app_label=cl.opts.app_label %}test?force_sync=1">Force Sync</a>
+</li>
+{% endblock %}
+#+END_SRC
+
+这里面的核心内容是
+1. ~change_list_template~ 设置使用自己的模版，然后在这个模版里面，覆盖 ~object-tools-items~ 这个 block，不过这个 blog 里面使用 ~{{ block.super }}~ 又保留了原来的内容，所以综合就是增加了那个链接。
+2. 然后在 ~admin.py~ 里面，通过 ~get_url~ 捕获你增加的 url，我省事直接用了 ~^$~ 。
+3. 在对应的 view 函数 ~force_sync~ 里面，判断参数里面是不是有 ~force_sync~ ，有的话执行自己的函数就好了。最后通过 ~return self.changelist_view(request)~ 返回默认的 view。
+4. 这个 ~changelist_view~ 方法里面，会判断你给的参数啥的是否合法，那个 ~force_sync~ 当然不合法，哪里都没有注册过，所以这个方法里面会直接到下面代码那个 ~except~ 里面，会 redict 一下，把 url 参数改成 ~e=1~ 这样的形式。
+5. 这样效果就是点击那个按钮之后，执行我的 sync 方法，然后会进行一个 302 页面刷新，参数改成了 ~e=1~ ，然后页面内部能看到同步效果。完成了我的需求，因为页面参数都修改了，还避免了刷新页面导致无意中再次 sync 的问题。
+
+~.venv/lib/python3.7/site-packages/django/contrib/admin/options.py~ 文件里面，1671 行左右
+#+BEGIN_SRC python
+        try:
+            cl = self.get_changelist_instance(request)
+        except IncorrectLookupParameters:
+            # Wacky lookup parameters were given, so redirect to the main
+            # changelist page, without parameters, and pass an 'invalid=1'
+            # parameter via the query string. If wacky parameters were given
+            # and the 'invalid=1' parameter was already in the query string,
+            # something is screwed up with the database, so display an error
+            # page.
+            if ERROR_FLAG in request.GET:
+                return SimpleTemplateResponse('admin/invalid_setup.html', {
+                    'title': _('Database error'),
+                })
+            return HttpResponseRedirect(request.path + '?' + ERROR_FLAG + '=1')
+#+END_SRC
+
+那如果想要在页面显示同步的结果呢？这个时候那个 302 就成问题了，因为这样还需要想办法把数据传下去。如果没有 302 的话，我们直接给 ~changelist_view(self, request, extra_context=None)~ 传一个 ~extra_context~ 就可以在模版里面读传进去的数据了。
+
+那就需要想办法绕开那个参数检查。再看看代码是哪里导致的那个 302，可以看到下面的代码。
+
+~.venv/lib/python3.7/site-packages/django/contrib/admin/views/main.py~ 文件 414 行左右
+#+BEGIN_SRC python
+        try:
+            # Finally, we apply the remaining lookup parameters from the query
+            # string (i.e. those that haven't already been processed by the
+            # filters).
+            qs = qs.filter(**remaining_lookup_params)
+        except (SuspiciousOperation, ImproperlyConfigured):
+            # Allow certain types of errors to be re-raised as-is so that the
+            # caller can treat them in a special way.
+            raise
+        except Exception as e:
+            # Every other error is caught with a naked except, because we don't
+            # have any other way of validating lookup parameters. They might be
+            # invalid if the keyword arguments are incorrect, or if the values
+            # are not in the correct type, so we might get FieldError,
+            # ValueError, ValidationError, or ?.
+            raise IncorrectLookupParameters(e)
+#+END_SRC
+
+就是那个 ~qs.filter~ 抛的异常。那个 ~lookup_params~ 很眼熟，查了一下，原来是和 list_filter 里面的设置有关，继续挖掘一下，django 支持自己定义自己的 filter 的，那我们自己定义一个看看。
+
+#+BEGIN_SRC python
+class ForceSyncFilter(admin.SimpleListFilter):
+    title = "force sync"
+    parameter_name = 'force_sync'
+
+    def lookups(self, request, model_admin):
+        return ()
+
+    def queryset(self, request, queryset):
+        return queryset
+
+class TestAdmin(admin.ModelAdmin):
+    list_filter = (ForceSyncFilter)
+#+END_SRC
+
+增加之后访问一下，发现不会 redirect 啦，后续就简单了，不演示了。哦，实际上还需要把结果显示在页面的话，还需要找一个地方，刚好我发现那个搜索如果出错的话，会有显示，我们服用那个就可以。模版里面在 ~object-tools~ 上面增加一个输出就行。
+
+#+BEGIN_SRC html
+{% block object-tools %}
+    {{ block.super }}
+    {% if extra.sync_message %}
+      <p class="errornote">{{ extra.sync_message }}</p>
+    {% endif %}
+{% endblock %}
+#+END_SRC
