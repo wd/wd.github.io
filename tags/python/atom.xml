@@ -6,10 +6,19 @@
     <description>Recent content in python on wd and cc</description>
     <generator>Hugo -- gohugo.io</generator>
     <language>zh-cn</language>
-    <lastBuildDate>Thu, 17 Oct 2019 10:49:40 +0800</lastBuildDate>
+    <lastBuildDate>Thu, 12 Dec 2019 13:33:15 +0800</lastBuildDate>
     
 	<atom:link href="https://wdicc.com/tags/python/atom.xml" rel="self" type="application/rss+xml" />
     
+    
+    <item>
+      <title>Add an Force Sync Button in Django Admin</title>
+      <link>https://wdicc.com/add-an-force-sync-button-in-django-admin/</link>
+      <pubDate>Thu, 12 Dec 2019 13:33:15 +0800</pubDate>
+      
+      <guid>https://wdicc.com/add-an-force-sync-button-in-django-admin/</guid>
+      <description>我们的系统里面需要和外部的系统同步一些数据，为了保证数据正确处理，增加了一个队列。队列是通过一个 celery 里面的定时任务同步的。定时任务设置是 5 分钟一次，那有时候测试的时候或者出错的时候就可能会想要立刻执行下同步，好看看执行结果，要不很有可能等到下次执行的时候还是有问题，这就有点浪费时间了。  自然就想在 Django admin 后台增加一个按钮，点一下就执行一下同步功能。Django 提供了一个 admin.ModelAdmin.change_list_template 变量来让你自己定义 list 模版，我们就用这个实现了。  admin.py 的代码如下。 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19  class TestAdmin(admin.ModelAdmin): change_list_template = &amp;#34;test/change_list.html&amp;#34; def get_urls(self): urls = super().get_urls() my_urls = [ url(r&amp;#39;^$&amp;#39;, self.force_sync), ] return my_urls + urls def force_sync(self, request): force_sync = request.GET.get(&amp;#39;force_sync&amp;#39;) if force_sync: logger.info(&amp;#39;Force sync start&amp;#39;) ret = manual_syn_task() logger.</description>
+    </item>
     
     <item>
       <title>Learning Python Coroutine</title>
