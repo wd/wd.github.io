@@ -10,6 +10,7 @@ comment: false
 - [English version](/resume-en/)
 
 在很多岗位工作过，有大型团队管理经验。希望的岗位：广告系统，SRE，DBA。地点：新加坡，北京，伦敦，北美。
+联系方式: wd # wdicc.com
 
 ## 工作经历
 

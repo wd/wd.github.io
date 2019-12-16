@@ -26,6 +26,8 @@ Preferred locations:
 - London
 - US
 
+Contact me: `wd # wdicc.com`.
+
 ## Experience
 
 ### BrilliantAero.com (2017 - present), Co-founder, tech and product leader
