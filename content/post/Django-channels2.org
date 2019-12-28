@@ -1,0 +1,145 @@
+---
+title: "Django Channels2"
+date: 2019-12-28T14:11:19+08:00
+tags: ["Django", "channels"]
+toc: true
+---
+Django 3.0.1 has released for sometime. We still use Django 1.11 in one of our project, with Channels 1.1.8, I think it's the time to upgrade to newest Django and Channels.
+
+According this [[https://channels.readthedocs.io/en/latest/one-to-two.html#how-to-upgrade][upgrade guide]], Channels 2 is a fully rewritten, lots of things has changed. This post is just a record about the upgrade I've done.
+
+** Routing
+
+In Channels 2 you need to add an =ASGI_APPLICATION= in the settings file, point to the asgi application.
+
+#+BEGIN_SRC python
+ASGI_APPLICATION = "proj.routing.application"
+#+END_SRC
+
+And add ~routing.py~ file, add an ~application~ variable in the file like the bellow.
+
+#+BEGIN_SRC python
+application = ProtocolTypeRouter({
+    "websocket": URLRouter([url(r"^ws$", MyConsumer)])
+})
+#+END_SRC
+
+The ~websocket~ key means it will handle websocket requests, the ~URLRouter~ just work as Django's. ~MyConsumer~ is the handler for the request.
+
+** Consumer
+
+Add ~MyConsumer~ class.
+
+#+BEGIN_SRC python
+class MyConsumer(WebsocketConsumer):
+    groups = ["broadcast"]
+
+    def connect(self):
+        self.accept()
+        print("connected")
+
+    def receive(self, text_data=None, bytes_data=None):
+        print("recv: ", text_data)
+
+    def disconnect(self, close_code=None):
+        print("disconnect")
+#+END_SRC
+
+When a client connected, it will call ~connect~ at first, you can do authentication(If you have your own auth method other than use Django's, otherwise you can use [[https://channels.readthedocs.io/en/latest/topics/authentication.html][AuthMiddlewarestack]] instead), some preparing, if you didn't want to accept the connect, you can use ~self.disconnect()~ to end the connection, it will also call ~disconnect~, where you can do some cleaning. The function ~receive~ will be called when the client send messages to you.
+
+Simple, huh? There are many other types of consumers, you can check [[https://channels.readthedocs.io/en/latest/topics/consumers.html#][here]].
+
+** Passing through data in session
+
+When a client connected, you may need to check the database and put some useful data in the session, so that you can use these data later. You have to use django session to do this in Channels 1, but in Channels 2 you didn't need to use django session, just store the data to ~self~.
+
+#+BEGIN_SRC python
+self.my_data = {
+    'user': ....,
+    'role': ...
+}
+#+END_SRC
+
+Of cause, you still can use django sessions to store data, check the doc [[https://channels.readthedocs.io/en/latest/topics/sessions.html][here]], just add the ~SessionMiddlewareStack~ in the routing file.
+
+Use ~self.scope["session"]["seed"] = '123'~ to set the session, and don't forget to use ~self.scope["session"].save()~ to save the session if you want to persist.
+
+** Broadcast messages
+
+You can use ~self.send(text_data="")~ to send a message to a client. But if you need to send to multiple client at a same time, you need to use [[https://channels.readthedocs.io/en/latest/topics/channel_layers.html][Channel Layers]].
+
+There are many backends you can use, I recommend you use ~channels_redis~.
+
+#+BEGIN_SRC python
+CHANNEL_LAYERS = {
+    "default": {
+        "BACKEND": "channels_redis.core.RedisChannelLayer",
+        "CONFIG": {
+            "hosts": [("redis-server-name", 6379)],
+        },
+    },
+}
+#+END_SRC
+
+Then you need to create groups when user connect in ~MyConsume~.
+
+#+BEGIN_SRC python
+class MyConsumer(WebsocketConsumer):
+    groups = ["broadcast"]
+
+    def connect(self):
+        self.accept()
+        print("connected")
+        async_to_sync(self.channel_layer.group_add)("some_room", self.channel_name)
+
+    def receive(self, text_data=None, bytes_data=None):
+        print("recv: ", text_data)
+
+    def disconnect(self, close_code=None):
+        print("disconnect")
+        async_to_sync(self.channel_layer.group_discard)(
+            "some_room",
+            self.channel_name
+        )
+
+    def group_notify(self, msg):
+        self.send(text_data=msg["text"])
+#+END_SRC
+
+The string ~some_room~ is the group id you want the user to join, think about it"s just like a chat room, everyone who join this room is a group. Or you can use the ~user_id~ as the group id like us, so you can send same messages to the same user at once even they have many sessions through many clients.
+
+Use ~self.channel_layer.group_discard~ to quite a group and use ~self.channel_layer.group_send~ to send a message to a group. If you need to send to the group outside the comsumer, just use the codes below to get the ~channel_layer~.
+
+#+BEGIN_SRC python
+from channels.layers import get_channel_layer
+channel_layer = get_channel_layer()
+
+async_to_sync(channel_layer.group_send)(
+       "some_room", {
+           "type": "group.notify",
+           "text": str(notify)
+       },
+   )
+#+END_SRC
+
+Please beware that the message type here is ~group.notify~, it can be anything you want, just add a handler for it in the comsumer, like the function ~group_notify~ I added above(replace the "." to "_").
+
+** Deploy and run
+
+After add the ~ASGI_APPLICATION~, you can run the server use command ~./manage.py runserver~, the server will handle both http and websocket requests.
+
+You can also use ~daphne~ to run the server, just need to add an ~asgi.py~ like the bellow.
+
+#+BEGIN_SRC python
+import os
+import django
+from channels.routing import get_default_application
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "proj.settings")
+django.setup()
+application = get_default_application()
+#+END_SRC
+
+Then run with command ~daphne -p 8001 proj.asgi:application~, it also can handle both http and websocket request.
+
+If you prefer to handle http requests use WSGI method like before, just run ~proj.asgi:application~ use wsgi server like ~gunicorn~.
