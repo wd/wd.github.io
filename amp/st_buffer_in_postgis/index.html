@@ -87,16 +87,16 @@ Postgis 一直没仔细用过，总是临到用时看看文档，这不又遇到
 <p>
 主要查到几个函数， <a href="https://postgis.net/docs/ST_Expand.html">ST_Expand</a> 和 <a href="https://postgis.net/docs/ST_Buffer.html">ST_Buffer</a>。st_expand 可以从 x,y,z 方向扩展，显然不适合我这里的情况，我这不是正南正北的多边形。那就只有 st_buffer 了。
 </p>
-<h2 id="headline-1">
+<h3 id="headline-1">
 ST_Buffer
-</h2>
+</h3>
 <p>
 ST_Buffer 的语法如下
 </p>
 <div class="src src-text">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -119,9 +119,9 @@ geography ST_Buffer(geography g1, float radius_of_buffer, integer num_seg_quarte
 第一个参数是 geometry 或者 geography 类型的。这又是什么？找到一篇<a href="https://postgis.net/workshops/postgis-intro/geography.html">参考文章</a>，下面会详细一点说。
 第二个参数是 radius_of_buffer，就是扩大的范围了，但是单位是啥？然后文档里面的解释是 <code class="verbatim">Units of radius are measured in units of the spatial reference system</code> ，这又是啥意思呢，就是取决于你的投影系统是什么。
 </p>
-<h2 id="headline-2">
+<h3 id="headline-2">
 Geometry 和 Geography
-</h2>
+</h3>
 <p>
 地理坐标系不像是 Mercator（墨卡托）坐标系，不是笛卡尔坐标（就是我们常见的横竖轴 xy 坐标那种）。地理坐标系表达的是一个点在球体上面的位置，通过他和子午线（经度）以及赤道（纬度）的角度来表示。
 </p>
@@ -140,19 +140,19 @@ Postgis 里面两种类型 geometry 和 geography。一般使用 geometry, 4326 
 <p>
 那么上面的 radius_of_buffer 来说，对于 geometry 数据，是度数。对于 geography 数据，是我们常见的距离（米）。
 </p>
-<h2 id="headline-3">
+<h3 id="headline-3">
 使用 ST_Buffer 扩展多边形
-</h2>
+</h3>
 <p>
 我们数据库里面存的数据是 GeometryField，所以一种方法如下，把数据 cast 成 Geography 类型的做计算。
 </p>
 <div class="src src-sql">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">st_buffer(gis_data::Geography, <span style="color:#00d;font-weight:bold">50000</span>, <span style="background-color:#fff0f0">&#39;endcap=round join=mitre mitre_limit=2&#39;</span>)</code></pre></td></tr></table>
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">st_buffer(gis_data::Geography, <span style="color:#00d;font-weight:bold">50000</span>, <span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">endcap=round join=mitre mitre_limit=2</span><span style="background-color:#fff0f0">&#39;</span>)</code></pre></td></tr></table>
 </div>
 </div>
 </div>
@@ -162,19 +162,19 @@ Postgis 里面两种类型 geometry 和 geography。一般使用 geometry, 4326 
 <div class="src src-sql">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">st_buffer(st_transform(gis_data, <span style="color:#00d;font-weight:bold">3857</span>), <span style="color:#00d;font-weight:bold">50000</span>, <span style="background-color:#fff0f0">&#39;endcap=round join=mitre mitre_limit=2&#39;</span>)</code></pre></td></tr></table>
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-sql" data-lang="sql">st_buffer(st_transform(gis_data, <span style="color:#00d;font-weight:bold">3857</span>), <span style="color:#00d;font-weight:bold">50000</span>, <span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">endcap=round join=mitre mitre_limit=2</span><span style="background-color:#fff0f0">&#39;</span>)</code></pre></td></tr></table>
 </div>
 </div>
 </div>
 <p>
 计算完毕得到的是 Geography 数据，如果想要存回去，还需要转成 Geometry，通过 cast 或者 st_transform 都可以完成。
 </p>
-<h2 id="headline-4">
+<h3 id="headline-4">
 参考文章
-</h2>
+</h3>
 <ol>
 <li>
 <p>

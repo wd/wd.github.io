@@ -77,20 +77,14 @@
 
 
 <main>
-
-
 <p>最近几天写了一些 bash 脚本，又有些心得，记录一下。</p>
-
-<h2 id="获取当前路径的绝对路径">获取当前路径的绝对路径</h2>
-
+<h2 id="heading">获取当前路径的绝对路径</h2>
 <p>比较常见的需求可能是获取相对路径，这样方便程序复制到其他目录也可以运行。使用 <code>$(dirname $0)</code> 就可以获取相对路径，不过这里说的是绝对路径。</p>
-
 <p>其实也简单，相对路径加上当前目录，那不就是绝对路径么。不过是，有时候 <code>$(dirname $0)</code> 取到的也可能是绝对路径（一般期望相对路径的程序也能跑通，所以不大关心）。</p>
-
 <p>可以用下面的做法，大意是先判断一下获取到的路径是不是 <code>/</code> 开头，如果是，那就不处理，如果不是，那就把当前的路径附加上去得到一个绝对路径。</p>
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -99,25 +93,22 @@
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">7
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#963">PG_DIR</span><span style="color:#333">=</span><span style="background-color:#fff0f0">&#34;</span><span style="color:#080;font-weight:bold">$(</span>dirname <span style="color:#963">$0</span><span style="color:#080;font-weight:bold">)</span><span style="background-color:#fff0f0">/../&#34;</span>
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#963">PG_DIR</span><span style="color:#333">=</span><span style="background-color:#fff0f0">&#34;</span><span style="color:#080;font-weight:bold">$(</span>dirname <span style="color:#963">$0</span><span style="color:#080;font-weight:bold">)</span><span style="background-color:#fff0f0">/../</span><span style="background-color:#fff0f0">&#34;</span>
 
 <span style="color:#007020">echo</span> <span style="background-color:#fff0f0">&#34;</span><span style="color:#963">$PG_DIR</span><span style="background-color:#fff0f0">&#34;</span> | grep -q ^/
 
 <span style="color:#080;font-weight:bold">if</span> <span style="color:#333">[</span> <span style="color:#963">$?</span> -ne <span style="color:#60e;font-weight:bold">0</span> <span style="color:#333">]</span>;<span style="color:#080;font-weight:bold">then</span>
         <span style="color:#963">PG_DIR</span><span style="color:#333">=</span><span style="background-color:#fff0f0">&#34;</span><span style="color:#080;font-weight:bold">$(</span><span style="color:#007020">pwd</span><span style="color:#080;font-weight:bold">)</span><span style="background-color:#fff0f0">/</span><span style="color:#963">$PG_DIR</span><span style="background-color:#fff0f0">&#34;</span>
-<span style="color:#080;font-weight:bold">fi</span></code></pre></td></tr></table>
+<span style="color:#080;font-weight:bold">fi</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<h2 id="使用-getopt-获取命令行参数">使用 getopt 获取命令行参数</h2>
-
+</div><h2 id="-getopt-">使用 getopt 获取命令行参数</h2>
 <p>获取参数比较常见的做法是取 <code>$1</code> <code>$2</code> 这些，不过不太专业，这里说的是类似于 <code>--prefix=/path/to/install -v</code> 这种。</p>
-
 <p>bash 本身提供了一个内部命令 <code>getopts</code> 来做这个事情，不过那个只能支持 short_opts，就是类似 <code>-v</code> 这种，不支持长的。</p>
-
 <p>getopt 是一个 GNU 程序，他支持 long_opts。下面是个例子。代码基本来自网上。</p>
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -160,31 +151,30 @@
                         ;;
         <span style="color:#080;font-weight:bold">esac</span>
         <span style="color:#007020">shift</span>
-<span style="color:#080;font-weight:bold">done</span></code></pre></td></tr></table>
+<span style="color:#080;font-weight:bold">done</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>解释一下上面的参数的含义:
-* <code>-o</code> 参数指定的就是短参数，我试过，貌似还得指定至少一个短参数。
-* <code>-l</code> 参数指定的就是长参数。
-* 多个参数用逗号 <code>,</code> 分隔。
-* 参数后面跟一个冒号 <code>:</code> 表示这个参数(option)必须要给一个参数(argument)，类似上面的 <code>--prefix=/path/to/install</code> 这种。
-* 参数后面跟2个冒号 <code>::</code> 表示这个参数后面的参数可有可无。比如例子里面的 <code>--initdb</code></p>
-
-<h2 id="find-exec-提示-no-such-file-or-directory">find exec 提示 No such file or directory</h2>
-
+</div><p>解释一下上面的参数的含义:</p>
+<ul>
+<li><code>-o</code> 参数指定的就是短参数，我试过，貌似还得指定至少一个短参数。</li>
+<li><code>-l</code> 参数指定的就是长参数。</li>
+<li>多个参数用逗号 <code>,</code> 分隔。</li>
+<li>参数后面跟一个冒号 <code>:</code> 表示这个参数(option)必须要给一个参数(argument)，类似上面的 <code>--prefix=/path/to/install</code> 这种。</li>
+<li>参数后面跟2个冒号 <code>::</code> 表示这个参数后面的参数可有可无。比如例子里面的 <code>--initdb</code></li>
+</ul>
+<h2 id="find-exec--no-such-file-or-directory">find exec 提示 No such file or directory</h2>
 <p>这个是之前用来日志删除的一个程序，大概命令类似 <code>find ./ -name '2012*' -exec rm -r {} \;</code>，后来总发现报 <code>No such file or directory</code> 这个错误，可是去看的时候，发现那些目录也被删掉了。开始觉得可能是有其他人的程序也在删除这个目录，问了一圈结果没人删。</p>
-
 <p>后来经过测试琢磨找到原因了，在于这个命令的执行思路大概是先去找那个名字的文件或者目录，然后挨个执行后面的命令。那么，如果找到的既有上级目录，也有下级文件的时候，如果目录先被删掉了，那删文件的时候可不就是 <code>No such file or directory</code> 么。</p>
-
 <p>好在 find 提供了一个参数 <code>-prune</code></p>
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span></pre></td>
+</span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">       -prune True; if the file is a directory, do not descend into it. If -depth is given, false; no effect.  Because -delete implies -depth, you can-
-              not usefully use -prune and -delete together.</pre></td></tr></table>
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">       -prune True; if the file is a directory, do not descend into it. If -depth is given, false; no effect.  Because -delete implies -depth, you can-
+              not usefully use -prune and -delete together.
+</code></pre></td></tr></table>
 </div>
 </div>
 </main>

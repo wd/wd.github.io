@@ -60,7 +60,8 @@ Partial Writes / Torn Pages pg 默认是 8kB 一个 page。linux 文件系统一
       <description>PostgreSQL 内建 sharding 支持，粗略翻译自 https://wiki.postgresql.org/wiki/Built-in_Sharding
 Introduction 内建支持 sharding 最大的挑战是，如何用最小的代码修改实现。大部分社区的 sharding 修改支持都修改了很多 PostgreSQL 的代码，这也导致这些不能被 Postgres 社区那些不需要 sharding 的人接受。有了 FDW 之后，就有了在有限代码修改情况下实现内建 sharding 支持的可能。
 基于 FDW 的这种 sharding 设计，是基于 NTT 开发的 Postgres-XC，大概已经有 10 年了。Postgres-XL 是基于这个设计的一种更加灵活的实现。
-Enhance Existing Features  已完成？提升 FDW 的基础设计和 postgres_fdw。特别的，好的性能要求合理的把一些操作推送到子节点(foreign shards)。在 Postgres 9.6 中，join, sort, update, delete 都可以推送到字节点了。聚合的 pushdown 将在 Postgres 10 中支持。FDW 表已经可以作为继承表出现。 提升分区支持有效提升 existence of shards。幸运的是，单节点的分区支持也需要重构才能提升性能和更多优化。例如，executor-based partition pruning. 给 FDW 请求增加并行支持。这样能允许节点并行执行，这个可能会通过多个异步的链接来实现。  New Subsystems 还需要开发一些子系统： * 允许表可以复制到所有节点，以允许更多的 join pushdown。这个可以通过 trigger 或者逻辑复制来完成。 * 实现一个子模块，以使用新的分区系统表来提交符合提交的查询的 FDW 查询。 * 实现一个子模块收集 FDW 查询的结果返回给用户。 * 实现全局事务管理器以便更加高效的允许子节点原子的提交事务。这个可能会通过 prepared 的事务来实现，还有某种在 crash 之后清理那些 preapared 的事务的事务管理器。例如 XA。 * 实现全局快照管理器，以允许子节点可以看到一致性的快照。（是不是 serialisable 事务模式会避免跨节点快照冲突？pg_export_snapshot() 或者 hot_standby_feedback 是不是会有帮助？) 多节点的备份的一致性也需要这个支持。 * 实现支持 create, manage, report on shards 这些用户 API。</description>
+Enhance Existing Features  已完成？提升 FDW 的基础设计和 postgres_fdw。特别的，好的性能要求合理的把一些操作推送到子节点(foreign shards)。在 Postgres 9.6 中，join, sort, update, delete 都可以推送到字节点了。聚合的 pushdown 将在 Postgres 10 中支持。FDW 表已经可以作为继承表出现。 提升分区支持有效提升 existence of shards。幸运的是，单节点的分区支持也需要重构才能提升性能和更多优化。例如，executor-based partition pruning. 给 FDW 请求增加并行支持。这样能允许节点并行执行，这个可能会通过多个异步的链接来实现。  New Subsystems 还需要开发一些子系统：
+ 允许表可以复制到所有节点，以允许更多的 join pushdown。这个可以通过 trigger 或者逻辑复制来完成。 实现一个子模块，以使用新的分区系统表来提交符合提交的查询的 FDW 查询。 实现一个子模块收集 FDW 查询的结果返回给用户。 实现全局事务管理器以便更加高效的允许子节点原子的提交事务。这个可能会通过 prepared 的事务来实现，还有某种在 crash 之后清理那些 preapared 的事务的事务管理器。例如 XA。 实现全局快照管理器，以允许子节点可以看到一致性的快照。（是不是 serialisable 事务模式会避免跨节点快照冲突？pg_export_snapshot() 或者 hot_standby_feedback 是不是会有帮助？) 多节点的备份的一致性也需要这个支持。 实现支持 create, manage, report on shards 这些用户 API。  Use Cases 有四种可能的用户案例和不同的需求:</description>
     </item>
     
     <item>
@@ -73,9 +74,9 @@ Enhance Existing Features  已完成？提升 FDW 的基础设计和 postgres_fd
 并发控制 13.2 事务隔离级别 SQL 标准定义了四个事务隔离级别。最严格的就是串行化(Serializable)，根据标准定义，任何并发的串行化事务如果在相同的时间使用相同的顺序执行，那么需要有相同的执行结果。其他的三个隔离级别，都定义了在并发事务互相影响的情况下，在各隔离级别下不允许出现的一些现象。根据标准，这些现象都不允许出现在串行化这个级别。(这并不令人惊讶 &amp;ndash; 如果为了事务的结果一致只允许同时运行一个事务，那怎么可能会出现因为事务互相影响产生的现象)。
 在各级别禁止的一些现象如下：
 脏读(dirty read)
-1  一个事务读取到另一个并发的事务还没有提交的数据。   不可重复读(nonrepeatable read)
-1  一个事务重复读取之前读过的数据的时候，发现数据已经被其他事务修改（就是在第一次读取之后做的提交)。   幻读(phantom read)
-1  一个事务重新执行一个查找符合条件的数据的查询的时候，发现返回的数据因为这期间别的事务做了提交而发生了变化。   四个事务隔离级别和对应的行为在表 13-1 中进行了描述。
+一个事务读取到另一个并发的事务还没有提交的数据。  不可重复读(nonrepeatable read)
+一个事务重复读取之前读过的数据的时候，发现数据已经被其他事务修改（就是在第一次读取之后做的提交)。  幻读(phantom read)
+一个事务重新执行一个查找符合条件的数据的查询的时候，发现返回的数据因为这期间别的事务做了提交而发生了变化。  四个事务隔离级别和对应的行为在表 13-1 中进行了描述。
 表 13-1 SQL 标准定义的事务隔离级别
 | 事务隔离级别 | 脏读 | 不可重复读 | 幻读 | |&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;-+&amp;mdash;&amp;mdash;&amp;ndash;+&amp;mdash;&amp;mdash;&amp;mdash;&amp;mdash;+&amp;mdash;&amp;mdash;&amp;ndash;| | 读未提交(read uncommitted) | 可能 | 可能 | 可能 | | 读已提交(read committed) | 不可能 | 可能 | 可能 | | 可重复读(repeatable read) | 不可能 | 不可能 | 可能 | | 串行化(serializable) | 不可能 | 不可能 | 不可能 |</description>
     </item>

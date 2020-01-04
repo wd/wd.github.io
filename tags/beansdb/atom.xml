@@ -18,8 +18,8 @@
       
       <guid>https://wdicc.com/beansdb-merge-tools/</guid>
       <description>Beansdb 是豆瓣开源出来的一个高效的支持 memcached 协议的文件存储 db。按 key 查找的时候，会有索引定位到磁盘位置。不过貌似前段时间看到说他们搞了一个新的替代这个，我找了一下没找到链接。
-使用 beansdb 的时候，有 2 个问题需要解决 * 冗余问题 * 数据过期删除问题
-数据冗余问题 先说第一个问题。beansdb 本身不提供分布式 hash 逻辑，它就是个单机的程序。冗余需要你自己搞定，如果你使用标准的 memcache 协议，可以有多 server 的配置，读的时候其中一个失败会自动找下一个 server，写的时候就不会了，需要你自己写到多个 server。如果你所有的 server 都是一模一样的，那多写就可以了。如果不一样，你还需要考虑自己的 hash 策略。
+使用 beansdb 的时候，有 2 个问题需要解决
+ 冗余问题 数据过期删除问题  数据冗余问题 先说第一个问题。beansdb 本身不提供分布式 hash 逻辑，它就是个单机的程序。冗余需要你自己搞定，如果你使用标准的 memcache 协议，可以有多 server 的配置，读的时候其中一个失败会自动找下一个 server，写的时候就不会了，需要你自己写到多个 server。如果你所有的 server 都是一模一样的，那多写就可以了。如果不一样，你还需要考虑自己的 hash 策略。
 豆瓣提供了一个 python 的客户端，这个客户端里面其实包含了 hash 策略。通过把 key 和 server 分桶来做 hash。摘一点代码如下
 1 2 3 4 5 6 7  BEANSDBCFG = { &amp;#34;localhost:7901&amp;#34;: range(16), &amp;#34;localhost:7902&amp;#34;: range(16), &amp;#34;localhost:7903&amp;#34;: range(16), } db = Beansdb(BEANSDBCFG, 16)   上面定义了三个 server，每个包含 16 个桶（你可以根据你的需求比如定义第一个 server 只包含某些桶）。</description>
     </item>

@@ -84,22 +84,22 @@ Django 自己的 unittest 支持的挺好，一般只需要在 app 下面加一�
 <p>
 这个 <code class="verbatim">django.test.TestCase</code> 继承自 <code class="verbatim">unittest.TestCase</code> ，django 这个多了一个自动使用事务的功能，所以用 django 这个的话，每个测试用例执行前后会自动回滚数据库操作，这样不用你自己 cleanup 数据，还比较方便。
 </p>
-<h2 id="headline-1">
+<h3 id="headline-1">
 setUp 和 tearDown
-</h2>
+</h3>
 <p>
 每一个测试类里面，都可以有一个 <code class="verbatim">setUp</code> 方法，是在 case 方法执行前执行，例如一些准备工作，和一个 <code class="verbatim">tearDown</code> 方法，在 case 执行之后执行，例如一些清理工作。还可以有若干个使用 <code class="verbatim">test_</code> 开头的测试用例，这些 <code class="verbatim">setUp</code> 其实类似于把每个测试用例里面共同的部分提取出来一样，不过是不用你在每个 case 里面单独调用了，会自动处理。
 </p>
-<h2 id="headline-2">
+<h3 id="headline-2">
 setUpClass 和 tearDownClass
-</h2>
+</h3>
 <p>
 django 还提供了 <code class="verbatim">setUpClass</code> 和 <code class="verbatim">tearDownClass</code> ，类似上面的 <code class="verbatim">setUp</code> 方法，不过这个是每个 class 只会执行一次。另外按照<a href="https://medium.com/@nhatcuong/django-test-fixture-setup-setupclass-and-setuptestdata-72b6d944cdef">这里</a>的说法， <code class="verbatim">setUpClass</code> 不会使用事务，不过我看源码(django 2.1.4) 好像是会的，我没测试。。
 </p>
 <div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -130,7 +130,7 @@ django 还提供了 <code class="verbatim">setUpClass</code> 和 <code class="ve
         <span style="color:#080;font-weight:bold">if</span> cls<span style="color:#333">.</span>fixtures:
             <span style="color:#080;font-weight:bold">for</span> db_name <span style="color:#000;font-weight:bold">in</span> cls<span style="color:#333">.</span>_databases_names(include_mirrors<span style="color:#333">=</span>False):
                 <span style="color:#080;font-weight:bold">try</span>:
-                    call_command(<span style="background-color:#fff0f0">&#39;loaddata&#39;</span>, <span style="color:#333">*</span>cls<span style="color:#333">.</span>fixtures, <span style="color:#333">**</span>{<span style="background-color:#fff0f0">&#39;verbosity&#39;</span>: <span style="color:#00d;font-weight:bold">0</span>, <span style="background-color:#fff0f0">&#39;database&#39;</span>: db_name})
+                    call_command(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">loaddata</span><span style="background-color:#fff0f0">&#39;</span>, <span style="color:#333">*</span>cls<span style="color:#333">.</span>fixtures, <span style="color:#333">*</span><span style="color:#333">*</span>{<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">verbosity</span><span style="background-color:#fff0f0">&#39;</span>: <span style="color:#00d;font-weight:bold">0</span>, <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">database</span><span style="background-color:#fff0f0">&#39;</span>: db_name})
                 <span style="color:#080;font-weight:bold">except</span> <span style="color:#f00;font-weight:bold">Exception</span>:
                     cls<span style="color:#333">.</span>_rollback_atomics(cls<span style="color:#333">.</span>cls_atomics)
                     <span style="color:#080;font-weight:bold">raise</span>
@@ -145,9 +145,9 @@ django 还提供了 <code class="verbatim">setUpClass</code> 和 <code class="ve
 <p>
 代码可以看到，还有一个 <code class="verbatim">setUpTestData</code> 可以用。如果只是准备数据库数据的话，感觉后面这个更精准一点。
 </p>
-<h2 id="headline-3">
+<h3 id="headline-3">
 测试用例
-</h2>
+</h3>
 <p>
 case 我觉得一般可以分两种，方法测试，和接口测试。
 </p>
@@ -163,9 +163,9 @@ Django 里面，每个测试用例之间是通过事务互相隔离的，所以�
 <p>
 接口测试可以通过 <code class="verbatim">django.test.Client</code> 来访问你的接口，然后比对返回结果，或者比对数据库的数据来验证。
 </p>
-<h2 id="headline-4">
+<h3 id="headline-4">
 fixtures
-</h2>
+</h3>
 <p>
 有时候一些接口是依赖已有数据的，比如一个返回所有用户的接口，那测试的时候数据库是需要有用户才能返回的。这个可以通过 fixture 来 moke 数据。
 </p>
@@ -181,7 +181,7 @@ fixtures
 <div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -190,10 +190,10 @@ fixtures
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">call_command(
-    <span style="background-color:#fff0f0">&#39;dumpdata&#39;</span>,
-    <span style="background-color:#fff0f0">&#39;--indent&#39;</span>, <span style="background-color:#fff0f0">&#39;4&#39;</span>,
-    <span style="background-color:#fff0f0">&#39;app_label&#39;</span>, <span style="background-color:#fff0f0">&#39;ModelName&#39;</span>,
-    <span style="background-color:#fff0f0">&#39;app_label&#39;</span>, <span style="background-color:#fff0f0">&#39;ModelName&#39;</span>
+    <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">dumpdata</span><span style="background-color:#fff0f0">&#39;</span>,
+    <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">--indent</span><span style="background-color:#fff0f0">&#39;</span>, <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">4</span><span style="background-color:#fff0f0">&#39;</span>,
+    <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">app_label</span><span style="background-color:#fff0f0">&#39;</span>, <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">ModelName</span><span style="background-color:#fff0f0">&#39;</span>,
+    <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">app_label</span><span style="background-color:#fff0f0">&#39;</span>, <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">ModelName</span><span style="background-color:#fff0f0">&#39;</span>
 )</code></pre></td></tr></table>
 </div>
 </div>
@@ -204,9 +204,9 @@ fixtures
 <p>
 命令行执行测试的时候，会打印出来 dump 出来的数据，把他们存到一个 json 文件然后引入就可以了。
 </p>
-<h2 id="headline-5">
+<h3 id="headline-5">
 给测试提速
-</h2>
+</h3>
 <p>
 有一个提升测试速度的方法，是使用 <code class="verbatim">-k</code> 参数，这个参数会保留测试的数据库，不会每次都删除重建，这样节省一些时间。
 </p>
@@ -216,9 +216,9 @@ fixtures
 <p>
 Django 还是做的挺不错的。测试这么方便，实际很适合使用 TDD 方式开发。
 </p>
-<h2 id="headline-6">
+<h3 id="headline-6">
 其他
-</h2>
+</h3>
 <p>
 看到<a href="https://adamj.eu/tech/2019/07/15/djangos-test-case-classes-and-a-three-times-speed-up/">一篇文章</a>，从 <code>TransactionTestCase</code> 替换到 <code>TestCase</code> 速度提升了 3 倍。
 </p>

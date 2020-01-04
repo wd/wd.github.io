@@ -113,16 +113,16 @@ StatckNavigator 提供了一个 params 属性。就是 <code class="verbatim">th
 <p>
 了解 redux 之后，感觉这个东西是我们的药。统一的 state 管理，这不就不用考虑状态传递了么？所以一门心思开始研究 redux。刚好我们第一个 app 需要全新改版，我们就借机把我们的第一个 app 也重构到了 redux 实现。整体过程还是蛮舒服的，自己也总结了几条我们自己的使用的思路。
 </p>
-<h3 id="headline-1">
+<h4 id="headline-1">
 目录结构安排
-</h3>
+</h4>
 <p>
 先大概看看我们 app 的目录结构。我们把所有的 js 文件都放到了 app 目录下面。
 </p>
 <div class="src src-text">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -141,7 +141,7 @@ index.js</code></pre></td></tr></table>
 <div class="src src-text">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -187,54 +187,54 @@ seelctor 里面放的是 mapStateToProps 这个逻辑对应的东西。
 <p>
 每个目录里面也都有一个自己的 index.js 把本目录里面的内容组合起来。通过最外面的 index.js 把这几个目录的逻辑组合起来。
 </p>
-<h3 id="headline-2">
+<h4 id="headline-2">
 给页面设计一个基类
-</h3>
+</h4>
 <p>
 这样会比较方便你去做一些所有页面都需要做的事情。
 </p>
-<h3 id="headline-3">
+<h4 id="headline-3">
 一个 app 一个统一的 store
-</h3>
+</h4>
 <p>
 我们 app 还不大，所以这么设计也还好，如果页面比较复杂，我看也有组件使用自己的 store 的例子，这个还没有经验。这么做唯一一个问题就是，那个 store 里面的数据一直都在，多少会占用一些内存。不过我是觉得没啥了，其实这点内存占用不算啥。
 </p>
-<h3 id="headline-4">
+<h4 id="headline-4">
 store 设计和页面无关
-</h3>
+</h4>
 <p>
 Store 参考了一个文章统一设计，和页面无关。比如我们设计了 user, orders, orderDetail 这些 state，数据所有页面共享。否则如果按照页面来划分的话，某些页面之间如果有用到共享数据就要么多复制一份，那有点浪费了，要么就是会有点乱。
 </p>
-<h3 id="headline-5">
+<h4 id="headline-5">
 每个页面都使用自己的 props
-</h3>
+</h4>
 <p>
 不在页面间交叉使用 props ，这样不会乱。并且因为我们是一个统一的 store，所以其实每次 props 变化，所有页面都会 render。这个我使用下面的一个思路来解决了。
 </p>
-<h3 id="headline-6">
+<h4 id="headline-6">
 shouldComponentUpdate
-</h3>
+</h4>
 <p>
 这个就是在页面的基类里面，通过比较判断本页面的 props 是否有变化来解决前面那个 render 问题。
 </p>
-<h3 id="headline-7">
+<h4 id="headline-7">
 使用 reselect
-</h3>
+</h4>
 <p>
 因为只要 state 发生变化 redux 就会调用 mapStateToProps 来计算 props，这个计算有一些消耗，毕竟一般也就其中一个页面的 props 需要计算。我们用这个 reselect 解决这个问题，一个页面的 props 需要的 state 没变化的时候，reselect 就可以把 cache 的数据直接返回就好了。
 </p>
-<h3 id="headline-8">
+<h4 id="headline-8">
 适当使用页面的 state
-</h3>
+</h4>
 <p>
 redux 的理念是所有页面的 state 都放到了 store 里面，你不需要做 setState 动作了。但是实际上有些时候适当使用 state 会让你的开发更加方便。比如表单验证，用户输入数据之后点击提交 ，如果通过发送 action 改变 state 然后再通过 selector 返回页面，那就有点太费劲了。而直接通过 setState 设定页面 state，然后在提交表单的时候读出来做验证就简单多了。
 </p>
 <p>
 有时候页面的一些 state 是和 props 有关系的，这个时候可以使用 <code class="verbatim">componentWillReceiveProps(nextProps)</code> 来判定，然后和 state 同步。
 </p>
-<h3 id="headline-9">
+<h4 id="headline-9">
 Android 的返回按钮处理
-</h3>
+</h4>
 <p>
 android 有一个实体的返回按钮，StackNavigator 给出的<a href="https://reactnavigation.org/docs/guides/redux#Handling-the-Hardware-Back-Button-in-Android">方案</a>是监听一个 <code class="verbatim">hardwareBackPress</code> 事件，然后 <code class="verbatim">dispatch(NavigationActions.back())</code> ，但是有一个问题是，有时候我们返回的时候还需要做一些自己的动作。比如清理 store 的数据，或者判断一下往哪里返什么的，比如用户刚提交了订单之后，给了一个按钮可以看订单详情，这个时候从详情返回就希望直接到首页，不要又返回新建订单的页面。
 </p>
@@ -244,7 +244,7 @@ android 有一个实体的返回按钮，StackNavigator 给出的<a href="https:
 <div class="src src-javascript">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -288,7 +288,7 @@ android 有一个实体的返回按钮，StackNavigator 给出的<a href="https:
 <div class="src src-javascript">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -307,9 +307,9 @@ android 有一个实体的返回按钮，StackNavigator 给出的<a href="https:
 <p>
 然后页面里面如果有自己的特殊逻辑，那就实现一个 <code class="verbatim">goBack</code> 方法就好了。
 </p>
-<h3 id="headline-10">
+<h4 id="headline-10">
 表单的弹出页面，不一定需要使用 store
-</h3>
+</h4>
 <p>
 比如一个下单页面，需要填联系人信息，这个时候我们一般会到一个联系人的页面来选择联系人。这个时候在这个页面选择的联系人，如何传递给上一个页面呢？有两个类型的方法。
 </p>
@@ -325,9 +325,9 @@ android 有一个实体的返回按钮，StackNavigator 给出的<a href="https:
 <p>
 第二个方法土一点，但是没有上面的问题。不过要注意的是，如果新的页面有网络请求，那这个时候还需要和 saga thunk 这些关联，那么就总是会走到 redux 的 store，所以这个方法就不适用了。
 </p>
-<h3 id="headline-11">
+<h4 id="headline-11">
 参考文章
-</h3>
+</h4>
 <ul>
 <li>
 <p>

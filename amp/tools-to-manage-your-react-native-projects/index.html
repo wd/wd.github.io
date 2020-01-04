@@ -81,16 +81,16 @@
 <p>
 RN 项目大部分人都知道是基于 Javascript 的，懂 js 就可以写了。但实际上并没那么简单。大概总结下这里面的问题，主要从管理项目的角度来说。
 </p>
-<h2 id="headline-1">
+<h3 id="headline-1">
 NPM
-</h2>
+</h3>
 <p>
 JS 部分肯定是不能避免的，js 依赖重这个估计都知道， <code>node_modules</code> 被很多人吐槽了。package.json 里面写的依赖，一般都不会写死版本（这个我估计很多人都没有注意到），例如下面这个片段
 </p>
 <div class="src src-javascript">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -114,7 +114,7 @@ JS 部分肯定是不能避免的，js 依赖重这个估计都知道， <code>n
 里面 <code>geodesy</code> 写的是 <code>^1.1.2</code> 表示的是最低是这个版本，小版本号可以比这个大。 <code>react</code> 是写死版本号的。版本号不写死会产生一个问题，每次新安装的时候，如果有了新版本，那可能就会安装新的版本。即使你把自己的依赖都写死版本号也没有用，你依赖的依赖可能还是没有写死的。这样怎么办？
 </p>
 <p>
-NPM 提供了 <code>npm.lock</code> 来管理版本，第一次使用 npm 安装的时候，会自动产生一个 <code>npm.lock</code> ，后面每次执行安装的时候，会根据这个里面规定的版本号来安装依赖。这样基本可以保证总是一样的版本。但是早期我使用 npm 的时候有一个问题，执行安装的时候居然还会修改 <code>npm.lock</code> ，我记得是会改里面的 hash 值，即使影响不大，但是每次提交修改 review 的时候都需要看看这个里面的东西就有点恶心了。所以后面我们换了 yarn，yarn 使用的是 <code>yarn.lock</code> 他执行安装的时候不会修改这文件里面的东西。（npm 我之后就没用了，所以后面讲的主要以 yarn 为准。）这样有了 lock 文件之后，表示所有依赖都有了确定的版本。
+ NPM 提供了 <code>npm.lock</code> 来管理版本，第一次使用 npm 安装的时候，会自动产生一个 <code>npm.lock</code> ，后面每次执行安装的时候，会根据这个里面规定的版本号来安装依赖。这样基本可以保证总是一样的版本。但是早期我使用 npm 的时候有一个问题，执行安装的时候居然还会修改 <code>npm.lock</code> ，我记得是会改里面的 hash 值，即使影响不大，但是每次提交修改 review 的时候都需要看看这个里面的东西就有点恶心了。所以后面我们换了 yarn，yarn 使用的是 <code>yarn.lock</code> 他执行安装的时候不会修改这文件里面的东西。（npm 我之后就没用了，所以后面讲的主要以 yarn 为准。）这样有了 lock 文件之后，表示所有依赖都有了确定的版本。
 </p>
 <p>
 那么如何升级其中某一个依赖呢？方法很简单，删除 <code>yarn.lock</code> 里面关于这个模块的那条信息，然后执行 <code>yarn install</code> 就可以。当然，能升级到什么版本取决于这个模块是怎么被依赖的，如果是指定版本号的那种，那显然是不会有什么效果的。如果升级到的版本不满意，那只能看看依赖他的模块是不是可以升级一下，依赖新的版本，否则没什么办法了。
@@ -122,9 +122,9 @@ NPM 提供了 <code>npm.lock</code> 来管理版本，第一次使用 npm 安装
 <p>
 如果是写在 <code>package.json</code> 里面的依赖，那你可以使用 <code>yarn add module</code> 再次执行一下添加动作就可以。
 </p>
-<h2 id="headline-2">
+<h3 id="headline-2">
 Cocoapods
-</h2>
+</h3>
 <p>
 iOS 的部分，目前我看 <code>react-native link</code> 已经可以自动处理使用 cocoapods 了。使用 cocoapods 管理项目比较好，能使用尽量使用，能减少你很多麻烦。
 </p>
@@ -143,18 +143,18 @@ cocoapods 可以通过 <code>pod repo update</code> 来更新本地的缓存，�
 <p>
 你自己去更新的时候，执行 <code>pod update</code> 就可以一次把依赖都升级到最新版本，也可以直接删除 <code>Podfile.lock</code> 文件，重新执行一下 <code>pod install</code> 。
 </p>
-<h2 id="headline-3">
+<h3 id="headline-3">
 Android
-</h2>
+</h3>
 <p>
 Android 部分的依赖似乎问题一般不是出现在 jar 包依赖上面，maven 处理还可以，除了有时候连不上源，这个可以配置换换源。
 </p>
 <p>
 主要可能会出现在 gradle 上面。gradle 又会和 build-tools 这些挂钩，然后和 buildsdk 啥的这些产生关系。不过还好，Android studio 里面一般会提示的比较好，而且出问题也比较好搜，所以也不多说了。
 </p>
-<h2 id="headline-4">
+<h3 id="headline-4">
 Fastlane
-</h2>
+</h3>
 <p>
 我使用 Fastlane 来发布代码，再加上 Ansible，把从 repo 下载打包上传到编译好的文件到服务器，还有打发布 tag 这些事情都一条命令处理了。
 </p>
@@ -164,9 +164,9 @@ fastlane 本身是 ruby 的。给 RN 项目配置 fastlane 需要分开 ios 和 
 <p>
 这样如果你需要升级依赖，可以删除 <code>Gemfile.lock</code> 然后执行一下 <code>bundle install</code> ，会自动再生成一个。
 </p>
-<h2 id="headline-5">
+<h3 id="headline-5">
 Gems
-</h2>
+</h3>
 <p>
 可以看到，上面 CocoaPods 和 Fastlane 都是基于 ruby 的。Mac 系统自带了一个 ruby，如果直接使用 gem 命令，会安装到系统的 ruby 下，我使用 brew 安装的 ruby。
 </p>

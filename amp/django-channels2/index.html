@@ -84,19 +84,19 @@ Django 3.0.1 has released for sometime. We still use Django 1.11 in one of our p
 <p>
 According this <a href="https://channels.readthedocs.io/en/latest/one-to-two.html#how-to-upgrade">upgrade guide</a>, Channels 2 is a fully rewritten, lots of things has changed. This post is just a record about the upgrade I&#39;ve done.
 </p>
-<h2 id="headline-1">
+<h3 id="headline-1">
 Routing
-</h2>
+</h3>
 <p>
 In Channels 2 you need to add an <code class="verbatim">ASGI_APPLICATION</code> in the settings file, point to the asgi application.
 </p>
 <div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">ASGI_APPLICATION <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#34;proj.routing.application&#34;</span></code></pre></td></tr></table>
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">ASGI_APPLICATION <span style="color:#333">=</span> <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">proj.routing.application</span><span style="background-color:#fff0f0">&#34;</span></code></pre></td></tr></table>
 </div>
 </div>
 </div>
@@ -106,13 +106,13 @@ And add <code>routing.py</code> file, add an <code>application</code> variable i
 <div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">application <span style="color:#333">=</span> ProtocolTypeRouter({
-    <span style="background-color:#fff0f0">&#34;websocket&#34;</span>: URLRouter([url(<span style="background-color:#fff0f0">r</span><span style="background-color:#fff0f0">&#34;^ws$&#34;</span>, MyConsumer)])
+    <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">websocket</span><span style="background-color:#fff0f0">&#34;</span>: URLRouter([url(<span style="background-color:#fff0f0">r</span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">^ws$</span><span style="background-color:#fff0f0">&#34;</span>, MyConsumer)])
 })</code></pre></td></tr></table>
 </div>
 </div>
@@ -120,16 +120,16 @@ And add <code>routing.py</code> file, add an <code>application</code> variable i
 <p>
 The <code>websocket</code> key means it will handle websocket requests, the <code>URLRouter</code> just work as Django&#39;s. <code>MyConsumer</code> is the handler for the request.
 </p>
-<h2 id="headline-2">
+<h3 id="headline-2">
 Consumer
-</h2>
+</h3>
 <p>
 Add <code>MyConsumer</code> class.
 </p>
 <div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -144,17 +144,17 @@ Add <code>MyConsumer</code> class.
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">MyConsumer</span>(WebsocketConsumer):
-    groups <span style="color:#333">=</span> [<span style="background-color:#fff0f0">&#34;broadcast&#34;</span>]
+    groups <span style="color:#333">=</span> [<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">broadcast</span><span style="background-color:#fff0f0">&#34;</span>]
 
     <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">connect</span>(self):
         self<span style="color:#333">.</span>accept()
-        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0">&#34;connected&#34;</span>)
+        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">connected</span><span style="background-color:#fff0f0">&#34;</span>)
 
     <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">receive</span>(self, text_data<span style="color:#333">=</span>None, bytes_data<span style="color:#333">=</span>None):
-        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0">&#34;recv: &#34;</span>, text_data)
+        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">recv: </span><span style="background-color:#fff0f0">&#34;</span>, text_data)
 
     <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">disconnect</span>(self, close_code<span style="color:#333">=</span>None):
-        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0">&#34;disconnect&#34;</span>)</code></pre></td></tr></table>
+        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">disconnect</span><span style="background-color:#fff0f0">&#34;</span>)</code></pre></td></tr></table>
 </div>
 </div>
 </div>
@@ -164,24 +164,24 @@ When a client connected, it will call <code>connect</code> at first, you can do 
 <p>
 Simple, huh? There are many other types of consumers, you can check <a href="https://channels.readthedocs.io/en/latest/topics/consumers.html#">here</a>.
 </p>
-<h2 id="headline-3">
+<h3 id="headline-3">
 Passing through data in session
-</h2>
+</h3>
 <p>
 When a client connected, you may need to check the database and put some useful data in the session, so that you can use these data later. You have to use django session to do this in Channels 1, but in Channels 2 you didn&#39;t need to use django session, just store the data to <code>self</code>.
 </p>
 <div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">self<span style="color:#333">.</span>my_data <span style="color:#333">=</span> {
-    <span style="background-color:#fff0f0">&#39;user&#39;</span>: <span style="color:#333">....</span>,
-    <span style="background-color:#fff0f0">&#39;role&#39;</span>: <span style="color:#333">...</span>
+    <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">user</span><span style="background-color:#fff0f0">&#39;</span>: <span style="color:#333">.</span><span style="color:#333">.</span><span style="color:#333">.</span><span style="color:#333">.</span>,
+    <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">role</span><span style="background-color:#fff0f0">&#39;</span>: <span style="color:#333">.</span><span style="color:#333">.</span><span style="color:#333">.</span>
 }</code></pre></td></tr></table>
 </div>
 </div>
@@ -192,9 +192,9 @@ Of cause, you still can use django sessions to store data, check the doc <a href
 <p>
 Use <code>self.scope[&#34;session&#34;][&#34;seed&#34;] = &#39;123&#39;</code> to set the session, and don&#39;t forget to use <code>self.scope[&#34;session&#34;].save()</code> to save the session if you want to persist.
 </p>
-<h2 id="headline-4">
+<h3 id="headline-4">
 Broadcast messages
-</h2>
+</h3>
 <p>
 You can use <code>self.send(text_data=&#34;&#34;)</code> to send a message to a client. But if you need to send to multiple client at a same time, you need to use <a href="https://channels.readthedocs.io/en/latest/topics/channel_layers.html">Channel Layers</a>.
 </p>
@@ -204,7 +204,7 @@ There are many backends you can use, I recommend you use <code>channels_redis</c
 <div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -215,10 +215,10 @@ There are many backends you can use, I recommend you use <code>channels_redis</c
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">CHANNEL_LAYERS <span style="color:#333">=</span> {
-    <span style="background-color:#fff0f0">&#34;default&#34;</span>: {
-        <span style="background-color:#fff0f0">&#34;BACKEND&#34;</span>: <span style="background-color:#fff0f0">&#34;channels_redis.core.RedisChannelLayer&#34;</span>,
-        <span style="background-color:#fff0f0">&#34;CONFIG&#34;</span>: {
-            <span style="background-color:#fff0f0">&#34;hosts&#34;</span>: [(<span style="background-color:#fff0f0">&#34;redis-server-name&#34;</span>, <span style="color:#00d;font-weight:bold">6379</span>)],
+    <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">default</span><span style="background-color:#fff0f0">&#34;</span>: {
+        <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">BACKEND</span><span style="background-color:#fff0f0">&#34;</span>: <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">channels_redis.core.RedisChannelLayer</span><span style="background-color:#fff0f0">&#34;</span>,
+        <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">CONFIG</span><span style="background-color:#fff0f0">&#34;</span>: {
+            <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">hosts</span><span style="background-color:#fff0f0">&#34;</span>: [(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">redis-server-name</span><span style="background-color:#fff0f0">&#34;</span>, <span style="color:#00d;font-weight:bold">6379</span>)],
         },
     },
 }</code></pre></td></tr></table>
@@ -231,7 +231,7 @@ Then you need to create groups when user connect in <code>MyConsume</code>.
 <div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -254,25 +254,25 @@ Then you need to create groups when user connect in <code>MyConsume</code>.
 </span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
 <pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">MyConsumer</span>(WebsocketConsumer):
-    groups <span style="color:#333">=</span> [<span style="background-color:#fff0f0">&#34;broadcast&#34;</span>]
+    groups <span style="color:#333">=</span> [<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">broadcast</span><span style="background-color:#fff0f0">&#34;</span>]
 
     <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">connect</span>(self):
         self<span style="color:#333">.</span>accept()
-        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0">&#34;connected&#34;</span>)
-        async_to_sync(self<span style="color:#333">.</span>channel_layer<span style="color:#333">.</span>group_add)(<span style="background-color:#fff0f0">&#34;some_room&#34;</span>, self<span style="color:#333">.</span>channel_name)
+        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">connected</span><span style="background-color:#fff0f0">&#34;</span>)
+        async_to_sync(self<span style="color:#333">.</span>channel_layer<span style="color:#333">.</span>group_add)(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">some_room</span><span style="background-color:#fff0f0">&#34;</span>, self<span style="color:#333">.</span>channel_name)
 
     <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">receive</span>(self, text_data<span style="color:#333">=</span>None, bytes_data<span style="color:#333">=</span>None):
-        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0">&#34;recv: &#34;</span>, text_data)
+        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">recv: </span><span style="background-color:#fff0f0">&#34;</span>, text_data)
 
     <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">disconnect</span>(self, close_code<span style="color:#333">=</span>None):
-        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0">&#34;disconnect&#34;</span>)
+        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">disconnect</span><span style="background-color:#fff0f0">&#34;</span>)
         async_to_sync(self<span style="color:#333">.</span>channel_layer<span style="color:#333">.</span>group_discard)(
-            <span style="background-color:#fff0f0">&#34;some_room&#34;</span>,
+            <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">some_room</span><span style="background-color:#fff0f0">&#34;</span>,
             self<span style="color:#333">.</span>channel_name
         )
 
     <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">group_notify</span>(self, msg):
-        self<span style="color:#333">.</span>send(text_data<span style="color:#333">=</span>msg[<span style="background-color:#fff0f0">&#34;text&#34;</span>])</code></pre></td></tr></table>
+        self<span style="color:#333">.</span>send(text_data<span style="color:#333">=</span>msg[<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">text</span><span style="background-color:#fff0f0">&#34;</span>])</code></pre></td></tr></table>
 </div>
 </div>
 </div>
@@ -285,7 +285,7 @@ Use <code>self.channel_layer.group_discard</code> to quite a group and use <code
 <div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -300,9 +300,9 @@ Use <code>self.channel_layer.group_discard</code> to quite a group and use <code
 channel_layer <span style="color:#333">=</span> get_channel_layer()
 
 async_to_sync(channel_layer<span style="color:#333">.</span>group_send)(
-       <span style="background-color:#fff0f0">&#34;some_room&#34;</span>, {
-           <span style="background-color:#fff0f0">&#34;type&#34;</span>: <span style="background-color:#fff0f0">&#34;group.notify&#34;</span>,
-           <span style="background-color:#fff0f0">&#34;text&#34;</span>: <span style="color:#007020">str</span>(notify)
+       <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">some_room</span><span style="background-color:#fff0f0">&#34;</span>, {
+           <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">type</span><span style="background-color:#fff0f0">&#34;</span>: <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">group.notify</span><span style="background-color:#fff0f0">&#34;</span>,
+           <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">text</span><span style="background-color:#fff0f0">&#34;</span>: <span style="color:#007020">str</span>(notify)
        },
    )</code></pre></td></tr></table>
 </div>
@@ -311,9 +311,9 @@ async_to_sync(channel_layer<span style="color:#333">.</span>group_send)(
 <p>
 Please beware that the message type here is <code>group.notify</code>, it can be anything you want, just add a handler for it in the comsumer, like the function <code>group_notify</code> I added above(replace the &#34;.&#34; to &#34;_&#34;).
 </p>
-<h2 id="headline-5">
+<h3 id="headline-5">
 Deploy and run
-</h2>
+</h3>
 <p>
 After add the <code>ASGI_APPLICATION</code>, you can run the server use command <code>./manage.py runserver</code>, the server will handle both http and websocket requests.
 </p>
@@ -323,7 +323,7 @@ You can also use <code>daphne</code> to run the server, just need to add an <cod
 <div class="src src-python">
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
@@ -336,7 +336,7 @@ You can also use <code>daphne</code> to run the server, just need to add an <cod
 <span style="color:#080;font-weight:bold">import</span> <span style="color:#0e84b5;font-weight:bold">django</span>
 <span style="color:#080;font-weight:bold">from</span> <span style="color:#0e84b5;font-weight:bold">channels.routing</span> <span style="color:#080;font-weight:bold">import</span> get_default_application
 
-os<span style="color:#333">.</span>environ<span style="color:#333">.</span>setdefault(<span style="background-color:#fff0f0">&#34;DJANGO_SETTINGS_MODULE&#34;</span>, <span style="background-color:#fff0f0">&#34;proj.settings&#34;</span>)
+os<span style="color:#333">.</span>environ<span style="color:#333">.</span>setdefault(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">DJANGO_SETTINGS_MODULE</span><span style="background-color:#fff0f0">&#34;</span>, <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">proj.settings</span><span style="background-color:#fff0f0">&#34;</span>)
 django<span style="color:#333">.</span>setup()
 application <span style="color:#333">=</span> get_default_application()</code></pre></td></tr></table>
 </div>

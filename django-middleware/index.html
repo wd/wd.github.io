@@ -72,15 +72,15 @@
 <p>
 Django 提供了 <a href="https://docs.djangoproject.com/en/1.11/topics/http/middleware/">middleware</a> 来让你 hack Request 和 Response。用的时候有几个问题需要注意一下。
 </p>
-<h1 id="headline-1">
+<h2 id="headline-1">
 <code class="verbatim">__call__</code> 方法
-</h1>
+</h2>
 <p>
 <code class="verbatim">__call__</code> 方法实际上就是最早收到 request 的地方，如果不关心 view，那么就可以在这里做你想要做的事情。比如认证用户啥的。这个实际上应该就是早期的 <code class="verbatim">process_request</code> 。
 </p>
-<h1 id="headline-2">
+<h2 id="headline-2">
 process_view 方法
-</h1>
+</h2>
 <p>
 <code class="verbatim">process_view</code> 方法会接收到 view_func 和其参数，如果想要针对这些东西处理，可以在这里动作。比如我们所有 api 请求的 POST 的 body 里面都是固定格式的 json 数据，我就在这里检查了 json 的格式，并把解析结果给到了 view_func。
 </p>
@@ -93,9 +93,9 @@ process_view 方法
 <p>
 另外，这里可以对 view_func 做调用，直接返回 view_func 的结果或者处理之后的结果，只要保证是个 response 对象就可以了。也可以不做调用，返回 <code class="verbatim">None</code> ，后续 django 也会调用。要注意的是，如果你对 view_func 做了调用，那么在捕捉到错误的时候，except 里面应该也需要返回一个 response 对象，不能返回 <code class="verbatim">None</code> 了，否则 djangon 还会再次调用这个 view_func 。
 </p>
-<h1 id="headline-3">
+<h2 id="headline-3">
 process_exception 方法
-</h1>
+</h2>
 <p>
 <code class="verbatim">process_exception</code> 方法是在 view 报错的情况下会调用。我在这里统一返回了 server error 的 json，http 状态是 200 的。
 </p>

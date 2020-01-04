@@ -78,36 +78,28 @@
 
 <main>
 <p>接 <a href="/Across-the-Great-Wall-we-can-reach-every-corner-in-the-world">科学上网</a>。买了群晖之后，一直通过群晖上面跑一个 haproxy 来做转发。不过心里总觉得有点不爽，毕竟一方面多转发了一次，另外群晖在不使用的时候，还会休眠，又或多或少担心影响休眠（经过测试应该是不影响的，但是..）。所以买了 r6300v2 之后，就琢磨通过路由器做这个事情。</p>
-
 <p>路由器上面搞就有两个选择，一是从 iptables 入手，直接转发出去，另外一个是从软件层面做。</p>
-
 <p>开始搞了几天的 iptables，发现原有系统 iptables 条目还是挺多的，加上路由器翻墙的功能也需要加一些条目，导致尝试了好几天之后总算能够转发过去链接了，但是数据包过不去，为了调试就开始打算在路由器安装 tcpdump。然后找到了 <a href="https://github.com/Entware/entware">https://github.com/Entware/entware</a> ，配置好之后可以使用 opkg 来安装包。包列表可以参考这里 <a href="http://pkg.entware.net/binaries/armv7/Packages.html">http://pkg.entware.net/binaries/armv7/Packages.html</a> ，这个路由器是 armv7 版本的 cpu。</p>
-
 <p>安装 opkg 之前先得了解下，梅林固件分两部分存储，一部分是系统区，一部分是自定义区。系统区应该是你刷的固件所在的地方，是不能修改的，自定义区是可以存放一些自己定义的脚本的。每次系统启动的时候，你的一些自定义的东西都是存在自定义区加载的。自定义区就是 /jffs 分区。想要使用，得在 系统管理 -&gt; 系统设置 里面，打开 JFFS 的配置，允许执行上面的脚本。</p>
-
 <p>因为系统自带的 /jffs 分区只有 60M 左右，而我们装包的时候很容易就超过这个限制了，我现在已经用了 8xM 空间。所以最好还是用一个 u 盘来做这个事情。每次想要自动加载 u 盘，启动 u 盘里面的程序的话，还需要一些自定义的脚本来做这个事情。</p>
-
 <p>先把 opkg 配置好，需要先准备好 /opt 目录。</p>
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span></pre></td>
+</span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">mkdir -p /tmp/opt
-mount -t ext4 -o rw,noatime /dev/sda1 /opt</pre></td></tr></table>
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">mkdir -p /tmp/opt
+mount -t ext4 -o rw,noatime /dev/sda1 /opt
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</p>
-
+</div><p>上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</p>
 <p>然后参考 <a href="https://github.com/Entware/entware">https://github.com/Entware/entware</a> 操作就可以了，可以看到他会在 /opt 给你安装一陀东西。因为这个是 u 盘，所以东西重启也不会丢失。</p>
-
 <p>然后参考<a href="https://github.com/RMerl/asuswrt-merlin/wiki/User-scripts">梅林的 wiki</a>，它允许用户在 <code>/jffs/scripts</code> 自定义一些启动脚本，来支持我们自动挂载和启动 u 盘上面的程序。</p>
-
 <p>post-mount 内容如下，前面几个注释的是调试用的。最后一个 if 里面内容是执行一些 opkg 安装的程序的启动脚本，这个后面说。</p>
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -121,9 +113,9 @@ mount -t ext4 -o rw,noatime /dev/sda1 /opt</pre></td></tr></table>
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span></pre></td>
+</span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="color:#579">#!/bin/sh
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#579">#!/bin/sh
 </span><span style="color:#579"></span>
 <span style="color:#888">#echo $(date) &gt; /tmp/000service-start</span>
 <span style="color:#888">#echo &#34;$1&#34; &gt;&gt; /tmp/000service-start</span>
@@ -136,19 +128,16 @@ mount -t ext4 -o rw,noatime /dev/sda1 /opt</pre></td></tr></table>
 
 <span style="color:#080;font-weight:bold">if</span> <span style="color:#333">[</span> -x /opt/bin/opkg <span style="color:#333">]</span>;<span style="color:#080;font-weight:bold">then</span>
         /opt/etc/init.d/rc.unslung start
-<span style="color:#080;font-weight:bold">fi</span></pre></td></tr></table>
+<span style="color:#080;font-weight:bold">fi</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>要记得 <code>sudo chmod +x post-mount</code>，然后可以重启路由器看看是不是启动之后就能看到 /opt 有了你上次安装的程序了。</p>
-
+</div><p>要记得 <code>sudo chmod +x post-mount</code>，然后可以重启路由器看看是不是启动之后就能看到 /opt 有了你上次安装的程序了。</p>
 <p>上面一阶段搞定之后，就可以装一些软件了，比如我装了 vim, tcpdump，bind-dig, haproxy。opkg 的命令使用可以参考这里 <a href="https://wiki.openwrt.org/doc/techref/opkg">https://wiki.openwrt.org/doc/techref/opkg</a> 。</p>
-
 <p>接着上面的话题，本来打算装好 tcpdump 来调试的，然后发现可以比较方便的启动 haproxy 之后，就打算用 haproxy 弄了，路由表太多，分析比较麻烦，还是走简单的吧。。</p>
-
 <p><code>/opt/etc/haproxy.cfg</code> 如下，把 IP 和 PORT 改成你自己的。</p>
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -165,9 +154,9 @@ mount -t ext4 -o rw,noatime /dev/sda1 /opt</pre></td></tr></table>
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span></pre></td>
+</span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">global
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">global
         ulimit-n  331071
 
 defaults
@@ -183,13 +172,13 @@ frontend ss-in
         default_backend ss-out
 
 backend ss-out
-        server server1 IP:远端PORT maxconn 20480</pre></td></tr></table>
+        server server1 IP:远端PORT maxconn 20480
+</code></pre></td></tr></table>
 </div>
-</div>
-<p><code>/opt/etc/init.d/S001haproxy.sh</code> 如下，<code>sudo chmod +x /etc/init.d/S001haproxy.sh</code></p>
+</div><p><code>/opt/etc/init.d/S001haproxy.sh</code> 如下，<code>sudo chmod +x /etc/init.d/S001haproxy.sh</code></p>
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -214,9 +203,9 @@ backend ss-out
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span></pre></td>
+</span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="color:#579">#!/bin/sh
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#579">#!/bin/sh
 </span><span style="color:#579"></span>
 <span style="color:#963">haproxy_bin</span><span style="color:#333">=</span>/opt/sbin/haproxy
 <span style="color:#963">haproxy_cfg</span><span style="color:#333">=</span>/opt/etc/haproxy.cfg
@@ -225,7 +214,7 @@ backend ss-out
 <span style="color:#963">action</span><span style="color:#333">=</span><span style="color:#963">$1</span>
 
 <span style="color:#080;font-weight:bold">if</span> <span style="color:#333">[</span> -z <span style="background-color:#fff0f0">&#34;</span><span style="color:#963">$action</span><span style="background-color:#fff0f0">&#34;</span> <span style="color:#333">]</span>;<span style="color:#080;font-weight:bold">then</span>
-        <span style="color:#007020">printf</span> <span style="background-color:#fff0f0">&#34;Usage: </span><span style="color:#963">$0</span><span style="background-color:#fff0f0"> {start|stop|restart}\n&#34;</span> &gt;&amp;<span style="color:#60e;font-weight:bold">2</span>
+        <span style="color:#007020">printf</span> <span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">Usage: </span><span style="color:#963">$0</span><span style="background-color:#fff0f0"> {start|stop|restart}\n</span><span style="background-color:#fff0f0">&#34;</span> &gt;&amp;<span style="color:#60e;font-weight:bold">2</span>
         <span style="color:#007020">exit</span> <span style="color:#60e;font-weight:bold">1</span>
 <span style="color:#080;font-weight:bold">fi</span>
 
@@ -240,30 +229,28 @@ backend ss-out
                 <span style="color:#007020">kill</span> <span style="color:#080;font-weight:bold">$(</span>cat <span style="color:#963">$pid</span><span style="color:#080;font-weight:bold">)</span>
                 <span style="color:#963">$haproxy_bin</span> -f <span style="color:#963">$haproxy_cfg</span> -p <span style="color:#963">$pid</span> -D
                 ;;
-<span style="color:#080;font-weight:bold">esac</span></pre></td></tr></table>
+<span style="color:#080;font-weight:bold">esac</span>
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>因为前面在 post-mount 最后一个 if 里面的语句，这样启动路由器就会自动启动 haproxy 了。</p>
-
+</div><p>因为前面在 post-mount 最后一个 if 里面的语句，这样启动路由器就会自动启动 haproxy 了。</p>
 <p>想使用这个端口转发，还需要在路由器配置界面里面增加一个到路由器 ip 的映射，然后还需要一个 <code>/jffs/scripts/firewall-start</code> 如下</p>
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span></pre></td>
+</span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="color:#579">#!/bin/sh
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-bash" data-lang="bash"><span style="color:#579">#!/bin/sh
 </span><span style="color:#579"></span>
-iptables -I INPUT -i ppp0 -p tcp --destination-port PORT -j ACCEPT</pre></td></tr></table>
+iptables -I INPUT -i ppp0 -p tcp --destination-port PORT -j ACCEPT
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>我使用的过程中还发现一个问题，pkg.entware.net 貌似被墙了。。虽然配置了翻墙但是不太明白为什么路由器上面时好时坏，而我局域网内的 mac 访问总是 ok 的，很奇怪。路由器上面不能访问有个办法是通过 mac 代理一下。</p>
-
+</div><p>我使用的过程中还发现一个问题，pkg.entware.net 貌似被墙了。。虽然配置了翻墙但是不太明白为什么路由器上面时好时坏，而我局域网内的 mac 访问总是 ok 的，很奇怪。路由器上面不能访问有个办法是通过 mac 代理一下。</p>
 <p>mac 上面启动一个 ngx，配置如下，使用 nginx -p ./ -c nginx.conf 启动。</p>
 <div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
 <table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
@@ -276,9 +263,9 @@ iptables -I INPUT -i ppp0 -p tcp --destination-port PORT -j ACCEPT</pre></td></t
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
 </span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span></pre></td>
+</span></code></pre></td>
 <td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">events {
+<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-fallback" data-lang="fallback">events {
   worker_connections 1024;
 }
 
@@ -290,11 +277,10 @@ http {
            proxy_pass http://pkg.entware.net;
       }
   }
-}</pre></td></tr></table>
+}
+</code></pre></td></tr></table>
 </div>
-</div>
-<p>然后修改路由器上面 /opt/etc/opkg.conf <code>src/gz packages http://MAC_IP:8000/binaries/armv7</code>，然后就可以了。</p>
-
+</div><p>然后修改路由器上面 /opt/etc/opkg.conf <code>src/gz packages http://MAC_IP:8000/binaries/armv7</code>，然后就可以了。</p>
 <p>写完自己看发现这不是一份操作指南，只能算是一些提示，如果有人照着做能不能成功可能还是得看自己。。。</p>
 
 </main>
