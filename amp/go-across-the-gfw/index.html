@@ -1,152 +1,32 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>Go Across the Gfw | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">Go Across the Gfw</span></h1>
-
-<h2 class="date">2018/02/15</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/gfw">gfw</a> 
-  
-  
-</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<main>
-<p>
-一直用的是梅林里面自带的方案来处理翻墙，后来想在公司的服务器上面也搞一下这个事情，至少把 Google 等常用站点能翻出去，就研究了一下原理。
-</p>
-<p>
-目前墙有两个基本措施需要我们去跨越。1 DNS 污染。 2 数据包解析劫持。3 ip 封禁。
-</p>
-<p>
-DNS 污染是通过修改或者限制 DNS 请求的数据，来让用户取到一个错误的 ip 而导致用户不能访问正确的网站的方法。一些比较大的网站都被做了 DNS 污染，比如 Google，youtube，facebook，twitter 等。
-</p>
-<p>
-数据包解析是指在出国的核心路由上面，分析用户要访问的网站和发送的数据，然后发现问题之后，从中间给用户和网站发送 rst 数据包，让双方断开连接的一种方法。这样就算是用户通过指定 host 等方法避开了 DNS 污染，也可以进一步阻止请求。这种方法对于 https 的请求应该是没有效果的。所以有时候可以通过指定 host 的方法访问到 google。
-</p>
-<p>
-对于上面的避开措施，第三种方法就起作用了，就是直接封禁 ip。这样就算指定了 host 也不能访问。
-</p>
-<p>
-如果想要翻墙，就需要避开上面这三种封禁的方法。我这里列了一些方式，<a href="https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/">https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/</a> 各有利弊。这里想讲的是梅林大致的逻辑。
-</p>
-<p>
-最主要的一个思路是使用 iptables 把一些包发给一些支持透明代理的软件，例如 <code class="verbatim">ss-redir</code> 或者 <code class="verbatim">v2ray</code> 的 <code class="verbatim">dokodemo-door</code> 协议的端口。这些软件会自动把数据请求通过代理请求到之后，返回给用户。
-</p>
-<div class="src src-text">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">-A PREROUTING -p tcp -j REDIRECT --to-ports 1080
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>Go Across the Gfw | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Go Across the Gfw</span></h1><h2 class=date>2018/02/15</h2><p class=terms>Tags: <a href=/tags/gfw>gfw</a></p></div><main><p>一直用的是梅林里面自带的方案来处理翻墙，后来想在公司的服务器上面也搞一下这个事情，至少把 Google 等常用站点能翻出去，就研究了一下原理。</p><p>目前墙有两个基本措施需要我们去跨越。1 DNS 污染。 2 数据包解析劫持。3 ip 封禁。</p><p>DNS 污染是通过修改或者限制 DNS 请求的数据，来让用户取到一个错误的 ip 而导致用户不能访问正确的网站的方法。一些比较大的网站都被做了 DNS 污染，比如 Google，youtube，facebook，twitter 等。</p><p>数据包解析是指在出国的核心路由上面，分析用户要访问的网站和发送的数据，然后发现问题之后，从中间给用户和网站发送 rst 数据包，让双方断开连接的一种方法。这样就算是用户通过指定 host 等方法避开了 DNS 污染，也可以进一步阻止请求。这种方法对于 https 的请求应该是没有效果的。所以有时候可以通过指定 host 的方法访问到 google。</p><p>对于上面的避开措施，第三种方法就起作用了，就是直接封禁 ip。这样就算指定了 host 也不能访问。</p><p>如果想要翻墙，就需要避开上面这三种封禁的方法。我这里列了一些方式，<a href=https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/>https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/</a> 各有利弊。这里想讲的是梅林大致的逻辑。</p><p>最主要的一个思路是使用 iptables 把一些包发给一些支持透明代理的软件，例如 <code class=verbatim>ss-redir</code> 或者 <code class=verbatim>v2ray</code> 的 <code class=verbatim>dokodemo-door</code> 协议的端口。这些软件会自动把数据请求通过代理请求到之后，返回给用户。</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text>-A PREROUTING -p tcp -j REDIRECT --to-ports 1080
 
 -A PREROUTING -p tcp -m multiport --dports 443 dst -j REDIRECT --to-ports 1080
--A PREROUTING -p tcp -m multiport --dports 80 dst -j REDIRECT --to-ports 1080</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-第一句是把所有请求都转发到了 1080 端口，这样就是全部请求都走代理。第二三句是把所有 443 和 80 端口的请求都转发到了 1080 这个代理端口。如果只是想要某些网站走代理呢？那一个办法是在这个语句里面指定 <code class="verbatim">--dest=12.34.56.78</code> 指定目标 ip，但是这样一来有的网站 ip 很多且会变化，这样就有点累了。
-</p>
-<p>
-iptables 支持和 ipset 配合来做数据包的过滤，而 dnsmasq 支持自动添加特定的 ipset 条目，这两个结合就完美了。
-</p>
-<div class="src src-text">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">server=/.google.com/208.67.222.222#443
+-A PREROUTING -p tcp -m multiport --dports 80 dst -j REDIRECT --to-ports 1080</code></pre></td></tr></table></div></div></div><p>第一句是把所有请求都转发到了 1080 端口，这样就是全部请求都走代理。第二三句是把所有 443 和 80 端口的请求都转发到了 1080 这个代理端口。如果只是想要某些网站走代理呢？那一个办法是在这个语句里面指定 <code class=verbatim>--dest=12.34.56.78</code> 指定目标 ip，但是这样一来有的网站 ip 很多且会变化，这样就有点累了。</p><p>iptables 支持和 ipset 配合来做数据包的过滤，而 dnsmasq 支持自动添加特定的 ipset 条目，这两个结合就完美了。</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text>server=/.google.com/208.67.222.222#443
 server=/.google.com.hk/208.67.222.222#443
 server=/.gstatic.com/208.67.222.222#443
 server=/.ggpht.com/208.67.222.222#443
@@ -166,72 +46,7 @@ ipset=/.appspot.com/setmefree
 ipset=/.googlecode.com/setmefree
 ipset=/.googleapis.com/setmefree
 ipset=/.gmail.com/setmefree
-ipset=/.ytimg.com/setmefree</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-上面是 dnsmasq 的配置，前面的 server 部分，对于指定域名使用特定的 DNS 服务器，用来防污染。ipset 部分，把这些域名解析的结果，提交给 ipset 的 setmefree 这个 set，然后方便配合 iptables 来做过滤。
-</p>
-<p>
-dnsmasq 做了上面的配置之后，查询一下列表里面的 DNS，然后通过 <code class="verbatim">ipset list setmefree</code> 可以看到里面会有一些 ip。
-</p>
-<p>
-然后是修改 iptables，增加 ipset 的规则过滤。
-</p>
-<div class="src src-text">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">-A PREROUTING -p tcp -m multiport --dports 443 -m set --match-set setmefree dst -j REDIRECT --to-ports 1080
--A PREROUTING -p tcp -m multiport --dports 80 -m set --match-set setmefree dst -j REDIRECT --to-ports 1080</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-这样，对于列到 dnsmasq 那个里面的 ipset 部分的域名，全部会走代理了。对于其他地址的请求，不会有任何影响。
-</p>
-
-</main>
-
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-    </div>
-</section>
-
-
-    
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
-    
-
-
-
-
-
-    <footer style="clear:both">
-      
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
-      
-    </footer>
-  </body>
-</html>
-
+ipset=/.ytimg.com/setmefree</code></pre></td></tr></table></div></div></div><p>上面是 dnsmasq 的配置，前面的 server 部分，对于指定域名使用特定的 DNS 服务器，用来防污染。ipset 部分，把这些域名解析的结果，提交给 ipset 的 setmefree 这个 set，然后方便配合 iptables 来做过滤。</p><p>dnsmasq 做了上面的配置之后，查询一下列表里面的 DNS，然后通过 <code class=verbatim>ipset list setmefree</code> 可以看到里面会有一些 ip。</p><p>然后是修改 iptables，增加 ipset 的规则过滤。</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text>-A PREROUTING -p tcp -m multiport --dports 443 -m set --match-set setmefree dst -j REDIRECT --to-ports 1080
+-A PREROUTING -p tcp -m multiport --dports 80 -m set --match-set setmefree dst -j REDIRECT --to-ports 1080</code></pre></td></tr></table></div></div></div><p>这样，对于列到 dnsmasq 那个里面的 ipset 部分的域名，全部会走代理了。对于其他地址的请求，不会有任何影响。</p></main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>

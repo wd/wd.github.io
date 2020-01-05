@@ -1,84 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>给blog的后台发文章添了一点功能 | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">给blog的后台发文章添了一点功能</span></h1>
-
-<h2 class="date">2006/11/22</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/web">web</a> 
-  
-  
-</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<main>
-吸引我的功能是那个insert table。按照其它插件的安装方法，激活之后，再看发表文章的编辑器，发现确实多了很多按钮。不过多了太多了，工具栏一行都显示不下啦，怎么分行呢？wp还是很牛的，好像就已经预料到这种问题了，直接修改<font color="#ff00ff">advanced-wysiwyg.php</font>就可以了。例如我的：<br />
-<pre class="prettyprint lang-php">
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>给blog的后台发文章添了一点功能 | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>给blog的后台发文章添了一点功能</span></h1><h2 class=date>2006/11/22</h2><p class=terms>Tags: <a href=/tags/web>web</a></p></div><main>吸引我的功能是那个insert table。按照其它插件的安装方法，激活之后，再看发表文章的编辑器，发现确实多了很多按钮。不过多了太多了，工具栏一行都显示不下啦，怎么分行呢？wp还是很牛的，好像就已经预料到这种问题了，直接修改<font color=#ff00ff>advanced-wysiwyg.php</font>就可以了。例如我的：<br><pre class="prettyprint lang-php">
 return array(
 "formatselect", "bold", "italic", "underline", "strikethrough", "separator",
 "bullist", "numlist", "indent", "outdent", "separator",
@@ -91,66 +11,13 @@ return array(
 "cut", "copy", "paste", "undo", "redo", "separator",
 "sub", "sup", "forecolor", "backcolor", "charmap", "separator",
 "code", "fullscreen", "wordpress", "wphelp","separator","tablecontrols");
-}</pre>
-这样就分两行了，当然还可以编辑<font color="#ff00ff">extended_editor_mce_buttons_3</font>函数让他出来第三行。
-
+}</pre>这样就分两行了，当然还可以编辑<font color=#ff00ff>extended_editor_mce_buttons_3</font>函数让他出来第三行。
 好了，看着是不是挺爽的？可是发现我要的insert table功能怎么没出来？再仔细看作者的网页，有个提示”需要去tinymce的网站上面下载关于table等的plugin，默认的wp 2.0版本没有包括这些“。这样去下载了，将其中的plugin里面的东西放出来，找到table和fullscreen文件夹，放到服务器的tinymce的plugin下面，再访问一下发帖页面，是不是发现工具栏都变巨丑的按钮了？呵呵。
-
 用Firefox的话，打开错误控制台，可以看到刚加的tinymce的plugin出错了。提示是：
-
 tinyMCE.addPlugin is not a function
-
-找到plugin里面的js文件看看，和其它比较一下，确实是多了这么一个函数调用。删掉之后工具栏能出来了，可是还是没有这个按钮，是啥问题呢？上作者<a href="http://blog.labnotes.org">blog</a>看了一下，原来是tinymce的版本太高了。
-<blockquote>eduo Says: March 19th, 2006 at 5:08 pm
-
+找到plugin里面的js文件看看，和其它比较一下，确实是多了这么一个函数调用。删掉之后工具栏能出来了，可是还是没有这个按钮，是啥问题呢？上作者<a href=http://blog.labnotes.org>blog</a>看了一下，原来是tinymce的版本太高了。<blockquote>eduo Says: March 19th, 2006 at 5:08 pm
 To all having issues with the rich editor disappearing:
 Yes, the version of TinyMCE changed. I’ve been checking the versions and it’s possible to download the latest one that works with this plug-in (which in reality just extends the stock WP-included TinyMCE, itself a very good thing) from the “older versions” page of the TinyMCE SF site included as part of the 2.02 files:
 <a href="http://sourceforge.net/project/showfiles.php?group_id=103281&package_id=11143">http://sourceforge.net/project/showfiles.php?group_id=103281&package_id=11143</a>0
-
-The page for direct download is: <a href="http://prdownloads.sourceforge.net/tinymce/tinymce_1_45.tgz?download">http://prdownloads.sourceforge.net/tinymce/tinymce_1_45.tgz?download</a>
-
-Using the “table” and “fullscreen” from this file is all that’s needed. Other plug-ins from this same package should work as well.</blockquote>
-除了使用上面的版本，还可以使用一个<a href="http://prdownloads.sourceforge.net/tinymce/tinymce_2_0RC4.tgz">2.0 RC4</a>这个版本。
-<blockquote>PS: The table controls and full screen editing rely on additional TinyMCE plugins. So if you want these two features as well, you’ll have to download TinyMCE plugins and install those separately. For WordPress 2.0.4 users, try the TinyMCE 2.0 RC4 plugins. Or check the comments to find out what works for other people.</blockquote>
-这个版本的table功能更加高级一点，推荐使用这个。
-
-</main>
-
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-    </div>
-</section>
-
-
-    
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
-    
-
-
-
-
-
-    <footer style="clear:both">
-      
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
-      
-    </footer>
-  </body>
-</html>
-
+The page for direct download is: <a href=http://prdownloads.sourceforge.net/tinymce/tinymce_1_45.tgz?download>http://prdownloads.sourceforge.net/tinymce/tinymce_1_45.tgz?download</a>
+Using the “table” and “fullscreen” from this file is all that’s needed. Other plug-ins from this same package should work as well.</blockquote>除了使用上面的版本，还可以使用一个<a href=http://prdownloads.sourceforge.net/tinymce/tinymce_2_0RC4.tgz>2.0 RC4</a>这个版本。<blockquote>PS: The table controls and full screen editing rely on additional TinyMCE plugins. So if you want these two features as well, you’ll have to download TinyMCE plugins and install those separately. For WordPress 2.0.4 users, try the TinyMCE 2.0 RC4 plugins. Or check the comments to find out what works for other people.</blockquote>这个版本的table功能更加高级一点，推荐使用这个。</main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>

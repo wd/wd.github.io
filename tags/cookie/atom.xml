@@ -1,44 +1,12 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>cookie on wd and cc</title>
-    <link>https://wdicc.com/tags/cookie/</link>
-    <description>Recent content in cookie on wd and cc</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>zh-cn</language>
-    <lastBuildDate>Fri, 16 Sep 2016 08:59:09 +0800</lastBuildDate>
-    
-	<atom:link href="https://wdicc.com/tags/cookie/atom.xml" rel="self" type="application/rss+xml" />
-    
-    
-    <item>
-      <title>cookie 的一点研究</title>
-      <link>https://wdicc.com/about-http-cookie/</link>
-      <pubDate>Fri, 16 Sep 2016 08:59:09 +0800</pubDate>
-      
-      <guid>https://wdicc.com/about-http-cookie/</guid>
-      <description>这几天搞了一下 python 里面 cookie 相关的东西。我的目的是想要尝试用 python 登录某个网站，并且保持登录状态直到过期。因为 http 协议是无状态的，所以一般来讲，网站想要用户保持登录，那么网站在用户登录之后，必须要和用户端协商好怎么来证明这个用户已经登录过了。
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>cookie on wd and cc</title><link>https://wdicc.com/tags/cookie/</link><description>Recent content in cookie on wd and cc</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Fri, 16 Sep 2016 08:59:09 +0800</lastBuildDate><atom:link href="https://wdicc.com/tags/cookie/atom.xml" rel="self" type="application/rss+xml"/><item><title>cookie 的一点研究</title><link>https://wdicc.com/about-http-cookie/</link><pubDate>Fri, 16 Sep 2016 08:59:09 +0800</pubDate><guid>https://wdicc.com/about-http-cookie/</guid><description>这几天搞了一下 python 里面 cookie 相关的东西。我的目的是想要尝试用 python 登录某个网站，并且保持登录状态直到过期。因为 http 协议是无状态的，所以一般来讲，网站想要用户保持登录，那么网站在用户登录之后，必须要和用户端协商好怎么来证明这个用户已经登录过了。
 用户端如果使用浏览器，那么网站就可以利用浏览器对 cookie 的支持来让用户在不知情的情况下，让网站在用户登录后发的一个 token 在用户后续的请求里面都包含上。
 用户端如果不是浏览器，比如是个 python 程序，那么网站可以和用户协商每次请求里面都包含某个下发的 token（当然，甚至要求客户端每次请求都带着用户名密码也是可行的）。
 但是如果网站本身只是给浏览器用户准备的，那么通过用程序来「模拟」浏览器行为，把必要的 token 保存并在后续的请求里面都带上，也是可行的。
 python 里面，发送 http 请求可以简单的使用 urllib.request.urlopen(url)，但是如果想要定制一下请求，比如修改一些 header 信息，那么就得使用 urllib.request.Request 这个 class 先构造一个 Request 对象，然后传递给 urlopen 了。
 如果要处理 cookie，那就需要使用 http.cookiejar.CookieJar 了，有了 Cookiejar 对象，就可以把网站下发的 cookie 保存到这个变量里面，然后在必要的时候，可以返回给服务器端了。如果想要保存到文件，那么可以使用 http.cookiejar.LWPCookieJar 或者 http.cookiejar.MozillaCookieJar，也可以基于 http.cookiejar.FileCookieJar 自己实现一个子类，来用自己的办法保存和加载 cookie，比如保存到数据库什么的，这样就可以多台机器之间共享 cookie 了。
 urlopen 本身不支持自定义 cookiejar 逻辑，得使用 opener = build_opener(HTTPCookieProcessor(cookiejar=Cookiejar对象)) 来先构造一个自定义的 openner, 然后使用 opener(Request对象) 来发送请求。
-如果不定义自己的 cookie policy，那么会使用默认的 http.cookiejar.DefaultCookiePolicy，也可以自己基于 http.cookiejar.CookiePolicy 实现自己的逻辑。只需要 override set_ok 和 return_ok 这两个方法就可以。</description>
-    </item>
-    
-    <item>
-      <title>使用 perl 来登录网页</title>
-      <link>https://wdicc.com/perl-cookie/</link>
-      <pubDate>Tue, 06 Jan 2009 00:00:00 +0000</pubDate>
-      
-      <guid>https://wdicc.com/perl-cookie/</guid>
-      <description>应该不能用。。。只是为了记录
+如果不定义自己的 cookie policy，那么会使用默认的 http.cookiejar.DefaultCookiePolicy，也可以自己基于 http.cookiejar.CookiePolicy 实现自己的逻辑。只需要 override set_ok 和 return_ok 这两个方法就可以。</description></item><item><title>使用 perl 来登录网页</title><link>https://wdicc.com/perl-cookie/</link><pubDate>Tue, 06 Jan 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/perl-cookie/</guid><description>应该不能用。。。只是为了记录
 使用 LWP::UserAgent 可以简单的去访问网页，获取页面内容。例如
-use LWP::UserAgent; my $ua = LWP::UserAgent-new(); $ua-timeout(10); $ua-agent(&#39;mozilla&#39;); my $r = $ua-get(&#39;http::/www.google.com&#39;); print $r-content; # or $r-decoded-content 
+use LWP::UserAgent; my $ua = LWP::UserAgent-new(); $ua-timeout(10); $ua-agent('mozilla'); my $r = $ua-get('http::/www.google.com'); print $r-content; # or $r-decoded-content
 $r 的其它属性可以去 cpan 看看。这样就获取到了内容。但是，如果一个网页是需要登录的怎么办？可以用保存 cookie 的方式。
-use LWP::UserAgent; use HTTP::Cookies; use Digest::MD5 qw(md5 md5_hex); # 用来生成 md5 的 use JSON; # 用来在 json 串和 perl 的 hash 串之间转换 use Data::Dumper; my $cookie_jar = HTTP::Cookies-new( file = &#34;lw.dat&#34;, autosave = 1 ); my $ua = LWP::UserAgent-new(); $ua-timeout(10); $ua-agent(&#39;mozilla&#39;); my(@rest) = (&#34;</description>
-    </item>
-    
-  </channel>
-</rss>
+use LWP::UserAgent; use HTTP::Cookies; use Digest::MD5 qw(md5 md5_hex); # 用来生成 md5 的 use JSON; # 用来在 json 串和 perl 的 hash 串之间转换 use Data::Dumper; my $cookie_jar = HTTP::Cookies-new( file = "lw.dat", autosave = 1 ); my $ua = LWP::UserAgent-new(); $ua-timeout(10); $ua-agent('mozilla'); my(@rest) = ("</description></item></channel></rss>

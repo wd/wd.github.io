@@ -1,65 +1,10 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>gfw on wd and cc</title>
-    <link>https://wdicc.com/tags/gfw/</link>
-    <description>Recent content in gfw on wd and cc</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>zh-cn</language>
-    <lastBuildDate>Mon, 14 Oct 2019 10:57:29 +0800</lastBuildDate>
-    
-	<atom:link href="https://wdicc.com/tags/gfw/atom.xml" rel="self" type="application/rss+xml" />
-    
-    
-    <item>
-      <title>New Way to Go Across the GFW</title>
-      <link>https://wdicc.com/new-way-to-go-across-the-gfw/</link>
-      <pubDate>Mon, 14 Oct 2019 10:57:29 +0800</pubDate>
-      
-      <guid>https://wdicc.com/new-way-to-go-across-the-gfw/</guid>
-      <description>家里路由器用了一段时间的国内定制的梅林系统，还给这个系统做过一个插件使用 v2ray。后面试过换个软路由，使用的 openwrt，然后找到一个新的项目 ss-tproxy ，用起来也还可以，不过是基于 shell 脚本的，以及基于自己的理解，感觉他添加的 iptables 规则有点多，我自己也还想要做到观看 Netflix 使用不同的代理（因为自己的代理 ip 被 Netflix 识别了，没法看，只好找一家机场买了一个服务看，当然又不想所有流量都走机场），所以自己折腾了一个，实现原理就是前面那篇文章。  一开始是基于 v2ray 做的，尽量傻瓜化，只需要提供可用的 outbound 就可以，会自己产生用到的配置文件。实际运行起来发现内存用量有点大，用到 swap 之后路由器变慢，挺讨厌的。然后就琢磨使用 ss 加混淆吧，用了一下速度还不错，但是很快就发现会被断流。没办法，只能还是用回 v2ray，本来想试试看给路由器接一个树莓派吧，里面跑 v2ray，这样也不会影响路由器，但是自己的树莓派不知道哪里去了。。。这也是我那个程序三个运行模式的来源。  后面十一期间那个机场居然公开公布用户的信息，让我觉得机场还是不靠谱，想试试看之前看到的通过 SNI 方式解决看 Netflix 的方案，找了一家试了一下，也还可以。这样我就不用再需要在路由器上面分流了，只需要在 vps 上面配置一下 dnsmasq 就可以了。这样更方便。  这样路由器只需要能解决 gfwlist 里面的域名可以正常访问就可以了。然后看到很多地方提到 v2ray 的 sniffing 功能。之前其实也看到过，忽略掉了。这个功能实际上可以做到解决 dns 污染问题，而不用你还得想办法去劫持系统的 dns。这个可以做到，把用户请求里面的域名交给代理去解析，忽略已有的解析结果，这样不管污染没污染都不会有什么影响了，因为完全不会用国内的解析结果。  然后再配合一个 gfwlist 的域名列表，设置合适的路由，就都 ok 了。  我这有一个示例的 v2ray 配置文件，只需要配置好里面的 outbound 就好了，注意要保留那个 tag 名字，或者你也可以自己修改，和下面的 routing 里面的 tag 对应就可以。那个 ip 列表是解决 telegram 的使用的。还需要配合一个 gfwlist sites 列表，可以直接下载这个。  v2ray 在路由器跑有时候内存问题什么的，看着不太稳定，所以我还搭了一个检查程序，如果发现奔溃了自动重启一下。里面需要改一下 v2ray 的路径 /opt/svgfw/bin/v2ray -config /opt/gfw/config.</description>
-    </item>
-    
-    <item>
-      <title>Go Across the Gfw</title>
-      <link>https://wdicc.com/go-across-the-gfw/</link>
-      <pubDate>Thu, 15 Feb 2018 08:56:03 +0800</pubDate>
-      
-      <guid>https://wdicc.com/go-across-the-gfw/</guid>
-      <description>一直用的是梅林里面自带的方案来处理翻墙，后来想在公司的服务器上面也搞一下这个事情，至少把 Google 等常用站点能翻出去，就研究了一下原理。  目前墙有两个基本措施需要我们去跨越。1 DNS 污染。 2 数据包解析劫持。3 ip 封禁。  DNS 污染是通过修改或者限制 DNS 请求的数据，来让用户取到一个错误的 ip 而导致用户不能访问正确的网站的方法。一些比较大的网站都被做了 DNS 污染，比如 Google，youtube，facebook，twitter 等。  数据包解析是指在出国的核心路由上面，分析用户要访问的网站和发送的数据，然后发现问题之后，从中间给用户和网站发送 rst 数据包，让双方断开连接的一种方法。这样就算是用户通过指定 host 等方法避开了 DNS 污染，也可以进一步阻止请求。这种方法对于 https 的请求应该是没有效果的。所以有时候可以通过指定 host 的方法访问到 google。  对于上面的避开措施，第三种方法就起作用了，就是直接封禁 ip。这样就算指定了 host 也不能访问。  如果想要翻墙，就需要避开上面这三种封禁的方法。我这里列了一些方式，https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/ 各有利弊。这里想讲的是梅林大致的逻辑。  最主要的一个思路是使用 iptables 把一些包发给一些支持透明代理的软件，例如 ss-redir 或者 v2ray 的 dokodemo-door 协议的端口。这些软件会自动把数据请求通过代理请求到之后，返回给用户。 1 2 3 4  -A PREROUTING -p tcp -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 443 dst -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 80 dst -j REDIRECT --to-ports 1080     第一句是把所有请求都转发到了 1080 端口，这样就是全部请求都走代理。第二三句是把所有 443 和 80 端口的请求都转发到了 1080 这个代理端口。如果只是想要某些网站走代理呢？那一个办法是在这个语句里面指定 --dest=12.</description>
-    </item>
-    
-    <item>
-      <title>草泥马</title>
-      <link>https://wdicc.com/freedom/</link>
-      <pubDate>Mon, 06 Nov 2017 18:47:41 +0800</pubDate>
-      
-      <guid>https://wdicc.com/freedom/</guid>
-      <description> 我搜了一下我的帖子，GFW 这个 tag 最早在我的 「2006/12/01 咱也玩玩lilina」 这个帖子里面就出现了。里面提到 Google 有时候会撞墙，会导致 Google reader 也不能访问。我也忘记这个东西最早是什么时候进入我的生活的，从我的 blog 后面可以看到 09 年开始研究一些相关技术，到现在已经 8 年了。  很多人说百度更懂中文。我从来没觉得，可能因为我中文搜的不多吧，不过就算是中文也更喜欢看 Google 里面的结果。百度里面巨量的重复内容，都是一个帖子被复制了很多次，浪费很多时间翻页之后你还是会发现没有你想要的结果。用 Google 的时候，如果前面 3 页（更多时候，1-2 页足够）还没有你想要的结果，那么要么是这个结果就是少，要么就是你的关键字不对，根据结果里面的一些信息，适当调整自己的关键字。  因为本身是搞技术的，技术方面，国外的文章水分更少，并且自己也基本能看懂技术相关的英文内容，所以从来都不用百度。国内的各种论坛（也有一些例外的，比如 v2ex，rubychina 等），大量的顶，回复可见内容的帖子，基本没什么意义。不如直接看英文世界里面的情况来的直接。  那会有一段时间还流行各种草泥马相关的东西，比如草泥马之歌。大家用这种方式自嘲，讽刺。当时总觉得这种东西不符合普世价值并不能长久，笑笑也就好了。这么一翻，就是 8 年。现在还每况愈下，一些稍微活跃一点的还有喝茶的待遇。  这个帖子前几天就想写了，一忙忘记了，今天补上。我和图拉鼎同学并没有见过面。唯一的近距离接触，是当时他在北京 Canonical 公司的时候，有次要聚会，我和他在 qtalk 上面聊过，不过可惜我最后没参加（这段记忆也比较模糊了，可能会有记错），没有见面。后面更多的就是在微博看他在回到杭州后享受生活了。  看看他的生活，就是一个普通宅男，聪明热爱生活，经常游荡在杭州的街巷，发现一些别人没注意到或者忽略的事物。写写代码，咖啡馆坐坐，找一个志同道合的朋友聊聊天，再普通不过了。偏偏就是这样的一个人都容不下，神经一点一点变的异常铭感，没有点神经病估计现在也不好当领导了。  前两年，还有另外一个朋友开发了一款搭建高性能网站使用的服务器软件（和翻墙无关），本来一直在国外工作，回家探亲被限制出境，具体原因不聊了，后来解决了出去了。目前在国外成立的自己的公司，专门发扬自己的软件，也拿到了绿卡。估计以后也没兴趣回来了。  目前这个形势下，无法预见我们自己哪天不会遇到问题，即使你自己学会了阉割自己，但你怎么知道他们的铭感点在哪里呢？也可能是「就是喜欢看你虽然不喜欢，但是又不得不一起建设社会主义的样子」呢？  想起来一个大话西游里面大对白了    爱一个人需要理由么？    需要吗？    不需要吗？    需要吗？    不需要吗？    等你真爱上一个人你就知道了    把里面的「爱」替换为「整」（等你真被整的时候就知道了）我感觉还是挺适合的。  附送 草泥马之歌 给有兴趣的。 </description>
-    </item>
-    
-    <item>
-      <title>Custom Netgear r6300v2 wireless router</title>
-      <link>https://wdicc.com/custom-netgear-r6300v2-wireless-router/</link>
-      <pubDate>Sun, 27 Mar 2016 11:50:38 +0800</pubDate>
-      
-      <guid>https://wdicc.com/custom-netgear-r6300v2-wireless-router/</guid>
-      <description>接 科学上网。买了群晖之后，一直通过群晖上面跑一个 haproxy 来做转发。不过心里总觉得有点不爽，毕竟一方面多转发了一次，另外群晖在不使用的时候，还会休眠，又或多或少担心影响休眠（经过测试应该是不影响的，但是..）。所以买了 r6300v2 之后，就琢磨通过路由器做这个事情。
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>gfw on wd and cc</title><link>https://wdicc.com/tags/gfw/</link><description>Recent content in gfw on wd and cc</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Mon, 14 Oct 2019 10:57:29 +0800</lastBuildDate><atom:link href="https://wdicc.com/tags/gfw/atom.xml" rel="self" type="application/rss+xml"/><item><title>New Way to Go Across the GFW</title><link>https://wdicc.com/new-way-to-go-across-the-gfw/</link><pubDate>Mon, 14 Oct 2019 10:57:29 +0800</pubDate><guid>https://wdicc.com/new-way-to-go-across-the-gfw/</guid><description>家里路由器用了一段时间的国内定制的梅林系统，还给这个系统做过一个插件使用 v2ray。后面试过换个软路由，使用的 openwrt，然后找到一个新的项目 ss-tproxy ，用起来也还可以，不过是基于 shell 脚本的，以及基于自己的理解，感觉他添加的 iptables 规则有点多，我自己也还想要做到观看 Netflix 使用不同的代理（因为自己的代理 ip 被 Netflix 识别了，没法看，只好找一家机场买了一个服务看，当然又不想所有流量都走机场），所以自己折腾了一个，实现原理就是前面那篇文章。 一开始是基于 v2ray 做的，尽量傻瓜化，只需要提供可用的 outbound 就可以，会自己产生用到的配置文件。实际运行起来发现内存用量有点大，用到 swap 之后路由器变慢，挺讨厌的。然后就琢磨使用 ss 加混淆吧，用了一下速度还不错，但是很快就发现会被断流。没办法，只能还是用回 v2ray，本来想试试看给路由器接一个树莓派吧，里面跑 v2ray，这样也不会影响路由器，但是自己的树莓派不知道哪里去了。。。这也是我那个程序三个运行模式的来源。 后面十一期间那个机场居然公开公布用户的信息，让我觉得机场还是不靠谱，想试试看之前看到的通过 SNI 方式解决看 Netflix 的方案，找了一家试了一下，也还可以。这样我就不用再需要在路由器上面分流了，只需要在 vps 上面配置一下 dnsmasq 就可以了。这样更方便。 这样路由器只需要能解决 gfwlist 里面的域名可以正常访问就可以了。然后看到很多地方提到 v2ray 的 sniffing 功能。之前其实也看到过，忽略掉了。这个功能实际上可以做到解决 dns 污染问题，而不用你还得想办法去劫持系统的 dns。这个可以做到，把用户请求里面的域名交给代理去解析，忽略已有的解析结果，这样不管污染没污染都不会有什么影响了，因为完全不会用国内的解析结果。 然后再配合一个 gfwlist 的域名列表，设置合适的路由，就都 ok 了。 我这有一个示例的 v2ray 配置文件，只需要配置好里面的 outbound 就好了，注意要保留那个 tag 名字，或者你也可以自己修改，和下面的 routing 里面的 tag 对应就可以。那个 ip 列表是解决 telegram 的使用的。还需要配合一个 gfwlist sites 列表，可以直接下载这个。 v2ray 在路由器跑有时候内存问题什么的，看着不太稳定，所以我还搭了一个检查程序，如果发现奔溃了自动重启一下。里面需要改一下 v2ray 的路径 /opt/svgfw/bin/v2ray -config /opt/gfw/config.</description></item><item><title>Go Across the Gfw</title><link>https://wdicc.com/go-across-the-gfw/</link><pubDate>Thu, 15 Feb 2018 08:56:03 +0800</pubDate><guid>https://wdicc.com/go-across-the-gfw/</guid><description>一直用的是梅林里面自带的方案来处理翻墙，后来想在公司的服务器上面也搞一下这个事情，至少把 Google 等常用站点能翻出去，就研究了一下原理。 目前墙有两个基本措施需要我们去跨越。1 DNS 污染。 2 数据包解析劫持。3 ip 封禁。 DNS 污染是通过修改或者限制 DNS 请求的数据，来让用户取到一个错误的 ip 而导致用户不能访问正确的网站的方法。一些比较大的网站都被做了 DNS 污染，比如 Google，youtube，facebook，twitter 等。 数据包解析是指在出国的核心路由上面，分析用户要访问的网站和发送的数据，然后发现问题之后，从中间给用户和网站发送 rst 数据包，让双方断开连接的一种方法。这样就算是用户通过指定 host 等方法避开了 DNS 污染，也可以进一步阻止请求。这种方法对于 https 的请求应该是没有效果的。所以有时候可以通过指定 host 的方法访问到 google。 对于上面的避开措施，第三种方法就起作用了，就是直接封禁 ip。这样就算指定了 host 也不能访问。 如果想要翻墙，就需要避开上面这三种封禁的方法。我这里列了一些方式，https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/ 各有利弊。这里想讲的是梅林大致的逻辑。 最主要的一个思路是使用 iptables 把一些包发给一些支持透明代理的软件，例如 ss-redir 或者 v2ray 的 dokodemo-door 协议的端口。这些软件会自动把数据请求通过代理请求到之后，返回给用户。 1 2 3 4 -A PREROUTING -p tcp -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 443 dst -j REDIRECT --to-ports 1080 -A PREROUTING -p tcp -m multiport --dports 80 dst -j REDIRECT --to-ports 1080 第一句是把所有请求都转发到了 1080 端口，这样就是全部请求都走代理。第二三句是把所有 443 和 80 端口的请求都转发到了 1080 这个代理端口。如果只是想要某些网站走代理呢？那一个办法是在这个语句里面指定 --dest=12.</description></item><item><title>草泥马</title><link>https://wdicc.com/freedom/</link><pubDate>Mon, 06 Nov 2017 18:47:41 +0800</pubDate><guid>https://wdicc.com/freedom/</guid><description> 我搜了一下我的帖子，GFW 这个 tag 最早在我的 「2006/12/01 咱也玩玩lilina」 这个帖子里面就出现了。里面提到 Google 有时候会撞墙，会导致 Google reader 也不能访问。我也忘记这个东西最早是什么时候进入我的生活的，从我的 blog 后面可以看到 09 年开始研究一些相关技术，到现在已经 8 年了。 很多人说百度更懂中文。我从来没觉得，可能因为我中文搜的不多吧，不过就算是中文也更喜欢看 Google 里面的结果。百度里面巨量的重复内容，都是一个帖子被复制了很多次，浪费很多时间翻页之后你还是会发现没有你想要的结果。用 Google 的时候，如果前面 3 页（更多时候，1-2 页足够）还没有你想要的结果，那么要么是这个结果就是少，要么就是你的关键字不对，根据结果里面的一些信息，适当调整自己的关键字。 因为本身是搞技术的，技术方面，国外的文章水分更少，并且自己也基本能看懂技术相关的英文内容，所以从来都不用百度。国内的各种论坛（也有一些例外的，比如 v2ex，rubychina 等），大量的顶，回复可见内容的帖子，基本没什么意义。不如直接看英文世界里面的情况来的直接。 那会有一段时间还流行各种草泥马相关的东西，比如草泥马之歌。大家用这种方式自嘲，讽刺。当时总觉得这种东西不符合普世价值并不能长久，笑笑也就好了。这么一翻，就是 8 年。现在还每况愈下，一些稍微活跃一点的还有喝茶的待遇。 这个帖子前几天就想写了，一忙忘记了，今天补上。我和图拉鼎同学并没有见过面。唯一的近距离接触，是当时他在北京 Canonical 公司的时候，有次要聚会，我和他在 qtalk 上面聊过，不过可惜我最后没参加（这段记忆也比较模糊了，可能会有记错），没有见面。后面更多的就是在微博看他在回到杭州后享受生活了。 看看他的生活，就是一个普通宅男，聪明热爱生活，经常游荡在杭州的街巷，发现一些别人没注意到或者忽略的事物。写写代码，咖啡馆坐坐，找一个志同道合的朋友聊聊天，再普通不过了。偏偏就是这样的一个人都容不下，神经一点一点变的异常铭感，没有点神经病估计现在也不好当领导了。 前两年，还有另外一个朋友开发了一款搭建高性能网站使用的服务器软件（和翻墙无关），本来一直在国外工作，回家探亲被限制出境，具体原因不聊了，后来解决了出去了。目前在国外成立的自己的公司，专门发扬自己的软件，也拿到了绿卡。估计以后也没兴趣回来了。 目前这个形势下，无法预见我们自己哪天不会遇到问题，即使你自己学会了阉割自己，但你怎么知道他们的铭感点在哪里呢？也可能是「就是喜欢看你虽然不喜欢，但是又不得不一起建设社会主义的样子」呢？ 想起来一个大话西游里面大对白了 爱一个人需要理由么？ 需要吗？ 不需要吗？ 需要吗？ 不需要吗？ 等你真爱上一个人你就知道了 把里面的「爱」替换为「整」（等你真被整的时候就知道了）我感觉还是挺适合的。 附送 草泥马之歌 给有兴趣的。</description></item><item><title>Custom Netgear r6300v2 wireless router</title><link>https://wdicc.com/custom-netgear-r6300v2-wireless-router/</link><pubDate>Sun, 27 Mar 2016 11:50:38 +0800</pubDate><guid>https://wdicc.com/custom-netgear-r6300v2-wireless-router/</guid><description>接 科学上网。买了群晖之后，一直通过群晖上面跑一个 haproxy 来做转发。不过心里总觉得有点不爽，毕竟一方面多转发了一次，另外群晖在不使用的时候，还会休眠，又或多或少担心影响休眠（经过测试应该是不影响的，但是..）。所以买了 r6300v2 之后，就琢磨通过路由器做这个事情。
 路由器上面搞就有两个选择，一是从 iptables 入手，直接转发出去，另外一个是从软件层面做。
 开始搞了几天的 iptables，发现原有系统 iptables 条目还是挺多的，加上路由器翻墙的功能也需要加一些条目，导致尝试了好几天之后总算能够转发过去链接了，但是数据包过不去，为了调试就开始打算在路由器安装 tcpdump。然后找到了 https://github.com/Entware/entware ，配置好之后可以使用 opkg 来安装包。包列表可以参考这里 http://pkg.entware.net/binaries/armv7/Packages.html ，这个路由器是 armv7 版本的 cpu。
 安装 opkg 之前先得了解下，梅林固件分两部分存储，一部分是系统区，一部分是自定义区。系统区应该是你刷的固件所在的地方，是不能修改的，自定义区是可以存放一些自己定义的脚本的。每次系统启动的时候，你的一些自定义的东西都是存在自定义区加载的。自定义区就是 /jffs 分区。想要使用，得在 系统管理 -&amp;gt; 系统设置 里面，打开 JFFS 的配置，允许执行上面的脚本。
 因为系统自带的 /jffs 分区只有 60M 左右，而我们装包的时候很容易就超过这个限制了，我现在已经用了 8xM 空间。所以最好还是用一个 u 盘来做这个事情。每次想要自动加载 u 盘，启动 u 盘里面的程序的话，还需要一些自定义的脚本来做这个事情。
 先把 opkg 配置好，需要先准备好 /opt 目录。
-1 2  mkdir -p /tmp/opt mount -t ext4 -o rw,noatime /dev/sda1 /opt   上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</description>
-    </item>
-    
-    <item>
-      <title>Across the Great Wall, we can reach every corner in the world</title>
-      <link>https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/</link>
-      <pubDate>Sun, 20 Mar 2016 20:39:53 +0800</pubDate>
-      
-      <guid>https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/</guid>
-      <description>科学上网估计是每个搞 IT 的人必须要掌握的知识了。简单讲讲我目前使用的一些方法。
+1 2 mkdir -p /tmp/opt mount -t ext4 -o rw,noatime /dev/sda1 /opt 上面的 /dev/sda1 是 u 盘，ext4 是文件系统类型，按照自己的修改一下。一般 u 盘插上去就会自动挂载，df 看一下就知道是哪个名字了。系统配置里面有个 dlna 的配置记得关掉，否则他会读 u 盘导致你不能 umount 之类，或者 kill 掉一个叫做 minidlna 的进程也可以。</description></item><item><title>Across the Great Wall, we can reach every corner in the world</title><link>https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/</link><pubDate>Sun, 20 Mar 2016 20:39:53 +0800</pubDate><guid>https://wdicc.com/across-the-great-wall-we-can-reach-every-corner-in-the-world/</guid><description>科学上网估计是每个搞 IT 的人必须要掌握的知识了。简单讲讲我目前使用的一些方法。
 国外服务 首先肯定需要先有个国外的资源，比如买专业的 vpn ss 服务等。数据经过第三方都不一定那么可靠，我的主力邮箱在 gmail，可不想被攻破，所以我选择了自己购买和搭建服务。
 我买的是 linode 的服务，最便宜的是 10$ 一个月。也可以买一些美国的 kvm 或者 zen 的虚拟机，有比较便宜的一个月可能才不到 1$，当然这种便宜的一般很快就会卖没，得看运气。我的 linode 是和 3 个基友一起合租的，这样大家每个人一年也就 300 来块钱，也就一顿海底捞（我这两年非常喜欢用饭钱来衡量消费，吃饭可是天天都有的，但是有些消费，比如买软件，买服务这些一般都是一年或者几年才一次，比起吃饭真的便宜多了），一般都能承担的吧。
 早期我买过一些 ssh 服务，速度不稳定，因为很难限制超售。后来还买过云梯，他们提供的节点比较多速度还不错。
@@ -67,45 +12,18 @@
 ssh 方式 使用 ssh 方式的时候，最早是直接 ssh 链接弄一个 socks 端口给本地，然后本地使用 pac 配合。
 后来有段时间被断的不行，就试了 stunnel，可以把 ssh 转为 https 服务，这样就可以跑在 443 端口了，和其他 https 服务比较难区分。可以起点作用。
 这个方式没法支持手机。
-使用 ngx 有段时间还使用 hosts 文件加 ngx 反向代理还翻墙。ngx 上面配置 google.</description>
-    </item>
-    
-    <item>
-      <title>你在用什么方式翻墙？</title>
-      <link>https://wdicc.com/best-way-to-fuck-gfw/</link>
-      <pubDate>Mon, 20 Jul 2009 00:00:00 +0000</pubDate>
-      
-      <guid>https://wdicc.com/best-way-to-fuck-gfw/</guid>
-      <description>翻墙估计应该是上网的必修课了，当然那些 90 后就别说了，他们大概只上 *qq.com 就好了。
+使用 ngx 有段时间还使用 hosts 文件加 ngx 反向代理还翻墙。ngx 上面配置 google.</description></item><item><title>你在用什么方式翻墙？</title><link>https://wdicc.com/best-way-to-fuck-gfw/</link><pubDate>Mon, 20 Jul 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/best-way-to-fuck-gfw/</guid><description>翻墙估计应该是上网的必修课了，当然那些 90 后就别说了，他们大概只上 *qq.com 就好了。
 翻墙有不少方法，比如通过找公共的 vpn，用 tor，找一些 phpproxy 网站等。我这推荐一个比较好的方法，通过 fuckgfw 提供的 ssh proxy，速度比 tor 快的不是一点半点。
 我用的 linux，写了一个 expect 脚本来起代理服务，如下。里面的 USER 和 PWD 换成你申请到的用户名和密码。我把这个脚本命名叫 p, 放到了 ~/bin 下面，当然我的 ~/bin 是在 path 里面的，这样，执行一个 p 命令代理就自动起来了。用完的时候可以按 Ctrl-c 退出。
-#!/bin/bash expect -c &#39; spawn ssh -D 7070 -N USER@SERVER expect { password { send &#34;PWD\r&#34;; } } interact { \001 exit; }&#39; 
-当然，我用到的不只这个脚本了，要不也没什么好写的了。(本来觉得自己写了挺好的一个文章，最后还是就 expect 脚本 + autoproxy，唉，丢人。)还用到了一个 proxy.pac ，自动使用代理的配置。如下，把这个文件存成 proxy.pac, 然后在 firefox 的 编辑-首选项-高级-网络-设置-自动代理配置URL 这个里面输入 &#34;</description>
-    </item>
-    
-    <item>
-      <title>人民网：要追究制造发帖获刑案官员罪责</title>
-      <link>https://wdicc.com/fuck-gfw/</link>
-      <pubDate>Tue, 05 May 2009 00:00:00 +0000</pubDate>
-      
-      <guid>https://wdicc.com/fuck-gfw/</guid>
-      <description>人民网：要追究制造发帖获刑案官员罪责
+#!/bin/bash expect -c ' spawn ssh -D 7070 -N USER@SERVER expect { password { send "PWD\r"; } } interact { \001 exit; }'
+当然，我用到的不只这个脚本了，要不也没什么好写的了。(本来觉得自己写了挺好的一个文章，最后还是就 expect 脚本 + autoproxy，唉，丢人。)还用到了一个 proxy.pac ，自动使用代理的配置。如下，把这个文件存成 proxy.pac, 然后在 firefox 的 编辑-首选项-高级-网络-设置-自动代理配置URL 这个里面输入 "</description></item><item><title>人民网：要追究制造发帖获刑案官员罪责</title><link>https://wdicc.com/fuck-gfw/</link><pubDate>Tue, 05 May 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/fuck-gfw/</guid><description>人民网：要追究制造发帖获刑案官员罪责
 河南的王帅、内蒙古的吴保全因言获罪，经过新兴媒体的披露和公众的理性参与，成为人们热议的话题，由此产生如何杜绝公民“因言获罪”现象的讨 论。王帅事件已经有了初步结果，河南省副省长兼省公安厅厅长表明了态度，并且开始追究构陷者的责任。内蒙古的吴保全案还没有圆满结果，那位“因言获罪”的 年轻人还在牢里，这算不算是当地法制的耻辱呢？
 中国建设和完善民主法制走过了漫长的路程。党和国家提出依法治国，提出建设社会主义法治国家，是时代和社会的进步。经历过没有法制，没有民主， 没有人权的人们，绝对不会同意类似“十年动乱”那样的年代死灰复燃。但是，当我们从网络上和报纸上看到先是河南的王帅，后是内蒙古的吴保全，仅仅因为在网 络上批评一下当地的官员，评论一下当地的政府，披露一下某些事情，就被当地警方跨省抓捕，进而关进牢房，我们确实被震撼了、惊动了。尽管这只是一些被披露 的个案，尽管这只是国家在建设和谐社会中的一点噪音，但是，这些个案和噪音反映了我国建设民主和法制社会的长期性、艰巨性和复杂性，反映了我们社会的一些 亟需改善的现状。
 “因言获罪”是非民主社会例如“十年动乱”中最明显的特征之一。人们的每一句话都可能被认为是影射、借喻、讽刺当权者；人们的每一篇文章都可能 被视作煽动和挑衅，而遭到莫名其妙的迫害。有的人因为在私密的日记中记载了一点自己的思想，而获祸罹难。言论成为那个年代最敏感的节点。说假话，说空话， 说大话，逐步成为人们的习惯，话语体系走进了一条令人生厌的死胡同。这种影响，至今尚未完全清除。
 改革开放，解放思想，拨乱反正，特别是近年来国家民主、法制和人权事业的进步，让我们认识到，在一个民主和法治的社会里，人们的言论是自由的， 批评是自由的，思想是自由的。诬陷罪、诽谤罪只针对个人而言，政府没有权利通过公安抓捕那些仅仅是用语言评论政府的所作所为，或者用某些不太中听的话批评 政府官员的公民，哪怕这些评论和批评不太准确。法院也应该严格遵守宪法的规定，不当权力的帮凶，不去侵害公民的合法权益。否则，我们的社会何来公平正义， 何来和谐稳定、文明进步？
 抓捕“言论”者的执法人员和他们后面的官员，可能以为他们的这些做法，是在维护党和国家的利益，是在维护我们的社会主义制度。其实，他们错了。 党和国家的根本利益，就是人民的利益，就是保证大家能够充分享受美好的生活，树立正确的民主、自由、人权、发展等价值观。我们的社会主义制度，也是为了最 大限度地维护人民的核心利益，而且正在不断地改进和完善中。保证公民充分享受言论权、批评权、监督权，才是实事求是地爱护我们现有的制度，才能更快得让我 们的国家跻身于世界民族之林。用这样的思路去分析官员和执法人员抓捕“言论”者，正好证明，这些目无党纪国法的官员和执法人员，破坏的恰恰是党和国家的根 本利益，践踏的恰恰是当前以人为本的社会主义制度，侮辱的恰恰是人民群众神圣的尊严。
 所以，人们特别是上级领导机关的人千万别让那些侵犯人权、制造冤案的人用满嘴“国家利益”、“社会利益”的理由忽悠了，别听他们一唱高调就心软 手松。一定要追究制造冤假错案者的法律责任，一定要坚决清除他们制造冤案所谓“合理性”的影响，促使我们国家各个地方的冤假错案、荒唐事件越来越少，直至 彻底消失！
-以上内容完全是复制粘贴，本人并不明白其意思，故本人不对以上内容负法律责任，请不要跨省追捕。要详查请自己联系原作者，谢谢！</description>
-    </item>
-    
-    <item>
-      <title>A nice way to fuck gfw</title>
-      <link>https://wdicc.com/a-nice-way-to-fuck-gfw/</link>
-      <pubDate>Wed, 01 Apr 2009 00:00:00 +0000</pubDate>
-      
-      <guid>https://wdicc.com/a-nice-way-to-fuck-gfw/</guid>
-      <description>转载自 : http://fuckgfw.jottit.com/
+以上内容完全是复制粘贴，本人并不明白其意思，故本人不对以上内容负法律责任，请不要跨省追捕。要详查请自己联系原作者，谢谢！</description></item><item><title>A nice way to fuck gfw</title><link>https://wdicc.com/a-nice-way-to-fuck-gfw/</link><pubDate>Wed, 01 Apr 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/a-nice-way-to-fuck-gfw/</guid><description>转载自 : http://fuckgfw.jottit.com/
 本文将提供一种一劳永逸的翻墙方式（ssh -D），实施之后，那道墙——对你来说——将从此透明。
 本文面向的用户：使用Windows作为操作系统并且使用Firefox作为常用浏览器。
 第一步：免费获取拥有SSH权限的帐号和密码。
@@ -134,19 +52,6 @@ ssh 方式 使用 ssh 方式的时候，最早是直接 ssh 链接弄一个 sock
 获取更多帮助，请关注反馈中心：https://friendfeed.com/rooms/fuckgfw-feedback
 第四步：支持fuckGFW
 获取详情，请关注捐赠与推广中心：https://friendfeed.com/rooms/fuckgfw-donation-and-marketing
-版权信息：您可以自由复制、传播、演绎本作品且无需署名、无需注明原始出处。</description>
-    </item>
-    
-    <item>
-      <title>咱也玩玩lilina</title>
-      <link>https://wdicc.com/my-lilina/</link>
-      <pubDate>Fri, 01 Dec 2006 00:00:00 +0000</pubDate>
-      
-      <guid>https://wdicc.com/my-lilina/</guid>
-      <description>好像不知道从什么时候开始流行起了lilina，自己捣鼓捣鼓也装了一个，我的lilina。其实google reader挺好的，不过就是google有时候会被GFW干掉，这样reader也不能访问了。最近这种情况好像还出现很频繁，真是头痛，其实google reader挺好用的，不过现在就试试看lilina了。
+版权信息：您可以自由复制、传播、演绎本作品且无需署名、无需注明原始出处。</description></item><item><title>咱也玩玩lilina</title><link>https://wdicc.com/my-lilina/</link><pubDate>Fri, 01 Dec 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/my-lilina/</guid><description>好像不知道从什么时候开始流行起了lilina，自己捣鼓捣鼓也装了一个，我的lilina。其实google reader挺好的，不过就是google有时候会被GFW干掉，这样reader也不能访问了。最近这种情况好像还出现很频繁，真是头痛，其实google reader挺好用的，不过现在就试试看lilina了。
 今天也看到一些关于干掉GFW的文章[1][2]，但是需要国外的ssh服务器，偶没有。。不过这个ssh tunnel倒是个不错的东西，比装代理服务器简单，嗯。
-用了lilina之后，发现sina的rss好像总是在最前面，而实际上他们更新却是以前的事情了，肯定是他们的rss输出有问题，感觉这样很无耻。</description>
-    </item>
-    
-  </channel>
-</rss>
+用了lilina之后，发现sina的rss好像总是在最前面，而实际上他们更新却是以前的事情了，肯定是他们的rss输出有问题，感觉这样很无耻。</description></item></channel></rss>

@@ -1,92 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>hive 里面的 UDTF | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">hive 里面的 UDTF</span></h1>
-
-<h2 class="date">2011/04/24</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/hive">hive</a> 
-  
-  
-</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<main>
-
-hive 支持 UDF， UDAF， UDTF，这几个让你使用 hive 更加便捷。<br />
-<div id="outline-container-1" class="outline-2"><br />
-<h2 id="sec-1">UDF</h2><br />
-<div id="text-1" class="outline-text-2"><br />
-
-udf 就是一个自定义的 function，输入一个或多个参数，返回一个返回值，类似 substr/trim 之类。写起来比较简单，重构 UDF 类的 evaluate 方法就可以了。可以参考 <a href="http://richiehu.blog.51cto.com/2093113/386112">http://richiehu.blog.51cto.com/2093113/386112</a> 。<br />
-
-这是一个 urldecode 函数。<br />
-<pre class="prettyprint lang-java">
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>hive 里面的 UDTF | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>hive 里面的 UDTF</span></h1><h2 class=date>2011/04/24</h2><p class=terms>Tags: <a href=/tags/hive>hive</a></p></div><main>hive 支持 UDF， UDAF， UDTF，这几个让你使用 hive 更加便捷。<br><div id=outline-container-1 class=outline-2><br><h2 id=sec-1>UDF</h2><br><div id=text-1 class=outline-text-2><br>udf 就是一个自定义的 function，输入一个或多个参数，返回一个返回值，类似 substr/trim 之类。写起来比较简单，重构 UDF 类的 evaluate 方法就可以了。可以参考 <a href=http://richiehu.blog.51cto.com/2093113/386112>http://richiehu.blog.51cto.com/2093113/386112</a> 。<br>这是一个 urldecode 函数。<br><pre class="prettyprint lang-java">
 
 import org.apache.hadoop.hive.ql.exec.UDF;
 import java.net.URLDecoder;
@@ -112,27 +24,9 @@ public final class urldecode extends UDF {
         String t = "%E5%A4%AA%E5%8E%9F-%E4%B8%89%E4%BA%9A";
         System.out.println( getString(t) );
     }
-}</pre>
-<div id="outline-container-2" class="outline-2">
-<h2 id="sec-2">UDAF</h2>
-<div id="text-2" class="outline-text-2">
-
-udaf 就是自定义的聚合函数，类似 sum/avg 这类，输入多行的一个或多个参数，返回一个返回值。这个还没写过，可以参考 <a href="http://richiehu.blog.51cto.com/2093113/386113">http://richiehu.blog.51cto.com/2093113/386113</a> 。
-
-&nbsp;
-
-</div>
-&nbsp;
-
-</div>
-<div id="outline-container-3" class="outline-2">
-<h2 id="sec-3">UDTF</h2>
-<div id="text-3" class="outline-text-2">
-
-udtf 是针对输入一行，输出多行的需求来的，类似 explode 函数。可以参考 <a href="http://www.linezing.com/blog/?p=323">http://www.linezing.com/blog/?p=323</a> 。
-
-这个是输入数组字段，输出两列，一列是数组元素的位置，一列是数组元素。比 explode 多了一列位置，不过数组元素只能是 String 类型的。
-<pre class="prettyprint lang-java">
+}</pre><div id=outline-container-2 class=outline-2><h2 id=sec-2>UDAF</h2><div id=text-2 class=outline-text-2>udaf 就是自定义的聚合函数，类似 sum/avg 这类，输入多行的一个或多个参数，返回一个返回值。这个还没写过，可以参考 <a href=http://richiehu.blog.51cto.com/2093113/386113>http://richiehu.blog.51cto.com/2093113/386113</a> 。
+&nbsp;</div>&nbsp;</div><div id=outline-container-3 class=outline-2><h2 id=sec-3>UDTF</h2><div id=text-3 class=outline-text-2>udtf 是针对输入一行，输出多行的需求来的，类似 explode 函数。可以参考 <a href="http://www.linezing.com/blog/?p=323">http://www.linezing.com/blog/?p=323</a> 。
+这个是输入数组字段，输出两列，一列是数组元素的位置，一列是数组元素。比 explode 多了一列位置，不过数组元素只能是 String 类型的。<pre class="prettyprint lang-java">
 
 import java.util.ArrayList;
 import java.util.List;
@@ -216,49 +110,4 @@ public class explodeWithPos extends GenericUDTF {
         public String toString() {
             return "explodeWithPos";
         }
-}</pre>
-</div>
-</div>
-</div>
-</div>
-
-</main>
-
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-    </div>
-</section>
-
-
-    
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
-    
-
-
-
-
-
-    <footer style="clear:both">
-      
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
-      
-    </footer>
-  </body>
-</html>
-
+}</pre></div></div></div></div></main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>

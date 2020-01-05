@@ -1,87 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>debian下面解决gnokii读取短信的bug | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">debian下面解决gnokii读取短信的bug</span></h1>
-
-<h2 class="date">2006/12/06</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/other">other</a> 
-  
-  
-</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<main>
-
-上一篇文章提到过gnokii读取AT模式下设备的短信的时候会有<a href="http://blog.wdicc.com/wordpress/2006/12/05/277/">问题</a>，从xh那里看到了解决方法，自己也goolgle了<a href="http://thread.gmane.org/gmane.linux.drivers.gnokii/7918/focus=7922">一下</a>，总结一下debian（sarge）下面解决这个问题的方法。<br />
-
-故障现象如下：<br />
-<pre class="prettyprint lang-text">
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>debian下面解决gnokii读取短信的bug | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>debian下面解决gnokii读取短信的bug</span></h1><h2 class=date>2006/12/06</h2><p class=terms>Tags: <a href=/tags/other>other</a></p></div><main>上一篇文章提到过gnokii读取AT模式下设备的短信的时候会有<a href=http://blog.wdicc.com/wordpress/2006/12/05/277/>问题</a>，从xh那里看到了解决方法，自己也goolgle了<a href="http://thread.gmane.org/gmane.linux.drivers.gnokii/7918/focus=7922">一下</a>，总结一下debian（sarge）下面解决这个问题的方法。<br>故障现象如下：<br><pre class="prettyprint lang-text">
 [...]
 Message sent: 0x12 / 0x0009
 41 54 2b 43 50 4d 53 3f 0d                      | AT+CPMS?
@@ -94,10 +11,8 @@ Message received: 0x12 / 0x002d
 22 2c 32 2c 33 30 0d 0a 0d 0a 4f 4b 0d          | ",2,30    OK
 Received message type 12
 GetSMS SM 1 failed! (Command failed.)
-Serial device: closing device</pre>
-还有一个smsd的问题：
-<pre class="prettyprint lang-text">
-解决这个问题需要给gnokii打一个补丁，debian下面就需要自己来制作一个包，参考 <a href="http://debian.linuxsir.org/doc/inthedebianway/debian_build_package.html">构建 Debian 软件包</a> 这篇文章，操作如下。
+Serial device: closing device</pre>还有一个smsd的问题：<pre class="prettyprint lang-text">
+解决这个问题需要给gnokii打一个补丁，debian下面就需要自己来制作一个包，参考 <a href=http://debian.linuxsir.org/doc/inthedebianway/debian_build_package.html>构建 Debian 软件包</a> 这篇文章，操作如下。
 
 首先下载包的源代码：
 <pre class="prettyprint lang-bash">
@@ -140,49 +55,5 @@ if (sscanf(buf.line2, "+CPMS: \"%*c%*c\",%d,%*d,\"%*c%*c\",%*d,%*d,\"%c%c\",%*d,
 +                       return GN_ERR_FAILED;
 
 data->sms_status->unread = 0;
-data->sms_status->changed = 0;</pre>
-把上面的内容保存一下，比如取名为cant_get_sms.patch，或者来<a href="http://blog.wdicc.com/wordpress/download/cant_get_sms.patch">这里</a>下载，然后执行下面的命令：
-<pre class="prettyprint lang-bash">
-apt-get -b source gnokii</pre>
-此时会看到debian正在编译gnokii（编译之前可能需要下载编译需要的dev库，按照提示来就可以了），编译完成之后会将打包成6个deb文件，用dpkg -i命令重装一下你需要的就可以了。 此时再试试看gnokii --getsms SM 1命令，是不是没问题了？
-
-</main>
-
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-    </div>
-</section>
-
-
-    
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
-    
-
-
-
-
-
-    <footer style="clear:both">
-      
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
-      
-    </footer>
-  </body>
-</html>
-
+data->sms_status->changed = 0;</pre>把上面的内容保存一下，比如取名为cant_get_sms.patch，或者来<a href=http://blog.wdicc.com/wordpress/download/cant_get_sms.patch>这里</a>下载，然后执行下面的命令：<pre class="prettyprint lang-bash">
+apt-get -b source gnokii</pre>此时会看到debian正在编译gnokii（编译之前可能需要下载编译需要的dev库，按照提示来就可以了），编译完成之后会将打包成6个deb文件，用dpkg -i命令重装一下你需要的就可以了。 此时再试试看gnokii --getsms SM 1命令，是不是没问题了？</main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>

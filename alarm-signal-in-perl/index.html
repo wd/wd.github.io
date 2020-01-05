@@ -1,90 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>alarm 使用不当遇到的问题 | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">alarm 使用不当遇到的问题</span></h1>
-
-<h2 class="date">2011/05/08</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/linux">linux</a> <a href="/tags/perl">perl</a> 
-  
-  
-</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<main>
-
-<p>前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。<br />
-</p><br />
-<p><br />
-大概流程是有个 perl 程序 a.pl<br />
-</p><br />
-
-<pre class="prettyprint">
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>alarm 使用不当遇到的问题 | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>alarm 使用不当遇到的问题</span></h1><h2 class=date>2011/05/08</h2><p class=terms>Tags: <a href=/tags/linux>linux</a> <a href=/tags/perl>perl</a></p></div><main><p>前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。<br></p><br><p><br>大概流程是有个 perl 程序 a.pl<br></p><br><pre class=prettyprint>
 .....
 my $pid = fork();
 if ( !$pid ) {
@@ -99,10 +13,7 @@ if ( !$pid ) {
 }
 
 waitpid ........
-</pre><br />
-<p><br />
-b.pl 里面会执行 rsync 去获取一些文件，他会循环到几个机器上面去 rsync<br />
-<pre class="prettyprint">
+</pre><br><p><br>b.pl 里面会执行 rsync 去获取一些文件，他会循环到几个机器上面去 rsync<br><pre class=prettyprint>
 for ( @hosts ) {
     my $result = `rsync xxxxx 2>&1`;
     if ( $? ) {
@@ -119,21 +30,7 @@ sub log {
     print $msg;
     # 然后通过 IO::Socket::INET 发送给另外一个 server  a
 }
-</pre><br />
-
-现象是，时不时的， b.pl 会只 rsync 了某几台(不确定是几台)机器上面的文件，然后就不继续了，从 server a 上面能收到他发日志，最后一条是 success 的信息<br />
-</p><br />
-<p><br />
-从 a.pl 记录的日志那里看, FILE 里面记录的内容丢失了 server a 收到的最后一部分的数据，多少数据不一定，不过肯定是没有那个 success 信息。 这个文件里面也没有任何的错误信息。<br />
-</p><br />
-<p><br />
-程序代码啥的都不动，rsync 的文件数不是总是一样的，也有文件多的时候没出错的时候,同时也设置了打开文件数为 65536.<br />
-</p><br />
-<p><br />
-后来发现问题就在 b.pl 里面的 log 里面。因为要发送到其他机器，怕挂住影响后续程序，所以设置了一个 alarm。<br />
-</p><br />
-
-<pre class="prettyprint">
+</pre><br>现象是，时不时的， b.pl 会只 rsync 了某几台(不确定是几台)机器上面的文件，然后就不继续了，从 server a 上面能收到他发日志，最后一条是 success 的信息<br></p><br><p><br>从 a.pl 记录的日志那里看, FILE 里面记录的内容丢失了 server a 收到的最后一部分的数据，多少数据不一定，不过肯定是没有那个 success 信息。 这个文件里面也没有任何的错误信息。<br></p><br><p><br>程序代码啥的都不动，rsync 的文件数不是总是一样的，也有文件多的时候没出错的时候,同时也设置了打开文件数为 65536.<br></p><br><p><br>后来发现问题就在 b.pl 里面的 log 里面。因为要发送到其他机器，怕挂住影响后续程序，所以设置了一个 alarm。<br></p><br><pre class=prettyprint>
 eval {
     alarm 5;
     xxxxxxx;
@@ -143,19 +40,7 @@ eval {
 if ( $@ ) {
     print "error when send";
 }
-</pre><br />
-
-<p><br />
-这个 alarm 没有设置 handle 的函数，这样就会导致 alarm 到期的时候，会直接让整个 perl 程序挂掉，并显示 "Alarm clock"，而且这个输出不在标准错误和标准输出里面。<br />
-</p><br />
-<p><br />
-修复也简单，alarm 前设置一个 handler 就好了。<br />
-</p><br />
-<p><br />
-另外，还有个问题，一个 alarm 会中断前一个 alarm，所以类似 sleep 的使用，可以这样<br />
-</p><br />
-
-<pre class="prettyprint">
+</pre><br><p><br>这个 alarm 没有设置 handle 的函数，这样就会导致 alarm 到期的时候，会直接让整个 perl 程序挂掉，并显示 "Alarm clock"，而且这个输出不在标准错误和标准输出里面。<br></p><br><p><br>修复也简单，alarm 前设置一个 handler 就好了。<br></p><br><p><br>另外，还有个问题，一个 alarm 会中断前一个 alarm，所以类似 sleep 的使用，可以这样<br></p><br><pre class=prettyprint>
 my $previousAlarm = 0;
 eval {
     local $SIG{ALRM} = sub { die 'alarm'; };
@@ -170,45 +55,4 @@ if ( $@ ) {
 }
 
 alarm $previousAlarm;
-</pre><br />
-
-</main>
-
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-    </div>
-</section>
-
-
-    
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
-    
-
-
-
-
-
-    <footer style="clear:both">
-      
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
-      
-    </footer>
-  </body>
-</html>
-
+</pre><br></main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>

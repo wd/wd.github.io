@@ -1,111 +1,19 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>oracle在rh里面的安装流程 | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">oracle在rh里面的安装流程</span></h1>
-
-<h2 class="date">2007/03/14</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/linux">linux</a> <a href="/tags/oracle">oracle</a> <a href="/tags/other">other</a> 
-  
-  
-</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<main>
-<b>第2部分 针对oracle配置linux</b>
-
-oracle 对系统硬件配置的一些要求。
-
-<blockquote>内存 > 512MB
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>oracle在rh里面的安装流程 | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>oracle在rh里面的安装流程</span></h1><h2 class=date>2007/03/14</h2><p class=terms>Tags: <a href=/tags/linux>linux</a> <a href=/tags/oracle>oracle</a> <a href=/tags/other>other</a></p></div><main><b>第2部分 针对oracle配置linux</b>
+oracle 对系统硬件配置的一些要求。<blockquote>内存 > 512MB
 swap > 1GB
 oracle软件 > 2.5GB
-数据文件  > 1.2GB
-/tmp  > 400MB</blockquote>
-
-创建oracle用户和组
-<pre class="prettyprint lang-bash">
+数据文件 > 1.2GB
+/tmp > 400MB</blockquote>创建oracle用户和组<pre class="prettyprint lang-bash">
 /usr/sbin/groupadd dba
 /usr/sbin/useradd -m -g oinstall -G dba oracle
-id oracle</pre>
-
-要记得为oracle用户设置密码。 
-<pre class="prettyprint lang-bash">
+id oracle</pre>要记得为oracle用户设置密码。<pre class="prettyprint lang-bash">
 
 创建oracle的安装目录，要注意前面对分区的大小要求。
 
 <pre class="prettyprint lang-bash">
 mkdir -p /u02/oradata
 chown -R oracle:oinstall /u01/app/oracle /u02/oradata
-chmod -R 775 /u01/app/oracle /u02/oradata</pre>
-
-配置linux内核参数
-
-<pre class="prettyprint lang-bash">
+chmod -R 775 /u01/app/oracle /u02/oradata</pre>配置linux内核参数<pre class="prettyprint lang-bash">
 kernel.shmall = 2097152
 kernel.shmmax = 2147483648
 kernel.shmmni = 4096
@@ -113,51 +21,21 @@ kernel.sem = 250 32000 100 128
 fs.file-max = 65536
 net.ipv4.ip_local_port_range = 1024 65000
 EOF
-/sbin/sysctl -p</pre>
-
-为 oracle 用户设置 Shell 限制。
-<pre class="prettyprint lang-bash">
+/sbin/sysctl -p</pre>为 oracle 用户设置 Shell 限制。<pre class="prettyprint lang-bash">
 oracle               soft    nproc   2047
 oracle               hard    nproc   16384
 oracle               soft    nofile  1024
 oracle               hard    nofile  65536
 EOF
 
-cat >> /etc/pam.d/login <<EOF
-session    required     /lib/security/pam_limits.so
-EOF
-
-cat >> /etc/profile <<EOF
-if [ \$USER = "oracle" ]; then  
-if [ \$SHELL = "/bin/ksh" ]; then
-ulimit -p 16384
-ulimit -n 65536
-else
-ulimit -u 16384 -n 65536
-fi
-umask 022
-fi
-EOF
-
-cat >> /etc/csh.login <<EOF
-if ( \$USER == "oracle" ) then
-limit maxproc 16384
-limit descriptors 65536
-umask 022
-endif
-EOF</pre>
+cat >> /etc/pam.d/login <<eof session required /lib/security/pam_limits.so eof cat>> /etc/profile <<eof if [ \$user=oracle ]; then if [ \$shell=/bin/ksh ]; then ulimit -p 16384 ulimit -n 65536 else ulimit -u 16384 -n 65536 fi umask 022 fi eof cat>> /etc/csh.login <<eof if ( \$user="=" "oracle" ) then limit maxproc 16384 limit descriptors 65536 umask 022 endif eof</pre>
 
 设置oracle 用户的环境变量。通过修改 .bash_profile 来完成。
 <pre class="prettyprint lang-bash">
 ORACLE_BASE=/u01/app/oracle; export ORACLE_BASE
-ORACLE_SID=demo1; export ORACLE_SID</pre>
-
-其他的变量等安装完了再设置。
-
+ORACLE_SID=demo1; export ORACLE_SID</pre>其他的变量等安装完了再设置。
 <b>第3部分 安装 Oracle</b>
-
-使用一个修改好的rsp文件，然后执行下面的命令。
-<pre class="prettyprint lang-bash">
+使用一个修改好的rsp文件，然后执行下面的命令。<pre class="prettyprint lang-bash">
 
 然后就等着吧，看那些log或者看屏幕输出都可以看到安装进度。
 
@@ -341,43 +219,31 @@ Logs are generated in directory
 
 现在登陆Web页面,EM显示就可以正常显示中文了.
 
-参考文章： <a href="http://www.oracle.com/technology/global/cn/pub/articles/smiley_10gdb_install.html">这里</a>
+参考文章： <a href=http://www.oracle.com/technology/global/cn/pub/articles/smiley_10gdb_install.html>这里</a>
 
 </main>
 
 
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<section id=comment>
+    <h2 class=title>Comments</h2>
+    <div id=disqus_thread aria-live=polite>
+        <noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript>
     </div>
 </section>
 
 
     
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
+     <script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script>
     
 
 
 
 
 
-    <footer style="clear:both">
+    <footer style=clear:both>
       
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      <hr>
+      Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a>
       
     </footer>
   </body>

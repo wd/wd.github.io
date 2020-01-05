@@ -1,263 +1,57 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>React Native Deeplink | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">React Native Deeplink</span></h1>
-
-<h2 class="date">2018/09/03</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/react">react</a> <a href="/tags/deeplink">deeplink</a> 
-  
-  
-</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<main>
-<p>
-App 一般都支持类似 <code class="verbatim">coolflight://list</code> 这样的链接，可以直接打开 app 并打开列表，这个就是 deeplink。
-</p>
-<p>
-这个需要对 native 代码做一些修改，可以参考<a href="https://reactnavigation.org/docs/en/deep-linking.html">这里</a>的修改，ios 和 android 都有写。这里有一个需要注意的是，对于 android 有一个配置是
-</p>
-<div class="src src-text">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">    &lt;data android:scheme=&#34;mychat&#34; android:host=&#34;mychat&#34; /&gt;</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-这个里面配置 host 的话，后面使用的时候就需要类似 <code class="verbatim">mychat://mychat/list</code> 这样的方式了，就是多了一层 mychat。这样也会导致 ios 和 android 的链接不统一，我查了<a href="https://developer.android.com/training/app-links/deep-linking">文档</a>也没有查到没有设置 host 会有什么问题，我就去掉了，去掉之后，ios 和 android 的链接就统一了。都是 <code class="verbatim">mychat://list</code>
-</p>
-<p>
-另外 android 还有一个需要注意的地方是，activity 的 launchmod 需要设置为 <code class="verbatim">singleTask</code> 要不会导致每次通过 deeplink 打开 app 都会新建一个，导致你有多个 js 在后台跑。
-</p>
-<div class="src src-text">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-text" data-lang="text">&lt;activity
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>React Native Deeplink | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>React Native Deeplink</span></h1><h2 class=date>2018/09/03</h2><p class=terms>Tags: <a href=/tags/react>react</a> <a href=/tags/deeplink>deeplink</a></p></div><main><p>App 一般都支持类似 <code class=verbatim>coolflight://list</code> 这样的链接，可以直接打开 app 并打开列表，这个就是 deeplink。</p><p>这个需要对 native 代码做一些修改，可以参考<a href=https://reactnavigation.org/docs/en/deep-linking.html>这里</a>的修改，ios 和 android 都有写。这里有一个需要注意的是，对于 android 有一个配置是</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text>    &lt;data android:scheme=&#34;mychat&#34; android:host=&#34;mychat&#34; /&gt;</code></pre></td></tr></table></div></div></div><p>这个里面配置 host 的话，后面使用的时候就需要类似 <code class=verbatim>mychat://mychat/list</code> 这样的方式了，就是多了一层 mychat。这样也会导致 ios 和 android 的链接不统一，我查了<a href=https://developer.android.com/training/app-links/deep-linking>文档</a>也没有查到没有设置 host 会有什么问题，我就去掉了，去掉之后，ios 和 android 的链接就统一了。都是 <code class=verbatim>mychat://list</code></p><p>另外 android 还有一个需要注意的地方是，activity 的 launchmod 需要设置为 <code class=verbatim>singleTask</code> 要不会导致每次通过 deeplink 打开 app 都会新建一个，导致你有多个 js 在后台跑。</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text>&lt;activity
   android:name=&#34;.MainActivity&#34;
-  android:launchMode=&#34;singleTask&#34;&gt;</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-在 js 里面可以使用 <code class="verbatim">Linking.openURL(url).catch(err =&gt; console.error(&#39;An error occurred&#39;, err))</code> 打开一个 deeplink ，可以是别的 app 的，也可以是自己的。
-</p>
-<p>
-然后就是在 js 里面处理对应的 deeplink 了。
-</p>
-<div class="src src-javascript">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript">componentDidMount() {
+  android:launchMode=&#34;singleTask&#34;&gt;</code></pre></td></tr></table></div></div></div><p>在 js 里面可以使用 <code class=verbatim>Linking.openURL(url).catch(err => console.error('An error occurred', err))</code> 打开一个 deeplink ，可以是别的 app 的，也可以是自己的。</p><p>然后就是在 js 里面处理对应的 deeplink 了。</p><div class="src src-javascript"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript>componentDidMount() {
   Linking.getInitialURL().then((url) =&gt; {
-    <span style="color:#080;font-weight:bold">if</span> (url) {
-      console.log(<span style="background-color:#fff0f0">&#39;Initial url is: &#39;</span> <span style="color:#333">+</span> url);
+    <span style=color:#080;font-weight:700>if</span> (url) {
+      console.log(<span style=background-color:#fff0f0>&#39;Initial url is: &#39;</span> <span style=color:#333>+</span> url);
     }
-  }).<span style="color:#080;font-weight:bold">catch</span>(err =&gt; console.error(<span style="background-color:#fff0f0">&#39;An error occurred&#39;</span>, err));
+  }).<span style=color:#080;font-weight:700>catch</span>(err =&gt; console.error(<span style=background-color:#fff0f0>&#39;An error occurred&#39;</span>, err));
 
-  Linking.addEventListener(<span style="background-color:#fff0f0">&#39;url&#39;</span>, <span style="color:#080;font-weight:bold">this</span>._handleOpenURL);
+  Linking.addEventListener(<span style=background-color:#fff0f0>&#39;url&#39;</span>, <span style=color:#080;font-weight:700>this</span>._handleOpenURL);
 }
 
 componentWillUnmount() {
-  Linking.removeEventListener(<span style="background-color:#fff0f0">&#39;url&#39;</span>, <span style="color:#080;font-weight:bold">this</span>._handleOpenURL);
+  Linking.removeEventListener(<span style=background-color:#fff0f0>&#39;url&#39;</span>, <span style=color:#080;font-weight:700>this</span>._handleOpenURL);
 }
-</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-在 <code class="verbatim">componentDidMount</code> 里面，通过 <code class="verbatim">Linking.getInitialURL()</code> 可以得到 app 冷启动的时候拿到的 link。通过 <code class="verbatim">Linking.addEventListener(&#39;url&#39;, callback)</code> 可以拿到热启动 app 拿到的 link，分别处理或者统一处理都可以，看业务需求。
-</p>
-<p>
-我们用的是 React Navigation，他支持可以直接给 screen 设置 path，然后和 deeplink 匹配跳转。
-</p>
-<div class="src src-javascript">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript"><span style="color:#080;font-weight:bold">const</span> SimpleApp <span style="color:#333">=</span> createStackNavigator({
-  Home<span style="color:#333">:</span> { screen<span style="color:#333">:</span> HomeScreen },
-  Chat<span style="color:#333">:</span> {
-    screen<span style="color:#333">:</span> ChatScreen,
-    path<span style="color:#333">:</span> <span style="background-color:#fff0f0">&#39;chat/:user&#39;</span>,
+</code></pre></td></tr></table></div></div></div><p>在 <code class=verbatim>componentDidMount</code> 里面，通过 <code class=verbatim>Linking.getInitialURL()</code> 可以得到 app 冷启动的时候拿到的 link。通过 <code class=verbatim>Linking.addEventListener('url', callback)</code> 可以拿到热启动 app 拿到的 link，分别处理或者统一处理都可以，看业务需求。</p><p>我们用的是 React Navigation，他支持可以直接给 screen 设置 path，然后和 deeplink 匹配跳转。</p><div class="src src-javascript"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#080;font-weight:700>const</span> SimpleApp <span style=color:#333>=</span> createStackNavigator({
+  Home<span style=color:#333>:</span> { screen<span style=color:#333>:</span> HomeScreen },
+  Chat<span style=color:#333>:</span> {
+    screen<span style=color:#333>:</span> ChatScreen,
+    path<span style=color:#333>:</span> <span style=background-color:#fff0f0>&#39;chat/:user&#39;</span>,
   },
 });
 
 
-<span style="color:#080;font-weight:bold">const</span> prefix <span style="color:#333">=</span> <span style="background-color:#fff0f0">&#39;mychat://&#39;</span>; <span style="color:#888">// 这里我们上面提到的统一了，所以不用区分 ios 和 android
-</span><span style="color:#888"></span><span style="color:#080;font-weight:bold">const</span> MainApp <span style="color:#333">=</span> () =&gt; <span style="color:#333">&lt;</span>SimpleApp uriPrefix<span style="color:#333">=</span>{prefix} <span style="color:#333">/</span><span style="color:#333">&gt;</span>;
-</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-这样只需要定义一个 <code class="verbatim">uriPrefix</code> 就可以了。
-</p>
-<p>
-我们为了把 navigation 和 redux 结合，自定义了 navigation 的 <code class="verbatim">navigation</code> 属性，就不允许这么弄了。需要自己处理。
-</p>
-<p>
-主要思路是通过 <code class="verbatim">SimpleApp.router.getActionForPathAndParams(path, params)</code> 得到 action，然后 dipatch 这个 action 就可以了。
-</p>
-<p>
-那个 <code class="verbatim">chat/:user</code> 可以匹配到 <code class="verbatim">mychat://chat/Jim</code> 这样的 deeplink，然后那个 <code class="verbatim">user: Jim</code> 会以 param 的方式给到 screen，通过 param.user 可以访问到。
-</p>
-<p>
-path 的格式支持的是这个 <a href="https://github.com/pillarjs/path-to-regexp">path-to-regexp</a> 支持的格式，可以自定义表达式，具体可以参考那个文档。
-</p>
-<p>
-path 支持使用 <code class="verbatim">?</code> 来表示一个字段是可选的，例如 <code class="verbatim">mychat://chat/:user?</code> 表示会匹配到 <code class="verbatim">mychat://chat</code> 和 <code class="verbatim">mychat://chat/Jim</code> 。 <code class="verbatim">mychat://chat/:user?/:msg?</code> 这样的，可以匹配 <code class="verbatim">mychat://chat</code> <code class="verbatim">mychat://chat/Jim</code> <code class="verbatim">mychat://chat/Jim/hey</code> 但是不能匹配 <code class="verbatim">mychat://chat//hey</code> 。默认匹配的是 <code class="verbatim">([^\\/]+)</code> 可以通过自定义表达式支持。
-</p>
-<div class="src src-javascript">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-javascript" data-lang="javascript">  path<span style="color:#333">:</span> <span style="background-color:#fff0f0">&#39;chat/:user([^\\/]*)?/:msg?&#39;</span>
-</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-
-</main>
-
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-    </div>
-</section>
-
-
-    
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
-    
-
-
-
-
-
-    <footer style="clear:both">
-      
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
-      
-    </footer>
-  </body>
-</html>
-
+<span style=color:#080;font-weight:700>const</span> prefix <span style=color:#333>=</span> <span style=background-color:#fff0f0>&#39;mychat://&#39;</span>; <span style=color:#888>// 这里我们上面提到的统一了，所以不用区分 ios 和 android
+</span><span style=color:#888></span><span style=color:#080;font-weight:700>const</span> MainApp <span style=color:#333>=</span> () =&gt; <span style=color:#333>&lt;</span>SimpleApp uriPrefix<span style=color:#333>=</span>{prefix} <span style=color:#333>/</span><span style=color:#333>&gt;</span>;
+</code></pre></td></tr></table></div></div></div><p>这样只需要定义一个 <code class=verbatim>uriPrefix</code> 就可以了。</p><p>我们为了把 navigation 和 redux 结合，自定义了 navigation 的 <code class=verbatim>navigation</code> 属性，就不允许这么弄了。需要自己处理。</p><p>主要思路是通过 <code class=verbatim>SimpleApp.router.getActionForPathAndParams(path, params)</code> 得到 action，然后 dipatch 这个 action 就可以了。</p><p>那个 <code class=verbatim>chat/:user</code> 可以匹配到 <code class=verbatim>mychat://chat/Jim</code> 这样的 deeplink，然后那个 <code class=verbatim>user: Jim</code> 会以 param 的方式给到 screen，通过 param.user 可以访问到。</p><p>path 的格式支持的是这个 <a href=https://github.com/pillarjs/path-to-regexp>path-to-regexp</a> 支持的格式，可以自定义表达式，具体可以参考那个文档。</p><p>path 支持使用 <code class=verbatim>?</code> 来表示一个字段是可选的，例如 <code class=verbatim>mychat://chat/:user?</code> 表示会匹配到 <code class=verbatim>mychat://chat</code> 和 <code class=verbatim>mychat://chat/Jim</code> 。 <code class=verbatim>mychat://chat/:user?/:msg?</code> 这样的，可以匹配 <code class=verbatim>mychat://chat</code> <code class=verbatim>mychat://chat/Jim</code> <code class=verbatim>mychat://chat/Jim/hey</code> 但是不能匹配 <code class=verbatim>mychat://chat//hey</code> 。默认匹配的是 <code class=verbatim>([^\\/]+)</code> 可以通过自定义表达式支持。</p><div class="src src-javascript"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript>  path<span style=color:#333>:</span> <span style=background-color:#fff0f0>&#39;chat/:user([^\\/]*)?/:msg?&#39;</span>
+</code></pre></td></tr></table></div></div></div></main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>

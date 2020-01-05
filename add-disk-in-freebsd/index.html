@@ -1,99 +1,8 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>给freebsd添加新硬盘 | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">给freebsd添加新硬盘</span></h1>
-
-<h2 class="date">2007/09/18</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/freebsd">FreeBSD</a> <a href="/tags/linux">linux</a> <a href="/tags/%E6%B7%BB%E5%8A%A0%E7%A1%AC%E7%9B%98">添加硬盘</a> 
-  
-  
-</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<main>
-
-没想到freebsd里面这么变态，linux下面可能fdisk就搞定的事情，到了这里需要好几个操作，还搞不明白怎么回事。。。<br />
-
-要弄清楚这个，先要了解几个概念。bsd下面的ide硬盘叫做 ad，scsi 硬盘叫做da。ad0,ad1,ad2...，按照ide接口来定的。假定新加的硬盘是 ad2。每个ad又可以分4个 slice，这样就有了 ad2s1, ad2s2...。每个slice下面呢，又可以分几个区，例如 ad2s1e, ad2s1f ，可以从 a 到 h 八个，abcd是有特殊意思的。最后实际挂载使用的就是这个 /dev/ad2s1e 了。<br />
-
-这样整个过程就分几个步骤。<br />
-
-<strong>1 先初始化硬盘</strong><br />
-<pre class="prettyprint lang-txt">
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>给freebsd添加新硬盘 | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>给freebsd添加新硬盘</span></h1><h2 class=date>2007/09/18</h2><p class=terms>Tags: <a href=/tags/freebsd>FreeBSD</a> <a href=/tags/linux>linux</a> <a href=/tags/%E6%B7%BB%E5%8A%A0%E7%A1%AC%E7%9B%98>添加硬盘</a></p></div><main>没想到freebsd里面这么变态，linux下面可能fdisk就搞定的事情，到了这里需要好几个操作，还搞不明白怎么回事。。。<br>要弄清楚这个，先要了解几个概念。bsd下面的ide硬盘叫做 ad，scsi 硬盘叫做da。ad0,ad1,ad2...，按照ide接口来定的。假定新加的硬盘是 ad2。每个ad又可以分4个 slice，这样就有了 ad2s1, ad2s2...。每个slice下面呢，又可以分几个区，例如 ad2s1e, ad2s1f ，可以从 a 到 h 八个，abcd是有特殊意思的。最后实际挂载使用的就是这个 /dev/ad2s1e 了。<br>这样整个过程就分几个步骤。<br><strong>1 先初始化硬盘</strong><br><pre class="prettyprint lang-txt">
 1+0 records in
 1+0 records out
-1024 bytes transferred in 0.000160 secs (6400845 bytes/sec)</pre>
-或者
-<pre class="prettyprint lang-txt">
-******* Working on device /dev/ad2 *******</pre>
-此后可以用 fdisk ad2 命令看到一些信息，可以看到整个硬盘的信息。
-<pre class="prettyprint lang-txt">
+1024 bytes transferred in 0.000160 secs (6400845 bytes/sec)</pre>或者<pre class="prettyprint lang-txt">
+******* Working on device /dev/ad2 *******</pre>此后可以用 fdisk ad2 命令看到一些信息，可以看到整个硬盘的信息。<pre class="prettyprint lang-txt">
 parameters extracted from in-core disklabel are:
 cylinders=516822 heads=15 sectors/track=63 (945 blks/cyl)
 
@@ -114,15 +23,10 @@ The data for partition 2 is:
 The data for partition 3 is:
 &lt;unused&gt;
 The data for partition 4 is:
-&lt;unused&gt;</pre>
-<strong>2 使用 fdisk 命令分 slice</strong>
-
+&lt;unused&gt;</pre><strong>2 使用 fdisk 命令分 slice</strong>
 fdisk -i ad2 会一步一步询问4个slice的设置，比较麻烦。不过这里也可以不分，就一个slice，一样用，呵呵。
-
 <strong>3 使用 disklabel 命令分区</strong>
-
-这里假定我们就一个slice。为这个 slice 建立分区。
-<pre class="prettyprint lang-txt">
+这里假定我们就一个slice。为这个 slice 建立分区。<pre class="prettyprint lang-txt">
 这样就建立了一个 ad2s1c 的分区，c表示的是整个硬盘。使用下面的命令进行分区，这个还不会玩。。:(
 <pre class="prettyprint lang-txt">
 <strong>4 使用newfs建立文件系统</strong>
@@ -136,38 +40,26 @@ fdisk -i ad2 会一步一步询问4个slice的设置，比较麻烦。不过这�
 </main>
 
 
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<section id=comment>
+    <h2 class=title>Comments</h2>
+    <div id=disqus_thread aria-live=polite>
+        <noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript>
     </div>
 </section>
 
 
     
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
+     <script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script>
     
 
 
 
 
 
-    <footer style="clear:both">
+    <footer style=clear:both>
       
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      <hr>
+      Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a>
       
     </footer>
   </body>

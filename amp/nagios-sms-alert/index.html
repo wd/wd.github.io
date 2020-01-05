@@ -1,97 +1,11 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>给nagios添加故障时短信通知 | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">给nagios添加故障时短信通知</span></h1>
-
-<h2 class="date">2006/12/05</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/other">other</a> 
-  
-  
-</p>
-</div>
-
-
-
-<main>
-
-nagios可以配置为在故障的时候发送Email，执行什么程序等。光执行程序这项可以实现的功能就太多了，没有做不到只有想不到。说说看我是怎么给nagios添加短信通知的。<br />
-
-首先需要一个能发送短信的东东，有些专门用来发送短信的猫，插上一张sim卡就可以用了，当然也可以找一个手机来做这个事情。然后用gnokii来通过sim卡发送短信，他主要是linux下面用来管理nokia手机的一个软件，当然所有支持AT指令的都可以使用。<br />
-
-debian上面安装好gnokii之后，/etc/gnokiirc是他的配置文件，主要修改两个地方：<br />
-model = AT<br />
-serial_baudrate = 9600<br />
-然后还需要将nagios用户（也就是启动nagios的用户）或者其他需要操作猫的用户加入dialout组，这样才有权限操作/dev/ttyS0这个设备，也就是第一个串口设备。<br />
-我的短信猫是通过串口连接到电脑的，如果你的是usb的或者其他类型的方式，比如蓝牙红外什么的，需要加载特定的模块，具体方法参考gnokii的网站。连接短信猫之后，可以用minicom测试一下是不是连接正确，他是类似于win下面的超级终端的一个程序。要注意连接的比特率，如果设备不支持可能不会有效果。设置好之后输入个AT，看是不是返回OK，如果返回那就连接正确了。<br />
-
-然后可以试试看执行gnokii --identify，我这里输出下面的内容：<br />
-<pre class="prettyprint lang-bash">
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>给nagios添加故障时短信通知 | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>给nagios添加故障时短信通知</span></h1><h2 class=date>2006/12/05</h2><p class=terms>Tags: <a href=/tags/other>other</a></p></div><main>nagios可以配置为在故障的时候发送Email，执行什么程序等。光执行程序这项可以实现的功能就太多了，没有做不到只有想不到。说说看我是怎么给nagios添加短信通知的。<br>首先需要一个能发送短信的东东，有些专门用来发送短信的猫，插上一张sim卡就可以用了，当然也可以找一个手机来做这个事情。然后用gnokii来通过sim卡发送短信，他主要是linux下面用来管理nokia手机的一个软件，当然所有支持AT指令的都可以使用。<br>debian上面安装好gnokii之后，/etc/gnokiirc是他的配置文件，主要修改两个地方：<br>model = AT<br>serial_baudrate = 9600<br>然后还需要将nagios用户（也就是启动nagios的用户）或者其他需要操作猫的用户加入dialout组，这样才有权限操作/dev/ttyS0这个设备，也就是第一个串口设备。<br>我的短信猫是通过串口连接到电脑的，如果你的是usb的或者其他类型的方式，比如蓝牙红外什么的，需要加载特定的模块，具体方法参考gnokii的网站。连接短信猫之后，可以用minicom测试一下是不是连接正确，他是类似于win下面的超级终端的一个程序。要注意连接的比特率，如果设备不支持可能不会有效果。设置好之后输入个AT，看是不是返回OK，如果返回那就连接正确了。<br>然后可以试试看执行gnokii --identify，我这里输出下面的内容：<br><pre class="prettyprint lang-bash">
 GNOKII Version 0.6.5
 IMEI         : 500182395xxxxxx
 Manufacturer : WAVECOM MODEM
 Model        : MULTIBAND  900E  1800
-Revision     : 533b09gg.2C2 1742344 061002 11:23</pre>
-这样表示我的猫被正确识别了。如果有问题，可以修改gnokiirc文件，打开debug模式，看看问题所在。发个短信试试看：
-<pre class="prettyprint lang-bash">#echo -e "testntest 2">
+Revision     : 533b09gg.2C2 1742344 061002 11:23</pre>这样表示我的猫被正确识别了。如果有问题，可以修改gnokiirc文件，打开debug模式，看看问题所在。发个短信试试看：<pre class="prettyprint lang-bash">#echo -e "testntest 2">
 GNOKII Version 0.6.5
-Send succeeded!</pre>
-收到短信了么？呵呵。之后修改nagios的misccommands.cfg文件，添加你的cmd：
-<pre class="prettyprint lang-bash">
+Send succeeded!</pre>收到短信了么？呵呵。之后修改nagios的misccommands.cfg文件，添加你的cmd：<pre class="prettyprint lang-bash">
 command_name    host-notify-by-sms
 command_line    /bin/echo -e "$HOSTADDRESS$($NOTIFICATIONNUMBER$)n$HOSTSTATE$n$OUTPUT$n$SHORTDATETIME$" | /usr/bin/gnokii --sendsms $CONTACTPAGER$ 2>>/dev/null
 }
@@ -99,52 +13,7 @@ command_line    /bin/echo -e "$HOSTADDRESS$($NOTIFICATIONNUMBER$)n$HOSTSTATE$n$O
 define command{
 command_name    notify-by-sms
 command_line    /bin/echo -e "$HOSTADDRESS$($NOTIFICATIONNUMBER$)n$SERVICEDESC$-$SERVICESTATE$n$OUTPUT$n$SHORTDATETIME$" | /usr/bin/gnokii --sendsms $CONTACTPAGER$ 2>>/dev/null
-}</pre>
-然后修改contacts.cfg，设置service_notification_commands、host_notification_commands，并且设置pager为电话号码。cmd里面可以通知的内容参考nagios doc里面的Using Macros In Commands。
-
+}</pre>然后修改contacts.cfg，设置service_notification_commands、host_notification_commands，并且设置pager为电话号码。cmd里面可以通知的内容参考nagios doc里面的Using Macros In Commands。
 可以试试看让一台服务器down了测试一下了。
-
 以前用猫附带的一个软件（或许也可能是我们写的，因为听说附带软件的话比较贵）发送短信，总是会重复发送，有时一条短信会发送好多次。那个软件的原理是这样的，我将需要发送的短信按照一定的格式写入数据库，然后这个软件从数据库读取没发送的进行发送，然后将其修改为已发送。我猜可能重复发送的原因是“修改为已发送 ”这个过程中出问题了，修改了很多次才成功。
-
-现在gnokii还有个问题可能就是读取短信的时候会提示失败，据说是个bug，xh这里有<a title="AT model使用gnokii来收取短消息" href="http://www.grisword.com/tt/Grisword/126">解决办法</a>，有兴趣可以看看，我这里暂时好像还不需要读取短信。
-
-</main>
-
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-    </div>
-</section>
-
-
-    
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
-    
-
-
-
-
-
-    <footer style="clear:both">
-      
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
-      
-    </footer>
-  </body>
-</html>
-
+现在gnokii还有个问题可能就是读取短信的时候会提示失败，据说是个bug，xh这里有<a title="AT model使用gnokii来收取短消息" href=http://www.grisword.com/tt/Grisword/126>解决办法</a>，有兴趣可以看看，我这里暂时好像还不需要读取短信。</main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>

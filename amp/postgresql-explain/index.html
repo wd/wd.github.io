@@ -1,184 +1,20 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>PostgreSQL Explain | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">PostgreSQL Explain</span></h1>
-
-<h2 class="date">2013/02/03</h2>
-<p class="terms">
-  
-  
-  
-  
-  
-</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<main>
-
-<div id="table-of-contents"><br />
-<h2>Table of Contents</h2><br />
-<div id="text-table-of-contents"><br />
-<ul><br />
-<li><a href="#sec-1">1 notice</a></li><br />
-<li><a href="#sec-2">2 explain basics</a></li><br />
-<li><a href="#sec-3">3 explain analyse</a></li><br />
-<li><a href="#sec-4">4 Caveats 注意事项</a></li><br />
-</ul><br />
-</div><br />
-</div><br />
-
-<div id="outline-container-1" class="outline-3"><br />
-<h3 id="sec-1"><span class="section-number-3">1</span> notice</h3><br />
-<div class="outline-text-3" id="text-1"><br />
-
-
-<p><br />
-简单翻译了一下 <a href="http://www.postgresql.org/docs/9.2/static/using-explain.html">http://www.postgresql.org/docs/9.2/static/using-explain.html</a> ，里面有些内容没翻译。<br />
-</p><br />
-</div><br />
-
-</div><br />
-
-<div id="outline-container-2" class="outline-3"><br />
-<h3 id="sec-2"><span class="section-number-3">2</span> explain basics</h3><br />
-<div class="outline-text-3" id="text-2"><br />
-
-
-
-
-
-<pre class="example">EXPLAIN SELECT * FROM tenk1;
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>PostgreSQL Explain | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>PostgreSQL Explain</span></h1><h2 class=date>2013/02/03</h2><p class=terms></p></div><main><div id=table-of-contents><br><h2>Table of Contents</h2><br><div id=text-table-of-contents><br><ul><br><li><a href=#sec-1>1 notice</a></li><br><li><a href=#sec-2>2 explain basics</a></li><br><li><a href=#sec-3>3 explain analyse</a></li><br><li><a href=#sec-4>4 Caveats 注意事项</a></li><br></ul><br></div><br></div><br><div id=outline-container-1 class=outline-3><br><h3 id=sec-1><span class=section-number-3>1</span> notice</h3><br><div class=outline-text-3 id=text-1><br><p><br>简单翻译了一下 <a href=http://www.postgresql.org/docs/9.2/static/using-explain.html>http://www.postgresql.org/docs/9.2/static/using-explain.html</a> ，里面有些内容没翻译。<br></p><br></div><br></div><br><div id=outline-container-2 class=outline-3><br><h3 id=sec-2><span class=section-number-3>2</span> explain basics</h3><br><div class=outline-text-3 id=text-2><br><pre class=example>EXPLAIN SELECT * FROM tenk1;
 
                          QUERY PLAN
 -------------------------------------------------------------
  Seq Scan on tenk1  (cost=0.00..458.00 rows=10000 width=244)
-</pre><br />
-
-
-<ul><br />
-<li>第一行输出需要的消耗。<br />
-</li><br />
-<li>最后一行输出需要的消耗。<br />
-</li><br />
-<li>返回的行数，假定全部返回。并非扫描处理的行数。<br />
-</li><br />
-<li>每行的平均数据量，字节<br />
-</li><br />
-</ul><br />
-
-
-<p><br />
-消耗是使用设置的规划器的一些 cost常量<sup><a class="footref" name="fnr.1" href="#fn.1">1</a></sup> 来计算出来的，上一级的 node 的 消耗包括了所有子 node 的消耗，消耗不包括传输结果花的时间。<br />
-</p><br />
-
-
-
-<pre class="example">SELECT relpages, reltuples FROM pg_class WHERE relname = 'tenk1';
-</pre><br />
-
-
-<p><br />
-从上面这个语句可以看到，tenk1 有 358 磁盘页和 10000 行。这个查询的消耗计算公式如下<br />
-</p><br />
-<pre class="example">
+</pre><br><ul><br><li>第一行输出需要的消耗。<br></li><br><li>最后一行输出需要的消耗。<br></li><br><li>返回的行数，假定全部返回。并非扫描处理的行数。<br></li><br><li>每行的平均数据量，字节<br></li><br></ul><br><p><br>消耗是使用设置的规划器的一些 cost常量<sup><a class=footref name=fnr.1 href=#fn.1>1</a></sup> 来计算出来的，上一级的 node 的 消耗包括了所有子 node 的消耗，消耗不包括传输结果花的时间。<br></p><br><pre class=example>SELECT relpages, reltuples FROM pg_class WHERE relname = 'tenk1';
+</pre><br><p><br>从上面这个语句可以看到，tenk1 有 358 磁盘页和 10000 行。这个查询的消耗计算公式如下<br></p><br><pre class=example>
  (disk pages read * seq_page_cost) + (rows scanned * cpu_tuple_cost)
-</pre><br />
-
-
-<p><br />
-默认情况下 <code>seq_page_cost = 1.0, cpu_tuple_cost = 0.01</code>, 所以最总消耗是 <code>(358 * 1.0) + (10000 * 0.01) = 458</code> 。<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 7000;
+</pre><br><p><br>默认情况下 <code>seq_page_cost = 1.0, cpu_tuple_cost = 0.01</code>, 所以最总消耗是 <code>(358 * 1.0) + (10000 * 0.01) = 458</code> 。<br></p><br><pre class=example>EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 7000;
 
                          QUERY PLAN
 ------------------------------------------------------------
  Seq Scan on tenk1  (cost=0.00..483.00 rows=7001 width=244)
    Filter: (unique1 &lt; 7000)
-</pre><br />
-
-
-<p><br />
-再看这个，加了一个 where 条件，多了一个 filter 操作，返回结果变少，但是消耗变多了。因为总体需要处理的数据没有变少，并且还多了<br />
-</p><br />
-<pre class="example">
+</pre><br><p><br>再看这个，加了一个 where 条件，多了一个 filter 操作，返回结果变少，但是消耗变多了。因为总体需要处理的数据没有变少，并且还多了<br></p><br><pre class=example>
  10000 * cpu_operator_cost
-</pre><br />
-
-
-<p><br />
-需要的消耗。<br />
-</p><br />
-<p><br />
-这些计算方法得到的数值可能和你系统的会稍有区别，使用 analyse 命令可能会改变计算结果，因为它会根据一些随机的样本重新收集表的状态信息。<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100;
+</pre><br><p><br>需要的消耗。<br></p><br><p><br>这些计算方法得到的数值可能和你系统的会稍有区别，使用 analyse 命令可能会改变计算结果，因为它会根据一些随机的样本重新收集表的状态信息。<br></p><br><pre class=example>EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100;
 
                                   QUERY PLAN
 ------------------------------------------------------------------------------
@@ -186,16 +22,7 @@
    Recheck Cond: (unique1 &lt; 100)
    -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0)
          Index Cond: (unique1 &lt; 100)
-</pre><br />
-
-
-<p><br />
-再来看一个。子执行计划节点会先扫描索引，上一级的执行计划节点会根据索引返回的位置来获取数据。获取散列数据比获取全部数据消耗要大，不过因为毕竟是少量数据，可以看到消耗还是小于全表扫描。上级的节点会在获取散列数据之前做一个磁盘排序，好减少获取的消耗，而 Bitmap 字样表示索引返回的结果是按照存储位置排好序的，这就是使用索引的一个原因。<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND stringu1 = 'xxx';
+</pre><br><p><br>再来看一个。子执行计划节点会先扫描索引，上一级的执行计划节点会根据索引返回的位置来获取数据。获取散列数据比获取全部数据消耗要大，不过因为毕竟是少量数据，可以看到消耗还是小于全表扫描。上级的节点会在获取散列数据之前做一个磁盘排序，好减少获取的消耗，而 Bitmap 字样表示索引返回的结果是按照存储位置排好序的，这就是使用索引的一个原因。<br></p><br><pre class=example>EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND stringu1 = 'xxx';
 
                                   QUERY PLAN
 ------------------------------------------------------------------------------
@@ -204,31 +31,13 @@
    Filter: (stringu1 = 'xxx'::name)
    -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0)
          Index Cond: (unique1 &lt; 100)
-</pre><br />
-
-
-<p><br />
-stringu1 = 'xxx' 减少了输出的行数，因为还需要扫描同样的行数，所以没有减少执行计划的消耗，而且还有稍微的增加，<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 = 42;
+</pre><br><p><br>stringu1 = 'xxx' 减少了输出的行数，因为还需要扫描同样的行数，所以没有减少执行计划的消耗，而且还有稍微的增加，<br></p><br><pre class=example>EXPLAIN SELECT * FROM tenk1 WHERE unique1 = 42;
 
                                  QUERY PLAN
 -----------------------------------------------------------------------------
  Index Scan using tenk1_unique1 on tenk1  (cost=0.00..8.27 rows=1 width=244)
    Index Cond: (unique1 = 42)
-</pre><br />
-
-
-<p><br />
-数据根据索引排序来获取，不需要额外的排序。<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND unique2 &gt; 9000;
+</pre><br><p><br>数据根据索引排序来获取，不需要额外的排序。<br></p><br><pre class=example>EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND unique2 &gt; 9000;
 
                                      QUERY PLAN
 -------------------------------------------------------------------------------------
@@ -248,17 +57,7 @@ EXPLAIN SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND unique2 &gt; 9000 LIMIT 2
    -&gt;  Index Scan using tenk1_unique2 on tenk1  (cost=0.00..71.23 rows=10 width=244)
          Index Cond: (unique2 &gt; 9000)
          Filter: (unique1 &lt; 100)
-</pre><br />
-
-
-<p><br />
-这两个查询，第一个分别查两个索引，然后做 BitmapAnd 得到结果。第二个只查了其中一个索引，然后使用 filter 方式来做过滤，可以看到第二个查询里面的消耗 71.23 表示的是返回所有数据需要的消耗，Limit 节点在得到需要的结果厚，会终止执行，所以最终没有返回那么多，最终消耗小一点，比第一个查询小。<br />
-</p><br />
-
-
-
-
-<pre class="example">EXPLAIN SELECT *
+</pre><br><p><br>这两个查询，第一个分别查两个索引，然后做 BitmapAnd 得到结果。第二个只查了其中一个索引，然后使用 filter 方式来做过滤，可以看到第二个查询里面的消耗 71.23 表示的是返回所有数据需要的消耗，Limit 节点在得到需要的结果厚，会终止执行，所以最终没有返回那么多，最终消耗小一点，比第一个查询小。<br></p><br><pre class=example>EXPLAIN SELECT *
 FROM tenk1 t1, tenk2 t2
 WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2;
 
@@ -271,16 +70,7 @@ WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2;
                Index Cond: (unique1 &lt; 10)
    -&gt;  Index Scan using tenk2_unique2 on tenk2 t2  (cost=0.00..7.87 rows=1 width=244)
          Index Cond: (unique2 = t1.unique2)
-</pre><br />
-
-
-<p><br />
-这个是两表 join，最后通过嵌套循环节点来做的 join。先查询外层 <code>Bitmap heap scan</code> 这个节点，这个节点还有个子节点。这个节点的查询和 <code>select ... where unique1 &lt; 10</code> 的查询类似。然后执行内层 <code>Index scan using</code> 这个节点，外层查询获取到的数据会插入进来，这个时候 t1.unique2 的值已经有了，所以这层的查询和 <code>select ... where t2.unique2 = 常量</code> 的查询类似，消耗比前面的小是因为第一次查询有了 cache，这次就会稍微快了一点。这层查询的消耗是 <code>外层行数*内层的消耗=10 * 7.87</code> 加上一些 cpu 消耗。<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN SELECT *
+</pre><br><p><br>这个是两表 join，最后通过嵌套循环节点来做的 join。先查询外层 <code>Bitmap heap scan</code> 这个节点，这个节点还有个子节点。这个节点的查询和 <code>select ... where unique1 &lt; 10</code> 的查询类似。然后执行内层 <code>Index scan using</code> 这个节点，外层查询获取到的数据会插入进来，这个时候 t1.unique2 的值已经有了，所以这层的查询和 <code>select ... where t2.unique2 = 常量</code> 的查询类似，消耗比前面的小是因为第一次查询有了 cache，这次就会稍微快了一点。这层查询的消耗是 <code>外层行数*内层的消耗=10 * 7.87</code> 加上一些 cpu 消耗。<br></p><br><pre class=example>EXPLAIN SELECT *
 FROM tenk1 t1, tenk2 t2
 WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2 AND t1.hundred &lt; t2.hundred;
 
@@ -294,22 +84,7 @@ WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2 AND t1.hundred &lt; t2.hund
                Index Cond: (unique1 &lt; 10)
    -&gt;  Index Scan using tenk2_unique2 on tenk2 t2  (cost=0.00..7.87 rows=1 width=244)
          Index Cond: (unique2 = t1.unique2)
-</pre><br />
-
-
-<p><br />
-如果有条件无法在两个子节点上面执行，那就只能在 join 节点来做 filter，类似上面这个。实际执行时间和前面那个没有 t1.hundred &lt; t2.hundred 条件的差不多。<br />
-</p><br />
-<p><br />
-outer join 的时候，还可能会有 Join Filter 和 Filter 同时出现的情况，join filter 出现在外表的 on 语句里面，不匹配的数据依然会返回 null。而 filter 这个时候是用来过滤 join 结果的。<br />
-</p><br />
-<p><br />
-对于 inner join，Join Filter 和 Filter 两个没有区别。<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN SELECT *
+</pre><br><p><br>如果有条件无法在两个子节点上面执行，那就只能在 join 节点来做 filter，类似上面这个。实际执行时间和前面那个没有 t1.hundred &lt; t2.hundred 条件的差不多。<br></p><br><p><br>outer join 的时候，还可能会有 Join Filter 和 Filter 同时出现的情况，join filter 出现在外表的 on 语句里面，不匹配的数据依然会返回 null。而 filter 这个时候是用来过滤 join 结果的。<br></p><br><p><br>对于 inner join，Join Filter 和 Filter 两个没有区别。<br></p><br><pre class=example>EXPLAIN SELECT *
 FROM tenk1 t1, tenk2 t2
 WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2;
 
@@ -323,16 +98,7 @@ WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2;
                Recheck Cond: (unique1 &lt; 100)
                -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0)
                      Index Cond: (unique1 &lt; 100)
-</pre><br />
-
-
-<p><br />
-改变一些条件，会看到执行计划变了，选择了 hash join。一个表的结果会在内层里面记录一个 hash 表，查另一个表的时候会查这个 hash 表来查看匹配的数据。<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN SELECT *
+</pre><br><p><br>改变一些条件，会看到执行计划变了，选择了 hash join。一个表的结果会在内层里面记录一个 hash 表，查另一个表的时候会查这个 hash 表来查看匹配的数据。<br></p><br><pre class=example>EXPLAIN SELECT *
 FROM tenk1 t1, onek t2
 WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2;
 
@@ -345,19 +111,7 @@ WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2;
    -&gt;  Sort  (cost=197.83..200.33 rows=1000 width=244)
          Sort Key: t2.unique2
          -&gt;  Seq Scan on onek t2  (cost=0.00..148.00 rows=1000 width=244)
-</pre><br />
-
-
-<p><br />
-这是一个 merge jion 操作。merge join 需要输入的表都按照 join 字段先进行排序。从 t1 直接通过索引进行了查询，得到的结果就是顺序的。因为 t2 需要返回的数据量大，从 t2 做了全表扫描，然后进行了排序。通常全表扫描+排序比走索引消耗小。<br />
-</p><br />
-<p><br />
-出同样的结果有很多路可以走，如果想看看其他执行计划是否更实惠，可以通过打开关闭一些标志<sup><a class="footref" name="fnr.2" href="#fn.2">2</a></sup>来做到。<br />
-</p><br />
-
-
-
-<pre class="example">SET enable_sort = off;
+</pre><br><p><br>这是一个 merge jion 操作。merge join 需要输入的表都按照 join 字段先进行排序。从 t1 直接通过索引进行了查询，得到的结果就是顺序的。因为 t2 需要返回的数据量大，从 t2 做了全表扫描，然后进行了排序。通常全表扫描+排序比走索引消耗小。<br></p><br><p><br>出同样的结果有很多路可以走，如果想看看其他执行计划是否更实惠，可以通过打开关闭一些标志<sup><a class=footref name=fnr.2 href=#fn.2>2</a></sup>来做到。<br></p><br><pre class=example>SET enable_sort = off;
 
 EXPLAIN SELECT *
 FROM tenk1 t1, onek t2
@@ -370,29 +124,7 @@ WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2;
    -&gt;  Index Scan using tenk1_unique2 on tenk1 t1  (cost=0.00..656.25 rows=101 width=244)
          Filter: (unique1 &lt; 100)
    -&gt;  Index Scan using onek_unique2 on onek t2  (cost=0.00..224.76 rows=1000 width=244)
-</pre><br />
-
-
-<p><br />
-可以看到走索引比全表扫描消耗更大。<br />
-</p><br />
-
-</div><br />
-
-</div><br />
-
-<div id="outline-container-3" class="outline-3"><br />
-<h3 id="sec-3"><span class="section-number-3">3</span> explain analyse</h3><br />
-<div class="outline-text-3" id="text-3"><br />
-
-
-<p><br />
-explain 的 analyse 选项可以看看规划器执行 sql 所用的真实时间。<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN ANALYZE SELECT *
+</pre><br><p><br>可以看到走索引比全表扫描消耗更大。<br></p><br></div><br></div><br><div id=outline-container-3 class=outline-3><br><h3 id=sec-3><span class=section-number-3>3</span> explain analyse</h3><br><div class=outline-text-3 id=text-3><br><p><br>explain 的 analyse 选项可以看看规划器执行 sql 所用的真实时间。<br></p><br><pre class=example>EXPLAIN ANALYZE SELECT *
 FROM tenk1 t1, tenk2 t2
 WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2;
 
@@ -406,16 +138,7 @@ WHERE t1.unique1 &lt; 10 AND t1.unique2 = t2.unique2;
    -&gt;  Index Scan using tenk2_unique2 on tenk2 t2  (cost=0.00..7.87 rows=1 width=244) (actual time=0.041..0.048 rows=1 loops=10)
          Index Cond: (unique2 = t1.unique2)
  Total runtime: 2.414 ms
-</pre><br />
-
-
-<p><br />
-如上所示，会显示出来真实的执行时间（毫秒），返回的行数等其他信息。为了和 explain 里面消耗的取值能匹配上，loop 大于 1 的节点显示的是单次执行的时间，需要乘以循环次数。<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN ANALYZE SELECT *
+</pre><br><p><br>如上所示，会显示出来真实的执行时间（毫秒），返回的行数等其他信息。为了和 explain 里面消耗的取值能匹配上，loop 大于 1 的节点显示的是单次执行的时间，需要乘以循环次数。<br></p><br><pre class=example>EXPLAIN ANALYZE SELECT *
 FROM tenk1 t1, tenk2 t2
 WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2 ORDER BY t1.fivethous;
 
@@ -434,16 +157,7 @@ WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2 ORDER BY t1.fivethous;
                      -&gt;  Bitmap Index Scan on tenk1_unique1  (cost=0.00..5.01 rows=101 width=0) (actual time=0.390..0.390 rows=100 loops=1)
                            Index Cond: (unique1 &lt; 100)
  Total runtime: 107.392 ms
-</pre><br />
-
-
-<p><br />
-有时候还会显示更多的一些信息，比如 sort 和 hash 节点。sort 节点会显示排序的方法，内存磁盘的占用。hash 节点会显示桶（buckets）和批次（batches），如果 batches 大于 1 会使用磁盘空间。<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN ANALYZE SELECT * FROM tenk1 WHERE ten &lt; 7;
+</pre><br><p><br>有时候还会显示更多的一些信息，比如 sort 和 hash 节点。sort 节点会显示排序的方法，内存磁盘的占用。hash 节点会显示桶（buckets）和批次（batches），如果 batches 大于 1 会使用磁盘空间。<br></p><br><pre class=example>EXPLAIN ANALYZE SELECT * FROM tenk1 WHERE ten &lt; 7;
 
                                                 QUERY PLAN
 ----------------------------------------------------------------------------------------------------------
@@ -451,19 +165,7 @@ WHERE t1.unique1 &lt; 100 AND t1.unique2 = t2.unique2 ORDER BY t1.fivethous;
    Filter: (ten &lt; 7)
    Rows Removed by Filter: 3000
  Total runtime: 85.340 ms
-</pre><br />
-
-
-<p><br />
-上面这个执行计划显示了 filter 移除了多少行结果。<br />
-</p><br />
-<p><br />
-explain 还提供了一个 buffers 选项。能得到 query 的哪部分 io 最密集。<br />
-</p><br />
-
-
-
-<pre class="example">EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND unique2 &gt; 9000;
+</pre><br><p><br>上面这个执行计划显示了 filter 移除了多少行结果。<br></p><br><p><br>explain 还提供了一个 buffers 选项。能得到 query 的哪部分 io 最密集。<br></p><br><pre class=example>EXPLAIN (ANALYZE, BUFFERS) SELECT * FROM tenk1 WHERE unique1 &lt; 100 AND unique2 &gt; 9000;
 
                                                             QUERY PLAN
 -----------------------------------------------------------------------------------------------------------------------------------
@@ -479,87 +181,4 @@ explain 还提供了一个 buffers 选项。能得到 query 的哪部分 io 最�
                Index Cond: (unique2 &gt; 9000)
                Buffers: shared hit=5
  Total runtime: 3.917 ms
-</pre><br />
-
-
-<p><br />
-要注意的是，explain analyse 会真的执行 sql，所以对于 update，insert，delete 等的 sql 操作，最好在执行的时候启用事务，执行完 explain 之后 rollback。<br />
-</p><br />
-</div><br />
-
-</div><br />
-
-<div id="outline-container-4" class="outline-3"><br />
-<h3 id="sec-4"><span class="section-number-3">4</span> Caveats 注意事项</h3><br />
-<div class="outline-text-3" id="text-4"><br />
-
-
-<p><br />
-有两个情况可能会影响 explain analyse 和实际执行的差别<br />
-1 因为没有任何输出，所以 I/O 和网络网络传输消耗没有体现。<br />
-2 因为要输出执行时间，而有些系统里面 gettimeofday() 这个系统调用很慢，所以会导致消耗增加。<br />
-</p><br />
-<p><br />
-在衡量 explain 执行结果的时候，最好是在情况类似的 db 上面，否则可能没有任何参考价值。比如在一个小表上面的执行计划可能和大表就会很不一样。<br />
-</p><br />
-<div id="footnotes"><br />
-<h2 class="footnotes">Footnotes: </h2><br />
-<div id="text-footnotes"><br />
-<p class="footnote"><sup><a class="footnum" name="fn.1" href="#fnr.1">1</a></sup> : http://www.postgresql.org/docs/9.2/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-CONSTANTS<br />
-</p><br />
-
-
-<p class="footnote"><sup><a class="footnum" name="fn.2" href="#fnr.2">2</a></sup> : http://www.postgresql.org/docs/9.2/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE<br />
-</p></div><br />
-</div><br />
-
-</div><br />
-</div><br />
-
-<div id="postamble"><br />
-<p class="date">Date: 2013-02-03 18:27:03 CST</p><br />
-<p class="author">Author: Wang Dong</p><br />
-<p class="creator">Org version 7.8.11 with Emacs version 24</p><br />
-<a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a><br />
-</div><br />
-
-</main>
-
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-    </div>
-</section>
-
-
-    
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
-    
-
-
-
-
-
-    <footer style="clear:both">
-      
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
-      
-    </footer>
-  </body>
-</html>
-
+</pre><br><p><br>要注意的是，explain analyse 会真的执行 sql，所以对于 update，insert，delete 等的 sql 操作，最好在执行的时候启用事务，执行完 explain 之后 rollback。<br></p><br></div><br></div><br><div id=outline-container-4 class=outline-3><br><h3 id=sec-4><span class=section-number-3>4</span> Caveats 注意事项</h3><br><div class=outline-text-3 id=text-4><br><p><br>有两个情况可能会影响 explain analyse 和实际执行的差别<br>1 因为没有任何输出，所以 I/O 和网络网络传输消耗没有体现。<br>2 因为要输出执行时间，而有些系统里面 gettimeofday() 这个系统调用很慢，所以会导致消耗增加。<br></p><br><p><br>在衡量 explain 执行结果的时候，最好是在情况类似的 db 上面，否则可能没有任何参考价值。比如在一个小表上面的执行计划可能和大表就会很不一样。<br></p><br><div id=footnotes><br><h2 class=footnotes>Footnotes:</h2><br><div id=text-footnotes><br><p class=footnote><sup><a class=footnum name=fn.1 href=#fnr.1>1</a></sup> : http://www.postgresql.org/docs/9.2/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-CONSTANTS<br></p><br><p class=footnote><sup><a class=footnum name=fn.2 href=#fnr.2>2</a></sup> : http://www.postgresql.org/docs/9.2/static/runtime-config-query.html#RUNTIME-CONFIG-QUERY-ENABLE<br></p></div><br></div><br></div><br></div><br><div id=postamble><br><p class=date>Date: 2013-02-03 18:27:03 CST</p><br><p class=author>Author: Wang Dong</p><br><p class=creator>Org version 7.8.11 with Emacs version 24</p><br><a href="http://validator.w3.org/check?uri=referer">Validate XHTML 1.0</a><br></div><br></main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>

@@ -1,382 +1,149 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>Add an Force Sync Button in Django Admin | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>Add an Force Sync Button in Django Admin | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Add an Force Sync Button in Django Admin</span></h1><h2 class=date>2019/12/12</h2><p class=terms>Tags: <a href=/tags/django>django</a> <a href=/tags/python>python</a></p></div><main><p>我们的系统里面需要和外部的系统同步一些数据，为了保证数据正确处理，增加了一个队列。队列是通过一个 celery 里面的定时任务同步的。定时任务设置是 5 分钟一次，那有时候测试的时候或者出错的时候就可能会想要立刻执行下同步，好看看执行结果，要不很有可能等到下次执行的时候还是有问题，这就有点浪费时间了。</p><p>自然就想在 Django admin 后台增加一个按钮，点一下就执行一下同步功能。Django 提供了一个 <code>admin.ModelAdmin.change_list_template</code> 变量来让你自己定义 list 模版，我们就用这个实现了。</p><p><code>admin.py</code> 的代码如下。</p><div class="src src-python"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#080;font-weight:700>class</span> <span style=color:#b06;font-weight:700>TestAdmin</span>(admin<span style=color:#333>.</span>ModelAdmin):
+    change_list_template <span style=color:#333>=</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>test/change_list.html</span><span style=background-color:#fff0f0>&#34;</span>
 
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
+    <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>get_urls</span>(self):
+        urls <span style=color:#333>=</span> <span style=color:#007020>super</span>()<span style=color:#333>.</span>get_urls()
 
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">Add an Force Sync Button in Django Admin</span></h1>
-
-<h2 class="date">2019/12/12</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/django">django</a> <a href="/tags/python">python</a> 
-  
-  
-</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<main>
-<p>
-我们的系统里面需要和外部的系统同步一些数据，为了保证数据正确处理，增加了一个队列。队列是通过一个 celery 里面的定时任务同步的。定时任务设置是 5 分钟一次，那有时候测试的时候或者出错的时候就可能会想要立刻执行下同步，好看看执行结果，要不很有可能等到下次执行的时候还是有问题，这就有点浪费时间了。
-</p>
-<p>
-自然就想在 Django admin 后台增加一个按钮，点一下就执行一下同步功能。Django 提供了一个 <code>admin.ModelAdmin.change_list_template</code> 变量来让你自己定义 list 模版，我们就用这个实现了。
-</p>
-<p>
-<code>admin.py</code> 的代码如下。
-</p>
-<div class="src src-python">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">TestAdmin</span>(admin<span style="color:#333">.</span>ModelAdmin):
-    change_list_template <span style="color:#333">=</span> <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">test/change_list.html</span><span style="background-color:#fff0f0">&#34;</span>
-
-    <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">get_urls</span>(self):
-        urls <span style="color:#333">=</span> <span style="color:#007020">super</span>()<span style="color:#333">.</span>get_urls()
-
-        my_urls <span style="color:#333">=</span> [
-            url(<span style="background-color:#fff0f0">r</span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">^$</span><span style="background-color:#fff0f0">&#39;</span>, self<span style="color:#333">.</span>force_sync),
+        my_urls <span style=color:#333>=</span> [
+            url(<span style=background-color:#fff0f0>r</span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>^$</span><span style=background-color:#fff0f0>&#39;</span>, self<span style=color:#333>.</span>force_sync),
         ]
-        <span style="color:#080;font-weight:bold">return</span> my_urls <span style="color:#333">+</span> urls
+        <span style=color:#080;font-weight:700>return</span> my_urls <span style=color:#333>+</span> urls
 
-    <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">force_sync</span>(self, request):
-        force_sync <span style="color:#333">=</span> request<span style="color:#333">.</span>GET<span style="color:#333">.</span>get(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">force_sync</span><span style="background-color:#fff0f0">&#39;</span>)
-        <span style="color:#080;font-weight:bold">if</span> force_sync:
-            logger<span style="color:#333">.</span>info(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">Force sync start</span><span style="background-color:#fff0f0">&#39;</span>)
-            ret <span style="color:#333">=</span> manual_syn_task()
-            logger<span style="color:#333">.</span>info(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">Force sync done, ret: {}</span><span style="background-color:#fff0f0">&#39;</span><span style="color:#333">.</span>format(ret))
+    <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>force_sync</span>(self, request):
+        force_sync <span style=color:#333>=</span> request<span style=color:#333>.</span>GET<span style=color:#333>.</span>get(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>force_sync</span><span style=background-color:#fff0f0>&#39;</span>)
+        <span style=color:#080;font-weight:700>if</span> force_sync:
+            logger<span style=color:#333>.</span>info(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>Force sync start</span><span style=background-color:#fff0f0>&#39;</span>)
+            ret <span style=color:#333>=</span> manual_syn_task()
+            logger<span style=color:#333>.</span>info(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>Force sync done, ret: {}</span><span style=background-color:#fff0f0>&#39;</span><span style=color:#333>.</span>format(ret))
 
-        <span style="color:#080;font-weight:bold">return</span> self<span style="color:#333">.</span>changelist_view(request)</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-<code>test/change_list.html</code> 模版文件的代码如下
-</p>
-<div class="src src-html">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">{% extends &#39;admin/change_list.html&#39; %}
+        <span style=color:#080;font-weight:700>return</span> self<span style=color:#333>.</span>changelist_view(request)</code></pre></td></tr></table></div></div></div><p><code>test/change_list.html</code> 模版文件的代码如下</p><div class="src src-html"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html>{% extends &#39;admin/change_list.html&#39; %}
 
 {% load i18n admin_static %}
 
 {% block object-tools-items %}
 {{ block.super }}
-&lt;<span style="color:#070">li</span>&gt;
-    &lt;<span style="color:#070">a</span> <span style="color:#00c">href</span><span style="color:#333">=</span><span style="background-color:#fff0f0">&#34;{% url &#39;admin:app_list&#39; app_label=cl.opts.app_label %}test?force_sync=1&#34;</span>&gt;Force Sync&lt;/<span style="color:#070">a</span>&gt;
-&lt;/<span style="color:#070">li</span>&gt;
-{% endblock %}</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-这里面的核心内容是
-</p>
-<ol>
-<li>
-<p>
-<code>change_list_template</code> 设置使用自己的模版，然后在这个模版里面，覆盖 <code>object-tools-items</code> 这个 block，不过这个 blog 里面使用 <code>{{ block.super }}</code> 又保留了原来的内容，所以综合就是增加了那个链接。
-</p>
-</li>
-<li>
-<p>
-然后在 <code>admin.py</code> 里面，通过 <code>get_url</code> 捕获你增加的 url，我省事直接用了 <code>^$</code> 。
-</p>
-</li>
-<li>
-<p>
-在对应的 view 函数 <code>force_sync</code> 里面，判断参数里面是不是有 <code>force_sync</code> ，有的话执行自己的函数就好了。最后通过 <code>return self.changelist_view(request)</code> 返回默认的 view。
-</p>
-</li>
-<li>
-<p>
-这个 <code>changelist_view</code> 方法里面，会判断你给的参数啥的是否合法，那个 <code>force_sync</code> 当然不合法，哪里都没有注册过，所以这个方法里面会直接到下面代码那个 <code>except</code> 里面，会 redict 一下，把 url 参数改成 <code>e=1</code> 这样的形式。
-</p>
-</li>
-<li>
-<p>
-这样效果就是点击那个按钮之后，执行我的 sync 方法，然后会进行一个 302 页面刷新，参数改成了 <code>e=1</code> ，然后页面内部能看到同步效果。完成了我的需求，因为页面参数都修改了，还避免了刷新页面导致无意中再次 sync 的问题。
-</p>
-</li>
-</ol>
-<p>
-<code>.venv/lib/python3.7/site-packages/django/contrib/admin/options.py</code> 文件里面，1671 行左右
-</p>
-<div class="src src-python">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">        <span style="color:#080;font-weight:bold">try</span>:
-            cl <span style="color:#333">=</span> self<span style="color:#333">.</span>get_changelist_instance(request)
-        <span style="color:#080;font-weight:bold">except</span> IncorrectLookupParameters:
-            <span style="color:#888"># Wacky lookup parameters were given, so redirect to the main</span>
-            <span style="color:#888"># changelist page, without parameters, and pass an &#39;invalid=1&#39;</span>
-            <span style="color:#888"># parameter via the query string. If wacky parameters were given</span>
-            <span style="color:#888"># and the &#39;invalid=1&#39; parameter was already in the query string,</span>
-            <span style="color:#888"># something is screwed up with the database, so display an error</span>
-            <span style="color:#888"># page.</span>
-            <span style="color:#080;font-weight:bold">if</span> ERROR_FLAG <span style="color:#000;font-weight:bold">in</span> request<span style="color:#333">.</span>GET:
-                <span style="color:#080;font-weight:bold">return</span> SimpleTemplateResponse(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">admin/invalid_setup.html</span><span style="background-color:#fff0f0">&#39;</span>, {
-                    <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">title</span><span style="background-color:#fff0f0">&#39;</span>: _(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">Database error</span><span style="background-color:#fff0f0">&#39;</span>),
+&lt;<span style=color:#070>li</span>&gt;
+    &lt;<span style=color:#070>a</span> <span style=color:#00c>href</span><span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;{% url &#39;admin:app_list&#39; app_label=cl.opts.app_label %}test?force_sync=1&#34;</span>&gt;Force Sync&lt;/<span style=color:#070>a</span>&gt;
+&lt;/<span style=color:#070>li</span>&gt;
+{% endblock %}</code></pre></td></tr></table></div></div></div><p>这里面的核心内容是</p><ol><li><p><code>change_list_template</code> 设置使用自己的模版，然后在这个模版里面，覆盖 <code>object-tools-items</code> 这个 block，不过这个 blog 里面使用 <code>{{ block.super }}</code> 又保留了原来的内容，所以综合就是增加了那个链接。</p></li><li><p>然后在 <code>admin.py</code> 里面，通过 <code>get_url</code> 捕获你增加的 url，我省事直接用了 <code>^$</code> 。</p></li><li><p>在对应的 view 函数 <code>force_sync</code> 里面，判断参数里面是不是有 <code>force_sync</code> ，有的话执行自己的函数就好了。最后通过 <code>return self.changelist_view(request)</code> 返回默认的 view。</p></li><li><p>这个 <code>changelist_view</code> 方法里面，会判断你给的参数啥的是否合法，那个 <code>force_sync</code> 当然不合法，哪里都没有注册过，所以这个方法里面会直接到下面代码那个 <code>except</code> 里面，会 redict 一下，把 url 参数改成 <code>e=1</code> 这样的形式。</p></li><li><p>这样效果就是点击那个按钮之后，执行我的 sync 方法，然后会进行一个 302 页面刷新，参数改成了 <code>e=1</code> ，然后页面内部能看到同步效果。完成了我的需求，因为页面参数都修改了，还避免了刷新页面导致无意中再次 sync 的问题。</p></li></ol><p><code>.venv/lib/python3.7/site-packages/django/contrib/admin/options.py</code> 文件里面，1671 行左右</p><div class="src src-python"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>        <span style=color:#080;font-weight:700>try</span>:
+            cl <span style=color:#333>=</span> self<span style=color:#333>.</span>get_changelist_instance(request)
+        <span style=color:#080;font-weight:700>except</span> IncorrectLookupParameters:
+            <span style=color:#888># Wacky lookup parameters were given, so redirect to the main</span>
+            <span style=color:#888># changelist page, without parameters, and pass an &#39;invalid=1&#39;</span>
+            <span style=color:#888># parameter via the query string. If wacky parameters were given</span>
+            <span style=color:#888># and the &#39;invalid=1&#39; parameter was already in the query string,</span>
+            <span style=color:#888># something is screwed up with the database, so display an error</span>
+            <span style=color:#888># page.</span>
+            <span style=color:#080;font-weight:700>if</span> ERROR_FLAG <span style=color:#000;font-weight:700>in</span> request<span style=color:#333>.</span>GET:
+                <span style=color:#080;font-weight:700>return</span> SimpleTemplateResponse(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>admin/invalid_setup.html</span><span style=background-color:#fff0f0>&#39;</span>, {
+                    <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>title</span><span style=background-color:#fff0f0>&#39;</span>: _(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>Database error</span><span style=background-color:#fff0f0>&#39;</span>),
                 })
-            <span style="color:#080;font-weight:bold">return</span> HttpResponseRedirect(request<span style="color:#333">.</span>path <span style="color:#333">+</span> <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">?</span><span style="background-color:#fff0f0">&#39;</span> <span style="color:#333">+</span> ERROR_FLAG <span style="color:#333">+</span> <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">=1</span><span style="background-color:#fff0f0">&#39;</span>)</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-那如果想要在页面显示同步的结果呢？这个时候那个 302 就成问题了，因为这样还需要想办法把数据传下去。如果没有 302 的话，我们直接给 <code>changelist_view(self, request, extra_context=None)</code> 传一个 <code>extra_context</code> 就可以在模版里面读传进去的数据了。
-</p>
-<p>
-那就需要想办法绕开那个参数检查。再看看代码是哪里导致的那个 302，可以看到下面的代码。
-</p>
-<p>
-<code>.venv/lib/python3.7/site-packages/django/contrib/admin/views/main.py</code> 文件 414 行左右
-</p>
-<div class="src src-python">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python">        <span style="color:#080;font-weight:bold">try</span>:
-            <span style="color:#888"># Finally, we apply the remaining lookup parameters from the query</span>
-            <span style="color:#888"># string (i.e. those that haven&#39;t already been processed by the</span>
-            <span style="color:#888"># filters).</span>
-            qs <span style="color:#333">=</span> qs<span style="color:#333">.</span>filter(<span style="color:#333">*</span><span style="color:#333">*</span>remaining_lookup_params)
-        <span style="color:#080;font-weight:bold">except</span> (SuspiciousOperation, ImproperlyConfigured):
-            <span style="color:#888"># Allow certain types of errors to be re-raised as-is so that the</span>
-            <span style="color:#888"># caller can treat them in a special way.</span>
-            <span style="color:#080;font-weight:bold">raise</span>
-        <span style="color:#080;font-weight:bold">except</span> <span style="color:#f00;font-weight:bold">Exception</span> <span style="color:#080;font-weight:bold">as</span> e:
-            <span style="color:#888"># Every other error is caught with a naked except, because we don&#39;t</span>
-            <span style="color:#888"># have any other way of validating lookup parameters. They might be</span>
-            <span style="color:#888"># invalid if the keyword arguments are incorrect, or if the values</span>
-            <span style="color:#888"># are not in the correct type, so we might get FieldError,</span>
-            <span style="color:#888"># ValueError, ValidationError, or ?.</span>
-            <span style="color:#080;font-weight:bold">raise</span> IncorrectLookupParameters(e)</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-就是那个 <code>qs.filter</code> 抛的异常。那个 <code>lookup_params</code> 很眼熟，查了一下，原来是和 list_filter 里面的设置有关，继续挖掘一下，django 支持自己定义自己的 filter 的，那我们自己定义一个看看。
-</p>
-<div class="src src-python">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">ForceSyncFilter</span>(admin<span style="color:#333">.</span>SimpleListFilter):
-    title <span style="color:#333">=</span> <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#34;</span><span style="background-color:#fff0f0">force sync</span><span style="background-color:#fff0f0">&#34;</span>
-    parameter_name <span style="color:#333">=</span> <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">force_sync</span><span style="background-color:#fff0f0">&#39;</span>
+            <span style=color:#080;font-weight:700>return</span> HttpResponseRedirect(request<span style=color:#333>.</span>path <span style=color:#333>+</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>?</span><span style=background-color:#fff0f0>&#39;</span> <span style=color:#333>+</span> ERROR_FLAG <span style=color:#333>+</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>=1</span><span style=background-color:#fff0f0>&#39;</span>)</code></pre></td></tr></table></div></div></div><p>那如果想要在页面显示同步的结果呢？这个时候那个 302 就成问题了，因为这样还需要想办法把数据传下去。如果没有 302 的话，我们直接给 <code>changelist_view(self, request, extra_context=None)</code> 传一个 <code>extra_context</code> 就可以在模版里面读传进去的数据了。</p><p>那就需要想办法绕开那个参数检查。再看看代码是哪里导致的那个 302，可以看到下面的代码。</p><p><code>.venv/lib/python3.7/site-packages/django/contrib/admin/views/main.py</code> 文件 414 行左右</p><div class="src src-python"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python>        <span style=color:#080;font-weight:700>try</span>:
+            <span style=color:#888># Finally, we apply the remaining lookup parameters from the query</span>
+            <span style=color:#888># string (i.e. those that haven&#39;t already been processed by the</span>
+            <span style=color:#888># filters).</span>
+            qs <span style=color:#333>=</span> qs<span style=color:#333>.</span>filter(<span style=color:#333>*</span><span style=color:#333>*</span>remaining_lookup_params)
+        <span style=color:#080;font-weight:700>except</span> (SuspiciousOperation, ImproperlyConfigured):
+            <span style=color:#888># Allow certain types of errors to be re-raised as-is so that the</span>
+            <span style=color:#888># caller can treat them in a special way.</span>
+            <span style=color:#080;font-weight:700>raise</span>
+        <span style=color:#080;font-weight:700>except</span> <span style=color:red;font-weight:700>Exception</span> <span style=color:#080;font-weight:700>as</span> e:
+            <span style=color:#888># Every other error is caught with a naked except, because we don&#39;t</span>
+            <span style=color:#888># have any other way of validating lookup parameters. They might be</span>
+            <span style=color:#888># invalid if the keyword arguments are incorrect, or if the values</span>
+            <span style=color:#888># are not in the correct type, so we might get FieldError,</span>
+            <span style=color:#888># ValueError, ValidationError, or ?.</span>
+            <span style=color:#080;font-weight:700>raise</span> IncorrectLookupParameters(e)</code></pre></td></tr></table></div></div></div><p>就是那个 <code>qs.filter</code> 抛的异常。那个 <code>lookup_params</code> 很眼熟，查了一下，原来是和 list_filter 里面的设置有关，继续挖掘一下，django 支持自己定义自己的 filter 的，那我们自己定义一个看看。</p><div class="src src-python"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#080;font-weight:700>class</span> <span style=color:#b06;font-weight:700>ForceSyncFilter</span>(admin<span style=color:#333>.</span>SimpleListFilter):
+    title <span style=color:#333>=</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>force sync</span><span style=background-color:#fff0f0>&#34;</span>
+    parameter_name <span style=color:#333>=</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>force_sync</span><span style=background-color:#fff0f0>&#39;</span>
 
-    <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">lookups</span>(self, request, model_admin):
-        <span style="color:#080;font-weight:bold">return</span> ()
+    <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>lookups</span>(self, request, model_admin):
+        <span style=color:#080;font-weight:700>return</span> ()
 
-    <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">queryset</span>(self, request, queryset):
-        <span style="color:#080;font-weight:bold">return</span> queryset
+    <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>queryset</span>(self, request, queryset):
+        <span style=color:#080;font-weight:700>return</span> queryset
 
-<span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">TestAdmin</span>(admin<span style="color:#333">.</span>ModelAdmin):
-    list_filter <span style="color:#333">=</span> (ForceSyncFilter)</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-<p>
-增加之后访问一下，发现不会 redirect 啦，后续就简单了，不演示了。哦，实际上还需要把结果显示在页面的话，还需要找一个地方，刚好我发现那个搜索如果出错的话，会有显示，我们服用那个就可以。模版里面在 <code>object-tools</code> 上面增加一个输出就行。
-</p>
-<div class="src src-html">
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">6
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-html" data-lang="html">{% block object-tools %}
+<span style=color:#080;font-weight:700>class</span> <span style=color:#b06;font-weight:700>TestAdmin</span>(admin<span style=color:#333>.</span>ModelAdmin):
+    list_filter <span style=color:#333>=</span> (ForceSyncFilter)</code></pre></td></tr></table></div></div></div><p>增加之后访问一下，发现不会 redirect 啦，后续就简单了，不演示了。哦，实际上还需要把结果显示在页面的话，还需要找一个地方，刚好我发现那个搜索如果出错的话，会有显示，我们服用那个就可以。模版里面在 <code>object-tools</code> 上面增加一个输出就行。</p><div class="src src-html"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-html data-lang=html>{% block object-tools %}
     {{ block.super }}
     {% if extra.sync_message %}
-      &lt;<span style="color:#070">p</span> <span style="color:#00c">class</span><span style="color:#333">=</span><span style="background-color:#fff0f0">&#34;errornote&#34;</span>&gt;{{ extra.sync_message }}&lt;/<span style="color:#070">p</span>&gt;
+      &lt;<span style=color:#070>p</span> <span style=color:#00c>class</span><span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;errornote&#34;</span>&gt;{{ extra.sync_message }}&lt;/<span style=color:#070>p</span>&gt;
     {% endif %}
-{% endblock %}</code></pre></td></tr></table>
-</div>
-</div>
-</div>
-
-</main>
-
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-    </div>
-</section>
-
-
-    
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
-    
-
-
-
-
-
-    <footer style="clear:both">
-      
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
-      
-    </footer>
-  </body>
-</html>
-
+{% endblock %}</code></pre></td></tr></table></div></div></div></main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>

@@ -1,91 +1,4 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>rsync files-from 参数 | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">rsync files-from 参数</span></h1>
-
-<h2 class="date">2011/04/16</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/linux">linux</a> <a href="/tags/org2blog">org2blog</a> <a href="/tags/rsync">rsync</a> 
-  
-  
-</p>
-</div>
-
-
-
-
-
-
-
-
-
-
-
-
-<main>
-
-<div id="outline-container-1" class="outline-2"><br />
-<h2 id="sec-1">rsync</h2><br />
-<div id="outline-container-1_1" class="outline-3"><br />
-<h3 id="sec-1_1">include/exclude</h3><br />
-<div id="text-1_1" class="outline-text-3"><br />
-
-rsync 支持使用 include/exclude 来过滤要同步的文件，使用这两个参数的时候，需要注意下面的这个问题<br />
-<pre class="prettyprint">
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>rsync files-from 参数 | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>rsync files-from 参数</span></h1><h2 class=date>2011/04/16</h2><p class=terms>Tags: <a href=/tags/linux>linux</a> <a href=/tags/org2blog>org2blog</a> <a href=/tags/rsync>rsync</a></p></div><main><div id=outline-container-1 class=outline-2><br><h2 id=sec-1>rsync</h2><br><div id=outline-container-1_1 class=outline-3><br><h3 id=sec-1_1>include/exclude</h3><br><div id=text-1_1 class=outline-text-3><br>rsync 支持使用 include/exclude 来过滤要同步的文件，使用这两个参数的时候，需要注意下面的这个问题<br><pre class=prettyprint>
 Note that, when using the –recursive (-r) option (which is implied by -a), every subcomponent of every path  is  vis‐
         ited  from the top down, so include/exclude patterns get applied recursively to each subcomponent’s full name (e.g. to
         include "/foo/bar/baz" the subcomponents "/foo" and "/foo/bar" must not be excluded).  The exclude  patterns  actually
@@ -96,26 +9,15 @@ Note that, when using the –recursive (-r) option (which is implied by -a), eve
 
 /some/path/this-file-will-not-be-found
 /file-is-included 
-*</pre>
-rsync 使用 -r 来遍历子目录的时候，如果还想用 exclude include 来过滤文件，那么要注意 一个目录如果满足了 exclude，而且还没有对应的 include，那这个目录下面的子目录也会被 exclude，就算你对这个子目录写了 include 。
-
-虽然能解决问题，可实在很费劲，直到无意中发现了 files-from 参数。
-
-</div>
-</div>
-<div id="outline-container-1_2" class="outline-3">
-<h3 id="sec-1_2">files-from</h3>
-<div id="text-1_2" class="outline-text-3">
-
-files-from 是通过指定一个本地/远程的文件来定义需要同步的文件。这个文件生成方法可就多了，你可以用 find/sed/awk/xxxxx 等搭配来得到你这个文件，一行命令不够还可以多行，是不是爽多了？
-<pre class="prettyprint">
+*</pre>rsync 使用 -r 来遍历子目录的时候，如果还想用 exclude include 来过滤文件，那么要注意 一个目录如果满足了 exclude，而且还没有对应的 include，那这个目录下面的子目录也会被 exclude，就算你对这个子目录写了 include 。
+虽然能解决问题，可实在很费劲，直到无意中发现了 files-from 参数。</div></div><div id=outline-container-1_2 class=outline-3><h3 id=sec-1_2>files-from</h3><div id=text-1_2 class=outline-text-3>files-from 是通过指定一个本地/远程的文件来定义需要同步的文件。这个文件生成方法可就多了，你可以用 find/sed/awk/xxxxx 等搭配来得到你这个文件，一行命令不够还可以多行，是不是爽多了？<pre class=prettyprint>
 如果是远程文件，那就 –files-from=:/path/to/files。
 
 </div>
 </div>
-<div id="outline-container-2" class="outline-2">
-<h2 id="sec-2">写在后面</h2>
-<div id="text-2" class="outline-text-2">
+<div id=outline-container-2 class=outline-2>
+<h2 id=sec-2>写在后面</h2>
+<div id=text-2 class=outline-text-2>
 
 顺便测试一下 org2blog，这帖子是用 org2blog 写的，给作者提了个建议，加上 permlink 的支持，没几天居然给加上了，刚好测试一下，呵呵。
 
@@ -126,38 +28,26 @@ files-from 是通过指定一个本地/远程的文件来定义需要同步的�
 </main>
 
 
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+<section id=comment>
+    <h2 class=title>Comments</h2>
+    <div id=disqus_thread aria-live=polite>
+        <noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript>
     </div>
 </section>
 
 
     
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
+     <script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script>
     
 
 
 
 
 
-    <footer style="clear:both">
+    <footer style=clear:both>
       
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
+      <hr>
+      Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a>
       
     </footer>
   </body>

@@ -1,427 +1,245 @@
-<!DOCTYPE html>
-<html lang="zh-cn">
-  <head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, viewport-fit=cover, initial-scale=1">
-    <title>python 的 decorator 学习 | wd and cc</title>
-    <link rel="stylesheet" href="/css/style.css" />
-    <link rel="stylesheet" href="/css/fonts.css" />
-    <header>
-
-  
-  
-  <nav>
-    <ul>
-      
-      
-      <li class="pull-left ">
-        <a href="https://wdicc.com/">/home/wd and cc</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/tags/">~/tags</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="/resume/">~/resume</a>
-      </li>
-      
-      
-      <li class="pull-left ">
-        <a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">~/search</a>
-      </li>
-      
-
-      
-      
-      <li class="pull-right">
-        <a href="/atom.xml">~/subscribe</a>
-      </li>
-      
-
-    </ul>
-  </nav>
-</header>
-
-  </head>
-
-  <body>
-    <br/>
-
-<div class="article-meta">
-<h1><span class="title">python 的 decorator 学习</span></h1>
-
-<h2 class="date">2016/10/21</h2>
-<p class="terms">
-  
-  
-  
-  
-  Tags: <a href="/tags/python">python</a> <a href="/tags/decorator">decorator</a> 
-  
-  
-</p>
-</div>
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>python 的 decorator 学习 | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>python 的 decorator 学习</span></h1><h2 class=date>2016/10/21</h2><p class=terms>Tags: <a href=/tags/python>python</a> <a href=/tags/decorator>decorator</a></p></div><main><p>最近学习了一下 python 的 decorator（装饰器），看的是这篇，<a href=http://coolshell.cn/articles/11265.html>Python修饰器的函数式编程</a>， 觉得挺有意思的，写点东西记录一下。</p><p>装饰器简单讲就是返回一个函数的函数/类。看个简单的例子。</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#888>#!/usr/bin/python</span>
+<span style=color:#888># -*- coding: utf-8 -*-</span>
 
 
+<span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>dec1</span>(fn):
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside dec1</span><span style=background-color:#fff0f0>&#39;</span>)
+
+    <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>wrapper</span>():
+        <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside wrapper</span><span style=background-color:#fff0f0>&#39;</span>)
+        <span style=color:#080;font-weight:700>return</span> fn()
+    <span style=color:#080;font-weight:700>return</span> wrapper
 
 
+<span style=color:#555;font-weight:700>@dec1</span>
+<span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>f1</span>():
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside f1</span><span style=background-color:#fff0f0>&#39;</span>)
 
-
-
-
-
-
-
-
-<main>
-<p>最近学习了一下 python 的 decorator（装饰器），看的是这篇，<a href="http://coolshell.cn/articles/11265.html">Python修饰器的函数式编程</a>， 觉得挺有意思的，写点东西记录一下。</p>
-<p>装饰器简单讲就是返回一个函数的函数/类。看个简单的例子。</p>
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#888">#!/usr/bin/python</span>
-<span style="color:#888"># -*- coding: utf-8 -*-</span>
-
-
-<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">dec1</span>(fn):
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside dec1</span><span style="background-color:#fff0f0">&#39;</span>)
-
-    <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">wrapper</span>():
-        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside wrapper</span><span style="background-color:#fff0f0">&#39;</span>)
-        <span style="color:#080;font-weight:bold">return</span> fn()
-    <span style="color:#080;font-weight:bold">return</span> wrapper
-
-
-<span style="color:#555;font-weight:bold">@dec1</span>
-<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">f1</span>():
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside f1</span><span style="background-color:#fff0f0">&#39;</span>)
-
-<span style="color:#080;font-weight:bold">if</span> __name__ <span style="color:#333">==</span> <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">__main__</span><span style="background-color:#fff0f0">&#39;</span>:
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">begin exec</span><span style="background-color:#fff0f0">&#39;</span>)
+<span style=color:#080;font-weight:700>if</span> __name__ <span style=color:#333>==</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>__main__</span><span style=background-color:#fff0f0>&#39;</span>:
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>begin exec</span><span style=background-color:#fff0f0>&#39;</span>)
     f1()
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">end exec</span><span style="background-color:#fff0f0">&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>end exec</span><span style=background-color:#fff0f0>&#39;</span>)
 
-<span style="color:#888"># 执行结果:</span>
-<span style="color:#888"># inside dec1</span>
-<span style="color:#888"># begin exec</span>
-<span style="color:#888"># inside wrapper</span>
-<span style="color:#888"># inside f1</span>
-<span style="color:#888"># end exec</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>看上面例子能看到，装饰器生效有 2 个步骤，第一个是装饰，第二个是执行。上面装饰器的效果，和下面的代码的效果是一样。</p>
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#888">#!/usr/bin/python</span>
-<span style="color:#888"># -*- coding: utf-8 -*-</span>
+<span style=color:#888># 执行结果:</span>
+<span style=color:#888># inside dec1</span>
+<span style=color:#888># begin exec</span>
+<span style=color:#888># inside wrapper</span>
+<span style=color:#888># inside f1</span>
+<span style=color:#888># end exec</span>
+</code></pre></td></tr></table></div></div><p>看上面例子能看到，装饰器生效有 2 个步骤，第一个是装饰，第二个是执行。上面装饰器的效果，和下面的代码的效果是一样。</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#888>#!/usr/bin/python</span>
+<span style=color:#888># -*- coding: utf-8 -*-</span>
 
 
-<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">dec1</span>(fn):
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside dec1</span><span style="background-color:#fff0f0">&#39;</span>)
+<span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>dec1</span>(fn):
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside dec1</span><span style=background-color:#fff0f0>&#39;</span>)
 
-    <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">wrapper</span>():
-        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside wrapper</span><span style="background-color:#fff0f0">&#39;</span>)
-        <span style="color:#080;font-weight:bold">return</span> fn()
-    <span style="color:#080;font-weight:bold">return</span> wrapper
+    <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>wrapper</span>():
+        <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside wrapper</span><span style=background-color:#fff0f0>&#39;</span>)
+        <span style=color:#080;font-weight:700>return</span> fn()
+    <span style=color:#080;font-weight:700>return</span> wrapper
 
 
-<span style="color:#888"># @dec1</span>
-<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">f1</span>():
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside f1</span><span style="background-color:#fff0f0">&#39;</span>)
+<span style=color:#888># @dec1</span>
+<span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>f1</span>():
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside f1</span><span style=background-color:#fff0f0>&#39;</span>)
 
-<span style="color:#080;font-weight:bold">if</span> __name__ <span style="color:#333">==</span> <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">__main__</span><span style="background-color:#fff0f0">&#39;</span>:
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">begin exec</span><span style="background-color:#fff0f0">&#39;</span>)
+<span style=color:#080;font-weight:700>if</span> __name__ <span style=color:#333>==</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>__main__</span><span style=background-color:#fff0f0>&#39;</span>:
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>begin exec</span><span style=background-color:#fff0f0>&#39;</span>)
     dec1(f1)()
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">end exec</span><span style="background-color:#fff0f0">&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>end exec</span><span style=background-color:#fff0f0>&#39;</span>)
 
-<span style="color:#888"># 执行结果:</span>
-<span style="color:#888"># begin exec</span>
-<span style="color:#888"># inside dec1</span>
-<span style="color:#888"># inside wrapper</span>
-<span style="color:#888"># inside f1</span>
-<span style="color:#888"># end exec</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>可以看到除了 「begin/end exec」，其他部分执行结果是一样的。所以理解装饰器，就把 <code>@dec1</code> 换成 <code>dec1(fn)()</code> 这么理解就可以了。</p>
-<p>有时候会看到类也可以作为装饰器使用。其实理解起来也类似。举个例子。</p>
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#888">#!/usr/bin/python</span>
-<span style="color:#888"># -*- coding: utf-8 -*-</span>
+<span style=color:#888># 执行结果:</span>
+<span style=color:#888># begin exec</span>
+<span style=color:#888># inside dec1</span>
+<span style=color:#888># inside wrapper</span>
+<span style=color:#888># inside f1</span>
+<span style=color:#888># end exec</span>
+</code></pre></td></tr></table></div></div><p>可以看到除了 「begin/end exec」，其他部分执行结果是一样的。所以理解装饰器，就把 <code>@dec1</code> 换成 <code>dec1(fn)()</code> 这么理解就可以了。</p><p>有时候会看到类也可以作为装饰器使用。其实理解起来也类似。举个例子。</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#888>#!/usr/bin/python</span>
+<span style=color:#888># -*- coding: utf-8 -*-</span>
 
 
-<span style="color:#080;font-weight:bold">class</span> <span style="color:#b06;font-weight:bold">dec1</span>(<span style="color:#007020">object</span>):
-    <span style="color:#080;font-weight:bold">def</span> __init__(self, fn):
-        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside dec1</span><span style="background-color:#fff0f0">&#39;</span>)
-        self<span style="color:#333">.</span>fn <span style="color:#333">=</span> fn
+<span style=color:#080;font-weight:700>class</span> <span style=color:#b06;font-weight:700>dec1</span>(<span style=color:#007020>object</span>):
+    <span style=color:#080;font-weight:700>def</span> __init__(self, fn):
+        <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside dec1</span><span style=background-color:#fff0f0>&#39;</span>)
+        self<span style=color:#333>.</span>fn <span style=color:#333>=</span> fn
 
-    <span style="color:#080;font-weight:bold">def</span> __call__(self):
-        <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside wrapper</span><span style="background-color:#fff0f0">&#39;</span>)
-        <span style="color:#080;font-weight:bold">return</span> self<span style="color:#333">.</span>fn()
+    <span style=color:#080;font-weight:700>def</span> __call__(self):
+        <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside wrapper</span><span style=background-color:#fff0f0>&#39;</span>)
+        <span style=color:#080;font-weight:700>return</span> self<span style=color:#333>.</span>fn()
 
 
-<span style="color:#555;font-weight:bold">@dec1</span>
-<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">f1</span>():
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside f1</span><span style="background-color:#fff0f0">&#39;</span>)
+<span style=color:#555;font-weight:700>@dec1</span>
+<span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>f1</span>():
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside f1</span><span style=background-color:#fff0f0>&#39;</span>)
 
-<span style="color:#080;font-weight:bold">if</span> __name__ <span style="color:#333">==</span> <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">__main__</span><span style="background-color:#fff0f0">&#39;</span>:
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">begin exec</span><span style="background-color:#fff0f0">&#39;</span>)
+<span style=color:#080;font-weight:700>if</span> __name__ <span style=color:#333>==</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>__main__</span><span style=background-color:#fff0f0>&#39;</span>:
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>begin exec</span><span style=background-color:#fff0f0>&#39;</span>)
     f1()
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">end exec</span><span style="background-color:#fff0f0">&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>end exec</span><span style=background-color:#fff0f0>&#39;</span>)
 
-<span style="color:#888"># 执行结果:</span>
-<span style="color:#888"># inside dec1</span>
-<span style="color:#888"># begin exec</span>
-<span style="color:#888"># inside wrapper</span>
-<span style="color:#888"># inside f1</span>
-<span style="color:#888"># end exec</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>这里和上面类似，把 <code>@dec1</code> 理解成 <code>dec1(fn)()</code>，不过是这里的 <code>dec1</code> 是个类，那么 <code>dec1(fn)</code> 其实是调用的 <code>dec1.__init__(fn)</code>，那么后续的 <code>dec1(fn)()</code> 就是调用产生的对象的 <code>dec1.__call__()</code> 了。</p>
-<p>有时候还能看到加了参数的装饰器。加了参数的是怎么回事呢。再看下面的例子。</p>
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 4
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 5
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 6
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 7
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 8
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f"> 9
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">10
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">11
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">12
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">13
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">14
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">15
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">16
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">17
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">18
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">19
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">20
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">21
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">22
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">23
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">24
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">25
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">26
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">27
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">28
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">29
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">30
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#888">#!/usr/bin/python</span>
-<span style="color:#888"># -*- coding: utf-8 -*-</span>
+<span style=color:#888># 执行结果:</span>
+<span style=color:#888># inside dec1</span>
+<span style=color:#888># begin exec</span>
+<span style=color:#888># inside wrapper</span>
+<span style=color:#888># inside f1</span>
+<span style=color:#888># end exec</span>
+</code></pre></td></tr></table></div></div><p>这里和上面类似，把 <code>@dec1</code> 理解成 <code>dec1(fn)()</code>，不过是这里的 <code>dec1</code> 是个类，那么 <code>dec1(fn)</code> 其实是调用的 <code>dec1.__init__(fn)</code>，那么后续的 <code>dec1(fn)()</code> 就是调用产生的对象的 <code>dec1.__call__()</code> 了。</p><p>有时候还能看到加了参数的装饰器。加了参数的是怎么回事呢。再看下面的例子。</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#888>#!/usr/bin/python</span>
+<span style=color:#888># -*- coding: utf-8 -*-</span>
 
 
-<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">dec1</span>(name):
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside dec1</span><span style="background-color:#fff0f0">&#39;</span>)
+<span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>dec1</span>(name):
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside dec1</span><span style=background-color:#fff0f0>&#39;</span>)
 
-    <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">real_dec1</span>(fn):
-        <span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">wrapper</span>():
-            <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside wrapper</span><span style="background-color:#fff0f0">&#39;</span>)
-            <span style="color:#080;font-weight:bold">return</span> fn()
-        <span style="color:#080;font-weight:bold">return</span> wrapper
-    <span style="color:#080;font-weight:bold">return</span> real_dec1
+    <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>real_dec1</span>(fn):
+        <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>wrapper</span>():
+            <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside wrapper</span><span style=background-color:#fff0f0>&#39;</span>)
+            <span style=color:#080;font-weight:700>return</span> fn()
+        <span style=color:#080;font-weight:700>return</span> wrapper
+    <span style=color:#080;font-weight:700>return</span> real_dec1
 
 
-<span style="color:#555;font-weight:bold">@dec1</span>(name<span style="color:#333">=</span><span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">1</span><span style="background-color:#fff0f0">&#39;</span>)
-<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">f1</span>():
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">inside f1</span><span style="background-color:#fff0f0">&#39;</span>)
+<span style=color:#555;font-weight:700>@dec1</span>(name<span style=color:#333>=</span><span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>1</span><span style=background-color:#fff0f0>&#39;</span>)
+<span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>f1</span>():
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>inside f1</span><span style=background-color:#fff0f0>&#39;</span>)
 
-<span style="color:#080;font-weight:bold">if</span> __name__ <span style="color:#333">==</span> <span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">__main__</span><span style="background-color:#fff0f0">&#39;</span>:
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">begin exec</span><span style="background-color:#fff0f0">&#39;</span>)
+<span style=color:#080;font-weight:700>if</span> __name__ <span style=color:#333>==</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>__main__</span><span style=background-color:#fff0f0>&#39;</span>:
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>begin exec</span><span style=background-color:#fff0f0>&#39;</span>)
     f1()
-    <span style="color:#080;font-weight:bold">print</span>(<span style="background-color:#fff0f0"></span><span style="background-color:#fff0f0">&#39;</span><span style="background-color:#fff0f0">end exec</span><span style="background-color:#fff0f0">&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>end exec</span><span style=background-color:#fff0f0>&#39;</span>)
 
-<span style="color:#888"># 执行结果:</span>
-<span style="color:#888"># inside dec1</span>
-<span style="color:#888"># begin exec</span>
-<span style="color:#888"># inside wrapper</span>
-<span style="color:#888"># inside f1</span>
-<span style="color:#888"># end exec</span>
-</code></pre></td></tr></table>
-</div>
-</div><p>看懂了没有，就是多了个嵌套而已。遇到加了参数的，那就是把之前的没有参数的部分返回回来就可以了。等价的例子就不贴了，这个等价于 <code>dec1(name='1')(fn)()</code>。</p>
-<p>如果是类装饰器，并且有参数，那等价于 <code>dec1(name='1')(fn)()</code>，其中 <code>__init__(self, name)</code> 先处理第一层参数，然后 <code>__call__(fn)</code> 处理第二层，然后需要在 <code>__call__</code> 里面再定义一个 wrapper 返回。</p>
-<p>说明白没有？呵呵。</p>
-<p>补充一点新的知识，来自于<a href="https://www.youtube.com/watch?v=MjHpMCIvwsY&amp;list=PLPbTDk1hBo3y_yzy0ZIx_0PKlUiQ0WXG7&amp;index=9">这个视频</a>。</p>
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#555;font-weight:bold">@mydeco</span>
-<span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">add</span>(a, b):
-    <span style="color:#080;font-weight:bold">return</span> a <span style="color:#333">+</span> b
-</code></pre></td></tr></table>
-</div>
-</div><p>上面这个等价于下面这个</p>
-<div class="highlight"><div style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4">
-<table style="border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block;"><tr><td style="vertical-align:top;padding:0;margin:0;border:0;">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">1
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">2
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">3
-</span><span style="margin-right:0.4em;padding:0 0.4em 0 0.4em;color:#7f7f7f">4
-</span></code></pre></td>
-<td style="vertical-align:top;padding:0;margin:0;border:0;;width:100%">
-<pre style="background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4"><code class="language-python" data-lang="python"><span style="color:#080;font-weight:bold">def</span> <span style="color:#06b;font-weight:bold">add</span>(a, b):
-    <span style="color:#080;font-weight:bold">return</span> a <span style="color:#333">+</span> b
+<span style=color:#888># 执行结果:</span>
+<span style=color:#888># inside dec1</span>
+<span style=color:#888># begin exec</span>
+<span style=color:#888># inside wrapper</span>
+<span style=color:#888># inside f1</span>
+<span style=color:#888># end exec</span>
+</code></pre></td></tr></table></div></div><p>看懂了没有，就是多了个嵌套而已。遇到加了参数的，那就是把之前的没有参数的部分返回回来就可以了。等价的例子就不贴了，这个等价于 <code>dec1(name='1')(fn)()</code>。</p><p>如果是类装饰器，并且有参数，那等价于 <code>dec1(name='1')(fn)()</code>，其中 <code>__init__(self, name)</code> 先处理第一层参数，然后 <code>__call__(fn)</code> 处理第二层，然后需要在 <code>__call__</code> 里面再定义一个 wrapper 返回。</p><p>说明白没有？呵呵。</p><p>补充一点新的知识，来自于<a href="https://www.youtube.com/watch?v=MjHpMCIvwsY&list=PLPbTDk1hBo3y_yzy0ZIx_0PKlUiQ0WXG7&index=9">这个视频</a>。</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#555;font-weight:700>@mydeco</span>
+<span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>add</span>(a, b):
+    <span style=color:#080;font-weight:700>return</span> a <span style=color:#333>+</span> b
+</code></pre></td></tr></table></div></div><p>上面这个等价于下面这个</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
+</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
+</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>add</span>(a, b):
+    <span style=color:#080;font-weight:700>return</span> a <span style=color:#333>+</span> b
     
-add <span style="color:#333">=</span> mydeco(add)
-</code></pre></td></tr></table>
-</div>
-</div><p>这里面三个 callable</p>
-<ol>
-<li>被装饰的函数 add</li>
-<li>mydeco 装饰方法</li>
-<li>装饰方法返回的方法</li>
-</ol>
-<p>装饰器可以做的事情：</p>
-<ol>
-<li>timing，统计函数执行的时间。</li>
-<li>控制函数 60 秒执行一次。通过在 dec 方法内记录一个最后执行时间实现。</li>
-<li>类似上面的，可以任意指定限制的时间。只需要在上面的函数上面再套一层就可以。</li>
-<li>实现结果记忆。同样的输入，总是同样的输出，那可以按照输入参数记录执行结果，下次相同参数就不用再次执行了。</li>
-<li>给对象增加属性。可以装饰某给对象，然后增加一些属性，比如定制一下 <code>__repr__</code> 输出更好的内容。</li>
-<li>类似的，可以装饰某个对象，然后给他增加一些属性，比如增加一个 <code>__create_at</code> 这样的属性记录一下实例创建时间。</li>
-</ol>
-
-</main>
-
-
-<section id="comment">
-    <h2 class="title">Comments</h2>
-    <div id="disqus_thread" aria-live="polite">
-        <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
-    </div>
-</section>
-
-
-    
-     <script type="text/javascript">
-        var disqus_config = function () {
-            this.page.url = '';
-            this.page.identifier = '';
-        };
-
-        (function() {
-          var d = document, s = d.createElement('script');
-          s.src = '//wdicc.disqus.com/embed.js';
-          s.setAttribute('data-timestamp', +new Date());
-          (d.head || d.body).appendChild(s);
-        })();
-     </script>
-    
-
-
-
-
-
-    <footer style="clear:both">
-      
-      <hr/>
-      Theme from <a href="https://github.com/wd/hugo-classic">hugo-classic</a> fork from <a href="https://github.com/goodroot/hugo-classic">Github</a>
-      
-    </footer>
-  </body>
-</html>
-
+add <span style=color:#333>=</span> mydeco(add)
+</code></pre></td></tr></table></div></div><p>这里面三个 callable</p><ol><li>被装饰的函数 add</li><li>mydeco 装饰方法</li><li>装饰方法返回的方法</li></ol><p>装饰器可以做的事情：</p><ol><li>timing，统计函数执行的时间。</li><li>控制函数 60 秒执行一次。通过在 dec 方法内记录一个最后执行时间实现。</li><li>类似上面的，可以任意指定限制的时间。只需要在上面的函数上面再套一层就可以。</li><li>实现结果记忆。同样的输入，总是同样的输出，那可以按照输入参数记录执行结果，下次相同参数就不用再次执行了。</li><li>给对象增加属性。可以装饰某给对象，然后增加一些属性，比如定制一下 <code>__repr__</code> 输出更好的内容。</li><li>类似的，可以装饰某个对象，然后给他增加一些属性，比如增加一个 <code>__create_at</code> 这样的属性记录一下实例创建时间。</li></ol></main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>

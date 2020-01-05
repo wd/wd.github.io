@@ -1,29 +1,6 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?>
-<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
-  <channel>
-    <title>monitor on wd and cc</title>
-    <link>https://wdicc.com/tags/monitor/</link>
-    <description>Recent content in monitor on wd and cc</description>
-    <generator>Hugo -- gohugo.io</generator>
-    <language>zh-cn</language>
-    <lastBuildDate>Sat, 30 Jul 2016 14:09:58 +0800</lastBuildDate>
-    
-	<atom:link href="https://wdicc.com/tags/monitor/atom.xml" rel="self" type="application/rss+xml" />
-    
-    
-    <item>
-      <title>LLD in zabbix</title>
-      <link>https://wdicc.com/lld-in-zabbix/</link>
-      <pubDate>Sat, 30 Jul 2016 14:09:58 +0800</pubDate>
-      
-      <guid>https://wdicc.com/lld-in-zabbix/</guid>
-      <description>如果需要监控的内容比较多的时候，手动管理报警信息就已经不使用了，加一批机器就需要忙活一阵子。也不能体现我们充满智慧的大脑的作用。
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>monitor on wd and cc</title><link>https://wdicc.com/tags/monitor/</link><description>Recent content in monitor on wd and cc</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Sat, 30 Jul 2016 14:09:58 +0800</lastBuildDate><atom:link href="https://wdicc.com/tags/monitor/atom.xml" rel="self" type="application/rss+xml"/><item><title>LLD in zabbix</title><link>https://wdicc.com/lld-in-zabbix/</link><pubDate>Sat, 30 Jul 2016 14:09:58 +0800</pubDate><guid>https://wdicc.com/lld-in-zabbix/</guid><description>如果需要监控的内容比较多的时候，手动管理报警信息就已经不使用了，加一批机器就需要忙活一阵子。也不能体现我们充满智慧的大脑的作用。
 zabbix 支持 LLD(low level discovery) 方式来自动产生监控项目，包括 item, trigger 这些都可以自动添加。大概讲解一下可以利用这个东西做什么事情。
 zabbix 收集数据的方式 zabbix 有很多收集数据的方法，这里重点讲 2 个，一个是 zabbix agent，一个是 zabbix traper。这两个方式可以和 nagios 里面的 active 和 passive 方式做类比。traaper 方式对应的就是 passive，就是 client 主动发送数据给 server。
 对于 zabbix agent 方式，我们可以自己定义一些 userParameter 来添加自定义监控，这些网上很多例子。如果使用 trapper 方式，那么原则上面可以不用做任何自定义，就可以通过 zabbix-sender 或者自己模拟 sender 的协议，通过比如 python，java 等发送自己的监控信息。通过 python 发送的例子网上也有。
 LLD 参考这里，LLD 主要的思路就是给服务器端发送一个 json 数据格式。例如下面这个。
-1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18  { &amp;#34;data&amp;#34;:[ { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;rootfs&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/sys&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;sysfs&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/proc&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;proc&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/dev&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;devtmpfs&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/dev/pts&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;devpts&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/lib/init/rw&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;tmpfs&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/dev/shm&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;tmpfs&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/home&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;ext3&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/tmp&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;ext3&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/usr&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;ext3&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/var&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;ext3&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/sys/fs/fuse/connections&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;fusectl&amp;#34; } ] }   这个数据里面，data 是必须的，里面包含里面发现的可监控数据，这可以是任何数据。例子里面是发现了可以用来监控的磁盘分区。data 是个数组，每个可监控项是一个数组元素。还有类似下面这样的数据。</description>
-    </item>
-    
-  </channel>
-</rss>
+1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 { &amp;#34;data&amp;#34;:[ { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;rootfs&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/sys&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;sysfs&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/proc&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;proc&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/dev&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;devtmpfs&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/dev/pts&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;devpts&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/lib/init/rw&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;tmpfs&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/dev/shm&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;tmpfs&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/home&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;ext3&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/tmp&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;ext3&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/usr&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;ext3&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/var&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;ext3&amp;#34; }, { &amp;#34;{#FSNAME}&amp;#34;:&amp;#34;/sys/fs/fuse/connections&amp;#34;, &amp;#34;{#FSTYPE}&amp;#34;:&amp;#34;fusectl&amp;#34; } ] } 这个数据里面，data 是必须的，里面包含里面发现的可监控数据，这可以是任何数据。例子里面是发现了可以用来监控的磁盘分区。data 是个数组，每个可监控项是一个数组元素。还有类似下面这样的数据。</description></item></channel></rss>
