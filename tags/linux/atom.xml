@@ -16,12 +16,9 @@ b43，kernel 自带，源自 broadcom linux 驱动的逆向工程 brcmsmac, kern
 和 ldap 集成 在 redmine 的设置里面，本身是有一项和 redmine 集成的功能的，设置 basedn，和下面的 attributes 内容（sAMAccountName,givenName,sN,mail)就可以了。点测试，得能通过。
 在我这里，光设置这个还不行，还需要 hack 一段代码。注意下面的那个 @xxxx.com，这个对应你自己的。
 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20 21 22 23 24 25 26 27 28 29 30 31 ndex: app/models/auth_source_ldap.</description></item><item><title>Join 后面跟两个表</title><link>https://wdicc.com/two-table-after-join/</link><pubDate>Sun, 05 Aug 2012 00:00:00 +0000</pubDate><guid>https://wdicc.com/two-table-after-join/</guid><description>发现 sql 的写法真是千奇百怪，经常遇到没见过的写法。前几天就遇到了一个 sql 在 join 后写两个表，用逗号分隔。类似下面。
-看到 sql 的这些用法我一般都是去 pgsql 的文档里面去查，因为 pg 的文档里面一般会指明一种用法是否标准 sql，多写标准 sql 可以避免知识不能转移。不过去查了发现 pg 不支持这种写法，也去 pg 里面执行了，确实不支持。
+select a.a, b.f from t1 a left join ( b, c ) on ( b.id = c.id and b.a = a.a ) 看到 sql 的这些用法我一般都是去 pgsql 的文档里面去查，因为 pg 的文档里面一般会指明一种用法是否标准 sql，多写标准 sql 可以避免知识不能转移。不过去查了发现 pg 不支持这种写法，也去 pg 里面执行了，确实不支持。
 然后就去看 mysql 的文档，里面有对于这种写法的支持。
-可以看到，这种写法就是等于是让括号里面的 b,c 使用 inner join 的方式连接，当然如果 on 里面没有指定 join 方式，最后就是个笛卡尔集。然后这里有更多的一些说明，还有下面这种写法。
-这些写法都有各自的含义。
-其实这么看来，这个方式好像是比较方便的，不过是对于不明白的人如果乱用，这玩意出的错也是很诡异很难排查的。
-另外注意上面的语句里面写了，mysql 里面的 join, inner join, cross join 是完全同样的东西。</description></item><item><title>Postgresql 里面连接其他数据库</title><link>https://wdicc.com/fdw-in-postgresql/</link><pubDate>Sun, 06 May 2012 00:00:00 +0000</pubDate><guid>https://wdicc.com/fdw-in-postgresql/</guid><description>PG 9.x 引入了 fdw，可以通过 pg 去连接其他 db，不仅限于其他 pg，还可以是 mysql，oracle，文件等。按照设计，fdw 还应该提供给查询规划器一些对方 db 的索引等信息，这样在查询过程中可以提升查询速度。
+The syntax of table_factor is extended in comparison with the SQL Standard. The latter accepts only table_reference, not a list of them inside a pair of parentheses.</description></item><item><title>Postgresql 里面连接其他数据库</title><link>https://wdicc.com/fdw-in-postgresql/</link><pubDate>Sun, 06 May 2012 00:00:00 +0000</pubDate><guid>https://wdicc.com/fdw-in-postgresql/</guid><description>PG 9.x 引入了 fdw，可以通过 pg 去连接其他 db，不仅限于其他 pg，还可以是 mysql，oracle，文件等。按照设计，fdw 还应该提供给查询规划器一些对方 db 的索引等信息，这样在查询过程中可以提升查询速度。
 dbi_link
 dbi 就是 perl 的 dbi，总的思想就是通过 plperl 写一些 function（所以也给了调试修改的便利），通过 dbi 去连接其他数据库，可以连接的 db 和 dbi 的支持一样。
 测试了一下，第一次连接的时候会 cache 对方 db 的信息，对于复杂库没测试成功，只有一个表的库连接成功，并且可以查询。查询的时候就和查询本地库没有区别。
