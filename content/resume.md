@@ -1,7 +1,7 @@
 ---
-title: "简历"
-date: 2019-02-12T15:09:22+08:00
-tags: ["resume", "简历"]
+title: “Resume”
+date: 2019-02-12T15:14:28+08:00
+tags: [“简历”, “resume”]
 toc: false
 comment: false
 ---
@@ -9,8 +9,10 @@ comment: false
 - [PDF](/resume.pdf)
 - [English version](/resume-en/)
 
-在很多岗位工作过，有大型团队管理经验。希望的岗位：广告系统，SRE，DBA。地点：新加坡，北京，伦敦，北美。
-联系方式: wd # wdicc.com
+## 联系方式:
+
+* 邮箱: wd@wdicc.com 
+* blog: https://wdicc.com/ ， github: https://github.com/wd
 
 ## 工作经历
 
@@ -19,14 +21,13 @@ comment: false
 - 组建团队：招聘产品技术设计 10 人左右。
 - 办公环境：搭建办公室开发用服务器，Debian, GitLab, Prometheus, VPN, Wiki, NFS, DNS, 翻墙等。
 - 后端：使用 Django 搭建后端开发框架，使用了 Celery, Channels 等。数据库使用的是 PostgreSQL + Redis。
-  - 搭起来必要的框架之后后续就没参与太多代码编写了，主要做架构上面的控制。
   - 使用 Celery 跑定时任务，Redis 做 broker。
   - 使用了 Channels 跑 WebSocket 服务，实时广播通知给用户端（Web/APP）。
   - 我们需要做一些地理位置的计算，主要使用了 PostGIS 来做图形交叠判断。
 - 自动化部署：使用 Ansiable 搭建代码自动化部署方案，包括后端发布，APP 打包等。
   - 后端服务器上面都是跑的 Docker，分了三套环境。
 - 前端 APP：搭建了 RN react 开发框架，使用到了 Redux/Reselect/Saga/TypeScript 等流行的工具，使用 RN 开发了两款上架 APP，一款 Pad 用 APP。使用 Fastlane 打包。
-  - 代码架构改了一版，之后都迁移到了 TypeScript。
+  - 代码架构改了一版，现在都迁移到了 TypeScript。
   - 主要的精力应该都花在了构建 RN APP 的需求上面，各种客户端上面的 bug，第三方模块适配等等，琐事和小问题巨多。
 - 前端 WEB：Web 开发参与不多，使用了 Vue+MobX 和 React+Redux 这些，优化了一些 Vue 使用上面的问题。
 - Android Pad 系统和 PC 系统定制。
@@ -42,7 +43,7 @@ comment: false
 - 团队：离开的时候整个团队大概 30 多人。
 - 数据工作：带领团队建立了度假部门的统计体系，包括日志收集分析入库展示等工作。
   - 设计和推广了 Qunar 用户唯一标识，搭建维护了一套 Greenplum 集群作为数据仓库。
-  - 开发了数据追踪系统，使用了 Nginx + Fluentd。
+  - 开发了数据追踪系统以支持 native/h5/RN 混合开发，使用了 Nginx + Fluentd。
   - 开发了一个 Dashboard 系统，方便数据工程师给产品经理做各种报表。
 - PostgreSQL DBA 团队：带领团队维护公司几百个实例，建立了相应的监控体系。
   - 监控系统一开始使用 Nagios，遇到瓶颈之后使用 Gearman 扩展到多机，发现性能还是不行，后统一切换为 Zabbix 被动发现+检测方式。
@@ -62,11 +63,20 @@ comment: false
 
 主要开发语言是 SQL, Java, Shell, HTML, JavaScript。
 
-### Yahoo 中国（2007 - 2009），SRE
+### Yahoo 中国（2007 - 2009），SRE、数据统计
 
 - 战略数据平台部的 AppOPS 职位(类似 SRE)，负责大概 100 台机器的运维。期间开发了一个基于 Nagios 的中心配置的监控插件，方便实现个性化的监控需求。
+- 参与了一些统计工作。
 
 主要开发语言是 PHP，Perl，Shell。
+
+### 深圳乐酷（2005 - 2007），运维
+
+- 主要做运维工作，一个人维护大概几十台服务器，公司现在应该已经没有了。
+
+### 宇航出版社（2002 - 2005），编辑、运维
+
+- 刚加入做编辑工作，后面出于兴趣同时开始维护公司的网站和商城服务器。
 
 ## 学历
 
