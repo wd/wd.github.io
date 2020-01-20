@@ -26,4 +26,5 @@ CC is my wife's nickname, which pronounce is cici, like her given name. I have s
 You can find me at [twitter](https://twitter.com/wd), [github](https://github.com/wd), [facebook](https://www.facebook.com/wdicc).
 
 <hr />
+
 ### Blog

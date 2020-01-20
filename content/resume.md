@@ -9,9 +9,13 @@ comment: false
 - [PDF](/resume.pdf)
 - [English version](/resume-en/)
 
+## 自荐信
+
+个人技术知识面比较广，前端后端运维数据库、系统部署CI/CD、系统架构拆分等都有丰富的经验。也有日 PV 上亿的系统的开发、设计和维护经验。团队方面有从零组建团队的能力，有大型团队的组建和管理能力。虽然年已 40，但是对技术知识的兴趣和好奇心不老，还是在持续不断的吸收新鲜的知识，期待我们的合作能给双方带来共赢。
+
 ## 联系方式:
 
-* 邮箱: wd@wdicc.com 
+* 邮箱: wd@wdicc.com ，电话/微信: 13810360963
 * blog: https://wdicc.com/ ， github: https://github.com/wd
 
 ## 工作经历
