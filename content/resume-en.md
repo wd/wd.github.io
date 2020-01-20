@@ -9,22 +9,7 @@ comment: false
 - [PDF](/resume-en.pdf)
 - [中文版](/resume/)
 
-## About Me
-
 I have worked in many positions, and have strong knowledge of front-end/back-end developing, Linux system maintain, database maintain, network, security, etc.
-
-Preferred jobs:
-
-- Advertise delivery system developer or team manager (Full time)
-- SRE (Full time, or remote)
-- DBA (Full time, or remote)
-
-Preferred locations:
-
-- Singapore
-- Beijing
-- London
-- US
 
 Contact me: `wd # wdicc.com`.
 
