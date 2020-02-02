@@ -22,7 +22,6 @@ Build and lead both engineer team and product team, wrote application for iOS, A
 - Team: About 10, include front-end/back-end developers, UX/UE designer, product manager.
 - Setup our office environments, like router, GitLab, file server, Wiki, VPN, DNS server and many other related services.
 - Back-end: use frameworks like Django, Celery, Channels to build our API service. The databases were PostgreSQL and Redis.
-   - After setting up the framework, I didn’t take part in too much coding in the follow-up, mainly controlling the architecture.
    - Use Celery to run timed tasks, and Redis as the broker.
    - Use Channels to run the WebSocket service, to broadcast notifications to the client(Web/APP) in real-time.
    - Use PostGIS to do some geographical location calculations.
