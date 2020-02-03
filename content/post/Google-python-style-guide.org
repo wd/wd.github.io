@@ -1,0 +1,1323 @@
+---
+title: "Google Python Style Guide"
+date: 2020-02-02T16:20:21+08:00
+tags: ["python"]
+toc: true
+---
+
+来自[[https://google.github.io/styleguide/pyguide.html][这里]]。翻译的目的是为了方便快速理解，所以没有太纠结很准确，最好是和英文对应看。
+
+** 1 Background
+
+Google 的 python 代码风格指导。
+
+有一个 vim 的配置。 Emacs 默认的似乎就可以。
+
+还有团队使用 yapf 自动格式化代码来避免对格式产生争论。
+
+** 2 Python Language Rules
+*** 2.1 Lint
+
+使用 pylint 检查代码。
+
+可以通过行内注释关闭一些 warning
+
+#+BEGIN_SRC python
+dict = 'something awful'  # Bad Idea... pylint: disable=redefined-builtin
+#+END_SRC
+
+*** 2.2 Imports
+
+- ~import x~ 引入包或者模块
+- ~from x import y~ x 是包前缀，y 是模块名称
+- ~from x import y as z~ 如果有两个模块都叫 y 或者 y 的名字太长了
+- ~import y as z~ 只有在 z 是个比较常见的缩写（例如 np 作为 numpy 的缩写）
+
+例如 ~sound.effects.echo~
+
+#+BEGIN_SRC python
+from sound.effects import echo
+...
+echo.EchoFilter(input, output, delay=0.7, atten=4)
+#+END_SRC
+
+*** 2.3 Packages
+
+总是使用全路径导入包。
+
+#+BEGIN_SRC python
+# Reference absl.flags in code with the complete name (verbose).
+import absl.flags
+from doctor.who import jodie
+
+FLAGS = absl.flags.FLAGS
+#+END_SRC
+
+#+BEGIN_SRC python
+# Reference flags in code with just the module name (common).
+from absl import flags
+from doctor.who import jodie
+
+FLAGS = flags.FLAGS
+#+END_SRC
+
+不要像下面这样，假设在 ~doctor/who/~ 下面有个 jodie.py。
+
+#+BEGIN_SRC python
+# Unclear what module the author wanted and what will be imported.  The actual
+# import behavior depends on external factors controlling sys.path.
+# Which possible jodie module did the author intend to import?
+import jodie
+#+END_SRC
+
+这个依赖于 sys.path 的情况，无法知道是想要第三方的 jodie 还是本目录的。
+
+*** 2.4 Exceptions
+
+- 使用 ~raise MyError('Error message')~ 或者 ~raise MyError()~ ，不要用 ~raise MyError, 'Error message'~
+- 如果可以的话，使用自带的 exception。例如对于不符合要求的数据报 ~ValueError~ 。不要使用 ~assert~ 来验证公开 api 传入的参数。 ~assert~ 只是用来保证内部数据的正确性的。
+
+使用下面这样的：
+
+#+BEGIN_SRC python
+  def connect_to_next_port(self, minimum):
+    """Connects to the next available port.
+
+    Args:
+      minimum: A port value greater or equal to 1024.
+
+    Returns:
+      The new minimum port.
+
+    Raises:
+      ConnectionError: If no available port is found.
+    """
+    if minimum < 1024:
+      # Note that this raising of ValueError is not mentioned in the doc
+      # string's "Raises:" section because it is not appropriate to
+      # guarantee this specific behavioral reaction to API misuse.
+      raise ValueError('Minimum port must be at least 1024, not %d.' % (minimum,))
+    port = self._find_next_open_port(minimum)
+    if not port:
+      raise ConnectionError('Could not connect to service on %d or higher.' % (minimum,))
+    assert port >= minimum, 'Unexpected port %d when minimum was %d.' % (port, minimum)
+    return port
+#+END_SRC
+
+不要用下面这样的：
+
+#+BEGIN_SRC python
+  def connect_to_next_port(self, minimum):
+    """Connects to the next available port.
+
+    Args:
+      minimum: A port value greater or equal to 1024.
+
+    Returns:
+      The new minimum port.
+    """
+    assert minimum >= 1024, 'Minimum port must be at least 1024.'
+    port = self._find_next_open_port(minimum)
+    assert port is not None
+    return port
+#+END_SRC
+
+- 可以定义自己的 Excpetion，但是应该继承已有的 exeption 类。名称应该以 Error 结尾，不要用类似 foo.FooError 这样的形式。
+- 不要使用 ~except:~ 捕获所有异常，或者捕获 Exception StandardError，除非：
+  - 打算再次抛出异常
+  - 创建一个隔离，记录和抑制异常，让异常不在往上传播，例如保护一个线程不会 crash。
+
+  python 的 ~except:~ 会捕获包括错误的拼写，sys.exit() 调用，Ctrl+C 中断，测试用例失败，和其他的一些异常，一般不会需要都捕获。
+- 减少 ~try/except~ 块的代码。代码太多可能会捕获你没想到的一些异常，而隐藏真正的错误。
+- 使用 ~finally~ 执行一些不管有没有异常都需要执行的动作，一般可以用来做一些清理，关闭文件什么的。
+- 捕获异常的时候使用 as 代替逗号。
+
+#+BEGIN_SRC python
+try:
+  raise Error()
+except Error as error:
+  pass
+#+END_SRC
+
+*** 2.5 Global variables
+
+避免使用全局变量。
+
+全局的常量使用全大写。可以在变量前面加 _ 表示是内部的，外部应该使用公共方法来读取这些变量。
+
+*** 2.6 Nested/Local/Inner Classes and Functions
+
+本地局部的函数或者类定义可以方便使用，但是这些类的实例不能被 pickled 序列化。也不能被直接测试，而且还会导致你的程序变长。不要用这个方式来隐藏一些方法，应该使用加 _ 的方法。
+
+*** 2.7 Comprehensions & Generator Expressions
+
+简单的情况可以用。map 表达式，for 语句，filter 表达式。多个 for 或者 filter 不允许。使用循环吧。
+
+#+BEGIN_SRC python
+Yes:
+  result = [mapping_expr for value in iterable if filter_expr]
+
+  result = [{'key': value} for value in iterable
+            if a_long_filter_expression(value)]
+
+  result = [complicated_transform(x)
+            for x in iterable if predicate(x)]
+
+  descriptive_name = [
+      transform({'key': key, 'value': value}, color='black')
+      for key, value in generate_iterable(some_input)
+      if complicated_condition_is_met(key, value)
+  ]
+
+  result = []
+  for x in range(10):
+      for y in range(5):
+          if x * y > 10:
+              result.append((x, y))
+
+  return {x: complicated_transform(x)
+          for x in long_generator_function(parameter)
+          if x is not None}
+
+  squares_generator = (x**2 for x in range(10))
+
+  unique_names = {user.name for user in users if user is not None}
+
+  eat(jelly_bean for jelly_bean in jelly_beans
+      if jelly_bean.color == 'black')
+#+END_SRC
+
+不要类似下面这样的，太难理解了。
+
+#+BEGIN_SRC python
+No:
+  result = [complicated_transform(
+                x, some_argument=x+1)
+            for x in iterable if predicate(x)]
+
+  result = [(x, y) for x in range(10) for y in range(5) if x * y > 10]
+
+  return ((x, y, z)
+          for x in range(5)
+          for y in range(5)
+          if x != y
+          for z in range(5)
+          if y != z)
+#+END_SRC
+
+*** 2.8 Default Iterators and Operators
+
+对于 list，dict，文件，使用自带的迭代器和操作符，这些都针对 in 和 not in 定义了自带的迭代器。
+
+#+BEGIN_SRC python
+Yes:  for key in adict: ...
+      if key not in adict: ...
+      if obj in alist: ...
+      for line in afile: ...
+      for k, v in adict.items(): ...
+      for k, v in six.iteritems(adict): ...
+
+No:   for key in adict.keys(): ...
+      if not adict.has_key(key): ...
+      for line in afile.readlines(): ...
+      for k, v in dict.iteritems(): ...
+#+END_SRC
+
+*** 2.9 Generators
+
+对于迭代器函数，在文档字符串里面使用 "Yields:" 代替 "Returns:"。
+
+*** 2.10 Lambda Functions
+
+单行的时候可以用。如果代码长度超过 60-80 字符，可能使用嵌套函数更好。
+
+使用 operator 模块代替 lambda，例如 operator.mul 代替 lambda x, y: x * y。
+
+*** 2.11 Conditional Expressions
+简单的情况可以用。比较复杂的时候，使用完整的 if 语句。
+
+#+BEGIN_SRC python
+one_line = 'yes' if predicate(value) else 'no'
+slightly_split = ('yes' if predicate(value)
+                  else 'no, nein, nyet')
+the_longest_ternary_style_that_can_be_done = (
+    'yes, true, affirmative, confirmed, correct'
+    if predicate(value)
+    else 'no, false, negative, nay')
+
+#+END_SRC
+
+下面错误的用法
+
+#+BEGIN_SRC python
+bad_line_breaking = ('yes' if predicate(value) else
+                     'no')
+portion_too_long = ('yes'
+                    if some_long_module.some_long_predicate_function(
+                        really_long_variable_name)
+                    else 'no, false, negative, nay')
+#+END_SRC
+
+*** 2.12 Default Argument Values
+
+不要使用可变对象（mutable object）作为函数参数的默认值。
+
+#+BEGIN_SRC python
+Yes: def foo(a, b=None):
+         if b is None:
+             b = []
+Yes: def foo(a, b: Optional[Sequence] = None):
+         if b is None:
+             b = []
+Yes: def foo(a, b: Sequence = ()):  # Empty tuple OK since tuples are immutable
+         ...
+#+END_SRC
+
+可变对象做初始值实际是在方法被 load 的时候就定了，不是调用的时候。
+
+#+BEGIN_SRC python
+No:  def foo(a, b=[]):
+         ...
+No:  def foo(a, b=time.time()):  # The time the module was loaded???
+         ...
+No:  def foo(a, b=FLAGS.my_thing):  # sys.argv has not yet been parsed...
+         ...
+No:  def foo(a, b: Mapping = {}):  # Could still get passed to unchecked code
+         ...
+#+END_SRC
+
+*** 2.13 Properties
+
+使用 ~@property~ 装饰器创建属性字段。
+
+*** 2.14 True/False Evaluations
+
+尽量使用隐含的 false 。例如使用 ~if foo:~ 而不用 ~if foo != []:~ 。
+- 总是使用 ~if foo is None:~ 或者 ~is not None~ 来检查是否为 None。
+- 不要用 ~==~ 比较布尔值。使用 ~if not x~ ，如果你需要区分 False 和 None，那使用 ~if not x and x is not None:~
+- 对于序列类型（字符串，列表，元组），使用 ~if seq:~ 和 ~if not seq:~ 比 ~if len(seq):~ 和 ~if not len(seq)~ 好。
+- 处理整型的时候，隐含的 false 带来的问题比益处多（例如把 None 当作 0）。你应该使用 0 和一个 integer 比较。
+
+#+BEGIN_SRC python
+Yes: if not users:
+         print('no users')
+
+     if foo == 0:
+         self.handle_zero()
+
+     if i % 10 == 0:
+         self.handle_multiple_of_ten()
+
+     def f(x=None):
+         if x is None:
+             x = []
+
+No:  if len(users) == 0:
+         print('no users')
+
+     if foo is not None and not foo:
+         self.handle_zero()
+
+     if not i % 10:
+         self.handle_multiple_of_ten()
+
+     def f(x=None):
+         x = x or []
+#+END_SRC
+
+- 注意 '0' （字符串 0）是 true。
+
+*** 2.15 Deprecated Language Features
+
+使用字符串自带的方法，而不用 string 模块。使用函数调用而不是 apply。使用列表生成式和 for 循环代替使用匿名函数的 filte 和 map。使用 for 循环代替 reduce。
+
+
+
+#+BEGIN_SRC python
+Yes: words = foo.split(':')
+
+     [x[1] for x in my_list if x[2] == 5]
+
+     map(math.sqrt, data)    # Ok. No inlined lambda expression.
+
+     fn(*args, **kwargs)
+
+No:  words = string.split(foo, ':')
+
+     map(lambda x: x[1], filter(lambda x: x[2] == 5, my_list))
+
+     apply(fn, args, kwargs)
+#+END_SRC
+
+*** 2.16 Lexical Scoping
+
+- lexical scoping: 词法作用域，静态作用域
+- dynamic scoping: 动态作用域
+
+python 会创建局部变量，理解清楚的话，一般不会有啥问题。可以用。
+
+*** 2.17 Function and Method Decorators
+
+只在有明确好处的时候使用装饰器。避免使用 @staticmethod ，少用 @classmethod。
+
+装饰器对函数参数和返回结果有绝对权限，所以可以改变一些隐含的行为。另外，装饰器是在 import 的时候执行的，如果有代码错误可能程序就崩了。
+
+装饰器的文档应该明确说明这个是装饰器，应该给装饰器写测试用例。
+
+在装饰器里面避免外部依赖（例如文件，sockets，数据库连接什么的），因为那些在装饰器运行的时候可能不存在（在import 阶段，例如在 pydoc 或者其他工具里面）。装饰器应该要保证在各种情况下都可以成功。
+
+不要使用 @staticmethod ，除非为了和已有库的 api 定义集成。应该使用模块级别的函数代替。
+
+只在定义命名构造方法或者类级别的方法都时候使用 @classmethod，例如修改全局状态或者缓存。
+
+*** 2.18 Threading
+
+不要依赖内部自带类型的原子性。
+
+python 的一些自带类型例如 dict 似乎支持原子操作，但是有些情况下又不原子。也不要依赖变量赋值的原子性。
+
+使用 Queue 模块的 Queue 类型来作为线程间数据通讯的方法。或者使用 threading 模块和他提供的 locking 方法。学习下如何使用 condition variables ，使用 threading.Condition 代替使用 lower-level locks.
+
+*** 2.19 Power Features
+
+尽量避免使用。
+
+例如自定义 metaclass，接触 bytecode，on-the-fly 编译，动态继承，等等吧。。。
+
+标准库里面的模块使用到了没关系，例如 abc.ABCMeta, collections.namedtuple, dataclasses, and enum
+
+*** 2.20 Modern Python: Python 3 and from __future__ imports
+
+应该写兼容 python3 的代码。
+
+*** 2.21 Type Annotated Code
+
+python3 支持 type hint，可以使用 pytype 检查。
+
+强烈建议更新代码的时候使用 type 支持。
+
+** 3 Python Style Rules
+
+*** 3.1 Semicolons
+
+不要用分号结尾。不要用分号把两行放一行。
+
+*** 3.2 Line length
+
+一行 80 个字符。除非：
+- 长的 import 语句
+- URL，路径，或者注释里面的长标记
+- 长的模块级别的常量，不好切的
+- pylint 的 disable 注释
+
+不要使用 \ 切分多行，除非是 with 语句里面有多个 context 管理器。
+
+有必要的话可以增加多余的括号。
+
+#+BEGIN_SRC python
+Yes: foo_bar(self, width, height, color='black', design=None, x='foo',
+             emphasis=None, highlight=0)
+
+     if (width == 0 and height == 0 and
+         color == 'red' and emphasis == 'strong'):
+#+END_SRC
+
+单行字符串太长的话，使用括号切分成多行。
+
+#+BEGIN_SRC python
+x = ('This will build a very long long '
+     'long long long long long long string')
+#+END_SRC
+
+注释里面的 url 尽量单独放一行
+
+#+BEGIN_SRC python
+Yes:  # See details at
+      # http://www.example.com/us/developer/documentation/api/content/v2.0/csv_file_name_extension_full_specification.html
+
+No:  # See details at
+     # http://www.example.com/us/developer/documentation/api/content/\
+     # v2.0/csv_file_name_extension_full_specification.html
+#+END_SRC
+
+with 语句里面可以使用 \ 拆分多行，也可以使用嵌套的 with。注意缩进。
+
+#+BEGIN_SRC python
+Yes:  with very_long_first_expression_function() as spam, \
+           very_long_second_expression_function() as beans, \
+           third_thing() as eggs:
+          place_order(eggs, beans, spam, beans)
+
+No:  with VeryLongFirstExpressionFunction() as spam, \
+          VeryLongSecondExpressionFunction() as beans:
+       PlaceOrder(eggs, beans, spam, beans)
+
+Yes:  with very_long_first_expression_function() as spam:
+          with very_long_second_expression_function() as beans:
+              place_order(beans, spam)
+#+END_SRC
+
+如果还有其他超过 80 字符的情况，并且 yapf 工具也不能处理的话，可以容忍。
+
+*** 3.3 Parentheses
+
+尽量少用括号。
+
+#+BEGIN_SRC python
+Yes: if foo:
+         bar()
+     while x:
+         x = bar()
+     if x and y:
+         bar()
+     if not x:
+         bar()
+     # 只有一个元素的元组使用 () 比只有一个逗号清晰
+     onesie = (foo,)
+     return foo
+     return spam, beans
+     return (spam, beans)
+     for (x, y) in dict.items(): ...
+
+No:  if (x):
+         bar()
+     if not(x):
+         bar()
+     return (foo)
+#+END_SRC
+
+*** 3.4 Indentation
+
+使用 4 个空格缩进。
+
+#+BEGIN_SRC python
+Yes:   # 和开始的括号对齐
+       foo = long_function_name(var_one, var_two,
+                                var_three, var_four)
+       meal = (spam,
+               beans)
+
+       # 和字典的开始括号对齐
+       foo = {
+           long_dictionary_key: value1 +
+                                value2,
+           ...
+       }
+
+       # 4个空格的悬挂缩进；第一行什么都不放
+       foo = long_function_name(
+           var_one, var_two, var_three,
+           var_four)
+       meal = (
+           spam,
+           beans)
+
+       # 字典里面的 4 空格悬挂缩进
+       foo = {
+           long_dictionary_key:
+               long_dictionary_value,
+           ...
+       }
+
+No:    # 看不清第一行的内容了
+       foo = long_function_name(var_one, var_two,
+           var_three, var_four)
+       meal = (spam,
+           beans)
+
+       # 2 空格缩进
+       foo = long_function_name(
+         var_one, var_two, var_three,
+         var_four)
+
+       # 字典里面没有悬挂缩进
+       foo = {
+           long_dictionary_key:
+           long_dictionary_value,
+           ...
+       }
+#+END_SRC
+
+**** 3.4.1 Trailing commas in sequences of items?
+
+结尾的逗号只有在 ],},) 和最后的元素不在同一行的时候使用。
+
+#+BEGIN_SRC python
+Yes:   golomb3 = [0, 1, 3]
+Yes:   golomb4 = [
+           0,
+           1,
+           4,
+           6,
+       ]
+
+No:    golomb4 = [
+           0,
+           1,
+           4,
+           6
+       ]
+#+END_SRC
+
+*** 3.5 Blank Lines
+
+顶级定义间两个空行。方法之间，class 和第一个方法之前使用一个空行。def 行之后不要有空行。适当的在方法和函数里面使用一个空行。
+
+*** 3.6 Whitespace
+
+在括号里面，括号和内容间不要有空格。
+
+#+BEGIN_SRC python
+Yes: spam(ham[1], {eggs: 2}, [])
+
+No:  spam( ham[ 1 ], { eggs: 2 }, [ ] )
+#+END_SRC
+
+逗号，分号，冒号前不要加空格，除了行尾，后面需要加空格。
+
+#+BEGIN_SRC python
+Yes: if x == 4:
+         print(x, y)
+     x, y = y, x
+
+No:  if x == 4 :
+         print(x , y)
+     x , y = y , x
+
+#+END_SRC
+
+参数列表，索引，切片的左括号前面不加空格
+
+#+BEGIN_SRC python
+Yes: spam(1)
+
+No:  spam (1)
+
+Yes: dict['key'] = list[index]
+
+No:  dict ['key'] = list [index]
+#+END_SRC
+
+行尾不加多余的空格。操作符两边加空格。
+
+#+BEGIN_SRC python
+Yes: x == 1
+
+No:  x<1
+#+END_SRC
+
+传参数或者函数默认值的 = 左右不加空格。
+
+#+BEGIN_SRC python
+Yes: def complex(real, imag=0.0): return Magic(r=real, i=imag)
+Yes: def complex(real, imag: float = 0.0): return Magic(r=real, i=imag)
+
+No:  def complex(real, imag = 0.0): return Magic(r = real, i = imag)
+No:  def complex(real, imag: float=0.0): return Magic(r = real, i = imag)
+#+END_SRC
+
+不要使用空格做竖列对齐，这个维护起来容易成负担。有一些工具或者 ide 可以自动做这个事情，但是确实对不使用这些工具的人是个负担。
+
+#+BEGIN_SRC python
+Yes:
+  foo = 1000  # comment
+  long_name = 2  # comment that should not be aligned
+
+  dictionary = {
+      'foo': 1,
+      'long_name': 2,
+  }
+
+No:
+  foo       = 1000  # comment
+  long_name = 2     # comment that should not be aligned
+
+  dictionary = {
+      'foo'      : 1,
+      'long_name': 2,
+  }
+#+END_SRC
+
+*** 3.7 Shebang Line
+
+大部分 .py 文件都不需要 #! 这行。主文件可以使用 ~#!/usr/bin/python~ 加 2 或者 3 结尾。
+
+这个只有直接运行的主程序有用，对于 import 的模块没用。
+
+*** 3.8 Comments and Docstrings
+
+确保针对模块，函数，方法使用了正确的文档字符串和行内的注释。
+
+**** 3.8.1 Docstrings
+
+总是使用 """ 格式的文档字符串。
+
+**** 3.8.2 Modules
+
+每个文件都有 lincense 声明，文件开头说明下模块内容和示例。
+
+#+BEGIN_SRC python
+"""用一行简介模块或者程序功能
+
+留一个空行。后面说明模块的说明，可以加例子。
+
+  Typical usage example:
+
+  foo = ClassFoo()
+  bar = foo.FunctionBar()
+"""
+#+END_SRC
+
+**** 3.8.3 Functions and Methods
+
+主要需要说明参数，返回值，异常。
+
+#+BEGIN_SRC python
+def fetch_bigtable_rows(big_table, keys, other_silly_variable=None):
+    """Fetches rows from a Bigtable.
+
+    Retrieves rows pertaining to the given keys from the Table instance
+    represented by big_table.  Silly things may happen if
+    other_silly_variable is not None.
+
+    Args:
+        big_table: An open Bigtable Table instance.
+        keys: A sequence of strings representing the key of each table row
+            to fetch.
+        other_silly_variable: Another optional variable, that has a much
+            longer name than the other args, and which does nothing.
+
+    Returns:
+        A dict mapping keys to the corresponding table row data
+        fetched. Each row is represented as a tuple of strings. For
+        example:
+
+        {'Serak': ('Rigel VII', 'Preparer'),
+         'Zim': ('Irk', 'Invader'),
+         'Lrrr': ('Omicron Persei 8', 'Emperor')}
+
+        If a key from the keys argument is missing from the dictionary,
+        then that row was not found in the table.
+
+    Raises:
+        IOError: An error occurred accessing the bigtable.Table object.
+    """
+#+END_SRC
+
+**** 3.8.4 Classes
+
+如果有公共属性，需要说明下。
+
+#+BEGIN_SRC python
+class SampleClass(object):
+    """Summary of class here.
+
+    Longer class information....
+    Longer class information....
+
+    Attributes:
+        likes_spam: A boolean indicating if we like SPAM or not.
+        eggs: An integer count of the eggs we have laid.
+    """
+
+    def __init__(self, likes_spam=False):
+        """Inits SampleClass with blah."""
+        self.likes_spam = likes_spam
+        self.eggs = 0
+
+    def public_method(self):
+        """Performs operation blah."""
+#+END_SRC
+
+**** 3.8.5 Block and Inline Comments
+
+对于代码里面逻辑复杂或者难理解的地方，如果需要在 code review 的时候解释说明，那最好直接写到代码里面。
+
+#+BEGIN_SRC python
+# We use a weighted dictionary search to find out where i is in
+# the array.  We extrapolate position based on the largest num
+# in the array and the array size and then do binary search to
+# get the exact number.
+
+if i & (i-1) == 0:  # True if i is 0 or a power of 2.
+#+END_SRC
+
+inline 的注释应该在 # 前留两个空格。另外，注释里面不要去直接解释代码，这个没啥意义。
+
+**** 3.8.6 Punctuation, Spelling, and Grammar
+
+应该是说注意语法啥的，代码的质量也包括注释的质量。
+
+*** 3.9 Classes
+
+如果一个类没有明显的基类，那就继承 object。
+
+#+BEGIN_SRC python
+Yes: class SampleClass(object):
+         pass
+
+
+     class OuterClass(object):
+
+         class InnerClass(object):
+             pass
+
+
+     class ChildClass(ParentClass):
+         """Explicitly inherits from another class already."""
+
+No: class SampleClass:
+        pass
+
+
+    class OuterClass:
+
+        class InnerClass:
+            pass
+#+END_SRC
+
+更好的兼容性。还帮忙定义了一些 __ 开头的方法。
+
+*** 3.10 Strings
+
+使用 format 或者 % 格式化字符串。python 3.6 还支持了 f-string。
+
+#+BEGIN_SRC python
+Yes: x = a + b
+     x = '%s, %s!' % (imperative, expletive)
+     x = '{}, {}'.format(first, second)
+     x = 'name: %s; score: %d' % (name, n)
+     x = 'name: {}; score: {}'.format(name, n)
+     x = f'name: {name}; score: {n}'  # Python 3.6+
+
+No: x = '%s%s' % (a, b)  # use + in this case
+    x = '{}{}'.format(a, b)  # use + in this case
+    x = first + ', ' + second
+    x = 'name: ' + name + '; score: ' + str(n)
+#+END_SRC
+
+避免在循环里面使用 + 和 += 操作符连接字符串。因为 string 是 immutable ，这样会创建很多临时对象。可以使用个 list 然后 ''.join(list) 这样，或者使用 io.BytesIO。
+
+#+BEGIN_SRC python
+Yes: items = ['<table>']
+     for last_name, first_name in employee_list:
+         items.append('<tr><td>%s, %s</td></tr>' % (last_name, first_name))
+     items.append('</table>')
+     employee_table = ''.join(items)
+
+No: employee_table = '<table>'
+    for last_name, first_name in employee_list:
+        employee_table += '<tr><td>%s, %s</td></tr>' % (last_name, first_name)
+    employee_table += '</table>'
+#+END_SRC
+
+灵活使用 ' 和 " ，避免使用 \\ 转义。多行字符串使用 """ ，不用 ''' 。
+
+#+BEGIN_SRC python
+  No:
+  long_string = """This is pretty ugly.
+Don't do this.
+"""
+
+  Yes:
+  long_string = """This is fine if your use case can accept
+      extraneous leading spaces."""
+
+  Yes:
+  long_string = ("And this is fine if you can not accept\n" +
+                 "extraneous leading spaces.")
+
+  Yes:
+  long_string = ("And this too is fine if you can not accept\n"
+                 "extraneous leading spaces.")
+
+  Yes:
+  import textwrap
+
+  long_string = textwrap.dedent("""\
+      This is also fine, because textwrap.dedent()
+      will collapse common leading spaces in each line.""")
+#+END_SRC
+
+*** 3.11 Files and Sockets
+
+使用完 file 和 sockets 之后显式的关闭。要不然
+- 会消耗文件描述符。
+- 会导致其他操作例如移动删除什么的失败。
+- 及时关闭可以更容易发现一些不恰当的使用，有问题会早暴露。
+
+当文件或者sockets 对象被销毁的时候会自动关闭，但是依赖这个特性是个不好的习惯
+- python 不同版本的垃圾回收策略会不一样，也没保证啥时候会关闭。
+- 一些意料之外的文件引用，比如全局变量，异常堆栈里面的引用什么的，可能会导致存活时间变长。
+
+使用 with 语句来打开文件
+
+#+BEGIN_SRC python
+with open("hello.txt") as hello_file:
+    for line in hello_file:
+        print(line)
+#+END_SRC
+
+文件类型的对象，但是还不支持 with 语句的，可以使用 contextlib.closing()
+
+#+BEGIN_SRC python
+import contextlib
+
+with contextlib.closing(urllib.urlopen("http://www.python.org/")) as front_page:
+    for line in front_page:
+        print(line)
+#+END_SRC
+
+*** 3.12 TODO Comments
+
+注释里面使用 TODO 来标记临时的一些处理，或者一些有待改进的处理。
+
+TODO 使用 TODO 开头，后面括号里面使用邮件或者名字标记是谁加的，然后跟着是 todo 内容。
+
+这个格式要求是为了将来方便搜索。TODO 并不表示以后也需要这个人去修复这个问题。
+
+#+BEGIN_SRC python
+# TODO(kl@gmail.com): Use a "*" here for string repetition.
+# TODO(Zeke) Change this to use relations.
+#+END_SRC
+
+如果一个 TODO 是为了标记将来做什么，那最好把时间 (“Fix by November 2009”) 或者触发的事件 (“Remove this code when all clients can handle XML responses.”) 也加上。
+
+*** 3.13 Imports formatting
+
+一个模块一行
+
+#+BEGIN_SRC python
+Yes: import os
+     import sys
+
+No:  import os, sys
+#+END_SRC
+
+import 都写在文件顶部，在模块的文档字符串之后，在模块的全局变量和常量之前。按照最通用到最不通用排序。
+
+1. future import 语句来打开文件
+
+#+BEGIN_SRC python
+from __future__ import absolute_import
+from __future__ import division
+from __future__ import print_function
+#+END_SRC
+
+2. python 标准库
+
+#+BEGIN_SRC python
+import sys
+#+END_SRC
+
+3. 第三方库
+
+#+BEGIN_SRC python
+import tensorflow as tf
+#+END_SRC
+
+4. 代码库子模块
+
+#+BEGIN_SRC python
+from otherproject.ai import mind
+#+END_SRC
+
+5. 程序自己的子模块(已经废弃)。新的处理方式是和 4 一样处理就行。
+
+使用词典序，忽略大小写，基于模块包的全称。在不同块之前增加一个空行。
+
+#+BEGIN_SRC python
+import collections
+import queue
+import sys
+
+from absl import app
+from absl import flags
+import bs4
+import cryptography
+import tensorflow as tf
+
+from book.genres import scifi
+from myproject.backend.hgwells import time_machine
+from myproject.backend.state_machine import main_loop
+from otherproject.ai import body
+from otherproject.ai import mind
+from otherproject.ai import soul
+
+# Older style code may have these imports down here instead:
+#from myproject.backend.hgwells import time_machine
+#from myproject.backend.state_machine import main_loop
+#+END_SRC
+
+*** 3.14 Statements
+
+通常一行一句。
+
+#+BEGIN_SRC python
+Yes:
+
+  if foo: bar(foo)
+
+No:
+
+  if foo: bar(foo)
+  else:   baz(foo)
+
+  try:               bar(foo)
+  except ValueError: baz(foo)
+
+  try:
+      bar(foo)
+  except ValueError: baz(foo)
+#+END_SRC
+
+*** 3.15 Accessors
+
+如果比较简单，可以使用公共属性，而不用 geter/seter，毕竟没必要多一次函数调用。稍微复杂点的可以使用 @property。
+
+对于复杂的，可以使用 get_foo() 和 set_foo() 这样的函数调用。如果以前允许通过属性访问，不要把新的函数直接绑定过去。这样依然用原来的方法的那些代码就会报错，可以让他们意识到新的逻辑的复杂程度。
+
+*** 3.16 Naming
+
+module_name, package_name, ClassName, method_name, ExceptionName, function_name, GLOBAL_CONSTANT_NAME, global_var_name, instance_var_name, function_parameter_name, local_var_name
+
+函数名，变量名，文件名应该自说明，避免使用缩写。特别的，不用有歧义的或者项目外的人不熟悉的词，不要通过删除单词里面的字母来产生缩写。
+
+总是使用 .py 扩展名。
+
+**** 3.16.1 Names to Avoid
+
+- 单字母名字，除非是计数器或者迭代器之类。也可以在 tye/except 语句里面使用 e 表示异常。
+- 包/模块名里面使用 -
+- __ 开头并且和结尾的名字，这个是 python 自己会用的。
+
+**** 3.16.2 Naming Conventions
+
+- "internal" 的意思是模块的内部，或者类内部的被保护或者私有属性
+- 使用 _ 保护模块变量或者函数（不会被 from module import * 导入）. 使用 __ 可以让一个实例变量或者方法可以让他们变成类的私有属性，但是不鼓励这么做，这个会带来阅读困难，也不好测试，并且还不是真的私有。
+- 可以把其他相关的类放到一个模块的顶部，不用限制一个模块只有一个类，和 java 不一样。
+- 类名字使用首字母大写，模块名字使用小写下划线。
+- 测试用例里面的方法使用 test 开头。test<MethodUnderTest>_<state> 例如 testPop_EmptyStack，这样也行，毕竟没有什么更好的办法。
+
+**** 3.16.3 File Naming
+
+必须是 .py 结尾，不能包含 - 。如果你想要一个文件没有扩展名，那可以建一个软连接或者写个 bash 文件包含 exec "$0.py" "$@"。
+
+**** 3.16.4 Guidelines derived from Guido’s Recommendations
+
+| Type                       | 	Public         | 	Internal                    |
+|----------------------------+--------------------+---------------------------------|
+| Packages                   | lower_with_under   |                                 |
+| Modules                    | lower_with_under   | _lower_with_under               |
+| Classes                    | CapWords           | _CapWords                       |
+| Exceptions                 | CapWords           |                                 |
+| Functions                  | lower_with_under() | _lower_with_under()             |
+| Global/Class Constants     | CAPS_WITH_UNDER    | _CAPS_WITH_UNDER                |
+| Global/Class Variables     | lower_with_under   | _lower_with_under               |
+| Instance Variables         | lower_with_under   | _lower_with_under (protected)   |
+| Method Names               | lower_with_under() | _lower_with_under() (protected) |
+| Function/Method Parameters | lower_with_under   |                                 |
+| Local Variables            | lower_with_under   |                                 |
+
+不鼓励使用 __ 开头的变量。
+
+**** 3.17 Main
+
+即使一个文件是个可执行的文件，也应该允许被 import，并且 import 不能有副作用，例如直接运行。主要的功能应该在 main() 函数里面。
+
+pydoc 和单元测试都需要文件是可以被 import 的。程序应该总是检查 ~__name__~ 。
+
+#+BEGIN_SRC python
+def main():
+    ...
+
+if __name__ == '__main__':
+    main()
+#+END_SRC
+
+注意要兼容 pydoc ，顶级的函数调用，创建对象以及其他操作都会在 import 的时候就执行。
+
+**** 3.18 Function length
+
+最好是短小精悍的。这里没有硬性规定，超过 40 行的，看看在不影响程序结构的情况下是不是可以拆分。
+
+即使长的函数现在看着没啥问题，但是过几个月之后，需要修改或者增加新功能的时候会比较痛苦。
+
+*** 3.19 Type Annotations
+**** 3.19.1 General Rules
+
+- 仔细看看 PEP-484
+- 在一个方法里面，只有在有必要定义的时候才给 self 和 cls 定义类型，例如 ~@classmethod def create(cls: Type[T]) -> T: return cls()~
+- 如果一些变量或者返回类型不应该明确，使用 any
+- 并不需要注解模块里面的所有方法
+  - 至少注解公开 API
+  - 在安全和代码清晰和灵活间取得平衡
+  - 对出过类型引起的 bug 的地放增加类型注解
+  - 针对比较难理解的代码增加类型注解
+  - 针对比较稳定的代码增加类型注解。通常给稳定代码增加注解不会损失灵活性。
+
+**** 3.19.2 Line Breaking
+
+参考前面的缩进的定义。
+
+增加了类型注解之后，很多函数的签名会变成一个参数一行。
+
+#+BEGIN_SRC python
+def my_method(self,
+              first_var: int,
+              second_var: Foo,
+              third_var: Optional[Bar]) -> int:
+  ...
+#+END_SRC
+
+Always prefer breaking between variables, and not for example between variable names and type annotations. However, if everything fits on the same line, go for it.
+
+#+BEGIN_SRC python
+def my_method(self, first_var: int) -> int:
+  ...
+#+END_SRC
+
+如果返回函数名参数加返回类型太长，可以另起一行空 4 个空格。
+
+#+BEGIN_SRC python
+def my_method(
+    self, first_var: int) -> Tuple[MyLongType1, MyLongType1]:
+  ...
+#+END_SRC
+
+更长的情况
+
+#+BEGIN_SRC python
+Yes:
+def my_method(
+    self, other_arg: Optional[MyLongType]
+) -> Dict[OtherLongType, MyLongType]:
+  ...
+#+END_SRC
+
+pylint 允许和括号对齐，但是这样会降低可读性。
+
+#+BEGIN_SRC python
+No:
+def my_method(self,
+              other_arg: Optional[MyLongType]
+             ) -> Dict[OtherLongType, MyLongType]:
+  ...
+#+END_SRC
+
+类似上面的例子，尽量不打断类型注解。但是如果太长，也可以换行，保持子类型不被打断。
+
+#+BEGIN_SRC python
+def my_method(
+    self,
+    first_var: Tuple[List[MyLongType1],
+                     List[MyLongType2]],
+    second_var: List[Dict[
+        MyLongType3, MyLongType4]]) -> None:
+  ...
+#+END_SRC
+
+If a single name and type is too long, consider using an alias for the type. The last resort is to break after the colon and indent by 4.
+
+如果一个类型的名字自己本身太长了，考虑定义一个别名。实在没办法，在冒号后面换行。
+
+#+BEGIN_SRC python
+Yes:
+def my_function(
+    long_variable_name:
+        long_module_name.LongTypeName,
+) -> None:
+  ...
+
+No:
+def my_function(
+    long_variable_name: long_module_name.
+        LongTypeName,
+) -> None:
+  ...
+#+END_SRC
+
+**** 3.19.3 Forward Declarations
+
+如果需要一个在模块里面还没有定义的类名，可以使用字符串名字。
+
+#+BEGIN_SRC python
+class MyClass(object):
+
+  def __init__(self,
+               stack: List["MyClass"]) -> None:
+#+END_SRC
+
+**** 3.19.4 Default Values
+
+基于 PEP-008，只有在同时有类型注解和默认值的时候 = 前后才会同时有空格。
+
+#+BEGIN_SRC python
+Yes:
+def func(a: int = 0) -> int:
+  ...
+
+No:
+def func(a:int=0) -> int:
+  ...
+#+END_SRC
+
+**** 3.19.5 NoneType
+
+NoneType 是个 fist class 类型，None 是 NoneType 的别名。如果一个参数可以是 None，那应该声明下。你可以使用 Union，但是如果只有一种其他类型，可以使用 Optional。
+
+使用明确的 Optional 定义，早先的 PEP-484 允许 ~a: Text = None~ 解释为 ~a: Optional[Text] = None~ ，但是现在不推荐了。
+
+#+BEGIN_SRC python
+Yes:
+def func(a: Optional[Text], b: Optional[Text] = None) -> Text:
+  ...
+def multiple_nullable_union(a: Union[None, Text, int]) -> Text
+  ...
+
+No:
+def nullable_union(a: Union[None, Text]) -> Text:
+  ...
+def implicit_optional(a: Text = None) -> Text:
+  ...
+#+END_SRC
+
+**** 3.19.6 Type Aliases
+
+可以给类型建别名，命名应该是大写开头的。如果只在这个模块里面使用，应该使用 _ 开头。
+
+#+BEGIN_SRC python
+_ShortName = module_with_long_name.TypeWithLongName
+ComplexMap = Mapping[Text, List[Tuple[int, int]]]
+#+END_SRC
+
+类似的还有嵌套的类型定义，或者函数返回的多变量。
+
+**** 3.19.7 Ignoring Types
+
+可以使用 ~# type: ignore~ 注释关闭单行的类型检查。
+
+pytype 支持关闭特定的类型错误。
+
+#+BEGIN_SRC python
+# pytype: disable=attribute-error
+#+END_SRC
+
+**** 3.19.8 Typing Variables
+
+如果一个变量很难通过推导得出，那可以在注释或者冒号后面定义类型。
+
+#+BEGIN_SRC python
+a = SomeUndecoratedFunction()  # type: Foo
+a: Foo = SomeUndecoratedFunction()
+#+END_SRC
+
+**** 3.19.9 Tuples vs Lists
+
+不像 list 只能有一个类型，tuple 可以有多个。
+
+#+BEGIN_SRC python
+a = [1, 2, 3]  # type: List[int]
+b = (1, 2, 3)  # type: Tuple[int, ...]
+c = (1, "2", 3.5)  # type: Tuple[int, Text, float]
+#+END_SRC
+
+**** 3.19.10 TypeVars
+
+python 的 type 支持范型。通过 TypeVar 这个工厂方法使用。
+
+#+BEGIN_SRC python
+from typing import List, TypeVar
+T = TypeVar("T")
+...
+def next(l: List[T]) -> T:
+  return l.pop()
+#+END_SRC
+
+可以给 TypeVar 增加限制条件
+
+#+BEGIN_SRC python
+AddableType = TypeVar("AddableType", int, float, Text)
+def add(a: AddableType, b: AddableType) -> AddableType:
+  return a + b
+#+END_SRC
+
+有个比较常用的类型是 AnyStr，用它来表示 bytes 或者 unicode 。
+
+#+BEGIN_SRC python
+from typing import AnyStr
+def check_length(x: AnyStr) -> AnyStr:
+  if len(x) <= 42:
+    return x
+  raise ValueError()
+#+END_SRC
+
+**** 3.19.11 String types
+
+对于 python3 使用 str。其他说明都是些关于 2 和 3 兼容的。
+
+**** 3.19.12 Imports For Typing
+
+只导入需要的类型，可以一行导入多个。这些类型也应该作为关键字，不要在你的代码里面使用，如果有冲突可以通过 as 来起个别名。
+
+#+BEGIN_SRC python
+from typing import Any, Dict, Optional
+from typing import Any as AnyType
+#+END_SRC
+
+**** 3.19.13 Conditional Imports
+
+只有在实验情况下才使用条件导入。
+
+**** 3.19.14 Circular Dependencies
+
+类型的循环引用一般都是有代码问题，这些代码应该被重构。
+
+使用 Any 替换那些导致循环引用的模块。后面使用这个模块真实的类型定义（不过 Any 的属性还是 Any）。
+
+#+BEGIN_SRC python
+from typing import Any
+
+some_mod = Any  # some_mod.py imports this module.
+...
+
+def my_method(self, var: some_mod.SomeType) -> None:
+  ...
+#+END_SRC
+
+**** 3.19.15 Generics
+
+When annotating, prefer to specify type parameters for generic types; otherwise, the generics’ parameters will be assumed to be Any.
+
+#+BEGIN_SRC python
+def get_names(employee_ids: List[int]) -> Dict[int, Any]:
+  ...
+
+# These are both interpreted as get_names(employee_ids: List[Any]) -> Dict[Any, Any]
+def get_names(employee_ids: list) -> Dict:
+  ...
+
+def get_names(employee_ids: List) -> Dict:
+  ...
+#+END_SRC
+
+If the best type parameter for a generic is Any, make it explicit, but remember that in many cases TypeVar might be more appropriate:
+
+#+BEGIN_SRC python
+def get_names(employee_ids: List[Any]) -> Dict[Any, Text]:
+  """Returns a mapping from employee ID to employee name for given IDs."""
+
+T = TypeVar('T')
+def get_names(employee_ids: List[T]) -> Dict[T, Text]:
+  """Returns a mapping from employee ID to employee name for given IDs."""
+#+END_SRC
+
+** 4 Parting Words
+
+保持一致性。
+
+编辑代码的时候，注意看看原来的代码的风格。别破坏原来的代码风格。
+
+代码风格指导的目的是为了让大家形成一种共同语言，这样更多的关注代码的逻辑。如果一个代码里面语言太多反而会导致阅读代码变困难，所以应该避免。
+
+
