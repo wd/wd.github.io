@@ -1,4 +1,4 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>Python Coroutine | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Python Coroutine</span></h1><h2 class=date>2019/08/27</h2><p class=terms>Tags: <a href=/tags/python>python</a> <a href=/tags/coroutine>coroutine</a></p></div><main><p>协程 coroutine 不知道是从什么时候开始的，感觉我第一次看到是 lua 里面支持 yield 。后面看到就是 javascript 里面的 Promise，async 和 await。</p><p>以前写 Javascript 的时候容易会遇到 callback hell，似乎 Promise 就是出来解决这个问题的，让你可以用同步的方式写异步程序。例如你有三个异步请求可以同时发出去，而后面的结果又需要这三个的结果都回来才能继续，那就可以用类似下面的伪代码，整体执行时间是最长的那个。</p><div class="src src-javascript"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>Python Coroutine | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Python Coroutine</span></h1><h2 class=date>2019/08/27</h2><p class=terms>Tags: <a href=/tags/python>python</a> <a href=/tags/coroutine>coroutine</a></p></div><main><p>协程 coroutine 不知道是从什么时候开始的，感觉我第一次看到是 lua 里面支持 yield 。后面看到就是 javascript 里面的 Promise，async 和 await。</p><p>以前写 Javascript 的时候容易会遇到 callback hell，似乎 Promise 就是出来解决这个问题的，让你可以用同步的方式写异步程序。例如你有三个异步请求可以同时发出去，而后面的结果又需要这三个的结果都回来才能继续，那就可以用类似下面的伪代码，整体执行时间是最长的那个。</p><div class="src src-javascript"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
 </span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript>res1 <span style=color:#333>=</span> await test1
@@ -46,7 +46,7 @@ asyncio<span style=color:#333>.</span>run(test())</code></pre></td></tr></table>
 </span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#080;font-weight:700>import</span> <span style=color:#0e84b5;font-weight:700>asyncio</span>
 
 async <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>nested</span>():
-    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>started</span><span style=background-color:#fff0f0>&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0>&#39;started&#39;</span>)
     <span style=color:#080;font-weight:700>return</span> <span style=color:#00d;font-weight:700>42</span>
 
 async <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>main</span>():
@@ -57,7 +57,7 @@ async <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;f
     <span style=color:#888># &#34;task&#34; can now be used to cancel &#34;nested()&#34;, or</span>
     <span style=color:#888># can simply be awaited to wait until it is complete:</span>
     await asyncio<span style=color:#333>.</span>sleep(<span style=color:#00d;font-weight:700>5</span>)
-    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>after sleep</span><span style=background-color:#fff0f0>&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0>&#39;after sleep&#39;</span>)
     await task
 asyncio<span style=color:#333>.</span>run(main())</code></pre></td></tr></table></div></div></div><p>类似这个例子， <code>nested</code> 这个函数实际是在 task 赋值的时候就开始执行了。但是在等到了 <code>await task</code> 才获取他的结果。当然如果那个 <code>nested</code> 执行时间比较长，那等到了 await 语句的时候，会等他执行完毕才继续。</p><p>这个和那个 javascript 的简单例子就比较像了，整体执行时间就是长的那个，就是并行的感觉。 <code>asyncio</code> 还提供了 <code>asyncio.gather()</code> ，提供了方便的方法把并行的任务绑定在一起，</p><p>使用 asyncio 的话，协程里面执行的东西也需要是协程友好的，如果执行原始的阻塞的代码，那这部分代码无法并行。比如把上面的代码修改一下。</p><div class="src src-python"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
@@ -89,9 +89,9 @@ asyncio<span style=color:#333>.</span>run(main())</code></pre></td></tr></table>
 <span style=color:#080;font-weight:700>from</span> <span style=color:#0e84b5;font-weight:700>time</span> <span style=color:#080;font-weight:700>import</span> time, sleep
 
 async <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>nested</span>():
-    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>started</span><span style=background-color:#fff0f0>&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0>&#39;started&#39;</span>)
     sleep(<span style=color:#00d;font-weight:700>1</span>)
-    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>after 1s</span><span style=background-color:#fff0f0>&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0>&#39;after 1s&#39;</span>)
     await asyncio<span style=color:#333>.</span>sleep(<span style=color:#00d;font-weight:700>2</span>)
     <span style=color:#080;font-weight:700>return</span> <span style=color:#00d;font-weight:700>42</span>
 
@@ -182,7 +182,7 @@ async <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;f
         <span style=color:#888># Notify the queue that the &#34;work item&#34; has been processed.</span>
         queue<span style=color:#333>.</span>task_done()
 
-        <span style=color:#080;font-weight:700>print</span>(f<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>{name} has slept for {sleep_for:.2f} seconds</span><span style=background-color:#fff0f0>&#39;</span>)
+        <span style=color:#080;font-weight:700>print</span>(f<span style=background-color:#fff0f0>&#39;{name} has slept for {sleep_for:.2f} seconds&#39;</span>)
 
 
 async <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>main</span>():
@@ -193,13 +193,13 @@ async <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;f
     total_sleep_time <span style=color:#333>=</span> <span style=color:#00d;font-weight:700>0</span>
     <span style=color:#080;font-weight:700>for</span> _ <span style=color:#000;font-weight:700>in</span> <span style=color:#007020>range</span>(<span style=color:#00d;font-weight:700>20</span>):
         sleep_for <span style=color:#333>=</span> random<span style=color:#333>.</span>uniform(<span style=color:#60e;font-weight:700>0.05</span>, <span style=color:#60e;font-weight:700>1.0</span>)
-        total_sleep_time <span style=color:#333>+</span><span style=color:#333>=</span> sleep_for
+        total_sleep_time <span style=color:#333>+=</span> sleep_for
         queue<span style=color:#333>.</span>put_nowait(sleep_for)
 
     <span style=color:#888># Create three worker tasks to process the queue concurrently.</span>
     tasks <span style=color:#333>=</span> []
     <span style=color:#080;font-weight:700>for</span> i <span style=color:#000;font-weight:700>in</span> <span style=color:#007020>range</span>(<span style=color:#00d;font-weight:700>3</span>):
-        task <span style=color:#333>=</span> asyncio<span style=color:#333>.</span>create_task(worker(f<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>worker-{i}</span><span style=background-color:#fff0f0>&#39;</span>, queue))
+        task <span style=color:#333>=</span> asyncio<span style=color:#333>.</span>create_task(worker(f<span style=background-color:#fff0f0>&#39;worker-{i}&#39;</span>, queue))
         tasks<span style=color:#333>.</span>append(task)
 
     <span style=color:#888># Wait until the queue is fully processed.</span>
@@ -213,9 +213,9 @@ async <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;f
     <span style=color:#888># Wait until all worker tasks are cancelled.</span>
     await asyncio<span style=color:#333>.</span>gather(<span style=color:#333>*</span>tasks, return_exceptions<span style=color:#333>=</span>True)
 
-    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>====</span><span style=background-color:#fff0f0>&#39;</span>)
-    <span style=color:#080;font-weight:700>print</span>(f<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>3 workers slept in parallel for {total_slept_for:.2f} seconds</span><span style=background-color:#fff0f0>&#39;</span>)
-    <span style=color:#080;font-weight:700>print</span>(f<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>total expected sleep time: {total_sleep_time:.2f} seconds</span><span style=background-color:#fff0f0>&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0>&#39;====&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(f<span style=background-color:#fff0f0>&#39;3 workers slept in parallel for {total_slept_for:.2f} seconds&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(f<span style=background-color:#fff0f0>&#39;total expected sleep time: {total_sleep_time:.2f} seconds&#39;</span>)
 
 
 asyncio<span style=color:#333>.</span>run(main())</code></pre></td></tr></table></div></div></div><p>这里面需要注意的是 <code>task</code> 赋值的时候，实际 worker 就开始运行了。接下来会程序会在 <code>await queue.join()</code> 等待队列都标记为 <code>queue.task_done()</code> ，这个标记动作完全是你的程序自己控制的，如果消耗了一个队列元素，但是标记了 2 次，那会发现队列没有执行完毕就会令 <code>await queue.join()</code> 执行完毕。在已有的 queue 都消耗完毕之后，所有的 worker 都会等待在 <code>sleep_for = await queue.get()</code> ，所以 <code>queue.join</code> 之后还需要执行 <code>task.cancel</code> 取消任务的继续执行。要注意 <code>task.cancel</code> 语句执行也是异步的，也并不是执行完毕任务就会结束了，相当于只是请求任务取消，还需要去用 <code>await task</code> 来确认是真的取消了。</p><p>asyncio 的核心是事件循环 loop，可以通过 <code>asyncio.get_event_loop()</code> 来获取当前 loop，然后通过 <code>loop.run_until_complete(future)</code> 这样的命令来执行协程。以及还有一些 <code>loop.xxx</code> 方法来创建任务和管理协程。这些似乎是 low level api，一般不用。</p><p>low level api 还有一个 Future，说是 Task 的父类，更底层。感觉 Future 可以用来联系多个协程用的。对于 <code>await future</code> 语句，只有 <code>future.set_result()</code> 被调用的时候才会继续执行。这样比如有多个协程要执行，其中有些又有依赖，那就可以创建一个 feture，然后在被依赖的协程里面计算完毕的时候，执行 future.set_result() ，然后依赖他的协程里面 await future 就会获取到执行结果，也就可以继续执行了。</p><div class="src src-python"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
@@ -263,9 +263,9 @@ async <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;f
     <span style=color:#888># we already have a reference to the event loop at hand.</span>
     <span style=color:#888># Otherwise we could have just used &#34;asyncio.create_task()&#34;.</span>
     task <span style=color:#333>=</span> loop<span style=color:#333>.</span>create_task(
-        set_after(fut, <span style=color:#00d;font-weight:700>1</span>, <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>... world</span><span style=background-color:#fff0f0>&#39;</span>))
+        set_after(fut, <span style=color:#00d;font-weight:700>1</span>, <span style=background-color:#fff0f0>&#39;... world&#39;</span>))
 
-    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>hello ...</span><span style=background-color:#fff0f0>&#39;</span>)
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0>&#39;hello ...&#39;</span>)
     await task
 
     <span style=color:#888># Wait until *fut* has a result (1 second) and print it.</span>

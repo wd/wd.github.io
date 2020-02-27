@@ -1,4 +1,4 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>Learning Python Coroutine | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Learning Python Coroutine</span></h1><h2 class=date>2019/10/17</h2><p class=terms>Tags: <a href=/tags/python>python</a> <a href=/tags/coroutine>coroutine</a></p></div><main><p>看了一个视频 <a href="https://www.youtube.com/watch?time_continue=1780&v=GSk0tIjDT10">OSB 2015 - How Do Python Coroutines Work?</a>，从头开始讲 coroutine 是怎么抽象出来的，感觉好厉害。自己写了一点程序学习了一下。之前写的关于 <a href=https://wdicc.com/python-coroutine/>coroutine</a> 的帖子。</p><p>先准备一个 <code>server.py</code> ，可以接受客户端请求。要注意的是要使用 <code>Threading</code> ，或者 <code>fork</code> 的 server，要不服务端执行并不支持并发，需要处理完一个才能处理下一个，这样会发现虽然客户端那边请求是并发的，但是返回结果的时候是顺序的。</p><div class="src src-python"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>Learning Python Coroutine | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Learning Python Coroutine</span></h1><h2 class=date>2019/10/17</h2><p class=terms>Tags: <a href=/tags/python>python</a> <a href=/tags/coroutine>coroutine</a></p></div><main><p>看了一个视频 <a href="https://www.youtube.com/watch?time_continue=1780&v=GSk0tIjDT10">OSB 2015 - How Do Python Coroutines Work?</a>，从头开始讲 coroutine 是怎么抽象出来的，感觉好厉害。自己写了一点程序学习了一下。之前写的关于 <a href=https://wdicc.com/python-coroutine/>coroutine</a> 的帖子。</p><p>先准备一个 <code>server.py</code> ，可以接受客户端请求。要注意的是要使用 <code>Threading</code> ，或者 <code>fork</code> 的 server，要不服务端执行并不支持并发，需要处理完一个才能处理下一个，这样会发现虽然客户端那边请求是并发的，但是返回结果的时候是顺序的。</p><div class="src src-python"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
@@ -20,21 +20,21 @@
 </span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-python data-lang=python><span style=color:#080;font-weight:700>import</span> <span style=color:#0e84b5;font-weight:700>socketserver</span>
 <span style=color:#080;font-weight:700>from</span> <span style=color:#0e84b5;font-weight:700>time</span> <span style=color:#080;font-weight:700>import</span> sleep
 
-HOST <span style=color:#333>=</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>127.0.0.1</span><span style=background-color:#fff0f0>&#39;</span>
+HOST <span style=color:#333>=</span> <span style=background-color:#fff0f0>&#39;127.0.0.1&#39;</span>
 PORT <span style=color:#333>=</span> <span style=color:#00d;font-weight:700>2045</span>
 
 <span style=color:#080;font-weight:700>class</span> <span style=color:#b06;font-weight:700>MyTCPHandler</span>(socketserver<span style=color:#333>.</span>BaseRequestHandler):
     <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>handle</span>(self):
         data <span style=color:#333>=</span> self<span style=color:#333>.</span>request<span style=color:#333>.</span>recv(<span style=color:#00d;font-weight:700>1024</span>)
         sleep(<span style=color:#00d;font-weight:700>1</span>)
-        self<span style=color:#333>.</span>request<span style=color:#333>.</span>sendall(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>{} ok</span><span style=background-color:#fff0f0>&#39;</span><span style=color:#333>.</span>format(data<span style=color:#333>.</span>decode())<span style=color:#333>.</span>encode())
+        self<span style=color:#333>.</span>request<span style=color:#333>.</span>sendall(<span style=background-color:#fff0f0>&#39;{} ok&#39;</span><span style=color:#333>.</span>format(data<span style=color:#333>.</span>decode())<span style=color:#333>.</span>encode())
 
 
 <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>run</span>():
     server <span style=color:#333>=</span> socketserver<span style=color:#333>.</span>ThreadingTCPServer((HOST, PORT), MyTCPHandler)
     server<span style=color:#333>.</span>serve_forever()
 
-<span style=color:#080;font-weight:700>if</span> __name__ <span style=color:#333>==</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>__main__</span><span style=background-color:#fff0f0>&#39;</span>:
+<span style=color:#080;font-weight:700>if</span> __name__ <span style=color:#333>==</span> <span style=background-color:#fff0f0>&#39;__main__&#39;</span>:
     run()</code></pre></td></tr></table></div></div></div><p>然后是 <code>client.py</code> ，可以比较下里面 <code>sync_call</code> 和 <code>async_call</code> 的区别。</p><div class="src src-python"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
@@ -85,45 +85,45 @@ PORT <span style=color:#333>=</span> <span style=color:#00d;font-weight:700>2045
 <span style=color:#080;font-weight:700>from</span> <span style=color:#0e84b5;font-weight:700>time</span> <span style=color:#080;font-weight:700>import</span> time
 <span style=color:#080;font-weight:700>import</span> <span style=color:#0e84b5;font-weight:700>asyncio</span>
 
-HOST <span style=color:#333>=</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>127.0.0.1</span><span style=background-color:#fff0f0>&#39;</span>
+HOST <span style=color:#333>=</span> <span style=background-color:#fff0f0>&#39;127.0.0.1&#39;</span>
 PORT <span style=color:#333>=</span> <span style=color:#00d;font-weight:700>2045</span>
 
 start <span style=color:#333>=</span> time()
 
 <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>get</span>(path):
-    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>get {}</span><span style=background-color:#fff0f0>&#39;</span><span style=color:#333>.</span>format(path))
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0>&#39;get {}&#39;</span><span style=color:#333>.</span>format(path))
     s <span style=color:#333>=</span> socket<span style=color:#333>.</span>socket()
     s<span style=color:#333>.</span>connect((HOST, PORT))
 
     s<span style=color:#333>.</span>sendall(path<span style=color:#333>.</span>encode())
 
     chunk <span style=color:#333>=</span> s<span style=color:#333>.</span>recv(<span style=color:#00d;font-weight:700>100</span>)
-    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>get {}</span><span style=background-color:#fff0f0>&#39;</span><span style=color:#333>.</span>format(chunk<span style=color:#333>.</span>decode()))
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0>&#39;get {}&#39;</span><span style=color:#333>.</span>format(chunk<span style=color:#333>.</span>decode()))
 
 <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>sync_call</span>():
-    get(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>/bar</span><span style=background-color:#fff0f0>&#39;</span>)
-    get(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>/foo</span><span style=background-color:#fff0f0>&#39;</span>)
+    get(<span style=background-color:#fff0f0>&#39;/bar&#39;</span>)
+    get(<span style=background-color:#fff0f0>&#39;/foo&#39;</span>)
 
 
 async <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>async_get</span>(path):
-    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>get {}</span><span style=background-color:#fff0f0>&#39;</span><span style=color:#333>.</span>format(path))
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0>&#39;get {}&#39;</span><span style=color:#333>.</span>format(path))
     reader, writer <span style=color:#333>=</span> await asyncio<span style=color:#333>.</span>open_connection(HOST, PORT)
 
     writer<span style=color:#333>.</span>write(path<span style=color:#333>.</span>encode())
     await writer<span style=color:#333>.</span>drain()
 
     chunk <span style=color:#333>=</span> await reader<span style=color:#333>.</span>read(<span style=color:#00d;font-weight:700>100</span>)
-    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>get {}</span><span style=background-color:#fff0f0>&#39;</span><span style=color:#333>.</span>format(chunk<span style=color:#333>.</span>decode()))
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0>&#39;get {}&#39;</span><span style=color:#333>.</span>format(chunk<span style=color:#333>.</span>decode()))
 
 <span style=color:#080;font-weight:700>def</span> <span style=color:#06b;font-weight:700>async_call</span>():
     loop <span style=color:#333>=</span> asyncio<span style=color:#333>.</span>get_event_loop()
 
-    t1 <span style=color:#333>=</span> loop<span style=color:#333>.</span>create_task(async_get(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>/bar</span><span style=background-color:#fff0f0>&#39;</span>))
-    t2 <span style=color:#333>=</span> loop<span style=color:#333>.</span>create_task(async_get(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>/foo</span><span style=background-color:#fff0f0>&#39;</span>))
+    t1 <span style=color:#333>=</span> loop<span style=color:#333>.</span>create_task(async_get(<span style=background-color:#fff0f0>&#39;/bar&#39;</span>))
+    t2 <span style=color:#333>=</span> loop<span style=color:#333>.</span>create_task(async_get(<span style=background-color:#fff0f0>&#39;/foo&#39;</span>))
 
     loop<span style=color:#333>.</span>run_until_complete(asyncio<span style=color:#333>.</span>gather(t1, t2))
 
-<span style=color:#080;font-weight:700>if</span> __name__ <span style=color:#333>==</span> <span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>__main__</span><span style=background-color:#fff0f0>&#34;</span>:
+<span style=color:#080;font-weight:700>if</span> __name__ <span style=color:#333>==</span> <span style=background-color:#fff0f0>&#34;__main__&#34;</span>:
     <span style=color:#888>#sync_call()</span>
     async_call()
-    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0></span><span style=background-color:#fff0f0>&#39;</span><span style=background-color:#fff0f0>total {:.2f} seconds</span><span style=background-color:#fff0f0>&#39;</span><span style=color:#333>.</span>format(time() <span style=color:#333>-</span> start))</code></pre></td></tr></table></div></div></div><p>这里网络请求也需要使用非阻塞的库。创建 task 实际有挺多方法的，这里随便用了一个。</p></main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>
+    <span style=color:#080;font-weight:700>print</span>(<span style=background-color:#fff0f0>&#39;total {:.2f} seconds&#39;</span><span style=color:#333>.</span>format(time() <span style=color:#333>-</span> start))</code></pre></td></tr></table></div></div></div><p>这里网络请求也需要使用非阻塞的库。创建 task 实际有挺多方法的，这里随便用了一个。</p></main><section id=comment><h2 class=title>Comments</h2><div id=disqus_thread aria-live=polite><noscript>Please enable JavaScript to view the <a href=//disqus.com/?ref_noscript>comments powered by Disqus.</a></noscript></div></section><script type=text/javascript>var disqus_config=function(){this.page.url='';this.page.identifier='';};(function(){var d=document,s=d.createElement('script');s.src='//wdicc.disqus.com/embed.js';s.setAttribute('data-timestamp',+new Date());(d.head||d.body).appendChild(s);})();</script><footer style=clear:both><hr>Theme from <a href=https://github.com/wd/hugo-classic>hugo-classic</a> fork from <a href=https://github.com/goodroot/hugo-classic>Github</a></footer></body></html>

@@ -1,4 +1,4 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>Howto Make react-redux Work With react-navigation | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Howto Make react-redux Work With react-navigation</span></h1><h2 class=date>2017/10/21</h2><p class=terms>Tags: <a href=/tags/react-native>react-native</a> <a href=/tags/redux>redux</a> <a href=/tags/react-redux>react-redux</a> <a href=/tags/react-navigation>react-navigation</a></p></div><main><p>这周花了一些时间研究 <code class=verbatim>react-redux</code> 和怎么让它和 <code class=verbatim>react-navigation</code> 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 <a href=https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3>gist</a>。</p><div class="src src-javascript"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  1
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>Howto Make react-redux Work With react-navigation | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>Howto Make react-redux Work With react-navigation</span></h1><h2 class=date>2017/10/21</h2><p class=terms>Tags: <a href=/tags/react-native>react-native</a> <a href=/tags/redux>redux</a> <a href=/tags/react-redux>react-redux</a> <a href=/tags/react-navigation>react-navigation</a></p></div><main><p>这周花了一些时间研究 <code class=verbatim>react-redux</code> 和怎么让它和 <code class=verbatim>react-navigation</code> 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 <a href=https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3>gist</a>。</p><div class="src src-javascript"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  1
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  2
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  3
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  4
@@ -293,9 +293,9 @@
         <span style=color:#888>// 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面
 </span><span style=color:#888></span>        <span style=color:#080;font-weight:700>return</span> (
             <span style=color:#333>&lt;</span>View style<span style=color:#333>=</span>{styles.container}<span style=color:#333>&gt;</span>
-                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Inc counter&#34;</span> onPress<span style=color:#333>=</span>{onIncButtonClicked}<span style=color:#333>&gt;</span><span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/</span><span style=color:red;background-color:#faa>B</span><span style=color:red;background-color:#faa>u</span><span style=color:red;background-color:#faa>t</span><span style=color:red;background-color:#faa>t</span><span style=color:red;background-color:#faa>o</span><span style=color:red;background-color:#faa>n</span><span style=color:red;background-color:#faa>&gt;</span>
-                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Next page&#34;</span> onPress<span style=color:#333>=</span>{()=&gt;<span style=color:#080;font-weight:700>this</span>._nextPage()}<span style=color:#333>&gt;</span><span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/</span><span style=color:red;background-color:#faa>B</span><span style=color:red;background-color:#faa>u</span><span style=color:red;background-color:#faa>t</span><span style=color:red;background-color:#faa>t</span><span style=color:red;background-color:#faa>o</span><span style=color:red;background-color:#faa>n</span><span style=color:red;background-color:#faa>&gt;</span>
-            <span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/</span><span style=color:red;background-color:#faa>V</span><span style=color:red;background-color:#faa>i</span><span style=color:red;background-color:#faa>e</span><span style=color:red;background-color:#faa>w</span><span style=color:red;background-color:#faa>&gt;</span>
+                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Inc counter&#34;</span> onPress<span style=color:#333>=</span>{onIncButtonClicked}<span style=color:#333>&gt;&lt;</span><span style=color:red;background-color:#faa>/Button&gt;</span>
+                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Next page&#34;</span> onPress<span style=color:#333>=</span>{()=&gt;<span style=color:#080;font-weight:700>this</span>._nextPage()}<span style=color:#333>&gt;&lt;</span><span style=color:red;background-color:#faa>/Button&gt;</span>
+            <span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/View&gt;</span>
         )
     }
 }
@@ -306,7 +306,7 @@
         <span style=color:#080;font-weight:700>let</span> {counter} <span style=color:#333>=</span> <span style=color:#080;font-weight:700>this</span>.props;
 
         <span style=color:#080;font-weight:700>return</span> (
-            <span style=color:#333>&lt;</span>Text<span style=color:#333>&gt;</span>{counter}<span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/</span><span style=color:red;background-color:#faa>T</span><span style=color:red;background-color:#faa>e</span><span style=color:red;background-color:#faa>x</span><span style=color:red;background-color:#faa>t</span><span style=color:red;background-color:#faa>&gt;</span>
+            <span style=color:#333>&lt;</span>Text<span style=color:#333>&gt;</span>{counter}<span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/Text&gt;</span>
         )
     }
 }
@@ -331,10 +331,10 @@
         <span style=color:#888>// 界面有一个计数器的结果，两个按钮
 </span><span style=color:#888></span>        <span style=color:#080;font-weight:700>return</span> (
             <span style=color:#333>&lt;</span>View style<span style=color:#333>=</span>{styles.container}<span style=color:#333>&gt;</span>
-                <span style=color:#333>&lt;</span>ShowText counter<span style=color:#333>=</span>{counter} <span style=color:#333>/</span><span style=color:#333>&gt;</span>
-                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Inc counter&#34;</span> onPress<span style=color:#333>=</span>{onIncButtonClicked}<span style=color:#333>&gt;</span><span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/</span><span style=color:red;background-color:#faa>B</span><span style=color:red;background-color:#faa>u</span><span style=color:red;background-color:#faa>t</span><span style=color:red;background-color:#faa>t</span><span style=color:red;background-color:#faa>o</span><span style=color:red;background-color:#faa>n</span><span style=color:red;background-color:#faa>&gt;</span>
-                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Dec counter&#34;</span> onPress<span style=color:#333>=</span>{onDecButtonClicked}<span style=color:#333>&gt;</span><span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/</span><span style=color:red;background-color:#faa>B</span><span style=color:red;background-color:#faa>u</span><span style=color:red;background-color:#faa>t</span><span style=color:red;background-color:#faa>t</span><span style=color:red;background-color:#faa>o</span><span style=color:red;background-color:#faa>n</span><span style=color:red;background-color:#faa>&gt;</span>
-            <span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/</span><span style=color:red;background-color:#faa>V</span><span style=color:red;background-color:#faa>i</span><span style=color:red;background-color:#faa>e</span><span style=color:red;background-color:#faa>w</span><span style=color:red;background-color:#faa>&gt;</span>
+                <span style=color:#333>&lt;</span>ShowText counter<span style=color:#333>=</span>{counter} <span style=color:#333>/&gt;</span>
+                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Inc counter&#34;</span> onPress<span style=color:#333>=</span>{onIncButtonClicked}<span style=color:#333>&gt;&lt;</span><span style=color:red;background-color:#faa>/Button&gt;</span>
+                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Dec counter&#34;</span> onPress<span style=color:#333>=</span>{onDecButtonClicked}<span style=color:#333>&gt;&lt;</span><span style=color:red;background-color:#faa>/Button&gt;</span>
+            <span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/View&gt;</span>
         )
     }
 }
@@ -365,7 +365,7 @@
                 navigation<span style=color:#333>=</span>{addNavigationHelpers({
                     dispatch<span style=color:#333>:</span> <span style=color:#080;font-weight:700>this</span>.props.dispatch, <span style=color:#888>// 通过 action props 定义 (2)
 </span><span style=color:#888></span>                    state<span style=color:#333>:</span> <span style=color:#080;font-weight:700>this</span>.props.nav, <span style=color:#888>// 通过 state props 定义 (3)
-</span><span style=color:#888></span>                })} <span style=color:#333>/</span><span style=color:#333>&gt;</span>
+</span><span style=color:#888></span>                })} <span style=color:#333>/&gt;</span>
         )
     }
 }
@@ -420,7 +420,7 @@
 }
 
 <span style=color:#888>// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有
-</span><span style=color:#888></span><span style=color:#888>// 所以从这里也能看出来，reducer 并不一定按照页面去分
+</span><span style=color:#888>// 所以从这里也能看出来，reducer 并不一定按照页面去分
 </span><span style=color:#888></span><span style=color:#080;font-weight:700>let</span> homeReducer <span style=color:#333>=</span> (state, action) =&gt; {
     console.log(<span style=background-color:#fff0f0>&#34;inside home reducer&#34;</span>, state, action);
     <span style=color:#080;font-weight:700>return</span> state <span style=color:#333>||</span> {};
@@ -479,8 +479,8 @@
     render() {
         <span style=color:#080;font-weight:700>return</span> (
             <span style=color:#333>&lt;</span>Provider store<span style=color:#333>=</span>{store}<span style=color:#333>&gt;</span>
-                <span style=color:#333>&lt;</span>App prop1<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;prop1&#34;</span> <span style=color:#333>/</span><span style=color:#333>&gt;</span>
-            <span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/</span><span style=color:red;background-color:#faa>P</span><span style=color:red;background-color:#faa>r</span><span style=color:red;background-color:#faa>o</span><span style=color:red;background-color:#faa>v</span><span style=color:red;background-color:#faa>i</span><span style=color:red;background-color:#faa>d</span><span style=color:red;background-color:#faa>e</span><span style=color:red;background-color:#faa>r</span><span style=color:red;background-color:#faa>&gt;</span>
+                <span style=color:#333>&lt;</span>App prop1<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;prop1&#34;</span> <span style=color:#333>/&gt;</span>
+            <span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/Provider&gt;</span>
         );
     }
 }

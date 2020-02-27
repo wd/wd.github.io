@@ -1,4 +1,4 @@
-<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>redmine-a-good-project-tracker | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href=/resume/>~/resume</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>redmine-a-good-project-tracker</span></h1><h2 class=date>2012/12/11</h2><p class=terms>Tags: <a href=/tags/linux>linux</a></p></div><main><p>其实很早，大概2，3年前就听说了 redmine 了，不过他环境是 ruby 的，一直没有勇气去搭一个环境。现在项目人多了，bug 阿 feature 阿，就需要记录一下了，因为有些事情不记录下来总是会忘记。之前是尝试通过 wiki ＋ bugfree 来记录的，bugfree 记录在提测之后的一些问题，wiki 记录一些 feature request 什么的。bugfree 我们没权限管理，wiki 记录又不方便，然后我就又想起来 redmine 了。</p><p>哦对，其实公司还提供了一个 jira 给大家用，我用了几次我觉得那玩意太难用了，和那个 confluence 的 wiki 一样难用。</p><p>本身搭建没什么难度，编译一个 ruby，然后 gem 安装几个包，下载 redmine，使用 rake 命令操作就好了。启动他的 server 之后，就可以访问了。下面几个东西是我花了一些时间配置的。</p><h2 id=和-ldap-集成>和 ldap 集成</h2><p>在 redmine 的设置里面，本身是有一项和 redmine 集成的功能的，设置 basedn，和下面的 attributes 内容（sAMAccountName,givenName,sN,mail)就可以了。点测试，得能通过。</p><p>在我这里，光设置这个还不行，还需要 hack 一段代码。注意下面的那个 <code>@xxxx.com</code>，这个对应你自己的。</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
+<!doctype html><html lang=zh-cn><head><meta charset=utf-8><meta name=viewport content="width=device-width,viewport-fit=cover,initial-scale=1"><title>redmine-a-good-project-tracker | wd and cc</title><link rel=stylesheet href=/css/style.css><link rel=stylesheet href=/css/fonts.css><header><nav><ul><li class=pull-left><a href=https://wdicc.com/>/home/wd and cc</a></li><li class=pull-left><a href=/tags/>~/tags</a></li><li class=pull-left><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">~/search</a></li><li class=pull-right><a href=/atom.xml>~/subscribe</a></li></ul></nav></header></head><body><br><div class=article-meta><h1><span class=title>redmine-a-good-project-tracker</span></h1><h2 class=date>2012/12/11</h2><p class=terms>Tags: <a href=/tags/linux>linux</a></p></div><main><p>其实很早，大概2，3年前就听说了 redmine 了，不过他环境是 ruby 的，一直没有勇气去搭一个环境。现在项目人多了，bug 阿 feature 阿，就需要记录一下了，因为有些事情不记录下来总是会忘记。之前是尝试通过 wiki ＋ bugfree 来记录的，bugfree 记录在提测之后的一些问题，wiki 记录一些 feature request 什么的。bugfree 我们没权限管理，wiki 记录又不方便，然后我就又想起来 redmine 了。</p><p>哦对，其实公司还提供了一个 jira 给大家用，我用了几次我觉得那玩意太难用了，和那个 confluence 的 wiki 一样难用。</p><p>本身搭建没什么难度，编译一个 ruby，然后 gem 安装几个包，下载 redmine，使用 rake 命令操作就好了。启动他的 server 之后，就可以访问了。下面几个东西是我花了一些时间配置的。</p><h2 id=和-ldap-集成>和 ldap 集成</h2><p>在 redmine 的设置里面，本身是有一项和 redmine 集成的功能的，设置 basedn，和下面的 attributes 内容（sAMAccountName,givenName,sN,mail)就可以了。点测试，得能通过。</p><p>在我这里，光设置这个还不行，还需要 hack 一段代码。注意下面的那个 <code>@xxxx.com</code>，这个对应你自己的。</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
@@ -38,16 +38,16 @@
    def get_user_dn(login, password)
      ldap_con = nil
 <span style=color:#a00000>-    if self.account &amp;&amp; self.account.include?(&#34;$login&#34;)
-</span><span style=color:#a00000></span><span style=color:#a00000>-      ldap_con = initialize_ldap_con(self.account.sub(&#34;$login&#34;, Net::LDAP::DN.escape(login)), password)
-</span><span style=color:#a00000></span><span style=color:#a00000>-    else
-</span><span style=color:#a00000></span><span style=color:#a00000>-      ldap_con = initialize_ldap_con(self.account, self.account_password)
-</span><span style=color:#a00000></span><span style=color:#a00000>-    end
+</span><span style=color:#a00000>-      ldap_con = initialize_ldap_con(self.account.sub(&#34;$login&#34;, Net::LDAP::DN.escape(login)), password)
+</span><span style=color:#a00000>-    else
+</span><span style=color:#a00000>-      ldap_con = initialize_ldap_con(self.account, self.account_password)
+</span><span style=color:#a00000>-    end
 </span><span style=color:#a00000></span><span style=color:#00a000>+    ldap_con = initialize_ldap_con(login + &#39;@xxxxx.com&#39;, password)
-</span><span style=color:#00a000></span><span style=color:#00a000>+    #if self.account &amp;&amp; self.account.include?(&#34;$login&#34;)
-</span><span style=color:#00a000></span><span style=color:#00a000>+    #  ldap_con = initialize_ldap_con(self.account.sub(&#34;$login&#34;, Net::LDAP::DN.escape(login)), password)
-</span><span style=color:#00a000></span><span style=color:#00a000>+    #else
-</span><span style=color:#00a000></span><span style=color:#00a000>+    #  ldap_con = initialize_ldap_con(self.account, self.account_password)
-</span><span style=color:#00a000></span><span style=color:#00a000>+    #end
+</span><span style=color:#00a000>+    #if self.account &amp;&amp; self.account.include?(&#34;$login&#34;)
+</span><span style=color:#00a000>+    #  ldap_con = initialize_ldap_con(self.account.sub(&#34;$login&#34;, Net::LDAP::DN.escape(login)), password)
+</span><span style=color:#00a000>+    #else
+</span><span style=color:#00a000>+    #  ldap_con = initialize_ldap_con(self.account, self.account_password)
+</span><span style=color:#00a000>+    #end
 </span><span style=color:#00a000></span>     login_filter = Net::LDAP::Filter.eq( self.attr_login, login )
      object_filter = Net::LDAP::Filter.eq( &#34;objectClass&#34;, &#34;*&#34; )
      attrs = {}
@@ -56,7 +56,7 @@
      end
  
 <span style=color:#00a000>+    logger.debug &#34;------------get_user_dn #{login} #{self.base_dn} #{search_filter} #{search_attributes}&#34; if logger &amp;&amp; logger.debug?
-</span><span style=color:#00a000></span><span style=color:#00a000>+
+</span><span style=color:#00a000>+
 </span><span style=color:#00a000></span>     ldap_con.search( :base =&gt; self.base_dn,
                       :filter =&gt; search_filter,
                       :attributes=&gt; search_attributes) do |entry|
@@ -93,28 +93,28 @@
 </span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-ruby data-lang=ruby><span style=color:#007020>require</span> <span style=background-color:#fff0f0>&#39;rubygems&#39;</span>
 <span style=color:#007020>require</span> <span style=background-color:#fff0f0>&#39;net/ldap&#39;</span>
 
-ldap <span style=color:#333>=</span> <span style=color:#036;font-weight:700>Net</span><span style=color:#333>::</span><span style=color:#036;font-weight:700>LDAP</span><span style=color:#333>.</span>new <span style=color:#a60;background-color:#fff0f0>:host</span> <span style=color:#333>=</span><span style=color:#333>&gt;</span> <span style=background-color:#fff0f0>&#39;qunarldap.corp.qunar.com&#39;</span>,
-     <span style=color:#a60;background-color:#fff0f0>:port</span> <span style=color:#333>=</span><span style=color:#333>&gt;</span> <span style=color:#00d;font-weight:700>389</span><span style=color:#333></span>,
-     <span style=color:#a60;background-color:#fff0f0>:auth</span> <span style=color:#333>=</span><span style=color:#333>&gt;</span> {
-           <span style=color:#a60;background-color:#fff0f0>:method</span> <span style=color:#333>=</span><span style=color:#333>&gt;</span> <span style=color:#a60;background-color:#fff0f0>:simple</span>,
-           <span style=color:#a60;background-color:#fff0f0>:username</span> <span style=color:#333>=</span><span style=color:#333>&gt;</span> <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>wd@xxxx.com</span><span style=background-color:#fff0f0>&#34;</span>,
-           <span style=color:#a60;background-color:#fff0f0>:password</span> <span style=color:#333>=</span><span style=color:#333>&gt;</span> <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>pwd</span><span style=background-color:#fff0f0>&#34;</span>
+ldap <span style=color:#333>=</span> <span style=color:#036;font-weight:700>Net</span><span style=color:#333>::</span><span style=color:#036;font-weight:700>LDAP</span><span style=color:#333>.</span>new <span style=color:#a60;background-color:#fff0f0>:host</span> <span style=color:#333>=&gt;</span> <span style=background-color:#fff0f0>&#39;qunarldap.corp.qunar.com&#39;</span>,
+     <span style=color:#a60;background-color:#fff0f0>:port</span> <span style=color:#333>=&gt;</span> <span style=color:#00d;font-weight:700>389</span>,
+     <span style=color:#a60;background-color:#fff0f0>:auth</span> <span style=color:#333>=&gt;</span> {
+           <span style=color:#a60;background-color:#fff0f0>:method</span> <span style=color:#333>=&gt;</span> <span style=color:#a60;background-color:#fff0f0>:simple</span>,
+           <span style=color:#a60;background-color:#fff0f0>:username</span> <span style=color:#333>=&gt;</span> <span style=background-color:#fff0f0>&#34;wd@xxxx.com&#34;</span>,
+           <span style=color:#a60;background-color:#fff0f0>:password</span> <span style=color:#333>=&gt;</span> <span style=background-color:#fff0f0>&#34;pwd&#34;</span>
      }
 
-filter <span style=color:#333>=</span> <span style=color:#036;font-weight:700>Net</span><span style=color:#333>::</span><span style=color:#036;font-weight:700>LDAP</span><span style=color:#333>::</span><span style=color:#036;font-weight:700>Filter</span><span style=color:#333>.</span>eq(<span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>sAMAccountName</span><span style=background-color:#fff0f0>&#34;</span>,<span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>wd*</span><span style=background-color:#fff0f0>&#34;</span>)
-object_filter <span style=color:#333>=</span> <span style=color:#036;font-weight:700>Net</span><span style=color:#333>::</span><span style=color:#036;font-weight:700>LDAP</span><span style=color:#333>::</span><span style=color:#036;font-weight:700>Filter</span><span style=color:#333>.</span>eq( <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>objectClass</span><span style=background-color:#fff0f0>&#34;</span>, <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>*</span><span style=background-color:#fff0f0>&#34;</span> )
+filter <span style=color:#333>=</span> <span style=color:#036;font-weight:700>Net</span><span style=color:#333>::</span><span style=color:#036;font-weight:700>LDAP</span><span style=color:#333>::</span><span style=color:#036;font-weight:700>Filter</span><span style=color:#333>.</span>eq(<span style=background-color:#fff0f0>&#34;sAMAccountName&#34;</span>,<span style=background-color:#fff0f0>&#34;wd*&#34;</span>)
+object_filter <span style=color:#333>=</span> <span style=color:#036;font-weight:700>Net</span><span style=color:#333>::</span><span style=color:#036;font-weight:700>LDAP</span><span style=color:#333>::</span><span style=color:#036;font-weight:700>Filter</span><span style=color:#333>.</span>eq( <span style=background-color:#fff0f0>&#34;objectClass&#34;</span>, <span style=background-color:#fff0f0>&#34;*&#34;</span> )
 search_filter <span style=color:#333>=</span> filter <span style=color:#333>&amp;</span> object_filter
 
-treebase <span style=color:#333>=</span> <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>你的 basedn</span><span style=background-color:#fff0f0>&#34;</span> <span style=color:#888>#</span>
+treebase <span style=color:#333>=</span> <span style=background-color:#fff0f0>&#34;你的 basedn&#34;</span> <span style=color:#888>#</span>
 
-<span style=color:#038;font-weight:700>attr</span> <span style=color:#333>=</span> <span style=color:#333>[</span><span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>dn</span><span style=background-color:#fff0f0>&#34;</span>, <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>givenName</span><span style=background-color:#fff0f0>&#34;</span>, <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>sN</span><span style=background-color:#fff0f0>&#34;</span>, <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>mail</span><span style=background-color:#fff0f0>&#34;</span><span style=color:#333>]</span>
+<span style=color:#038;font-weight:700>attr</span> <span style=color:#333>=</span> <span style=color:#333>[</span><span style=background-color:#fff0f0>&#34;dn&#34;</span>, <span style=background-color:#fff0f0>&#34;givenName&#34;</span>, <span style=background-color:#fff0f0>&#34;sN&#34;</span>, <span style=background-color:#fff0f0>&#34;mail&#34;</span><span style=color:#333>]</span>
 
-ldap<span style=color:#333>.</span>search(<span style=color:#a60;background-color:#fff0f0>:base</span> <span style=color:#333>=</span><span style=color:#333>&gt;</span> treebase, <span style=color:#a60;background-color:#fff0f0>:filter</span> <span style=color:#333>=</span><span style=color:#333>&gt;</span> search_filter, <span style=color:#a60;background-color:#fff0f0>:attributes</span> <span style=color:#333>=</span><span style=color:#333>&gt;</span> <span style=color:#038;font-weight:700>attr</span> ) <span style=color:#080;font-weight:700>do</span> <span style=color:#333>|</span>entry<span style=color:#333>|</span>
-  <span style=color:#007020>puts</span> <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>DN: </span><span style=background-color:#eee>#{</span>entry<span style=color:#333>.</span>dn<span style=background-color:#eee>}</span><span style=background-color:#fff0f0>&#34;</span>
+ldap<span style=color:#333>.</span>search(<span style=color:#a60;background-color:#fff0f0>:base</span> <span style=color:#333>=&gt;</span> treebase, <span style=color:#a60;background-color:#fff0f0>:filter</span> <span style=color:#333>=&gt;</span> search_filter, <span style=color:#a60;background-color:#fff0f0>:attributes</span> <span style=color:#333>=&gt;</span> <span style=color:#038;font-weight:700>attr</span> ) <span style=color:#080;font-weight:700>do</span> <span style=color:#333>|</span>entry<span style=color:#333>|</span>
+  <span style=color:#007020>puts</span> <span style=background-color:#fff0f0>&#34;DN: </span><span style=background-color:#eee>#{</span>entry<span style=color:#333>.</span>dn<span style=background-color:#eee>}</span><span style=background-color:#fff0f0>&#34;</span>
   entry<span style=color:#333>.</span>each <span style=color:#080;font-weight:700>do</span> <span style=color:#333>|</span>attribute, values<span style=color:#333>|</span>
-    <span style=color:#007020>puts</span> <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>   </span><span style=background-color:#eee>#{</span>attribute<span style=background-color:#eee>}</span><span style=background-color:#fff0f0>:</span><span style=background-color:#fff0f0>&#34;</span>
+    <span style=color:#007020>puts</span> <span style=background-color:#fff0f0>&#34;   </span><span style=background-color:#eee>#{</span>attribute<span style=background-color:#eee>}</span><span style=background-color:#fff0f0>:&#34;</span>
     values<span style=color:#333>.</span>each <span style=color:#080;font-weight:700>do</span> <span style=color:#333>|</span>value<span style=color:#333>|</span>
-      <span style=color:#007020>puts</span> <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>      ---&gt;</span><span style=background-color:#eee>#{</span>value<span style=background-color:#eee>}</span><span style=background-color:#fff0f0>&#34;</span>
+      <span style=color:#007020>puts</span> <span style=background-color:#fff0f0>&#34;      ---&gt;</span><span style=background-color:#eee>#{</span>value<span style=background-color:#eee>}</span><span style=background-color:#fff0f0>&#34;</span>
     <span style=color:#080;font-weight:700>end</span>
   <span style=color:#080;font-weight:700>end</span>
 <span style=color:#080;font-weight:700>end</span>
@@ -133,11 +133,11 @@ ldap<span style=color:#333>.</span>search(<span style=color:#a60;background-colo
 </span><span style=color:#579></span>
 <span style=color:#963>LOG</span><span style=color:#333>=</span>/export/redmine/log/mail_recieve.log
 
-<span style=color:#007020>echo</span> <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>start </span><span style=color:#080;font-weight:700>$(</span>date<span style=color:#080;font-weight:700>)</span><span style=background-color:#fff0f0>&#34;</span> &gt;&gt; <span style=color:#963>$LOG</span>
+<span style=color:#007020>echo</span> <span style=background-color:#fff0f0>&#34;start </span><span style=color:#080;font-weight:700>$(</span>date<span style=color:#080;font-weight:700>)</span><span style=background-color:#fff0f0>&#34;</span> &gt;&gt; <span style=color:#963>$LOG</span>
 
 /usr/local/ruby/bin/rake --silent -f /export/redmine/Rakefile redmine:email:receive_imap <span style=color:#963>RAILS_ENV</span><span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;production&#34;</span> <span style=color:#963>host</span><span style=color:#333>=</span>localhost <span style=color:#963>username</span><span style=color:#333>=</span>abc <span style=color:#963>password</span><span style=color:#333>=</span>def <span style=color:#963>port</span><span style=color:#333>=</span><span style=color:#60e;font-weight:700>1143</span> <span style=color:#963>move_on_success</span><span style=color:#333>=</span><span style=color:#007020>read</span> <span style=color:#963>move_on_failure</span><span style=color:#333>=</span>failed <span style=color:#963>unknown_user</span><span style=color:#333>=</span>accept &gt;&gt; <span style=color:#963>$LOG</span> 2&gt;&amp;<span style=color:#60e;font-weight:700>1</span>
 
-<span style=color:#007020>echo</span> <span style=background-color:#fff0f0>&#34;</span><span style=background-color:#fff0f0>end </span><span style=color:#080;font-weight:700>$(</span>date<span style=color:#080;font-weight:700>)</span><span style=background-color:#fff0f0>&#34;</span> &gt;&gt; <span style=color:#963>$LOG</span>
+<span style=color:#007020>echo</span> <span style=background-color:#fff0f0>&#34;end </span><span style=color:#080;font-weight:700>$(</span>date<span style=color:#080;font-weight:700>)</span><span style=background-color:#fff0f0>&#34;</span> &gt;&gt; <span style=color:#963>$LOG</span>
 </code></pre></td></tr></table></div></div><p>不过如果 redmine 就这么简单就搞定的话，那我也没必要单独拿出来掰了。关键是，通过 imap 死活就是不行。只好又看了一下代码。</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
@@ -155,7 +155,7 @@ ldap<span style=color:#333>.</span>search(<span style=color:#a60;background-colo
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
 </span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
 </span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-diff data-lang=diff><span style=color:navy;font-weight:700>Index: lib/redmine/imap.rb
-</span><span style=color:navy;font-weight:700></span><span style=color:navy;font-weight:700>===================================================================
+</span><span style=color:navy;font-weight:700>===================================================================
 </span><span style=color:navy;font-weight:700></span><span style=color:#a00000>--- lib/redmine/imap.rb	(版本 10947)
 </span><span style=color:#a00000></span><span style=color:#00a000>+++ lib/redmine/imap.rb	(工作副本)
 </span><span style=color:#00a000></span><span style=color:purple;font-weight:700>@@ -30,8 +30,9 @@
@@ -163,10 +163,10 @@ ldap<span style=color:#333>.</span>search(<span style=color:#a60;background-colo
          imap.select(folder)
          imap.search([&#39;NOT&#39;, &#39;SEEN&#39;]).each do |message_id|
 <span style=color:#a00000>-          msg = imap.fetch(message_id,&#39;RFC822&#39;)[0].attr[&#39;RFC822&#39;]
-</span><span style=color:#a00000></span><span style=color:#a00000>-          logger.debug &#34;Receiving message #{message_id}&#34; if logger &amp;&amp; logger.debug?
+</span><span style=color:#a00000>-          logger.debug &#34;Receiving message #{message_id}&#34; if logger &amp;&amp; logger.debug?
 </span><span style=color:#a00000></span><span style=color:#00a000>+          #msg = imap.fetch(message_id,&#39;RFC822&#39;)[0].attr[&#39;RFC822&#39;]
-</span><span style=color:#00a000></span><span style=color:#00a000>+          msg = imap.fetch(message_id,&#39;BODY[]&#39;)[0].attr[&#39;BODY[]&#39;]
-</span><span style=color:#00a000></span><span style=color:#00a000>+          logger.debug &#34;Receiving message #{message_id}, msg:\n#{msg}&#34; if logger &amp;&amp; logger.debug?
+</span><span style=color:#00a000>+          msg = imap.fetch(message_id,&#39;BODY[]&#39;)[0].attr[&#39;BODY[]&#39;]
+</span><span style=color:#00a000>+          logger.debug &#34;Receiving message #{message_id}, msg:\n#{msg}&#34; if logger &amp;&amp; logger.debug?
 </span><span style=color:#00a000></span>           if MailHandler.receive(msg, options)
              logger.debug &#34;Message #{message_id} successfully received&#34; if logger &amp;&amp; logger.debug?
              if imap_options[:move_on_success]
@@ -194,8 +194,8 @@ ldap<span style=color:#333>.</span>search(<span style=color:#a60;background-colo
    def cleanup_body(body)
 <span style=color:#a00000>-    delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map {|s| Regexp.escape(s)}
 </span><span style=color:#a00000></span><span style=color:#00a000>+    #delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map {|s| Regexp.escape(s)}
-</span><span style=color:#00a000></span><span style=color:#00a000>+    delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map {|s| s}
-</span><span style=color:#00a000></span><span style=color:#00a000>+
+</span><span style=color:#00a000>+    delimiters = Setting.mail_handler_body_delimiters.to_s.split(/[\r\n]+/).reject(&amp;:blank?).map {|s| s}
+</span><span style=color:#00a000>+
 </span><span style=color:#00a000></span>     unless delimiters.empty?
        regex = Regexp.new(&#34;^[&gt; ]*(#{ delimiters.join(&#39;|&#39;) })\s*[\r\n].*&#34;, Regexp::MULTILINE)
 <span style=color:#00a000>+      #regex = Regexp.new(&#34;(^[&gt; ]*(#{ delimiters.join(&#39;|&#39;) })\s*[\r\n].*)|(On (.*)wrote:[\r\n].*)&#34;, Regexp::MULTILINE)
