@@ -6,7 +6,6 @@ toc: false
 comment: false
 ---
 
-- [PDF](/resume-en.pdf)
 - [中文版](/resume/)
 
 I have worked in many positions, and have strong knowledge of front-end/back-end developing, Linux system maintain, database maintain, network, security, etc.

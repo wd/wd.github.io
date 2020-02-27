@@ -6,12 +6,11 @@ toc: false
 comment: false
 ---
 
-- [PDF](/resume.pdf)
 - [English version](/resume-en/)
 
 ## 联系方式
 
-* 邮箱: wd@wdicc.com, 电话/微信: ![phone](/phone.jpg)
+* 邮箱: wd@wdicc.com
 * blog: https://wdicc.com/ ， github: https://github.com/wd
 
 ## 学历
