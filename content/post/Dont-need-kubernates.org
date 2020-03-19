@@ -1,0 +1,122 @@
+---
+title: "Dont Need Kubernates"
+date: 2020-03-07T09:58:33+08:00
+tags: ["kubernates"]
+toc: true
+---
+翻译自 [[https://pythonspeed.com/articles/dont-need-kubernetes/][“Let’s use Kubernetes!” Now you have 8 problems]] ，这个东西和所谓什么中台，微服务类似，小公司弄这些东西就是瞎折腾。
+
+如果你使用 Docker，那正常来说下一步会考虑 kubernates (aka k8s)：生产环境就应该这样，对吧？
+
+这个，可能吧。针对 500 个软件工程师开发一个软件和 50 个工程师的方案会有比较大的不同。也和 5 个工程师的团队的方案不一样。
+
+如果你是个小团队，kubernates 可能并不适合你：弊大于利。
+
+下面看看为啥这么说。
+
+* Everyone loves moving parts 大家都喜欢组件化？
+
+Kubernates 有很多组件，概念，子系统，进程，服务器，代码，这些也意味着更多的问题。
+
+** Multiple machines
+
+Kubernates 是个分布式系统：有主服务器控制工作服务器。工作会分配到不同的工作服务器上面。每个服务器在容器里面完成这些工作。
+
+所以，你可能已经使用2台服务器或者虚拟机把事情都解决了。And that just gives you … one machine. If you’re going to scale (the whole point of the exercise) you need three or four or seventeen VMs.
+
+** Lots and lots and lots of code
+
+Kubernates 截止到 2020 3月初已经有超过 580000 行 go 代码了。这是真实的代码量，不包括注释和空行，也不包括第三方包。2019 年有一个安全 review 对这些代码有如下描述：
+
+#+BEGIN_QUOTE
+Kubernates 的代码有很大提升空间。代码量大且复杂，有大量代码只有少量注释并且还有很多依赖，包括 kubernates 系统外的。有很多重复的逻辑应该用支持库的形式来减少复杂度，方便打补丁，减少在代码各处写文档的负担。
+#+END_QUOTE
+
+公平的说，这个和其他大型项目类似，但是这些都是需要你处理的，如果你想让你的程序正常运行。
+
+** Architectural complexity, operational complexity, configuration complexity, and conceptual complexity
+
+kubernates 是个有很多服务，系统和组件的复杂系统。
+
+在你运行一个简单程序前，你需要先理解已经被简化过的系统架构。
+
+在 kubernates 概念的文档里面，包含很多类似下面的声明：
+
+#+BEGIN_QUOTE
+Kubernates 里面 EndpointSlice 包括一些针对 network endpoints 的引用。当指定选择器的时候，EndpointSlice 控制器会为 kubernates 服务自动创建 EndpointSlice。这些 EndpointSlice 会包括对符合服务器选择器的 Pods 的引用。 EndpointSlice 通过唯一的服务器和端口来组合 network endpoints。
+
+默认情况下，每个 EndpointSlice 控制器可以管理不超过 100 endpoints。Below this scale, EndpointSlices should map 1:1 with Endpoints and Services and have similar performance.
+#+END_QUOTE
+
+里面上文需要很多概念：EndpointSlice, Service, selector, Pod, Endpoint。
+
+大部分情况下你并不需要这些特性，不过大部分情况下你也不需要 kubernates 。。
+
+另一段随机选的文字：
+
+#+BEGIN_QUOTE
+默认情况下，发送到 ClusterIP 或者 NodePort 服务的流量会路由到这个服务的任意一个后端。从 Kubernates 1.7 开始，可以支持把 “外部” 流量路由到接受到外来流量的节点上面的 pod，但是这个不支持 ClusterIP 方式的服务，以及更复杂的拓扑，例如 route zonally。服务拓扑特性通过允许服务创建者定义一个基于为源节点和目标节点的节点标签的路由策略来解决这个问题。
+#+END_QUOTE
+
+前面提到的安全 review 里面提到的：
+
+#+BEGIN_QUOTE
+Kubernates 是一个复杂的大系统。评估团队发现配置和部署 kubernates 并不简单，很多组件有令人迷惑的默认设置，缺失的运作控制，和隐含的安全控制。
+#+END_QUOTE
+
+** Development complexity
+
+越深入 kubernates，会发现越难进行普通的开发：你需要理解这些不同的概念（Pod，Deployment，Server，等等）才能运行你的代码。所以你需要运行一个完整的 k8s 系统，仅仅为了测试，通过 VM 或者嵌套的 Docker 容器。
+
+因为你的程序很难在本地运行，开发变的更难，有一些不同的解决方案，从 staging 环境代理本地进程到集群里面（多年前我为这个写了一个[[https://www.telepresence.io/][工具]]），代理远程进程到本地机器。
+
+有很多不那么完美的方案可以使用，最简单完美的方案就是不用 kubernates。
+
+** Microservices (are a bad idea)
+
+第二个问题是，因为这个系统允许你跑很多的 service，所以会更倾向于写很多的 service。这不是个好主意。
+
+分布式的系统很难写正确。更多的组件，意味着更多的问题需要处理。
+
+分布式系统也很难 debug。You need whole new categories of instrumentation and logging to getting understanding that isn’t quite as good as what you’d get from the logs of a monolithic application.
+
+微服务是一种 organizational scaling 技术：当有 500 人为一个网站做开发的时候，为了让大家可以独立工作而为分布式系统付出的代价是值得的。划分成多个 5 个人的微服务团队，他们把其他微服务当作是外部不可可信赖的服务。
+
+如果你是个 5 人团队，有 20 个微服务，你并不迫切需要分布式系统。不像人家大公司是 5 个人维护一个服务，你是 0.25 人维护一个服务。
+
+* But isn’t it useful?
+** Scaling
+
+当你经常需要扩展的时候 Kubernates 是有用的。不过有一些替代方案
+- 你可以使用云虚拟机，最多可以支持 416 vCPU 和 8T 内存，a scale I can only truly express with profanity。虽然贵，但是它保持了简单。
+- 可以简单的使用类似 Heroku 的服务扩展比较简单的网站服务。
+
+这是基于假定，增加更多的工作节点会带来更多的好处：
+- 大部分程序不需要扩展很多，一些明智的优化足够了。
+- 大部分网站程序的扩展瓶颈是在数据库，不是 web 工作节点。
+
+** Reliability
+
+越多的组件表示越多的错误的可能性。
+
+Kubernates 提供的可用性特性（健康检查，滚动更新），可以用更简单的方式实现，或者很多时候都内置了。例如，nginx 可以针对工作节点做健康检查，你也可以使用 docker-autoheal 或者类似的东西来重启服务。
+
+如果你关心宕机时间，首先想的不应该是：我如何把部署引起的宕机时间从 1 秒减少到 1 毫秒。应该是：当出问题的时候如何保证数据库结构变化不会阻止回滚操作。
+
+如果你想要高可用，不想要单点故障，有很多的方法可以在不使用 kubernates 的情况下实现。
+
+* Best practices?
+
+其实没有啥通用的最佳实践，只有某些特定情况下的最佳实践。某些东西开始流行不表示选择这些东西就是对的。
+
+某些情况下 kubernates 是好东西。另外一些情况下不是。
+
+除非你想要那种复杂性，有很多组件工具也可以做的挺好： from Docker Compose on a single machine, to Heroku and similar systems, to something like Snakemake for computational pipelines.
+
+* 读后感
+
+作者里面提到的小公司没必要折腾是对的，也就三五台机器还整这个就是浪费。微服务也是，服务比人还多，一个人需要不停的在不同的服务间游走的时候就很烦躁。
+
+web 程序确实也比较容易实现高可用，而且这些服务的瓶颈确实在数据库，而且 kubernates 确实也对数据不那么友好。
+
+但是 kubernates 可以利用集群的资源来跑服务，这样更不容易出现故障，也强制要求大家抽象自己的服务到 pod，让服务扩展和恢复更简单。另外，部署引起的宕机虽然意义没那么重大，但是技术体现和追求的不就是这点边界么？99.999% 的可用性和 99.99% 相比，付出肯定不是线性的。
