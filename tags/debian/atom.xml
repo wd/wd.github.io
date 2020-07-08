@@ -1,41 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>debian on wd and cc</title><link>https://wdicc.com/tags/debian/</link><description>Recent content in debian on wd and cc</description><generator>Hugo -- gohugo.io</generator><language>zh-cn</language><lastBuildDate>Tue, 18 Apr 2006 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/debian/atom.xml" rel="self" type="application/rss+xml"/><item><title>debian中man不能翻页的解决方法</title><link>https://wdicc.com/man-in-debian/</link><pubDate>Tue, 18 Apr 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/man-in-debian/</guid><description>安装debian基本系统之后会发现man的时候往下翻页可以用ctrl＋F，可是怎么都翻不上去。包括方向键也都不起作用。
-解决方法其实非常简单，只要安装less就可以了。呵呵。
-#apt-get install less</description></item><item><title>debian下面的防火墙设置</title><link>https://wdicc.com/iptables-in-debian/</link><pubDate>Mon, 17 Apr 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/iptables-in-debian/</guid><description>rh下面的防火墙设置是保存在/etc/sysconfig/iptables文件中的，这样每次重启都会恢复防火墙设置。
-debian木有这个文件，但是他提供了更加灵活的方式。
-http://www.debian.org/doc/manuals/securing-debian-howto/ch-sec-services.en.html#s-firewall-setup
-看了下，似乎比较简单的就是设置interfaces文件了。
-5.14.3.3 Configuring firewall rules through ifup
-You can use also the network configuration in /etc/network/interfaces to setup your firewall rules. For this you will need to: Create your firewalling ruleset for when the interface is active. Save your ruleset with iptables-save to a file in /etc, for example /etc/iptables.up.rules Configure etc/network/interfaces to use the configured ruleset: &amp;nbsp; &amp;nbsp; iface eth0 inet static
-&amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; &amp;nbsp; address x.</description></item><item><title>为debian unstable做镜像</title><link>https://wdicc.com/mirror-for-debian/</link><pubDate>Wed, 14 Dec 2005 00:00:00 +0000</pubDate><guid>https://wdicc.com/mirror-for-debian/</guid><description>#HOST=opensource.nchc.org.tw
-HOST=debian.nctu.edu.tw
-#HOST_NONUS=opensource.nchc.org.tw
-#HOST_NONUS=debian.cn99.com
-HOST_NONUS=debian.nctu.edu.tw
-DISTS="unstable"
-DISTS_NONUS="unstable/non-US"
-DISTS_SEC="unstable/updates"
-ARCHS="i386"
-MIRROR_ROOT='/data/debian/debian'
-MIRROR_ROOT_NONUS='/data/debian/debian-non-US'
-OPTIONS="--getcontents --progress --nosource --method=http -s main,contrib,non-free --ignore-release-gpg"
-#ADDDIRS="dists/unstable/main/disks-i386" echo "Processing standard using $HOST" /usr/bin/debmirror --host=$HOST --dist=$DISTS --arch=$ARCHS $OPTIONS -r /debian $MIRROR_ROOT
-echo "Processing non-US using $HOST_NONUS" /usr/bin/debmirror --host=$HOST_NONUS --dist=$DISTS_NONUS --arch=$ARCHS $OPTIONS -r /debian-non-US $MIRROR_ROOT_NONUS
-echo "Processing xfce4.2 using www.os-works.com"
-/usr/bin/debmirror -a i386 -s main -h www.os-works.com -d testing -r /debian --progress -e http --ignore-release-gpg /data/debian/xf
-ce4.2</description></item><item><title>debian下的alsa(zz)</title><link>https://wdicc.com/alsa-in-debian/</link><pubDate>Tue, 19 Apr 2005 00:00:00 +0000</pubDate><guid>https://wdicc.com/alsa-in-debian/</guid><description>前段时间重装机器，用的是debian提供的2.6内核，装了alsa-base后发现alsa无法发声，但oss却工作正常。折腾了大半天也没搞明白是怎么回事，无奈之下只好使用oss。今天在版上看到有人讨论，才知道oss不能和alsa共存。而我的问题很可能就是系统在启动的时候预先加载了 oss的驱动。后来用google查了一下，在下面这个网址http://www.sonic.net/~rknop/linux/debian_alsa.html
-发现问题果然如此。原来debian中自动侦探硬件的程序discover在检测到声卡后会自动加载oss，只要不让它自动加载就可以了。具体做法就是在/etc/discover.conf中加上一句skip i810_audio 。然后重启就能使用alsa了，不过要注意的是alsa默认是静音，需要自己手动将声音调大。
-版上有人说还需要在/etc/hotplug/blacklist中加上i810_audio，我发现不需要这么做。因为安装alsa时，系统在/etc/hotplug/blacklist.d/alsa*中自动添加这些内容。
-版上有人说还需要更改/etc/modutils/alsa-base中的相关内容，具体就是将above改为alias。
-http://wiki.debian.org.tw/index.php/HardwareIdentification 这个网址讲述了debian中硬件识别的相关知识。
-引用网址：http://www.debian.org.hk/node/12420</description></item><item><title>弄了老久的debian，总算可以看了</title><link>https://wdicc.com/nice-look-of-debian/</link><pubDate>Tue, 19 Apr 2005 00:00:00 +0000</pubDate><guid>https://wdicc.com/nice-look-of-debian/</guid><description>装的xfce4.2，目前debian官方还没有收录，很轻快的一个桌面系统。本来想用xorg的，可是debian官方也没有，作罢。
-debian的系统菜单在/usr/share/applications下面，他会自动添加条目。xfce会调用这个里面的，显示debian系统菜单。xfce的菜单设置是在~/.config/xfce4下面，保存了好多信息。桌面菜单在desktop下面，用utf-8编码，修改的时候要注意。面板菜单调用的是/etc/xdg/xfce4/desktop/menu.xml，所以两个不能同步修改。回头看看能不能链接一下。
-xfce下的文件管理器是rox，用起来还行，呵呵。mplayer和xfce的source是下面的这个：
-# xfce4
-deb http://www.os-works.com/debian unstable main
-#uo
-deb http://211.151.91.103/debian-uo sid marillat ustc rareware
-mplayer的主页:http://www.mplayerhq.hu/homepage/design7/news.html。解码器:http://www.mplayerhq.hu/MPlayer/releases/codecs/。Skin：http://ftp.iasi.roedu.net/mirrors/ftp.mplayerhq.hu/MPlayer/Skin/。
-xfce的主页:www.us.xfce.org。插件主页:https://developer.berlios.de/project/showfiles.php?group_id=910&amp;release_id=4494。</description></item><item><title>给本本装了个debian</title><link>https://wdicc.com/debian-on-my-notebook/</link><pubDate>Tue, 19 Apr 2005 00:00:00 +0000</pubDate><guid>https://wdicc.com/debian-on-my-notebook/</guid><description>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>debian on wd and cc</title><link>https://wdicc.com/tags/debian/</link><description>Recent content in debian on wd and cc</description><generator>Hugo -- gohugo.io</generator><language>zh-CN</language><copyright>Copyright © 2020 wd. All Rights Reserved</copyright><lastBuildDate>Tue, 18 Apr 2006 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/debian/atom.xml" rel="self" type="application/rss+xml"/><item><title>debian中man不能翻页的解决方法</title><link>https://wdicc.com/man-in-debian/</link><pubDate>Tue, 18 Apr 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/man-in-debian/</guid><description>安装debian基本系统之后会发现man的时候往下翻页可以用ctrl＋F，可是怎么都翻不上去。包括方</description></item><item><title>debian下面的防火墙设置</title><link>https://wdicc.com/iptables-in-debian/</link><pubDate>Mon, 17 Apr 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/iptables-in-debian/</guid><description>rh下面的防火墙设置是保存在/etc/sysconfig/iptables文件中的，这样每次重启都会</description></item><item><title>为debian unstable做镜像</title><link>https://wdicc.com/mirror-for-debian/</link><pubDate>Wed, 14 Dec 2005 00:00:00 +0000</pubDate><guid>https://wdicc.com/mirror-for-debian/</guid><description>#HOST=opensource.nchc.org.tw HOST=debian.nctu.edu.tw #HOST_NONUS=opensource.nchc.org.tw #HOST_NONUS=debian.cn99.com HOST_NONUS=debian.nctu.edu.tw DISTS="unstable" DISTS_NONUS="unstable/non-US" DISTS_SEC="unstable/updates" ARCHS="i386" MIRROR_ROOT='/data/debian/debian' MIRROR_ROOT_NONUS='/data/debian/debian-non-US' OPTIONS="--getcontents --progress --nosource --method=http -s main,contrib,non-free --ignore-release-gpg" #ADDDIRS="dists/unstable/main/disks-i386" echo "Processing standard using $HOST" /usr/bin/debmirror --host=$HOST --dist=$DISTS --arch=$ARCHS $OPTIONS -r /debian $MIRROR_ROOT echo "Processing non-US using $HOST_NONUS" /usr/bin/debmirror --host=$HOST_NONUS --dist=$DISTS_NONUS --arch=$ARCHS $OPTIONS -r /debian-non-US $MIRROR_ROOT_NONUS echo "Processing xfce4.2 using www.os-works.com"</description></item><item><title>debian下的alsa(zz)</title><link>https://wdicc.com/alsa-in-debian/</link><pubDate>Tue, 19 Apr 2005 00:00:00 +0000</pubDate><guid>https://wdicc.com/alsa-in-debian/</guid><description>前段时间重装机器，用的是debian提供的2.6内核，装了alsa-base后发现alsa无法发声，</description></item><item><title>弄了老久的debian，总算可以看了</title><link>https://wdicc.com/nice-look-of-debian/</link><pubDate>Tue, 19 Apr 2005 00:00:00 +0000</pubDate><guid>https://wdicc.com/nice-look-of-debian/</guid><description>装的xfce4.2，目前debian官方还没有收录，很轻快的一个桌面系统。本来想用xorg的，可是d</description></item><item><title>给本本装了个debian</title><link>https://wdicc.com/debian-on-my-notebook/</link><pubDate>Tue, 19 Apr 2005 00:00:00 +0000</pubDate><guid>https://wdicc.com/debian-on-my-notebook/</guid><description>
 重装了一下。&lt;br />
 安装了一个kde，觉得太慢了，换了xfce4，挺快得，呵呵。&lt;br />
 ＃cat .xinitrc &lt;br />
