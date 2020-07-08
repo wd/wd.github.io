@@ -1,0 +1,109 @@
+---
+title: "RBAC in Kubernetes"
+date: 2020-05-18T17:14:58+08:00
+tags: ["RBAC", "kubernetes"]
+toc: true
+---
+How to give a pod the access to run kubectl to create pods or configmaps? It's very simple.
+
+Every pods has to bind to a service account, it will be =default=, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API.
+
+First, create a service account.
+#+begin_src yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: debug-sa
+  namespace: default  # default namespace
+#+end_src
+
+Create a cluster role binding with an exists cluster role named =cluster-admin=, you can create one if you want.
+
+#+begin_src yaml
+apiVersion: rbac.authorization.k8s.io/v1beta1
+kind: ClusterRoleBinding
+metadata:
+  name: debug-admin-crb
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin # bind to an exists ClusterRole, you can create one if you want
+subjects:
+- kind: ServiceAccount
+  name: debug-sa
+  namespace: default
+#+end_src
+
+Ok, that's all. Create our pod now.
+
+#+begin_src yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: netshoot
+  namespace: default
+  labels:
+    app: netshoot
+spec:
+  serviceAccountName: debug-sa
+  containers:
+  - image: bitnami/kubectl
+    name: kubectl
+    command:
+      - sleep
+      - "3600"
+  restartPolicy: Always
+#+end_src
+
+Now, your pods have the =cluster-admin= access to visit you API resources. What's if I only need to give the pod the access to list pods?
+
+First, create a role, with limited access to pods. This role can't visit other resource other than pods.
+
+#+begin_src yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: debug-role
+rules:
+  - apiGroups: [""]
+    resources:
+      - pods # limit the role only have limit access to pods
+    verbs:
+      - get
+      - list
+      - delete
+#+end_src
+
+Create a role binding, to bind the role and the service account.
+
+#+begin_src yaml
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: debug-rb
+subjects:
+  - kind: ServiceAccount
+    name: debug-sa
+roleRef:
+  kind: Role
+  name: debug-role
+  apiGroup: rbac.authorization.k8s.io
+#+end_src
+
+And then recreate your pod with this service account. Don't forget to delete the privious cluter role binding for this service account.
+
+#+begin_src shell
+$ k exec -it netshoot -c 'kubectl' -- /bin/bash
+I have no name!@netshoot:/$ kubectl get pods
+NAME                                          READY   STATUS    RESTARTS   AGE
+netshoot                                      2/2     Running   0          13m
+
+I have no name!@netshoot:/$ kubectl get svc
+Error from server (Forbidden): services is forbidden: User "system:serviceaccount:default:debug-sa" cannot list resource "services" in API group "" in the namespace "default"
+I have no name!@netshoot:/$
+#+end_src
+
+What's the difference between role and cluster role?
+- For role, it's limited in a namespace, it only can limit resources inside a namespace.
+- Some resource like PV, cluster health, it's not related with a namespace, it's cluster wide, you only can use cluster role to limit them.
+- A role binding can bind a role to a service account in an other namespace.
