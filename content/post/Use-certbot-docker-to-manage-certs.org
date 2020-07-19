@@ -1,0 +1,86 @@
+---
+title: "Use Certbot Docker to Manage Certs"
+date: 2020-07-19T16:58:03+08:00
+tags: ["certbot", "letsencrypt", "docker"]
+toc: true
+---
+I think everyone knows [[https://letsencrypt.org/][Let's Encrypt]] these days. I use letsencrypt for some of my personal services.
+
+I was using the system shipped certs at the beginning, and using systemd jobs to auto renew the certs. I was using the HTTP-01 challenge mode at first, and using the certbot standalone mode to achieve that. Certbot will need to run a webserver at 443/80 to finish the challenge, so we have to add pre/post hook to certbot to stop/start our nginx servers. If certbot can't stop your webserver, it will fail the challenge. After failed many times, I decide to change to Caddy.
+
+Caddy was a modern webserver, it can automatically apply and extend your letsencrypt certs which is very convenient. But after some time, I found that I only can use these certs inside Caddy, if I want to add certs to an other service, I have to use Caddy as the reverse proxy, that wasn't what I want. So I have to found a new way.
+
+After some research, I decide to use a certbot docker to apply the certs.
+
+** Use certbot docker to apply certs
+
+As I mentioned early, the HTTP-01 challenge method has some problems, I try to use DNS-01 this time.
+
+My domain was managed by Cloudflare, which already supported by certbot. First create a API token with DNS zone edit permission at Cloudflare, create a file named =cloudflare.ini= .
+
+#+BEGIN_SRC ini
+dns_cloudflare_api_token = YOUR_TOKEN
+#+END_SRC
+
+Run command bellow to apply certs, the certs will be placed at =./certs= .
+
+#+BEGIN_SRC bash
+docker run -it --rm --name certbot \
+-v "./certs:/etc/letsencrypt" \
+-v "./cloudflare.ini:/cloudflare.ini" \
+certbot/dns-cloudflare certonly --dns-cloudflare --dns-cloudflare-credentials /cloudflare.ini \
+-m YOUR_EMAIL --agree-tos --no-eff-email \
+--dns-cloudflare-propagation-seconds 20 \
+-d my.wdicc.com
+#+END_SRC
+
+Then you can mount =./certs= to other containers to use the certs.
+
+** Renew certs
+
+Certs renew is easy, and after renew the certs, we also need to reload our webserver or applications to use the new certs, it's very important.
+
+Certbot didn't provide a way to run a daemon in docker container to renew the certs. After some research, I decide to use [[https://github.com/willfarrell/docker-crontab][docker-crontab]] finally.
+
+Create =crontab/config.json= as bellow, alter =/path/to= to absolute path on the host.
+
+#+BEGIN_SRC javascript
+[{
+    "comment":"renew certs",
+    "onstart": true,
+    "schedule":"0 0 * * 1",
+    "command":"renew --dns-cloudflare --dns-cloudflare-credentials /cloudflare.ini",
+    "dockerargs":"--rm -v /path/to/certs:/etc/letsencrypt -v /path/to/cloudflare.ini:/cloudflare.ini",
+    "image":"certbot/dns-cloudflare",
+    "trigger":[
+        {
+            "command":"echo 'restart trojan' && docker restart nginx",
+            "container":"cron"
+        },
+        {
+            "command":"echo 'restart caddy' && docker restart caddy",
+            "container":"cron"
+        }
+    ]
+ }]
+#+END_SRC
+
+Create the crontab container.
+
+#+BEGIN_SRC bash
+docker run -d --name crontab \
+    -v /var/run/docker.sock:/var/run/docker.sock:ro \
+    -v ./crontab:/opt/crontab:rw \
+    willfarrell/crontab
+#+END_SRC
+
+As you can see, I use =docker restart container= to reload the certs in the =config.json= , you can change it to a better version like bellow to avoid downtime for you website.
+
+#+BEGIN_SRC javascript
+"trigger":[{
+ 		"command":"sh -c '/usr/sbin/nginx -t && /usr/sbin/nginx -s reload'",
+ 		"container":"nginx"
+ 	}]
+#+END_SRC
+
+You can use =docker logs crontab= to check the logs, with ="onstart": true,= in =config.json= , the task will run when the container starts.
