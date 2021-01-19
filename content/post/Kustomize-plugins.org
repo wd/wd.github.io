@@ -1,0 +1,17 @@
+---
+title: "Kustomize Plugins"
+date: 2020-09-12T02:35:02+08:00
+tags: ["kustomize", "k8s"]
+toc: true
+---
+Kustomize support us to write plugins by using python, shell scripts, or any language that can create executables in your system. Here is the [[https://kubernetes-sigs.github.io/kustomize/guides/plugins/execpluginguidedexample/][doc]].
+
+There are two types of plugins, generators and transformers. Both of the plugin executable will receive the definition for it as arg[1]. And for transformers, it will receive all the other resource definitions also, so you can do transform works.
+
+The =apiVersion= in the plugin definition yaml file determines the location of the executable. So if you set it to =apiVersion: wd/v1= , then kustomize will try to find the plugin at these places:
+- (''; homed in $KUSTOMIZE_PLUGIN_HOME)
+- ('kustomize/plugin'; homed in $XDG_CONFIG_HOME)
+- ('/Users/wd/.config/kustomize/plugin'; homed in default value of $XDG_CONFIG_HOME)
+- ('/Users/wd/kustomize/plugin'; homed in home directory)
+
+You can put your plugin at these directories. For me, I'd like to put it in =(pwd)/kustomize/plugin/=, and then run kustomize =XDG_CONFIG_HOME=$(pwd) kustomize build --enable_alpha_plugins apps/base/nginx/= .

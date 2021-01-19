@@ -1,0 +1,135 @@
+---
+title: "Use Datadog to Monitor Your Cluster Build by Rke"
+date: 2020-07-27T15:47:33+08:00
+tags: ["rke","kubernetes","k8s","datadog"]
+toc: true
+---
+There are many tools you can choose when you want to build your kubernetes cluster, we use Rancher Kubernetes Engine (RKE) to build our kubernetes cluster.
+
+We run datadog as daemonset in our cluster, and datadog has auto discovery feature to discovery pods/containers need to check. When we deployed a redis database, datadog will notice that and run checks against the redis pods, we didn't need to do any configurations.
+
+Datadog auto discovery also supports core kubernetes components, like APIServer, KubeScheduler, KubeProxy, etc. But when you setup you cluster by using RKE, you will find the auto discovery didn't work for these components.
+
+The auto discovery feature for these core components relies on [[https://docs.datadoghq.com/agent/guide/ad_identifiers/][autodiscovery container identifiers(ad_identifiers)]], the image name or image short name need to match the default =ad_identifiers= settings for these components. Unfortunately, rancher uses =rancher/hyperkube= to build most of the core components, they all have the same image name.
+
+The =ad_identifiers= also support to set to a container label, but that will need use to rebuild the container image to add the label, it's a mission impossible too. After some tests, I found the way to run checks against these containers by use annotations.
+
+Datadog supports us to [[https://docs.datadoghq.com/agent/kubernetes/integrations/?tab=kubernetes#datadog-redis-integration][use annotations]] to notify datadog that we need to run check on some urls.
+
+#+BEGIN_SRC yaml
+apiVersion: v1
+kind: Pod
+# (...)
+metadata:
+  name: '<POD_NAME>'
+  annotations:
+    ad.datadoghq.com/<CONTAINER_IDENTIFIER>.check_names: '[<INTEGRATION_NAME>]'
+    ad.datadoghq.com/<CONTAINER_IDENTIFIER>.init_configs: '[<INIT_CONFIG>]'
+    ad.datadoghq.com/<CONTAINER_IDENTIFIER>.instances: '[<INSTANCE_CONFIG>]'
+    # (...)
+spec:
+  containers:
+    - name: '<CONTAINER_IDENTIFIER>'
+# (...)
+#+END_SRC
+
+Here is an example for apache. Did you see the ="url": "http://%%host%%/website_1"= in the =instances= settings? You can imagine that what will happen if we change this url to a service exposed by kubernetes.
+
+#+BEGIN_SRC yaml
+apiVersion: v1
+kind: Pod
+metadata:
+  name: apache
+  annotations:
+    ad.datadoghq.com/apache.check_names: '["apache","http_check"]'
+    ad.datadoghq.com/apache.init_configs: '[{},{}]'
+    ad.datadoghq.com/apache.instances: |
+      [
+        [
+          {
+            "apache_status_url": "http://%%host%%/server-status?auto"
+          }
+        ],
+        [
+          {
+            "name": "<WEBSITE_1>",
+            "url": "http://%%host%%/website_1",
+            "timeout": 1
+          },
+          {
+            "name": "<WEBSITE_2>",
+            "url": "http://%%host%%/website_2",
+            "timeout": 1
+          }
+        ]
+      ]
+  labels:
+    name: apache
+spec:
+  containers:
+    - name: apache
+      image: httpd
+      ports:
+        - containerPort: 80
+#+END_SRC
+
+Actually, datadog didn't care about you container. It only cares about settings you put in the annotations. I use this =feature= to add checks to my RKE built cluster.
+
+Here is an example for monitoring components runs on controlplan. Don't forget to allow your datadog daemonset run on your master nodes first. And please take notice about the =tolerations= and =nodeSelector= I added in the yaml.
+
+#+BEGIN_SRC yaml
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: controlplane-monitor
+spec:
+  selector:
+      matchLabels:
+        name: controlplane-monitor
+  template:
+    metadata:
+      labels:
+        name: controlplane-monitor
+      annotations:
+        ad.datadoghq.com/kube-scheduler.check_names: '["kube_scheduler"]'
+        ad.datadoghq.com/kube-scheduler.init_configs: '[{}]'
+        ad.datadoghq.com/kube-scheduler.instances: |-
+          [{"prometheus_url": "http://%%host%%:10251/metrics", "leader_election": "true"}]
+
+        ad.datadoghq.com/kube-controller-manager.check_names: '["kube_controller_manager"]'
+        ad.datadoghq.com/kube-controller-manager.init_configs: '[{}]'
+        ad.datadoghq.com/kube-controller-manager.instances: |-
+          [{"prometheus_url": "http://%%host%%:10251/metrics", "leader_election": "true"}]
+
+        ad.datadoghq.com/kube-apiserver.check_names: '["kube_apiserver_metrics"]'
+        ad.datadoghq.com/kube-apiserver.init_configs: '[{}]'
+        ad.datadoghq.com/kube-apiserver.instances: |-
+          [{"prometheus_url": "https://%%host%%:6443/metrics", "tls_ca_cert":"/etc/kubernetes/ssl/kube-ca.pem"}]
+
+    spec:
+        hostNetwork: true
+        nodeSelector:
+          "node-role.kubernetes.io/controlplane": "true"
+        tolerations:
+          - key: "node-role.kubernetes.io/controlplane"
+            value: "true"
+            effect: "NoSchedule"
+        restartPolicy: Always
+        terminationGracePeriodSeconds: 0
+        containers:
+        - image: busybox
+          command:
+            - sleep
+            - infinity
+          name: kube-scheduler
+        - image: busybox
+          command:
+            - sleep
+            - infinity
+          name: kube-controller-manager
+        - image: busybox
+          command:
+            - sleep
+            - infinity
+          name: kube-apiserver
+#+END_SRC

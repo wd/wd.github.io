@@ -1,0 +1,124 @@
+---
+title: "Using Cert-manager + rout53 With Kiam"
+date: 2020-09-10T10:59:41+08:00
+tags: ["kiam", "cert-manager", "k8s"]
+toc: true
+---
+
+As described here: https://cert-manager.io/docs/configuration/acme/dns01/route53/#set-up-an-iam-role, First you need to create a role, for example `dns-manager`.
+#+BEGIN_SRC json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Effect": "Allow",
+      "Action": "route53:GetChange",
+      "Resource": "arn:aws:route53:::change/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": [
+        "route53:ChangeResourceRecordSets",
+        "route53:ListResourceRecordSets"
+      ],
+      "Resource": "arn:aws:route53:::hostedzone/*"
+    },
+    {
+      "Effect": "Allow",
+      "Action": "route53:ListHostedZonesByName",
+      "Resource": "*"
+    }
+  ]
+}
+#+END_SRC
+
+You can replace the =*= in =arn:aws:route53:::hostedzone/*= with a specific zone id.
+
+** Use cert-manager with out kiam
+
+If you didn't use kiam, you just need to allow the instance(role) to assume this role. Attach this policy to the instance role
+
+#+BEGIN_SRC json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "AWS": <role-arn>
+      },
+      "Effect": "Allow"
+    }
+  ]
+}
+#+END_SRC
+
+Replace the =<role-arn>= to the instance role.
+
+And then define a =ClusterIssuer= , and tell the issuer to assume this role to manage the zone.
+
+#+BEGIN_SRC yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    .... other options
+    - selector:
+        dnsZones:
+          - "example.com"
+      dns01:
+        route53:
+          region: us-east-1
+          hostedZoneID: DIKER8JEXAMPLE # optional, see policy above
+          role: arn:aws:iam::YYYYYYYYYYYY:role/dns-manager
+#+END_SRC
+
+** Use cert-manager with kiam
+
+You need to get kiam work first. And then We need to allow kiam server to assume the =dns-manager= role. Attach this policy to kiam server role.
+
+#+BEGIN_SRC json
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Action": "sts:AssumeRole",
+      "Principal": {
+        "AWS": <role-arn>
+      },
+      "Effect": "Allow"
+    }
+  ]
+}
+#+END_SRC
+
+Replace the =<role-arn>= to kiam server role arn.
+
+Define a =ClusterIssuer= , this time we didn't need to assume the role to get it work.
+
+#+BEGIN_SRC yaml
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+spec:
+  acme:
+    .... other options
+    - selector:
+        dnsZones:
+          - "example.com"
+      dns01:
+        route53:
+          region: us-east-1
+          hostedZoneID: DIKER8JEXAMPLE # optional, see policy above
+#+END_SRC
+
+But we need to add an annotation to cert-manager pod.
+
+#+BEGIN_SRC yaml
+iam.amazonaws.com/role: <role-arn>
+#+END_SRC
+
+Replace the =<role-arn>= to the role arn of =dns-manager= .

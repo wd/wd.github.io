@@ -1,0 +1,68 @@
+---
+title: "Use Ansible Synchronize Module to Sync Files Include Templates"
+date: 2020-07-27T16:34:23+08:00
+tags: ["ansible", "synchronize"]
+toc: true
+---
+Inspired by [[https://stackoverflow.com/questions/51486767/use-ansible-templating-but-rysnc-to-move-files/51612544][this post]], I finally find the way to sync a directory include template files to remote.
+
+Put you files in ={{ role_path }}/files/=, if you need to put in another directory, please replace all the =role_path= variable.
+
+#+BEGIN_SRC yaml
+- name: "Create temporary directory"
+  local_action: tempfile state=directory
+  register: temp_file_path
+
+- name: "Find j2 files"
+  local_action:
+    module: find
+    paths: "{{ role_path }}/files/"
+    patterns: "*.j2"
+    file_type: file
+    use_regex: no
+    recurse: yes
+  register: files_j2
+
+- name: "Find normal files"
+  local_action:
+    module: find
+    paths: "{{ role_path }}/files/"
+    excludes: "*.j2"
+    file_type: file
+    use_regex: no
+    recurse: yes
+  register: files_normal
+
+- name: "Ensure directory exists"
+  local_action:
+    module: file
+    path: "{{ item.path | replace(role_path + '/files', temp_file_path.path) | dirname }}"
+    state: directory
+  with_items:
+    - "{{ files_j2.files }}"
+    - "{{ files_normal.files }}"
+
+- name: "Copy templates files"
+  local_action:
+    module: template
+    src: "{{ item.path }}"
+    mode: "preserve"
+    dest: "{{ item.path | replace(role_path + '/files', temp_file_path.path) | regex_replace('.j2$', '') }}"
+  with_items: "{{ files_j2.files }}"
+
+- name: "Copy normal  files to temp directory"
+  local_action:
+    module: template
+    src: "{{ item.path }}"
+    mode: "preserve"
+    dest: "{{ item.path | replace(role_path + '/files', temp_file_path.path) }}"
+  with_items: "{{ files_normal.files }}"
+
+- name: "Sync these to the destination"
+  synchronize:
+      src: "{{ temp_file_path.path }}/"
+      dest: "{{ config_root }}/"
+      delete: yes
+      rsync_opts:
+        - "--chown=root:root"
+#+END_SRC
