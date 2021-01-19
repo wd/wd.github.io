@@ -1,42 +1,16 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>PostgreSQL at Low Level - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="PostgreSQL at Low Level"><meta property="og:description" content="总结一下这篇文章 PostgreSQL at low level: stay curious! Introduction 我们之前使用数据库的时候，生产环境都只在实体机上面使用，测试和开发为了"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/amp/postgresql-at-low-level/"><meta property="article:published_time" content="2020-02-02T11:04:47+08:00"><meta property="article:modified_time" content="2020-02-02T11:04:47+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="PostgreSQL at Low Level"><meta name=twitter:description content="总结一下这篇文章 PostgreSQL at low level: stay curious! Introduction 我们之前使用数据库的时候，生产环境都只在实体机上面使用，测试和开发为了"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><base href=https://wdicc.com/><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>PostgreSQL at Low Level</h1><div class=meta>Posted at &mdash; Feb 2, 2020</div></div><div class=post-header><nav id=TableOfContents><ul><li><a href=#headline-1>Introduction</a></li><li><a href=#headline-2>Shared memory</a></li><li><a href=#headline-3>vDSO</a></li><li><a href=#headline-4>CPU migrations</a></li><li><a href=#headline-5>MDS</a></li><li><a href=#headline-6>Lock holder/waiter preemption</a></li><li><a href=#headline-7>Huge pages</a></li><li><a href=#headline-8>BPF</a></li><li><a href=#headline-9>LLC</a></li><li><a href=#headline-10>Writeback</a></li><li><a href=#headline-11>Memory reclaim</a></li></ul></nav></div><div class=markdown><p>总结一下这篇文章 <a href=https://erthalion.info/2019/12/06/postgresql-stay-curious/>PostgreSQL at low level: stay curious!</a></p><div id=outline-container-headline-1 class=outline-3><h3 id=headline-1>Introduction</h3><div id=outline-text-headline-1 class=outline-text-3><p>我们之前使用数据库的时候，生产环境都只在实体机上面使用，测试和开发为了资源复用会在虚拟机 vm 上面使用。</p><p>但是现在不少在 vm k8s 或者 aws 上面使用 db 数据库的，实际这里面可能有很多潜在的问题。以前是 pg - OS 这样两层结构，现在是 pg - os - cg - vm - k8s 这样多层结构，这里面任何一层出现问题实际都会导致你的查询变慢。我们以前虚拟机上面跑服务的时候，有时候就会被同物理机其他虚拟机上面的服务影响，例如突然的高 io。这样即使怎么看那个执行计划估计也没用，你必须去研究更底层可能的影响。</p></div></div><div id=outline-container-headline-2 class=outline-3><h3 id=headline-2>Shared memory</h3><div id=outline-text-headline-2 class=outline-text-3><p>docker 只给 /dev/shm 64MB 大小，所以是会遇到共享内存不足的问题啦。可以通过 strace 定位</p><div class="src src-shell"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=color:#888># strace -k -p PID</span>
-openat<span style=color:#333>(</span>AT_FDCWD, <span style=background-color:#fff0f0>&#34;/dev/shm/PostgreSQL.62223175&#34;</span>
-ftruncate<span style=color:#333>(</span>176, 50438144<span style=color:#333>)</span>                <span style=color:#333>=</span> <span style=color:#60e;font-weight:700>0</span>
-fallocate<span style=color:#333>(</span>176, 0, 0, 50438144<span style=color:#333>)</span>          <span style=color:#333>=</span> -1 ENOSPC
- &gt; libc-2.27.so<span style=color:#333>(</span>posix_fallocate+0x16<span style=color:#333>)</span> <span style=color:#333>[</span>0x114f76<span style=color:#333>]</span>
- &gt; postgres<span style=color:#333>(</span>dsm_create+0x67<span style=color:#333>)</span> <span style=color:#333>[</span>0x377067<span style=color:#333>]</span>
+<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>PostgreSQL at Low Level - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="PostgreSQL at Low Level"><meta property="og:description" content="总结一下这篇文章 PostgreSQL at low level: stay curious! Introduction 我们之前使用数据库的时候，生产环境都只在实体机上面使用，测试和开发为了"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/amp/postgresql-at-low-level/"><meta property="article:published_time" content="2020-02-02T11:04:47+08:00"><meta property="article:modified_time" content="2020-02-02T11:04:47+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="PostgreSQL at Low Level"><meta name=twitter:description content="总结一下这篇文章 PostgreSQL at low level: stay curious! Introduction 我们之前使用数据库的时候，生产环境都只在实体机上面使用，测试和开发为了"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><base href=https://wdicc.com/><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>PostgreSQL at Low Level</h1><div class=meta>Posted at &mdash; Feb 2, 2020</div></div><div class=post-header><nav id=TableOfContents><ul><li><a href=#headline-1>Introduction</a></li><li><a href=#headline-2>Shared memory</a></li><li><a href=#headline-3>vDSO</a></li><li><a href=#headline-4>CPU migrations</a></li><li><a href=#headline-5>MDS</a></li><li><a href=#headline-6>Lock holder/waiter preemption</a></li><li><a href=#headline-7>Huge pages</a></li><li><a href=#headline-8>BPF</a></li><li><a href=#headline-9>LLC</a></li><li><a href=#headline-10>Writeback</a></li><li><a href=#headline-11>Memory reclaim</a></li></ul></nav></div><div class=markdown><p>总结一下这篇文章 <a href=https://erthalion.info/2019/12/06/postgresql-stay-curious/>PostgreSQL at low level: stay curious!</a></p><div id=outline-container-headline-1 class=outline-3><h3 id=headline-1>Introduction</h3><div id=outline-text-headline-1 class=outline-text-3><p>我们之前使用数据库的时候，生产环境都只在实体机上面使用，测试和开发为了资源复用会在虚拟机 vm 上面使用。</p><p>但是现在不少在 vm k8s 或者 aws 上面使用 db 数据库的，实际这里面可能有很多潜在的问题。以前是 pg - OS 这样两层结构，现在是 pg - os - cg - vm - k8s 这样多层结构，这里面任何一层出现问题实际都会导致你的查询变慢。我们以前虚拟机上面跑服务的时候，有时候就会被同物理机其他虚拟机上面的服务影响，例如突然的高 io。这样即使怎么看那个执行计划估计也没用，你必须去研究更底层可能的影响。</p></div></div><div id=outline-container-headline-2 class=outline-3><h3 id=headline-2>Shared memory</h3><div id=outline-text-headline-2 class=outline-text-3><p>docker 只给 /dev/shm 64MB 大小，所以是会遇到共享内存不足的问题啦。可以通过 strace 定位</p><div class="src src-shell"><div class=highlight><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># strace -k -p PID</span>
+openat<span class=o>(</span>AT_FDCWD, <span class=s2>&#34;/dev/shm/PostgreSQL.62223175&#34;</span>
+ftruncate<span class=o>(</span>176, 50438144<span class=o>)</span>                <span class=o>=</span> <span class=m>0</span>
+fallocate<span class=o>(</span>176, 0, 0, 50438144<span class=o>)</span>          <span class=o>=</span> -1 ENOSPC
+ &gt; libc-2.27.so<span class=o>(</span>posix_fallocate+0x16<span class=o>)</span> <span class=o>[</span>0x114f76<span class=o>]</span>
+ &gt; postgres<span class=o>(</span>dsm_create+0x67<span class=o>)</span> <span class=o>[</span>0x377067<span class=o>]</span>
    ...
- &gt; postgres<span style=color:#333>(</span>ExecInitParallelPlan+0x360<span style=color:#333>)</span> <span style=color:#333>[</span>0x254a80<span style=color:#333>]</span>
- &gt; postgres<span style=color:#333>(</span>ExecGather+0x495<span style=color:#333>)</span> <span style=color:#333>[</span>0x269115<span style=color:#333>]</span>
- &gt; postgres<span style=color:#333>(</span>standard_ExecutorRun+0xfd<span style=color:#333>)</span> <span style=color:#333>[</span>0x25099d<span style=color:#333>]</span>
+ &gt; postgres<span class=o>(</span>ExecInitParallelPlan+0x360<span class=o>)</span> <span class=o>[</span>0x254a80<span class=o>]</span>
+ &gt; postgres<span class=o>(</span>ExecGather+0x495<span class=o>)</span> <span class=o>[</span>0x269115<span class=o>]</span>
+ &gt; postgres<span class=o>(</span>standard_ExecutorRun+0xfd<span class=o>)</span> <span class=o>[</span>0x25099d<span class=o>]</span>
    ...
- &gt; postgres<span style=color:#333>(</span>exec_simple_query+0x19f<span style=color:#333>)</span> <span style=color:#333>[</span>0x39afdf<span style=color:#333>]</span></code></pre></td></tr></table></div></div></div></div></div><div id=outline-container-headline-3 class=outline-3><h3 id=headline-3>vDSO</h3><div id=outline-text-headline-3 class=outline-text-3><p>内核支持叫 vDSO (virtual dynamic shared object) 的技术，允许进程直接调用 kernel 方法而不用做用户态和内核态切换，避免性能损失。有的这些调用对数据库来说还挺重要，例如 gettimeofday。但是有了 vm 就不好说啦。可以通过 strace 看看。</p><div class="src src-shell"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=color:#888># strace -k -p PID on XEN</span>
-gettimeofday<span style=color:#333>({</span><span style=color:#963>tv_sec</span><span style=color:#333>=</span>1550586520, <span style=color:#963>tv_usec</span><span style=color:#333>=</span>313499<span style=color:#333>}</span>, NULL<span style=color:#333>)</span> <span style=color:#333>=</span> <span style=color:#60e;font-weight:700>0</span></code></pre></td></tr></table></div></div></div></div></div><div id=outline-container-headline-4 class=outline-3><h3 id=headline-4>CPU migrations</h3><div id=outline-text-headline-4 class=outline-text-3><p>作者做了两个实验。实验一，执行比较重的操作，给一堆数据排序。实验二，使用 pgbench 的 –file=filename[@weight] 参数指定相同的 sql。实验二第二个脚本是执行一些比较简单的查询。</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text># Experiment 1
+ &gt; postgres<span class=o>(</span>exec_simple_query+0x19f<span class=o>)</span> <span class=o>[</span>0x39afdf<span class=o>]</span></code></pre></div></div></div></div><div id=outline-container-headline-3 class=outline-3><h3 id=headline-3>vDSO</h3><div id=outline-text-headline-3 class=outline-text-3><p>内核支持叫 vDSO (virtual dynamic shared object) 的技术，允许进程直接调用 kernel 方法而不用做用户态和内核态切换，避免性能损失。有的这些调用对数据库来说还挺重要，例如 gettimeofday。但是有了 vm 就不好说啦。可以通过 strace 看看。</p><div class="src src-shell"><div class=highlight><pre class=chroma><code class=language-shell data-lang=shell><span class=c1># strace -k -p PID on XEN</span>
+gettimeofday<span class=o>({</span><span class=nv>tv_sec</span><span class=o>=</span>1550586520, <span class=nv>tv_usec</span><span class=o>=</span>313499<span class=o>}</span>, NULL<span class=o>)</span> <span class=o>=</span> <span class=m>0</span></code></pre></div></div></div></div><div id=outline-container-headline-4 class=outline-3><h3 id=headline-4>CPU migrations</h3><div id=outline-text-headline-4 class=outline-text-3><p>作者做了两个实验。实验一，执行比较重的操作，给一堆数据排序。实验二，使用 pgbench 的 –file=filename[@weight] 参数指定相同的 sql。实验二第二个脚本是执行一些比较简单的查询。</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text># Experiment 1
 SQL script: pg_long.sql
 - latency average = 1312.903 ms
 
@@ -47,16 +21,7 @@ SQL script 1: pg_long.sql
 
 SQL script 2: pg_short.sql
 - weight: 1 (targets 50.0% of total)
-- latency average = 303.092 ms</code></pre></td></tr></table></div></div></div><p>为啥用比较轻量的查询替换之后（这里有点不明白，没看到前面说有做这个替换，我以为是同一个 sql）结果反而更坏？这个瓶颈看着和系统调用应该没啥关系，所以 strace 没用。可以使用 perf 看看硬件性能。</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">9
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text># perf record -e cache-misses,cpu-migrations
+- latency average = 303.092 ms</code></pre></div></div><p>为啥用比较轻量的查询替换之后（这里有点不明白，没看到前面说有做这个替换，我以为是同一个 sql）结果反而更坏？这个瓶颈看着和系统调用应该没啥关系，所以 strace 没用。可以使用 perf 看看硬件性能。</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text># perf record -e cache-misses,cpu-migrations
 
 # Experiment 1
 12,396,382,649      cache-misses # 28.562%
@@ -64,48 +29,19 @@ SQL script 2: pg_short.sql
 
 # Experiment 2
 20,665,817,234      cache-misses # 28.533%
-10,460              cpu-migrations</code></pre></td></tr></table></div></div></div><p>看着和 cache 没关系，和 cpu-migrations 有关系，第二个是第一个的 3 倍。</p></div></div><div id=outline-container-headline-5 class=outline-3><h3 id=headline-5>MDS</h3><div id=outline-text-headline-5 class=outline-text-3><p>MDS (Microarchitectural Data Sampling) 是一种硬件缺陷的攻击，类似基于 intel cpu 的 Meltdown 和 Spectre。针对这些问题内核都有一些方法减轻威胁。怎么评估这个对数据库的影响呢？看下面的 profile</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text># Children      Self  Symbol                                        
+10,460              cpu-migrations</code></pre></div></div><p>看着和 cache 没关系，和 cpu-migrations 有关系，第二个是第一个的 3 倍。</p></div></div><div id=outline-container-headline-5 class=outline-3><h3 id=headline-5>MDS</h3><div id=outline-text-headline-5 class=outline-text-3><p>MDS (Microarchitectural Data Sampling) 是一种硬件缺陷的攻击，类似基于 intel cpu 的 Meltdown 和 Spectre。针对这些问题内核都有一些方法减轻威胁。怎么评估这个对数据库的影响呢？看下面的 profile</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text># Children      Self  Symbol                                        
 # ........  ........  ...................................
     71.06%     0.00%  [.] __libc_start_main
     71.06%     0.00%  [.] PostmasterMain
     56.82%     0.14%  [.] exec_simple_query
     25.19%     0.06%  [k] entry_SYSCALL_64_after_hwframe
     25.14%     0.29%  [k] do_syscall_64
-    23.60%     0.14%  [.] standard_ExecutorRun</code></pre></td></tr></table></div></div></div><p>另外做一个内核没有针对这些问题做修复的，可以看到那个那个 do_syscall_64 是多出来的。</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text># Percent     Disassembly of kcore for cycles
+    23.60%     0.14%  [.] standard_ExecutorRun</code></pre></div></div><p>另外做一个内核没有针对这些问题做修复的，可以看到那个那个 do_syscall_64 是多出来的。</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text># Percent     Disassembly of kcore for cycles
 # ........    ................................
     0.01% :   nopl   0x0(%rax,%rax,1)
    28.94% :   verw   0xffe9e1(%rip)
     0.55% :   pop    %rbx
-    3.24% :   pop    %rbp</code></pre></td></tr></table></div></div></div><p>MDS 的修复会隐含重载 verw 来刷新 CPU 缓存，通过 mds_clear_cpu_buffers()。</p></div></div><div id=outline-container-headline-6 class=outline-3><h3 id=headline-6>Lock holder/waiter preemption</h3><div id=outline-text-headline-6 class=outline-text-3><p>假设有一个 pg 运行在一个有两个 vCPU（vC1，vC2） 的 vm 里面。</p><p>这种情况下某个时间点，运行在 vC2 的后端等待一个运行在 vC1 上面的后端的 spin lock。通常这没啥问题，但是如果 hypervisor 突然决定 preempt vC1（看着是抢占的意思？） 会发生什么情况？</p><p>这样本来 vC2 上面的后端以为是个小等待的，但是现在不知道需要等多久了。幸运的是 intel 有一种技术 PAUSE-Loop Exiting 允许通过发送 VM exit 来阻止无意义的 spinning。同时不幸的是，这会因为 VM 和 hypervisor 间切换带来一些多余的负担，如果这个暂停不正确的触发，那啥收获也没有。</p><p>怎么衡量呢。通过 perf 可以看看。不同 vm 还不一样，kvm 是看 kvm:kvm_exit 事件。</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text># experiment 1: pgbench, read write
+    3.24% :   pop    %rbp</code></pre></div></div><p>MDS 的修复会隐含重载 verw 来刷新 CPU 缓存，通过 mds_clear_cpu_buffers()。</p></div></div><div id=outline-container-headline-6 class=outline-3><h3 id=headline-6>Lock holder/waiter preemption</h3><div id=outline-text-headline-6 class=outline-text-3><p>假设有一个 pg 运行在一个有两个 vCPU（vC1，vC2） 的 vm 里面。</p><p>这种情况下某个时间点，运行在 vC2 的后端等待一个运行在 vC1 上面的后端的 spin lock。通常这没啥问题，但是如果 hypervisor 突然决定 preempt vC1（看着是抢占的意思？） 会发生什么情况？</p><p>这样本来 vC2 上面的后端以为是个小等待的，但是现在不知道需要等多久了。幸运的是 intel 有一种技术 PAUSE-Loop Exiting 允许通过发送 VM exit 来阻止无意义的 spinning。同时不幸的是，这会因为 VM 和 hypervisor 间切换带来一些多余的负担，如果这个暂停不正确的触发，那啥收获也没有。</p><p>怎么衡量呢。通过 perf 可以看看。不同 vm 还不一样，kvm 是看 kvm:kvm_exit 事件。</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text># experiment 1: pgbench, read write
 # latency average = 17.782 ms
 
 $ modprobe kvm-intel ple_gap=128
@@ -119,23 +55,7 @@ $ perf record -e kvm:kvm_exit
 $ modprobe kvm-intel ple_gap=0
 $ perf record -e kvm:kvm_exit
 
-# reason PAUSE_INSTRUCTION 0</code></pre></td></tr></table></div></div></div><p>第一个配置里面，使用 PLE 默认的配置，可以看到一堆的暂停。第二个完全禁止了 PLE，可以看到 0 个暂停。然后还能看到后面这个 latency 还低呢，这极可能是因为我们的 CPU 们被过度使用了呢，PLE 错误的识别了那些等待。</p></div></div><div id=outline-container-headline-7 class=outline-3><h3 id=headline-7>Huge pages</h3><div id=outline-text-headline-7 class=outline-text-3><p>首先不要混淆 classical huge pages 和 transparent huge pages。后者是个守护进程，用来在后台把普通的内存合并成 huge pages，一般情况下建议关闭他，因为可能会带来不可预料的消耗。</p><p>看看文档怎么说的</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text>使用大页可以极大的减少 TLB 的压力，提升 TLB 命中率，从而提升整个系统的性能。</code></pre></td></tr></table></div></div></div><p>怎么影响到数据库的呢，用 perf 看看。</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text># Experiment 1, pgbench read/write, huge_pages off
+# reason PAUSE_INSTRUCTION 0</code></pre></div></div><p>第一个配置里面，使用 PLE 默认的配置，可以看到一堆的暂停。第二个完全禁止了 PLE，可以看到 0 个暂停。然后还能看到后面这个 latency 还低呢，这极可能是因为我们的 CPU 们被过度使用了呢，PLE 错误的识别了那些等待。</p></div></div><div id=outline-container-headline-7 class=outline-3><h3 id=headline-7>Huge pages</h3><div id=outline-text-headline-7 class=outline-text-3><p>首先不要混淆 classical huge pages 和 transparent huge pages。后者是个守护进程，用来在后台把普通的内存合并成 huge pages，一般情况下建议关闭他，因为可能会带来不可预料的消耗。</p><p>看看文档怎么说的</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text>使用大页可以极大的减少 TLB 的压力，提升 TLB 命中率，从而提升整个系统的性能。</code></pre></div></div><p>怎么影响到数据库的呢，用 perf 看看。</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text># Experiment 1, pgbench read/write, huge_pages off
 # perf record -e dTLB-loads,dTLB-stores -p PID
 
 Samples: 894K of event &#39;dTLB-load-misses&#39;
@@ -149,60 +69,31 @@ Event count (approx.): 101471557
 Samples: 832K of event &#39;dTLB-load-misses&#39;
 Event count (approx.): 640614445
 Samples: 736K of event &#39;dTLB-store-misses&#39;
-Event count (approx.): 72447300</code></pre></td></tr></table></div></div></div><p>两个实验都是使用的 pgbench 的 TPC-B 方法。第一个关闭了 huge pages，第二个通过 huge_pages=on 打开了支持。第二个减少了 20% 的 TLD-load-misses。这里没有关注 latencies，只关注了这一个事情，不是整个系统，因为其他系统组件可能会带来噪音。</p></div></div><div id=outline-container-headline-8 class=outline-3><h3 id=headline-8>BPF</h3><div id=outline-text-headline-8 class=outline-text-3><p>没有接触过 BPF 和 BCC ，不能很好的翻译。这里<a href=https://zhuanlan.zhihu.com/p/32027979>有篇文章</a>讲这个。</p></div></div><div id=outline-container-headline-9 class=outline-3><h3 id=headline-9>LLC</h3><div id=outline-text-headline-9 class=outline-text-3><p>似乎是 last level cache 。似乎可以获取到 cache miss per query。</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text># llcache_per_query.py bin/postgres
+Event count (approx.): 72447300</code></pre></div></div><p>两个实验都是使用的 pgbench 的 TPC-B 方法。第一个关闭了 huge pages，第二个通过 huge_pages=on 打开了支持。第二个减少了 20% 的 TLD-load-misses。这里没有关注 latencies，只关注了这一个事情，不是整个系统，因为其他系统组件可能会带来噪音。</p></div></div><div id=outline-container-headline-8 class=outline-3><h3 id=headline-8>BPF</h3><div id=outline-text-headline-8 class=outline-text-3><p>没有接触过 BPF 和 BCC ，不能很好的翻译。这里<a href=https://zhuanlan.zhihu.com/p/32027979>有篇文章</a>讲这个。</p></div></div><div id=outline-container-headline-9 class=outline-3><h3 id=headline-9>LLC</h3><div id=outline-text-headline-9 class=outline-text-3><p>似乎是 last level cache 。似乎可以获取到 cache miss per query。</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text># llcache_per_query.py bin/postgres
 
 PID  QUERY                      CPU REFERENCE MISS   HIT%
 9720 UPDATE pgbench_tellers ... 0        2000 1000 50.00%
 9720 SELECT abalance FROM   ... 2        2000  100 95.00%
 ...
 
-Total References: 3303100 Total Misses: 599100 Hit Rate: 81.86%</code></pre></td></tr></table></div></div></div><p>那个 llcache_per_query.py 在<a href=https://github.com/erthalion/postgres-bcc/blob/master/llcache_per_query.py>这里</a>有。</p></div></div><div id=outline-container-headline-10 class=outline-3><h3 id=headline-10>Writeback</h3><div id=outline-text-headline-10 class=outline-text-3><p>pg 使用的是 buffered IO。可以使用 ftrace 来监控。需要先 mount tracefs 通常在 /sys/kernel/debug/tracing</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text># cd /sys/kernel/debug/tracing
+Total References: 3303100 Total Misses: 599100 Hit Rate: 81.86%</code></pre></div></div><p>那个 llcache_per_query.py 在<a href=https://github.com/erthalion/postgres-bcc/blob/master/llcache_per_query.py>这里</a>有。</p></div></div><div id=outline-container-headline-10 class=outline-3><h3 id=headline-10>Writeback</h3><div id=outline-text-headline-10 class=outline-text-3><p>pg 使用的是 buffered IO。可以使用 ftrace 来监控。需要先 mount tracefs 通常在 /sys/kernel/debug/tracing</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text># cd /sys/kernel/debug/tracing
 # echo 1 &gt; events/writeback/writeback_written/enable
 # tail trace
 
 kworker/u8:1 reason=periodic   nr_pages=101429
 kworker/u8:1 reason=background nr_pages=MAX_ULONG
-kworker/u8:3 reason=periodic   nr_pages=101457</code></pre></td></tr></table></div></div></div><p>上面这个是个输出的简短的版本，MAX_ULONG 是 maximum unsigned long 的意思。</p><p>可以看到内核在后台 writeback ，试图把尽量多的文件系统缓存写入。</p><div class="src src-text"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text># pgbench insert workload
+kworker/u8:3 reason=periodic   nr_pages=101457</code></pre></div></div><p>上面这个是个输出的简短的版本，MAX_ULONG 是 maximum unsigned long 的意思。</p><p>可以看到内核在后台 writeback ，试图把尽量多的文件系统缓存写入。</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text># pgbench insert workload
 # io_timeouts.py bin/postgres
 
 [18335] END: MAX_SCHEDULE_TIMEOUT
 [18333] END: MAX_SCHEDULE_TIMEOUT
 [18331] END: MAX_SCHEDULE_TIMEOUT
-[18318] truncate pgbench_history: MAX_SCHEDULE_TIMEOUT</code></pre></td></tr></table></div></div></div><p>可以通过 dirty_background_bytes 控制。也可以通过 bgwriter_flush_after / checkpointer_flush_after 控制 bgwriter 和 checkpointer。</p></div></div><div id=outline-container-headline-11 class=outline-3><h3 id=headline-11>Memory reclaim</h3><div id=outline-text-headline-11 class=outline-text-3><p>如果使用过 kubernetes 的话，可能会看到下面的配置</p><div class="src src-yaml"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#080;font-weight:700>resources</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>requests</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>    </span><span style=color:#080;font-weight:700>memory</span>:<span style=color:#bbb> </span><span style=background-color:#fff0f0>&#34;64Mi&#34;</span><span style=color:#bbb>
-</span><span style=color:#bbb>    </span><span style=color:#080;font-weight:700>cpu</span>:<span style=color:#bbb> </span><span style=background-color:#fff0f0>&#34;250m&#34;</span><span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>limits</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>    </span><span style=color:#080;font-weight:700>memory</span>:<span style=color:#bbb> </span><span style=background-color:#fff0f0>&#34;128Mi&#34;</span><span style=color:#bbb>
-</span><span style=color:#bbb>    </span><span style=color:#080;font-weight:700>cpu</span>:<span style=color:#bbb> </span><span style=background-color:#fff0f0>&#34;500m&#34;</span></code></pre></td></tr></table></div></div></div></div></div></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/postgresql>postgresql</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
+[18318] truncate pgbench_history: MAX_SCHEDULE_TIMEOUT</code></pre></div></div><p>可以通过 dirty_background_bytes 控制。也可以通过 bgwriter_flush_after / checkpointer_flush_after 控制 bgwriter 和 checkpointer。</p></div></div><div id=outline-container-headline-11 class=outline-3><h3 id=headline-11>Memory reclaim</h3><div id=outline-text-headline-11 class=outline-text-3><p>如果使用过 kubernetes 的话，可能会看到下面的配置</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>requests</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;64Mi&#34;</span><span class=w>
+</span><span class=w>    </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;250m&#34;</span><span class=w>
+</span><span class=w>  </span><span class=nt>limits</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;128Mi&#34;</span><span class=w>
+</span><span class=w>    </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;500m&#34;</span></code></pre></div></div></div></div></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/postgresql>postgresql</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
 return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
 Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>

@@ -1,247 +1,125 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>Add float debug button for react native - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="Add float debug button for react native"><meta property="og:description" content="React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/amp/add-float-debug-button-for-react-native/"><meta property="article:published_time" content="2017-09-02T18:22:47+08:00"><meta property="article:modified_time" content="2017-09-02T18:22:47+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Add float debug button for react native"><meta name=twitter:description content="React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><base href=https://wdicc.com/><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>Add float debug button for react native</h1><div class=meta>Posted at &mdash; Sep 2, 2017</div></div><div class=post-header><nav id=TableOfContents><ul><li><a href=#ios>iOS</a></li><li><a href=#android>Android</a></li></ul></nav></div><div class=markdown><p>React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候并不是一个好的操作，比如是个 pad，或者比如你自己的设备本身会触发晃动动作。那么如何在开发模式下面增加一个按钮打开这个菜单呢？可惜官方对这个功能没有兴趣多做开发 <a href=https://github.com/facebook/react-native/issues/10191>https://github.com/facebook/react-native/issues/10191</a> 。</p><h2 id=ios>iOS</h2><p>ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#080;font-weight:700>import</span> {NativeModules} from <span style=background-color:#fff0f0>&#39;react-native&#39;</span>;
+<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>Add float debug button for react native - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="Add float debug button for react native"><meta property="og:description" content="React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/amp/add-float-debug-button-for-react-native/"><meta property="article:published_time" content="2017-09-02T18:22:47+08:00"><meta property="article:modified_time" content="2017-09-02T18:22:47+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Add float debug button for react native"><meta name=twitter:description content="React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><base href=https://wdicc.com/><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>Add float debug button for react native</h1><div class=meta>Posted at &mdash; Sep 2, 2017</div></div><div class=post-header><nav id=TableOfContents><ul><li><a href=#ios>iOS</a></li><li><a href=#android>Android</a></li></ul></nav></div><div class=markdown><p>React-native 里面在模拟器里面可以通过快捷键打开开发菜单，在设备里面可以通过摇晃设备打开开发菜单。但是摇晃有时候并不是一个好的操作，比如是个 pad，或者比如你自己的设备本身会触发晃动动作。那么如何在开发模式下面增加一个按钮打开这个菜单呢？可惜官方对这个功能没有兴趣多做开发 <a href=https://github.com/facebook/react-native/issues/10191>https://github.com/facebook/react-native/issues/10191</a> 。</p><h2 id=ios>iOS</h2><p>ios 里面直接就把这个接口暴露出来了，可以直接在 js 里面调用。</p><div class=highlight><pre class=chroma><code class=language-javascript data-lang=javascript><span class=kr>import</span> <span class=p>{</span><span class=nx>NativeModules</span><span class=p>}</span> <span class=nx>from</span> <span class=s1>&#39;react-native&#39;</span><span class=p>;</span>
 
-<span style=color:#888>// 在某个按钮的动作里面
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>const</span> {DevMenu} <span style=color:#333>=</span> NativeModules;
-DevMenu.show();
-</code></pre></td></tr></table></div></div><h2 id=android>Android</h2><p>iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法，得自己通过 native 代码加。</p><p>下面两种方式加的都是 <code>android.support.design.widget.FloatingActionButton</code> 按钮，其它的类似。需要增加好编译依赖 <code>compile 'com.android.support:design:23.0.0'</code>，版本号按照自己的修改下。</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">42
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">43
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">44
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">45
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">46
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">47
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">48
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">49
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">50
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">51
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">52
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">53
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">54
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">55
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">56
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">57
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">58
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">59
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">60
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">61
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">62
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">63
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">64
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">65
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">66
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">67
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">68
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">69
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">70
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">71
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">72
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">73
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java>        <span style=color:#080;font-weight:700>private</span> <span style=color:#339;font-weight:700>void</span> <span style=color:#06b;font-weight:700>addDevButton</span><span style=color:#333>()</span> <span style=color:#333>{</span>
+<span class=c1>// 在某个按钮的动作里面
+</span><span class=c1></span><span class=kr>const</span> <span class=p>{</span><span class=nx>DevMenu</span><span class=p>}</span> <span class=o>=</span> <span class=nx>NativeModules</span><span class=p>;</span>
+<span class=nx>DevMenu</span><span class=p>.</span><span class=nx>show</span><span class=p>();</span>
+</code></pre></div><h2 id=android>Android</h2><p>iOS 是 react-native 的亲儿子，Android 里面并没有那么方便的方法，得自己通过 native 代码加。</p><p>下面两种方式加的都是 <code>android.support.design.widget.FloatingActionButton</code> 按钮，其它的类似。需要增加好编译依赖 <code>compile 'com.android.support:design:23.0.0'</code>，版本号按照自己的修改下。</p><div class=highlight><pre class=chroma><code class=language-java data-lang=java>        <span class=kd>private</span> <span class=kt>void</span> <span class=nf>addDevButton</span><span class=o>()</span> <span class=o>{</span>
 
-            MainApplication application <span style=color:#333>=</span> <span style=color:#333>(</span>MainApplication<span style=color:#333>)</span> getApplication<span style=color:#333>();</span>
-            ReactNativeHost reactNativeHost <span style=color:#333>=</span> application<span style=color:#333>.</span><span style=color:#00c>getReactNativeHost</span><span style=color:#333>();</span>
-            ReactInstanceManager reactInstanceManager <span style=color:#333>=</span> reactNativeHost<span style=color:#333>.</span><span style=color:#00c>getReactInstanceManager</span><span style=color:#333>();</span>
-            <span style=color:#080;font-weight:700>final</span> DevSupportManager devSupportManager <span style=color:#333>=</span> reactInstanceManager<span style=color:#333>.</span><span style=color:#00c>getDevSupportManager</span><span style=color:#333>();</span>
+            <span class=n>MainApplication</span> <span class=n>application</span> <span class=o>=</span> <span class=o>(</span><span class=n>MainApplication</span><span class=o>)</span> <span class=n>getApplication</span><span class=o>();</span>
+            <span class=n>ReactNativeHost</span> <span class=n>reactNativeHost</span> <span class=o>=</span> <span class=n>application</span><span class=o>.</span><span class=na>getReactNativeHost</span><span class=o>();</span>
+            <span class=n>ReactInstanceManager</span> <span class=n>reactInstanceManager</span> <span class=o>=</span> <span class=n>reactNativeHost</span><span class=o>.</span><span class=na>getReactInstanceManager</span><span class=o>();</span>
+            <span class=kd>final</span> <span class=n>DevSupportManager</span> <span class=n>devSupportManager</span> <span class=o>=</span> <span class=n>reactInstanceManager</span><span class=o>.</span><span class=na>getDevSupportManager</span><span class=o>();</span>
 
-            <span style=color:#888>// 这里是增加一个自定义菜单
-</span><span style=color:#888>//            devSupportManager.addCustomDevOption(&#34;Custom dev option&#34;, new DevOptionHandler() {
-</span><span style=color:#888>//                @Override
-</span><span style=color:#888>//                public void onOptionSelected() {
-</span><span style=color:#888>//                    Toast.makeText(MainActivity.this, &#34;Hello from custom dev option&#34;, Toast.LENGTH_SHORT).show();
-</span><span style=color:#888>//                }
-</span><span style=color:#888>//            });
-</span><span style=color:#888></span>
+            <span class=c1>// 这里是增加一个自定义菜单
+</span><span class=c1>//            devSupportManager.addCustomDevOption(&#34;Custom dev option&#34;, new DevOptionHandler() {
+</span><span class=c1>//                @Override
+</span><span class=c1>//                public void onOptionSelected() {
+</span><span class=c1>//                    Toast.makeText(MainActivity.this, &#34;Hello from custom dev option&#34;, Toast.LENGTH_SHORT).show();
+</span><span class=c1>//                }
+</span><span class=c1>//            });
+</span><span class=c1></span>
 
-            <span style=color:#888>// Fake empty container dev_button_layout
-</span><span style=color:#888></span>            <span style=color:#888>// 创建一个 layout
-</span><span style=color:#888></span>            RelativeLayout lContainerLayout <span style=color:#333>=</span> <span style=color:#080;font-weight:700>new</span> RelativeLayout<span style=color:#333>(</span>mActivity<span style=color:#333>.</span><span style=color:#00c>getApplicationContext</span><span style=color:#333>());</span>
-            lContainerLayout<span style=color:#333>.</span><span style=color:#00c>setLayoutParams</span><span style=color:#333>(</span><span style=color:#080;font-weight:700>new</span> RelativeLayout<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>(</span>
-                    ViewGroup<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>.</span><span style=color:#00c>MATCH_PARENT</span> <span style=color:#333>,</span> ViewGroup<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>.</span><span style=color:#00c>MATCH_PARENT</span> <span style=color:#333>));</span>
+            <span class=c1>// Fake empty container dev_button_layout
+</span><span class=c1></span>            <span class=c1>// 创建一个 layout
+</span><span class=c1></span>            <span class=n>RelativeLayout</span> <span class=n>lContainerLayout</span> <span class=o>=</span> <span class=k>new</span> <span class=n>RelativeLayout</span><span class=o>(</span><span class=n>mActivity</span><span class=o>.</span><span class=na>getApplicationContext</span><span class=o>());</span>
+            <span class=n>lContainerLayout</span><span class=o>.</span><span class=na>setLayoutParams</span><span class=o>(</span><span class=k>new</span> <span class=n>RelativeLayout</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>(</span>
+                    <span class=n>ViewGroup</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>.</span><span class=na>MATCH_PARENT</span> <span class=o>,</span> <span class=n>ViewGroup</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>.</span><span class=na>MATCH_PARENT</span> <span class=o>));</span>
 
-            <span style=color:#888>// custom view
-</span><span style=color:#888></span>            <span style=color:#888>// 创建一个 button
-</span><span style=color:#888></span>            FloatingActionButton button <span style=color:#333>=</span> <span style=color:#080;font-weight:700>new</span> FloatingActionButton<span style=color:#333>(</span>mActivity<span style=color:#333>);</span>
-            button<span style=color:#333>.</span><span style=color:#00c>setImageResource</span><span style=color:#333>(</span>R<span style=color:#333>.</span><span style=color:#00c>drawable</span><span style=color:#333>.</span><span style=color:#00c>ga_airplane</span><span style=color:#333>);</span>
+            <span class=c1>// custom view
+</span><span class=c1></span>            <span class=c1>// 创建一个 button
+</span><span class=c1></span>            <span class=n>FloatingActionButton</span> <span class=n>button</span> <span class=o>=</span> <span class=k>new</span> <span class=n>FloatingActionButton</span><span class=o>(</span><span class=n>mActivity</span><span class=o>);</span>
+            <span class=n>button</span><span class=o>.</span><span class=na>setImageResource</span><span class=o>(</span><span class=n>R</span><span class=o>.</span><span class=na>drawable</span><span class=o>.</span><span class=na>ga_airplane</span><span class=o>);</span>
 
-            RelativeLayout<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span> lButtonParams <span style=color:#333>=</span> <span style=color:#080;font-weight:700>new</span> RelativeLayout<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>(</span>
-                    ViewGroup<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>.</span><span style=color:#00c>WRAP_CONTENT</span><span style=color:#333>,</span> ViewGroup<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>.</span><span style=color:#00c>WRAP_CONTENT</span>
-            <span style=color:#333>);</span>
-            lButtonParams<span style=color:#333>.</span><span style=color:#00c>addRule</span><span style=color:#333>(</span>RelativeLayout<span style=color:#333>.</span><span style=color:#00c>ALIGN_PARENT_RIGHT</span><span style=color:#333>);</span>
-            lButtonParams<span style=color:#333>.</span><span style=color:#00c>addRule</span><span style=color:#333>(</span>RelativeLayout<span style=color:#333>.</span><span style=color:#00c>ALIGN_PARENT_BOTTOM</span><span style=color:#333>);</span>
-            button<span style=color:#333>.</span><span style=color:#00c>setLayoutParams</span><span style=color:#333>(</span>lButtonParams<span style=color:#333>);</span>
+            <span class=n>RelativeLayout</span><span class=o>.</span><span class=na>LayoutParams</span> <span class=n>lButtonParams</span> <span class=o>=</span> <span class=k>new</span> <span class=n>RelativeLayout</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>(</span>
+                    <span class=n>ViewGroup</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>.</span><span class=na>WRAP_CONTENT</span><span class=o>,</span> <span class=n>ViewGroup</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>.</span><span class=na>WRAP_CONTENT</span>
+            <span class=o>);</span>
+            <span class=n>lButtonParams</span><span class=o>.</span><span class=na>addRule</span><span class=o>(</span><span class=n>RelativeLayout</span><span class=o>.</span><span class=na>ALIGN_PARENT_RIGHT</span><span class=o>);</span>
+            <span class=n>lButtonParams</span><span class=o>.</span><span class=na>addRule</span><span class=o>(</span><span class=n>RelativeLayout</span><span class=o>.</span><span class=na>ALIGN_PARENT_BOTTOM</span><span class=o>);</span>
+            <span class=n>button</span><span class=o>.</span><span class=na>setLayoutParams</span><span class=o>(</span><span class=n>lButtonParams</span><span class=o>);</span>
 
-            ViewGroup<span style=color:#333>.</span><span style=color:#00c>MarginLayoutParams</span> mp <span style=color:#333>=</span> <span style=color:#333>(</span>ViewGroup<span style=color:#333>.</span><span style=color:#00c>MarginLayoutParams</span><span style=color:#333>)</span> button<span style=color:#333>.</span><span style=color:#00c>getLayoutParams</span><span style=color:#333>();</span>
-            mp<span style=color:#333>.</span><span style=color:#00c>setMargins</span><span style=color:#333>(</span>0<span style=color:#333>,</span> 0<span style=color:#333>,</span> 0<span style=color:#333>,</span> dpToPx<span style=color:#333>(</span>mActivity<span style=color:#333>,</span> 125<span style=color:#333>));</span>
+            <span class=n>ViewGroup</span><span class=o>.</span><span class=na>MarginLayoutParams</span> <span class=n>mp</span> <span class=o>=</span> <span class=o>(</span><span class=n>ViewGroup</span><span class=o>.</span><span class=na>MarginLayoutParams</span><span class=o>)</span> <span class=n>button</span><span class=o>.</span><span class=na>getLayoutParams</span><span class=o>();</span>
+            <span class=n>mp</span><span class=o>.</span><span class=na>setMargins</span><span class=o>(</span><span class=n>0</span><span class=o>,</span> <span class=n>0</span><span class=o>,</span> <span class=n>0</span><span class=o>,</span> <span class=n>dpToPx</span><span class=o>(</span><span class=n>mActivity</span><span class=o>,</span> <span class=n>125</span><span class=o>));</span>
 
-            button<span style=color:#333>.</span><span style=color:#00c>setLayoutParams</span><span style=color:#333>(</span>mp<span style=color:#333>);</span>
+            <span class=n>button</span><span class=o>.</span><span class=na>setLayoutParams</span><span class=o>(</span><span class=n>mp</span><span class=o>);</span>
 
-            <span style=color:#888>//设定拖动动作
-</span><span style=color:#888></span>            button<span style=color:#333>.</span><span style=color:#00c>setOnTouchListener</span><span style=color:#333>(</span><span style=color:#080;font-weight:700>new</span> View<span style=color:#333>.</span><span style=color:#00c>OnTouchListener</span><span style=color:#333>()</span> <span style=color:#333>{</span>
-                <span style=color:#555;font-weight:700>@Override</span>
-                <span style=color:#080;font-weight:700>public</span> <span style=color:#339;font-weight:700>boolean</span> <span style=color:#06b;font-weight:700>onTouch</span><span style=color:#333>(</span>View v<span style=color:#333>,</span> MotionEvent event<span style=color:#333>)</span> <span style=color:#333>{</span>
-                    <span style=color:#080;font-weight:700>switch</span> <span style=color:#333>(</span>event<span style=color:#333>.</span><span style=color:#00c>getActionMasked</span><span style=color:#333>())</span> <span style=color:#333>{</span>
-                        <span style=color:#080;font-weight:700>case</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_DOWN</span><span style=color:#333>:</span>
-                            dX <span style=color:#333>=</span> v<span style=color:#333>.</span><span style=color:#00c>getX</span><span style=color:#333>()</span> <span style=color:#333>-</span> event<span style=color:#333>.</span><span style=color:#00c>getRawX</span><span style=color:#333>();</span>
-                            dY <span style=color:#333>=</span> v<span style=color:#333>.</span><span style=color:#00c>getY</span><span style=color:#333>()</span> <span style=color:#333>-</span> event<span style=color:#333>.</span><span style=color:#00c>getRawY</span><span style=color:#333>();</span>
-                            lastAction <span style=color:#333>=</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_DOWN</span><span style=color:#333>;</span>
-                            <span style=color:#080;font-weight:700>break</span><span style=color:#333>;</span>
+            <span class=c1>//设定拖动动作
+</span><span class=c1></span>            <span class=n>button</span><span class=o>.</span><span class=na>setOnTouchListener</span><span class=o>(</span><span class=k>new</span> <span class=n>View</span><span class=o>.</span><span class=na>OnTouchListener</span><span class=o>()</span> <span class=o>{</span>
+                <span class=nd>@Override</span>
+                <span class=kd>public</span> <span class=kt>boolean</span> <span class=nf>onTouch</span><span class=o>(</span><span class=n>View</span> <span class=n>v</span><span class=o>,</span> <span class=n>MotionEvent</span> <span class=n>event</span><span class=o>)</span> <span class=o>{</span>
+                    <span class=k>switch</span> <span class=o>(</span><span class=n>event</span><span class=o>.</span><span class=na>getActionMasked</span><span class=o>())</span> <span class=o>{</span>
+                        <span class=k>case</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_DOWN</span><span class=o>:</span>
+                            <span class=n>dX</span> <span class=o>=</span> <span class=n>v</span><span class=o>.</span><span class=na>getX</span><span class=o>()</span> <span class=o>-</span> <span class=n>event</span><span class=o>.</span><span class=na>getRawX</span><span class=o>();</span>
+                            <span class=n>dY</span> <span class=o>=</span> <span class=n>v</span><span class=o>.</span><span class=na>getY</span><span class=o>()</span> <span class=o>-</span> <span class=n>event</span><span class=o>.</span><span class=na>getRawY</span><span class=o>();</span>
+                            <span class=n>lastAction</span> <span class=o>=</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_DOWN</span><span class=o>;</span>
+                            <span class=k>break</span><span class=o>;</span>
 
-                        <span style=color:#080;font-weight:700>case</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_MOVE</span><span style=color:#333>:</span>
-                            v<span style=color:#333>.</span><span style=color:#00c>setY</span><span style=color:#333>(</span>event<span style=color:#333>.</span><span style=color:#00c>getRawY</span><span style=color:#333>()</span> <span style=color:#333>+</span> dY<span style=color:#333>);</span>
-                            v<span style=color:#333>.</span><span style=color:#00c>setX</span><span style=color:#333>(</span>event<span style=color:#333>.</span><span style=color:#00c>getRawX</span><span style=color:#333>()</span> <span style=color:#333>+</span> dX<span style=color:#333>);</span>
-                            lastAction <span style=color:#333>=</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_MOVE</span><span style=color:#333>;</span>
-                            <span style=color:#080;font-weight:700>break</span><span style=color:#333>;</span>
+                        <span class=k>case</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_MOVE</span><span class=o>:</span>
+                            <span class=n>v</span><span class=o>.</span><span class=na>setY</span><span class=o>(</span><span class=n>event</span><span class=o>.</span><span class=na>getRawY</span><span class=o>()</span> <span class=o>+</span> <span class=n>dY</span><span class=o>);</span>
+                            <span class=n>v</span><span class=o>.</span><span class=na>setX</span><span class=o>(</span><span class=n>event</span><span class=o>.</span><span class=na>getRawX</span><span class=o>()</span> <span class=o>+</span> <span class=n>dX</span><span class=o>);</span>
+                            <span class=n>lastAction</span> <span class=o>=</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_MOVE</span><span class=o>;</span>
+                            <span class=k>break</span><span class=o>;</span>
 
-                        <span style=color:#080;font-weight:700>case</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_UP</span><span style=color:#333>:</span>
-                            <span style=color:#080;font-weight:700>if</span> <span style=color:#333>(</span>lastAction <span style=color:#333>==</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_DOWN</span><span style=color:#333>)</span>
-                                <span style=color:#888>// 点击的时候打开菜单
-</span><span style=color:#888></span>                                devSupportManager<span style=color:#333>.</span><span style=color:#00c>showDevOptionsDialog</span><span style=color:#333>();</span>
-                            <span style=color:#080;font-weight:700>break</span><span style=color:#333>;</span>
-<span style=color:#970;font-weight:700>
-</span><span style=color:#970;font-weight:700>                        default:</span>
-                            <span style=color:#080;font-weight:700>return</span> <span style=color:#080;font-weight:700>false</span><span style=color:#333>;</span>
-                    <span style=color:#333>}</span>
-                    <span style=color:#080;font-weight:700>return</span> <span style=color:#080;font-weight:700>true</span><span style=color:#333>;</span>
-                <span style=color:#333>}</span>
-            <span style=color:#333>});</span>
+                        <span class=k>case</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_UP</span><span class=o>:</span>
+                            <span class=k>if</span> <span class=o>(</span><span class=n>lastAction</span> <span class=o>==</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_DOWN</span><span class=o>)</span>
+                                <span class=c1>// 点击的时候打开菜单
+</span><span class=c1></span>                                <span class=n>devSupportManager</span><span class=o>.</span><span class=na>showDevOptionsDialog</span><span class=o>();</span>
+                            <span class=k>break</span><span class=o>;</span>
+<span class=nl>
+</span><span class=nl>                        default:</span>
+                            <span class=k>return</span> <span class=kc>false</span><span class=o>;</span>
+                    <span class=o>}</span>
+                    <span class=k>return</span> <span class=kc>true</span><span class=o>;</span>
+                <span class=o>}</span>
+            <span class=o>});</span>
 
-            lContainerLayout<span style=color:#333>.</span><span style=color:#00c>addView</span><span style=color:#333>(</span>button<span style=color:#333>);</span>
-            addContentView<span style=color:#333>(</span>lContainerLayout<span style=color:#333>,</span> <span style=color:#080;font-weight:700>new</span> ViewGroup<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>(</span>
-                    ViewGroup<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>.</span><span style=color:#00c>MATCH_PARENT</span> <span style=color:#333>,</span> ViewGroup<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>.</span><span style=color:#00c>MATCH_PARENT</span> <span style=color:#333>));</span>
-        <span style=color:#333>}</span>
-</code></pre></td></tr></table></div></div><p>上面是纯代码方式，还可以通过 xml 文件方式搞定。</p><p>新建一个 layout 文件，取名比如叫做 <code>dev_button_layout.xml</code>， rootTag 是 <code>RelativeLayout</code>。然后在里面添加一个 <code>FloatingActionButton</code>，id 设置为 <code>dev_button</code>，然后设置好属性和位置。</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">17
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">18
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">19
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">20
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">21
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">22
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">23
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">24
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">25
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">26
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">27
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">28
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">29
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">30
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">31
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">32
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">33
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">34
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">35
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">36
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">37
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">38
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">39
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">40
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">41
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-java data-lang=java>        <span style=color:#080;font-weight:700>private</span> <span style=color:#339;font-weight:700>void</span> <span style=color:#06b;font-weight:700>addDevButton</span><span style=color:#333>()</span> <span style=color:#333>{</span>
-            MainApplication application <span style=color:#333>=</span> <span style=color:#333>(</span>MainApplication<span style=color:#333>)</span> getApplication<span style=color:#333>();</span>
-            ReactNativeHost reactNativeHost <span style=color:#333>=</span> application<span style=color:#333>.</span><span style=color:#00c>getReactNativeHost</span><span style=color:#333>();</span>
-            ReactInstanceManager reactInstanceManager <span style=color:#333>=</span> reactNativeHost<span style=color:#333>.</span><span style=color:#00c>getReactInstanceManager</span><span style=color:#333>();</span>
-            <span style=color:#080;font-weight:700>final</span> DevSupportManager devSupportManager <span style=color:#333>=</span> reactInstanceManager<span style=color:#333>.</span><span style=color:#00c>getDevSupportManager</span><span style=color:#333>();</span>
+            <span class=n>lContainerLayout</span><span class=o>.</span><span class=na>addView</span><span class=o>(</span><span class=n>button</span><span class=o>);</span>
+            <span class=n>addContentView</span><span class=o>(</span><span class=n>lContainerLayout</span><span class=o>,</span> <span class=k>new</span> <span class=n>ViewGroup</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>(</span>
+                    <span class=n>ViewGroup</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>.</span><span class=na>MATCH_PARENT</span> <span class=o>,</span> <span class=n>ViewGroup</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>.</span><span class=na>MATCH_PARENT</span> <span class=o>));</span>
+        <span class=o>}</span>
+</code></pre></div><p>上面是纯代码方式，还可以通过 xml 文件方式搞定。</p><p>新建一个 layout 文件，取名比如叫做 <code>dev_button_layout.xml</code>， rootTag 是 <code>RelativeLayout</code>。然后在里面添加一个 <code>FloatingActionButton</code>，id 设置为 <code>dev_button</code>，然后设置好属性和位置。</p><div class=highlight><pre class=chroma><code class=language-java data-lang=java>        <span class=kd>private</span> <span class=kt>void</span> <span class=nf>addDevButton</span><span class=o>()</span> <span class=o>{</span>
+            <span class=n>MainApplication</span> <span class=n>application</span> <span class=o>=</span> <span class=o>(</span><span class=n>MainApplication</span><span class=o>)</span> <span class=n>getApplication</span><span class=o>();</span>
+            <span class=n>ReactNativeHost</span> <span class=n>reactNativeHost</span> <span class=o>=</span> <span class=n>application</span><span class=o>.</span><span class=na>getReactNativeHost</span><span class=o>();</span>
+            <span class=n>ReactInstanceManager</span> <span class=n>reactInstanceManager</span> <span class=o>=</span> <span class=n>reactNativeHost</span><span class=o>.</span><span class=na>getReactInstanceManager</span><span class=o>();</span>
+            <span class=kd>final</span> <span class=n>DevSupportManager</span> <span class=n>devSupportManager</span> <span class=o>=</span> <span class=n>reactInstanceManager</span><span class=o>.</span><span class=na>getDevSupportManager</span><span class=o>();</span>
 
-            View view <span style=color:#333>=</span> View<span style=color:#333>.</span><span style=color:#00c>inflate</span><span style=color:#333>(</span>mActivity<span style=color:#333>,</span> R<span style=color:#333>.</span><span style=color:#00c>layout</span><span style=color:#333>.</span><span style=color:#00c>dev_button_layout</span><span style=color:#333>,</span> <span style=color:#080;font-weight:700>null</span><span style=color:#333>);</span>
-            FloatingActionButton button <span style=color:#333>=</span> <span style=color:#333>(</span>FloatingActionButton<span style=color:#333>)</span> view<span style=color:#333>.</span><span style=color:#00c>findViewById</span><span style=color:#333>(</span>R<span style=color:#333>.</span><span style=color:#00c>id</span><span style=color:#333>.</span><span style=color:#00c>dev_button</span><span style=color:#333>);</span>
-            <span style=color:#888>//button.setImageResource(R.drawable.ga_airplane);
-</span><span style=color:#888></span>
-            button<span style=color:#333>.</span><span style=color:#00c>setOnTouchListener</span><span style=color:#333>(</span><span style=color:#080;font-weight:700>new</span> View<span style=color:#333>.</span><span style=color:#00c>OnTouchListener</span><span style=color:#333>()</span> <span style=color:#333>{</span>
-                <span style=color:#555;font-weight:700>@Override</span>
-                <span style=color:#080;font-weight:700>public</span> <span style=color:#339;font-weight:700>boolean</span> <span style=color:#06b;font-weight:700>onTouch</span><span style=color:#333>(</span>View v<span style=color:#333>,</span> MotionEvent event<span style=color:#333>)</span> <span style=color:#333>{</span>
-                    <span style=color:#080;font-weight:700>switch</span> <span style=color:#333>(</span>event<span style=color:#333>.</span><span style=color:#00c>getActionMasked</span><span style=color:#333>())</span> <span style=color:#333>{</span>
-                        <span style=color:#080;font-weight:700>case</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_DOWN</span><span style=color:#333>:</span>
-                            dX <span style=color:#333>=</span> v<span style=color:#333>.</span><span style=color:#00c>getX</span><span style=color:#333>()</span> <span style=color:#333>-</span> event<span style=color:#333>.</span><span style=color:#00c>getRawX</span><span style=color:#333>();</span>
-                            dY <span style=color:#333>=</span> v<span style=color:#333>.</span><span style=color:#00c>getY</span><span style=color:#333>()</span> <span style=color:#333>-</span> event<span style=color:#333>.</span><span style=color:#00c>getRawY</span><span style=color:#333>();</span>
-                            lastAction <span style=color:#333>=</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_DOWN</span><span style=color:#333>;</span>
-                            <span style=color:#080;font-weight:700>break</span><span style=color:#333>;</span>
+            <span class=n>View</span> <span class=n>view</span> <span class=o>=</span> <span class=n>View</span><span class=o>.</span><span class=na>inflate</span><span class=o>(</span><span class=n>mActivity</span><span class=o>,</span> <span class=n>R</span><span class=o>.</span><span class=na>layout</span><span class=o>.</span><span class=na>dev_button_layout</span><span class=o>,</span> <span class=kc>null</span><span class=o>);</span>
+            <span class=n>FloatingActionButton</span> <span class=n>button</span> <span class=o>=</span> <span class=o>(</span><span class=n>FloatingActionButton</span><span class=o>)</span> <span class=n>view</span><span class=o>.</span><span class=na>findViewById</span><span class=o>(</span><span class=n>R</span><span class=o>.</span><span class=na>id</span><span class=o>.</span><span class=na>dev_button</span><span class=o>);</span>
+            <span class=c1>//button.setImageResource(R.drawable.ga_airplane);
+</span><span class=c1></span>
+            <span class=n>button</span><span class=o>.</span><span class=na>setOnTouchListener</span><span class=o>(</span><span class=k>new</span> <span class=n>View</span><span class=o>.</span><span class=na>OnTouchListener</span><span class=o>()</span> <span class=o>{</span>
+                <span class=nd>@Override</span>
+                <span class=kd>public</span> <span class=kt>boolean</span> <span class=nf>onTouch</span><span class=o>(</span><span class=n>View</span> <span class=n>v</span><span class=o>,</span> <span class=n>MotionEvent</span> <span class=n>event</span><span class=o>)</span> <span class=o>{</span>
+                    <span class=k>switch</span> <span class=o>(</span><span class=n>event</span><span class=o>.</span><span class=na>getActionMasked</span><span class=o>())</span> <span class=o>{</span>
+                        <span class=k>case</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_DOWN</span><span class=o>:</span>
+                            <span class=n>dX</span> <span class=o>=</span> <span class=n>v</span><span class=o>.</span><span class=na>getX</span><span class=o>()</span> <span class=o>-</span> <span class=n>event</span><span class=o>.</span><span class=na>getRawX</span><span class=o>();</span>
+                            <span class=n>dY</span> <span class=o>=</span> <span class=n>v</span><span class=o>.</span><span class=na>getY</span><span class=o>()</span> <span class=o>-</span> <span class=n>event</span><span class=o>.</span><span class=na>getRawY</span><span class=o>();</span>
+                            <span class=n>lastAction</span> <span class=o>=</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_DOWN</span><span class=o>;</span>
+                            <span class=k>break</span><span class=o>;</span>
 
-                        <span style=color:#080;font-weight:700>case</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_MOVE</span><span style=color:#333>:</span>
-                            v<span style=color:#333>.</span><span style=color:#00c>setY</span><span style=color:#333>(</span>event<span style=color:#333>.</span><span style=color:#00c>getRawY</span><span style=color:#333>()</span> <span style=color:#333>+</span> dY<span style=color:#333>);</span>
-                            v<span style=color:#333>.</span><span style=color:#00c>setX</span><span style=color:#333>(</span>event<span style=color:#333>.</span><span style=color:#00c>getRawX</span><span style=color:#333>()</span> <span style=color:#333>+</span> dX<span style=color:#333>);</span>
-                            lastAction <span style=color:#333>=</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_MOVE</span><span style=color:#333>;</span>
-                            <span style=color:#080;font-weight:700>break</span><span style=color:#333>;</span>
+                        <span class=k>case</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_MOVE</span><span class=o>:</span>
+                            <span class=n>v</span><span class=o>.</span><span class=na>setY</span><span class=o>(</span><span class=n>event</span><span class=o>.</span><span class=na>getRawY</span><span class=o>()</span> <span class=o>+</span> <span class=n>dY</span><span class=o>);</span>
+                            <span class=n>v</span><span class=o>.</span><span class=na>setX</span><span class=o>(</span><span class=n>event</span><span class=o>.</span><span class=na>getRawX</span><span class=o>()</span> <span class=o>+</span> <span class=n>dX</span><span class=o>);</span>
+                            <span class=n>lastAction</span> <span class=o>=</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_MOVE</span><span class=o>;</span>
+                            <span class=k>break</span><span class=o>;</span>
 
-                        <span style=color:#080;font-weight:700>case</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_UP</span><span style=color:#333>:</span>
-                            <span style=color:#080;font-weight:700>if</span> <span style=color:#333>(</span>lastAction <span style=color:#333>==</span> MotionEvent<span style=color:#333>.</span><span style=color:#00c>ACTION_DOWN</span><span style=color:#333>)</span>
-                                devSupportManager<span style=color:#333>.</span><span style=color:#00c>showDevOptionsDialog</span><span style=color:#333>();</span>
-                            <span style=color:#080;font-weight:700>break</span><span style=color:#333>;</span>
-<span style=color:#970;font-weight:700>
-</span><span style=color:#970;font-weight:700>                        default:</span>
-                            <span style=color:#080;font-weight:700>return</span> <span style=color:#080;font-weight:700>false</span><span style=color:#333>;</span>
-                    <span style=color:#333>}</span>
-                    <span style=color:#080;font-weight:700>return</span> <span style=color:#080;font-weight:700>true</span><span style=color:#333>;</span>
-                <span style=color:#333>}</span>
-            <span style=color:#333>});</span>
+                        <span class=k>case</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_UP</span><span class=o>:</span>
+                            <span class=k>if</span> <span class=o>(</span><span class=n>lastAction</span> <span class=o>==</span> <span class=n>MotionEvent</span><span class=o>.</span><span class=na>ACTION_DOWN</span><span class=o>)</span>
+                                <span class=n>devSupportManager</span><span class=o>.</span><span class=na>showDevOptionsDialog</span><span class=o>();</span>
+                            <span class=k>break</span><span class=o>;</span>
+<span class=nl>
+</span><span class=nl>                        default:</span>
+                            <span class=k>return</span> <span class=kc>false</span><span class=o>;</span>
+                    <span class=o>}</span>
+                    <span class=k>return</span> <span class=kc>true</span><span class=o>;</span>
+                <span class=o>}</span>
+            <span class=o>});</span>
 
-            addContentView<span style=color:#333>(</span>view<span style=color:#333>,</span> <span style=color:#080;font-weight:700>new</span> ViewGroup<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>(</span>
-                    ViewGroup<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>.</span><span style=color:#00c>MATCH_PARENT</span> <span style=color:#333>,</span> ViewGroup<span style=color:#333>.</span><span style=color:#00c>LayoutParams</span><span style=color:#333>.</span><span style=color:#00c>MATCH_PARENT</span> <span style=color:#333>));</span>
-        <span style=color:#333>}</span>
-</code></pre></td></tr></table></div></div><p>然后在你的 <code>MainActivity</code> 的 <code>onCreate</code> 里面，在 <code>super.onCreate(savedInstanceState);</code> 后面增加</p><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-fallback data-lang=fallback>            // debug 环境下才显示
+            <span class=n>addContentView</span><span class=o>(</span><span class=n>view</span><span class=o>,</span> <span class=k>new</span> <span class=n>ViewGroup</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>(</span>
+                    <span class=n>ViewGroup</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>.</span><span class=na>MATCH_PARENT</span> <span class=o>,</span> <span class=n>ViewGroup</span><span class=o>.</span><span class=na>LayoutParams</span><span class=o>.</span><span class=na>MATCH_PARENT</span> <span class=o>));</span>
+        <span class=o>}</span>
+</code></pre></div><p>然后在你的 <code>MainActivity</code> 的 <code>onCreate</code> 里面，在 <code>super.onCreate(savedInstanceState);</code> 后面增加</p><pre><code>            // debug 环境下才显示
             if(BuildConfig.DEBUG)
                 addDevButton();
-</code></pre></td></tr></table></div></div></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/android>android</a></li><li><a href=/tags/react>react</a></li><li><a href=/tags/react-native>react-native</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
+</code></pre></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/android>android</a></li><li><a href=/tags/react>react</a></li><li><a href=/tags/react-native>react-native</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
 return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
 Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>

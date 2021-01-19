@@ -1,509 +1,256 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>Howto Make react-redux Work With react-navigation - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="Howto Make react-redux Work With react-navigation"><meta property="og:description" content="这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 g"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/amp/howto-make-react-redux-work-with-react-navigation/"><meta property="article:published_time" content="2017-10-21T08:19:28+08:00"><meta property="article:modified_time" content="2017-10-21T08:19:28+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Howto Make react-redux Work With react-navigation"><meta name=twitter:description content="这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 g"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><base href=https://wdicc.com/><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>Howto Make react-redux Work With react-navigation</h1><div class=meta>Posted at &mdash; Oct 21, 2017</div></div><div class=post-header></div><div class=markdown><p>这周花了一些时间研究 <code class=verbatim>react-redux</code> 和怎么让它和 <code class=verbatim>react-navigation</code> 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 <a href=https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3>gist</a>。</p><div class="src src-javascript"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">  9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 12
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 13
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 14
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 15
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 16
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 17
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 18
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 19
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 20
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 21
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 22
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 23
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 24
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 25
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 26
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 27
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 28
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 29
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 30
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 31
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 32
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 33
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 34
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 35
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 36
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 37
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 38
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 39
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 40
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 41
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 42
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 43
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 44
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 45
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 46
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 47
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 48
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 49
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 50
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 51
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 52
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 53
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 54
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 55
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 56
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 57
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 58
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 59
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 60
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 61
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 62
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 63
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 64
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 65
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 66
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 67
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 68
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 69
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 70
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 71
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 72
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 73
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 74
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 75
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 76
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 77
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 78
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 79
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 80
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 81
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 82
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 83
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 84
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 85
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 86
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 87
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 88
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 89
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 90
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 91
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 92
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 93
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 94
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 95
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 96
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 97
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 98
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 99
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">100
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">101
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">102
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">103
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">104
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">105
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">106
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">107
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">108
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">109
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">110
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">111
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">112
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">113
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">114
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">115
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">116
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">117
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">118
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">119
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">120
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">121
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">122
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">123
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">124
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">125
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">126
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">127
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">128
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">129
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">130
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">131
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">132
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">133
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">134
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">135
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">136
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">137
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">138
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">139
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">140
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">141
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">142
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">143
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">144
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">145
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">146
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">147
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">148
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">149
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">150
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">151
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">152
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">153
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">154
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">155
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">156
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">157
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">158
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">159
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">160
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">161
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">162
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">163
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">164
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">165
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">166
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">167
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">168
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">169
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">170
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">171
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">172
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">173
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">174
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">175
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">176
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">177
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">178
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">179
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">180
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">181
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">182
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">183
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">184
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">185
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">186
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">187
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">188
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">189
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">190
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">191
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">192
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">193
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">194
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">195
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">196
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">197
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">198
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">199
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">200
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">201
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">202
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">203
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">204
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">205
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">206
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">207
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">208
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">209
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">210
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">211
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">212
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">213
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">214
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">215
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">216
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">217
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">218
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">219
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">220
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">221
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">222
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">223
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">224
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">225
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">226
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">227
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">228
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">229
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">230
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">231
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">232
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">233
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">234
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">235
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">236
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">237
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">238
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">239
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">240
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">241
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">242
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">243
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">244
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">245
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">246
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">247
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">248
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">249
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">250
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">251
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">252
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">253
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=color:#888>/**
-</span><span style=color:#888> * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理
-</span><span style=color:#888> * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合
-</span><span style=color:#888> * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做
-</span><span style=color:#888> * 参考：
-</span><span style=color:#888> *  https://github.com/jackielii/simplest-redux-example
-</span><span style=color:#888> *  http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html
-</span><span style=color:#888> */</span>
+<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>Howto Make react-redux Work With react-navigation - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="Howto Make react-redux Work With react-navigation"><meta property="og:description" content="这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 g"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/amp/howto-make-react-redux-work-with-react-navigation/"><meta property="article:published_time" content="2017-10-21T08:19:28+08:00"><meta property="article:modified_time" content="2017-10-21T08:19:28+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Howto Make react-redux Work With react-navigation"><meta name=twitter:description content="这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 g"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><base href=https://wdicc.com/><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>Howto Make react-redux Work With react-navigation</h1><div class=meta>Posted at &mdash; Oct 21, 2017</div></div><div class=post-header></div><div class=markdown><p>这周花了一些时间研究 <code class=verbatim>react-redux</code> 和怎么让它和 <code class=verbatim>react-navigation</code> 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 <a href=https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3>gist</a>。</p><div class="src src-javascript"><div class=highlight><pre class=chroma><code class=language-javascript data-lang=javascript><span class=cm>/**
+</span><span class=cm> * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理
+</span><span class=cm> * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合
+</span><span class=cm> * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做
+</span><span class=cm> * 参考：
+</span><span class=cm> *  https://github.com/jackielii/simplest-redux-example
+</span><span class=cm> *  http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html
+</span><span class=cm> */</span>
 
-<span style=color:#080;font-weight:700>import</span> React, { Component } from <span style=background-color:#fff0f0>&#39;react&#39;</span>;
-<span style=color:#080;font-weight:700>import</span> {
-    StyleSheet,
-    Text,
-    View,
-    Button
-} from <span style=background-color:#fff0f0>&#39;react-native&#39;</span>;
+<span class=kr>import</span> <span class=nx>React</span><span class=p>,</span> <span class=p>{</span> <span class=nx>Component</span> <span class=p>}</span> <span class=nx>from</span> <span class=s1>&#39;react&#39;</span><span class=p>;</span>
+<span class=kr>import</span> <span class=p>{</span>
+    <span class=nx>StyleSheet</span><span class=p>,</span>
+    <span class=nx>Text</span><span class=p>,</span>
+    <span class=nx>View</span><span class=p>,</span>
+    <span class=nx>Button</span>
+<span class=p>}</span> <span class=nx>from</span> <span class=s1>&#39;react-native&#39;</span><span class=p>;</span>
 
-<span style=color:#080;font-weight:700>import</span> { Provider, connect } from <span style=background-color:#fff0f0>&#39;react-redux&#39;</span>;
-<span style=color:#080;font-weight:700>import</span> { createStore, combineReducers } from <span style=background-color:#fff0f0>&#39;redux&#39;</span>;
-<span style=color:#080;font-weight:700>import</span> { StackNavigator, addNavigationHelpers } from <span style=background-color:#fff0f0>&#39;react-navigation&#39;</span>;
+<span class=kr>import</span> <span class=p>{</span> <span class=nx>Provider</span><span class=p>,</span> <span class=nx>connect</span> <span class=p>}</span> <span class=nx>from</span> <span class=s1>&#39;react-redux&#39;</span><span class=p>;</span>
+<span class=kr>import</span> <span class=p>{</span> <span class=nx>createStore</span><span class=p>,</span> <span class=nx>combineReducers</span> <span class=p>}</span> <span class=nx>from</span> <span class=s1>&#39;redux&#39;</span><span class=p>;</span>
+<span class=kr>import</span> <span class=p>{</span> <span class=nx>StackNavigator</span><span class=p>,</span> <span class=nx>addNavigationHelpers</span> <span class=p>}</span> <span class=nx>from</span> <span class=s1>&#39;react-navigation&#39;</span><span class=p>;</span>
 
-<span style=color:#888>// Home 页面，UI 组件
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>class</span> MyHome <span style=color:#080;font-weight:700>extends</span> Component {
-    constructor(props) {
-        <span style=color:#080;font-weight:700>super</span>(props);
-        console.log(<span style=background-color:#fff0f0>&#39;init home, props&#39;</span>, props);
-    }
+<span class=c1>// Home 页面，UI 组件
+</span><span class=c1></span><span class=kr>class</span> <span class=nx>MyHome</span> <span class=kr>extends</span> <span class=nx>Component</span> <span class=p>{</span>
+    <span class=nx>constructor</span><span class=p>(</span><span class=nx>props</span><span class=p>)</span> <span class=p>{</span>
+        <span class=kr>super</span><span class=p>(</span><span class=nx>props</span><span class=p>);</span>
+        <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s1>&#39;init home, props&#39;</span><span class=p>,</span> <span class=nx>props</span><span class=p>);</span>
+    <span class=p>}</span>
 
-    _nextPage() {
-        <span style=color:#888>// navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样
-</span><span style=color:#888></span>        <span style=color:#080;font-weight:700>let</span> {navigation} <span style=color:#333>=</span> <span style=color:#080;font-weight:700>this</span>.props;
-        navigation.navigate(<span style=background-color:#fff0f0>&#34;App&#34;</span>);
-    }
+    <span class=nx>_nextPage</span><span class=p>()</span> <span class=p>{</span>
+        <span class=c1>// navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样
+</span><span class=c1></span>        <span class=kd>let</span> <span class=p>{</span><span class=nx>navigation</span><span class=p>}</span> <span class=o>=</span> <span class=k>this</span><span class=p>.</span><span class=nx>props</span><span class=p>;</span>
+        <span class=nx>navigation</span><span class=p>.</span><span class=nx>navigate</span><span class=p>(</span><span class=s2>&#34;App&#34;</span><span class=p>);</span>
+    <span class=p>}</span>
 
-    render() {
-        <span style=color:#888>// 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4)
-</span><span style=color:#888></span>        <span style=color:#888>// 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5)
-</span><span style=color:#888></span>        <span style=color:#080;font-weight:700>let</span> {onIncButtonClicked} <span style=color:#333>=</span> <span style=color:#080;font-weight:700>this</span>.props.screenProps.MyAppActions;
+    <span class=nx>render</span><span class=p>()</span> <span class=p>{</span>
+        <span class=c1>// 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4)
+</span><span class=c1></span>        <span class=c1>// 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5)
+</span><span class=c1></span>        <span class=kd>let</span> <span class=p>{</span><span class=nx>onIncButtonClicked</span><span class=p>}</span> <span class=o>=</span> <span class=k>this</span><span class=p>.</span><span class=nx>props</span><span class=p>.</span><span class=nx>screenProps</span><span class=p>.</span><span class=nx>MyAppActions</span><span class=p>;</span>
 
-        <span style=color:#888>// 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面
-</span><span style=color:#888></span>        <span style=color:#080;font-weight:700>return</span> (
-            <span style=color:#333>&lt;</span>View style<span style=color:#333>=</span>{styles.container}<span style=color:#333>&gt;</span>
-                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Inc counter&#34;</span> onPress<span style=color:#333>=</span>{onIncButtonClicked}<span style=color:#333>&gt;&lt;</span><span style=color:red;background-color:#faa>/Button&gt;</span>
-                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Next page&#34;</span> onPress<span style=color:#333>=</span>{()=&gt;<span style=color:#080;font-weight:700>this</span>._nextPage()}<span style=color:#333>&gt;&lt;</span><span style=color:red;background-color:#faa>/Button&gt;</span>
-            <span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/View&gt;</span>
-        )
-    }
-}
+        <span class=c1>// 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面
+</span><span class=c1></span>        <span class=k>return</span> <span class=p>(</span>
+            <span class=o>&lt;</span><span class=nx>View</span> <span class=nx>style</span><span class=o>=</span><span class=p>{</span><span class=nx>styles</span><span class=p>.</span><span class=nx>container</span><span class=p>}</span><span class=o>&gt;</span>
+                <span class=o>&lt;</span><span class=nx>Button</span> <span class=nx>title</span><span class=o>=</span><span class=s2>&#34;Inc counter&#34;</span> <span class=nx>onPress</span><span class=o>=</span><span class=p>{</span><span class=nx>onIncButtonClicked</span><span class=p>}</span><span class=o>&gt;&lt;</span><span class=err>/Button&gt;</span>
+                <span class=o>&lt;</span><span class=nx>Button</span> <span class=nx>title</span><span class=o>=</span><span class=s2>&#34;Next page&#34;</span> <span class=nx>onPress</span><span class=o>=</span><span class=p>{()=&gt;</span><span class=k>this</span><span class=p>.</span><span class=nx>_nextPage</span><span class=p>()}</span><span class=o>&gt;&lt;</span><span class=err>/Button&gt;</span>
+            <span class=o>&lt;</span><span class=err>/View&gt;</span>
+        <span class=p>)</span>
+    <span class=p>}</span>
+<span class=p>}</span>
 
-<span style=color:#888>// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>class</span> ShowText <span style=color:#080;font-weight:700>extends</span> Component {
-    render() {
-        <span style=color:#080;font-weight:700>let</span> {counter} <span style=color:#333>=</span> <span style=color:#080;font-weight:700>this</span>.props;
+<span class=c1>// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新
+</span><span class=c1></span><span class=kr>class</span> <span class=nx>ShowText</span> <span class=kr>extends</span> <span class=nx>Component</span> <span class=p>{</span>
+    <span class=nx>render</span><span class=p>()</span> <span class=p>{</span>
+        <span class=kd>let</span> <span class=p>{</span><span class=nx>counter</span><span class=p>}</span> <span class=o>=</span> <span class=k>this</span><span class=p>.</span><span class=nx>props</span><span class=p>;</span>
 
-        <span style=color:#080;font-weight:700>return</span> (
-            <span style=color:#333>&lt;</span>Text<span style=color:#333>&gt;</span>{counter}<span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/Text&gt;</span>
-        )
-    }
-}
+        <span class=k>return</span> <span class=p>(</span>
+            <span class=o>&lt;</span><span class=nx>Text</span><span class=o>&gt;</span><span class=p>{</span><span class=nx>counter</span><span class=p>}</span><span class=o>&lt;</span><span class=err>/Text&gt;</span>
+        <span class=p>)</span>
+    <span class=p>}</span>
+<span class=p>}</span>
 
-<span style=color:#888>// App 页面，UI 组件
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>class</span> MyApp <span style=color:#080;font-weight:700>extends</span> Component {
-    constructor(props) {
-        <span style=color:#080;font-weight:700>super</span>(props);
-        console.log(<span style=background-color:#fff0f0>&#39;init App, props&#39;</span>, props);
-    }
+<span class=c1>// App 页面，UI 组件
+</span><span class=c1></span><span class=kr>class</span> <span class=nx>MyApp</span> <span class=kr>extends</span> <span class=nx>Component</span> <span class=p>{</span>
+    <span class=nx>constructor</span><span class=p>(</span><span class=nx>props</span><span class=p>)</span> <span class=p>{</span>
+        <span class=kr>super</span><span class=p>(</span><span class=nx>props</span><span class=p>);</span>
+        <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s1>&#39;init App, props&#39;</span><span class=p>,</span> <span class=nx>props</span><span class=p>);</span>
+    <span class=p>}</span>
 
-    componentWillReceiveProps(newProps) {
-        console.log(<span style=background-color:#fff0f0>&#39;myapp recive props&#39;</span>, newProps);
-    }
+    <span class=nx>componentWillReceiveProps</span><span class=p>(</span><span class=nx>newProps</span><span class=p>)</span> <span class=p>{</span>
+        <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s1>&#39;myapp recive props&#39;</span><span class=p>,</span> <span class=nx>newProps</span><span class=p>);</span>
+    <span class=p>}</span>
 
-    render() {
-        <span style=color:#888>// 组件的 state/props 获取，有自己的命名空间 (1)
-</span><span style=color:#888></span>        <span style=color:#080;font-weight:700>let</span> {counter} <span style=color:#333>=</span> <span style=color:#080;font-weight:700>this</span>.props.screenProps.MyApp;
-        <span style=color:#888>// 组件的 action props (5)
-</span><span style=color:#888></span>        <span style=color:#080;font-weight:700>let</span> {onIncButtonClicked, onDecButtonClicked} <span style=color:#333>=</span> <span style=color:#080;font-weight:700>this</span>.props.screenProps.MyAppActions;
+    <span class=nx>render</span><span class=p>()</span> <span class=p>{</span>
+        <span class=c1>// 组件的 state/props 获取，有自己的命名空间 (1)
+</span><span class=c1></span>        <span class=kd>let</span> <span class=p>{</span><span class=nx>counter</span><span class=p>}</span> <span class=o>=</span> <span class=k>this</span><span class=p>.</span><span class=nx>props</span><span class=p>.</span><span class=nx>screenProps</span><span class=p>.</span><span class=nx>MyApp</span><span class=p>;</span>
+        <span class=c1>// 组件的 action props (5)
+</span><span class=c1></span>        <span class=kd>let</span> <span class=p>{</span><span class=nx>onIncButtonClicked</span><span class=p>,</span> <span class=nx>onDecButtonClicked</span><span class=p>}</span> <span class=o>=</span> <span class=k>this</span><span class=p>.</span><span class=nx>props</span><span class=p>.</span><span class=nx>screenProps</span><span class=p>.</span><span class=nx>MyAppActions</span><span class=p>;</span>
 
-        <span style=color:#888>// 界面有一个计数器的结果，两个按钮
-</span><span style=color:#888></span>        <span style=color:#080;font-weight:700>return</span> (
-            <span style=color:#333>&lt;</span>View style<span style=color:#333>=</span>{styles.container}<span style=color:#333>&gt;</span>
-                <span style=color:#333>&lt;</span>ShowText counter<span style=color:#333>=</span>{counter} <span style=color:#333>/&gt;</span>
-                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Inc counter&#34;</span> onPress<span style=color:#333>=</span>{onIncButtonClicked}<span style=color:#333>&gt;&lt;</span><span style=color:red;background-color:#faa>/Button&gt;</span>
-                <span style=color:#333>&lt;</span>Button title<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;Dec counter&#34;</span> onPress<span style=color:#333>=</span>{onDecButtonClicked}<span style=color:#333>&gt;&lt;</span><span style=color:red;background-color:#faa>/Button&gt;</span>
-            <span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/View&gt;</span>
-        )
-    }
-}
+        <span class=c1>// 界面有一个计数器的结果，两个按钮
+</span><span class=c1></span>        <span class=k>return</span> <span class=p>(</span>
+            <span class=o>&lt;</span><span class=nx>View</span> <span class=nx>style</span><span class=o>=</span><span class=p>{</span><span class=nx>styles</span><span class=p>.</span><span class=nx>container</span><span class=p>}</span><span class=o>&gt;</span>
+                <span class=o>&lt;</span><span class=nx>ShowText</span> <span class=nx>counter</span><span class=o>=</span><span class=p>{</span><span class=nx>counter</span><span class=p>}</span> <span class=o>/&gt;</span>
+                <span class=o>&lt;</span><span class=nx>Button</span> <span class=nx>title</span><span class=o>=</span><span class=s2>&#34;Inc counter&#34;</span> <span class=nx>onPress</span><span class=o>=</span><span class=p>{</span><span class=nx>onIncButtonClicked</span><span class=p>}</span><span class=o>&gt;&lt;</span><span class=err>/Button&gt;</span>
+                <span class=o>&lt;</span><span class=nx>Button</span> <span class=nx>title</span><span class=o>=</span><span class=s2>&#34;Dec counter&#34;</span> <span class=nx>onPress</span><span class=o>=</span><span class=p>{</span><span class=nx>onDecButtonClicked</span><span class=p>}</span><span class=o>&gt;&lt;</span><span class=err>/Button&gt;</span>
+            <span class=o>&lt;</span><span class=err>/View&gt;</span>
+        <span class=p>)</span>
+    <span class=p>}</span>
+<span class=p>}</span>
 
-<span style=color:#888>// 初始化 StackNavigator，定义页面路由
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>let</span> AppNavigator <span style=color:#333>=</span> StackNavigator({
-    Home<span style=color:#333>:</span> {
-        screen<span style=color:#333>:</span> MyHome
-    },
-    App<span style=color:#333>:</span> {
-        screen<span style=color:#333>:</span> MyApp
-    }
-});
+<span class=c1>// 初始化 StackNavigator，定义页面路由
+</span><span class=c1></span><span class=kd>let</span> <span class=nx>AppNavigator</span> <span class=o>=</span> <span class=nx>StackNavigator</span><span class=p>({</span>
+    <span class=nx>Home</span><span class=o>:</span> <span class=p>{</span>
+        <span class=nx>screen</span><span class=o>:</span> <span class=nx>MyHome</span>
+    <span class=p>},</span>
+    <span class=nx>App</span><span class=o>:</span> <span class=p>{</span>
+        <span class=nx>screen</span><span class=o>:</span> <span class=nx>MyApp</span>
+    <span class=p>}</span>
+<span class=p>});</span>
 
-<span style=color:#888>// 包装一下 StackNavigator，因为有些参数需要定制一下
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>class</span> MyStackNavigator <span style=color:#080;font-weight:700>extends</span> Component {
-    constructor(props) {
-        <span style=color:#080;font-weight:700>super</span>(props);
-        console.log(<span style=background-color:#fff0f0>&#34;inside MyStackNavigator&#34;</span>, props);
-    }
+<span class=c1>// 包装一下 StackNavigator，因为有些参数需要定制一下
+</span><span class=c1></span><span class=kr>class</span> <span class=nx>MyStackNavigator</span> <span class=kr>extends</span> <span class=nx>Component</span> <span class=p>{</span>
+    <span class=nx>constructor</span><span class=p>(</span><span class=nx>props</span><span class=p>)</span> <span class=p>{</span>
+        <span class=kr>super</span><span class=p>(</span><span class=nx>props</span><span class=p>);</span>
+        <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;inside MyStackNavigator&#34;</span><span class=p>,</span> <span class=nx>props</span><span class=p>);</span>
+    <span class=p>}</span>
 
-    render() {
-        <span style=color:#888>// screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4)
-</span><span style=color:#888></span>        <span style=color:#888>// navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取
-</span><span style=color:#888></span>        <span style=color:#080;font-weight:700>return</span> (
-            <span style=color:#333>&lt;</span>AppNavigator
-                screenProps<span style=color:#333>=</span>{<span style=color:#080;font-weight:700>this</span>.props}
-                navigation<span style=color:#333>=</span>{addNavigationHelpers({
-                    dispatch<span style=color:#333>:</span> <span style=color:#080;font-weight:700>this</span>.props.dispatch, <span style=color:#888>// 通过 action props 定义 (2)
-</span><span style=color:#888></span>                    state<span style=color:#333>:</span> <span style=color:#080;font-weight:700>this</span>.props.nav, <span style=color:#888>// 通过 state props 定义 (3)
-</span><span style=color:#888></span>                })} <span style=color:#333>/&gt;</span>
-        )
-    }
-}
+    <span class=nx>render</span><span class=p>()</span> <span class=p>{</span>
+        <span class=c1>// screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4)
+</span><span class=c1></span>        <span class=c1>// navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取
+</span><span class=c1></span>        <span class=k>return</span> <span class=p>(</span>
+            <span class=o>&lt;</span><span class=nx>AppNavigator</span>
+                <span class=nx>screenProps</span><span class=o>=</span><span class=p>{</span><span class=k>this</span><span class=p>.</span><span class=nx>props</span><span class=p>}</span>
+                <span class=nx>navigation</span><span class=o>=</span><span class=p>{</span><span class=nx>addNavigationHelpers</span><span class=p>({</span>
+                    <span class=nx>dispatch</span><span class=o>:</span> <span class=k>this</span><span class=p>.</span><span class=nx>props</span><span class=p>.</span><span class=nx>dispatch</span><span class=p>,</span> <span class=c1>// 通过 action props 定义 (2)
+</span><span class=c1></span>                    <span class=nx>state</span><span class=o>:</span> <span class=k>this</span><span class=p>.</span><span class=nx>props</span><span class=p>.</span><span class=nx>nav</span><span class=p>,</span> <span class=c1>// 通过 state props 定义 (3)
+</span><span class=c1></span>                <span class=p>})}</span> <span class=o>/&gt;</span>
+        <span class=p>)</span>
+    <span class=p>}</span>
+<span class=p>}</span>
 
-<span style=color:#888>// 定义 state 和 props 的关系，所有 redux 应用都需要 (6)
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>let</span> mapStateToProps <span style=color:#333>=</span> (state, ownProps) =&gt; {
-    console.log(<span style=background-color:#fff0f0>&#34;inside mapstate to props&#34;</span>, state, ownProps);
-    <span style=color:#080;font-weight:700>return</span> {
-        <span style=color:#888>// 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1)
-</span><span style=color:#888></span>        <span style=background-color:#fff0f0>&#34;MyApp&#34;</span><span style=color:#333>:</span> state.MyApp,
-        <span style=background-color:#fff0f0>&#34;MyHome&#34;</span><span style=color:#333>:</span> state.MyHome,
-        <span style=color:#888>// 定义 StackNavigator 的 state (3)
-</span><span style=color:#888></span>        <span style=background-color:#fff0f0>&#34;nav&#34;</span><span style=color:#333>:</span> state.nav
-    }
-};
+<span class=c1>// 定义 state 和 props 的关系，所有 redux 应用都需要 (6)
+</span><span class=c1></span><span class=kd>let</span> <span class=nx>mapStateToProps</span> <span class=o>=</span> <span class=p>(</span><span class=nx>state</span><span class=p>,</span> <span class=nx>ownProps</span><span class=p>)</span> <span class=p>=&gt;</span> <span class=p>{</span>
+    <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;inside mapstate to props&#34;</span><span class=p>,</span> <span class=nx>state</span><span class=p>,</span> <span class=nx>ownProps</span><span class=p>);</span>
+    <span class=k>return</span> <span class=p>{</span>
+        <span class=c1>// 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1)
+</span><span class=c1></span>        <span class=s2>&#34;MyApp&#34;</span><span class=o>:</span> <span class=nx>state</span><span class=p>.</span><span class=nx>MyApp</span><span class=p>,</span>
+        <span class=s2>&#34;MyHome&#34;</span><span class=o>:</span> <span class=nx>state</span><span class=p>.</span><span class=nx>MyHome</span><span class=p>,</span>
+        <span class=c1>// 定义 StackNavigator 的 state (3)
+</span><span class=c1></span>        <span class=s2>&#34;nav&#34;</span><span class=o>:</span> <span class=nx>state</span><span class=p>.</span><span class=nx>nav</span>
+    <span class=p>}</span>
+<span class=p>};</span>
 
-<span style=color:#888>// 定义 action 和 props 的关系，所有 redux 应用都需要
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>let</span> mapDispatchToProps <span style=color:#333>=</span> (dispatch, ownProps) =&gt; {
-    console.log(<span style=background-color:#fff0f0>&#34;inside map dispath to props&#34;</span>);
-    <span style=color:#080;font-weight:700>return</span> {
-        <span style=color:#888>// 这两个也是不同的命名空间，和上面使用的时候路径对应 (5)
-</span><span style=color:#888></span>        <span style=background-color:#fff0f0>&#39;MyAppActions&#39;</span><span style=color:#333>:</span> {
-            onIncButtonClicked<span style=color:#333>:</span> () =&gt; {
-                <span style=color:#080;font-weight:700>let</span> action <span style=color:#333>=</span> {
-                    type<span style=color:#333>:</span> <span style=background-color:#fff0f0>&#34;INC_COUNTER&#34;</span>,
-                    payload<span style=color:#333>:</span> <span style=color:#00d;font-weight:700>1</span>
-                };
+<span class=c1>// 定义 action 和 props 的关系，所有 redux 应用都需要
+</span><span class=c1></span><span class=kd>let</span> <span class=nx>mapDispatchToProps</span> <span class=o>=</span> <span class=p>(</span><span class=nx>dispatch</span><span class=p>,</span> <span class=nx>ownProps</span><span class=p>)</span> <span class=p>=&gt;</span> <span class=p>{</span>
+    <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;inside map dispath to props&#34;</span><span class=p>);</span>
+    <span class=k>return</span> <span class=p>{</span>
+        <span class=c1>// 这两个也是不同的命名空间，和上面使用的时候路径对应 (5)
+</span><span class=c1></span>        <span class=s1>&#39;MyAppActions&#39;</span><span class=o>:</span> <span class=p>{</span>
+            <span class=nx>onIncButtonClicked</span><span class=o>:</span> <span class=p>()</span> <span class=p>=&gt;</span> <span class=p>{</span>
+                <span class=kd>let</span> <span class=nx>action</span> <span class=o>=</span> <span class=p>{</span>
+                    <span class=nx>type</span><span class=o>:</span> <span class=s2>&#34;INC_COUNTER&#34;</span><span class=p>,</span>
+                    <span class=nx>payload</span><span class=o>:</span> <span class=mi>1</span>
+                <span class=p>};</span>
 
-                dispatch(action);
-            },
-            onDecButtonClicked<span style=color:#333>:</span> () =&gt; {
-                <span style=color:#080;font-weight:700>let</span> action <span style=color:#333>=</span> {
-                    type<span style=color:#333>:</span> <span style=background-color:#fff0f0>&#34;DEC_COUNTER&#34;</span>,
-                    payload<span style=color:#333>:</span> <span style=color:#333>-</span><span style=color:#00d;font-weight:700>1</span>
-                };
+                <span class=nx>dispatch</span><span class=p>(</span><span class=nx>action</span><span class=p>);</span>
+            <span class=p>},</span>
+            <span class=nx>onDecButtonClicked</span><span class=o>:</span> <span class=p>()</span> <span class=p>=&gt;</span> <span class=p>{</span>
+                <span class=kd>let</span> <span class=nx>action</span> <span class=o>=</span> <span class=p>{</span>
+                    <span class=nx>type</span><span class=o>:</span> <span class=s2>&#34;DEC_COUNTER&#34;</span><span class=p>,</span>
+                    <span class=nx>payload</span><span class=o>:</span> <span class=o>-</span><span class=mi>1</span>
+                <span class=p>};</span>
 
-                dispatch(action);
-            }
-        },
-        <span style=background-color:#fff0f0>&#39;MyHomeActions&#39;</span><span style=color:#333>:</span> {
-            onNextButtonClicked<span style=color:#333>:</span> () =&gt; {
-                <span style=color:#080;font-weight:700>let</span> action <span style=color:#333>=</span> {
-                    type<span style=color:#333>:</span> <span style=background-color:#fff0f0>&#34;NEXT_PAGE&#34;</span>
-                };
+                <span class=nx>dispatch</span><span class=p>(</span><span class=nx>action</span><span class=p>);</span>
+            <span class=p>}</span>
+        <span class=p>},</span>
+        <span class=s1>&#39;MyHomeActions&#39;</span><span class=o>:</span> <span class=p>{</span>
+            <span class=nx>onNextButtonClicked</span><span class=o>:</span> <span class=p>()</span> <span class=p>=&gt;</span> <span class=p>{</span>
+                <span class=kd>let</span> <span class=nx>action</span> <span class=o>=</span> <span class=p>{</span>
+                    <span class=nx>type</span><span class=o>:</span> <span class=s2>&#34;NEXT_PAGE&#34;</span>
+                <span class=p>};</span>
 
-                dispatch(action);
-            }
-        },
-        <span style=color:#888>// 定义 StackNavigator 的 action props (2)
-</span><span style=color:#888></span>        <span style=background-color:#fff0f0>&#39;dispatch&#39;</span><span style=color:#333>:</span> dispatch
-    }
-}
+                <span class=nx>dispatch</span><span class=p>(</span><span class=nx>action</span><span class=p>);</span>
+            <span class=p>}</span>
+        <span class=p>},</span>
+        <span class=c1>// 定义 StackNavigator 的 action props (2)
+</span><span class=c1></span>        <span class=s1>&#39;dispatch&#39;</span><span class=o>:</span> <span class=nx>dispatch</span>
+    <span class=p>}</span>
+<span class=p>}</span>
 
-<span style=color:#888>// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有
-</span><span style=color:#888>// 所以从这里也能看出来，reducer 并不一定按照页面去分
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>let</span> homeReducer <span style=color:#333>=</span> (state, action) =&gt; {
-    console.log(<span style=background-color:#fff0f0>&#34;inside home reducer&#34;</span>, state, action);
-    <span style=color:#080;font-weight:700>return</span> state <span style=color:#333>||</span> {};
-};
+<span class=c1>// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有
+</span><span class=c1>// 所以从这里也能看出来，reducer 并不一定按照页面去分
+</span><span class=c1></span><span class=kd>let</span> <span class=nx>homeReducer</span> <span class=o>=</span> <span class=p>(</span><span class=nx>state</span><span class=p>,</span> <span class=nx>action</span><span class=p>)</span> <span class=p>=&gt;</span> <span class=p>{</span>
+    <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;inside home reducer&#34;</span><span class=p>,</span> <span class=nx>state</span><span class=p>,</span> <span class=nx>action</span><span class=p>);</span>
+    <span class=k>return</span> <span class=nx>state</span> <span class=o>||</span> <span class=p>{};</span>
+<span class=p>};</span>
 
-<span style=color:#888>// 定义一个初始化的 state
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>let</span> myAppInitState <span style=color:#333>=</span> { <span style=background-color:#fff0f0>&#39;counter&#39;</span><span style=color:#333>:</span> <span style=color:#00d;font-weight:700>10</span>};
-<span style=color:#888>// 定义 app 页面的 reducer
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>let</span> myAppReducer <span style=color:#333>=</span> (state <span style=color:#333>=</span> myAppInitState, action) =&gt; {
-    <span style=color:#888>// 收到的 state 实际上只是自己命名空间下的 (6)
-</span><span style=color:#888></span>    console.log(<span style=background-color:#fff0f0>&#34;inside myAppReducer&#34;</span>, state, action);
-    <span style=color:#080;font-weight:700>let</span> myState <span style=color:#333>=</span> state;
-    <span style=color:#888>// 需要处理的 action 的逻辑
-</span><span style=color:#888></span>    <span style=color:#888>// 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action
-</span><span style=color:#888></span>    <span style=color:#080;font-weight:700>switch</span> (action.type) {
-        <span style=color:#080;font-weight:700>case</span> <span style=background-color:#fff0f0>&#34;DEC_COUNTER&#34;</span><span style=color:#333>:</span>
-        <span style=color:#080;font-weight:700>case</span> <span style=background-color:#fff0f0>&#34;INC_COUNTER&#34;</span><span style=color:#333>:</span>
-            <span style=color:#888>// 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新
-</span><span style=color:#888></span>            <span style=color:#080;font-weight:700>return</span> <span style=color:#007020>Object</span>.assign({}, myState, {
-                <span style=background-color:#fff0f0>&#39;counter&#39;</span><span style=color:#333>:</span> myState.counter <span style=color:#333>+</span> action.payload
-            });
-        <span style=color:#080;font-weight:700>default</span><span style=color:#333>:</span>
-            <span style=color:#080;font-weight:700>return</span> state;
-    }
-};
+<span class=c1>// 定义一个初始化的 state
+</span><span class=c1></span><span class=kd>let</span> <span class=nx>myAppInitState</span> <span class=o>=</span> <span class=p>{</span> <span class=s1>&#39;counter&#39;</span><span class=o>:</span> <span class=mi>10</span><span class=p>};</span>
+<span class=c1>// 定义 app 页面的 reducer
+</span><span class=c1></span><span class=kd>let</span> <span class=nx>myAppReducer</span> <span class=o>=</span> <span class=p>(</span><span class=nx>state</span> <span class=o>=</span> <span class=nx>myAppInitState</span><span class=p>,</span> <span class=nx>action</span><span class=p>)</span> <span class=p>=&gt;</span> <span class=p>{</span>
+    <span class=c1>// 收到的 state 实际上只是自己命名空间下的 (6)
+</span><span class=c1></span>    <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;inside myAppReducer&#34;</span><span class=p>,</span> <span class=nx>state</span><span class=p>,</span> <span class=nx>action</span><span class=p>);</span>
+    <span class=kd>let</span> <span class=nx>myState</span> <span class=o>=</span> <span class=nx>state</span><span class=p>;</span>
+    <span class=c1>// 需要处理的 action 的逻辑
+</span><span class=c1></span>    <span class=c1>// 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action
+</span><span class=c1></span>    <span class=k>switch</span> <span class=p>(</span><span class=nx>action</span><span class=p>.</span><span class=nx>type</span><span class=p>)</span> <span class=p>{</span>
+        <span class=k>case</span> <span class=s2>&#34;DEC_COUNTER&#34;</span><span class=o>:</span>
+        <span class=k>case</span> <span class=s2>&#34;INC_COUNTER&#34;</span><span class=o>:</span>
+            <span class=c1>// 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新
+</span><span class=c1></span>            <span class=k>return</span> <span class=nb>Object</span><span class=p>.</span><span class=nx>assign</span><span class=p>({},</span> <span class=nx>myState</span><span class=p>,</span> <span class=p>{</span>
+                <span class=s1>&#39;counter&#39;</span><span class=o>:</span> <span class=nx>myState</span><span class=p>.</span><span class=nx>counter</span> <span class=o>+</span> <span class=nx>action</span><span class=p>.</span><span class=nx>payload</span>
+            <span class=p>});</span>
+        <span class=k>default</span><span class=o>:</span>
+            <span class=k>return</span> <span class=nx>state</span><span class=p>;</span>
+    <span class=p>}</span>
+<span class=p>};</span>
 
-<span style=color:#888>// 定义一个 StackNavigator 用到的初始化状态，这个很重要
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>const</span> initialState <span style=color:#333>=</span> AppNavigator.router.getStateForAction(AppNavigator.router.getActionForPathAndParams(<span style=background-color:#fff0f0>&#39;Home&#39;</span>));
-<span style=color:#888>// 定义 StackNavigator 的 reducer，代码直接复制来的
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>const</span> navReducer <span style=color:#333>=</span> (state <span style=color:#333>=</span> initialState, action) =&gt; {
-    console.log(<span style=background-color:#fff0f0>&#34;inside nav reducer&#34;</span>, state, action);
-    <span style=color:#080;font-weight:700>const</span> nextState <span style=color:#333>=</span> AppNavigator.router.getStateForAction(action, state);
+<span class=c1>// 定义一个 StackNavigator 用到的初始化状态，这个很重要
+</span><span class=c1></span><span class=kr>const</span> <span class=nx>initialState</span> <span class=o>=</span> <span class=nx>AppNavigator</span><span class=p>.</span><span class=nx>router</span><span class=p>.</span><span class=nx>getStateForAction</span><span class=p>(</span><span class=nx>AppNavigator</span><span class=p>.</span><span class=nx>router</span><span class=p>.</span><span class=nx>getActionForPathAndParams</span><span class=p>(</span><span class=s1>&#39;Home&#39;</span><span class=p>));</span>
+<span class=c1>// 定义 StackNavigator 的 reducer，代码直接复制来的
+</span><span class=c1></span><span class=kr>const</span> <span class=nx>navReducer</span> <span class=o>=</span> <span class=p>(</span><span class=nx>state</span> <span class=o>=</span> <span class=nx>initialState</span><span class=p>,</span> <span class=nx>action</span><span class=p>)</span> <span class=p>=&gt;</span> <span class=p>{</span>
+    <span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=s2>&#34;inside nav reducer&#34;</span><span class=p>,</span> <span class=nx>state</span><span class=p>,</span> <span class=nx>action</span><span class=p>);</span>
+    <span class=kr>const</span> <span class=nx>nextState</span> <span class=o>=</span> <span class=nx>AppNavigator</span><span class=p>.</span><span class=nx>router</span><span class=p>.</span><span class=nx>getStateForAction</span><span class=p>(</span><span class=nx>action</span><span class=p>,</span> <span class=nx>state</span><span class=p>);</span>
 
-    <span style=color:#888>// Simply return the original `state` if `nextState` is null or undefined.
-</span><span style=color:#888></span>    <span style=color:#080;font-weight:700>return</span> nextState <span style=color:#333>||</span> state;
-};
+    <span class=c1>// Simply return the original `state` if `nextState` is null or undefined.
+</span><span class=c1></span>    <span class=k>return</span> <span class=nx>nextState</span> <span class=o>||</span> <span class=nx>state</span><span class=p>;</span>
+<span class=p>};</span>
 
-<span style=color:#888>// 创建 store
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>let</span> store <span style=color:#333>=</span> createStore(combineReducers({
-    <span style=color:#888>// 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6)
-</span><span style=color:#888></span>    <span style=color:#888>// 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6)
-</span><span style=color:#888></span>    MyApp<span style=color:#333>:</span> myAppReducer,
-    MyHome<span style=color:#333>:</span> homeReducer,
-    nav<span style=color:#333>:</span> navReducer
-}));
+<span class=c1>// 创建 store
+</span><span class=c1></span><span class=kd>let</span> <span class=nx>store</span> <span class=o>=</span> <span class=nx>createStore</span><span class=p>(</span><span class=nx>combineReducers</span><span class=p>({</span>
+    <span class=c1>// 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6)
+</span><span class=c1></span>    <span class=c1>// 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6)
+</span><span class=c1></span>    <span class=nx>MyApp</span><span class=o>:</span> <span class=nx>myAppReducer</span><span class=p>,</span>
+    <span class=nx>MyHome</span><span class=o>:</span> <span class=nx>homeReducer</span><span class=p>,</span>
+    <span class=nx>nav</span><span class=o>:</span> <span class=nx>navReducer</span>
+<span class=p>}));</span>
 
-<span style=color:#888>// 让 redux 加持一下，保佑
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>let</span> App <span style=color:#333>=</span> connect(mapStateToProps, mapDispatchToProps)(MyStackNavigator);
+<span class=c1>// 让 redux 加持一下，保佑
+</span><span class=c1></span><span class=kd>let</span> <span class=nx>App</span> <span class=o>=</span> <span class=nx>connect</span><span class=p>(</span><span class=nx>mapStateToProps</span><span class=p>,</span> <span class=nx>mapDispatchToProps</span><span class=p>)(</span><span class=nx>MyStackNavigator</span><span class=p>);</span>
 
-<span style=color:#888>// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索
-</span><span style=color:#888></span><span style=color:#080;font-weight:700>export</span> <span style=color:#080;font-weight:700>default</span> <span style=color:#080;font-weight:700>class</span> Root <span style=color:#080;font-weight:700>extends</span> Component<span style=color:#333>&lt;</span>{}<span style=color:#333>&gt;</span> {
-    constructor(props) {
-        <span style=color:#080;font-weight:700>super</span>(props);
-    }
+<span class=c1>// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索
+</span><span class=c1></span><span class=kr>export</span> <span class=k>default</span> <span class=kr>class</span> <span class=nx>Root</span> <span class=kr>extends</span> <span class=nx>Component</span><span class=o>&lt;</span><span class=p>{}</span><span class=o>&gt;</span> <span class=p>{</span>
+    <span class=nx>constructor</span><span class=p>(</span><span class=nx>props</span><span class=p>)</span> <span class=p>{</span>
+        <span class=kr>super</span><span class=p>(</span><span class=nx>props</span><span class=p>);</span>
+    <span class=p>}</span>
 
-    render() {
-        <span style=color:#080;font-weight:700>return</span> (
-            <span style=color:#333>&lt;</span>Provider store<span style=color:#333>=</span>{store}<span style=color:#333>&gt;</span>
-                <span style=color:#333>&lt;</span>App prop1<span style=color:#333>=</span><span style=background-color:#fff0f0>&#34;prop1&#34;</span> <span style=color:#333>/&gt;</span>
-            <span style=color:#333>&lt;</span><span style=color:red;background-color:#faa>/Provider&gt;</span>
-        );
-    }
-}
+    <span class=nx>render</span><span class=p>()</span> <span class=p>{</span>
+        <span class=k>return</span> <span class=p>(</span>
+            <span class=o>&lt;</span><span class=nx>Provider</span> <span class=nx>store</span><span class=o>=</span><span class=p>{</span><span class=nx>store</span><span class=p>}</span><span class=o>&gt;</span>
+                <span class=o>&lt;</span><span class=nx>App</span> <span class=nx>prop1</span><span class=o>=</span><span class=s2>&#34;prop1&#34;</span> <span class=o>/&gt;</span>
+            <span class=o>&lt;</span><span class=err>/Provider&gt;</span>
+        <span class=p>);</span>
+    <span class=p>}</span>
+<span class=p>}</span>
 
 
-<span style=color:#080;font-weight:700>const</span> styles <span style=color:#333>=</span> StyleSheet.create({
-    container<span style=color:#333>:</span> {
-        flex<span style=color:#333>:</span> <span style=color:#00d;font-weight:700>1</span>,
-        justifyContent<span style=color:#333>:</span> <span style=background-color:#fff0f0>&#39;center&#39;</span>,
-        alignItems<span style=color:#333>:</span> <span style=background-color:#fff0f0>&#39;center&#39;</span>,
-        backgroundColor<span style=color:#333>:</span> <span style=background-color:#fff0f0>&#39;#F5FCFF&#39;</span>,
-    },
-    welcome<span style=color:#333>:</span> {
-        fontSize<span style=color:#333>:</span> <span style=color:#00d;font-weight:700>20</span>,
-        textAlign<span style=color:#333>:</span> <span style=background-color:#fff0f0>&#39;center&#39;</span>,
-        margin<span style=color:#333>:</span> <span style=color:#00d;font-weight:700>10</span>,
-    },
-    instructions<span style=color:#333>:</span> {
-        textAlign<span style=color:#333>:</span> <span style=background-color:#fff0f0>&#39;center&#39;</span>,
-        color<span style=color:#333>:</span> <span style=background-color:#fff0f0>&#39;#333333&#39;</span>,
-        marginBottom<span style=color:#333>:</span> <span style=color:#00d;font-weight:700>5</span>,
-    },
-});
-</code></pre></td></tr></table></div></div></div></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/react-native>react-native</a></li><li><a href=/tags/redux>redux</a></li><li><a href=/tags/react-redux>react-redux</a></li><li><a href=/tags/react-navigation>react-navigation</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
+<span class=kr>const</span> <span class=nx>styles</span> <span class=o>=</span> <span class=nx>StyleSheet</span><span class=p>.</span><span class=nx>create</span><span class=p>({</span>
+    <span class=nx>container</span><span class=o>:</span> <span class=p>{</span>
+        <span class=nx>flex</span><span class=o>:</span> <span class=mi>1</span><span class=p>,</span>
+        <span class=nx>justifyContent</span><span class=o>:</span> <span class=s1>&#39;center&#39;</span><span class=p>,</span>
+        <span class=nx>alignItems</span><span class=o>:</span> <span class=s1>&#39;center&#39;</span><span class=p>,</span>
+        <span class=nx>backgroundColor</span><span class=o>:</span> <span class=s1>&#39;#F5FCFF&#39;</span><span class=p>,</span>
+    <span class=p>},</span>
+    <span class=nx>welcome</span><span class=o>:</span> <span class=p>{</span>
+        <span class=nx>fontSize</span><span class=o>:</span> <span class=mi>20</span><span class=p>,</span>
+        <span class=nx>textAlign</span><span class=o>:</span> <span class=s1>&#39;center&#39;</span><span class=p>,</span>
+        <span class=nx>margin</span><span class=o>:</span> <span class=mi>10</span><span class=p>,</span>
+    <span class=p>},</span>
+    <span class=nx>instructions</span><span class=o>:</span> <span class=p>{</span>
+        <span class=nx>textAlign</span><span class=o>:</span> <span class=s1>&#39;center&#39;</span><span class=p>,</span>
+        <span class=nx>color</span><span class=o>:</span> <span class=s1>&#39;#333333&#39;</span><span class=p>,</span>
+        <span class=nx>marginBottom</span><span class=o>:</span> <span class=mi>5</span><span class=p>,</span>
+    <span class=p>},</span>
+<span class=p>});</span>
+</code></pre></div></div></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/react-native>react-native</a></li><li><a href=/tags/redux>redux</a></li><li><a href=/tags/react-redux>react-redux</a></li><li><a href=/tags/react-navigation>react-navigation</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
 return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
 Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>

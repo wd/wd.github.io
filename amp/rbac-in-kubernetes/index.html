@@ -1,127 +1,63 @@
 <!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>RBAC in Kubernetes - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="RBAC in Kubernetes"><meta property="og:description" content="How to give a pod the access to run kubectl to create pods or configmaps? It's very simple.
  Every pods has to bind to a service account, it will be default, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API."><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/amp/rbac-in-kubernetes/"><meta property="article:published_time" content="2020-05-18T17:14:58+08:00"><meta property="article:modified_time" content="2020-05-18T17:14:58+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="RBAC in Kubernetes"><meta name=twitter:description content="How to give a pod the access to run kubectl to create pods or configmaps? It's very simple.
- Every pods has to bind to a service account, it will be default, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API."><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><base href=https://wdicc.com/><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>RBAC in Kubernetes</h1><div class=meta>Posted at &mdash; May 18, 2020</div></div><div class=post-header></div><div class=markdown><p>How to give a pod the access to run kubectl to create pods or configmaps? It's very simple.</p><p>Every pods has to bind to a service account, it will be <code class=verbatim>default</code>, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API.</p><p>First, create a service account.</p><div class="src src-yaml"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#080;font-weight:700>apiVersion</span>:<span style=color:#bbb> </span>v1<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>kind</span>:<span style=color:#bbb> </span>ServiceAccount<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>metadata</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>name</span>:<span style=color:#bbb> </span>debug-sa<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>namespace</span>:<span style=color:#bbb> </span>default<span style=color:#bbb>  </span><span style=color:#888># default namespace</span></code></pre></td></tr></table></div></div></div><p>Create a cluster role binding with an exists cluster role named <code class=verbatim>cluster-admin</code>, you can create one if you want.</p><div class="src src-yaml"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#080;font-weight:700>apiVersion</span>:<span style=color:#bbb> </span>rbac.authorization.k8s.io/v1beta1<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>kind</span>:<span style=color:#bbb> </span>ClusterRoleBinding<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>metadata</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>name</span>:<span style=color:#bbb> </span>debug-admin-crb<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>roleRef</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>apiGroup</span>:<span style=color:#bbb> </span>rbac.authorization.k8s.io<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>kind</span>:<span style=color:#bbb> </span>ClusterRole<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>name</span>:<span style=color:#bbb> </span>cluster-admin<span style=color:#bbb> </span><span style=color:#888># bind to an exists ClusterRole, you can create one if you want</span><span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>subjects</span>:<span style=color:#bbb>
-</span><span style=color:#bbb></span>- <span style=color:#080;font-weight:700>kind</span>:<span style=color:#bbb> </span>ServiceAccount<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>name</span>:<span style=color:#bbb> </span>debug-sa<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>namespace</span>:<span style=color:#bbb> </span>default</code></pre></td></tr></table></div></div></div><p>Ok, that's all. Create our pod now.</p><div class="src src-yaml"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">13
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">14
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">15
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">16
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#080;font-weight:700>apiVersion</span>:<span style=color:#bbb> </span>v1<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>kind</span>:<span style=color:#bbb> </span>Pod<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>metadata</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>name</span>:<span style=color:#bbb> </span>netshoot<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>namespace</span>:<span style=color:#bbb> </span>default<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>labels</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>    </span><span style=color:#080;font-weight:700>app</span>:<span style=color:#bbb> </span>netshoot<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>spec</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>serviceAccountName</span>:<span style=color:#bbb> </span>debug-sa<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>containers</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span>- <span style=color:#080;font-weight:700>image</span>:<span style=color:#bbb> </span>bitnami/kubectl<span style=color:#bbb>
-</span><span style=color:#bbb>    </span><span style=color:#080;font-weight:700>name</span>:<span style=color:#bbb> </span>kubectl<span style=color:#bbb>
-</span><span style=color:#bbb>    </span><span style=color:#080;font-weight:700>command</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>      </span>- sleep<span style=color:#bbb>
-</span><span style=color:#bbb>      </span>- <span style=background-color:#fff0f0>&#34;3600&#34;</span><span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>restartPolicy</span>:<span style=color:#bbb> </span>Always</code></pre></td></tr></table></div></div></div><p>Now, your pods have the <code class=verbatim>cluster-admin</code> access to visit you API resources. What's if I only need to give the pod the access to list pods?</p><p>First, create a role, with limited access to pods. This role can't visit other resource other than pods.</p><div class="src src-yaml"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">12
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#080;font-weight:700>apiVersion</span>:<span style=color:#bbb> </span>rbac.authorization.k8s.io/v1<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>kind</span>:<span style=color:#bbb> </span>Role<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>metadata</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>name</span>:<span style=color:#bbb> </span>debug-role<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>rules</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span>- <span style=color:#080;font-weight:700>apiGroups</span>:<span style=color:#bbb> </span>[<span style=background-color:#fff0f0>&#34;&#34;</span>]<span style=color:#bbb>
-</span><span style=color:#bbb>    </span><span style=color:#080;font-weight:700>resources</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>      </span>- pods<span style=color:#bbb> </span><span style=color:#888># limit the role only have limit access to pods</span><span style=color:#bbb>
-</span><span style=color:#bbb>    </span><span style=color:#080;font-weight:700>verbs</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>      </span>- get<span style=color:#bbb>
-</span><span style=color:#bbb>      </span>- list<span style=color:#bbb>
-</span><span style=color:#bbb>      </span>- delete</code></pre></td></tr></table></div></div></div><p>Create a role binding, to bind the role and the service account.</p><div class="src src-yaml"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">10
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">11
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#080;font-weight:700>apiVersion</span>:<span style=color:#bbb> </span>rbac.authorization.k8s.io/v1<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>kind</span>:<span style=color:#bbb> </span>RoleBinding<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>metadata</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>name</span>:<span style=color:#bbb> </span>debug-rb<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>subjects</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span>- <span style=color:#080;font-weight:700>kind</span>:<span style=color:#bbb> </span>ServiceAccount<span style=color:#bbb>
-</span><span style=color:#bbb>    </span><span style=color:#080;font-weight:700>name</span>:<span style=color:#bbb> </span>debug-sa<span style=color:#bbb>
-</span><span style=color:#bbb></span><span style=color:#080;font-weight:700>roleRef</span>:<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>kind</span>:<span style=color:#bbb> </span>Role<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>name</span>:<span style=color:#bbb> </span>debug-role<span style=color:#bbb>
-</span><span style=color:#bbb>  </span><span style=color:#080;font-weight:700>apiGroup</span>:<span style=color:#bbb> </span>rbac.authorization.k8s.io</code></pre></td></tr></table></div></div></div><p>And then recreate your pod with this service account. Don't forget to delete the privious cluter role binding for this service account.</p><div class="src src-shell"><div class=highlight><div style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><table style=border-spacing:0;padding:0;margin:0;border:0;width:auto;overflow:auto;display:block><tr><td style=vertical-align:top;padding:0;margin:0;border:0><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">1
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">2
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">3
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">4
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">5
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">6
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">7
-</span><span style="margin-right:.4em;padding:0 .4em;color:#7f7f7f">8
-</span></code></pre></td><td style=vertical-align:top;padding:0;margin:0;border:0;width:100%><pre style=background-color:#fff;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>$ k <span style=color:#007020>exec</span> -it netshoot -c <span style=background-color:#fff0f0>&#39;kubectl&#39;</span> -- /bin/bash
+ Every pods has to bind to a service account, it will be default, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API."><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><base href=https://wdicc.com/><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>RBAC in Kubernetes</h1><div class=meta>Posted at &mdash; May 18, 2020</div></div><div class=post-header></div><div class=markdown><p>How to give a pod the access to run kubectl to create pods or configmaps? It's very simple.</p><p>Every pods has to bind to a service account, it will be <code class=verbatim>default</code>, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API.</p><p>First, create a service account.</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ServiceAccount</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>debug-sa</span><span class=w>
+</span><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>default </span><span class=w> </span><span class=c># default namespace</span></code></pre></div></div><p>Create a cluster role binding with an exists cluster role named <code class=verbatim>cluster-admin</code>, you can create one if you want.</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io/v1beta1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ClusterRoleBinding</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>debug-admin-crb</span><span class=w>
+</span><span class=w></span><span class=nt>roleRef</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>apiGroup</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io</span><span class=w>
+</span><span class=w>  </span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ClusterRole</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>cluster-admin</span><span class=w> </span><span class=c># bind to an exists ClusterRole, you can create one if you want</span><span class=w>
+</span><span class=w></span><span class=nt>subjects</span><span class=p>:</span><span class=w>
+</span><span class=w></span>- <span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ServiceAccount</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>debug-sa</span><span class=w>
+</span><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>default</span></code></pre></div></div><p>Ok, that's all. Create our pod now.</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>netshoot</span><span class=w>
+</span><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>default</span><span class=w>
+</span><span class=w>  </span><span class=nt>labels</span><span class=p>:</span><span class=w>
+</span><span class=w>    </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>netshoot</span><span class=w>
+</span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>serviceAccountName</span><span class=p>:</span><span class=w> </span><span class=l>debug-sa</span><span class=w>
+</span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>bitnami/kubectl</span><span class=w>
+</span><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>kubectl</span><span class=w>
+</span><span class=w>    </span><span class=nt>command</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=l>sleep</span><span class=w>
+</span><span class=w>      </span>- <span class=s2>&#34;3600&#34;</span><span class=w>
+</span><span class=w>  </span><span class=nt>restartPolicy</span><span class=p>:</span><span class=w> </span><span class=l>Always</span></code></pre></div></div><p>Now, your pods have the <code class=verbatim>cluster-admin</code> access to visit you API resources. What's if I only need to give the pod the access to list pods?</p><p>First, create a role, with limited access to pods. This role can't visit other resource other than pods.</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io/v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Role</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>debug-role</span><span class=w>
+</span><span class=w></span><span class=nt>rules</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>apiGroups</span><span class=p>:</span><span class=w> </span><span class=p>[</span><span class=s2>&#34;&#34;</span><span class=p>]</span><span class=w>
+</span><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=l>pods</span><span class=w> </span><span class=c># limit the role only have limit access to pods</span><span class=w>
+</span><span class=w>    </span><span class=nt>verbs</span><span class=p>:</span><span class=w>
+</span><span class=w>      </span>- <span class=l>get</span><span class=w>
+</span><span class=w>      </span>- <span class=l>list</span><span class=w>
+</span><span class=w>      </span>- <span class=l>delete</span></code></pre></div></div><p>Create a role binding, to bind the role and the service account.</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io/v1</span><span class=w>
+</span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>RoleBinding</span><span class=w>
+</span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>debug-rb</span><span class=w>
+</span><span class=w></span><span class=nt>subjects</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span>- <span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ServiceAccount</span><span class=w>
+</span><span class=w>    </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>debug-sa</span><span class=w>
+</span><span class=w></span><span class=nt>roleRef</span><span class=p>:</span><span class=w>
+</span><span class=w>  </span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Role</span><span class=w>
+</span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>debug-role</span><span class=w>
+</span><span class=w>  </span><span class=nt>apiGroup</span><span class=p>:</span><span class=w> </span><span class=l>rbac.authorization.k8s.io</span></code></pre></div></div><p>And then recreate your pod with this service account. Don't forget to delete the privious cluter role binding for this service account.</p><div class="src src-shell"><div class=highlight><pre class=chroma><code class=language-shell data-lang=shell>$ k <span class=nb>exec</span> -it netshoot -c <span class=s1>&#39;kubectl&#39;</span> -- /bin/bash
 I have no name!@netshoot:/$ kubectl get pods
 NAME                                          READY   STATUS    RESTARTS   AGE
-netshoot                                      2/2     Running   <span style=color:#60e;font-weight:700>0</span>          13m
+netshoot                                      2/2     Running   <span class=m>0</span>          13m
 
 I have no name!@netshoot:/$ kubectl get svc
-Error from server <span style=color:#333>(</span>Forbidden<span style=color:#333>)</span>: services is forbidden: User <span style=background-color:#fff0f0>&#34;system:serviceaccount:default:debug-sa&#34;</span> cannot list resource <span style=background-color:#fff0f0>&#34;services&#34;</span> in API group <span style=background-color:#fff0f0>&#34;&#34;</span> in the namespace <span style=background-color:#fff0f0>&#34;default&#34;</span>
-I have no name!@netshoot:/$</code></pre></td></tr></table></div></div></div><p>What's the difference between role and cluster role?</p><ul><li><p>For role, it's limited in a namespace, it only can limit resources inside a namespace.</p></li><li><p>Some resource like PV, cluster health, it's not related with a namespace, it's cluster wide, you only can use cluster role to limit them.</p></li><li><p>A role binding can bind a role to a service account in an other namespace.</p></li></ul></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/rbac>RBAC</a></li><li><a href=/tags/kubernetes>kubernetes</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
+Error from server <span class=o>(</span>Forbidden<span class=o>)</span>: services is forbidden: User <span class=s2>&#34;system:serviceaccount:default:debug-sa&#34;</span> cannot list resource <span class=s2>&#34;services&#34;</span> in API group <span class=s2>&#34;&#34;</span> in the namespace <span class=s2>&#34;default&#34;</span>
+I have no name!@netshoot:/$</code></pre></div></div><p>What's the difference between role and cluster role?</p><ul><li><p>For role, it's limited in a namespace, it only can limit resources inside a namespace.</p></li><li><p>Some resource like PV, cluster health, it's not related with a namespace, it's cluster wide, you only can use cluster role to limit them.</p></li><li><p>A role binding can bind a role to a service account in an other namespace.</p></li></ul></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/rbac>RBAC</a></li><li><a href=/tags/kubernetes>kubernetes</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
 return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
 Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
