@@ -1,0 +1,139 @@
+---
+title: "HTTPS SNI Host and Envoy"
+date: 2021-02-14T19:24:36+08:00
+tags: ["https", "envoy", "sni"]
+toc: true
+---
+
+** TLS handshake
+
+   TLS 握手之前需要先 TCP 三次握手，之后就是正式的 Client hello, Server hello, Cert key exchange 等等正常的 TLS 握手动作了。这期间会决定使用的加密版本，协商用来对称加密的密钥等。Cloudflare [[https://www.cloudflare.com/zh-cn/learning/ssl/what-happens-in-a-tls-handshake/][这篇文章]]似乎讲的很清楚。
+
+** HTTP2
+
+   http2 并不是必须使用 https 部署。但是因为主流浏览器都只支持基于 https 的 http2，所以如果服务是面向浏览器的，那还是应该使用 https。[[https://imququ.com/post/protocol-negotiation-in-http2.html][这篇文章]]讲的很好。
+
+   我常遇到的一个问题是，会有用户把 plain 的 http2 的请求发给只支持 https 的服务器。这个时候的表现是请求等一段时间会超时。服务器端那边能看到 ="PRI * HTTP/2.0" 400= 这样的错误信息。这是因为客户端期待通过 Magic 桢完成 http2 协商，但是服务器端认为是错误的请求，所以返回 400。
+
+   对于这样的错误，一般是设置通过 https 方式访问就好。例如 grpcurl 不要用那个 =-plaintext= 参数，envoy 使用 tls transport 等。
+
+** Host
+
+   一个 ip 和端口下面提供多个网站的服务，这个很常见了。那么用户连接过来的时候是如何区分的呢？http 协议里面，规定了可以使用 Host 这个 header 来制定需要访问的主机是哪个。例如下面这个请求。如果不指定 Host，一般会给返回默认主机的内容。
+
+   #+begin_src
+   > GET / HTTP/2
+   > Host: www.qunar.com
+   > User-Agent: curl/7.64.1
+   > Accept: */*
+   #+end_src
+
+** SNI
+
+   如果一个 ip 和端口为多个域名提供 https 服务，那用户发起 tls 握手的时候，也得知道给用户返回哪个域名的证书才行（当然你也可以用通配符证书）。因为这个时候还没有握手成功，http 协议规定的那些都还没发生呢，所以 Host header 是不能用了。[[https://zh.wikipedia.org/wiki/%E6%9C%8D%E5%8A%A1%E5%99%A8%E5%90%8D%E7%A7%B0%E6%8C%87%E7%A4%BA][SNI]] 作为 tls 的一个扩展就是解决这个问题的。
+
+   SNI 数据做为握手数据是明文发送的，当然现在也有 ESNI 但是还没有普及。服务器根据 SNI 数据返回对应的证书。
+
+** Host + SNI?
+
+   上面提到这两个有各自的用途，所以你会发现，他们对应的域名其实可以不一样。例如你知道一个服务器上面同时为几个域名提供服务，那大概你可以 TLS 握手使用一个域名，实际 http 协议使用另一个域名。例如下面这个。
+
+   #+begin_src
+ curl -I -v --http2 -H 'Host: www.qunar.com' https://qunar.com
+*   Trying 117.122.224.176...
+* TCP_NODELAY set
+* Connected to qunar.com (117.122.224.176) port 443 (#0)
+* ALPN, offering h2
+* ALPN, offering http/1.1
+* successfully set certificate verify locations:
+*   CAfile: /etc/ssl/cert.pem
+  CApath: none
+* TLSv1.2 (OUT), TLS handshake, Client hello (1):
+* TLSv1.2 (IN), TLS handshake, Server hello (2):
+* TLSv1.2 (IN), TLS handshake, Certificate (11):
+* TLSv1.2 (IN), TLS handshake, Server key exchange (12):
+* TLSv1.2 (IN), TLS handshake, Server finished (14):
+* TLSv1.2 (OUT), TLS handshake, Client key exchange (16):
+* TLSv1.2 (OUT), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (OUT), TLS handshake, Finished (20):
+* TLSv1.2 (IN), TLS change cipher, Change cipher spec (1):
+* TLSv1.2 (IN), TLS handshake, Finished (20):
+* SSL connection using TLSv1.2 / ECDHE-RSA-CHACHA20-POLY1305
+* ALPN, server accepted to use h2
+* Server certificate:
+*  subject: C=CN; ST=Beijing; L=Beijing; O=\U5317\U4EAC\U8DA3\U62FF\U4FE1\U606F\U6280\U672F\U6709\U9650\U516C\U53F8; CN=qunar.com
+*  start date: Nov 15 10:36:04 2019 GMT
+*  expire date: Feb  8 23:59:59 2022 GMT
+*  subjectAltName: host "qunar.com" matched cert's "qunar.com"
+*  issuer: C=BE; O=GlobalSign nv-sa; CN=GlobalSign RSA OV SSL CA 2018
+*  SSL certificate verify ok.
+* Using HTTP2, server supports multi-use
+* Connection state changed (HTTP/2 confirmed)
+* Copying HTTP/2 data in stream buffer to connection buffer after upgrade: len=0
+* Using Stream ID: 1 (easy handle 0x7f8cfd00f800)
+> HEAD / HTTP/2
+> Host: www.qunar.com
+> User-Agent: curl/7.64.1
+> Accept: */*
+>
+* Connection state changed (MAX_CONCURRENT_STREAMS == 128)!
+< HTTP/2 200
+HTTP/2 200
+< date: Sun, 21 Feb 2021 06:30:45 GMT
+date: Sun, 21 Feb 2021 06:30:45 GMT
+< content-type: text/html; charset=utf-8
+content-type: text/html; charset=utf-8
+< content-length: 206076
+content-length: 206076
+< set-cookie: QN1=00001480306c2f4420a844ed; Expires=Thu, 31-Dec-37 23:55:55 GMT; Max-Age=31536000; Domain=qunar.com; Path=/
+set-cookie: QN1=00001480306c2f4420a844ed; Expires=Thu, 31-Dec-37 23:55:55 GMT; Max-Age=31536000; Domain=qunar.com; Path=/
+< x-powered-by: QXF/1.1.1
+x-powered-by: QXF/1.1.1
+< cache-control: no-cache
+cache-control: no-cache
+< expires: 0
+expires: 0
+< etag: W/"9sjEldYHMh6Ne03Bxy1MFA=="
+etag: W/"9sjEldYHMh6Ne03Bxy1MFA=="
+< vary: Accept-Encoding
+vary: Accept-Encoding
+< server: QWS/1.0
+server: QWS/1.0
+< req-id: 00001480306c2f4420a844ed
+req-id: 00001480306c2f4420a844ed
+< p3p: policyref="/w3c/p3p.xml", CP="CUR ADM OUR NOR STA NID"
+p3p: policyref="/w3c/p3p.xml", CP="CUR ADM OUR NOR STA NID"
+< set-cookie: QN300=organic; Domain=qunar.com; Max-Age=630720000; Path=/
+set-cookie: QN300=organic; Domain=qunar.com; Max-Age=630720000; Path=/
+< set-cookie: QN99=7459; Domain=qunar.com; expires=Thu, 31-Dec-2081 23:55:55 GMT;Max-Age=630720000; Path=/
+set-cookie: QN99=7459; Domain=qunar.com; expires=Thu, 31-Dec-2081 23:55:55 GMT;Max-Age=630720000; Path=/
+< cache-status: BYPASS
+cache-status: BYPASS
+
+<
+* Connection #0 to host qunar.com left intact
+* Closing connection 0
+   #+end_src
+
+   可以看到 =*  subjectAltName: host "qunar.com" matched cert's "qunar.com"= 这里对应的域名是 qunar.com。后面 =Host: www.qunar.com= 是另外一个。可以比较下使用和不使用 host 的返回结果。
+
+** Envoy
+
+   Enovy 里面如果想要配置一个 cluster 是 http2 的话，可以参考下面的例子。
+
+   #+begin_src yaml
+    transport_socket:
+      name: envoy.transport_sockets.tls
+      typed_config:
+        "@type": type.googleapis.com/envoy.extensions.transport_sockets.tls.v3.UpstreamTlsContext
+        sni: abc.com
+        common_tls_context:
+          alpn_protocols: [ "h2,http/1.1" ]
+          validation_context:
+            match_subject_alt_names:
+            - exact: "abc.com"
+            trusted_ca:
+              filename: /etc/ssl/cert.pem
+   #+end_src
+
+   这个配置里面， =envoy.transport_sockets.tls= 使用 tls 连接目标服务器，要不然会遇到上面提到的 =PRI * 400= 那个错误。 =sni: abc.com= 用来告诉服务器和哪个域名做 TLS 握手。 =validation_context= 部分指定如何做证书校验，如果没有这部分的话，envoy 不会做证书校验，就是说即使对方返回的证书并不是那个 SNI 指定的也不管。
