@@ -1,0 +1,91 @@
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>Local Persistent Volume vs HostPath - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="Local Persistent Volume vs HostPath">
+<meta property="og:description" content="Kubernetes 可以用 Local persistent volume 来使用本机的磁盘。那和 hostPath volume 有啥区别呢？ 这篇文档有说明，大致翻译下。 一般来说 Persistent volume 都是通过">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/local-persist-volume-vs-hostpath/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2021-02-28T14:52:23+08:00">
+<meta property="article:modified_time" content="2021-02-28T14:52:23+08:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Local Persistent Volume vs HostPath">
+<meta name=twitter:description content="Kubernetes 可以用 Local persistent volume 来使用本机的磁盘。那和 hostPath volume 有啥区别呢？ 这篇文档有说明，大致翻译下。 一般来说 Persistent volume 都是通过">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>Local Persistent Volume vs HostPath</h1>
+<div class=meta>Posted at &mdash; Feb 28, 2021</div>
+</div>
+<div class=post-header>
+</div>
+<div class=markdown>
+<p>Kubernetes 可以用 Local persistent volume 来使用本机的磁盘。那和 hostPath volume 有啥区别呢？ <a href=https://kubernetes.io/blog/2019/04/04/kubernetes-1.14-local-persistent-volumes-ga/>这篇文档</a>有说明，大致翻译下。</p>
+<p>
+一般来说 Persistent volume 都是通过远程文件系统实现的。远程文件系统可以不依赖 kubernetes 节点而保存数据。但是远程文件系统往往不能提供本地文件系统一样的性能。</p>
+<p>
+为了能更好的理解 Local Persistent Volume，有必要把它和 HostPath volume 比较下。HostPath volume 是挂载主机的一个文件或者目录到 pod。类似的 Local Persistent Volume 是挂载主机的一块磁盘或者分区到一个 pod。</p>
+<p>
+主要的不同在于，Kubernetes scheduler 知道一个 Local Persistent Volume 是属于哪个节点。而对于 HostPath volume，一个 pod 使用的 volume 可能会被 scheduler 移动到别的节点而导致数据丢失。Kubernetes scheduler 会保证 pod 使用的 Local Persistent Volume 总是规划到同一个节点。</p>
+<p>
+HostPath volume 可以通过 PVC 或者直接在 pod 里面定义使用，Local Persistent Volume 只能通过 PVC 使用。这样能提供更多的安全特性，因为 Persistent Volume 一般都是管理员创建的，可以阻止 pod 可以访问任意的主机上面的目录。</p>
+<p>
+还有一些其他的特性，例如可以在挂载的时候格式化磁盘，和使用 fsGroup 设置 volume 的属主。</p>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/kubernetes>Kubernetes</a></li>
+<li><a href=/tags/hostpath>hostPath</a></li>
+<li><a href=/tags/storage>storage</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

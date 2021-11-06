@@ -1,10 +1,104 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>了解了下 hbase - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="了解了下 hbase"><meta property="og:description" content="很早就知道 hbase 了，但是一直没有仔细去了解 hbase 是怎么回事。今天了解了下他的表结构。 这篇文章 http://www.searchtb.com/2011/01/understanding-hbase.html 其实写的挺清楚"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/intro-hbase/"><meta property="article:published_time" content="2011-08-02T00:00:00+00:00"><meta property="article:modified_time" content="2011-08-02T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="了解了下 hbase"><meta name=twitter:description content="很早就知道 hbase 了，但是一直没有仔细去了解 hbase 是怎么回事。今天了解了下他的表结构。 这篇文章 http://www.searchtb.com/2011/01/understanding-hbase.html 其实写的挺清楚"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>了解了下 hbase</h1><div class=meta>Posted at &mdash; Aug 2, 2011</div></div><div class=markdown><p>很早就知道 hbase 了，但是一直没有仔细去了解 hbase 是怎么回事。今天了解了下他的表结构。<br></p><br><p><br>这篇文章 <a href=http://www.searchtb.com/2011/01/understanding-hbase.html>http://www.searchtb.com/2011/01/understanding-hbase.html</a> 其实写的挺清楚，下面这个是个例子<br></p><br><p><br><pre class=prettyprint>
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>了解了下 hbase - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="了解了下 hbase">
+<meta property="og:description" content="很早就知道 hbase 了，但是一直没有仔细去了解 hbase 是怎么回事。今天了解了下他的表结构。 这篇文章 http://www.searchtb.com/2011/01/understanding-hbase.html 其实写的挺清楚">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/intro-hbase/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2011-08-02T00:00:00+00:00">
+<meta property="article:modified_time" content="2011-08-02T00:00:00+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="了解了下 hbase">
+<meta name=twitter:description content="很早就知道 hbase 了，但是一直没有仔细去了解 hbase 是怎么回事。今天了解了下他的表结构。 这篇文章 http://www.searchtb.com/2011/01/understanding-hbase.html 其实写的挺清楚">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>了解了下 hbase</h1>
+<div class=meta>Posted at &mdash; Aug 2, 2011</div>
+</div>
+<div class=markdown>
+<p>很早就知道 hbase 了，但是一直没有仔细去了解 hbase 是怎么回事。今天了解了下他的表结构。<br>
+</p><br>
+<p><br>
+这篇文章 <a href=http://www.searchtb.com/2011/01/understanding-hbase.html>http://www.searchtb.com/2011/01/understanding-hbase.html</a> 其实写的挺清楚，下面这个是个例子<br>
+</p><br>
+<p><br>
+<pre class=prettyprint>
 hbase(main):007:0&gt; scan 'test'                         
 ROW                                 COLUMN+CELL                                                                                            
  row1                               column=cf:a, timestamp=1312258784360, value=value3                                                     
  row1                               column=cf:b, timestamp=1312258795425, value=value3                                                     
  row2                               column=cf:b, timestamp=1312257616099, value=value2                                                     
  row3                               column=cf:c, timestamp=1312257621344, value=value3
-</pre><br></p><br><p><br>在 hbase 里面访问数据都是通过 row key + column，其实也就是哪行哪列，不过不是通过数字定位。<br></p><br><p><br>在 hbase 里面看不到传统数据库的表格形式的数据列表，可以看到上面这种。传统数据库里面，每行的列数是一样的，如果那列没值，那也得填一个 null 之类。<br></p><br><p><br>hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，而 row2，row3 就只有一列。<br></p><br><p><br>所以 hbase 作为 key-value 系统的时候，row key + column 就是所谓的 key。<br></p><br></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/hbase>hbase</a></li><li><a href=/tags/linux>linux</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
-return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
+</pre><br>
+</p><br>
+<p><br>
+在 hbase 里面访问数据都是通过 row key + column，其实也就是哪行哪列，不过不是通过数字定位。<br>
+</p><br>
+<p><br>
+在 hbase 里面看不到传统数据库的表格形式的数据列表，可以看到上面这种。传统数据库里面，每行的列数是一样的，如果那列没值，那也得填一个 null 之类。<br>
+</p><br>
+<p><br>
+hbase 就不一定了，可以看到上面的 row1 行，有两列 cf:a, cf:b，而 row2，row3 就只有一列。<br>
+</p><br>
+<p><br>
+所以 hbase 作为 key-value 系统的时候，row key + column 就是所谓的 key。<br>
+</p><br>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/hbase>hbase</a></li>
+<li><a href=/tags/linux>linux</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

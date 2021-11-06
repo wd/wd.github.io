@@ -1,6 +1,74 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>Use Datadog to Monitor Your Cluster Build by Rke - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="Use Datadog to Monitor Your Cluster Build by Rke"><meta property="og:description" content="There are many tools you can choose when you want to build your kubernetes cluster, we use Rancher Kubernetes Engine (RKE) to build our kubernetes cluster.
- We run datadog as daemonset in our cluster, and datadog has auto discovery feature to discovery pods/containers need to check. When we deployed a redis database, datadog will notice that and run checks against the redis pods, we didn't need to do any configurations."><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/use-datadog-to-monitor-your-cluster-build-by-rke/"><meta property="article:published_time" content="2020-07-27T15:47:33+08:00"><meta property="article:modified_time" content="2020-07-27T15:47:33+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Use Datadog to Monitor Your Cluster Build by Rke"><meta name=twitter:description content="There are many tools you can choose when you want to build your kubernetes cluster, we use Rancher Kubernetes Engine (RKE) to build our kubernetes cluster.
- We run datadog as daemonset in our cluster, and datadog has auto discovery feature to discovery pods/containers need to check. When we deployed a redis database, datadog will notice that and run checks against the redis pods, we didn't need to do any configurations."><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>Use Datadog to Monitor Your Cluster Build by Rke</h1><div class=meta>Posted at &mdash; Jul 27, 2020</div></div><div class=post-header></div><div class=markdown><p>There are many tools you can choose when you want to build your kubernetes cluster, we use Rancher Kubernetes Engine (RKE) to build our kubernetes cluster.</p><p>We run datadog as daemonset in our cluster, and datadog has auto discovery feature to discovery pods/containers need to check. When we deployed a redis database, datadog will notice that and run checks against the redis pods, we didn't need to do any configurations.</p><p>Datadog auto discovery also supports core kubernetes components, like APIServer, KubeScheduler, KubeProxy, etc. But when you setup you cluster by using RKE, you will find the auto discovery didn't work for these components.</p><p>The auto discovery feature for these core components relies on <a href=https://docs.datadoghq.com/agent/guide/ad_identifiers/>autodiscovery container identifiers(ad_identifiers)</a>, the image name or image short name need to match the default <code class=verbatim>ad_identifiers</code> settings for these components. Unfortunately, rancher uses <code class=verbatim>rancher/hyperkube</code> to build most of the core components, they all have the same image name.</p><p>The <code class=verbatim>ad_identifiers</code> also support to set to a container label, but that will need use to rebuild the container image to add the label, it's a mission impossible too. After some tests, I found the way to run checks against these containers by use annotations.</p><p>Datadog supports us to <a href="https://docs.datadoghq.com/agent/kubernetes/integrations/?tab=kubernetes#datadog-redis-integration">use annotations</a> to notify datadog that we need to run check on some urls.</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>Use Datadog to Monitor Your Cluster Build by Rke - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="Use Datadog to Monitor Your Cluster Build by Rke">
+<meta property="og:description" content="There are many tools you can choose when you want to build your kubernetes cluster, we use Rancher Kubernetes Engine (RKE) to build our kubernetes cluster.
+ We run datadog as daemonset in our cluster, and datadog has auto discovery feature to discovery pods/containers need to check. When we deployed a redis database, datadog will notice that and run checks against the redis pods, we didn't need to do any configurations.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/use-datadog-to-monitor-your-cluster-build-by-rke/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2020-07-27T15:47:33+08:00">
+<meta property="article:modified_time" content="2020-07-27T15:47:33+08:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Use Datadog to Monitor Your Cluster Build by Rke">
+<meta name=twitter:description content="There are many tools you can choose when you want to build your kubernetes cluster, we use Rancher Kubernetes Engine (RKE) to build our kubernetes cluster.
+ We run datadog as daemonset in our cluster, and datadog has auto discovery feature to discovery pods/containers need to check. When we deployed a redis database, datadog will notice that and run checks against the redis pods, we didn't need to do any configurations.">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>Use Datadog to Monitor Your Cluster Build by Rke</h1>
+<div class=meta>Posted at &mdash; Jul 27, 2020</div>
+</div>
+<div class=post-header>
+</div>
+<div class=markdown>
+<p>There are many tools you can choose when you want to build your kubernetes cluster, we use Rancher Kubernetes Engine (RKE) to build our kubernetes cluster.</p>
+<p>
+We run datadog as daemonset in our cluster, and datadog has auto discovery feature to discovery pods/containers need to check. When we deployed a redis database, datadog will notice that and run checks against the redis pods, we didn't need to do any configurations.</p>
+<p>
+Datadog auto discovery also supports core kubernetes components, like APIServer, KubeScheduler, KubeProxy, etc. But when you setup you cluster by using RKE, you will find the auto discovery didn't work for these components.</p>
+<p>
+The auto discovery feature for these core components relies on <a href=https://docs.datadoghq.com/agent/guide/ad_identifiers/>autodiscovery container identifiers(ad_identifiers)</a>, the image name or image short name need to match the default <code class=verbatim>ad_identifiers</code> settings for these components. Unfortunately, rancher uses <code class=verbatim>rancher/hyperkube</code> to build most of the core components, they all have the same image name.</p>
+<p>
+The <code class=verbatim>ad_identifiers</code> also support to set to a container label, but that will need use to rebuild the container image to add the label, it's a mission impossible too. After some tests, I found the way to run checks against these containers by use annotations.</p>
+<p>
+Datadog supports us to <a href="https://docs.datadoghq.com/agent/kubernetes/integrations/?tab=kubernetes#datadog-redis-integration">use annotations</a> to notify datadog that we need to run check on some urls.</p>
+<div class="src src-yaml">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
 </span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
 </span><span class=w></span><span class=c># (...)</span><span class=w>
 </span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
@@ -13,7 +81,12 @@
 </span><span class=w></span><span class=nt>spec</span><span class=p>:</span><span class=w>
 </span><span class=w>  </span><span class=nt>containers</span><span class=p>:</span><span class=w>
 </span><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=s1>&#39;&lt;CONTAINER_IDENTIFIER&gt;&#39;</span><span class=w>
-</span><span class=w></span><span class=c># (...)</span></code></pre></div></div><p>Here is an example for apache. Did you see the <code class=verbatim>"url": "http://%%host%%/website_1"</code> in the <code class=verbatim>instances</code> settings? You can imagine that what will happen if we change this url to a service exposed by kubernetes.</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+</span><span class=w></span><span class=c># (...)</span></code></pre></div>
+</div>
+<p>
+Here is an example for apache. Did you see the <code class=verbatim>"url": "http://%%host%%/website_1"</code> in the <code class=verbatim>instances</code> settings? You can imagine that what will happen if we change this url to a service exposed by kubernetes.</p>
+<div class="src src-yaml">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
 </span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>Pod</span><span class=w>
 </span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
 </span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>apache</span><span class=w>
@@ -47,7 +120,14 @@
 </span><span class=w>    </span>- <span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>apache</span><span class=w>
 </span><span class=w>      </span><span class=nt>image</span><span class=p>:</span><span class=w> </span><span class=l>httpd</span><span class=w>
 </span><span class=w>      </span><span class=nt>ports</span><span class=p>:</span><span class=w>
-</span><span class=w>        </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>80</span></code></pre></div></div><p>Actually, datadog didn't care about you container. It only cares about settings you put in the annotations. I use this <code class=verbatim>feature</code> to add checks to my RKE built cluster.</p><p>Here is an example for monitoring components runs on controlplan. Don't forget to allow your datadog daemonset run on your master nodes first. And please take notice about the <code class=verbatim>tolerations</code> and <code class=verbatim>nodeSelector</code> I added in the yaml.</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
+</span><span class=w>        </span>- <span class=nt>containerPort</span><span class=p>:</span><span class=w> </span><span class=m>80</span></code></pre></div>
+</div>
+<p>
+Actually, datadog didn't care about you container. It only cares about settings you put in the annotations. I use this <code class=verbatim>feature</code> to add checks to my RKE built cluster.</p>
+<p>
+Here is an example for monitoring components runs on controlplan. Don't forget to allow your datadog daemonset run on your master nodes first. And please take notice about the <code class=verbatim>tolerations</code> and <code class=verbatim>nodeSelector</code> I added in the yaml.</p>
+<div class="src src-yaml">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>apps/v1</span><span class=w>
 </span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>DaemonSet</span><span class=w>
 </span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
 </span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>controlplane-monitor</span><span class=w>
@@ -100,6 +180,30 @@
 </span><span class=w>          </span><span class=nt>command</span><span class=p>:</span><span class=w>
 </span><span class=w>            </span>- <span class=l>sleep</span><span class=w>
 </span><span class=w>            </span>- <span class=l>infinity</span><span class=w>
-</span><span class=w>          </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>kube-apiserver</span></code></pre></div></div></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/rke>rke</a></li><li><a href=/tags/kubernetes>kubernetes</a></li><li><a href=/tags/k8s>k8s</a></li><li><a href=/tags/datadog>datadog</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
-return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
+</span><span class=w>          </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>kube-apiserver</span></code></pre></div>
+</div>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/rke>rke</a></li>
+<li><a href=/tags/kubernetes>kubernetes</a></li>
+<li><a href=/tags/k8s>k8s</a></li>
+<li><a href=/tags/datadog>datadog</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

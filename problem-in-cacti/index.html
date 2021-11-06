@@ -1,3 +1,89 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>还是cacti的问题 - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="还是cacti的问题"><meta property="og:description" content="前面那个帖子似乎没有解决问题，查看了一下log，有些异常： cactid ERROR: SNMP timeout detected [500 milliseconds] 搜了一下，找到一个文章，似乎"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/problem-in-cacti/"><meta property="article:published_time" content="2006-11-04T00:00:00+00:00"><meta property="article:modified_time" content="2006-11-04T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="还是cacti的问题"><meta name=twitter:description content="前面那个帖子似乎没有解决问题，查看了一下log，有些异常： cactid ERROR: SNMP timeout detected [500 milliseconds] 搜了一下，找到一个文章，似乎"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>还是cacti的问题</h1><div class=meta>Posted at &mdash; Nov 4, 2006</div></div><div class=post-header></div><div class=markdown>前面那个帖子似乎没有解决问题，查看了一下log，有些异常：<br>cactid ERROR: SNMP timeout detected [500 milliseconds]<br>搜了一下，找到一个<a target=_blank href=http://forums.cacti.net/about5487.html>文章</a>，似乎说升级就ok了，可是那个日期是2005年的，我的应该没那么老吧。不过还是上cacti的<a target=_blank href=http://cacti.net/>主页</a>看了看，看到cacti和cactid都升级了，就打算升级一下看看。debian上面怎么玩呢？cacti还好说，之前升级过一次，不需要编译，直接按照<a target=_blank href=http://www.cacti.net/downloads/docs/html/upgrade.html>文档</a>升级就好，cactid可得编译，我也不打算直接覆盖安装（其实真这么装没准还简单了），还是做一个deb包吧，一直没有体验过deb如何做，刚好机会来了。<br>搜了半天，找到一个<a target=_blank href=http://debian.linuxsir.org/doc/inthedebianway/debian_build_package.html>文档</a>，按照里面的步骤，下载了diff、dsc等文件， 解压之后修改control文件和一些depands，然后编译打包，好像没什么问题，试着装了一下，装上了，运行了一下，好像也没问题，呵呵，就这么搞定了。<br>之后按照同样的步骤搞cacti，结果安装打包的文件后，出问题了，呵呵。不过还好，东弄西弄，总算还是弄好了。按照cacti的文档手动升级了一下，也没遇到问题。不过plugin-arch也需要同时升级一下。还有poller.php和cmd.php都需要加执行权限。<br>cactid i这个版本似乎执行的时候输出没有g那么多了，很好，要不然log会搞的很大。cmd.php的输出倒是没多少内容，不过没有cactid的多线程爽亚，呵呵。执行cactid之后，会发现还有些问题:<br>Host[6] DS[46] WARNING: Result from SNMP not valid. Partial Result: ...<br>搜了一下，找到一个<a href=http://forums.cacti.net/post-63188.html>文章</a>， 里面说到了问题的所在。我这里是因为一些有问题的data souce导致，比如这些本来就获取不到数据、或者之前的设备比如网卡现在没有了等等，都会导致cactid获取不到需要的数据，就会提示那个错误。按照里面提示的DS[46]，在http://your_ip/cacti/data_sources.php?action=ds_edit&id=num这个链接的num那里直接输入数字就能知道是哪个ds出问题了，删掉或者更新就ok了。<br></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/cacti>cacti</a></li><li><a href=/tags/cactid>cactid</a></li><li><a href=/tags/other>other</a></li><li><a href=/tags/upgrade>upgrade</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
-return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>还是cacti的问题 - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="还是cacti的问题">
+<meta property="og:description" content="前面那个帖子似乎没有解决问题，查看了一下log，有些异常： cactid ERROR: SNMP timeout detected [500 milliseconds] 搜了一下，找到一个文章，似乎">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/problem-in-cacti/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2006-11-04T00:00:00+00:00">
+<meta property="article:modified_time" content="2006-11-04T00:00:00+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="还是cacti的问题">
+<meta name=twitter:description content="前面那个帖子似乎没有解决问题，查看了一下log，有些异常： cactid ERROR: SNMP timeout detected [500 milliseconds] 搜了一下，找到一个文章，似乎">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>还是cacti的问题</h1>
+<div class=meta>Posted at &mdash; Nov 4, 2006</div>
+</div>
+<div class=post-header>
+</div>
+<div class=markdown>
+前面那个帖子似乎没有解决问题，查看了一下log，有些异常：<br>
+cactid ERROR: SNMP timeout detected [500 milliseconds]<br>
+搜了一下，找到一个<a target=_blank href=http://forums.cacti.net/about5487.html>文章</a>，似乎说升级就ok了，可是那个日期是2005年的，我的应该没那么老吧。不过还是上cacti的<a target=_blank href=http://cacti.net/>主页</a>看了看，看到cacti和cactid都升级了，就打算升级一下看看。debian上面怎么玩呢？cacti还好说，之前升级过一次，不需要编译，直接按照<a target=_blank href=http://www.cacti.net/downloads/docs/html/upgrade.html>文档</a>升级就好，cactid可得编译，我也不打算直接覆盖安装（其实真这么装没准还简单了），还是做一个deb包吧，一直没有体验过deb如何做，刚好机会来了。<br>
+搜了半天，找到一个<a target=_blank href=http://debian.linuxsir.org/doc/inthedebianway/debian_build_package.html>文档</a>，按照里面的步骤，下载了diff、dsc等文件， 解压之后修改control文件和一些depands，然后编译打包，好像没什么问题，试着装了一下，装上了，运行了一下，好像也没问题，呵呵，就这么搞定了。<br>
+之后按照同样的步骤搞cacti，结果安装打包的文件后，出问题了，呵呵。不过还好，东弄西弄，总算还是弄好了。按照cacti的文档手动升级了一下，也没遇到问题。不过plugin-arch也需要同时升级一下。还有poller.php和cmd.php都需要加执行权限。<br>
+cactid i这个版本似乎执行的时候输出没有g那么多了，很好，要不然log会搞的很大。cmd.php的输出倒是没多少内容，不过没有cactid的多线程爽亚，呵呵。执行cactid之后，会发现还有些问题:<br>
+Host[6] DS[46] WARNING: Result from SNMP not valid. Partial Result: ...<br>
+搜了一下，找到一个<a href=http://forums.cacti.net/post-63188.html>文章</a>， 里面说到了问题的所在。我这里是因为一些有问题的data souce导致，比如这些本来就获取不到数据、或者之前的设备比如网卡现在没有了等等，都会导致cactid获取不到需要的数据，就会提示那个错误。按照里面提示的DS[46]，在http://your_ip/cacti/data_sources.php?action=ds_edit&id=num这个链接的num那里直接输入数字就能知道是哪个ds出问题了，删掉或者更新就ok了。<br>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/cacti>cacti</a></li>
+<li><a href=/tags/cactid>cactid</a></li>
+<li><a href=/tags/other>other</a></li>
+<li><a href=/tags/upgrade>upgrade</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

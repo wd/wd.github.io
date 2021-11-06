@@ -1,16 +1,114 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>Redux Selector - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="Redux Selector"><meta property="og:description" content="redux 应用可以通过 selector 来做 state -> props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/amp/redux-selector/"><meta property="article:published_time" content="2018-05-13T10:43:28+08:00"><meta property="article:modified_time" content="2018-05-13T10:43:28+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Redux Selector"><meta name=twitter:description content="redux 应用可以通过 selector 来做 state -> props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>Redux Selector</h1><div class=meta>Posted at &mdash; May 13, 2018</div></div><div class=post-header></div><div class=markdown><p>redux 应用可以通过 selector 来做 state -> props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的是这个 <a href=https://github.com/reduxjs/reselect>https://github.com/reduxjs/reselect</a>。</p><p>selector 主要是一个纯函数，给同样的输入，得到同样的输出，只处理数据，没有其他附加影响。这样就可以缓存中间结果了。</p><p>新建 selector 有两个方法，一个是直接定义函数，例如</p><div class="src src-javascript"><div class=highlight><pre class=chroma><code class=language-javascript data-lang=javascript><span class=kr>const</span> <span class=nx>s1</span> <span class=o>=</span> <span class=p>(</span><span class=nx>state</span><span class=p>)</span> <span class=p>=&gt;</span> <span class=p>{</span>
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>Redux Selector - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="Redux Selector">
+<meta property="og:description" content="redux 应用可以通过 selector 来做 state -> props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/amp/redux-selector/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2018-05-13T10:43:28+08:00">
+<meta property="article:modified_time" content="2018-05-13T10:43:28+08:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Redux Selector">
+<meta name=twitter:description content="redux 应用可以通过 selector 来做 state -> props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>Redux Selector</h1>
+<div class=meta>Posted at &mdash; May 13, 2018</div>
+</div>
+<div class=post-header>
+</div>
+<div class=markdown>
+<p>redux 应用可以通过 selector 来做 state -> props 的映射工作。selector 本身有缓存效果，所以可以一定意义上加速。我用的是这个 <a href=https://github.com/reduxjs/reselect>https://github.com/reduxjs/reselect</a>。</p>
+<p>
+selector 主要是一个纯函数，给同样的输入，得到同样的输出，只处理数据，没有其他附加影响。这样就可以缓存中间结果了。</p>
+<p>
+新建 selector 有两个方法，一个是直接定义函数，例如 </p>
+<div class="src src-javascript">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=kr>const</span> <span class=nx>s1</span> <span class=o>=</span> <span class=p>(</span><span class=nx>state</span><span class=p>)</span> <span class=p>=&gt;</span> <span class=p>{</span>
     <span class=c1>// 经过计算
 </span><span class=c1></span>    <span class=k>return</span> <span class=nx>state</span><span class=p>.</span><span class=nx>user</span>
 <span class=p>}</span>
-<span class=kr>const</span> <span class=nx>s2</span> <span class=o>=</span> <span class=nx>state</span> <span class=p>=&gt;</span> <span class=nx>state</span><span class=p>.</span><span class=nx>data</span>
-</code></pre></div></div><p>另外一个方法是通过 <code class=verbatim>createSelector</code> 函数来创建，例如</p><div class="src src-javascript"><div class=highlight><pre class=chroma><code class=language-javascript data-lang=javascript><span class=kr>const</span> <span class=nx>s3</span> <span class=o>=</span> <span class=nx>createSelector</span><span class=p>(</span><span class=nx>s1</span><span class=p>,</span> <span class=nx>s2</span><span class=p>,</span> <span class=p>(</span><span class=nx>s1</span><span class=p>,</span> <span class=nx>s2</span><span class=p>)</span> <span class=p>=&gt;{</span>
+<span class=kr>const</span> <span class=nx>s2</span> <span class=o>=</span> <span class=nx>state</span> <span class=p>=&gt;</span> <span class=nx>state</span><span class=p>.</span><span class=nx>data</span></code></pre></div>
+</div>
+<p>
+另外一个方法是通过 <code class=verbatim>createSelector</code> 函数来创建，例如</p>
+<div class="src src-javascript">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=kr>const</span> <span class=nx>s3</span> <span class=o>=</span> <span class=nx>createSelector</span><span class=p>(</span><span class=nx>s1</span><span class=p>,</span> <span class=nx>s2</span><span class=p>,</span> <span class=p>(</span><span class=nx>s1</span><span class=p>,</span> <span class=nx>s2</span><span class=p>)</span> <span class=p>=&gt;{</span>
     <span class=c1>// 经过计算
 </span><span class=c1></span>    <span class=k>return</span> <span class=nx>xx</span>
-<span class=p>})</span>
-</code></pre></div></div><p>实际上 selector 都是一些函数，具体用的是侯会执行这些函数，第一个方法创建的还好理解，第二个方法里面，会传什么参数呢？输入是什么呢？</p><p>实际上，第二个方法定义的 selector 执行的时候类似这样。</p><div class="src src-javascript"><div class=highlight><pre class=chroma><code class=language-javascript data-lang=javascript><span class=kr>const</span> <span class=nx>res</span> <span class=o>=</span> <span class=nx>s3</span><span class=p>(</span><span class=nx>s1</span><span class=p>(</span><span class=nx>state</span><span class=p>),</span> <span class=nx>s2</span><span class=p>(</span><span class=nx>state</span><span class=p>))</span>
-</code></pre></div></div><p>输入是里面 selector 的输入，然后不停嵌套到最初的数据。这样一个 selector 使用的方法就广泛了。比如</p><div class="src src-javascript"><div class=highlight><pre class=chroma><code class=language-javascript data-lang=javascript><span class=kr>const</span> <span class=nx>s1_res</span> <span class=o>=</span> <span class=nx>s1</span><span class=p>(</span><span class=nx>state</span><span class=p>)</span> <span class=c1>// 从其他地方或者逻辑获取到这个值
+<span class=p>})</span></code></pre></div>
+</div>
+<p>
+实际上 selector 都是一些函数，具体用的是侯会执行这些函数，第一个方法创建的还好理解，第二个方法里面，会传什么参数呢？输入是什么呢？</p>
+<p>
+实际上，第二个方法定义的 selector 执行的时候类似这样。</p>
+<div class="src src-javascript">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=kr>const</span> <span class=nx>res</span> <span class=o>=</span> <span class=nx>s3</span><span class=p>(</span><span class=nx>s1</span><span class=p>(</span><span class=nx>state</span><span class=p>),</span> <span class=nx>s2</span><span class=p>(</span><span class=nx>state</span><span class=p>))</span></code></pre></div>
+</div>
+<p>
+输入是里面 selector 的输入，然后不停嵌套到最初的数据。这样一个 selector 使用的方法就广泛了。比如</p>
+<div class="src src-javascript">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=kr>const</span> <span class=nx>s1_res</span> <span class=o>=</span> <span class=nx>s1</span><span class=p>(</span><span class=nx>state</span><span class=p>)</span> <span class=c1>// 从其他地方或者逻辑获取到这个值
 </span><span class=c1></span>
 <span class=kr>const</span> <span class=nx>res</span> <span class=o>=</span> <span class=nx>s3</span><span class=p>(</span><span class=nx>s1_res</span><span class=p>,</span> <span class=nx>s2</span><span class=p>(</span><span class=nx>state</span><span class=p>))</span> <span class=c1>// 直接用来作为 s3 的输入
-</span></code></pre></div></div></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/redux>redux</a></li><li><a href=/tags/selector>selector</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
-return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
+</span></code></pre></div>
+</div>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/redux>redux</a></li>
+<li><a href=/tags/selector>selector</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

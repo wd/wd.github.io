@@ -1,0 +1,98 @@
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>Limit and Request in Kubernetes - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="Limit and Request in Kubernetes">
+<meta property="og:description" content="程序跑在 K8s 里面的时候，特别要注意的是设置正确的 Request 和 limit。其中 Request 是 guaranteed 的资源是下限，如果节点上面不">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/amp/limit-and-request-in-kubernetes/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2021-08-01T17:28:00+08:00">
+<meta property="article:modified_time" content="2021-08-01T17:28:00+08:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Limit and Request in Kubernetes">
+<meta name=twitter:description content="程序跑在 K8s 里面的时候，特别要注意的是设置正确的 Request 和 limit。其中 Request 是 guaranteed 的资源是下限，如果节点上面不">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>Limit and Request in Kubernetes</h1>
+<div class=meta>Posted at &mdash; Aug 1, 2021</div>
+</div>
+<div class=post-header>
+</div>
+<div class=markdown>
+<p>程序跑在 K8s 里面的时候，特别要注意的是设置正确的 Request 和 limit。其中 Request 是 guaranteed 的资源是下限，如果节点上面不能给你保证这个资源，那么 pod 是不会调度上去的。而 Limit 是 burstable 资源，这部分资源有时候是会需要和节点上面其他程序竞争的。对于 CPU 来说，如果产生了竞争，那会遇到比较严重的 throttle，对于内存，那可能就会遇到 OOM kill 了。这些内容很容易查到资料，不多说了。</p>
+<p>
+那么，例如一个程序运行的时候只需要 500m，设置 request 是 800m，那是不是就不会有 throttle 了呢？答案是不一定。这个是和 kernel 如何分配 CPU 资源有关的。</p>
+<p>
+CPU 资源并不和内存资源一样，无法把一个 CPU 核心划分成几部分，然后大家各用各的互相不影响。对于一个 CPU 核心来说，一段程序在使用的时候，别的程序是无法使用的。并且使用的时候也是全速使用的，并不是说会限速到你 request 的数量。那么内核到底是怎么限制程序的 CPU 使用的？</p>
+<p>
+目前大部分情况下应该都是基于 CFS 来做内核调度的，内核会通过轮流使用也就是限制使用时间来达到公平。我们假设一个节点上面有一个 CPU 核心，并且只有两个程序。这个时候每个程序要求使用 500m 的 CPU，那可以假设，比如一天内，让其中一个程序使用 12 小时，另外一个程序使用 12 小时，这样一天看下来，是不是差不多就是每个程序使用到了 50% 的 CPU？一天其实有点粒度太大了，在内核层面，实际上是通过 <code class=verbatim>cpu.cfs_period_us</code> 这个粒度控制的，这个默认是 100ms。那么就是相当于是每 100ms 评估下程序的使用情况。这个是评估时间窗口，还有一个参数是 =cpu.cfs_quota_us=，这个是控制在这个时间窗口内可以使用的配额是多少。还是上面的例子，相当于在 100ms 内，每个程序会使用 50% 的配额也就是 50ms。这么说是什么意思呢，例如如果其中一个程序没有在 50ms 内完成使用，那么他就需要等 50ms 到下一个 period 才能继续使用。而在这个期间就是被 throttled。</p>
+<p>
+再进一步说，如果那个程序的 latency 都小于 50ms，那么这个程序一定可能性下应该不会被 throttle。throttle 应该只影响程序 p99 的指标，对于 p95 影响应该不大。(这里实际还需要考虑的是线程数量的问题，因为每个 periods 里面都是基于所有的线程使用的总量考虑的。)</p>
+<p>
+Limit 会决定每个窗口里面可用的配额是多少，那么 Limit 设置成多少合适？如果 latency 在 100ms 之内的，例如如果是 19ms，那么只要给 200m(相当于 quota 是 20ms，那么这个计算在一个 period 内就可以完成) 就可以很好的完成工作了。如果是需要超过 100ms 才能完成，如果程序一点都不想要被 throttle，那么恐怕需要设置为 1000m，因为这种情况下，必须是连续的 periods 才能完成计算，而只有在 quota 是 100 的情况下才能有连续的 periods。</p>
+<p>
+除了上面这些，还需要注意有些程序可能并不是 cgroups-aware 的，那么这些程序可能会出现不合理的 cpu 预期（例如任务整个 node 的 cpu 都可用），导致程序出现不合预期的表现。目前我看到 JVM Erlang VM 都需要针对 container 模式做一些特别的注意。</p>
+<p>
+另外对于内存需要注意的是，对于 JVM 程序，不止需要考虑 Xmx 参数，还需要考虑 JVM 运行需要的内存，例如 GC 等操作也是需要内存的。另外还需要考虑程序读取的文件等等，这些都是需要消耗内存的。对于打开之后又关闭的文件，内核实际会放在缓存里面，这部分内容占用的内存在需要的时候内核是会主动回收的，我们通过监控看到的内存使用很可能是包含的这部分内存，所以也需要注意下。</p>
+<p>
+参考：
+<a href=https://amixr.io/blog/what-wed-do-to-save-from-the-well-known-k8s-incident/>https://amixr.io/blog/what-wed-do-to-save-from-the-well-known-k8s-incident/</a>
+<a href=https://medium.com/omio-engineering/cpu-limits-and-aggressive-throttling-in-kubernetes-c5b20bd8a718>https://medium.com/omio-engineering/cpu-limits-and-aggressive-throttling-in-kubernetes-c5b20bd8a718</a>
+<a href="https://www.youtube.com/watch?v=UE7QX98-kO0">https://www.youtube.com/watch?v=UE7QX98-kO0</a></p>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/k8s>k8s</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

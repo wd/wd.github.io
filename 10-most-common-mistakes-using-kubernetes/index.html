@@ -1,26 +1,250 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>10 Most Common Mistakes Using Kubernetes - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="10 Most Common Mistakes Using Kubernetes"><meta property="og:description" content="翻译自 10 most common mistakes using kubernetes resources - requests and limits 这个绝对值得一开始就讲。 CPU 限制通常都是 not set（没设置）或者 set very low（"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/10-most-common-mistakes-using-kubernetes/"><meta property="article:published_time" content="2020-05-24T09:45:20+08:00"><meta property="article:modified_time" content="2020-05-24T09:45:20+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="10 Most Common Mistakes Using Kubernetes"><meta name=twitter:description content="翻译自 10 most common mistakes using kubernetes resources - requests and limits 这个绝对值得一开始就讲。 CPU 限制通常都是 not set（没设置）或者 set very low（"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>10 Most Common Mistakes Using Kubernetes</h1><div class=meta>Posted at &mdash; May 24, 2020</div></div><div class=post-header><nav id=TableOfContents><ul><li><a href=#headline-1>resources - requests and limits</a></li><li><a href=#headline-2>liveness and readiness probes</a></li><li><a href=#headline-3>LoadBalancer for every http service</a></li><li><a href=#headline-4>non-kubernetes-aware cluster autoscaling</a></li><li><a href=#headline-5>Not using the power of IAM/RBAC</a></li><li><a href=#headline-6>self anti-affinities for pods</a></li><li><a href=#headline-7>no poddisruptionbudget</a></li><li><a href=#headline-8>more tenants or envs in shared cluster</a></li><li><a href=#headline-9>externalTrafficPolicy: Cluster</a></li><li><a href=#headline-10>pet clusters + stressing the control plane too much</a></li><li><a href=#headline-11>bonus: using latest tag</a></li><li><a href=#headline-12>Summary</a></li></ul></nav></div><div class=markdown><p>翻译自 <a href=https://blog.pipetail.io/posts/2020-05-04-most-common-mistakes-k8s/>10 most common mistakes using kubernetes</a></p><div id=outline-container-headline-1 class=outline-3><h3 id=headline-1>resources - requests and limits</h3><div id=outline-text-headline-1 class=outline-text-3><p>这个绝对值得一开始就讲。</p><p>CPU 限制通常都是 not set（没设置）或者 set very low（设置很低）（因此可以一次在一个节点放很多 pod），节点因此就会容易被过度使用。在需求旺盛的情况下，节点的 CPU 会被充分利用。我们的工作负载仅会获得“要求的算力”，会得到 CPU 使用限制，一般会导致应用程序延迟和超时增加，等等。</p><p>越多越好的策略（请别这么做）</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w> </span>{}</code></pre></div></div><p>限制特别低的策略（请别这么做）</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>10 Most Common Mistakes Using Kubernetes - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="10 Most Common Mistakes Using Kubernetes">
+<meta property="og:description" content="翻译自 10 most common mistakes using kubernetes resources - requests and limits 这个绝对值得一开始就讲。 CPU 限制通常都是 not set（没设置）或者 set very low（">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/10-most-common-mistakes-using-kubernetes/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2020-05-24T09:45:20+08:00">
+<meta property="article:modified_time" content="2020-05-24T09:45:20+08:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="10 Most Common Mistakes Using Kubernetes">
+<meta name=twitter:description content="翻译自 10 most common mistakes using kubernetes resources - requests and limits 这个绝对值得一开始就讲。 CPU 限制通常都是 not set（没设置）或者 set very low（">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>10 Most Common Mistakes Using Kubernetes</h1>
+<div class=meta>Posted at &mdash; May 24, 2020</div>
+</div>
+<div class=post-header>
+<nav id=TableOfContents>
+<ul>
+<li><a href=#headline-1>resources - requests and limits</a>
+</li>
+<li><a href=#headline-2>liveness and readiness probes</a>
+</li>
+<li><a href=#headline-3>LoadBalancer for every http service</a>
+</li>
+<li><a href=#headline-4>non-kubernetes-aware cluster autoscaling</a>
+</li>
+<li><a href=#headline-5>Not using the power of IAM/RBAC</a>
+</li>
+<li><a href=#headline-6>self anti-affinities for pods</a>
+</li>
+<li><a href=#headline-7>no poddisruptionbudget</a>
+</li>
+<li><a href=#headline-8>more tenants or envs in shared cluster</a>
+</li>
+<li><a href=#headline-9>externalTrafficPolicy: Cluster</a>
+</li>
+<li><a href=#headline-10>pet clusters + stressing the control plane too much</a>
+</li>
+<li><a href=#headline-11>bonus: using latest tag</a>
+</li>
+<li><a href=#headline-12>Summary</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=markdown>
+<p>
+翻译自 <a href=https://blog.pipetail.io/posts/2020-05-04-most-common-mistakes-k8s/>10 most common mistakes using kubernetes</a></p>
+<div id=outline-container-headline-1 class=outline-3>
+<h3 id=headline-1>
+resources - requests and limits
+</h3>
+<div id=outline-text-headline-1 class=outline-text-3>
+<p>
+这个绝对值得一开始就讲。</p>
+<p>
+CPU 限制通常都是 not set（没设置）或者 set very low（设置很低）（因此可以一次在一个节点放很多 pod），节点因此就会容易被过度使用。在需求旺盛的情况下，节点的 CPU 会被充分利用。我们的工作负载仅会获得“要求的算力”，会得到 CPU 使用限制，一般会导致应用程序延迟和超时增加，等等。</p>
+<p>
+越多越好的策略（请别这么做）</p>
+<div class="src src-yaml">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w> </span>{}</code></pre></div>
+</div>
+<p>
+限制特别低的策略（请别这么做）</p>
+<div class="src src-yaml">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
 </span><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
-</span><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;1m&#34;</span></code></pre></div></div><p>另一方面，设置 CPU 限制会无必要的限制 pod 的使用，即使节点的 CPU 并没有被充分利用，这也会导致应用的延迟增加。围绕 Linux 内核中的 CPU CFS 限额和基于设置的 CPU 限额并关闭 CFS 的限额有一些公开讨论。CPU 限制导致的问题比解决的问题更多。可以参考后面的链接查看更多信息。</p><p>内存过度使用会导致更多问题。达到 CPU 限制会导致限流，达到内存限制会导致 pod 被杀掉。见过 OOMkill 么？对的，我们说的就是这个。想要减少他的出现么？不要超额使用内存，使用有保障的 QoS ，像下面例子一样设置内存 request 等于 limit。可以看看 <a href=https://www.slideshare.net/try_except_/optimizing-kubernetes-resource-requestslimits-for-costefficiency-and-latency-highload>Henning Jacobs 的讲稿</a>查看更多。</p><p>允许超量的策略（可能会出现更多的 OOMKill）</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;1m&#34;</span></code></pre></div>
+</div>
+<p>
+另一方面，设置 CPU 限制会无必要的限制 pod 的使用，即使节点的 CPU 并没有被充分利用，这也会导致应用的延迟增加。围绕 Linux 内核中的 CPU CFS 限额和基于设置的 CPU 限额并关闭 CFS 的限额有一些公开讨论。CPU 限制导致的问题比解决的问题更多。可以参考后面的链接查看更多信息。</p>
+<p>
+内存过度使用会导致更多问题。达到 CPU 限制会导致限流，达到内存限制会导致 pod 被杀掉。见过 OOMkill 么？对的，我们说的就是这个。想要减少他的出现么？不要超额使用内存，使用有保障的 QoS ，像下面例子一样设置内存 request 等于 limit。可以看看 <a href=https://www.slideshare.net/try_except_/optimizing-kubernetes-resource-requestslimits-for-costefficiency-and-latency-highload>Henning Jacobs 的讲稿</a>查看更多。</p>
+<p>
+允许超量的策略（可能会出现更多的 OOMKill）</p>
+<div class="src src-yaml">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
 </span><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
 </span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;128Mi&#34;</span><span class=w>
 </span><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;500m&#34;</span><span class=w>
 </span><span class=w>      </span><span class=nt>limits</span><span class=p>:</span><span class=w>
 </span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;256Mi&#34;</span><span class=w>
-</span><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=m>2</span></code></pre></div></div><p>有保障的策略</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
+</span><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=m>2</span></code></pre></div>
+</div>
+<p>
+有保障的策略</p>
+<div class="src src-yaml">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=w>    </span><span class=nt>resources</span><span class=p>:</span><span class=w>
 </span><span class=w>      </span><span class=nt>requests</span><span class=p>:</span><span class=w>
 </span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;128Mi&#34;</span><span class=w>
 </span><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
 </span><span class=w>      </span><span class=nt>limits</span><span class=p>:</span><span class=w>
 </span><span class=w>        </span><span class=nt>memory</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;128Mi&#34;</span><span class=w>
-</span><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=m>2</span></code></pre></div></div><p>那么在设置资源限制的时候，有什么参考呢？</p><p>通过 mertics-server 你可以查看当前各 pod（以及他们的容器） 的 cpu 和内存使用情况。如果你已经运行他们了，执行下面的命令即可。</p><div class="src src-bash"><div class=highlight><pre class=chroma><code class=language-bash data-lang=bash>kubectl top pods
+</span><span class=w>        </span><span class=nt>cpu</span><span class=p>:</span><span class=w> </span><span class=m>2</span></code></pre></div>
+</div>
+<p>
+那么在设置资源限制的时候，有什么参考呢？</p>
+<p>
+通过 mertics-server 你可以查看当前各 pod（以及他们的容器） 的 cpu 和内存使用情况。如果你已经运行他们了，执行下面的命令即可。</p>
+<div class="src src-bash">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-bash data-lang=bash>kubectl top pods
 kubectl top pods --containers
-kubectl top nodes</code></pre></div></div><p>然而这些只是当前的用量。这些可以用来产生一些比较粗糙的限额的想法，但是你最终还是想要看到历史的使用情况（回答类似的问题：cpu 使用的峰值是多少，昨天的用量是多少，等等）。你可以使用 Prometheus, DataDog 以及其他的一些工具收集这些数据。这些工具收集和保存之后，你就可以查询和画图了。</p><p><a href=https://cloud.google.com/kubernetes-engine/docs/concepts/verticalpodautoscaler>VerticalPodAutoscaler</a> 可以帮助你自动处理这些事情，通过监控 cpu 内存历史使用情况来调整新的 request 和 limit 策略。</p><p>有效利用节点性能并不容易。就像玩俄罗斯方块一样。如果你发现在节点利用率比较低的情况下（例如 ~ 10%）账单比较高，那你可能可以看看基于 AWS Fargate 或者 Virtual Kubelet 的产品，这些基于用量付费的的产品可能更便宜。</p></div></div><div id=outline-container-headline-2 class=outline-3><h3 id=headline-2>liveness and readiness probes</h3><div id=outline-text-headline-2 class=outline-text-3><p>默认情况下是没有 liveness 和 readiness 检测的。很多时候也没人管这个..</p><p>但是如果出现了不可恢复的错误的时候，你的服务如何重启？负载均衡器如何知道特定的 pod 已经可以开始处理流量了？以及还可以处理更多流量？</p><p>很多时候人们不知道这两个的区别</p><ul><li><p>Liveness 检查在失效的时候会重启 pod</p></li><li><p>Readiness 检查在失效的时候会从 service 里面移除这个 pod（你可以通过 <code class=verbatim>kubectl get endpoionts</code> 查看），在这个检查恢复之前是不会有流量发送给这个 pod 的。</p></li></ul><p>并且，两个都是在整个 pod 的生命周期里面持续检查的。这很重要。</p><p>人们有时会认为 readiness 检查只在 pod 启动的时候指示这个 pod 已经 Ready 并且可以接受请求了。但那个只是他的一个应用场景而已。</p><p>另外一个场景是指示在 pod 生命周期里面这个 pod 是不是接受了太多的请求了（或者一些比较高昂的计算），因而可以停止发送更多请求过去，让这个 pod 冷却下，当 readiness 恢复的时候再继续发送请求。这种情况下，如果 liveness 检查也失败可能适得其反。为啥要重启一个健康的并且处理很多请求的 pod 呢？</p><p>很多情况下两个的不设置好于设置错了。就像前面说的，如果 liveness 检查和 readiness 检查一样，你可能会遇到大问题。你可能需要从<a href=https://twitter.com/sszuecs/status/1175803113204269059>只设置 readiness</a> 开始，因为 <a href=https://srcco.de/posts/kubernetes-liveness-probes-are-dangerous.html>liveness 检查比较危险</a>。</p><p>不要因为依赖的服务 down 了就把其中任何一个设置为失效，这可能会导致所有 pod 集联失效。你等于是<a href=https://blog.colinbreck.com/kubernetes-liveness-and-readiness-probes-how-to-avoid-shooting-yourself-in-the-foot/>搬起石头砸自己脚</a>。</p></div></div><div id=outline-container-headline-3 class=outline-3><h3 id=headline-3>LoadBalancer for every http service</h3><div id=outline-text-headline-3 class=outline-text-3><p>当你有很多 http 服务的时候你会需要把他们暴露给外界。</p><p>如果你暴露 kubernetes 服务为 <code class=verbatim>type: LoadBalancer</code> 类型，他的控制器（不同供应商不一样）会给你分配一个外部的 LB（一般不需要 L7 的，大都是 L4），当你创建比较多的这些（固定的 ipv4 地址，计算能力，按秒付费。。。）服务的时候可能会比较贵。</p><p>这种情况下，使用 <code class=verbatim>type: NodePort</code> 暴露你的服务，然后共享同一个外部负载均衡器会比较合理。或者更好一点的是，部署一个 nginx-ingress-controller（或者 traefik）作为外部的负载均衡器的入口，然后把所有流量都通过 kubernetes 的 ingress 资源来路由分配。</p><p>其他集群内部的（微）服务之间可以通过 CluterIP 服务类型来获得开箱即用的 dns 发现功能。小心不用使用公网的 DNS/IP，这可能导致延迟增加和费用增加。</p></div></div><div id=outline-container-headline-4 class=outline-3><h3 id=headline-4>non-kubernetes-aware cluster autoscaling</h3><div id=outline-text-headline-4 class=outline-text-3><p>当你给集群增加或者减少节点的时候，你不需要考虑一些简单的指标，例如这些节点的 cpu 使用率。当编排 pod 的时候，你会使用很多的编排限制，例如 pod 或者节点的 affinities, taints 和 tolerations, resource requests, QoS 等等。外部的自动伸缩机制一般不理解这些限制，可能会导致问题。</p><p>想象一下有一个新的 pod 需要编排，但是所有的 CPU 都已经被请求（request）了，pod 会卡在 pending 状态。外部的自动伸缩机制会看到当前平均使用的 CPU（不是请求的）而不扩张（不增加新的节点）。pod 还是不会被编排。</p><p>缩减（减少集群里面的节点）通常比较难。想象一下你有一个有状态的 pod（有使用持久化的 volume），通常持久化的 volume 资源会属于某个特定的可用区（availability zone）而不能在整个 region 扩展。你的自定义伸缩机制移除这个 pod 运行的节点之后，pod 不能在一个不是这个可用区的节点上面编排。pod 还是会卡在 pending 状态。</p><p><a href=https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler>cluster-autoscaler</a> 正在被社区广泛使用，它运行在你的集群里面，集成了大部分主要的公有云的 API，理解这些限制，所以可以在上面的例子里面合理的扩展。它也知道是不是可以安静的缩减节点而不影响我们设置的任何限制而省钱。</p></div></div><div id=outline-container-headline-5 class=outline-3><h3 id=headline-5>Not using the power of IAM/RBAC</h3><div id=outline-text-headline-5 class=outline-text-3><p>不要给程序使用使用永久密钥的 IAM 用户，应该使用零时的 role 或者 service account。</p><p>经常会看到，把 access key 和 secret key 硬编码到程序的配置里面，从来也不会轮转他们。使用 IAM 角色或者 service accounts 来代替。</p><p>跳过 kube2iam，像<a href=https://blog.pipetail.io/posts/2020-04-13-more-eks-tips/>这篇文章</a>描述的一样直接在 service account 使用 IAM 角色。</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
+kubectl top nodes</code></pre></div>
+</div>
+<p>
+然而这些只是当前的用量。这些可以用来产生一些比较粗糙的限额的想法，但是你最终还是想要看到历史的使用情况（回答类似的问题：cpu 使用的峰值是多少，昨天的用量是多少，等等）。你可以使用 Prometheus, DataDog 以及其他的一些工具收集这些数据。这些工具收集和保存之后，你就可以查询和画图了。</p>
+<p>
+<a href=https://cloud.google.com/kubernetes-engine/docs/concepts/verticalpodautoscaler>VerticalPodAutoscaler</a> 可以帮助你自动处理这些事情，通过监控 cpu 内存历史使用情况来调整新的 request 和 limit 策略。</p>
+<p>
+有效利用节点性能并不容易。就像玩俄罗斯方块一样。如果你发现在节点利用率比较低的情况下（例如 ~ 10%）账单比较高，那你可能可以看看基于 AWS Fargate 或者 Virtual Kubelet 的产品，这些基于用量付费的的产品可能更便宜。</p>
+</div>
+</div>
+<div id=outline-container-headline-2 class=outline-3>
+<h3 id=headline-2>
+liveness and readiness probes
+</h3>
+<div id=outline-text-headline-2 class=outline-text-3>
+<p>
+默认情况下是没有 liveness 和 readiness 检测的。很多时候也没人管这个..</p>
+<p>
+但是如果出现了不可恢复的错误的时候，你的服务如何重启？负载均衡器如何知道特定的 pod 已经可以开始处理流量了？以及还可以处理更多流量？</p>
+<p>
+很多时候人们不知道这两个的区别</p>
+<ul>
+<li>
+<p>Liveness 检查在失效的时候会重启 pod</p>
+</li>
+<li>
+<p>Readiness 检查在失效的时候会从 service 里面移除这个 pod（你可以通过 <code class=verbatim>kubectl get endpoionts</code> 查看），在这个检查恢复之前是不会有流量发送给这个 pod 的。</p>
+</li>
+</ul>
+<p>并且，两个都是在整个 pod 的生命周期里面持续检查的。这很重要。</p>
+<p>
+人们有时会认为 readiness 检查只在 pod 启动的时候指示这个 pod 已经 Ready 并且可以接受请求了。但那个只是他的一个应用场景而已。</p>
+<p>
+另外一个场景是指示在 pod 生命周期里面这个 pod 是不是接受了太多的请求了（或者一些比较高昂的计算），因而可以停止发送更多请求过去，让这个 pod 冷却下，当 readiness 恢复的时候再继续发送请求。这种情况下，如果 liveness 检查也失败可能适得其反。为啥要重启一个健康的并且处理很多请求的 pod 呢？</p>
+<p>
+很多情况下两个的不设置好于设置错了。就像前面说的，如果 liveness 检查和 readiness 检查一样，你可能会遇到大问题。你可能需要从<a href=https://twitter.com/sszuecs/status/1175803113204269059>只设置 readiness</a> 开始，因为 <a href=https://srcco.de/posts/kubernetes-liveness-probes-are-dangerous.html>liveness 检查比较危险</a>。</p>
+<p>
+不要因为依赖的服务 down 了就把其中任何一个设置为失效，这可能会导致所有 pod 集联失效。你等于是<a href=https://blog.colinbreck.com/kubernetes-liveness-and-readiness-probes-how-to-avoid-shooting-yourself-in-the-foot/>搬起石头砸自己脚</a>。</p>
+</div>
+</div>
+<div id=outline-container-headline-3 class=outline-3>
+<h3 id=headline-3>
+LoadBalancer for every http service
+</h3>
+<div id=outline-text-headline-3 class=outline-text-3>
+<p>
+当你有很多 http 服务的时候你会需要把他们暴露给外界。</p>
+<p>
+如果你暴露 kubernetes 服务为 <code class=verbatim>type: LoadBalancer</code> 类型，他的控制器（不同供应商不一样）会给你分配一个外部的 LB（一般不需要 L7 的，大都是 L4），当你创建比较多的这些（固定的 ipv4 地址，计算能力，按秒付费。。。）服务的时候可能会比较贵。</p>
+<p>
+这种情况下，使用 <code class=verbatim>type: NodePort</code> 暴露你的服务，然后共享同一个外部负载均衡器会比较合理。或者更好一点的是，部署一个 nginx-ingress-controller（或者 traefik）作为外部的负载均衡器的入口，然后把所有流量都通过 kubernetes 的 ingress 资源来路由分配。</p>
+<p>
+其他集群内部的（微）服务之间可以通过 CluterIP 服务类型来获得开箱即用的 dns 发现功能。小心不用使用公网的 DNS/IP，这可能导致延迟增加和费用增加。</p>
+</div>
+</div>
+<div id=outline-container-headline-4 class=outline-3>
+<h3 id=headline-4>
+non-kubernetes-aware cluster autoscaling
+</h3>
+<div id=outline-text-headline-4 class=outline-text-3>
+<p>
+当你给集群增加或者减少节点的时候，你不需要考虑一些简单的指标，例如这些节点的 cpu 使用率。当编排 pod 的时候，你会使用很多的编排限制，例如 pod 或者节点的 affinities, taints 和 tolerations, resource requests, QoS 等等。外部的自动伸缩机制一般不理解这些限制，可能会导致问题。</p>
+<p>
+想象一下有一个新的 pod 需要编排，但是所有的 CPU 都已经被请求（request）了，pod 会卡在 pending 状态。外部的自动伸缩机制会看到当前平均使用的 CPU（不是请求的）而不扩张（不增加新的节点）。pod 还是不会被编排。</p>
+<p>
+缩减（减少集群里面的节点）通常比较难。想象一下你有一个有状态的 pod（有使用持久化的 volume），通常持久化的 volume 资源会属于某个特定的可用区（availability zone）而不能在整个 region 扩展。你的自定义伸缩机制移除这个 pod 运行的节点之后，pod 不能在一个不是这个可用区的节点上面编排。pod 还是会卡在 pending 状态。</p>
+<p>
+<a href=https://github.com/kubernetes/autoscaler/tree/master/cluster-autoscaler>cluster-autoscaler</a> 正在被社区广泛使用，它运行在你的集群里面，集成了大部分主要的公有云的 API，理解这些限制，所以可以在上面的例子里面合理的扩展。它也知道是不是可以安静的缩减节点而不影响我们设置的任何限制而省钱。</p>
+</div>
+</div>
+<div id=outline-container-headline-5 class=outline-3>
+<h3 id=headline-5>
+Not using the power of IAM/RBAC
+</h3>
+<div id=outline-text-headline-5 class=outline-text-3>
+<p>
+不要给程序使用使用永久密钥的 IAM 用户，应该使用零时的 role 或者 service account。</p>
+<p>
+经常会看到，把 access key 和 secret key 硬编码到程序的配置里面，从来也不会轮转他们。使用 IAM 角色或者 service accounts 来代替。</p>
+<p>
+跳过 kube2iam，像<a href=https://blog.pipetail.io/posts/2020-04-13-more-eks-tips/>这篇文章</a>描述的一样直接在 service account 使用 IAM 角色。</p>
+<div class="src src-yaml">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>v1</span><span class=w>
 </span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>ServiceAccount</span><span class=w>
 </span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
 </span><span class=w>  </span><span class=nt>annotations</span><span class=p>:</span><span class=w>
 </span><span class=w>    </span><span class=nt>eks.amazonaws.com/role-arn</span><span class=p>:</span><span class=w> </span><span class=l>arn:aws:iam::123456789012:role/my-app-role</span><span class=w>
 </span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>my-serviceaccount</span><span class=w>
-</span><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>default</span></code></pre></div></div><p>只需要一条 annotation，没那么难，是吧？</p><p>不是必须要的时候，不要给 service account 或者 instalce profile admin 和 cluster-admin 权限。这会稍微麻烦 一点，特别是基于 k8s RBAC，但是还是值得的。</p></div></div><div id=outline-container-headline-6 class=outline-3><h3 id=headline-6>self anti-affinities for pods</h3><div id=outline-text-headline-6 class=outline-text-3><p>在一个 deployment 里面让 pod 运行 3 个复制，节点挂掉的时候，所有的复制都在这个节点。嗯？所有复制都在一个节点？kubernetes 难道不应该提供 HA 吗？</p><p>你不能指望 kubernetes scheduler 会给你的 pod 设置互相反亲和的特性。你需要自己明确定义他们。</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=l>// omitted for brevity</span><span class=w>
+</span><span class=w>  </span><span class=nt>namespace</span><span class=p>:</span><span class=w> </span><span class=l>default</span></code></pre></div>
+</div>
+<p>
+只需要一条 annotation，没那么难，是吧？</p>
+<p>
+不是必须要的时候，不要给 service account 或者 instalce profile admin 和 cluster-admin 权限。这会稍微麻烦 一点，特别是基于 k8s RBAC，但是还是值得的。</p>
+</div>
+</div>
+<div id=outline-container-headline-6 class=outline-3>
+<h3 id=headline-6>
+self anti-affinities for pods
+</h3>
+<div id=outline-text-headline-6 class=outline-text-3>
+<p>
+在一个 deployment 里面让 pod 运行 3 个复制，节点挂掉的时候，所有的复制都在这个节点。嗯？所有复制都在一个节点？kubernetes 难道不应该提供 HA 吗？</p>
+<p>
+你不能指望 kubernetes scheduler 会给你的 pod 设置互相反亲和的特性。你需要自己明确定义他们。</p>
+<div class="src src-yaml">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=l>// omitted for brevity</span><span class=w>
 </span><span class=w>      </span><span class=nt>labels</span><span class=p>:</span><span class=w>
 </span><span class=w>        </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>zk</span><span class=w>
 </span><span class=w></span><span class=l>// omitted for brevity</span><span class=w>
@@ -33,7 +257,25 @@ kubectl top nodes</code></pre></div></div><p>然而这些只是当前的用量�
 </span><span class=w>                    </span><span class=nt>operator</span><span class=p>:</span><span class=w> </span><span class=l>In</span><span class=w>
 </span><span class=w>                    </span><span class=nt>values</span><span class=p>:</span><span class=w>
 </span><span class=w>                    </span>- <span class=l>zk</span><span class=w>
-</span><span class=w>              </span><span class=nt>topologyKey</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;kubernetes.io/hostname&#34;</span></code></pre></div></div><p>这就可以了。这个会保证 pod 会分布在不同的节点（这只会在编排阶段检查，而不是运行时，基于 <code class=verbatim>requiredDuringSchedulingIgnoredDuringExecution</code> ）。</p><p>我们说的是 pod 基于节点名称的反亲和逻辑 - <code class=verbatim>topologyKey: "kubernetes.io/hostname"</code> ，而不是基于可用区。如果你真的需要 HA，那深入了解下这个话题吧。</p></div></div><div id=outline-container-headline-7 class=outline-3><h3 id=headline-7>no poddisruptionbudget</h3><div id=outline-text-headline-7 class=outline-text-3><p>在 kubernetes 上面运行生产环境的工作负载。随着时间流逝，你的节点和集群会需要升级，或者下架机器。PodDisruptionBudget（PDB）是一个位于集群管理员和集群用户间的某种服务保证的 API 。</p><p>确保创建了 <code class=verbatim>pdb</code> 来避免在下线节点的时候造成不必要的服务故障。</p><div class="src src-yaml"><div class=highlight><pre class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>policy/v1beta1</span><span class=w>
+</span><span class=w>              </span><span class=nt>topologyKey</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;kubernetes.io/hostname&#34;</span></code></pre></div>
+</div>
+<p>
+这就可以了。这个会保证 pod 会分布在不同的节点（这只会在编排阶段检查，而不是运行时，基于 <code class=verbatim>requiredDuringSchedulingIgnoredDuringExecution</code> ）。</p>
+<p>
+我们说的是 pod 基于节点名称的反亲和逻辑 - <code class=verbatim>topologyKey: "kubernetes.io/hostname"</code> ，而不是基于可用区。如果你真的需要 HA，那深入了解下这个话题吧。</p>
+</div>
+</div>
+<div id=outline-container-headline-7 class=outline-3>
+<h3 id=headline-7>
+no poddisruptionbudget
+</h3>
+<div id=outline-text-headline-7 class=outline-text-3>
+<p>
+在 kubernetes 上面运行生产环境的工作负载。随着时间流逝，你的节点和集群会需要升级，或者下架机器。PodDisruptionBudget（PDB）是一个位于集群管理员和集群用户间的某种服务保证的 API 。</p>
+<p>
+确保创建了 <code class=verbatim>pdb</code> 来避免在下线节点的时候造成不必要的服务故障。</p>
+<div class="src src-yaml">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-yaml data-lang=yaml><span class=nt>apiVersion</span><span class=p>:</span><span class=w> </span><span class=l>policy/v1beta1</span><span class=w>
 </span><span class=w></span><span class=nt>kind</span><span class=p>:</span><span class=w> </span><span class=l>PodDisruptionBudget</span><span class=w>
 </span><span class=w></span><span class=nt>metadata</span><span class=p>:</span><span class=w>
 </span><span class=w>  </span><span class=nt>name</span><span class=p>:</span><span class=w> </span><span class=l>zk-pdb</span><span class=w>
@@ -41,6 +283,100 @@ kubectl top nodes</code></pre></div></div><p>然而这些只是当前的用量�
 </span><span class=w>  </span><span class=nt>minAvailable</span><span class=p>:</span><span class=w> </span><span class=m>2</span><span class=w>
 </span><span class=w>  </span><span class=nt>selector</span><span class=p>:</span><span class=w>
 </span><span class=w>    </span><span class=nt>matchLabels</span><span class=p>:</span><span class=w>
-</span><span class=w>      </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>zookeeper</span></code></pre></div></div><p>集群用户可以使用这个来告诉集群管理员：嘿，我在这有一个 zookeeper 集群，不管你打算做啥，给我保留 2 个可用复制。</p><p><a href=https://blog.marekbartik.com/posts/2018-06-29_kubernetes-in-production-poddisruptionbudget/>这有个更加深入的帖子</a>。</p></div></div><div id=outline-container-headline-8 class=outline-3><h3 id=headline-8>more tenants or envs in shared cluster</h3><div id=outline-text-headline-8 class=outline-text-3><p>kubernetes 的命名空间不提供很强的隔离。</p><p>人们总觉得使用命名空间分开非生产环境和生产环境后，一个环境不会影响另一个环境。一定意义上是可能的 - resource requests and limits, quotas, priorityClasses - and isolation - affinities, tolerations, taints (or nodeselectors) 想要物理上隔绝会让事情变得很麻烦。</p><p>你如果想要两种类型的工作在一个集群里面，那就必须忍受这种复杂性。如果你不想这么复杂，那么多建一个集群是一个比较廉价的选择，把他们放到不同的集群里面可以得到很好的隔离。</p></div></div><div id=outline-container-headline-9 class=outline-3><h3 id=headline-9>externalTrafficPolicy: Cluster</h3><div id=outline-text-headline-9 class=outline-text-3><p>经常会看到这个，NodePort 类型的服务默认情况下 <code class=verbatim>externalTrafficPolicy: Cluster</code> 所有的流量都会在集群内路由。这意味着，集群内每个节点都会开放这个 NodePort，因此你可以访问任何一个节点来访问到你的服务。</p><p>通常一个 NodePort 服务只运行在这些节点的子集上。这意味着，当访问其中某个并不运行这个服务的节点的时候，就需要转发这个请求到别的节点，这会导致多余的网络跳转，而增加延迟（如果这些节点在不同的 AZ/DC，延迟可能还会挺高）。</p><p>设置 <code class=verbatim>externalTrafficPolicy: Local</code> 后就不会在 pod 不在的节点上面暴露那些端口了，只会在真实运行这些 pod 节点上开放。如果你有一个外部的 LB 会检查他们的 endpoints（就像 ELB 那样），会只发送请求给这些节点。减少延迟，多余的计算，流量账单。</p><p>你可能会有一个 traefik 或者 nginx-ingress-controller 使用 NodePort （或者 LB，也使用 NodePort）来处理你的入口 http 流量和路由，那这个设置会极大的减少类似请求的延迟。</p><p>深入讨论这个的<a href=https://www.asykim.com/blog/deep-dive-into-kubernetes-external-traffic-policies>帖子</a>。</p></div></div><div id=outline-container-headline-10 class=outline-3><h3 id=headline-10>pet clusters + stressing the control plane too much</h3><div id=outline-text-headline-10 class=outline-text-3><p>你会给服务器基于 Anton, HAL9000 and Colossus 起一些随机的名字，那么给集群起一个名字呢？</p><p>一开始验证 kubernetes 功能的时候，会给集群起名叫做 "testing"，并且持续在生产环境使用这个名字，没人敢改？</p><p>Pet 集群可不好玩，你可能会需要删除你的集群，实践下灾难恢复，关心下你的控制节点。不敢动控制节点可不是个好现象。Etcd 死了？你遇到大问题了。</p><p>另一方面，经常改动也不一定好。一段时间后控制节点会变慢，可能会是因为你创建太多对象了（使用基于默认配置的 helm 会创建很多 configmaps/secrets，你可能会有上千个对象），或者你也可能经常通过修改 kube-api（为了 autoscaling, cicd, monitoring, logs from events, controllers, etc） 产生一些垃圾。</p><p>以及，看看你的 kubernetes 提供商提供的 "SLA/SLO" 保证。有的可能会保证控制节点的可用性，但是不保证对于你发送的请求的 p99 延迟。换句话说，你可能会需要等 10 分钟才能得到 <code class=verbatim>kubectl get nodes</code> 的结果，而不违反他们的服务保证。</p></div></div><div id=outline-container-headline-11 class=outline-3><h3 id=headline-11>bonus: using latest tag</h3><div id=outline-text-headline-11 class=outline-text-3><p>这个比较经典。现在不常见了，可能因为我们有太多人被这个搞死了，而开始使用固定的版本号而不是 <code class=verbatim>:latest</code> 了。</p><p><a href=https://aws.amazon.com/about-aws/whats-new/2019/07/amazon-ecr-now-supports-immutable-image-tags/>ECR 现在提供了标签不可变的功能</a>，值得一试。</p></div></div><div id=outline-container-headline-12 class=outline-3><h3 id=headline-12>Summary</h3><div id=outline-text-headline-12 class=outline-text-3><p>别指望啥都会自动处理好，kubernetes 不是银弹。一个垃圾程序在 kubernetes 上面<a href="https://twitter.com/sadserver/status/1032704897500598272?s=20">可能也还是垃圾程序</a>（实际上还有可能更垃圾）。如果你不小心一点，事情可能会变得很复杂，压力很大，缓慢的控制节点，没有 DR 策略。别期待开箱即用的多租户功能和高可用。花点时间让你的程序变成 cloud native。</p></div></div></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/kubernetes>kubernetes</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
-return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
+</span><span class=w>      </span><span class=nt>app</span><span class=p>:</span><span class=w> </span><span class=l>zookeeper</span></code></pre></div>
+</div>
+<p>
+集群用户可以使用这个来告诉集群管理员：嘿，我在这有一个 zookeeper 集群，不管你打算做啥，给我保留 2 个可用复制。</p>
+<p>
+<a href=https://blog.marekbartik.com/posts/2018-06-29_kubernetes-in-production-poddisruptionbudget/>这有个更加深入的帖子</a>。</p>
+</div>
+</div>
+<div id=outline-container-headline-8 class=outline-3>
+<h3 id=headline-8>
+more tenants or envs in shared cluster
+</h3>
+<div id=outline-text-headline-8 class=outline-text-3>
+<p>
+kubernetes 的命名空间不提供很强的隔离。</p>
+<p>
+人们总觉得使用命名空间分开非生产环境和生产环境后，一个环境不会影响另一个环境。一定意义上是可能的 - resource requests and limits, quotas, priorityClasses - and isolation - affinities, tolerations, taints (or nodeselectors) 想要物理上隔绝会让事情变得很麻烦。</p>
+<p>
+你如果想要两种类型的工作在一个集群里面，那就必须忍受这种复杂性。如果你不想这么复杂，那么多建一个集群是一个比较廉价的选择，把他们放到不同的集群里面可以得到很好的隔离。</p>
+</div>
+</div>
+<div id=outline-container-headline-9 class=outline-3>
+<h3 id=headline-9>
+externalTrafficPolicy: Cluster
+</h3>
+<div id=outline-text-headline-9 class=outline-text-3>
+<p>
+经常会看到这个，NodePort 类型的服务默认情况下 <code class=verbatim>externalTrafficPolicy: Cluster</code> 所有的流量都会在集群内路由。这意味着，集群内每个节点都会开放这个 NodePort，因此你可以访问任何一个节点来访问到你的服务。</p>
+<p>
+通常一个 NodePort 服务只运行在这些节点的子集上。这意味着，当访问其中某个并不运行这个服务的节点的时候，就需要转发这个请求到别的节点，这会导致多余的网络跳转，而增加延迟（如果这些节点在不同的 AZ/DC，延迟可能还会挺高）。</p>
+<p>
+设置 <code class=verbatim>externalTrafficPolicy: Local</code> 后就不会在 pod 不在的节点上面暴露那些端口了，只会在真实运行这些 pod 节点上开放。如果你有一个外部的 LB 会检查他们的 endpoints（就像 ELB 那样），会只发送请求给这些节点。减少延迟，多余的计算，流量账单。</p>
+<p>
+你可能会有一个 traefik 或者 nginx-ingress-controller 使用 NodePort （或者 LB，也使用 NodePort）来处理你的入口 http 流量和路由，那这个设置会极大的减少类似请求的延迟。</p>
+<p>
+深入讨论这个的<a href=https://www.asykim.com/blog/deep-dive-into-kubernetes-external-traffic-policies>帖子</a>。</p>
+</div>
+</div>
+<div id=outline-container-headline-10 class=outline-3>
+<h3 id=headline-10>
+pet clusters + stressing the control plane too much
+</h3>
+<div id=outline-text-headline-10 class=outline-text-3>
+<p>
+你会给服务器基于 Anton, HAL9000 and Colossus 起一些随机的名字，那么给集群起一个名字呢？</p>
+<p>
+一开始验证 kubernetes 功能的时候，会给集群起名叫做 "testing"，并且持续在生产环境使用这个名字，没人敢改？</p>
+<p>
+Pet 集群可不好玩，你可能会需要删除你的集群，实践下灾难恢复，关心下你的控制节点。不敢动控制节点可不是个好现象。Etcd 死了？你遇到大问题了。</p>
+<p>
+另一方面，经常改动也不一定好。一段时间后控制节点会变慢，可能会是因为你创建太多对象了（使用基于默认配置的 helm 会创建很多 configmaps/secrets，你可能会有上千个对象），或者你也可能经常通过修改 kube-api（为了 autoscaling, cicd, monitoring, logs from events, controllers, etc） 产生一些垃圾。</p>
+<p>
+以及，看看你的 kubernetes 提供商提供的 "SLA/SLO" 保证。有的可能会保证控制节点的可用性，但是不保证对于你发送的请求的 p99 延迟。换句话说，你可能会需要等 10 分钟才能得到 <code class=verbatim>kubectl get nodes</code> 的结果，而不违反他们的服务保证。</p>
+</div>
+</div>
+<div id=outline-container-headline-11 class=outline-3>
+<h3 id=headline-11>
+bonus: using latest tag
+</h3>
+<div id=outline-text-headline-11 class=outline-text-3>
+<p>
+这个比较经典。现在不常见了，可能因为我们有太多人被这个搞死了，而开始使用固定的版本号而不是 <code class=verbatim>:latest</code> 了。</p>
+<p>
+<a href=https://aws.amazon.com/about-aws/whats-new/2019/07/amazon-ecr-now-supports-immutable-image-tags/>ECR 现在提供了标签不可变的功能</a>，值得一试。</p>
+</div>
+</div>
+<div id=outline-container-headline-12 class=outline-3>
+<h3 id=headline-12>
+Summary
+</h3>
+<div id=outline-text-headline-12 class=outline-text-3>
+<p>
+别指望啥都会自动处理好，kubernetes 不是银弹。一个垃圾程序在 kubernetes 上面<a href="https://twitter.com/sadserver/status/1032704897500598272?s=20">可能也还是垃圾程序</a>（实际上还有可能更垃圾）。如果你不小心一点，事情可能会变得很复杂，压力很大，缓慢的控制节点，没有 DR 策略。别期待开箱即用的多租户功能和高可用。花点时间让你的程序变成 cloud native。</p>
+</div>
+</div>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/kubernetes>kubernetes</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

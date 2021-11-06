@@ -1,4 +1,10 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>PING命令中TTL的具体含义zz - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="PING命令中TTL的具体含义zz"><meta property="og:description" content="有台服务器ping的时候老出现 Time to live exceeded 这个错误，这样就会误报服务器挂掉，很烦人。找了半天似乎找到了解决方法了。
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>PING命令中TTL的具体含义zz - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="PING命令中TTL的具体含义zz">
+<meta property="og:description" content="
+有台服务器ping的时候老出现 Time to live exceeded 这个错误，这样就会误报服务器挂掉，很烦人。找了半天似乎找到了解决方法了。
 
 ping的时候返回的包的ttl值是根据对方系统的设置来的，默认情况下，win是128,linux是64,返回的时候，每经过一个节点，就减1,这样，根据返回包的ttl值就可以判断经过了几个路由节点。而节点要是比较多的话，会导致这个ttl值为0,这样就出现上面提到的问题了。当然，要是遇到包进了环路，也会产生这样的问题，详细的内容可以看下面的转载文章。
 
@@ -22,7 +28,16 @@ ping的时候返回的包的ttl值是根据对方系统的设置来的，默认�
 很 显然，一个package从一台机器到另一台机器中间需要经过很长的路径，显然这个路径不是单一的，是很复杂的，并且很可能存在环路。如果一个数据包在传 输过程中进入了环路，如果不终止它的话，它会一直循环下去，如果很多个数据包都这样循环的话，那对于网络来说这就是灾难了。所以需要在包中设置这样一个 值，包在每经过一个节点，将这个值减1，反复这样操作，最终可能造成2个结果：包在这个值还为正数的时候到达了目的地，或者是在经过一定数量的节点后，这 个值减为了0。前者代表完成了一次正常的传输，后者代表包可能选择了一条非常长的路径甚至是进入了环路，这显然不是我们期望的，所以在这个值为0的时候， 网络设备将不会再传递这个包而是直接将他抛弃，并发送一个通知给包的源地址，说这个包已死。
 其实TTL值这个东西本身并代表不了什么，对于使用者来说，关心的问题应该是包是否到达了目的地而不是经过了几个节点后到达。但是TTL值还是可以得到有意思的信息的。
 
-每 个操作系统对TTL值得定义都不同，这个值甚至可以通过修改某些系统的网络参数来修改，例如Win2000默认为128，通过注册表也可以修改。而 Linux大多定义为64。不过一般来说，很少有人会去修改自己机器的这个值的，这就给了我们机会可以通过ping的回显TTL来大体判断一台机器是什么 操作系统。"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/amp/ttl-in-ping/"><meta property="article:published_time" content="2006-08-30T00:00:00+00:00"><meta property="article:modified_time" content="2006-08-30T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="PING命令中TTL的具体含义zz"><meta name=twitter:description content="有台服务器ping的时候老出现 Time to live exceeded 这个错误，这样就会误报服务器挂掉，很烦人。找了半天似乎找到了解决方法了。
+每 个操作系统对TTL值得定义都不同，这个值甚至可以通过修改某些系统的网络参数来修改，例如Win2000默认为128，通过注册表也可以修改。而 Linux大多定义为64。不过一般来说，很少有人会去修改自己机器的这个值的，这就给了我们机会可以通过ping的回显TTL来大体判断一台机器是什么 操作系统。
+">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/amp/ttl-in-ping/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2006-08-30T00:00:00+00:00">
+<meta property="article:modified_time" content="2006-08-30T00:00:00+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="PING命令中TTL的具体含义zz">
+<meta name=twitter:description content="
+有台服务器ping的时候老出现 Time to live exceeded 这个错误，这样就会误报服务器挂掉，很烦人。找了半天似乎找到了解决方法了。
 
 ping的时候返回的包的ttl值是根据对方系统的设置来的，默认情况下，win是128,linux是64,返回的时候，每经过一个节点，就减1,这样，根据返回包的ttl值就可以判断经过了几个路由节点。而节点要是比较多的话，会导致这个ttl值为0,这样就出现上面提到的问题了。当然，要是遇到包进了环路，也会产生这样的问题，详细的内容可以看下面的转载文章。
 
@@ -46,6 +61,153 @@ ping的时候返回的包的ttl值是根据对方系统的设置来的，默认�
 很 显然，一个package从一台机器到另一台机器中间需要经过很长的路径，显然这个路径不是单一的，是很复杂的，并且很可能存在环路。如果一个数据包在传 输过程中进入了环路，如果不终止它的话，它会一直循环下去，如果很多个数据包都这样循环的话，那对于网络来说这就是灾难了。所以需要在包中设置这样一个 值，包在每经过一个节点，将这个值减1，反复这样操作，最终可能造成2个结果：包在这个值还为正数的时候到达了目的地，或者是在经过一定数量的节点后，这 个值减为了0。前者代表完成了一次正常的传输，后者代表包可能选择了一条非常长的路径甚至是进入了环路，这显然不是我们期望的，所以在这个值为0的时候， 网络设备将不会再传递这个包而是直接将他抛弃，并发送一个通知给包的源地址，说这个包已死。
 其实TTL值这个东西本身并代表不了什么，对于使用者来说，关心的问题应该是包是否到达了目的地而不是经过了几个节点后到达。但是TTL值还是可以得到有意思的信息的。
 
-每 个操作系统对TTL值得定义都不同，这个值甚至可以通过修改某些系统的网络参数来修改，例如Win2000默认为128，通过注册表也可以修改。而 Linux大多定义为64。不过一般来说，很少有人会去修改自己机器的这个值的，这就给了我们机会可以通过ping的回显TTL来大体判断一台机器是什么 操作系统。"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>PING命令中TTL的具体含义zz</h1><div class=meta>Posted at &mdash; Aug 30, 2006</div></div><div class=post-header></div><div class=markdown><br>以我公司2台机器为例<br>看如下命令<br>D:Documents and Settingshx>ping 61.152.93.131<br>Pinging 61.152.93.131 with 32 bytes of data:<br>Reply from 61.152.93.131: bytes=32 time=21ms TTL=118<br>Reply from 61.152.93.131: bytes=32 time=19ms TTL=118<br>Reply from 61.152.93.131: bytes=32 time=18ms TTL=118<br>Reply from 61.152.93.131: bytes=32 time=22ms TTL=118<br>Ping statistics for 61.152.93.131:<br>Packets: Sent = 4， Received = 4， Lost = 0 (0% loss<br>Approximate round trip times in milli-seconds:<br>Minimum = 18ms， Maximum = 22ms， Average = 20ms<br>D:Documents and Settingshx>ping 61.152.104.40<br>Pinging 61.152.104.40 with 32 bytes of data:<br>Reply from 61.152.104.40: bytes=32 time=28ms TTL=54<br>Reply from 61.152.104.40: bytes=32 time=18ms TTL=54<br>Reply from 61.152.104.40: bytes=32 time=18ms TTL=54<br>Reply from 61.152.104.40: bytes=32 time=13ms TTL=54<br>Ping statistics for 61.152.104.40:<br>Packets: Sent = 4， Received = 4， Lost = 0 (0% loss<br>Approximate round trip times in milli-seconds:<br>Minimum = 13ms， Maximum = 28ms， Average = 19ms<br>第一台TTL为118，则基本可以判断这是一台Windows机器，从我的机器到这台机器经过了10个节点，因为128-118=10。而第二台应该是台Linux，理由一样64-54=10。<br>了解了上面的东西，可能有人会有一些疑问，例如以下：<br>1，不是说包可能走很多路径吗，为什么我看到的4个包TTL都是一样的，没有出现不同？<br>这是由于包经过的路径是经过了一些最优选择算法来定下来的，在网络拓扑稳定一段时间后，包的路由路径也会相对稳定在一个最短路径上。具体怎么算出来的要去研究路由算法了，不在讨论之列。<br>2，对于上面例子第二台机器，为什么不认为它是经过了74个节点的Windows机器？因为128-74=54。<br>对于这个问题，我们要引入另外一个很好的ICMP协议工具。不过首先要声明的是，一个包经过74个节点这个有些恐怖，这样的路径还是不用为好。<br>要介绍的这个工具是tracert（*nix下为traceroute），让我们来看对上面的第二台机器用这个命令的结果<br>D:Documents and Settingshx>tracert 61.152.104.40<br>Tracing route to 61.152.104.40 over a maximum of 30 hops<br>1 13 ms 16 ms 9 ms 10.120.32.1<br>2 9 ms 9 ms 11 ms 219.233.244.105<br>3 12 ms 10 ms 10 ms 219.233.238.173<br>4 15 ms 15 ms 17 ms 219.233.238.13<br>5 14 ms 19 ms 19 ms 202.96.222.73<br>6 14 ms 17 ms 13 ms 202.96.222.121<br>7 14 ms 15 ms 14 ms 61.152.81.86<br>8 15 ms 14 ms 13 ms 61.152.87.162<br>9 16 ms 16 ms 28 ms 61.152.99.26<br>10 12 ms 13 ms 18 ms 61.152.99.94<br>11 14 ms 18 ms 16 ms 61.152.104.40<br>Trace complete.<br>从这个命令的结果能够看到从我的机器到服务器所走的路由，确实是11个节点（上面说10个好像是我犯了忘了算0的错误了，应该是64-54+1，嘿嘿），而不是128的TTL经过了70多个节点。<br>既然已经说到这里了，不妨顺便说说关于这两个ICMP命令的高级一点的东西。<br>首先是ping命令，其实ping有这样一个参数，可以无视操作系统默认TTL值而使用自己定义的值来发送ICMP Request包。<br>例如还是用那台Linux机器，用以下命令：<br>D:Documents and Settingshx>ping 61.152.104.40 -i 11<br>Pinging 61.152.104.40 with 32 bytes of data:<br>Reply from 61.152.104.40: bytes=32 time=10ms TTL=54<br>Reply from 61.152.104.40: bytes=32 time=13ms TTL=54<br>Reply from 61.152.104.40: bytes=32 time=10ms TTL=54<br>Reply from 61.152.104.40: bytes=32 time=13ms TTL=54<br>Ping statistics for 61.152.104.40:<br>Packets: Sent = 4， Received = 4， Lost = 0 (0% loss)，<br>Approximate round trip times in milli-seconds:<br>Minimum = 10ms， Maximum = 13ms， Average = 11ms<br>D:Documents and Settingshx><br>这个命令我们定义了发包的TTL为11，而前面我们知道，我到这台服务器是要经过11个节点的，所以这个输出和以前没什么不同。现在再用这个试试看：<br>D:Documents and Settingshx>ping 61.152.104.40 -i 10<br>Pinging 61.152.104.40 with 32 bytes of data:<br>Reply from 61.152.99.94: TTL expired in transit.<br>Reply from 61.152.99.94: TTL expired in transit.<br>Reply from 61.152.99.94: TTL expired in transit.<br>Reply from 61.152.99.94: TTL expired in transit.<br>Ping statistics for 61.152.104.40:<br>Packets: Sent = 4， Received = 4， Lost = 0 (0% loss)，<br>Approximate round trip times in milli-seconds:<br>Minimum = 0ms， Maximum = 0ms， Average = 0ms<br>D:Documents and Settingshx><br>可 以看到，结果不一样了，我定义了TTL为10来发包，结果是TTL expired in transit.就是说在到达服务器之前这个包的生命周期就结束了。注意看这句话前面的ip，这个ip恰好是我们前面tracert结果到服务器之前的最 后1个ip，包的TTL就是在这里减少到0了，根据我们前面的讨论，当TTL减为0时设备会丢弃包并发送一个TTL过期的ICMP反馈给源地址，这里的结 果就是最好的证明。<br>通过这里再次又证明了从我机器到服务器是经过了11个节点而不是70多个，呵呵。<br>最后再巩固一下知识，有人可能觉得tracer这个命令很神奇，可以发现一个包所经过的路由路径。其实这个命令的原理就在我们上面的讨论中。<br>想象一下，如果我给目的服务器发送一个TTL为1的包，结果会怎样？<br>根据前面的讨论，在包港出发的第一个节点，TTL就会减少为0，这时这个节点就会回应TTL失效的反馈，这个回应包含了设备本身的ip地址，这样我们就得到了路由路径的第一个节点的地址。<br>因此，我们继续发送TTL=2的包，也就受到第二个节点的TTL失效回应<br>依次类推，我们一个一个的发现，当最终返回的结果不是TTL失效而是ICMP Response的时候，我们的tracert也就结束了，就是这么简单。<br>顺便补一句ping命令还有个-n的参数指定要发包的数量，指定了这个数字就会按照你的要求来发包了而不是默认的4个包。如果使用-t参数的话，命令会一直发包直到你强行中止它。<br></span></div><br><br></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/linux>linux</a></li><li><a href=/tags/other>other</a></li><li><a href=/tags/ping>ping</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
-return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
+每 个操作系统对TTL值得定义都不同，这个值甚至可以通过修改某些系统的网络参数来修改，例如Win2000默认为128，通过注册表也可以修改。而 Linux大多定义为64。不过一般来说，很少有人会去修改自己机器的这个值的，这就给了我们机会可以通过ping的回显TTL来大体判断一台机器是什么 操作系统。
+">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>PING命令中TTL的具体含义zz</h1>
+<div class=meta>Posted at &mdash; Aug 30, 2006</div>
+</div>
+<div class=post-header>
+</div>
+<div class=markdown>
+<br>
+以我公司2台机器为例<br>
+看如下命令<br>
+D:Documents and Settingshx>ping 61.152.93.131<br>
+Pinging 61.152.93.131 with 32 bytes of data:<br>
+Reply from 61.152.93.131: bytes=32 time=21ms TTL=118<br>
+Reply from 61.152.93.131: bytes=32 time=19ms TTL=118<br>
+Reply from 61.152.93.131: bytes=32 time=18ms TTL=118<br>
+Reply from 61.152.93.131: bytes=32 time=22ms TTL=118<br>
+Ping statistics for 61.152.93.131:<br>
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss<br>
+Approximate round trip times in milli-seconds:<br>
+Minimum = 18ms， Maximum = 22ms， Average = 20ms<br>
+D:Documents and Settingshx>ping 61.152.104.40<br>
+Pinging 61.152.104.40 with 32 bytes of data:<br>
+Reply from 61.152.104.40: bytes=32 time=28ms TTL=54<br>
+Reply from 61.152.104.40: bytes=32 time=18ms TTL=54<br>
+Reply from 61.152.104.40: bytes=32 time=18ms TTL=54<br>
+Reply from 61.152.104.40: bytes=32 time=13ms TTL=54<br>
+Ping statistics for 61.152.104.40:<br>
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss<br>
+Approximate round trip times in milli-seconds:<br>
+Minimum = 13ms， Maximum = 28ms， Average = 19ms<br>
+第一台TTL为118，则基本可以判断这是一台Windows机器，从我的机器到这台机器经过了10个节点，因为128-118=10。而第二台应该是台Linux，理由一样64-54=10。<br>
+了解了上面的东西，可能有人会有一些疑问，例如以下：<br>
+1，不是说包可能走很多路径吗，为什么我看到的4个包TTL都是一样的，没有出现不同？<br>
+这是由于包经过的路径是经过了一些最优选择算法来定下来的，在网络拓扑稳定一段时间后，包的路由路径也会相对稳定在一个最短路径上。具体怎么算出来的要去研究路由算法了，不在讨论之列。<br>
+2，对于上面例子第二台机器，为什么不认为它是经过了74个节点的Windows机器？因为128-74=54。<br>
+对于这个问题，我们要引入另外一个很好的ICMP协议工具。不过首先要声明的是，一个包经过74个节点这个有些恐怖，这样的路径还是不用为好。<br>
+要介绍的这个工具是tracert（*nix下为traceroute），让我们来看对上面的第二台机器用这个命令的结果<br>
+D:Documents and Settingshx>tracert 61.152.104.40<br>
+Tracing route to 61.152.104.40 over a maximum of 30 hops<br>
+1 13 ms 16 ms 9 ms 10.120.32.1<br>
+2 9 ms 9 ms 11 ms 219.233.244.105<br>
+3 12 ms 10 ms 10 ms 219.233.238.173<br>
+4 15 ms 15 ms 17 ms 219.233.238.13<br>
+5 14 ms 19 ms 19 ms 202.96.222.73<br>
+6 14 ms 17 ms 13 ms 202.96.222.121<br>
+7 14 ms 15 ms 14 ms 61.152.81.86<br>
+8 15 ms 14 ms 13 ms 61.152.87.162<br>
+9 16 ms 16 ms 28 ms 61.152.99.26<br>
+10 12 ms 13 ms 18 ms 61.152.99.94<br>
+11 14 ms 18 ms 16 ms 61.152.104.40<br>
+Trace complete.<br>
+从这个命令的结果能够看到从我的机器到服务器所走的路由，确实是11个节点（上面说10个好像是我犯了忘了算0的错误了，应该是64-54+1，嘿嘿），而不是128的TTL经过了70多个节点。<br>
+既然已经说到这里了，不妨顺便说说关于这两个ICMP命令的高级一点的东西。<br>
+首先是ping命令，其实ping有这样一个参数，可以无视操作系统默认TTL值而使用自己定义的值来发送ICMP Request包。<br>
+例如还是用那台Linux机器，用以下命令：<br>
+D:Documents and Settingshx>ping 61.152.104.40 -i 11<br>
+Pinging 61.152.104.40 with 32 bytes of data:<br>
+Reply from 61.152.104.40: bytes=32 time=10ms TTL=54<br>
+Reply from 61.152.104.40: bytes=32 time=13ms TTL=54<br>
+Reply from 61.152.104.40: bytes=32 time=10ms TTL=54<br>
+Reply from 61.152.104.40: bytes=32 time=13ms TTL=54<br>
+Ping statistics for 61.152.104.40:<br>
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss)，<br>
+Approximate round trip times in milli-seconds:<br>
+Minimum = 10ms， Maximum = 13ms， Average = 11ms<br>
+D:Documents and Settingshx><br>
+这个命令我们定义了发包的TTL为11，而前面我们知道，我到这台服务器是要经过11个节点的，所以这个输出和以前没什么不同。现在再用这个试试看：<br>
+D:Documents and Settingshx>ping 61.152.104.40 -i 10<br>
+Pinging 61.152.104.40 with 32 bytes of data:<br>
+Reply from 61.152.99.94: TTL expired in transit.<br>
+Reply from 61.152.99.94: TTL expired in transit.<br>
+Reply from 61.152.99.94: TTL expired in transit.<br>
+Reply from 61.152.99.94: TTL expired in transit.<br>
+Ping statistics for 61.152.104.40:<br>
+Packets: Sent = 4， Received = 4， Lost = 0 (0% loss)，<br>
+Approximate round trip times in milli-seconds:<br>
+Minimum = 0ms， Maximum = 0ms， Average = 0ms<br>
+D:Documents and Settingshx><br>
+可 以看到，结果不一样了，我定义了TTL为10来发包，结果是TTL expired in transit.就是说在到达服务器之前这个包的生命周期就结束了。注意看这句话前面的ip，这个ip恰好是我们前面tracert结果到服务器之前的最 后1个ip，包的TTL就是在这里减少到0了，根据我们前面的讨论，当TTL减为0时设备会丢弃包并发送一个TTL过期的ICMP反馈给源地址，这里的结 果就是最好的证明。<br>
+通过这里再次又证明了从我机器到服务器是经过了11个节点而不是70多个，呵呵。<br>
+最后再巩固一下知识，有人可能觉得tracer这个命令很神奇，可以发现一个包所经过的路由路径。其实这个命令的原理就在我们上面的讨论中。<br>
+想象一下，如果我给目的服务器发送一个TTL为1的包，结果会怎样？<br>
+根据前面的讨论，在包港出发的第一个节点，TTL就会减少为0，这时这个节点就会回应TTL失效的反馈，这个回应包含了设备本身的ip地址，这样我们就得到了路由路径的第一个节点的地址。<br>
+因此，我们继续发送TTL=2的包，也就受到第二个节点的TTL失效回应<br>
+依次类推，我们一个一个的发现，当最终返回的结果不是TTL失效而是ICMP Response的时候，我们的tracert也就结束了，就是这么简单。<br>
+顺便补一句ping命令还有个-n的参数指定要发包的数量，指定了这个数字就会按照你的要求来发包了而不是默认的4个包。如果使用-t参数的话，命令会一直发包直到你强行中止它。<br>
+</span></div><br>
+<br>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/linux>linux</a></li>
+<li><a href=/tags/other>other</a></li>
+<li><a href=/tags/ping>ping</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

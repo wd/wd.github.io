@@ -1,78 +1,178 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>Python Coroutine - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="Python Coroutine"><meta property="og:description" content="协程 coroutine 不知道是从什么时候开始的，感觉我第一次看到是 lua 里面支持 yield 。后面看到就是 javascript 里面的 Promise，"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/amp/python-coroutine/"><meta property="article:published_time" content="2019-08-27T10:49:51+08:00"><meta property="article:modified_time" content="2019-08-27T10:49:51+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Python Coroutine"><meta name=twitter:description content="协程 coroutine 不知道是从什么时候开始的，感觉我第一次看到是 lua 里面支持 yield 。后面看到就是 javascript 里面的 Promise，"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>Python Coroutine</h1><div class=meta>Posted at &mdash; Aug 27, 2019</div></div><div class=post-header></div><div class=markdown><p>协程 coroutine 不知道是从什么时候开始的，感觉我第一次看到是 lua 里面支持 yield 。后面看到就是 javascript 里面的 Promise，async 和 await。</p><p>以前写 Javascript 的时候容易会遇到 callback hell，似乎 Promise 就是出来解决这个问题的，让你可以用同步的方式写异步程序。例如你有三个异步请求可以同时发出去，而后面的结果又需要这三个的结果都回来才能继续，那就可以用类似下面的伪代码，整体执行时间是最长的那个。</p><div class="src src-javascript"><div class=highlight><pre class=chroma><code class=language-javascript data-lang=javascript><span class=nx>res1</span> <span class=o>=</span> <span class=kr>await</span> <span class=nx>test1</span>
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>Python Coroutine - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="Python Coroutine">
+<meta property="og:description" content="协程 coroutine 不知道是从什么时候开始的，感觉我第一次看到是 lua 里面支持 yield 。后面看到就是 javascript 里面的 Promise，">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/amp/python-coroutine/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2019-08-27T10:49:51+08:00">
+<meta property="article:modified_time" content="2019-08-27T10:49:51+08:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Python Coroutine">
+<meta name=twitter:description content="协程 coroutine 不知道是从什么时候开始的，感觉我第一次看到是 lua 里面支持 yield 。后面看到就是 javascript 里面的 Promise，">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>Python Coroutine</h1>
+<div class=meta>Posted at &mdash; Aug 27, 2019</div>
+</div>
+<div class=post-header>
+</div>
+<div class=markdown>
+<p>
+协程 coroutine 不知道是从什么时候开始的，感觉我第一次看到是 lua 里面支持 yield 。后面看到就是 javascript 里面的 Promise，async 和 await。</p>
+<p>
+以前写 Javascript 的时候容易会遇到 callback hell，似乎 Promise 就是出来解决这个问题的，让你可以用同步的方式写异步程序。例如你有三个异步请求可以同时发出去，而后面的结果又需要这三个的结果都回来才能继续，那就可以用类似下面的伪代码，整体执行时间是最长的那个。</p>
+<div class="src src-javascript">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript><span class=nx>res1</span> <span class=o>=</span> <span class=kr>await</span> <span class=nx>test1</span>
 <span class=nx>res2</span> <span class=o>=</span> <span class=kr>await</span> <span class=nx>test2</span>
-<span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=nx>res1</span><span class=p>,</span> <span class=nx>res2</span><span class=p>)</span>
-</code></pre></div></div><p>Python 里面似乎也类似。我目前理解主要就是让程序可以「同步」执行，但是又避免了需要维护锁的问题，没有锁就不会有死锁了吧。。。</p><p>解释下同步，主要是针对对于 cpu 资源的占用。对于计算型的程序，实际上每时每刻都在利用 cpu 做计算，这样就算把计算拆分成了多个计算程序，让他们同时运行，那同一时刻还是只有一个程序在利用 cpu 资源执行，这样并行实际并不能提升效率。所以对于纯计算型任务，可以通过多进程利用多个 cpu。</p><p>但是实际我们的程序执行的时候，并不全是 cpu 计算，有时候会需要等网络 io，文件 io 等，做这些事情的时候实际上 cpu 是空闲的。协程就是让这些程序在等待的时候，把控制权交出来，让其他程序运行。那个 <code>yield</code> 关键字就是做这个事情的， <code>yield</code> 很像 <code>return</code> ，遇到的时候就会返回，暂停程序的执行，等到适当的时候又可以从暂停的地方继续执行。</p><p>以前是使用 <code>@asyncio.coroutine</code> 和 <code>yield from</code> 来创建协程，似乎 3.10 之后那个装饰器就要被废弃了，替代使用 <code>async/await</code> 来创建，直接替换就可以。</p><div class="src src-python"><div class=highlight><pre class=chroma><code class=language-python data-lang=python><span class=nd>@asyncio.coroutine</span>
+<span class=nx>console</span><span class=p>.</span><span class=nx>log</span><span class=p>(</span><span class=nx>res1</span><span class=p>,</span> <span class=nx>res2</span><span class=p>)</span></code></pre></div>
+</div>
+<p>
+Python 里面似乎也类似。我目前理解主要就是让程序可以「同步」执行，但是又避免了需要维护锁的问题，没有锁就不会有死锁了吧。。。</p>
+<p>
+解释下同步，主要是针对对于 cpu 资源的占用。对于计算型的程序，实际上每时每刻都在利用 cpu 做计算，这样就算把计算拆分成了多个计算程序，让他们同时运行，那同一时刻还是只有一个程序在利用 cpu 资源执行，这样并行实际并不能提升效率。所以对于纯计算型任务，可以通过多进程利用多个 cpu。</p>
+<p>
+但是实际我们的程序执行的时候，并不全是 cpu 计算，有时候会需要等网络 io，文件 io 等，做这些事情的时候实际上 cpu 是空闲的。协程就是让这些程序在等待的时候，把控制权交出来，让其他程序运行。那个 <code>yield</code> 关键字就是做这个事情的， <code>yield</code> 很像 <code>return</code> ，遇到的时候就会返回，暂停程序的执行，等到适当的时候又可以从暂停的地方继续执行。</p>
+<p>
+以前是使用 <code>@asyncio.coroutine</code> 和 <code>yield from</code> 来创建协程，似乎 3.10 之后那个装饰器就要被废弃了，替代使用 <code>async/await</code> 来创建，直接替换就可以。</p>
+<div class="src src-python">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=nd>@asyncio</span><span class=o>.</span><span class=n>coroutine</span>
 <span class=k>def</span> <span class=nf>old_style_coroutine</span><span class=p>():</span>
-    <span class=k>yield</span> <span class=kn>from</span> <span class=nn>asyncio.sleep</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
+    <span class=k>yield from</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
 
-<span class=n>async</span> <span class=k>def</span> <span class=nf>main</span><span class=p>():</span>
-    <span class=n>await</span> <span class=n>old_style_coroutine</span><span class=p>()</span></code></pre></div></div><p>Python 的<a href=https://docs.python.org/zh-cn/3/library/asyncio-task.html>协程文档</a>提供了一些例子，摘取一些。</p><div class="src src-python"><div class=highlight><pre class=chroma><code class=language-python data-lang=python><span class=kn>import</span> <span class=nn>asyncio</span>
+<span class=k>async</span> <span class=k>def</span> <span class=nf>main</span><span class=p>():</span>
+    <span class=k>await</span> <span class=n>old_style_coroutine</span><span class=p>()</span></code></pre></div>
+</div>
+<p>
+Python 的<a href=https://docs.python.org/zh-cn/3/library/asyncio-task.html>协程文档</a>提供了一些例子，摘取一些。</p>
+<div class="src src-python">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=kn>import</span> <span class=nn>asyncio</span>
 
-<span class=n>async</span> <span class=k>def</span> <span class=nf>test</span><span class=p>():</span>
+<span class=k>async</span> <span class=k>def</span> <span class=nf>test</span><span class=p>():</span>
     <span class=n>asynio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
 
-<span class=n>asyncio</span><span class=o>.</span><span class=n>run</span><span class=p>(</span><span class=n>test</span><span class=p>())</span></code></pre></div></div><p>定义这样的 <code>test</code> 函数叫做 <code class=verbatim>协程函数</code> ， <code>test()</code> 返回的叫做 <code class=verbatim>协程对象</code> ，和普通函数不一样， <code>test()</code> 并不会执行这个函数，需要使用协程相关的命令才行，例如 <code>asyncio.run(test())</code> 。</p><div class="src src-python"><div class=highlight><pre class=chroma><code class=language-python data-lang=python><span class=kn>import</span> <span class=nn>asyncio</span>
+<span class=n>asyncio</span><span class=o>.</span><span class=n>run</span><span class=p>(</span><span class=n>test</span><span class=p>())</span></code></pre></div>
+</div>
+<p>
+定义这样的 <code>test</code> 函数叫做 <code class=verbatim>协程函数</code> ， <code>test()</code> 返回的叫做 <code class=verbatim>协程对象</code> ，和普通函数不一样， <code>test()</code> 并不会执行这个函数，需要使用协程相关的命令才行，例如 <code>asyncio.run(test())</code> 。</p>
+<div class="src src-python">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=kn>import</span> <span class=nn>asyncio</span>
 
-<span class=n>async</span> <span class=k>def</span> <span class=nf>nested</span><span class=p>():</span>
-    <span class=k>print</span><span class=p>(</span><span class=s1>&#39;started&#39;</span><span class=p>)</span>
+<span class=k>async</span> <span class=k>def</span> <span class=nf>nested</span><span class=p>():</span>
+    <span class=nb>print</span><span class=p>(</span><span class=s1>&#39;started&#39;</span><span class=p>)</span>
     <span class=k>return</span> <span class=mi>42</span>
 
-<span class=n>async</span> <span class=k>def</span> <span class=nf>main</span><span class=p>():</span>
+<span class=k>async</span> <span class=k>def</span> <span class=nf>main</span><span class=p>():</span>
     <span class=c1># Schedule nested() to run soon concurrently</span>
     <span class=c1># with &#34;main()&#34;.</span>
     <span class=n>task</span> <span class=o>=</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>create_task</span><span class=p>(</span><span class=n>nested</span><span class=p>())</span>
 
     <span class=c1># &#34;task&#34; can now be used to cancel &#34;nested()&#34;, or</span>
     <span class=c1># can simply be awaited to wait until it is complete:</span>
-    <span class=n>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=mi>5</span><span class=p>)</span>
-    <span class=k>print</span><span class=p>(</span><span class=s1>&#39;after sleep&#39;</span><span class=p>)</span>
-    <span class=n>await</span> <span class=n>task</span>
-<span class=n>asyncio</span><span class=o>.</span><span class=n>run</span><span class=p>(</span><span class=n>main</span><span class=p>())</span></code></pre></div></div><p>类似这个例子， <code>nested</code> 这个函数实际是在 task 赋值的时候就开始执行了。但是在等到了 <code>await task</code> 才获取他的结果。当然如果那个 <code>nested</code> 执行时间比较长，那等到了 await 语句的时候，会等他执行完毕才继续。</p><p>这个和那个 javascript 的简单例子就比较像了，整体执行时间就是长的那个，就是并行的感觉。 <code>asyncio</code> 还提供了 <code>asyncio.gather()</code> ，提供了方便的方法把并行的任务绑定在一起，</p><p>使用 asyncio 的话，协程里面执行的东西也需要是协程友好的，如果执行原始的阻塞的代码，那这部分代码无法并行。比如把上面的代码修改一下。</p><div class="src src-python"><div class=highlight><pre class=chroma><code class=language-python data-lang=python><span class=kn>import</span> <span class=nn>asyncio</span>
+    <span class=k>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=mi>5</span><span class=p>)</span>
+    <span class=nb>print</span><span class=p>(</span><span class=s1>&#39;after sleep&#39;</span><span class=p>)</span>
+    <span class=k>await</span> <span class=n>task</span>
+<span class=n>asyncio</span><span class=o>.</span><span class=n>run</span><span class=p>(</span><span class=n>main</span><span class=p>())</span></code></pre></div>
+</div>
+<p>
+类似这个例子， <code>nested</code> 这个函数实际是在 task 赋值的时候就开始执行了。但是在等到了 <code>await task</code> 才获取他的结果。当然如果那个 <code>nested</code> 执行时间比较长，那等到了 await 语句的时候，会等他执行完毕才继续。</p>
+<p>
+这个和那个 javascript 的简单例子就比较像了，整体执行时间就是长的那个，就是并行的感觉。 <code>asyncio</code> 还提供了 <code>asyncio.gather()</code> ，提供了方便的方法把并行的任务绑定在一起，</p>
+<p>
+使用 asyncio 的话，协程里面执行的东西也需要是协程友好的，如果执行原始的阻塞的代码，那这部分代码无法并行。比如把上面的代码修改一下。</p>
+<div class="src src-python">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=kn>import</span> <span class=nn>asyncio</span>
 <span class=kn>from</span> <span class=nn>time</span> <span class=kn>import</span> <span class=n>time</span><span class=p>,</span> <span class=n>sleep</span>
 
-<span class=n>async</span> <span class=k>def</span> <span class=nf>nested</span><span class=p>():</span>
-    <span class=k>print</span><span class=p>(</span><span class=s1>&#39;started&#39;</span><span class=p>)</span>
+<span class=k>async</span> <span class=k>def</span> <span class=nf>nested</span><span class=p>():</span>
+    <span class=nb>print</span><span class=p>(</span><span class=s1>&#39;started&#39;</span><span class=p>)</span>
     <span class=n>sleep</span><span class=p>(</span><span class=mi>1</span><span class=p>)</span>
-    <span class=k>print</span><span class=p>(</span><span class=s1>&#39;after 1s&#39;</span><span class=p>)</span>
-    <span class=n>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=mi>2</span><span class=p>)</span>
+    <span class=nb>print</span><span class=p>(</span><span class=s1>&#39;after 1s&#39;</span><span class=p>)</span>
+    <span class=k>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=mi>2</span><span class=p>)</span>
     <span class=k>return</span> <span class=mi>42</span>
 
-<span class=n>async</span> <span class=k>def</span> <span class=nf>main</span><span class=p>():</span>
+<span class=k>async</span> <span class=k>def</span> <span class=nf>main</span><span class=p>():</span>
     <span class=c1># Schedule nested() to run soon concurrently</span>
     <span class=c1># with &#34;main()&#34;.</span>
     <span class=n>task</span> <span class=o>=</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>create_task</span><span class=p>(</span><span class=n>nested</span><span class=p>())</span>
 
     <span class=c1># &#34;task&#34; can now be used to cancel &#34;nested()&#34;, or</span>
     <span class=c1># can simply be awaited to wait until it is complete:</span>
-    <span class=n>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>gather</span><span class=p>(</span><span class=n>asyncio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=mi>5</span><span class=p>),</span> <span class=n>task</span><span class=p>)</span>
+    <span class=k>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>gather</span><span class=p>(</span><span class=n>asyncio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=mi>5</span><span class=p>),</span> <span class=n>task</span><span class=p>)</span>
 
 <span class=n>start</span> <span class=o>=</span> <span class=n>time</span><span class=p>()</span>
 <span class=n>asyncio</span><span class=o>.</span><span class=n>run</span><span class=p>(</span><span class=n>main</span><span class=p>())</span>
-<span class=k>print</span><span class=p>(</span><span class=n>time</span><span class=p>()</span> <span class=o>-</span> <span class=n>start</span><span class=p>)</span>
+<span class=nb>print</span><span class=p>(</span><span class=n>time</span><span class=p>()</span> <span class=o>-</span> <span class=n>start</span><span class=p>)</span>
 
 <span class=c1># started</span>
 <span class=c1># after 1s</span>
-<span class=c1># 6.005960941314697</span></code></pre></div></div><p>可以看到输出，是 6 秒，本身按照前面说的，最长的协程时间应该是 5 秒的，但是整体执行了 6 秒，因为其中 <code>sleep(1)</code> 这一秒执行的时候其他协程无法执行。摘抄文档里面的说明。</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text>不应该直接调用阻塞( CPU 绑定)代码。例如，如果一个函数执行1秒的 CPU 密集型计算，那么所有并发异步任务和 IO 操作都将延迟1秒。
-可以使用执行器在不同的线程甚至不同的进程中运行任务，以避免使用事件循环阻塞OS线程。有关详细信息，请参见 loop.run_in_executor() 方法。</code></pre></div></div><p>所以就有一堆的 <code>asyncio.xx</code> 出现了，比如 <code>asyncio.open_connection</code>, <code>asyncio.Lock</code>, <code>asyncio.create_subprocess_shell</code>, <code>asyncio.Queue</code> 等。下面这个是一个 <code>Queue</code> 的例子。</p><div class="src src-python"><div class=highlight><pre class=chroma><code class=language-python data-lang=python><span class=kn>import</span> <span class=nn>asyncio</span>
+<span class=c1># 6.005960941314697</span></code></pre></div>
+</div>
+<p>
+可以看到输出，是 6 秒，本身按照前面说的，最长的协程时间应该是 5 秒的，但是整体执行了 6 秒，因为其中 <code>sleep(1)</code> 这一秒执行的时候其他协程无法执行。摘抄文档里面的说明。</p>
+<div class="src src-text">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>不应该直接调用阻塞( CPU 绑定)代码。例如，如果一个函数执行1秒的 CPU 密集型计算，那么所有并发异步任务和 IO 操作都将延迟1秒。
+可以使用执行器在不同的线程甚至不同的进程中运行任务，以避免使用事件循环阻塞OS线程。有关详细信息，请参见 loop.run_in_executor() 方法。</code></pre></div>
+</div>
+<p>
+所以就有一堆的 <code>asyncio.xx</code> 出现了，比如 <code>asyncio.open_connection</code>, <code>asyncio.Lock</code>, <code>asyncio.create_subprocess_shell</code>, <code>asyncio.Queue</code> 等。下面这个是一个 <code>Queue</code> 的例子。</p>
+<div class="src src-python">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=kn>import</span> <span class=nn>asyncio</span>
 <span class=kn>import</span> <span class=nn>random</span>
 <span class=kn>import</span> <span class=nn>time</span>
 
 
-<span class=n>async</span> <span class=k>def</span> <span class=nf>worker</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=n>queue</span><span class=p>):</span>
-    <span class=k>while</span> <span class=bp>True</span><span class=p>:</span>
+<span class=k>async</span> <span class=k>def</span> <span class=nf>worker</span><span class=p>(</span><span class=n>name</span><span class=p>,</span> <span class=n>queue</span><span class=p>):</span>
+    <span class=k>while</span> <span class=kc>True</span><span class=p>:</span>
         <span class=c1># Get a &#34;work item&#34; out of the queue.</span>
-        <span class=n>sleep_for</span> <span class=o>=</span> <span class=n>await</span> <span class=n>queue</span><span class=o>.</span><span class=n>get</span><span class=p>()</span>
+        <span class=n>sleep_for</span> <span class=o>=</span> <span class=k>await</span> <span class=n>queue</span><span class=o>.</span><span class=n>get</span><span class=p>()</span>
 
         <span class=c1># Sleep for the &#34;sleep_for&#34; seconds.</span>
-        <span class=n>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=n>sleep_for</span><span class=p>)</span>
+        <span class=k>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=n>sleep_for</span><span class=p>)</span>
 
         <span class=c1># Notify the queue that the &#34;work item&#34; has been processed.</span>
         <span class=n>queue</span><span class=o>.</span><span class=n>task_done</span><span class=p>()</span>
 
-        <span class=k>print</span><span class=p>(</span><span class=n>f</span><span class=s1>&#39;{name} has slept for {sleep_for:.2f} seconds&#39;</span><span class=p>)</span>
+        <span class=nb>print</span><span class=p>(</span><span class=sa>f</span><span class=s1>&#39;</span><span class=si>{</span><span class=n>name</span><span class=si>}</span><span class=s1> has slept for </span><span class=si>{</span><span class=n>sleep_for</span><span class=si>:</span><span class=s1>.2f</span><span class=si>}</span><span class=s1> seconds&#39;</span><span class=p>)</span>
 
 
-<span class=n>async</span> <span class=k>def</span> <span class=nf>main</span><span class=p>():</span>
+<span class=k>async</span> <span class=k>def</span> <span class=nf>main</span><span class=p>():</span>
     <span class=c1># Create a queue that we will use to store our &#34;workload&#34;.</span>
     <span class=n>queue</span> <span class=o>=</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>Queue</span><span class=p>()</span>
 
@@ -86,33 +186,42 @@
     <span class=c1># Create three worker tasks to process the queue concurrently.</span>
     <span class=n>tasks</span> <span class=o>=</span> <span class=p>[]</span>
     <span class=k>for</span> <span class=n>i</span> <span class=ow>in</span> <span class=nb>range</span><span class=p>(</span><span class=mi>3</span><span class=p>):</span>
-        <span class=n>task</span> <span class=o>=</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>create_task</span><span class=p>(</span><span class=n>worker</span><span class=p>(</span><span class=n>f</span><span class=s1>&#39;worker-{i}&#39;</span><span class=p>,</span> <span class=n>queue</span><span class=p>))</span>
+        <span class=n>task</span> <span class=o>=</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>create_task</span><span class=p>(</span><span class=n>worker</span><span class=p>(</span><span class=sa>f</span><span class=s1>&#39;worker-</span><span class=si>{</span><span class=n>i</span><span class=si>}</span><span class=s1>&#39;</span><span class=p>,</span> <span class=n>queue</span><span class=p>))</span>
         <span class=n>tasks</span><span class=o>.</span><span class=n>append</span><span class=p>(</span><span class=n>task</span><span class=p>)</span>
 
     <span class=c1># Wait until the queue is fully processed.</span>
     <span class=n>started_at</span> <span class=o>=</span> <span class=n>time</span><span class=o>.</span><span class=n>monotonic</span><span class=p>()</span>
-    <span class=n>await</span> <span class=n>queue</span><span class=o>.</span><span class=n>join</span><span class=p>()</span>
+    <span class=k>await</span> <span class=n>queue</span><span class=o>.</span><span class=n>join</span><span class=p>()</span>
     <span class=n>total_slept_for</span> <span class=o>=</span> <span class=n>time</span><span class=o>.</span><span class=n>monotonic</span><span class=p>()</span> <span class=o>-</span> <span class=n>started_at</span>
 
     <span class=c1># Cancel our worker tasks.</span>
     <span class=k>for</span> <span class=n>task</span> <span class=ow>in</span> <span class=n>tasks</span><span class=p>:</span>
         <span class=n>task</span><span class=o>.</span><span class=n>cancel</span><span class=p>()</span>
     <span class=c1># Wait until all worker tasks are cancelled.</span>
-    <span class=n>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>gather</span><span class=p>(</span><span class=o>*</span><span class=n>tasks</span><span class=p>,</span> <span class=n>return_exceptions</span><span class=o>=</span><span class=bp>True</span><span class=p>)</span>
+    <span class=k>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>gather</span><span class=p>(</span><span class=o>*</span><span class=n>tasks</span><span class=p>,</span> <span class=n>return_exceptions</span><span class=o>=</span><span class=kc>True</span><span class=p>)</span>
 
-    <span class=k>print</span><span class=p>(</span><span class=s1>&#39;====&#39;</span><span class=p>)</span>
-    <span class=k>print</span><span class=p>(</span><span class=n>f</span><span class=s1>&#39;3 workers slept in parallel for {total_slept_for:.2f} seconds&#39;</span><span class=p>)</span>
-    <span class=k>print</span><span class=p>(</span><span class=n>f</span><span class=s1>&#39;total expected sleep time: {total_sleep_time:.2f} seconds&#39;</span><span class=p>)</span>
+    <span class=nb>print</span><span class=p>(</span><span class=s1>&#39;====&#39;</span><span class=p>)</span>
+    <span class=nb>print</span><span class=p>(</span><span class=sa>f</span><span class=s1>&#39;3 workers slept in parallel for </span><span class=si>{</span><span class=n>total_slept_for</span><span class=si>:</span><span class=s1>.2f</span><span class=si>}</span><span class=s1> seconds&#39;</span><span class=p>)</span>
+    <span class=nb>print</span><span class=p>(</span><span class=sa>f</span><span class=s1>&#39;total expected sleep time: </span><span class=si>{</span><span class=n>total_sleep_time</span><span class=si>:</span><span class=s1>.2f</span><span class=si>}</span><span class=s1> seconds&#39;</span><span class=p>)</span>
 
 
-<span class=n>asyncio</span><span class=o>.</span><span class=n>run</span><span class=p>(</span><span class=n>main</span><span class=p>())</span></code></pre></div></div><p>这里面需要注意的是 <code>task</code> 赋值的时候，实际 worker 就开始运行了。接下来会程序会在 <code>await queue.join()</code> 等待队列都标记为 <code>queue.task_done()</code> ，这个标记动作完全是你的程序自己控制的，如果消耗了一个队列元素，但是标记了 2 次，那会发现队列没有执行完毕就会令 <code>await queue.join()</code> 执行完毕。在已有的 queue 都消耗完毕之后，所有的 worker 都会等待在 <code>sleep_for = await queue.get()</code> ，所以 <code>queue.join</code> 之后还需要执行 <code>task.cancel</code> 取消任务的继续执行。要注意 <code>task.cancel</code> 语句执行也是异步的，也并不是执行完毕任务就会结束了，相当于只是请求任务取消，还需要去用 <code>await task</code> 来确认是真的取消了。</p><p>asyncio 的核心是事件循环 loop，可以通过 <code>asyncio.get_event_loop()</code> 来获取当前 loop，然后通过 <code>loop.run_until_complete(future)</code> 这样的命令来执行协程。以及还有一些 <code>loop.xxx</code> 方法来创建任务和管理协程。这些似乎是 low level api，一般不用。</p><p>low level api 还有一个 Future，说是 Task 的父类，更底层。感觉 Future 可以用来联系多个协程用的。对于 <code>await future</code> 语句，只有 <code>future.set_result()</code> 被调用的时候才会继续执行。这样比如有多个协程要执行，其中有些又有依赖，那就可以创建一个 feture，然后在被依赖的协程里面计算完毕的时候，执行 future.set_result() ，然后依赖他的协程里面 await future 就会获取到执行结果，也就可以继续执行了。</p><div class="src src-python"><div class=highlight><pre class=chroma><code class=language-python data-lang=python><span class=n>async</span> <span class=k>def</span> <span class=nf>set_after</span><span class=p>(</span><span class=n>fut</span><span class=p>,</span> <span class=n>delay</span><span class=p>,</span> <span class=n>value</span><span class=p>):</span>
+<span class=n>asyncio</span><span class=o>.</span><span class=n>run</span><span class=p>(</span><span class=n>main</span><span class=p>())</span></code></pre></div>
+</div>
+<p>
+这里面需要注意的是 <code>task</code> 赋值的时候，实际 worker 就开始运行了。接下来会程序会在 <code>await queue.join()</code> 等待队列都标记为 <code>queue.task_done()</code> ，这个标记动作完全是你的程序自己控制的，如果消耗了一个队列元素，但是标记了 2 次，那会发现队列没有执行完毕就会令 <code>await queue.join()</code> 执行完毕。在已有的 queue 都消耗完毕之后，所有的 worker 都会等待在 <code>sleep_for = await queue.get()</code> ，所以 <code>queue.join</code> 之后还需要执行 <code>task.cancel</code> 取消任务的继续执行。要注意 <code>task.cancel</code> 语句执行也是异步的，也并不是执行完毕任务就会结束了，相当于只是请求任务取消，还需要去用 <code>await task</code> 来确认是真的取消了。</p>
+<p>
+asyncio 的核心是事件循环 loop，可以通过 <code>asyncio.get_event_loop()</code> 来获取当前 loop，然后通过 <code>loop.run_until_complete(future)</code> 这样的命令来执行协程。以及还有一些 <code>loop.xxx</code> 方法来创建任务和管理协程。这些似乎是 low level api，一般不用。</p>
+<p>
+low level api 还有一个 Future，说是 Task 的父类，更底层。感觉 Future 可以用来联系多个协程用的。对于 <code>await future</code> 语句，只有 <code>future.set_result()</code> 被调用的时候才会继续执行。这样比如有多个协程要执行，其中有些又有依赖，那就可以创建一个 feture，然后在被依赖的协程里面计算完毕的时候，执行 future.set_result() ，然后依赖他的协程里面 await future 就会获取到执行结果，也就可以继续执行了。</p>
+<div class="src src-python">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-python data-lang=python><span class=k>async</span> <span class=k>def</span> <span class=nf>set_after</span><span class=p>(</span><span class=n>fut</span><span class=p>,</span> <span class=n>delay</span><span class=p>,</span> <span class=n>value</span><span class=p>):</span>
     <span class=c1># Sleep for *delay* seconds.</span>
-    <span class=n>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=n>delay</span><span class=p>)</span>
+    <span class=k>await</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>sleep</span><span class=p>(</span><span class=n>delay</span><span class=p>)</span>
 
     <span class=c1># Set *value* as a result of *fut* Future.</span>
     <span class=n>fut</span><span class=o>.</span><span class=n>set_result</span><span class=p>(</span><span class=n>value</span><span class=p>)</span>
 
-<span class=n>async</span> <span class=k>def</span> <span class=nf>main</span><span class=p>():</span>
+<span class=k>async</span> <span class=k>def</span> <span class=nf>main</span><span class=p>():</span>
     <span class=c1># Get the current event loop.</span>
     <span class=n>loop</span> <span class=o>=</span> <span class=n>asyncio</span><span class=o>.</span><span class=n>get_running_loop</span><span class=p>()</span>
 
@@ -126,10 +235,34 @@
     <span class=n>task</span> <span class=o>=</span> <span class=n>loop</span><span class=o>.</span><span class=n>create_task</span><span class=p>(</span>
         <span class=n>set_after</span><span class=p>(</span><span class=n>fut</span><span class=p>,</span> <span class=mi>1</span><span class=p>,</span> <span class=s1>&#39;... world&#39;</span><span class=p>))</span>
 
-    <span class=k>print</span><span class=p>(</span><span class=s1>&#39;hello ...&#39;</span><span class=p>)</span>
-    <span class=n>await</span> <span class=n>task</span>
+    <span class=nb>print</span><span class=p>(</span><span class=s1>&#39;hello ...&#39;</span><span class=p>)</span>
+    <span class=k>await</span> <span class=n>task</span>
 
     <span class=c1># Wait until *fut* has a result (1 second) and print it.</span>
-    <span class=k>print</span><span class=p>(</span><span class=n>await</span> <span class=n>fut</span><span class=p>)</span></code></pre></div></div><p>上面这个例子是把文档里面改了一下，那个 task 里面会执行 fut.set_result，如果去掉这句，await task 是可以执行完毕的，但是 await fut 就会一直等待了。</p></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/python>python</a></li><li><a href=/tags/coroutine>coroutine</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
-return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
+    <span class=nb>print</span><span class=p>(</span><span class=k>await</span> <span class=n>fut</span><span class=p>)</span></code></pre></div>
+</div>
+<p>
+上面这个例子是把文档里面改了一下，那个 task 里面会执行 fut.set_result，如果去掉这句，await task 是可以执行完毕的，但是 await fut 就会一直等待了。</p>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/python>python</a></li>
+<li><a href=/tags/coroutine>coroutine</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

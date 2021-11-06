@@ -1,3 +1,135 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>Iptv2 - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="Iptv2"><meta property="og:description" content="之前写过一篇关于 iptv 的帖子，里面用到了一个副路由，这样我家里其实就有两个路由器，这样用了比较长一段时间"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/amp/iptv2/"><meta property="article:published_time" content="2019-01-10T10:20:56+08:00"><meta property="article:modified_time" content="2019-01-10T10:20:56+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="Iptv2"><meta name=twitter:description content="之前写过一篇关于 iptv 的帖子，里面用到了一个副路由，这样我家里其实就有两个路由器，这样用了比较长一段时间"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>Iptv2</h1><div class=meta>Posted at &mdash; Jan 10, 2019</div></div><div class=post-header><nav id=TableOfContents><ul><li><a href=#headline-1>Footnotes</a></li></ul></nav></div><div class=markdown><p>之前写过<a href=/BJ-Chinaunicom-iptv/>一篇关于 iptv 的帖子</a>，里面用到了一个副路由，这样我家里其实就有两个路由器，这样用了比较长一段时间。</p><p>最近联通给换了一个光猫，很容易就可以 hack 进管理界面，就又折腾了一下 iptv 的事情。</p><p>iptv 和上网通道都是通过一根光纤进来的，通过不同的 vlan 区分数据。vlan 是二层的，收到这些数据之后如果有必要，可以通过 vlan id 来过滤出来，比如有的光猫会提供把 iptv 流量过滤到 4 口，其他上网流量过滤到光猫的其他口。我之前的猫就这样设置的，看 iptv 只能连接光猫的 4 口。如果光猫允许设置，那可以把 iptv 流量打上 tag 继续发到比如 1 口，这样 1 口就又有上网流量，又有 iptv 流量了，下一级路由就可以只通过这一条线来收两个流量了。</p><p>iptv 那个通道除了提供了组播数据（这个是具体的视频数据的来源）之外，还提供了一个只提供了必要的服务的互联网，比如提供了频道列表，各频道的节目表等等。</p><p>有的光猫可能会提供 pppoe 拨号功能和 wifi，不过一般没人用，因为性能差。所以一般我们会配置光猫做桥接，把数据透传下来，让下一级来拨号和提供 wifi。</p><p>（下面部分限于我自己的理解很有可能说错，欢迎指正）</p><p>iptv vlan 我看也提供了路由功能，也可以桥接透传。比如我之前的方式就是使用了光猫提供的路由功能，接了一个路由器，以光猫为上级路由器，然后会获取到一个内网的 ip。然后二级路由器上通过 udpxy 提供服务给内网用户用。</p><p>那这样的话，似乎可以直接在我的主路由上找一个网卡和光猫 iptv 口接起来，然后跑一个 dhcp 获取一下 ip 不就可以省掉副路由了么？ <sup class=footnote-reference><a id=footnote-reference-1 href=#footnote-1>1</a></sup> <del>不过我在 R6300v2 上尝试没成功</del> <sup class=footnote-reference><a id=footnote-reference-2 href=#footnote-2>2</a></sup>。在新的软路由里面搞成功了。这里面也不需要跑 igmpproxy，我理解实际用的是上级光猫发过来的数据。</p><p>然后 igmpproxy 是怎么回事呢，我理解比如 iptv 是接到了路由器而不是光猫的时候，那么就需要路由器把光猫的那些数据转发下去，这个时候光猫需要通过桥接方式把数据给过来，然后需要把数据发到下级路由，这个时候还不能直接让这个数据在 lan 里面乱跑，否则会影响我们的网速，通过 igmpproxy 可以把上级光猫给过来的组播数据转发到某个端口，然后下级设备比如你把 iptv 接到这个端口，就可以通过那个端口获取这些 iptv 的组播数据了。这样 iptv 就不用接到光猫了，接到你的路由器就可以了。<sup class=footnote-reference><a id=footnote-reference-3 href=#footnote-3>3</a></sup></p><p>对于 udpxy，有一个 status 页面，里面会显示一些信息，里面有一个 Multicast Address 很重要，必须是上级光猫给的 ip 才行，也就是上面讲的那个 ip，这样才能获取到数据。如果线路配置有问题，那这里的 ip 会显示 169.xx 或者 0.0.xx 啥的，那一般是不行的。</p><p><del>我目前也没明白一点，我之前在 R6300v2 里面设置的时候，和光猫还是一条线，然后通过 udpxy 就可以看，不知道是怎么做到的。</del> <sup class=footnote-reference><a id=footnote-reference-2 href=#footnote-2>2</a></sup></p><div id=outline-container-headline-1 class=outline-2><h2 id=headline-1>Footnotes</h2></div><div class=footnotes><hr class=footnotes-separatator><div class=footnote-definitions><div class=footnote-definition><sup id=footnote-1><a href=#footnote-reference-1>1</a></sup><div class=footnote-body><p>这个我在 openwrt 里面通过了，openwrt 比梅林灵活，我从猫接了两条线给路由器，一条用来 pppoe 上网，一条获取一个内部 ip 用来通过 udpxy 转发看 iptv。</p></div></div><div class=footnote-definition><sup id=footnote-2><a href=#footnote-reference-2>2</a></sup><div class=footnote-body><p>又试了一下，梅林 rom 下，在内部网络 -> iptv 配置里面，LAN 端口都选择无，使用 DHCP 路由选择 Microsoft（其他的没试过，按说应该都可以，只要不是无），UDP 代理选一个端口，IGMP 停用，这样就会启动一个 dhcp 客户端获取到一个内网的 ip，udpxy 会转发那个 ip 获取到的数据。这样实际是和我说的接两条线的方式是一样的。</p></div></div><div class=footnote-definition><sup id=footnote-3><a href=#footnote-reference-3>3</a></sup><div class=footnote-body><p>这里就是那个梅林 rom 里面的 iptv 配置里面关于 LAN 端口和 igmp 的配置部分的用途了，需要告诉 rom 路由器的哪个 lan 端口接了 iptv，以及要启用 igmp 转发。这里说的 iptv 是指给我们的那个盒子，这么结之后就和把 iptv 盒子接到光猫是一样的，路由器会把盒子的请求都转发给光猫。这样实际那个 iptv 盒子完全不知道是通过路由器访问的。</p></div></div></div></div></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/iptv>iptv</a></li><li><a href=/tags/openwrt>openwrt</a></li><li><a href=/tags/router>router</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
-return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>Iptv2 - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="Iptv2">
+<meta property="og:description" content="之前写过一篇关于 iptv 的帖子，里面用到了一个副路由，这样我家里其实就有两个路由器，这样用了比较长一段时间">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/amp/iptv2/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2019-01-10T10:20:56+08:00">
+<meta property="article:modified_time" content="2019-01-10T10:20:56+08:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="Iptv2">
+<meta name=twitter:description content="之前写过一篇关于 iptv 的帖子，里面用到了一个副路由，这样我家里其实就有两个路由器，这样用了比较长一段时间">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>Iptv2</h1>
+<div class=meta>Posted at &mdash; Jan 10, 2019</div>
+</div>
+<div class=post-header>
+<nav id=TableOfContents>
+<ul>
+<li><a href=#headline-1>Footnotes</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=markdown>
+<p>之前写过<a href=/BJ-Chinaunicom-iptv/>一篇关于 iptv 的帖子</a>，里面用到了一个副路由，这样我家里其实就有两个路由器，这样用了比较长一段时间。</p>
+<p>
+最近联通给换了一个光猫，很容易就可以 hack 进管理界面，就又折腾了一下 iptv 的事情。</p>
+<p>
+iptv 和上网通道都是通过一根光纤进来的，通过不同的 vlan 区分数据。vlan 是二层的，收到这些数据之后如果有必要，可以通过 vlan id 来过滤出来，比如有的光猫会提供把 iptv 流量过滤到 4 口，其他上网流量过滤到光猫的其他口。我之前的猫就这样设置的，看 iptv 只能连接光猫的 4 口。如果光猫允许设置，那可以把 iptv 流量打上 tag 继续发到比如 1 口，这样 1 口就又有上网流量，又有 iptv 流量了，下一级路由就可以只通过这一条线来收两个流量了。</p>
+<p>
+iptv 那个通道除了提供了组播数据（这个是具体的视频数据的来源）之外，还提供了一个只提供了必要的服务的互联网，比如提供了频道列表，各频道的节目表等等。</p>
+<p>
+有的光猫可能会提供 pppoe 拨号功能和 wifi，不过一般没人用，因为性能差。所以一般我们会配置光猫做桥接，把数据透传下来，让下一级来拨号和提供 wifi。</p>
+<p>
+（下面部分限于我自己的理解很有可能说错，欢迎指正）</p>
+<p>
+iptv vlan 我看也提供了路由功能，也可以桥接透传。比如我之前的方式就是使用了光猫提供的路由功能，接了一个路由器，以光猫为上级路由器，然后会获取到一个内网的 ip。然后二级路由器上通过 udpxy 提供服务给内网用户用。</p>
+<p>
+那这样的话，似乎可以直接在我的主路由上找一个网卡和光猫 iptv 口接起来，然后跑一个 dhcp 获取一下 ip 不就可以省掉副路由了么？ <sup class=footnote-reference><a id=footnote-reference-1 href=#footnote-1>1</a></sup> <del>不过我在 R6300v2 上尝试没成功</del> <sup class=footnote-reference><a id=footnote-reference-2 href=#footnote-2>2</a></sup>。在新的软路由里面搞成功了。这里面也不需要跑 igmpproxy，我理解实际用的是上级光猫发过来的数据。</p>
+<p>
+然后 igmpproxy 是怎么回事呢，我理解比如 iptv 是接到了路由器而不是光猫的时候，那么就需要路由器把光猫的那些数据转发下去，这个时候光猫需要通过桥接方式把数据给过来，然后需要把数据发到下级路由，这个时候还不能直接让这个数据在 lan 里面乱跑，否则会影响我们的网速，通过 igmpproxy 可以把上级光猫给过来的组播数据转发到某个端口，然后下级设备比如你把 iptv 接到这个端口，就可以通过那个端口获取这些 iptv 的组播数据了。这样 iptv 就不用接到光猫了，接到你的路由器就可以了。<sup class=footnote-reference><a id=footnote-reference-3 href=#footnote-3>3</a></sup></p>
+<p>
+对于 udpxy，有一个 status 页面，里面会显示一些信息，里面有一个 Multicast Address 很重要，必须是上级光猫给的 ip 才行，也就是上面讲的那个 ip，这样才能获取到数据。如果线路配置有问题，那这里的 ip 会显示 169.xx 或者 0.0.xx 啥的，那一般是不行的。</p>
+<p>
+<del>我目前也没明白一点，我之前在 R6300v2 里面设置的时候，和光猫还是一条线，然后通过 udpxy 就可以看，不知道是怎么做到的。</del> <sup class=footnote-reference><a id=footnote-reference-2 href=#footnote-2>2</a></sup></p>
+<div id=outline-container-headline-1 class=outline-2>
+<h2 id=headline-1>
+Footnotes
+</h2>
+</div>
+<div class=footnotes>
+<hr class=footnotes-separatator>
+<div class=footnote-definitions>
+<div class=footnote-definition>
+<sup id=footnote-1><a href=#footnote-reference-1>1</a></sup>
+<div class=footnote-body>
+<p>这个我在 openwrt 里面通过了，openwrt 比梅林灵活，我从猫接了两条线给路由器，一条用来 pppoe 上网，一条获取一个内部 ip 用来通过 udpxy 转发看 iptv。</p>
+</div>
+</div>
+<div class=footnote-definition>
+<sup id=footnote-2><a href=#footnote-reference-2>2</a></sup>
+<div class=footnote-body>
+<p>又试了一下，梅林 rom 下，在内部网络 -> iptv 配置里面，LAN 端口都选择无，使用 DHCP 路由选择 Microsoft（其他的没试过，按说应该都可以，只要不是无），UDP 代理选一个端口，IGMP 停用，这样就会启动一个 dhcp 客户端获取到一个内网的 ip，udpxy 会转发那个 ip 获取到的数据。这样实际是和我说的接两条线的方式是一样的。</p>
+</div>
+</div>
+<div class=footnote-definition>
+<sup id=footnote-3><a href=#footnote-reference-3>3</a></sup>
+<div class=footnote-body>
+<p>这里就是那个梅林 rom 里面的 iptv 配置里面关于 LAN 端口和 igmp 的配置部分的用途了，需要告诉 rom 路由器的哪个 lan 端口接了 iptv，以及要启用 igmp 转发。这里说的 iptv 是指给我们的那个盒子，这么结之后就和把 iptv 盒子接到光猫是一样的，路由器会把盒子的请求都转发给光猫。这样实际那个 iptv 盒子完全不知道是通过路由器访问的。</p>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/iptv>iptv</a></li>
+<li><a href=/tags/openwrt>openwrt</a></li>
+<li><a href=/tags/router>router</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

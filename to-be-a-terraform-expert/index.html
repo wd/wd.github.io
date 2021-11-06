@@ -1,5 +1,165 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>To Be a Terraform Expert - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="To Be a Terraform Expert"><meta property="og:description" content="I was using AWS before I join the current company, but I don't even know terraform before I interview with the current company. I got hit by Terraform at first, it's really hard to deal with states.
-Use -target with plan command to collaborate   When you work with your colleagues with same terraform project, sometimes they maybe need to apply some changes that haven't merged yet for testing, when you run the plan command, you will find that terraform want to destroy his resources."><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/to-be-a-terraform-expert/"><meta property="article:published_time" content="2020-06-30T17:17:34+08:00"><meta property="article:modified_time" content="2020-06-30T17:17:34+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="To Be a Terraform Expert"><meta name=twitter:description content="I was using AWS before I join the current company, but I don't even know terraform before I interview with the current company. I got hit by Terraform at first, it's really hard to deal with states.
-Use -target with plan command to collaborate   When you work with your colleagues with same terraform project, sometimes they maybe need to apply some changes that haven't merged yet for testing, when you run the plan command, you will find that terraform want to destroy his resources."><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>To Be a Terraform Expert</h1><div class=meta>Posted at &mdash; Jun 30, 2020</div></div><div class=post-header><nav id=TableOfContents><ul><li><a href=#headline-1>Use <code class=verbatim>-target</code> with <code class=verbatim>plan</code> command to collaborate</a></li><li><a href=#headline-2>Use remote state to collaborate with others</a></li><li><a href=#headline-3>Use <code class=verbatim>state rm</code> command to put resources outside terraform</a></li><li><a href=#headline-4>Use <code class=verbatim>import</code> command to import resources inside terraform</a></li><li><a href=#headline-5>Use fake modules to solve dependency</a></li><li><a href=#headline-6>Use temporary workspaces and <code class=verbatim>console</code> to test terraform expressions</a></li></ul></nav></div><div class=markdown><p>I was using AWS before I join the current company, but I don't even know terraform before I interview with the current company. I got hit by Terraform at first, it's really hard to deal with states.</p><div id=outline-container-headline-1 class=outline-3><h3 id=headline-1>Use <code class=verbatim>-target</code> with <code class=verbatim>plan</code> command to collaborate</h3><div id=outline-text-headline-1 class=outline-text-3><p>When you work with your colleagues with same terraform project, sometimes they maybe need to apply some changes that haven't merged yet for testing, when you run the plan command, you will find that terraform want to destroy his resources. You can wait until his changes have merged. But actually, you can use the <code class=verbatim>-target</code> to limit your resources for the plan command. So, you can run the plan command happily without destroying other people's works.</p></div></div><div id=outline-container-headline-2 class=outline-3><h3 id=headline-2>Use remote state to collaborate with others</h3><div id=outline-text-headline-2 class=outline-text-3><p>If you need to work on the same project with your colleagues, you need to set up a remote state. We use <code class=verbatim>s3</code> as our state backend, it will use s3 bucket to store the state file, and a DynamoDB table to store the lock. If you encounter some problems, you maybe need to check these resources manually to confirm it's all working properly.</p></div></div><div id=outline-container-headline-3 class=outline-3><h3 id=headline-3>Use <code class=verbatim>state rm</code> command to put resources outside terraform</h3><div id=outline-text-headline-3 class=outline-text-3><p>You know, the state file includes the states terraform known about your resources, but what will happen if you delete some resources through other tools (e.g., make changes through AWS console)? Terraform didn't know those changes. We can use <code class=verbatim>state rm</code> command to tell terraform not to manage these states in the feature. Beware that, the <code class=verbatim>destroy</code> command will remove remote resources, and the <code class=verbatim>state rm</code> will only remove from the state, if you haven't removed the remote resources through other tools, the resources will still there.</p></div></div><div id=outline-container-headline-4 class=outline-3><h3 id=headline-4>Use <code class=verbatim>import</code> command to import resources inside terraform</h3><div id=outline-text-headline-4 class=outline-text-3><p>Sometimes, it's easy to create some resources through web UI. With <code class=verbatim>import</code> command, we can create resources through the web UI, and then import them to terraform state.</p></div></div><div id=outline-container-headline-5 class=outline-3><h3 id=headline-5>Use fake modules to solve dependency</h3><div id=outline-text-headline-5 class=outline-text-3><p>If you have use providers in your module when you delete that module, terraform will report an error, that it can't find providers. It's annoying when you use modules in modules. You can simply create some fake module, these modules only have the same names as the original modules, but didn't have any resources. After apply, you can safely remove these fake modules.</p></div></div><div id=outline-container-headline-6 class=outline-3><h3 id=headline-6>Use temporary workspaces and <code class=verbatim>console</code> to test terraform expressions</h3><div id=outline-text-headline-6 class=outline-text-3><p>HCL for terraform was not a programming language, but we can't stop to do programming in terraform. When we write some expressions, we need to test it. I suggest creating a temporary project to test it. Think about that you have a big project with 20+ resources, you need to refresh the states every time you want to run terraform plan.</p><p>Simply put the expressions in a <code class=verbatim>locals</code> block, and output the results in <code class=verbatim>output</code> blocks, you will see the terraform plan command run very fast.</p></div></div></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/terraform>terraform</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
-return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>To Be a Terraform Expert - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="To Be a Terraform Expert">
+<meta property="og:description" content="I was using AWS before I join the current company, but I don't even know terraform before I interview with the current company. I got hit by Terraform at first, it's really hard to deal with states.
+Use -target with plan command to collaborate   When you work with your colleagues with same terraform project, sometimes they maybe need to apply some changes that haven't merged yet for testing, when you run the plan command, you will find that terraform want to destroy his resources.">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/to-be-a-terraform-expert/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2020-06-30T17:17:34+08:00">
+<meta property="article:modified_time" content="2020-06-30T17:17:34+08:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="To Be a Terraform Expert">
+<meta name=twitter:description content="I was using AWS before I join the current company, but I don't even know terraform before I interview with the current company. I got hit by Terraform at first, it's really hard to deal with states.
+Use -target with plan command to collaborate   When you work with your colleagues with same terraform project, sometimes they maybe need to apply some changes that haven't merged yet for testing, when you run the plan command, you will find that terraform want to destroy his resources.">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>To Be a Terraform Expert</h1>
+<div class=meta>Posted at &mdash; Jun 30, 2020</div>
+</div>
+<div class=post-header>
+<nav id=TableOfContents>
+<ul>
+<li><a href=#headline-1>Use <code class=verbatim>-target</code> with <code class=verbatim>plan</code> command to collaborate</a>
+</li>
+<li><a href=#headline-2>Use remote state to collaborate with others</a>
+</li>
+<li><a href=#headline-3>Use <code class=verbatim>state rm</code> command to put resources outside terraform</a>
+</li>
+<li><a href=#headline-4>Use <code class=verbatim>state mv</code> command after you rename resources</a>
+</li>
+<li><a href=#headline-5>Use <code class=verbatim>import</code> command to import resources inside terraform</a>
+</li>
+<li><a href=#headline-6>Use fake modules to solve dependency</a>
+</li>
+<li><a href=#headline-7>Use temporary workspace and <code class=verbatim>console</code> to test terraform expressions</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=markdown>
+<p>
+I was using AWS before I join the current company, but I don't even know terraform before I interview with the current company. I got hit by Terraform at first, it's really hard to deal with states.</p>
+<div id=outline-container-headline-1 class=outline-3>
+<h3 id=headline-1>
+Use <code class=verbatim>-target</code> with <code class=verbatim>plan</code> command to collaborate
+</h3>
+<div id=outline-text-headline-1 class=outline-text-3>
+<p>
+When you work with your colleagues with same terraform project, sometimes they maybe need to apply some changes that haven't merged yet for testing, when you run the plan command, you will find that terraform want to destroy his resources. You can wait until his changes have merged. But actually, you can use the <code class=verbatim>-target</code> to limit your resources for the plan command. So, you can run the plan command happily without destroying other people's resources.</p>
+</div>
+</div>
+<div id=outline-container-headline-2 class=outline-3>
+<h3 id=headline-2>
+Use remote state to collaborate with others
+</h3>
+<div id=outline-text-headline-2 class=outline-text-3>
+<p>
+If you need to work on the same project with your colleagues, you need to set up a remote state. We use <code class=verbatim>s3</code> as our state backend, it will use s3 bucket to store the state file, and a DynamoDB table to store the lock. If you encounter some problems, you maybe need to check these resources manually to confirm it's all working properly.</p>
+</div>
+</div>
+<div id=outline-container-headline-3 class=outline-3>
+<h3 id=headline-3>
+Use <code class=verbatim>state rm</code> command to put resources outside terraform
+</h3>
+<div id=outline-text-headline-3 class=outline-text-3>
+<p>
+You know, the state file includes the states terraform known about your resources, but what will happen if you delete some resources through other tools (e.g., make changes through AWS console)? Terraform didn't know those changes. We can use <code class=verbatim>state rm</code> command to tell terraform not to manage these states in the feature. Beware that, the <code class=verbatim>destroy</code> command will remove remote resources, and the <code class=verbatim>state rm</code> will only remove from the state, if you haven't removed the remote resources through other tools, the resources will still there.</p>
+</div>
+</div>
+<div id=outline-container-headline-4 class=outline-3>
+<h3 id=headline-4>
+Use <code class=verbatim>state mv</code> command after you rename resources
+</h3>
+<div id=outline-text-headline-4 class=outline-text-3>
+<p>
+We may need to change the resource name in our codes, for example rename or put the resource under another module. After the rename the Terraform usually will create a plan that include destroy and create. We can use <code class=verbatim>mv</code> to rename the resource names in the state file, so that Terraform will know the changes and create a correct plan.</p>
+</div>
+</div>
+<div id=outline-container-headline-5 class=outline-3>
+<h3 id=headline-5>
+Use <code class=verbatim>import</code> command to import resources inside terraform
+</h3>
+<div id=outline-text-headline-5 class=outline-text-3>
+<p>
+Sometimes, it's easy to create some resources through web UI. With <code class=verbatim>import</code> command, we can create resources through the web UI, and then import them to terraform state.</p>
+</div>
+</div>
+<div id=outline-container-headline-6 class=outline-3>
+<h3 id=headline-6>
+Use fake modules to solve dependency
+</h3>
+<div id=outline-text-headline-6 class=outline-text-3>
+<p>
+If you have use providers in your module when you delete that module, terraform will report an error, that it can't find providers. It's annoying when you use modules in modules. You can simply create some fake module, these modules only have the same names as the original modules, but didn't have any resources. After apply, you can safely remove these fake modules.</p>
+</div>
+</div>
+<div id=outline-container-headline-7 class=outline-3>
+<h3 id=headline-7>
+Use temporary workspace and <code class=verbatim>console</code> to test terraform expressions
+</h3>
+<div id=outline-text-headline-7 class=outline-text-3>
+<p>
+HCL for terraform was not a programming language, but we can't stop to do programming in terraform. When we write some expressions, we need to test it. I suggest creating a temporary project to test it. Think about that you have a big project with 20+ resources, you need to refresh the states every time you want to run terraform plan.</p>
+<p>
+Simply put the expressions in a <code class=verbatim>locals</code> block, and output the results in <code class=verbatim>output</code> blocks, you will see the terraform plan command run very fast.</p>
+</div>
+</div>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/terraform>terraform</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

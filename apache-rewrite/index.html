@@ -1,15 +1,108 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>apache的rewrite一点配置心得 - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="apache的rewrite一点配置心得"><meta property="og:description" content="apache这里有一些奇怪的日志。
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>apache的rewrite一点配置心得 - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="apache的rewrite一点配置心得">
+<meta property="og:description" content="
+apache这里有一些奇怪的日志。
 
 211.90.119.118 - - [12/Apr/2006:00:00:12 +0800] &#34;GET http://abc.com.cn/www/x.jsp HTTP/1.1&#34; 200 2994 &#34;-&#34; &#34;SEC-schx639 UP.Browser/4.1.26l&#34;
 
 通常GET这里都是“/www/x.jsp”的，可是这个是怎么产生的呢？通过浏览器访问http://abc.com.cn/http://abc.com.cn/www/x.jsp，也不能产生这种请求，后来查看apache手册，这个引号里面表示的是“请求的第一条信息”，google了一下才知道，可以用下面的方式产生这种日志。
 
-telnet abc.com.cn 80GET http://abc.com.cn/www/x.jsp HTTP/1.1"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/apache-rewrite/"><meta property="article:published_time" content="2006-06-14T00:00:00+00:00"><meta property="article:modified_time" content="2006-06-14T00:00:00+00:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="apache的rewrite一点配置心得"><meta name=twitter:description content="apache这里有一些奇怪的日志。
+telnet abc.com.cn 80GET http://abc.com.cn/www/x.jsp HTTP/1.1
+
+">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/apache-rewrite/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2006-06-14T00:00:00+00:00">
+<meta property="article:modified_time" content="2006-06-14T00:00:00+00:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="apache的rewrite一点配置心得">
+<meta name=twitter:description content="
+apache这里有一些奇怪的日志。
 
 211.90.119.118 - - [12/Apr/2006:00:00:12 +0800] &#34;GET http://abc.com.cn/www/x.jsp HTTP/1.1&#34; 200 2994 &#34;-&#34; &#34;SEC-schx639 UP.Browser/4.1.26l&#34;
 
 通常GET这里都是“/www/x.jsp”的，可是这个是怎么产生的呢？通过浏览器访问http://abc.com.cn/http://abc.com.cn/www/x.jsp，也不能产生这种请求，后来查看apache手册，这个引号里面表示的是“请求的第一条信息”，google了一下才知道，可以用下面的方式产生这种日志。
 
-telnet abc.com.cn 80GET http://abc.com.cn/www/x.jsp HTTP/1.1"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>apache的rewrite一点配置心得</h1><div class=meta>Posted at &mdash; Jun 14, 2006</div></div><div class=post-header></div><div class=markdown>这样看来，这个请求应该是不正确的，“get /www/x.jsp HTTP/1.1”才对。这个请求被转发给weblogic之后，weblogic会处理不了，因为他会去找“http://abc.com.cn/http://abc.com.cn/www/x.jsp”这个文件，显然是找不到的。<br>不过幸好，weblogic有个PathTrim设置，将请求路径种的“http://abc.com.cn”给他去掉就可以了。<br><span style=color:#00f>&lt;IfModule mod_weblogic.c></span><br style=color:#00f><span style=color:#00f>WebLogicHost 192.168.0.252</span><br style=color:#00f><span style=color:#00f>WebLogicPort 7050</span><br style=color:#00f><span style=color:#00f>PathTrim http://abc.com.cn</span><br style=color:#00f><span style=color:#00f>MatchExpression *.jsp</span><br style=color:#00f><span style=color:#00f>&lt;/IfModule></span><br>问题似乎解决了。不过此后又发现我们的域名不止这一个，还有def.com.cn和dfg.com.cn，解决方法似乎也很简单，多添加几个PathTrim呗，但是此后你就会发现，weblogic似乎比较弱智，只有最后一个PathTrim设置会生效……，查看了weblogic的文档也没有找到解决方法，他那里也没有说可以写几个。<br>这样就需要从apache这里解决，幸好apache这里还有虚拟主机。针对各个域名分别配置几个虚拟主机，建立基于域名的虚拟主机。文档可以参考<a href=http://www.douzhe.com/apm/ApacheManual/zh-cn/vhosts/name-based.html>这里</a>&nbsp; 。<br>需要注意的是，基于域名的虚拟主机配置好之后，如果用虚拟主机里面没有的域名访问的时候，他会去匹配第一个虚拟主机，同样，用ip访问也会如此。<br>当一个请求到达的时候，服务器会首先检查它是否使用了一个能和 NameVirtualHost相匹配的IP地址。如果能够匹配， 它就会查找每个与这个IP地址相对应的&lt;VirtualHost>配置段， 并尝试找出一个ServerName或ServerAlias配置项与请求的主机名相同的。 如果找到了，它就会使用这个服务器的配置。 否则，将使用符合这个IP地址的第一个列出的虚拟主机。<br>配置好虚拟主机之后，上面的问题就解决了。接着就发现有些终端不能正常访问业务了。查看全局的配置，有些rewrite rule的配置，想当然认为虚拟主机会继承全局设置。其实不是这样的，全局的对虚拟主机的没有任何影响。还需要在虚拟主机中单独设置。<br><span style=color:#00f>RewriteEngine on</span><br style=color:#00f><br style=color:#00f><span style=color:#00f>RewriteLog /usr/local/apache/apache_rewrite_log.log</span><br style=color:#00f><span style=color:#00f>RewriteLogLevel 2</span><br style=color:#00f><br style=color:#00f><span style=color:#00f>RewriteRule&nbsp; xx</span><br>建议加上log的设置，这样可以很好的检查rewrite有没有起作用。此外，也一定要加上RewriteEngine on，否则任何rewrite rule都不会起作用。<br></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/apache>apache</a></li><li><a href=/tags/web>web</a></li><li><a href=/tags/weblogic>weblogic</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
-return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
+telnet abc.com.cn 80GET http://abc.com.cn/www/x.jsp HTTP/1.1
+
+">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>apache的rewrite一点配置心得</h1>
+<div class=meta>Posted at &mdash; Jun 14, 2006</div>
+</div>
+<div class=post-header>
+</div>
+<div class=markdown>
+这样看来，这个请求应该是不正确的，“get /www/x.jsp HTTP/1.1”才对。这个请求被转发给weblogic之后，weblogic会处理不了，因为他会去找“http://abc.com.cn/http://abc.com.cn/www/x.jsp”这个文件，显然是找不到的。<br>
+不过幸好，weblogic有个PathTrim设置，将请求路径种的“http://abc.com.cn”给他去掉就可以了。<br>
+<span style=color:#00f>&lt;IfModule mod_weblogic.c></span><br style=color:#00f><span style=color:#00f>WebLogicHost 192.168.0.252</span><br style=color:#00f><span style=color:#00f>WebLogicPort 7050</span><br style=color:#00f><span style=color:#00f>PathTrim http://abc.com.cn</span><br style=color:#00f><span style=color:#00f>MatchExpression *.jsp</span><br style=color:#00f><span style=color:#00f>&lt;/IfModule></span><br>
+问题似乎解决了。不过此后又发现我们的域名不止这一个，还有def.com.cn和dfg.com.cn，解决方法似乎也很简单，多添加几个PathTrim呗，但是此后你就会发现，weblogic似乎比较弱智，只有最后一个PathTrim设置会生效……，查看了weblogic的文档也没有找到解决方法，他那里也没有说可以写几个。<br>
+这样就需要从apache这里解决，幸好apache这里还有虚拟主机。针对各个域名分别配置几个虚拟主机，建立基于域名的虚拟主机。文档可以参考<a href=http://www.douzhe.com/apm/ApacheManual/zh-cn/vhosts/name-based.html>这里</a>&nbsp; 。<br>
+需要注意的是，基于域名的虚拟主机配置好之后，如果用虚拟主机里面没有的域名访问的时候，他会去匹配第一个虚拟主机，同样，用ip访问也会如此。<br>
+当一个请求到达的时候，服务器会首先检查它是否使用了一个能和 NameVirtualHost相匹配的IP地址。如果能够匹配， 它就会查找每个与这个IP地址相对应的&lt;VirtualHost>配置段， 并尝试找出一个ServerName或ServerAlias配置项与请求的主机名相同的。 如果找到了，它就会使用这个服务器的配置。 否则，将使用符合这个IP地址的第一个列出的虚拟主机。<br>
+配置好虚拟主机之后，上面的问题就解决了。接着就发现有些终端不能正常访问业务了。查看全局的配置，有些rewrite rule的配置，想当然认为虚拟主机会继承全局设置。其实不是这样的，全局的对虚拟主机的没有任何影响。还需要在虚拟主机中单独设置。<br>
+<span style=color:#00f>RewriteEngine on</span><br style=color:#00f><br style=color:#00f><span style=color:#00f>RewriteLog /usr/local/apache/apache_rewrite_log.log</span><br style=color:#00f><span style=color:#00f>RewriteLogLevel 2</span><br style=color:#00f><br style=color:#00f><span style=color:#00f>RewriteRule&nbsp; xx</span><br>
+建议加上log的设置，这样可以很好的检查rewrite有没有起作用。此外，也一定要加上RewriteEngine on，否则任何rewrite rule都不会起作用。<br>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/apache>apache</a></li>
+<li><a href=/tags/web>web</a></li>
+<li><a href=/tags/weblogic>weblogic</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>

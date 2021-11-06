@@ -1,5 +1,109 @@
-<!doctype html><html><head><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>SafeAreaView in RN - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1"><meta property="og:title" content="SafeAreaView in RN"><meta property="og:description" content="iPhone X 整出来一个刘海和底部的下巴，app 需要做特殊处理，否则可能会顶部把内容显示到被刘海挡住的那部分里"><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/safeareaview-in-rn/"><meta property="article:published_time" content="2018-01-25T10:36:51+08:00"><meta property="article:modified_time" content="2018-01-25T10:36:51+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="SafeAreaView in RN"><meta name=twitter:description content="iPhone X 整出来一个刘海和底部的下巴，app 需要做特殊处理，否则可能会顶部把内容显示到被刘海挡住的那部分里"><link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css><link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css><link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)"><link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)"><script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script><script src=https://wdicc.com/js/main.js></script></head><body><div class="container wrapper post"><div class=header><h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1><div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social"><ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wd title=Twitter><i data-feather=twitter></i></a></ul></nav></div><nav class=nav><ul class=flat><li><a href=/>Home</a></li><li><a href=/post>All posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div><div class=post-header><h1 class=title>SafeAreaView in RN</h1><div class=meta>Posted at &mdash; Jan 25, 2018</div></div><div class=post-header></div><div class=markdown><p>iPhone X 整出来一个刘海和底部的下巴，app 需要做特殊处理，否则可能会顶部把内容显示到被刘海挡住的那部分里面，下面呢会显示到那个手势控制的里面，导致一些按钮不能点击。</p><p>之前我们用的是 <a href=https://www.npmjs.com/package/react-native-iphone-x-helper><a href=https://www.npmjs.com/package/react-native-iphone-x-helper>https://www.npmjs.com/package/react-native-iphone-x-helper</a></a> 自己计算的。前几天升级 RN 翻 0.52 的 release Note 发现 RN 0.50 新增了一个叫做 <code class=verbatim>SafeAreaView</code> 的 view 来解决这个问题。</p><p>用法也很简单，把你的内容包含到这里面就可以了。有下面两个方法。</p><p>不用 SafeAreaView 来处理底部，比如显示的是一个列表什么的，底部不固定的，用户如果有需要点按会往上滚动出底部的手势区域然后点击。</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text>&lt;SafeAreaView /&gt;</code></pre></div></div><p>使用 SafeAreaView 处理底部，比如底部是一排固定按钮，例如微信那样的，这个时候需要把底部区域让出来。</p><div class="src src-text"><div class=highlight><pre class=chroma><code class=language-text data-lang=text>&lt;SafeAreaView&gt;
+<!doctype html><html>
+<head>
+<meta charset=utf-8>
+<meta http-equiv=x-ua-compatible content="IE=edge"><title>SafeAreaView in RN - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta property="og:title" content="SafeAreaView in RN">
+<meta property="og:description" content="iPhone X 整出来一个刘海和底部的下巴，app 需要做特殊处理，否则可能会顶部把内容显示到被刘海挡住的那部分里">
+<meta property="og:type" content="article">
+<meta property="og:url" content="https://wdicc.com/safeareaview-in-rn/"><meta property="article:section" content="post">
+<meta property="article:published_time" content="2018-01-25T10:36:51+08:00">
+<meta property="article:modified_time" content="2018-01-25T10:36:51+08:00">
+<meta name=twitter:card content="summary">
+<meta name=twitter:title content="SafeAreaView in RN">
+<meta name=twitter:description content="iPhone X 整出来一个刘海和底部的下巴，app 需要做特殊处理，否则可能会顶部把内容显示到被刘海挡住的那部分里">
+<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
+<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
+<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
+<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
+<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
+<script src=https://wdicc.com/js/main.js></script>
+</head>
+<body>
+<div class="container wrapper post">
+<div class=header>
+<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
+<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
+<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
+</nav>
+</div>
+<nav class=nav>
+<ul class=flat>
+<li>
+<a href=/>Home</a>
+</li>
+<li>
+<a href=/post>All posts</a>
+</li>
+<li>
+<a href=/tags>Tags</a>
+</li>
+<li>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
+</li>
+<li>
+<a href=/atom.xml>Subscribe</a>
+</li>
+</ul>
+</nav>
+</div>
+<div class=post-header>
+<h1 class=title>SafeAreaView in RN</h1>
+<div class=meta>Posted at &mdash; Jan 25, 2018</div>
+</div>
+<div class=post-header>
+</div>
+<div class=markdown>
+<p>
+iPhone X 整出来一个刘海和底部的下巴，app 需要做特殊处理，否则可能会顶部把内容显示到被刘海挡住的那部分里面，下面呢会显示到那个手势控制的里面，导致一些按钮不能点击。</p>
+<p>
+之前我们用的是 <a href=https://www.npmjs.com/package/react-native-iphone-x-helper><a href=https://www.npmjs.com/package/react-native-iphone-x-helper>https://www.npmjs.com/package/react-native-iphone-x-helper</a></a> 自己计算的。前几天升级 RN 翻 0.52 的 release Note 发现 RN 0.50 新增了一个叫做 <code class=verbatim>SafeAreaView</code> 的 view 来解决这个问题。</p>
+<p>
+用法也很简单，把你的内容包含到这里面就可以了。有下面两个方法。</p>
+<p>
+不用 SafeAreaView 来处理底部，比如显示的是一个列表什么的，底部不固定的，用户如果有需要点按会往上滚动出底部的手势区域然后点击。</p>
+<div class="src src-text">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>&lt;SafeAreaView /&gt;</code></pre></div>
+</div>
+<p>
+使用 SafeAreaView 处理底部，比如底部是一排固定按钮，例如微信那样的，这个时候需要把底部区域让出来。</p>
+<div class="src src-text">
+<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>&lt;SafeAreaView&gt;
   ....
-&lt;/SafeAreaView&gt;</code></pre></div></div><p>SafeAreaView 本身支持设置背景色，但是不支持顶部和底部设置不同的颜色，思路是可以给 SafeAreaView 下面放两个 view 分别设置他们的颜色。代码我贴到参考链接 2 里面了。</p><p>参考链接：</p><ul><li><p><a href=https://github.com/facebook/react-native/commit/ad4b124><a href=https://github.com/facebook/react-native/commit/ad4b124>https://github.com/facebook/react-native/commit/ad4b124</a></a></p></li><li><p><a href=https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d><a href=https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d>https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d</a></a></p></li></ul></div><div class=post-tags><nav class="nav tags"><ul class=flat><li><a href=/tags/iphone>iphone</a></li><li><a href=/tags/safeareaview>SafeAreaView</a></li></ul></nav></div><div id=disqus_thread></div><script type=text/javascript>(function(){if(window.location.hostname=="localhost")
-return;var dsq=document.createElement('script');dsq.type='text/javascript';dsq.async=true;var disqus_shortname='wdicc';dsq.src='//'+disqus_shortname+'.disqus.com/embed.js';(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(dsq);})();</script><noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript><a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a></div><div class="footer wrapper"><nav class=nav><div>Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div></nav></div><script>feather.replace()</script></body></html>
+&lt;/SafeAreaView&gt;</code></pre></div>
+</div>
+<p>
+SafeAreaView 本身支持设置背景色，但是不支持顶部和底部设置不同的颜色，思路是可以给 SafeAreaView 下面放两个 view 分别设置他们的颜色。代码我贴到参考链接 2 里面了。</p>
+<p>
+参考链接：</p>
+<ul>
+<li>
+<p><a href=https://github.com/facebook/react-native/commit/ad4b124><a href=https://github.com/facebook/react-native/commit/ad4b124>https://github.com/facebook/react-native/commit/ad4b124</a></a></p>
+</li>
+<li>
+<p><a href=https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d><a href=https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d>https://github.com/facebook/react-native/commit/983b05441d3d23809b924de2e4bf96a55c47428d</a></a></p>
+</li>
+</ul>
+</div>
+<div class=post-tags>
+<nav class="nav tags">
+<ul class=flat>
+<li><a href=/tags/iphone>iphone</a></li>
+<li><a href=/tags/safeareaview>SafeAreaView</a></li>
+</ul>
+</nav>
+</div>
+<div id=disqus_thread></div>
+<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
+<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
+Disqus.</a></noscript>
+<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</div>
+<div class="footer wrapper">
+<nav class=nav>
+<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
+</nav>
+</div>
+<script>feather.replace()</script>
+</body>
+</html>
