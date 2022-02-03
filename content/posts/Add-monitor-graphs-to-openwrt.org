@@ -1,0 +1,185 @@
+---
+title: "Add Monitor Graphs to Openwrt"
+date: 2021-12-11T19:38:12+08:00
+tags: ["openwrt", "graph"]
+toc: true
+---
+
+According to the docs here https://openwrt.org/docs/guide-user/luci/luci_app_statistics, OpenWrt supports us using the Collectd to collect metrics and the Rrdtool draw the graph later.
+
+** Install
+
+#+begin_src
+opkg update
+opkg install luci-app-statistics
+#+end_src
+
+We can run the command =opkg list | grep collectd-mod= to see what mertics we can collect. I have installed these modules
+
+#+begin_src
+collectd-mod-cpu
+collectd-mod-curl
+collectd-mod-dns
+collectd-mod-exec
+collectd-mod-interface
+collectd-mod-iwinfo
+collectd-mod-load
+collectd-mod-memory
+collectd-mod-network
+collectd-mod-ping
+collectd-mod-rrdtool
+collectd-mod-thermal
+#+end_src
+
+Most of the plugins work out of the box, such as the =cpu= one. And some of them need some configurations on the UI, such as the =curl= one. You have to tell the plugin the URL you want to monitor.
+
+The =exec= plugin is a special one. It needs you to write some codes to get it work.
+
+** Create a script for the exec plugin
+
+On the UI settings page of the =exec= plugin, we can set several scripts path for that plugin to execute. We have to create the scripts by ourselves.
+
+For example, I will create a graph for the last handshake time of the Wireguard VPN. The command and the output for getting the last handshake time are below.
+
+#+begin_src
+wg show all latest-handshakes
+wg0     L8yns9ycPwd5/gxIm02zGifWfnMCg5f0hGqdya8pAxg=    0
+wg0     7fR3QgAwgW/jMKWNtrnrXlxYxXc0mQA1YVv0VMz+dSg=    1639203670
+wg0     cgCozSFbCG6SvENpITD5n6SF9vWyYO0J6jOuziy3tyU=    1639282576
+wg1     wFyXEweIGqzB3Keg/bBmxGfBcKpp222/YMyNwvjRgiQ=    1639282486
+#+end_src
+
+- =wg0= is the device name
+- =L8yns9ycPwd5/gxIm02zGifWfnMCg5f0hGqdya8pAxg= is the public key.
+- =1639282486= is the timestamp when the last handshake happened.
+
+The command needs the root permission to execute. However, the =exec= plugin can be running as root. So we have to take a detour. There are three pieces of work to do.
+
+*** Create a cron job to collect the data
+
+To run the command with the root permission, we must create this script first, which will collect the data and write the data to =/tmp= folder.
+
+#+begin_src
+mkdir /etc/wg
+#+end_src
+
+#+begin_src bash
+#!/bin/sh
+
+output=/tmp/wg.collect
+rm -f $output && touch $output && chmod 666 $output
+
+current=$(date +%s)
+
+conf="cgCozSFbCG6SvENpITD5n6SF9vWyYO0J6jOuziy3tyU= wg0
+wFyXEweIGqzB3Keg/bBmxGfBcKpp222/YMyNwvjRgiQ= wg1"
+
+wg show all latest-handshakes | while read line; do
+        device=$(echo $line | awk -F ' ' '{print $1}')
+        peer=$(echo $line | awk -F ' ' '{print $2}')
+        dt=$(echo $line | awk -F ' ' '{print $3}')
+        name=$(echo "$conf" | grep "$peer" | awk -F ' ' '{print $2}')
+
+        if [ "$dt" = "0" ] || [ -z "$name" ]; then
+                continue
+        fi
+
+        diff=$(($current - $dt))
+
+        echo "PUTVAL \"HOSTNAME/exec-wireguard/gauge-last_handshake_$name\" interval=INTERVAL N:$diff" >> $output
+done
+#+end_src
+
+The script will write the outputs to the =/tmp/wg.collect= file. You may want to change the conf settings. It will help us filter which peer we want to monitor and the alias for that peer.
+
+The output is defined here ="PUTVAL \"HOSTNAME/exec-wireguard/gauge-last_handshake_$name\" interval=INTERVAL N:$diff"=. The output format is critical.
+- First of all, the =HOSTNAME= and =INTERVAL= are placeholders. They will be replaced with the correct value later.
+- For the =exec-wireguard=, =exec= is the plugin name, the =wireguard= is the plugin instance name.
+- For the =gauge-last_handshake_$name=, =gauge= is the metric type. It must be inclued in the =/usr/share/collectd/types.db= file. You also can use one of the existed type from there. =last_handshake_$name= is the metric name.
+
+Add the script to the =system -> Scheduled Tasks=. =* * * * * /etc/wg/wg.sh=.
+
+Check whether the file =/tmp/wg.collect= has been created and updated after adding it to the crontab.
+
+*** Create the file script for the exec plugin
+
+Create a file =/etc/wg/exec-wg.sh=
+
+#+begin_src bash
+#!/bin/sh
+
+HOSTNAME="${COLLECTD_HOSTNAME:-Tux}"
+INTERVAL="${COLLECTD_INTERVAL:-60}"
+INTERVAL=$(awk -v i=$INTERVAL 'BEGIN{print int(i)}')
+
+input=/tmp/wg.collect
+
+while sleep "$INTERVAL"; do
+        cat $input | sed "s/HOSTNAME/$HOSTNAME/g" | sed "s/INTERVAL/$INTERVAL/g"
+done
+#+end_src
+
+This script will run and loop forever, read and print the file content. There is nothing special here.
+
+After adding the file to the exec plugin settings UI, run these commands to check if it works.
+
+#+begin_src
+# ps |grep exec-wg
+ 4001 nobody    1088 SN   /bin/sh /etc/wg/exec-wg.sh
+
+# ls <path-to-rrd-data-directory>/exec-wireguard/
+gauge-last_handshake_wg0.rrd  gauge-last_handshake_wg1.rrd
+#+end_src
+
+*** Add graph to the OpenWrt graph page
+
+Create the file =/www/luci-static/resources/statistics/rrdtool/definitions/exec.js= as bellow.
+
+#+begin_src javascript
+'use strict';
+'require baseclass';
+return baseclass.extend({
+    title: _('Exec'),
+    rrdargs: function(graph, host, plugin, plugin_instance, dtype) {
+        // host: Tux
+        // plugin: exec
+        // plugin_instance: wireguard
+        // dtype: null
+        var wireguard_last_handshake_time = {
+            title: "%H: wireguard last handshake time",
+            vlabel: "seconds",
+            alt_autoscale_max: true,
+            data: {
+                types: ["gauge"],
+                options: {
+                    gauge_last_handshake_wg0: {
+                        color: "ff0000",
+                        // noavg: true,
+                        noarea: true,
+                        // overlay: true,
+                        // flip: true,
+                        title: "wg0"
+                    },
+                    gauge_last_handshake_wg1: {
+                        color: "0000ff",
+                        // noavg: true,
+                        noarea: true,
+                        title: "wg1"
+                    }
+                }
+            }
+        };
+        return wireguard_last_handshake_time;
+    }
+});
+#+end_src
+
+The important thing in the file
+- =title: _('Exec'),=: define the graph title.
+- =types: ["gauge"],=: define the source data type.
+- =gauge_last_handshake_wg0= and =gauge_last_handshake_wg1=: this is optional. I want to rename the metrics name and set the color for the graph. Please notice the =_= after the =gauge= is very important. Don't use =-= here.
+
+
+** Refs
+- https://gist.github.com/squarewf/82a9535b6aae64430991f4e56f2513a9
+- http://flux242.blogspot.com/2011/01/collectd-mod-exec-part-5.html
