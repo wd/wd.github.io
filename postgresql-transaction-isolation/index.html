@@ -1,57 +1,147 @@
-<!doctype html><html>
+<!doctype html><html lang=zh-cn>
 <head>
+<link rel=preload href=/lib/font-awesome/webfonts/fa-brands-400.woff2 as=font type=font/woff2 crossorigin=anonymous>
+<link rel=preload href=/lib/font-awesome/webfonts/fa-regular-400.woff2 as=font type=font/woff2 crossorigin=anonymous>
+<link rel=preload href=/lib/font-awesome/webfonts/fa-solid-900.woff2 as=font type=font/woff2 crossorigin=anonymous>
+<link rel=preload href=/lib/JetBrainsMono/web/woff2/JetBrainsMono-Regular.woff2 as=font type=font/woff2 crossorigin=anonymous>
 <meta charset=utf-8>
-<meta http-equiv=x-ua-compatible content="IE=edge"><title>postgresql transaction isolation - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="IE=edge">
+<title> postgresql transaction isolation | wd and cc</title>
+<link rel=canonical href=https://wdicc.com/postgresql-transaction-isolation/>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=robots content="all,follow">
+<meta name=googlebot content="index,follow,snippet,archive">
 <meta property="og:title" content="postgresql transaction isolation">
 <meta property="og:description" content="翻译自 http://www.postgresql.org/docs/current/static/t">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://wdicc.com/postgresql-transaction-isolation/"><meta property="article:section" content="post">
+<meta property="og:url" content="https://wdicc.com/postgresql-transaction-isolation/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2015-05-10T23:20:49+08:00">
 <meta property="article:modified_time" content="2015-05-10T23:20:49+08:00">
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="postgresql transaction isolation">
 <meta name=twitter:description content="翻译自 http://www.postgresql.org/docs/current/static/t">
-<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
-<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
-<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
-<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
-<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
-<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
-<script src=https://wdicc.com/js/main.js></script>
+<link rel=stylesheet href=https://wdicc.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css integrity="sha512-lPZT6eFR4oBnp8XbvEYAy9WjxyHnn6r5ceUjxA87JJuOTyC7V4EN//qNVZylwUD9VutM2cCFMROtCOZq/bCL3Q=="><!--[if lt IE 9]><script src=https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js></script>
+<script src=https://oss.maxcdn.com/respond/1.4.2/respond.min.js></script><![endif]-->
+<link rel=icon type=image/png href=https://wdicc.com/favicon.ico>
 </head>
-<body>
-<div class="container wrapper post">
-<div class=header>
-<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
-<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
-<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
-</nav>
-</div>
-<nav class=nav>
-<ul class=flat>
+<body class="max-width mx-auto px3 ltr">
+<div class="content index py4">
+<div id=header-post>
+<a id=menu-icon href=#><i class="fas fa-bars fa-lg"></i></a>
+<a id=menu-icon-tablet href=#><i class="fas fa-bars fa-lg"></i></a>
+<a id=top-icon-tablet href=# onclick="$('html, body').animate({scrollTop:0},'fast')" style=display:none aria-label="Top of Page"><i class="fas fa-chevron-up fa-lg"></i></a>
+<span id=menu>
+<span id=nav>
+<ul>
+<li><a href=/>Home</a></li>
+<li><a href=/posts>Posts</a></li>
+<li><a href=/tags>Tags</a></li>
+<li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li>
+<li><a href=/atom.xml>Subscribe</a></li>
+</ul>
+</span>
+<br>
+<span id=actions>
+<ul>
 <li>
-<a href=/>Home</a>
+<a class=icon href=https://wdicc.com/upgrade-myself/ aria-label=Previous>
+<i class="fas fa-chevron-left" aria-hidden=true onmouseover="$('#i-prev').toggle()" onmouseout="$('#i-prev').toggle()"></i>
+</a>
 </li>
 <li>
-<a href=/post>All posts</a>
+<a class=icon href=https://wdicc.com/libmcrypt-ffi-module/ aria-label=Next>
+<i class="fas fa-chevron-right" aria-hidden=true onmouseover="$('#i-next').toggle()" onmouseout="$('#i-next').toggle()"></i>
+</a>
 </li>
 <li>
-<a href=/tags>Tags</a>
+<a class=icon href=# onclick="$('html, body').animate({scrollTop:0},'fast')" aria-label="Top of Page">
+<i class="fas fa-chevron-up" aria-hidden=true onmouseover="$('#i-top').toggle()" onmouseout="$('#i-top').toggle()"></i>
+</a>
 </li>
 <li>
-<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
-</li>
-<li>
-<a href=/atom.xml>Subscribe</a>
+<a class=icon href=# aria-label=Share>
+<i class="fas fa-share-alt" aria-hidden=true onmouseover="$('#i-share').toggle()" onmouseout="$('#i-share').toggle()" onclick="return $('#share').toggle(),!1"></i>
+</a>
 </li>
 </ul>
-</nav>
+<span id=i-prev class=info style=display:none>Previous post</span>
+<span id=i-next class=info style=display:none>Next post</span>
+<span id=i-top class=info style=display:none>Back to top</span>
+<span id=i-share class=info style=display:none>Share post</span>
+</span>
+<br>
+<div id=share style=display:none>
+<ul>
+<li>
+<a class=icon href="http://www.facebook.com/sharer.php?u=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f" aria-label=Facebook>
+<i class="fab fa-facebook" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://twitter.com/share?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&text=postgresql%20transaction%20isolation" aria-label=Twitter>
+<i class="fab fa-twitter" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://www.linkedin.com/shareArticle?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&title=postgresql%20transaction%20isolation" aria-label=Linkedin>
+<i class="fab fa-linkedin" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://pinterest.com/pin/create/bookmarklet/?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&is_video=false&description=postgresql%20transaction%20isolation" aria-label=Pinterest>
+<i class="fab fa-pinterest" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="mailto:?subject=postgresql%20transaction%20isolation&body=Check out this article: https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f" aria-label=Email>
+<i class="fas fa-envelope" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://getpocket.com/save?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&title=postgresql%20transaction%20isolation" aria-label=Pocket>
+<i class="fab fa-get-pocket" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://reddit.com/submit?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&title=postgresql%20transaction%20isolation" aria-label=reddit>
+<i class="fab fa-reddit" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://www.tumblr.com/share/link?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&name=postgresql%20transaction%20isolation&description=%e7%bf%bb%e8%af%91%e8%87%aa%20http%3a%2f%2fwww.postgresql.org%2fdocs%2fcurrent%2fstatic%2ft" aria-label=Tumblr>
+<i class="fab fa-tumblr" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&t=postgresql%20transaction%20isolation" aria-label="Hacker News">
+<i class="fab fa-hacker-news" aria-hidden=true></i>
+</a>
+</li>
+</ul>
 </div>
-<div class=post-header>
-<h1 class=title>postgresql transaction isolation</h1>
-<div class=meta>Posted at &mdash; May 10, 2015</div>
+</span>
 </div>
-<div class=post-header>
+<article class=post itemscope itemtype=http://schema.org/BlogPosting>
+<header>
+<h1 class=posttitle itemprop="name headline">
+postgresql transaction isolation
+</h1>
+<div class=meta>
+<span class=author itemprop=author itemscope itemtype=http://schema.org/Person>
+<span itemprop=name>
+wd
+</span>
+</span>
+<div class=postdate>
+<time datetime="2015-05-10 23:20:49 +0800 +0800" itemprop=datePublished>2015-05-10</time>
+</div>
+<div class=article-tag>
+<i class="fas fa-tag"></i>
+<a class=tag-link href=/tags/postgresql rel=tag>postgresql</a>
+</div>
+</div>
+</header>
+<div id=toc>
 <nav id=TableOfContents>
 <ul>
 <li><a href=#并发控制>并发控制</a>
@@ -62,7 +152,7 @@
 </ul>
 </nav>
 </div>
-<div class=markdown>
+<div class=content itemprop=articleBody>
 <p>翻译自 <a href=http://www.postgresql.org/docs/current/static/transaction-iso.html>http://www.postgresql.org/docs/current/static/transaction-iso.html</a>， 内容没翻译全，供参考。</p>
 <h2 id=并发控制>并发控制</h2>
 <h3 id=132-事务隔离级别>13.2 事务隔离级别</h3>
@@ -94,17 +184,17 @@
 <p>读已提交是 PostgreSQL 里面默认的事务隔离级别。当一个事务使用此级别的时候，一个 select 查询(不带 for update/share 字句)只可以查到当前查询开始前已经提交的数据，(在此查询执行的过程中)永远不会查到其他并发事务执行时的未提交数据和已提交的修改。事实上，一个 select 查询可以"看“到执行开始瞬间的数据库的一个快照。不过，select 查询可以”看“到当前事务里面已经完成更新的数据，即使他们还没有被提交。同时也要注意，如果有其他事务在一个事务的第一个 select 执行之后提交了修改，那么那个事务里面的前后成功的两个 select 查询也有可能得到不同的结果。</p>
 <p>update, delete, select for update, 和 select for share 这些语句在查找目标数据的时候的时候，表现和 select 是一样的：都是只能查找到在语句执行开始的时候就已经提交的数据。然而，这些目标数据可能就已经被其他并发事务修改（或者删除、加锁(locked))了。在这种情况下，即将执行更新的事务将会等待第一个执行了更新的事务的提交或者回滚（如果他仍然在执行中）。如果第一个更新事务执行了回滚，那么它的执行结果会取消，后续的更新事务会处理所有之前查找到的数据。如果第一个更新事务执行了提交，那么后续的更新事务会忽略第一个事务删除的行，然后针对已经更新过的数据上面执行它自己的操作。语句里面的查询条件（where 语句）会重新被执行来查看已经更新的数据是否还满足条件。如果满足，那后续的更新事务会在已经更新过的数据上面执行他自己的操作。如果执行的是 select for update 和 select for share 语句，那会返回或者锁定更新后的数据给客户端。</p>
 <p>基于以上规则，一个更新语句可能会得到一个“不稳定”的快照。它会“看”到其他并发事务对它将要更新的数据的修改，但是“看”不到其他并发事务对其他数据的修改。这个行为会导致读已提交事务隔离级别不适用于一些复杂的查询，只适用于简单的情况。例如，想象一下在事务里面更新银行账户余额：</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-SQL data-lang=SQL><span class=k>BEGIN</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>UPDATE</span><span class=w> </span><span class=n>accounts</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>balance</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>balance</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=mi>100</span><span class=p>.</span><span class=mi>00</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>acctnum</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>12345</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>UPDATE</span><span class=w> </span><span class=n>accounts</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>balance</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>balance</span><span class=w> </span><span class=o>-</span><span class=w> </span><span class=mi>100</span><span class=p>.</span><span class=mi>00</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=n>acctnum</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>7534</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>COMMIT</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>如果有两个类似的事务要更新 12345 这个帐号的余额，我们显然是希望第二个更新事务是基于第一个的结果来更新。因为每个语句都是更新既定的数据，所以只能“看”到更新的数据不会造成不一致。</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-SQL data-lang=SQL><span style=color:#66d9ef>BEGIN</span>;
+<span style=color:#66d9ef>UPDATE</span> accounts <span style=color:#66d9ef>SET</span> balance <span style=color:#f92672>=</span> balance <span style=color:#f92672>+</span> <span style=color:#ae81ff>100</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>WHERE</span> acctnum <span style=color:#f92672>=</span> <span style=color:#ae81ff>12345</span>;
+<span style=color:#66d9ef>UPDATE</span> accounts <span style=color:#66d9ef>SET</span> balance <span style=color:#f92672>=</span> balance <span style=color:#f92672>-</span> <span style=color:#ae81ff>100</span>.<span style=color:#ae81ff>00</span> <span style=color:#66d9ef>WHERE</span> acctnum <span style=color:#f92672>=</span> <span style=color:#ae81ff>7534</span>;
+<span style=color:#66d9ef>COMMIT</span>;
+</code></pre></div><p>如果有两个类似的事务要更新 12345 这个帐号的余额，我们显然是希望第二个更新事务是基于第一个的结果来更新。因为每个语句都是更新既定的数据，所以只能“看”到更新的数据不会造成不一致。</p>
 <p>在读已提交事务隔离级别里面，复杂一点的情况可能会得到预期之外的结果。例如，想象一下一个 delete 语句操作的数据被其他语句从他的限制条件里面增加或者移除。例如，假设 website 是一个包含两行数据的表，其中 website.hits 字段分别等于 9 和 10。</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-SQL data-lang=SQL><span class=k>BEGIN</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=k>UPDATE</span><span class=w> </span><span class=n>website</span><span class=w> </span><span class=k>SET</span><span class=w> </span><span class=n>hits</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=n>hits</span><span class=w> </span><span class=o>+</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
-</span><span class=w></span><span class=c1>-- run from another session:  DELETE FROM website WHERE hits = 10;
-</span><span class=c1></span><span class=k>COMMIT</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>虽然在执行 update 前后，都有 website.hits = 10 的数据，但是那个 delete 语句将没有任何效果。这是因为未执行成功 update 前，9 这行数据是被 delete 忽略的，当 update 执行完毕，delete 得到锁之后，新的数据的值已经不是 10 而是 11 了，已经不再符合 delete 的条件了。</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-SQL data-lang=SQL><span style=color:#66d9ef>BEGIN</span>;
+<span style=color:#66d9ef>UPDATE</span> website <span style=color:#66d9ef>SET</span> hits <span style=color:#f92672>=</span> hits <span style=color:#f92672>+</span> <span style=color:#ae81ff>1</span>;
+<span style=color:#75715e>-- run from another session:  DELETE FROM website WHERE hits = 10;
+</span><span style=color:#75715e></span><span style=color:#66d9ef>COMMIT</span>;
+</code></pre></div><p>虽然在执行 update 前后，都有 website.hits = 10 的数据，但是那个 delete 语句将没有任何效果。这是因为未执行成功 update 前，9 这行数据是被 delete 忽略的，当 update 执行完毕，delete 得到锁之后，新的数据的值已经不是 10 而是 11 了，已经不再符合 delete 的条件了。</p>
 <p>读已提交事务隔离级别在事务开始的时候会创建一个包含了在那个瞬间所有已提交的事务的数据的快照，同一个事务里面的后续语句会“看”到其他并发事务提交的数据。前面的问题的关键点是，单个语句是否可以得到一个持续一致的数据库。</p>
 <p>读已提交事务隔离级别对于很多程序来说就已经足够了，使用起来快速简单。显然，它并不适用于所有情况。对于使用了复杂查询和更新的程序，或许需要对数据一致性要求比读已提交更加严格的事务隔离级别。</p>
 <h4 id=1322-可重复读事务隔离级别>13.2.2 可重复读事务隔离级别</h4>
@@ -128,31 +218,104 @@
      2 |   100
      2 |   200
 </code></pre><p>假设在序列化事务 A 里面执行：</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-SQL data-lang=SQL><span class=k>SELECT</span><span class=w> </span><span class=k>SUM</span><span class=p>(</span><span class=n>value</span><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>mytab</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>class</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>1</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>然后把结果（30）作为 value 字段，class = 2 作为新行插入回去。同时，序列化事务 B 里面执行：</p>
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-SQL data-lang=SQL><span class=k>SELECT</span><span class=w> </span><span class=k>SUM</span><span class=p>(</span><span class=n>value</span><span class=p>)</span><span class=w> </span><span class=k>FROM</span><span class=w> </span><span class=n>mytab</span><span class=w> </span><span class=k>WHERE</span><span class=w> </span><span class=k>class</span><span class=w> </span><span class=o>=</span><span class=w> </span><span class=mi>2</span><span class=p>;</span><span class=w>
-</span></code></pre></div><p>得到结果 300,并把结果和 class = 1 作为新行插入回去。然后两个事务都尝试提交。如果任意事务执行在可重复读级别，那么两个事务都可以提交; but since there is no serial order of execution consistent with the result, 使用序列化事务隔离级别的话，会允许其中一个事务提交，而回滚另一个事务，并且报如下错误信息：</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-SQL data-lang=SQL><span style=color:#66d9ef>SELECT</span> <span style=color:#66d9ef>SUM</span>(value) <span style=color:#66d9ef>FROM</span> mytab <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>class</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>1</span>;
+</code></pre></div><p>然后把结果（30）作为 value 字段，class = 2 作为新行插入回去。同时，序列化事务 B 里面执行：</p>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-SQL data-lang=SQL><span style=color:#66d9ef>SELECT</span> <span style=color:#66d9ef>SUM</span>(value) <span style=color:#66d9ef>FROM</span> mytab <span style=color:#66d9ef>WHERE</span> <span style=color:#66d9ef>class</span> <span style=color:#f92672>=</span> <span style=color:#ae81ff>2</span>;
+</code></pre></div><p>得到结果 300,并把结果和 class = 1 作为新行插入回去。然后两个事务都尝试提交。如果任意事务执行在可重复读级别，那么两个事务都可以提交; but since there is no serial order of execution consistent with the result, 使用序列化事务隔离级别的话，会允许其中一个事务提交，而回滚另一个事务，并且报如下错误信息：</p>
 <pre tabindex=0><code>ERROR:  could not serialize access due to read/write dependencies among transactions
 </code></pre><p>这是因为如果 A 在 B 之前执行的话，B 的计算结果就会是 330 而不是 300,类似的，其他顺序会导致 A 得到不同的结果。</p>
 </div>
-<div class=post-tags>
-<nav class="nav tags">
-<ul class=flat>
-<li><a href=/tags/postgresql>postgresql</a></li>
+</article>
+<div id=footer-post-container>
+<div id=footer-post>
+<div id=nav-footer style=display:none>
+<ul>
+<li><a href=/>Home</a></li>
+<li><a href=/posts>Posts</a></li>
+<li><a href=/tags>Tags</a></li>
+<li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li>
+<li><a href=/atom.xml>Subscribe</a></li>
+</ul>
+</div>
+<div id=share-footer style=display:none>
+<ul>
+<li>
+<a class=icon href="http://www.facebook.com/sharer.php?u=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f" aria-label=Facebook>
+<i class="fab fa-facebook fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://twitter.com/share?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&text=postgresql%20transaction%20isolation" aria-label=Twitter>
+<i class="fab fa-twitter fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://www.linkedin.com/shareArticle?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&title=postgresql%20transaction%20isolation" aria-label=Linkedin>
+<i class="fab fa-linkedin fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://pinterest.com/pin/create/bookmarklet/?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&is_video=false&description=postgresql%20transaction%20isolation" aria-label=Pinterest>
+<i class="fab fa-pinterest fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="mailto:?subject=postgresql%20transaction%20isolation&body=Check out this article: https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f" aria-label=Email>
+<i class="fas fa-envelope fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://getpocket.com/save?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&title=postgresql%20transaction%20isolation" aria-label=Pocket>
+<i class="fab fa-get-pocket fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://reddit.com/submit?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&title=postgresql%20transaction%20isolation" aria-label=reddit>
+<i class="fab fa-reddit fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://www.tumblr.com/share/link?url=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&name=postgresql%20transaction%20isolation&description=%e7%bf%bb%e8%af%91%e8%87%aa%20http%3a%2f%2fwww.postgresql.org%2fdocs%2fcurrent%2fstatic%2ft" aria-label=Tumblr>
+<i class="fab fa-tumblr fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fwdicc.com%2fpostgresql-transaction-isolation%2f&t=postgresql%20transaction%20isolation" aria-label="Hacker News">
+<i class="fab fa-hacker-news fa-lg" aria-hidden=true></i>
+</a>
+</li>
+</ul>
+</div>
+<div id=actions-footer>
+<a id=menu-toggle class=icon href=# onclick="return $('#nav-footer').toggle(),!1" aria-label=Menu>
+<i class="fas fa-bars fa-lg" aria-hidden=true></i> Menu</a>
+<a id=share-toggle class=icon href=# onclick="return $('#share-footer').toggle(),!1" aria-label=Share>
+<i class="fas fa-share-alt fa-lg" aria-hidden=true></i> share</a>
+<a id=top style=display:none class=icon href=# onclick="$('html, body').animate({scrollTop:0},'fast')" aria-label="Top of Page">
+<i class="fas fa-chevron-up fa-lg" aria-hidden=true></i> Top</a>
+</div>
+</div>
+</div>
+<footer id=footer>
+<div class=footer-left>
+Copyright &copy; 2022 wd and cc
+</div>
+<div class=footer-right>
+<nav>
+<ul>
+<li><a href=/>Home</a></li>
+<li><a href=/posts>Posts</a></li>
+<li><a href=/tags>Tags</a></li>
+<li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li>
+<li><a href=/atom.xml>Subscribe</a></li>
 </ul>
 </nav>
 </div>
-<div id=disqus_thread></div>
-<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
-<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript>
-<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</footer>
 </div>
-<div class="footer wrapper">
-<nav class=nav>
-<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
-</nav>
-</div>
-<script>feather.replace()</script>
 </body>
+<link rel=stylesheet href=/lib/font-awesome/css/all.min.css>
+<script src=/lib/jquery/jquery.min.js></script>
+<script src=/js/main.js></script>
+<script src=/js/code-copy.js></script>
 </html>

@@ -1,57 +1,151 @@
-<!doctype html><html>
+<!doctype html><html lang=zh-cn>
 <head>
+<link rel=preload href=/lib/font-awesome/webfonts/fa-brands-400.woff2 as=font type=font/woff2 crossorigin=anonymous>
+<link rel=preload href=/lib/font-awesome/webfonts/fa-regular-400.woff2 as=font type=font/woff2 crossorigin=anonymous>
+<link rel=preload href=/lib/font-awesome/webfonts/fa-solid-900.woff2 as=font type=font/woff2 crossorigin=anonymous>
+<link rel=preload href=/lib/JetBrainsMono/web/woff2/JetBrainsMono-Regular.woff2 as=font type=font/woff2 crossorigin=anonymous>
 <meta charset=utf-8>
-<meta http-equiv=x-ua-compatible content="IE=edge"><title>Best Practice for React-Native and Redux - wd and cc</title><link rel=icon type=image/png href=/favicon.ico><meta name=viewport content="width=device-width,initial-scale=1">
+<meta http-equiv=x-ua-compatible content="IE=edge">
+<title> Best Practice for React-Native and Redux | wd and cc</title>
+<link rel=canonical href=https://wdicc.com/best-practice-for-react-native-redux/>
+<meta name=viewport content="width=device-width,initial-scale=1">
+<meta name=robots content="all,follow">
+<meta name=googlebot content="index,follow,snippet,archive">
 <meta property="og:title" content="Best Practice for React-Native and Redux">
 <meta property="og:description" content="从 6 月到现在，在 RN 上面摸爬滚打了一段时间了，目前总算找到了一个适合我们自我感觉还可以的开发模式。 一开">
 <meta property="og:type" content="article">
-<meta property="og:url" content="https://wdicc.com/best-practice-for-react-native-redux/"><meta property="article:section" content="post">
+<meta property="og:url" content="https://wdicc.com/best-practice-for-react-native-redux/"><meta property="article:section" content="posts">
 <meta property="article:published_time" content="2017-11-26T09:19:11+08:00">
 <meta property="article:modified_time" content="2017-11-26T09:19:11+08:00">
 <meta name=twitter:card content="summary">
 <meta name=twitter:title content="Best Practice for React-Native and Redux">
 <meta name=twitter:description content="从 6 月到现在，在 RN 上面摸爬滚打了一段时间了，目前总算找到了一个适合我们自我感觉还可以的开发模式。 一开">
-<link href="https://fonts.googleapis.com/css?family=Ubuntu:300,400,300italic,400italic|Raleway:200,300" rel=stylesheet>
-<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/normalize.css>
-<link rel=stylesheet type=text/css media=screen href=https://wdicc.com/css/main.css>
-<link rel=stylesheet type=text/css href=https://wdicc.com//light-syntax.css media="(prefers-color-scheme: light)"><link rel=stylesheet type=text/css href=https://wdicc.com/css/dark.css media="(prefers-color-scheme: dark)">
-<link rel=stylesheet type=text/css href=https://wdicc.com//dark-syntax.css media="(prefers-color-scheme: dark)">
-<script src=https://cdn.jsdelivr.net/npm/feather-icons/dist/feather.min.js></script>
-<script src=https://wdicc.com/js/main.js></script>
+<link rel=stylesheet href=https://wdicc.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css integrity="sha512-lPZT6eFR4oBnp8XbvEYAy9WjxyHnn6r5ceUjxA87JJuOTyC7V4EN//qNVZylwUD9VutM2cCFMROtCOZq/bCL3Q=="><!--[if lt IE 9]><script src=https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js></script>
+<script src=https://oss.maxcdn.com/respond/1.4.2/respond.min.js></script><![endif]-->
+<link rel=icon type=image/png href=https://wdicc.com/favicon.ico>
 </head>
-<body>
-<div class="container wrapper post">
-<div class=header>
-<h1 class=site-title><a href=https://wdicc.com/>wd and cc</a></h1>
-<div class=site-description><h2>&mdash; Happy every day</h2><nav class="nav social">
-<ul class=flat><a href=https://github.com/wd title=Github><i data-feather=github></i></a><a href=https://twitter.com/wdicc1413 title=Twitter><i data-feather=twitter></i></a></ul>
-</nav>
-</div>
-<nav class=nav>
-<ul class=flat>
+<body class="max-width mx-auto px3 ltr">
+<div class="content index py4">
+<div id=header-post>
+<a id=menu-icon href=#><i class="fas fa-bars fa-lg"></i></a>
+<a id=menu-icon-tablet href=#><i class="fas fa-bars fa-lg"></i></a>
+<a id=top-icon-tablet href=# onclick="$('html, body').animate({scrollTop:0},'fast')" style=display:none aria-label="Top of Page"><i class="fas fa-chevron-up fa-lg"></i></a>
+<span id=menu>
+<span id=nav>
+<ul>
+<li><a href=/>Home</a></li>
+<li><a href=/posts>Posts</a></li>
+<li><a href=/tags>Tags</a></li>
+<li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li>
+<li><a href=/atom.xml>Subscribe</a></li>
+</ul>
+</span>
+<br>
+<span id=actions>
+<ul>
 <li>
-<a href=/>Home</a>
+<a class=icon href=https://wdicc.com/podcasts/ aria-label=Previous>
+<i class="fas fa-chevron-left" aria-hidden=true onmouseover="$('#i-prev').toggle()" onmouseout="$('#i-prev').toggle()"></i>
+</a>
 </li>
 <li>
-<a href=/post>All posts</a>
+<a class=icon href=https://wdicc.com/safeareaview-in-rn/ aria-label=Next>
+<i class="fas fa-chevron-right" aria-hidden=true onmouseover="$('#i-next').toggle()" onmouseout="$('#i-next').toggle()"></i>
+</a>
 </li>
 <li>
-<a href=/tags>Tags</a>
+<a class=icon href=# onclick="$('html, body').animate({scrollTop:0},'fast')" aria-label="Top of Page">
+<i class="fas fa-chevron-up" aria-hidden=true onmouseover="$('#i-top').toggle()" onmouseout="$('#i-top').toggle()"></i>
+</a>
 </li>
 <li>
-<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a>
-</li>
-<li>
-<a href=/atom.xml>Subscribe</a>
+<a class=icon href=# aria-label=Share>
+<i class="fas fa-share-alt" aria-hidden=true onmouseover="$('#i-share').toggle()" onmouseout="$('#i-share').toggle()" onclick="return $('#share').toggle(),!1"></i>
+</a>
 </li>
 </ul>
-</nav>
+<span id=i-prev class=info style=display:none>Previous post</span>
+<span id=i-next class=info style=display:none>Next post</span>
+<span id=i-top class=info style=display:none>Back to top</span>
+<span id=i-share class=info style=display:none>Share post</span>
+</span>
+<br>
+<div id=share style=display:none>
+<ul>
+<li>
+<a class=icon href="http://www.facebook.com/sharer.php?u=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f" aria-label=Facebook>
+<i class="fab fa-facebook" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://twitter.com/share?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&text=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label=Twitter>
+<i class="fab fa-twitter" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://www.linkedin.com/shareArticle?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&title=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label=Linkedin>
+<i class="fab fa-linkedin" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://pinterest.com/pin/create/bookmarklet/?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&is_video=false&description=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label=Pinterest>
+<i class="fab fa-pinterest" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="mailto:?subject=Best%20Practice%20for%20React-Native%20and%20Redux&body=Check out this article: https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f" aria-label=Email>
+<i class="fas fa-envelope" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://getpocket.com/save?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&title=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label=Pocket>
+<i class="fab fa-get-pocket" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://reddit.com/submit?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&title=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label=reddit>
+<i class="fab fa-reddit" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://www.tumblr.com/share/link?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&name=Best%20Practice%20for%20React-Native%20and%20Redux&description=%e4%bb%8e%206%20%e6%9c%88%e5%88%b0%e7%8e%b0%e5%9c%a8%ef%bc%8c%e5%9c%a8%20RN%20%e4%b8%8a%e9%9d%a2%e6%91%b8%e7%88%ac%e6%bb%9a%e6%89%93%e4%ba%86%e4%b8%80%e6%ae%b5%e6%97%b6%e9%97%b4%e4%ba%86%ef%bc%8c%e7%9b%ae%e5%89%8d%e6%80%bb%e7%ae%97%e6%89%be%e5%88%b0%e4%ba%86%e4%b8%80%e4%b8%aa%e9%80%82%e5%90%88%e6%88%91%e4%bb%ac%e8%87%aa%e6%88%91%e6%84%9f%e8%a7%89%e8%bf%98%e5%8f%af%e4%bb%a5%e7%9a%84%e5%bc%80%e5%8f%91%e6%a8%a1%e5%bc%8f%e3%80%82%20%e4%b8%80%e5%bc%80" aria-label=Tumblr>
+<i class="fab fa-tumblr" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&t=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label="Hacker News">
+<i class="fab fa-hacker-news" aria-hidden=true></i>
+</a>
+</li>
+</ul>
 </div>
-<div class=post-header>
-<h1 class=title>Best Practice for React-Native and Redux</h1>
-<div class=meta>Posted at &mdash; Nov 26, 2017</div>
+</span>
 </div>
-<div class=post-header>
+<article class=post itemscope itemtype=http://schema.org/BlogPosting>
+<header>
+<h1 class=posttitle itemprop="name headline">
+Best Practice for React-Native and Redux
+</h1>
+<div class=meta>
+<span class=author itemprop=author itemscope itemtype=http://schema.org/Person>
+<span itemprop=name>
+wd
+</span>
+</span>
+<div class=postdate>
+<time datetime="2017-11-26 09:19:11 +0800 +0800" itemprop=datePublished>2017-11-26</time>
+</div>
+<div class=article-tag>
+<i class="fas fa-tag"></i>
+<a class=tag-link href=/tags/react-native rel=tag>react-native</a>
+,
+<a class=tag-link href=/tags/redux rel=tag>redux</a>
+,
+<a class=tag-link href=/tags/app rel=tag>app</a>
+</div>
+</div>
+</header>
+<div id=toc>
 <nav id=TableOfContents>
 <ul>
 <li><a href=#headline-1>目录结构安排</a>
@@ -79,19 +173,15 @@
 </ul>
 </nav>
 </div>
-<div class=markdown>
+<div class=content itemprop=articleBody>
 <p>从 6 月到现在，在 RN 上面摸爬滚打了一段时间了，目前总算找到了一个适合我们自我感觉还可以的开发模式。</p>
 <p>
 一开始，我们使用的是传统的 React 的模式，然后一个 app 页面一个文件，通过 StackNavigator 组合到一起。这么做在我们的第一个 app 里面没觉得有什么问题，每个页面维护自己的数据，页面之间需要数据共享或者通讯的时候（比如从 list 到详情页面的时候，详情里面有一个改变状态的按钮，状态改变之后希望 list 的状态也跟着变化，这样用户返回之后能看到正确的数据）有 2 个方式。</p>
 <ul>
-<li>
-<p>通过 DeviceEventEmitter。
-需要数据的页面订阅，然后在其他页面 emit event 之后前面的页面就可以收到。这个时候可以只通知改变的数据的字段，前一个页面直接去修改，这样可以避免重新刷新页面。也可以发一个简单的通知让其他页面去自己获取数据。</p>
-</li>
-<li>
-<p>通过 navigator 提供的 params 属性。
-StatckNavigator 提供了一个 params 属性。就是 <code class=verbatim>this.props.navigation.state.params</code> ，可以通过 setParams 来改变，或者通过类似 <code class=verbatim>this.props.navigation.navigate('Login', {goBackToHome: true})</code> 的方式给，那个 <code class=verbatim>goBackToHome</code> 将来就会在 params 里面。</p>
-</li>
+<li>通过 DeviceEventEmitter。
+需要数据的页面订阅，然后在其他页面 emit event 之后前面的页面就可以收到。这个时候可以只通知改变的数据的字段，前一个页面直接去修改，这样可以避免重新刷新页面。也可以发一个简单的通知让其他页面去自己获取数据。</li>
+<li>通过 navigator 提供的 params 属性。
+StatckNavigator 提供了一个 params 属性。就是 <code class=verbatim>this.props.navigation.state.params</code> ，可以通过 setParams 来改变，或者通过类似 <code class=verbatim>this.props.navigation.navigate('Login', {goBackToHome: true})</code> 的方式给，那个 <code class=verbatim>goBackToHome</code> 将来就会在 params 里面。</li>
 </ul>
 <p>直到我们开始做第二个 app。</p>
 <p>
@@ -110,7 +200,7 @@ StatckNavigator 提供了一个 params 属性。就是 <code class=verbatim>this
 <p>
 先大概看看我们 app 的目录结构。我们把所有的 js 文件都放到了 app 目录下面。</p>
 <div class="src src-text">
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>app
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text>app
 ios
 android
 index.js</code></pre></div>
@@ -118,7 +208,7 @@ index.js</code></pre></div>
 <p>
 然后 app 目录下面，分了 <code class=verbatim>actions</code> ， <code class=verbatim>reducers</code> ， <code class=verbatim>sagas</code> ， <code class=verbatim>selector</code> 几个目录。</p>
 <div class="src src-text">
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-text data-lang=text>actions
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-text data-lang=text>actions
 images
 index.js
 reducers
@@ -128,18 +218,10 @@ selectors
 utility</code></pre></div>
 </div>
 <ul>
-<li>
-<p>actions 里面放的是 mapDispatchToProps 这个逻辑对应的东西。</p>
-</li>
-<li>
-<p>reducers 里面放的是 reducers。</p>
-</li>
-<li>
-<p>sagas 里面放的是所有网络请求相关的 actions 的处理逻辑。</p>
-</li>
-<li>
-<p>seelctor 里面放的是 mapStateToProps 这个逻辑对应的东西。</p>
-</li>
+<li>actions 里面放的是 mapDispatchToProps 这个逻辑对应的东西。</li>
+<li>reducers 里面放的是 reducers。</li>
+<li>sagas 里面放的是所有网络请求相关的 actions 的处理逻辑。</li>
+<li>seelctor 里面放的是 mapStateToProps 这个逻辑对应的东西。</li>
 </ul>
 <p>每个目录里面也都有一个自己的 index.js 把本目录里面的内容组合起来。通过最外面的 index.js 把这几个目录的逻辑组合起来。</p>
 </div>
@@ -219,31 +301,31 @@ android 有一个实体的返回按钮，StackNavigator 给出的<a href=https:/
 <p>
 我们通过下面的思路做的</p>
 <div class="src src-javascript">
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript>    <span class=nx>onBackPress</span> <span class=o>=</span> <span class=p>()</span> <span class=p>=&gt;</span> <span class=p>{</span>
-        <span class=kr>const</span> <span class=p>{</span> <span class=nx>dispatch</span><span class=p>,</span> <span class=nx>nav</span> <span class=p>}</span> <span class=o>=</span> <span class=k>this</span><span class=p>.</span><span class=nx>props</span><span class=p>;</span>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript>    <span style=color:#a6e22e>onBackPress</span> <span style=color:#f92672>=</span> () =&gt; {
+        <span style=color:#66d9ef>const</span> { <span style=color:#a6e22e>dispatch</span>, <span style=color:#a6e22e>nav</span> } <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>props</span>;
 
-        <span class=k>if</span> <span class=p>(</span><span class=nx>nav</span><span class=p>.</span><span class=nx>index</span> <span class=o>===</span> <span class=mi>0</span><span class=p>)</span> <span class=p>{</span>
-            <span class=k>return</span> <span class=kc>false</span><span class=p>;</span>
-        <span class=p>}</span>
-        <span class=kr>const</span> <span class=p>{</span><span class=nx>routes</span><span class=p>}</span> <span class=o>=</span> <span class=nx>nav</span><span class=p>;</span>
-        <span class=kr>const</span> <span class=p>{</span><span class=nx>params</span><span class=p>}</span> <span class=o>=</span> <span class=nx>routes</span><span class=p>[</span><span class=nx>routes</span><span class=p>.</span><span class=nx>length</span><span class=o>-</span><span class=mi>1</span><span class=p>]</span>
+        <span style=color:#66d9ef>if</span> (<span style=color:#a6e22e>nav</span>.<span style=color:#a6e22e>index</span> <span style=color:#f92672>===</span> <span style=color:#ae81ff>0</span>) {
+            <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>false</span>;
+        }
+        <span style=color:#66d9ef>const</span> {<span style=color:#a6e22e>routes</span>} <span style=color:#f92672>=</span> <span style=color:#a6e22e>nav</span>;
+        <span style=color:#66d9ef>const</span> {<span style=color:#a6e22e>params</span>} <span style=color:#f92672>=</span> <span style=color:#a6e22e>routes</span>[<span style=color:#a6e22e>routes</span>.<span style=color:#a6e22e>length</span><span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>]
 
-        <span class=k>if</span><span class=p>(</span><span class=nx>params</span> <span class=o>&amp;&amp;</span> <span class=nx>params</span><span class=p>.</span><span class=nx>goBack</span><span class=p>)</span> <span class=p>{</span>
-            <span class=nx>params</span><span class=p>.</span><span class=nx>goBack</span><span class=p>();</span>
-        <span class=p>}</span> <span class=k>else</span> <span class=p>{</span>
-            <span class=nx>dispatch</span><span class=p>(</span><span class=nx>NavigationActions</span><span class=p>.</span><span class=nx>back</span><span class=p>());</span>
-        <span class=p>}</span>
-        <span class=k>return</span> <span class=kc>true</span><span class=p>;</span>
-    <span class=p>};</span></code></pre></div>
+        <span style=color:#66d9ef>if</span>(<span style=color:#a6e22e>params</span> <span style=color:#f92672>&amp;&amp;</span> <span style=color:#a6e22e>params</span>.<span style=color:#a6e22e>goBack</span>) {
+            <span style=color:#a6e22e>params</span>.<span style=color:#a6e22e>goBack</span>();
+        } <span style=color:#66d9ef>else</span> {
+            <span style=color:#a6e22e>dispatch</span>(<span style=color:#a6e22e>NavigationActions</span>.<span style=color:#a6e22e>back</span>());
+        }
+        <span style=color:#66d9ef>return</span> <span style=color:#66d9ef>true</span>;
+    };</code></pre></div>
 </div>
 <p>
 然后在页面的基类里面</p>
 <div class="src src-javascript">
-<div class=highlight><pre tabindex=0 class=chroma><code class=language-javascript data-lang=javascript>    <span class=nx>constructor</span><span class=p>(</span><span class=nx>props</span><span class=p>)</span> <span class=p>{</span>
-        <span class=kr>super</span><span class=p>(</span><span class=nx>props</span><span class=p>);</span>
-        <span class=k>if</span> <span class=p>(</span><span class=k>this</span><span class=p>.</span><span class=nx>goBack</span><span class=p>)</span>
-            <span class=k>this</span><span class=p>.</span><span class=nx>props</span><span class=p>.</span><span class=nx>navigation</span><span class=p>.</span><span class=nx>setParams</span><span class=p>({</span> <span class=nx>goBack</span><span class=o>:</span> <span class=p>()=&gt;</span><span class=k>this</span><span class=p>.</span><span class=nx>goBack</span><span class=p>()</span> <span class=p>})</span>
-    <span class=p>}</span></code></pre></div>
+<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript>    <span style=color:#a6e22e>constructor</span>(<span style=color:#a6e22e>props</span>) {
+        <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>props</span>);
+        <span style=color:#66d9ef>if</span> (<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>goBack</span>)
+            <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>navigation</span>.<span style=color:#a6e22e>setParams</span>({ <span style=color:#a6e22e>goBack</span><span style=color:#f92672>:</span> ()=&gt;<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>goBack</span>() })
+    }</code></pre></div>
 </div>
 <p>
 然后页面里面如果有自己的特殊逻辑，那就实现一个 <code class=verbatim>goBack</code> 方法就好了。</p>
@@ -271,33 +353,102 @@ android 有一个实体的返回按钮，StackNavigator 给出的<a href=https:/
 </h4>
 <div id=outline-text-headline-11 class=outline-text-4>
 <ul>
+<li><a href=https://wdicc.com/11-mistakes-during-use-react-native/>11-mistakes-during-use-react-native</a></li>
+</ul>
+</div>
+</div>
+</div>
+</article>
+<div id=footer-post-container>
+<div id=footer-post>
+<div id=nav-footer style=display:none>
+<ul>
+<li><a href=/>Home</a></li>
+<li><a href=/posts>Posts</a></li>
+<li><a href=/tags>Tags</a></li>
+<li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li>
+<li><a href=/atom.xml>Subscribe</a></li>
+</ul>
+</div>
+<div id=share-footer style=display:none>
+<ul>
 <li>
-<p><a href=https://wdicc.com/11-mistakes-during-use-react-native/>11-mistakes-during-use-react-native</a></p>
+<a class=icon href="http://www.facebook.com/sharer.php?u=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f" aria-label=Facebook>
+<i class="fab fa-facebook fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://twitter.com/share?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&text=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label=Twitter>
+<i class="fab fa-twitter fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://www.linkedin.com/shareArticle?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&title=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label=Linkedin>
+<i class="fab fa-linkedin fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://pinterest.com/pin/create/bookmarklet/?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&is_video=false&description=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label=Pinterest>
+<i class="fab fa-pinterest fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="mailto:?subject=Best%20Practice%20for%20React-Native%20and%20Redux&body=Check out this article: https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f" aria-label=Email>
+<i class="fas fa-envelope fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://getpocket.com/save?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&title=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label=Pocket>
+<i class="fab fa-get-pocket fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://reddit.com/submit?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&title=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label=reddit>
+<i class="fab fa-reddit fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="http://www.tumblr.com/share/link?url=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&name=Best%20Practice%20for%20React-Native%20and%20Redux&description=%e4%bb%8e%206%20%e6%9c%88%e5%88%b0%e7%8e%b0%e5%9c%a8%ef%bc%8c%e5%9c%a8%20RN%20%e4%b8%8a%e9%9d%a2%e6%91%b8%e7%88%ac%e6%bb%9a%e6%89%93%e4%ba%86%e4%b8%80%e6%ae%b5%e6%97%b6%e9%97%b4%e4%ba%86%ef%bc%8c%e7%9b%ae%e5%89%8d%e6%80%bb%e7%ae%97%e6%89%be%e5%88%b0%e4%ba%86%e4%b8%80%e4%b8%aa%e9%80%82%e5%90%88%e6%88%91%e4%bb%ac%e8%87%aa%e6%88%91%e6%84%9f%e8%a7%89%e8%bf%98%e5%8f%af%e4%bb%a5%e7%9a%84%e5%bc%80%e5%8f%91%e6%a8%a1%e5%bc%8f%e3%80%82%20%e4%b8%80%e5%bc%80" aria-label=Tumblr>
+<i class="fab fa-tumblr fa-lg" aria-hidden=true></i>
+</a>
+</li>
+<li>
+<a class=icon href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fwdicc.com%2fbest-practice-for-react-native-redux%2f&t=Best%20Practice%20for%20React-Native%20and%20Redux" aria-label="Hacker News">
+<i class="fab fa-hacker-news fa-lg" aria-hidden=true></i>
+</a>
 </li>
 </ul>
 </div>
+<div id=actions-footer>
+<a id=menu-toggle class=icon href=# onclick="return $('#nav-footer').toggle(),!1" aria-label=Menu>
+<i class="fas fa-bars fa-lg" aria-hidden=true></i> Menu</a>
+<a id=share-toggle class=icon href=# onclick="return $('#share-footer').toggle(),!1" aria-label=Share>
+<i class="fas fa-share-alt fa-lg" aria-hidden=true></i> share</a>
+<a id=top style=display:none class=icon href=# onclick="$('html, body').animate({scrollTop:0},'fast')" aria-label="Top of Page">
+<i class="fas fa-chevron-up fa-lg" aria-hidden=true></i> Top</a>
 </div>
 </div>
-<div class=post-tags>
-<nav class="nav tags">
-<ul class=flat>
-<li><a href=/tags/react-native>react-native</a></li>
-<li><a href=/tags/redux>redux</a></li>
-<li><a href=/tags/app>app</a></li>
+</div>
+<footer id=footer>
+<div class=footer-left>
+Copyright &copy; 2022 wd and cc
+</div>
+<div class=footer-right>
+<nav>
+<ul>
+<li><a href=/>Home</a></li>
+<li><a href=/posts>Posts</a></li>
+<li><a href=/tags>Tags</a></li>
+<li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li>
+<li><a href=/atom.xml>Subscribe</a></li>
 </ul>
 </nav>
 </div>
-<div id=disqus_thread></div>
-<script type=text/javascript>(function(){var a,b;if(window.location.hostname=="localhost")return;a=document.createElement('script'),a.type='text/javascript',a.async=!0,b='wdicc',a.src='//'+b+'.disqus.com/embed.js',(document.getElementsByTagName('head')[0]||document.getElementsByTagName('body')[0]).appendChild(a)})()</script>
-<noscript>Please enable JavaScript to view the <a href=http://disqus.com/?ref_noscript>comments powered by
-Disqus.</a></noscript>
-<a href=http://disqus.com/ class=dsq-brlink>comments powered by <span class=logo-disqus>Disqus</span></a>
+</footer>
 </div>
-<div class="footer wrapper">
-<nav class=nav>
-<div> Copyright © 2020 wd. All Rights Reserved | <a href=https://github.com/vividvilla/ezhil>Ezhil theme</a> | Built with <a href=https://gohugo.io>Hugo</a></div>
-</nav>
-</div>
-<script>feather.replace()</script>
 </body>
+<link rel=stylesheet href=/lib/font-awesome/css/all.min.css>
+<script src=/lib/jquery/jquery.min.js></script>
+<script src=/js/main.js></script>
+<script src=/js/code-copy.js></script>
 </html>
