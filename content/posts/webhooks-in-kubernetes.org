@@ -1,0 +1,30 @@
+---
+title: "Webhooks in Kubernetes"
+date: 2022-08-28T09:38:59+08:00
+tags: ["kubernetes", "webhook"]
+toc: true
+---
+
+Kubernetes allows us to hook on API request chain to do some specific checks or modifies.
+
+* Kubernetes API access control
+
+There are two types of control. One is to control which user(token, group) is allowed to access, the other one is to control which resource a user could access. The kube-apiserver has two arguments to allow users to define that.
+
+- Authentication: [[https://kubernetes.io/docs/reference/access-authn-authz/authentication/#webhook-token-authentication][--authentication-token-webhook-config-file]]
+- Authorization: [[https://kubernetes.io/docs/reference/access-authn-authz/webhook/][--authorization-webhook-config-file]]
+
+* Admission webhook
+
+[[https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#what-are-admission-webhooks][Here]] is the definition about what admission webhook could do.
+#+begin_quote
+Admission webhooks are HTTP callbacks that receive admission requests and do something with them. You can define two types of admission webhooks, validating admission webhook and mutating admission webhook. Mutating admission webhooks are invoked first, and can modify objects sent to the API server to enforce custom defaults. After all object modifications are complete, and after the incoming object is validated by the API server, validating admission webhooks are invoked and can reject requests to enforce custom policies.
+#+end_quote
+
+So, basically there are two types of admission webhook you could use
+- Validating admission webhook
+- Mutating admission webhook
+
+* Conversion webhook for CRD
+
+Sometimes multiple versions of CRD will be supported at the same time. However, we usually will only allow one version to be stored in ETCD. Because we don't want to maintain the consistency between different versions. Kubernetes allows us to define a [[https://kubernetes.io/docs/tasks/extend-kubernetes/custom-resources/custom-resource-definition-versioning/#webhook-conversion][webhook to convert between versions]] on the fly.

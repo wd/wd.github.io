@@ -473,6 +473,69 @@ services -> ddns -> add
 
 点击那个 reload 可以重复执行。点击 edit 可以看 log，如果遇到 ssl 错误，可能需要安装 `libwolfssl4.8.1.66253b90`，openwrt 默认使用 [wolfssl](https://openwrt.org/releases/21.02/notes-21.02.0-rc1#tls_and_https_support_included_by_default) 。
 
+## 穷人的防屏蔽措施
+
+wireguard 连不上也很稀松平常，一方面 UDP 被 Qos，另外一方面就是 GFW 作怪。我在 twitter 上面无意中看到一个措施感觉还有点用。思路就是在服务器端开 N 个 wireguard 端口，客户端连接有问题的时候就换一个。
+
+当然实际上在服务器端也不用真的开 N 个，只需要用 iptables 转发到真实的端口就行。就是类似下面这句，把其中的几个端口改改就行。
+
+```
+iptables -t nat -A PREROUTING -p udp --destination-port 20011:23344 -j REDIRECT --to-ports 1234
+```
+
+然后在 openwrt 里面，增加一个 crontab 定期检查网络是不是通的就行。这里面几个端口可能需要改改，以及 wg 设备的名字。 crontab 项目类似这个 `* * * * * /etc/wg/change-wg-port.sh`.
+
+```bash
+LOG=/tmp/check_gfw.log
+
+
+log() {
+    echo "$(date +%F_%T) $1" >> $LOG
+}
+
+check_gfw() {
+    code=$(curl -s -o /dev/null -w "%{http_code}" google.com)
+    if [ "$code" = "301" ]; then
+        log "google.com is ok"
+    else
+        log "google.com is not ok $code, switch port"
+        switch_port
+    fi
+}
+
+switch_port() {
+    current_port=$(uci get network.@wireguard_wg0[2].endpoint_port)
+    new_port=$(expr $current_port + 1)
+    if [ "$new_port" = "23344" ];then
+      new_port=20011
+    fi
+    log "new port is $new_port"
+    uci set network.@wireguard_wg0[2].endpoint_port=$new_port
+    uci commit network
+    ifup wg0
+}
+
+check_gfw
+```
+
+这个是我的一些检查日志，8.5 断了九分钟，8.7 断了三分钟。这个因为是 1 分钟检查一次，所以可能会有点慢，但是，总归比什么都不做强。。
+```
+2022-08-02_12:53:05 google.com is not ok 000, switch port
+2022-08-05_22:24:05 google.com is not ok 000, switch port
+2022-08-05_22:25:05 google.com is not ok 000, switch port
+2022-08-05_22:26:05 google.com is not ok 000, switch port
+2022-08-05_22:27:05 google.com is not ok 000, switch port
+2022-08-05_22:28:05 google.com is not ok 000, switch port
+2022-08-05_22:29:05 google.com is not ok 000, switch port
+2022-08-05_22:30:05 google.com is not ok 000, switch port
+2022-08-05_22:31:05 google.com is not ok 000, switch port
+2022-08-05_22:32:05 google.com is not ok 000, switch port
+2022-08-07_02:11:15 google.com is not ok 000, switch port
+2022-08-07_02:12:05 google.com is not ok 000, switch port
+2022-08-07_02:13:05 google.com is not ok 000, switch port
+2022-08-07_02:14:05 google.com is not ok 000, switch port
+```
+
 ## 其他
 - 通过配置 port-foward -> router 开放 router 下面客户端的端口。例如 NAS bt 下载用的 p2p 端口。注意还需要在 router 里面也做这个映射。当然也可以直接把 nas 接到 openwrt。
 - 如果在路由配置好之前发生了针对被污染的域名的 dns 查询，那很可能会缓存被污染的结果，目前没想到什么好办法。不过好在一般等 dns 过期之后就正常了。
