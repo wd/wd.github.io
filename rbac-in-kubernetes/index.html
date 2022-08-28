@@ -1,346 +1,77 @@
-<!doctype html><html lang=zh-cn>
-<head>
-<link rel=preload href=/lib/font-awesome/webfonts/fa-brands-400.woff2 as=font type=font/woff2 crossorigin=anonymous>
-<link rel=preload href=/lib/font-awesome/webfonts/fa-regular-400.woff2 as=font type=font/woff2 crossorigin=anonymous>
-<link rel=preload href=/lib/font-awesome/webfonts/fa-solid-900.woff2 as=font type=font/woff2 crossorigin=anonymous>
-<link rel=preload href=/lib/JetBrainsMono/web/woff2/JetBrainsMono-Regular.woff2 as=font type=font/woff2 crossorigin=anonymous>
-<meta charset=utf-8>
-<meta http-equiv=x-ua-compatible content="IE=edge">
-<title> RBAC in Kubernetes | wd and cc</title>
-<link rel=canonical href=https://wdicc.com/rbac-in-kubernetes/>
-<meta name=viewport content="width=device-width,initial-scale=1">
-<meta name=robots content="all,follow">
-<meta name=googlebot content="index,follow,snippet,archive">
-<meta property="og:title" content="RBAC in Kubernetes">
-<meta property="og:description" content="How to give a pod the access to run kubectl to create pods or configmaps? It's very simple.
- Every pods has to bind to a service account, it will be default, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API.">
-<meta property="og:type" content="article">
-<meta property="og:url" content="https://wdicc.com/rbac-in-kubernetes/"><meta property="article:section" content="posts">
-<meta property="article:published_time" content="2020-05-18T17:14:58+08:00">
-<meta property="article:modified_time" content="2020-05-18T17:14:58+08:00">
-<meta name=twitter:card content="summary">
-<meta name=twitter:title content="RBAC in Kubernetes">
-<meta name=twitter:description content="How to give a pod the access to run kubectl to create pods or configmaps? It's very simple.
- Every pods has to bind to a service account, it will be default, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API.">
-<link rel=stylesheet href=https://wdicc.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css integrity="sha512-lPZT6eFR4oBnp8XbvEYAy9WjxyHnn6r5ceUjxA87JJuOTyC7V4EN//qNVZylwUD9VutM2cCFMROtCOZq/bCL3Q==">
-<link rel=stylesheet href=https://wdicc.com/wdicc.css><!--[if lt IE 9]><script src=https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js></script>
-<script src=https://oss.maxcdn.com/respond/1.4.2/respond.min.js></script><![endif]-->
-<link rel=icon type=image/png href=https://wdicc.com/favicon.ico>
-</head>
-<body class="max-width mx-auto px3 ltr">
-<div class="content index py4">
-<div id=header-post>
-<a id=menu-icon href=#><i class="fas fa-bars fa-lg"></i></a>
+<!doctype html><html lang=zh-cn><head><link rel=preload href=/lib/font-awesome/webfonts/fa-brands-400.woff2 as=font type=font/woff2 crossorigin=anonymous><link rel=preload href=/lib/font-awesome/webfonts/fa-regular-400.woff2 as=font type=font/woff2 crossorigin=anonymous><link rel=preload href=/lib/font-awesome/webfonts/fa-solid-900.woff2 as=font type=font/woff2 crossorigin=anonymous><link rel=preload href=/lib/JetBrainsMono/web/woff2/JetBrainsMono-Regular.woff2 as=font type=font/woff2 crossorigin=anonymous><meta charset=utf-8><meta http-equiv=x-ua-compatible content="IE=edge"><title>RBAC in Kubernetes | wd and cc</title><link rel=canonical href=https://wdicc.com/rbac-in-kubernetes/><meta name=viewport content="width=device-width,initial-scale=1"><meta name=robots content="all,follow"><meta name=googlebot content="index,follow,snippet,archive"><meta property="og:title" content="RBAC in Kubernetes"><meta property="og:description" content="How to give a pod the access to run kubectl to create pods or configmaps? It's very simple.
+Every pods has to bind to a service account, it will be default, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API.
+First, create a service account."><meta property="og:type" content="article"><meta property="og:url" content="https://wdicc.com/rbac-in-kubernetes/"><meta property="article:section" content="posts"><meta property="article:published_time" content="2020-05-18T17:14:58+08:00"><meta property="article:modified_time" content="2020-05-18T17:14:58+08:00"><meta name=twitter:card content="summary"><meta name=twitter:title content="RBAC in Kubernetes"><meta name=twitter:description content="How to give a pod the access to run kubectl to create pods or configmaps? It's very simple.
+Every pods has to bind to a service account, it will be default, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API.
+First, create a service account."><link rel=stylesheet href=https://wdicc.com/css/styles.94f653e9e151e28067a7c5dbbc4600cbd5a3c721e79faaf971e523c40f3b249b8e4f20bb57810dfffa8d559ca5c140fd56eb4cd9c0853113ad08e66afdb08bdd.css integrity="sha512-lPZT6eFR4oBnp8XbvEYAy9WjxyHnn6r5ceUjxA87JJuOTyC7V4EN//qNVZylwUD9VutM2cCFMROtCOZq/bCL3Q=="><link rel=stylesheet href=https://wdicc.com/wdicc.css><!--[if lt IE 9]><script src=https://oss.maxcdn.com/html5shiv/3.7.2/html5shiv.min.js></script>
+<script src=https://oss.maxcdn.com/respond/1.4.2/respond.min.js></script><![endif]--><link rel=icon type=image/png href=https://wdicc.com/favicon.ico></head><body class="max-width mx-auto px3 ltr"><div class="content index py4"><div id=header-post><a id=menu-icon href=#><i class="fas fa-bars fa-lg"></i></a>
 <a id=menu-icon-tablet href=#><i class="fas fa-bars fa-lg"></i></a>
-<a id=top-icon-tablet href=# onclick="$('html, body').animate({scrollTop:0},'fast')" style=display:none aria-label="Top of Page"><i class="fas fa-chevron-up fa-lg"></i></a>
-<span id=menu>
-<span id=nav>
-<ul>
-<li><a href=/>Home</a></li>
-<li><a href=/posts>Posts</a></li>
-<li><a href=/tags>Tags</a></li>
-<li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li>
-<li><a href=/atom.xml>Subscribe</a></li>
-</ul>
-</span>
-<br>
-<span id=actions>
-<ul>
-<li>
-<a class=icon href=https://wdicc.com/dont-need-kubernates/ aria-label=Previous>
-<i class="fas fa-chevron-left" aria-hidden=true onmouseover="$('#i-prev').toggle()" onmouseout="$('#i-prev').toggle()"></i>
-</a>
-</li>
-<li>
-<a class=icon href=https://wdicc.com/10-most-common-mistakes-using-kubernetes/ aria-label=Next>
-<i class="fas fa-chevron-right" aria-hidden=true onmouseover="$('#i-next').toggle()" onmouseout="$('#i-next').toggle()"></i>
-</a>
-</li>
-<li>
-<a class=icon href=# onclick="$('html, body').animate({scrollTop:0},'fast')" aria-label="Top of Page">
-<i class="fas fa-chevron-up" aria-hidden=true onmouseover="$('#i-top').toggle()" onmouseout="$('#i-top').toggle()"></i>
-</a>
-</li>
-<li>
-<a class=icon href=# aria-label=Share>
-<i class="fas fa-share-alt" aria-hidden=true onmouseover="$('#i-share').toggle()" onmouseout="$('#i-share').toggle()" onclick="return $('#share').toggle(),!1"></i>
-</a>
-</li>
-</ul>
-<span id=i-prev class=info style=display:none>Previous post</span>
+<a id=top-icon-tablet href=# onclick='$("html, body").animate({scrollTop:0},"fast")' style=display:none aria-label="Top of Page"><i class="fas fa-chevron-up fa-lg"></i></a>
+<span id=menu><span id=nav><ul><li><a href=/>Home</a></li><li><a href=/posts>Posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></span><br><span id=actions><ul><li><a class=icon href=https://wdicc.com/dont-need-kubernates/ aria-label=Previous><i class="fas fa-chevron-left" aria-hidden=true onmouseover='$("#i-prev").toggle()' onmouseout='$("#i-prev").toggle()'></i></a></li><li><a class=icon href=https://wdicc.com/10-most-common-mistakes-using-kubernetes/ aria-label=Next><i class="fas fa-chevron-right" aria-hidden=true onmouseover='$("#i-next").toggle()' onmouseout='$("#i-next").toggle()'></i></a></li><li><a class=icon href=# onclick='$("html, body").animate({scrollTop:0},"fast")' aria-label="Top of Page"><i class="fas fa-chevron-up" aria-hidden=true onmouseover='$("#i-top").toggle()' onmouseout='$("#i-top").toggle()'></i></a></li><li><a class=icon href=# aria-label=Share><i class="fas fa-share-alt" aria-hidden=true onmouseover='$("#i-share").toggle()' onmouseout='$("#i-share").toggle()' onclick='return $("#share").toggle(),!1'></i></a></li></ul><span id=i-prev class=info style=display:none>Previous post</span>
 <span id=i-next class=info style=display:none>Next post</span>
 <span id=i-top class=info style=display:none>Back to top</span>
-<span id=i-share class=info style=display:none>Share post</span>
-</span>
-<br>
-<div id=share style=display:none>
-<ul>
-<li>
-<a class=icon href="http://www.facebook.com/sharer.php?u=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f" aria-label=Facebook>
-<i class="fab fa-facebook" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="https://twitter.com/share?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&text=RBAC%20in%20Kubernetes" aria-label=Twitter>
-<i class="fab fa-twitter" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="http://www.linkedin.com/shareArticle?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=Linkedin>
-<i class="fab fa-linkedin" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="https://pinterest.com/pin/create/bookmarklet/?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&is_video=false&description=RBAC%20in%20Kubernetes" aria-label=Pinterest>
-<i class="fab fa-pinterest" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="mailto:?subject=RBAC%20in%20Kubernetes&body=Check out this article: https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f" aria-label=Email>
-<i class="fas fa-envelope" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="https://getpocket.com/save?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=Pocket>
-<i class="fab fa-get-pocket" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="http://reddit.com/submit?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=reddit>
-<i class="fab fa-reddit" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="http://www.tumblr.com/share/link?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&name=RBAC%20in%20Kubernetes&description=How%20to%20give%20a%20pod%20the%20access%20to%20run%20kubectl%20to%20create%20pods%20or%20configmaps%3f%20It%26%2339%3bs%20very%20simple.%0a%20Every%20pods%20has%20to%20bind%20to%20a%20service%20account%2c%20it%20will%20be%20default%2c%20if%20you%20haven%26%2339%3bt%20specify%20one.%20And%20by%20default%2c%20this%20account%20didn%26%2339%3bt%20have%20any%20access%20to%20the%20kubernetes%20API." aria-label=Tumblr>
-<i class="fab fa-tumblr" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&t=RBAC%20in%20Kubernetes" aria-label="Hacker News">
-<i class="fab fa-hacker-news" aria-hidden=true></i>
-</a>
-</li>
-</ul>
-</div>
-</span>
-</div>
-<article class=post itemscope itemtype=http://schema.org/BlogPosting>
-<header>
-<h1 class=posttitle itemprop="name headline">
-RBAC in Kubernetes
-</h1>
-<div class=meta>
-<span class=author itemprop=author itemscope itemtype=http://schema.org/Person>
-<span itemprop=name>
-wd
-</span>
-</span>
-<div class=postdate>
-<time datetime="2020-05-18 17:14:58 +0800 +0800" itemprop=datePublished>2020-05-18</time>
-</div>
-<div class=article-tag>
-<i class="fas fa-tag"></i>
+<span id=i-share class=info style=display:none>Share post</span></span><br><div id=share style=display:none><ul><li><a class=icon href="http://www.facebook.com/sharer.php?u=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f" aria-label=Facebook><i class="fab fa-facebook" aria-hidden=true></i></a></li><li><a class=icon href="https://twitter.com/share?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&text=RBAC%20in%20Kubernetes" aria-label=Twitter><i class="fab fa-twitter" aria-hidden=true></i></a></li><li><a class=icon href="http://www.linkedin.com/shareArticle?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=Linkedin><i class="fab fa-linkedin" aria-hidden=true></i></a></li><li><a class=icon href="https://pinterest.com/pin/create/bookmarklet/?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&is_video=false&description=RBAC%20in%20Kubernetes" aria-label=Pinterest><i class="fab fa-pinterest" aria-hidden=true></i></a></li><li><a class=icon href="mailto:?subject=RBAC%20in%20Kubernetes&body=Check out this article: https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f" aria-label=Email><i class="fas fa-envelope" aria-hidden=true></i></a></li><li><a class=icon href="https://getpocket.com/save?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=Pocket><i class="fab fa-get-pocket" aria-hidden=true></i></a></li><li><a class=icon href="http://reddit.com/submit?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=reddit><i class="fab fa-reddit" aria-hidden=true></i></a></li><li><a class=icon href="http://www.tumblr.com/share/link?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&name=RBAC%20in%20Kubernetes&description=How%20to%20give%20a%20pod%20the%20access%20to%20run%20kubectl%20to%20create%20pods%20or%20configmaps%3f%20It%26%2339%3bs%20very%20simple.%0aEvery%20pods%20has%20to%20bind%20to%20a%20service%20account%2c%20it%20will%20be%20default%2c%20if%20you%20haven%26%2339%3bt%20specify%20one.%20And%20by%20default%2c%20this%20account%20didn%26%2339%3bt%20have%20any%20access%20to%20the%20kubernetes%20API.%0aFirst%2c%20create%20a%20service%20account." aria-label=Tumblr><i class="fab fa-tumblr" aria-hidden=true></i></a></li><li><a class=icon href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&t=RBAC%20in%20Kubernetes" aria-label="Hacker News"><i class="fab fa-hacker-news" aria-hidden=true></i></a></li></ul></div></span></div><article class=post itemscope itemtype=http://schema.org/BlogPosting><header><h1 class=posttitle itemprop="name headline">RBAC in Kubernetes</h1><div class=meta><span class=author itemprop=author itemscope itemtype=http://schema.org/Person><span itemprop=name>wd</span></span><div class=postdate><time datetime="2020-05-18 17:14:58 +0800 +0800" itemprop=datePublished>2020-05-18</time></div><div class=article-tag><i class="fas fa-tag"></i>
 <a class=tag-link href=/tags/rbac rel=tag>RBAC</a>
 ,
-<a class=tag-link href=/tags/kubernetes rel=tag>kubernetes</a>
-</div>
-</div>
-</header>
-<div id=toc>
-</div>
-<div class=content itemprop=articleBody>
-<p>How to give a pod the access to run kubectl to create pods or configmaps? It's very simple.</p>
-<p>
-Every pods has to bind to a service account, it will be <code class=verbatim>default</code>, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API.</p>
-<p>
-First, create a service account.</p>
-<div class="src src-yaml">
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
-<span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ServiceAccount</span>
-<span style=color:#f92672>metadata</span>:
-  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-sa</span>
-  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>default </span> <span style=color:#75715e># default namespace</span></code></pre></div>
-</div>
-<p>
-Create a cluster role binding with an exists cluster role named <code class=verbatim>cluster-admin</code>, you can create one if you want.</p>
-<div class="src src-yaml">
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1beta1</span>
-<span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ClusterRoleBinding</span>
-<span style=color:#f92672>metadata</span>:
-  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-admin-crb</span>
-<span style=color:#f92672>roleRef</span>:
-  <span style=color:#f92672>apiGroup</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io</span>
-  <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ClusterRole</span>
-  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>cluster-admin</span> <span style=color:#75715e># bind to an exists ClusterRole, you can create one if you want</span>
-<span style=color:#f92672>subjects</span>:
-- <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ServiceAccount</span>
-  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-sa</span>
-  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>default</span></code></pre></div>
-</div>
-<p>
-Ok, that's all. Create our pod now.</p>
-<div class="src src-yaml">
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
-<span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Pod</span>
-<span style=color:#f92672>metadata</span>:
-  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>netshoot</span>
-  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>default</span>
-  <span style=color:#f92672>labels</span>:
-    <span style=color:#f92672>app</span>: <span style=color:#ae81ff>netshoot</span>
-<span style=color:#f92672>spec</span>:
-  <span style=color:#f92672>serviceAccountName</span>: <span style=color:#ae81ff>debug-sa</span>
-  <span style=color:#f92672>containers</span>:
-  - <span style=color:#f92672>image</span>: <span style=color:#ae81ff>bitnami/kubectl</span>
-    <span style=color:#f92672>name</span>: <span style=color:#ae81ff>kubectl</span>
-    <span style=color:#f92672>command</span>:
-      - <span style=color:#ae81ff>sleep</span>
-      - <span style=color:#e6db74>&#34;3600&#34;</span>
-  <span style=color:#f92672>restartPolicy</span>: <span style=color:#ae81ff>Always</span></code></pre></div>
-</div>
-<p>
-Now, your pods have the <code class=verbatim>cluster-admin</code> access to visit you API resources. What's if I only need to give the pod the access to list pods?</p>
-<p>
-First, create a role, with limited access to pods. This role can't visit other resource other than pods.</p>
-<div class="src src-yaml">
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
-<span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Role</span>
-<span style=color:#f92672>metadata</span>:
-  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-role</span>
-<span style=color:#f92672>rules</span>:
-  - <span style=color:#f92672>apiGroups</span>: [<span style=color:#e6db74>&#34;&#34;</span>]
-    <span style=color:#f92672>resources</span>:
-      - <span style=color:#ae81ff>pods</span> <span style=color:#75715e># limit the role only have limit access to pods</span>
-    <span style=color:#f92672>verbs</span>:
-      - <span style=color:#ae81ff>get</span>
-      - <span style=color:#ae81ff>list</span>
-      - <span style=color:#ae81ff>delete</span></code></pre></div>
-</div>
-<p>
-Create a role binding, to bind the role and the service account.</p>
-<div class="src src-yaml">
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
-<span style=color:#f92672>kind</span>: <span style=color:#ae81ff>RoleBinding</span>
-<span style=color:#f92672>metadata</span>:
-  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-rb</span>
-<span style=color:#f92672>subjects</span>:
-  - <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ServiceAccount</span>
-    <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-sa</span>
-<span style=color:#f92672>roleRef</span>:
-  <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Role</span>
-  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-role</span>
-  <span style=color:#f92672>apiGroup</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io</span></code></pre></div>
-</div>
-<p>
-And then recreate your pod with this service account. Don't forget to delete the privious cluter role binding for this service account.</p>
-<div class="src src-shell">
-<div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell>$ k exec -it netshoot -c <span style=color:#e6db74>&#39;kubectl&#39;</span> -- /bin/bash
-I have no name!@netshoot:/$ kubectl get pods
-NAME                                          READY   STATUS    RESTARTS   AGE
-netshoot                                      2/2     Running   <span style=color:#ae81ff>0</span>          13m
-
-I have no name!@netshoot:/$ kubectl get svc
-Error from server <span style=color:#f92672>(</span>Forbidden<span style=color:#f92672>)</span>: services is forbidden: User <span style=color:#e6db74>&#34;system:serviceaccount:default:debug-sa&#34;</span> cannot list resource <span style=color:#e6db74>&#34;services&#34;</span> in API group <span style=color:#e6db74>&#34;&#34;</span> in the namespace <span style=color:#e6db74>&#34;default&#34;</span>
-I have no name!@netshoot:/$</code></pre></div>
-</div>
-<p>
-What's the difference between role and cluster role?</p>
-<ul>
-<li>For role, it's limited in a namespace, it only can limit resources inside a namespace.</li>
-<li>Some resource like PV, cluster health, it's not related with a namespace, it's cluster wide, you only can use cluster role to limit them.</li>
-<li>A role binding can bind a role to a service account in an other namespace.</li>
-</ul>
-</div>
-</article>
-<div id=footer-post-container>
-<div id=footer-post>
-<div id=nav-footer style=display:none>
-<ul>
-<li><a href=/>Home</a></li>
-<li><a href=/posts>Posts</a></li>
-<li><a href=/tags>Tags</a></li>
-<li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li>
-<li><a href=/atom.xml>Subscribe</a></li>
-</ul>
-</div>
-<div id=share-footer style=display:none>
-<ul>
-<li>
-<a class=icon href="http://www.facebook.com/sharer.php?u=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f" aria-label=Facebook>
-<i class="fab fa-facebook fa-lg" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="https://twitter.com/share?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&text=RBAC%20in%20Kubernetes" aria-label=Twitter>
-<i class="fab fa-twitter fa-lg" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="http://www.linkedin.com/shareArticle?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=Linkedin>
-<i class="fab fa-linkedin fa-lg" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="https://pinterest.com/pin/create/bookmarklet/?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&is_video=false&description=RBAC%20in%20Kubernetes" aria-label=Pinterest>
-<i class="fab fa-pinterest fa-lg" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="mailto:?subject=RBAC%20in%20Kubernetes&body=Check out this article: https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f" aria-label=Email>
-<i class="fas fa-envelope fa-lg" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="https://getpocket.com/save?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=Pocket>
-<i class="fab fa-get-pocket fa-lg" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="http://reddit.com/submit?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=reddit>
-<i class="fab fa-reddit fa-lg" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="http://www.tumblr.com/share/link?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&name=RBAC%20in%20Kubernetes&description=How%20to%20give%20a%20pod%20the%20access%20to%20run%20kubectl%20to%20create%20pods%20or%20configmaps%3f%20It%26%2339%3bs%20very%20simple.%0a%20Every%20pods%20has%20to%20bind%20to%20a%20service%20account%2c%20it%20will%20be%20default%2c%20if%20you%20haven%26%2339%3bt%20specify%20one.%20And%20by%20default%2c%20this%20account%20didn%26%2339%3bt%20have%20any%20access%20to%20the%20kubernetes%20API." aria-label=Tumblr>
-<i class="fab fa-tumblr fa-lg" aria-hidden=true></i>
-</a>
-</li>
-<li>
-<a class=icon href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&t=RBAC%20in%20Kubernetes" aria-label="Hacker News">
-<i class="fab fa-hacker-news fa-lg" aria-hidden=true></i>
-</a>
-</li>
-</ul>
-</div>
-<div id=actions-footer>
-<a id=menu-toggle class=icon href=# onclick="return $('#nav-footer').toggle(),!1" aria-label=Menu>
-<i class="fas fa-bars fa-lg" aria-hidden=true></i> Menu</a>
-<a id=share-toggle class=icon href=# onclick="return $('#share-footer').toggle(),!1" aria-label=Share>
-<i class="fas fa-share-alt fa-lg" aria-hidden=true></i> share</a>
-<a id=top style=display:none class=icon href=# onclick="$('html, body').animate({scrollTop:0},'fast')" aria-label="Top of Page">
-<i class="fas fa-chevron-up fa-lg" aria-hidden=true></i> Top</a>
-</div>
-</div>
-</div>
-<footer id=footer>
-<div class=footer-left>
-Copyright &copy; 2022 wd and cc
-</div>
-<div class=footer-right>
-<nav>
-<ul>
-<li><a href=/>Home</a></li>
-<li><a href=/posts>Posts</a></li>
-<li><a href=/tags>Tags</a></li>
-<li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li>
-<li><a href=/atom.xml>Subscribe</a></li>
-</ul>
-</nav>
-</div>
-</footer>
-</div>
-</body>
-<link rel=stylesheet href=/lib/font-awesome/css/all.min.css>
-<script src=/lib/jquery/jquery.min.js></script>
+<a class=tag-link href=/tags/kubernetes rel=tag>kubernetes</a></div></div></header><div id=toc></div><div class=content itemprop=articleBody><p>How to give a pod the access to run kubectl to create pods or configmaps? It's very simple.</p><p>Every pods has to bind to a service account, it will be <code class=verbatim>default</code>, if you haven't specify one. And by default, this account didn't have any access to the kubernetes API.</p><p>First, create a service account.</p><div class="src src-yaml"><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ServiceAccount</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-sa</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>default </span> <span style=color:#75715e># default namespace</span></span></span></code></pre></div></div><p>Create a cluster role binding with an exists cluster role named <code class=verbatim>cluster-admin</code>, you can create one if you want.</p><div class="src src-yaml"><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1beta1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ClusterRoleBinding</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-admin-crb</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>roleRef</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>apiGroup</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ClusterRole</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>cluster-admin</span> <span style=color:#75715e># bind to an exists ClusterRole, you can create one if you want</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>subjects</span>:
+</span></span><span style=display:flex><span>- <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ServiceAccount</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-sa</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>default</span></span></span></code></pre></div></div><p>Ok, that's all. Create our pod now.</p><div class="src src-yaml"><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Pod</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>netshoot</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>namespace</span>: <span style=color:#ae81ff>default</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>labels</span>:
+</span></span><span style=display:flex><span>    <span style=color:#f92672>app</span>: <span style=color:#ae81ff>netshoot</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>spec</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>serviceAccountName</span>: <span style=color:#ae81ff>debug-sa</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>containers</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#f92672>image</span>: <span style=color:#ae81ff>bitnami/kubectl</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>name</span>: <span style=color:#ae81ff>kubectl</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>command</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>sleep</span>
+</span></span><span style=display:flex><span>      - <span style=color:#e6db74>&#34;3600&#34;</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>restartPolicy</span>: <span style=color:#ae81ff>Always</span></span></span></code></pre></div></div><p>Now, your pods have the <code class=verbatim>cluster-admin</code> access to visit you API resources. What's if I only need to give the pod the access to list pods?</p><p>First, create a role, with limited access to pods. This role can't visit other resource other than pods.</p><div class="src src-yaml"><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Role</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-role</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>rules</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#f92672>apiGroups</span>: [<span style=color:#e6db74>&#34;&#34;</span>]
+</span></span><span style=display:flex><span>    <span style=color:#f92672>resources</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>pods</span> <span style=color:#75715e># limit the role only have limit access to pods</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>verbs</span>:
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>get</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>list</span>
+</span></span><span style=display:flex><span>      - <span style=color:#ae81ff>delete</span></span></span></code></pre></div></div><p>Create a role binding, to bind the role and the service account.</p><div class="src src-yaml"><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-yaml data-lang=yaml><span style=display:flex><span><span style=color:#f92672>apiVersion</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io/v1</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>kind</span>: <span style=color:#ae81ff>RoleBinding</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>metadata</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-rb</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>subjects</span>:
+</span></span><span style=display:flex><span>  - <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>ServiceAccount</span>
+</span></span><span style=display:flex><span>    <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-sa</span>
+</span></span><span style=display:flex><span><span style=color:#f92672>roleRef</span>:
+</span></span><span style=display:flex><span>  <span style=color:#f92672>kind</span>: <span style=color:#ae81ff>Role</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>name</span>: <span style=color:#ae81ff>debug-role</span>
+</span></span><span style=display:flex><span>  <span style=color:#f92672>apiGroup</span>: <span style=color:#ae81ff>rbac.authorization.k8s.io</span></span></span></code></pre></div></div><p>And then recreate your pod with this service account. Don't forget to delete the privious cluter role binding for this service account.</p><div class="src src-shell"><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-shell data-lang=shell><span style=display:flex><span>$ k exec -it netshoot -c <span style=color:#e6db74>&#39;kubectl&#39;</span> -- /bin/bash
+</span></span><span style=display:flex><span>I have no name!@netshoot:/$ kubectl get pods
+</span></span><span style=display:flex><span>NAME                                          READY   STATUS    RESTARTS   AGE
+</span></span><span style=display:flex><span>netshoot                                      2/2     Running   <span style=color:#ae81ff>0</span>          13m
+</span></span><span style=display:flex><span>
+</span></span><span style=display:flex><span>I have no name!@netshoot:/$ kubectl get svc
+</span></span><span style=display:flex><span>Error from server <span style=color:#f92672>(</span>Forbidden<span style=color:#f92672>)</span>: services is forbidden: User <span style=color:#e6db74>&#34;system:serviceaccount:default:debug-sa&#34;</span> cannot list resource <span style=color:#e6db74>&#34;services&#34;</span> in API group <span style=color:#e6db74>&#34;&#34;</span> in the namespace <span style=color:#e6db74>&#34;default&#34;</span>
+</span></span><span style=display:flex><span>I have no name!@netshoot:/$</span></span></code></pre></div></div><p>What's the difference between role and cluster role?</p><ul><li>For role, it's limited in a namespace, it only can limit resources inside a namespace.</li><li>Some resource like PV, cluster health, it's not related with a namespace, it's cluster wide, you only can use cluster role to limit them.</li><li>A role binding can bind a role to a service account in an other namespace.</li></ul></div></article><div id=footer-post-container><div id=footer-post><div id=nav-footer style=display:none><ul><li><a href=/>Home</a></li><li><a href=/posts>Posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></div><div id=share-footer style=display:none><ul><li><a class=icon href="http://www.facebook.com/sharer.php?u=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f" aria-label=Facebook><i class="fab fa-facebook fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="https://twitter.com/share?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&text=RBAC%20in%20Kubernetes" aria-label=Twitter><i class="fab fa-twitter fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="http://www.linkedin.com/shareArticle?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=Linkedin><i class="fab fa-linkedin fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="https://pinterest.com/pin/create/bookmarklet/?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&is_video=false&description=RBAC%20in%20Kubernetes" aria-label=Pinterest><i class="fab fa-pinterest fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="mailto:?subject=RBAC%20in%20Kubernetes&body=Check out this article: https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f" aria-label=Email><i class="fas fa-envelope fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="https://getpocket.com/save?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=Pocket><i class="fab fa-get-pocket fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="http://reddit.com/submit?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&title=RBAC%20in%20Kubernetes" aria-label=reddit><i class="fab fa-reddit fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="http://www.tumblr.com/share/link?url=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&name=RBAC%20in%20Kubernetes&description=How%20to%20give%20a%20pod%20the%20access%20to%20run%20kubectl%20to%20create%20pods%20or%20configmaps%3f%20It%26%2339%3bs%20very%20simple.%0aEvery%20pods%20has%20to%20bind%20to%20a%20service%20account%2c%20it%20will%20be%20default%2c%20if%20you%20haven%26%2339%3bt%20specify%20one.%20And%20by%20default%2c%20this%20account%20didn%26%2339%3bt%20have%20any%20access%20to%20the%20kubernetes%20API.%0aFirst%2c%20create%20a%20service%20account." aria-label=Tumblr><i class="fab fa-tumblr fa-lg" aria-hidden=true></i></a></li><li><a class=icon href="https://news.ycombinator.com/submitlink?u=https%3a%2f%2fwdicc.com%2frbac-in-kubernetes%2f&t=RBAC%20in%20Kubernetes" aria-label="Hacker News"><i class="fab fa-hacker-news fa-lg" aria-hidden=true></i></a></li></ul></div><div id=actions-footer><a id=menu-toggle class=icon href=# onclick='return $("#nav-footer").toggle(),!1' aria-label=Menu><i class="fas fa-bars fa-lg" aria-hidden=true></i> Menu</a>
+<a id=share-toggle class=icon href=# onclick='return $("#share-footer").toggle(),!1' aria-label=Share><i class="fas fa-share-alt fa-lg" aria-hidden=true></i> share</a>
+<a id=top style=display:none class=icon href=# onclick='$("html, body").animate({scrollTop:0},"fast")' aria-label="Top of Page"><i class="fas fa-chevron-up fa-lg" aria-hidden=true></i> Top</a></div></div></div><footer id=footer><div class=footer-left>Copyright &copy; 2022 wd and cc</div><div class=footer-right><nav><ul><li><a href=/>Home</a></li><li><a href=/posts>Posts</a></li><li><a href=/tags>Tags</a></li><li><a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&q=">Search</a></li><li><a href=/atom.xml>Subscribe</a></li></ul></nav></div></footer></div></body><link rel=stylesheet href=/lib/font-awesome/css/all.min.css><script src=/lib/jquery/jquery.min.js></script>
 <script src=/js/main.js></script>
-<script src=/js/code-copy.js></script>
-</html>
+<script src=/js/code-copy.js></script></html>
