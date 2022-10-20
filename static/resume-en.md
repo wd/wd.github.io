@@ -16,6 +16,7 @@ Work with other colleagues to set up and maintain Kubernetes clusters.
 - Lifecycle management of Kubernetes cluster infrastructure.
 - Triaging, investigating, and debugging critical application performance issues.
 - Research, implementation, and support of containerized application configuration features such as Nginx ingress, Cert-manager, Argo, Kiam and many other apps.
+- Familiar with Terraform, Ansible, and Golang. Understanding Linux and Kubernetes very well and wrote Kubernetes operators to watch and deploy critical resources. 
 
 ## Co-Founder, Tech, and Product Leader (2017 - 2020)
 
