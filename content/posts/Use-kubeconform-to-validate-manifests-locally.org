@@ -1,0 +1,68 @@
+---
+title: "Use Kubeconform to Validate Manifests Locally"
+date: 2022-10-29T17:58:39+08:00
+tags: ["kubernetes", "kubeconform"]
+toc: true
+---
+
+[[https://github.com/yannh/kubeconform][kubeconform]] is a tool that allows us to validate Kubernetes manifests.
+
+** Retrieve open API specification from Kubernetes
+
+Use this command to retrieve the open API specifications from Kubernetes.
+
+#+begin_src bash
+k get --raw '/openapi/v2' > /tmp/specs.json
+#+end_src
+
+** Generate JSON schema file
+
+Use [[https://github.com/wd/openapi2jsonschema][openapi2jsonschema]] to generate the JSON schemas.
+
+#+begin_src bash
+$ python openapi2jsonschema/command.py -o /tmp/json-schemas/v1.20.11-standalone-strict \
+--kubernetes --stand-alone \
+--expanded --strict \
+/tmp/specs.json
+
+Downloading schema
+Parsing schema
+Generating shared definitions
+Generating individual schemas
+Processing alertmanager-monitoring-v1
+Generating alertmanager-monitoring-v1.json
+Processing alertmanagerlist-monitoring-v1
+Generating alertmanagerlist-monitoring-v1.json
+Processing prometheus-monitoring-v1
+Generating prometheus-monitoring-v1.json
+Processing prometheuslist-monitoring-v1
+....
+Processing networksetlist-crd-v1
+Generating networksetlist-crd-v1.json
+Generating schema for all types
+#+end_src
+
+The command will report some errors like the one below which is fine since the tool does not support `customresourcedefinition`.
+
+#+begin_src bash
+An error occured processing customresourcedefinition: customresourcedefinition not currently supported
+An error occured processing customresourcedefinitionlist: customresourcedefinitionlist not currently supported
+#+end_src
+
+The generated files will be stored in the `/tmp/json-schemas/v1.20.11-standalone-strict` folder.
+
+You also could remove `all.json` in that folder if you want to save disk space.
+
+#+begin_src bash
+$ rm /tmp/json-schemas/v1.20.11-standalone-strict/all.json
+#+end_src
+
+** Use kubeconform command
+
+#+begin_src bash
+$ kustomize build | kubeconform  \
+--kubernetes-version 1.20.11 \
+-schema-location /tmp/json-schemas/ \
+--strict \
+-skip CustomResourceDefinition
+#+end_src
