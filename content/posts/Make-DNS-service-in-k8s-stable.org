@@ -1,0 +1,47 @@
+---
+title: "Make DNS Service in K8s Stable"
+date: 2022-11-23T19:51:18+08:00
+tags: ["dns", "coredns", "kubernetes"]
+toc: true
+---
+我们用的 k8s 是通过 rancher 管理的。rancher 又是使用 rke 这个 engine 来创建集群的。我们使用的 CNI 是 calico，DNS 是 coredns。按说 DNS 服务是核心服务，如果这个玩意不稳定或者有问题，那么整个集群都不安宁。coredns 按说挺有名气来，按说没问题。。吧？
+
+轻量使用确实还好，但是当节点数量 pod 数量起来之后，一些边界情况下这个东西就不稳定了。当然随着规模的扩大，其实需要关心的不止 DNS 服务，例如 API server 的稳定性，一些 webhook 的性能，这些都是很关键的。正是那句话（原文忘记了，这个是大意）：你本来只有一个问题，为了解决这一个问题，引入了 k8s，那么现在好了，你有 8 个问题了。
+
+rke 的 coredns 默认会搭配一个 coredns-autoscalar。这个其实就是 [[https://github.com/kubernetes-sigs/cluster-proportional-autoscaler][cluster-proportional-autoscaler]]。这个软件也挺有意思，是一个通用的 scalar，提供了两个 scale 模式，一个是 linear 模式，一个是 ladder 模式。工作方式可以从名字看出来。rke 使用的是 linear 模式。当集群节点增减的时候，会自动增减 coredns 的 replica 数量。我们的集群使用了 cluster autoscalar，所以总是在不停的伸缩中。
+
+随着 coredns pod 的新建和删除，慢慢问题就出现了。
+
+第一个问题是 pod 新建的时候，会出现有的 coredns pod 标记为了 ready 但是其实并不通。这个目前基本认为是两个原因造成的。
+1. coredns 的 toleration 设置太宽松。
+2. calico 工作比较慢。
+
+对于 1，rke 部署的 coredns 有如下设置。这样 coredns 早早就开始在 node 上面部署了。
+
+#+begin_src yaml
+tolerations:
+- key: CriticalAddonsOnly
+  operator: Exists
+- effect: NoExecute
+  operator: Exists
+- effect: NoSchedule
+  operator: Exists
+#+end_src
+
+并且因为 readiness 没有 delay，所以迅速就 ready 了。
+
+#+begin_src yaml
+readinessProbe:
+  failureThreshold: 3
+  periodSeconds: 10
+  successThreshold: 1
+  timeoutSeconds: 1
+#+end_src
+
+另外一个方面 calico 需要和其他节点建立 BGP 连接并且配置路由，会稍微有点慢。这两个事情加起来，导致 coredns 新建的 pod 有一定几率是不能正常工作的。对于这个问题，可以尝试增加一个 initContainer 来减速，或者通过给 readiness 设置 initialDelaySeconds 来减慢。
+
+第二个问题是 pod 被删除的时候，会出现已经删除的 pod 依然在某些节点的 iptables 里面。这个目前认为是因为删除 pod 通常伴随着 node 和其他应用 pod 的删除，会有大量的 API 请求。这个导致 kube proxy 不一定可以及时处理 iptables 的变更。这个时候发送给 cluster ip 的 dns 请求就有一定概率会遇到问题。
+
+对于这个问题，解决思路是让 coredns 在收到 terminal signal 的时候再多运行一会。它本身的 health check 插件有一个 [[https://coredns.io/plugins/health/][lameduck]] 参数，可以设置多等多久。
+
+还可以做另外的优化，例如单独创建 node 来跑 coredns，关掉 coredns-autoscalar。这样就可以很大程度上面避免 coredns pod 创建和删除，上面问题也就没有了。不过即使独立 node 也无法完全避免不对 node 做维护工作，这个时候还是会发生 pod 删除创建操作的。所以上面提到的解决办法可能也还是会需要。

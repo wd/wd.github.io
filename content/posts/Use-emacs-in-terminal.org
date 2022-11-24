@@ -1,0 +1,32 @@
+---
+title: "Use Emacs in terminal"
+date: 2022-11-22T20:45:39+08:00
+tags: ["emacs"]
+toc: true
+---
+I usually use the Emacs GUI to manage and edit files for each project. The GUI version looks great and works great.
+
+However, I have to use Vim in the terminal since it starts much faster than Emacs. I have tried with Emacs daemon in the past, but I met some weird issues when connecting GUI Emacs to the daemon. Some of the function does not work very well.
+
+I used the combination of Vim and Emacs for a very long time until yesterday. I realized why I don't use Emacs daemon in the terminal while using Emacs GUI without the daemon.
+
+The setup is quite simple. Add the codes below to your .emacs file. It will use a different server name and theme for the Emacs daemon.
+
+#+begin_src lisp
+(if (daemonp)
+    (setq server-name "term")
+  (setq server-name "server")
+  )
+
+(if (not (display-graphic-p))
+    (setq doom-theme 'modus-vivendi)
+  (setq doom-tmeme 'theme-for-GUI))
+#+end_src
+
+If you use emacs-plus on Mac, you can start the daemon by the command =brew services start emacs-plus@29=. Now let's set some alias
+#+begin_src bash
+alias vi="emacsclient -nw -s 'term'"
+alias vim="emacsclient -nw -s 'term'"
+#+end_src
+
+After that, you can edit the file with the command =vim <file-name>=.
