@@ -8,13 +8,30 @@ comment: false
 
 - [中文版](/resume/)
 
-I have worked in many positions, and have strong knowledge of front-end/back-end developing, Linux system maintain, database maintain, network, security, etc.
+## Contact Details
 
-Contact me: `wd # wdicc.com`.
+* email: wd@wdicc.com
+* blog: https://wdicc.com/ ， github: https://github.com/wd
+
+## Brief Introduction
+
+* Over a decade of experience in project development and management, with a broad range of technical knowledge, including expertise in building big data platforms, developing advertising systems, database maintenance, and e-commerce system development. Currently specializing in SRE.
+* Experienced in system architecture decomposition, with high demands on code quality and a strong sense of responsibility. Skilled in integrating various new technologies into projects to improve development quality and speed.
+* Experienced in developing, designing, and maintaining high-concurrency, high-performance systems that handle hundreds of millions of requests per day.
+* Capable of building teams from scratch, managing large teams, and possessing strong communication and teamwork skills.
+* Able to collaborate with overseas colleagues to complete daily tasks.
 
 ## Experience
+### Tubi.tv (2020 - present), SRE, Infrastructure Engineer
+- Participated in building the company's Kubernetes cluster from scratch, as well as subsequent application migrations.
+- Developed several applications using Go based on the Kubernetes API to facilitate operations and maintenance.
+- Deployed and assisted engineers in migrating to ArgoCD.
+- Conducted several training sessions for internal colleagues on time management.
+- Responsible for the Traffic Engineer sub-team, mainly in charge of system design and maintenance at the network and traffic level.
+- Very familiar with IaC, Terraform, Ansible, Rancher, RKE, Datadog, AWS.
 
-### BrilliantAero.com (2017 - present), Co-founder, tech and product leader
+
+### BrilliantAero.com (2017 - 2020), Co-founder, tech and product leader
 
 Build and lead both engineer team and product team, wrote application for iOS, Android, setup website. Mainly using JavaScript, Python, and React Native related technology.
 

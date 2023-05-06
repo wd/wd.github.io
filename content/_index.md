@@ -5,15 +5,14 @@ title: Home
 
 <div style="float:right; width: 40%; margin-left: 5px;"><img src="https://farm1.staticflickr.com/627/21077008516_9191edb81a_n.jpg" alt="酷不"></div>
 
-My name is Dong Wang, and I am a software engineer for about twenty years, write python, javascript, java now. I have used perl, lua, ruby and lots of other programing languages for what can make my work done. Programing languages is just tools, I'm not being fascinated by anyone of it.
+My name is Dong Wang, and I have been a software engineer for over 20 years. I currently specialize in Python and Go, but I have experience with a variety of programming languages, including Javascript, Perl, Lua, and Ruby. While I appreciate the power and flexibility of programming languages, I view them as tools to accomplish my work rather than objects of fascination.
 
-I'm also a database administrator for PostgreSQL, which I think is the best database application now. So you maybe found some articles of PostgreSQL or databases.
+In addition to software engineering, I am also a skilled database administrator with expertise in PostgreSQL, which I believe is the best database application available today. You may have come across some of my articles on PostgreSQL or databases.
 
 ## About this site
 
-This is my personal blog, to collect and record some things I thought and learned. I'm trying to learn English now, I wrote done these things in English, wish this can be to make some help to improve my English.
+Welcome to my personal blog, where I collect and record my thoughts and learnings. As part of my journey to improve my English, I'm writing down these things in English and hope they can help others as well.
 
-WD is my name's initials, it's also West Digital's abbrevation. This is very annoying, since lots of people find me to solve hard disk problems on twitter. SAD...
+My name is WD, which is also the abbreviation for West Digital. Unfortunately, this can be quite annoying since many people on Twitter approach me for help with their hard disk problems. SAD...
 
-CC is my wife's nickname, which pronounce is cici, like her given name. I have suggested her to change CC to Cici, since there is no vowel letters in the name, people can't sounds it, but she didn't agree... oh, okay... I found my nickname is at the same situations, I think I will not change it too ... :)
-
+My wife's nickname is CC, pronounced "cici" like her given name. I suggested that she change it to Cici, as there are no vowel letters in the name and people may have difficulty pronouncing it. However, she didn't agree, and I can understand why. Upon reflection, I realized that my nickname is in the same situation, so I don't think I'll be changing it either... :)
