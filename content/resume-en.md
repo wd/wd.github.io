@@ -10,8 +10,8 @@ comment: false
 
 ## Contact Details
 
-* email: wd@wdicc.com
-* blog: https://wdicc.com/ ， github: https://github.com/wd
+* Name: Dong Wang, Email: wd@wdicc.com
+* Blog: https://wdicc.com/ , GitHub: https://github.com/wd
 
 ## Brief Introduction
 
