@@ -22,7 +22,7 @@ comment: false
 * Able to collaborate with overseas colleagues to complete daily tasks.
 
 ## Experience
-### Tubi.tv (2020 - present), Infrastructure Engineer, Senior tech lead
+### Tubi.tv (2020 - present), Infrastructure Engineer, Staff tech lead
 - Participated in building the company's Kubernetes cluster from scratch, as well as subsequent application migrations.
 - Developed several applications using Go based on the Kubernetes API to facilitate operations and maintenance.
 - Deployed and assisted engineers in migrating to ArgoCD.
