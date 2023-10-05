@@ -22,13 +22,13 @@ comment: false
 * Able to collaborate with overseas colleagues to complete daily tasks.
 
 ## Experience
-### Tubi.tv (2020 - present), SRE, Infrastructure Engineer
+### Tubi.tv (2020 - present), Infrastructure Engineer, Senior tech lead
 - Participated in building the company's Kubernetes cluster from scratch, as well as subsequent application migrations.
 - Developed several applications using Go based on the Kubernetes API to facilitate operations and maintenance.
 - Deployed and assisted engineers in migrating to ArgoCD.
 - Conducted several training sessions for internal colleagues on time management.
-- Responsible for the Traffic Engineer sub-team, mainly in charge of system design and maintenance at the network and traffic level.
-- Very familiar with IaC, Terraform, Ansible, Rancher, RKE, Datadog, AWS.
+- Responsible for the Traffic Engineer and Release Engineer sub-team, mainly in charge of system design and maintenance at the network and traffic level as weel as CI/CD best practice in Kubernetes.
+- Very familiar with IaC, Terraform, Ansible, Rancher, RKE, Datadog, AWS, CI/CD.
 
 
 ### BrilliantAero.com (2017 - 2020), Co-founder, tech and product leader

@@ -1,0 +1,34 @@
+---
+title: "Dns Query"
+date: 2023-08-13T19:19:34+08:00
+tags: ["dns", "udp"]
+toc: true
+---
+总结一个前段时间遇到的问题。当时的现象是 Nginx 报错误说 dns 有问题，不能正常处理一个域名（我们的 upstream 配置的是域名。）
+
+但是我使用 dig 测试总是可以成功的，看了下好像应该有的进程也都在，就有点摸不着头脑。后来另一个同事使用 nslookup 可以复现 dns 查询问题，然后发现是本机的一个 dns 服务对于 TCP 的端口的监听消失了。现在问题和原因都知道了，然后我就很好奇为啥我自己 dig 测试就没测试出来问题呢？
+
+UDP DNS 请求只能返回小于 512 字节的数据，因为 MTU 的限制以及 header 的字节占用，一个包留给数据的部分就这么多了。当返回结果大于 512 怎么办？服务器会返回部分数据，以及一个 TC 标志位，客户端看到这个 TC 标志就知道这个数据不全，应该使用 TCP 再查一次。如果像我们遇到的 TCP 端口没有监听的情况，自然就不能获取到正常的结果了。
+
+所以对于 nslookup 来说，如果 TCP 失败了，他就会报失败。这也是为啥那个同事会发现问题原因。
+
+dig 为啥不失败？这得说说这个 [[https://en.wikipedia.org/wiki/Extension_Mechanisms_for_DNS][EDNS]] 了。EDNS 就是为了解决上面提到的包大小问题的。当 DNS 请求设置了 EDNS 这个 flag 之后，服务器端就可以响应大数据包了。dig 默认是启用了这个选项的，所以这就是为啥 dig 没有失败了。
+
+#+begin_src
+;; OPT PSEUDOSECTION:
+; EDNS: version: 0, flags:; udp: 1232
+#+end_src
+
+如果使用 =dig +noedns= 来请求，就能看到和 nslookup 一样的错误了。如果 TCP 请求能成功，一般会看到下面的信息，这个会出现在第一行。
+
+#+begin_src
+;; Truncated, retrying in TCP mode.
+#+end_src
+
+如果使用 =dig +noedns +ignore= 来请求，会看到 TC 标志位
+
+#+begin_src
+;; Got answer:
+;; ->>HEADER<<- opcode: QUERY, status: NOERROR, id: 17567
+;; flags: qr aa tc rd ra; QUERY: 1, ANSWER: 3, AUTHORITY: 0, ADDITIONAL: 0
+#+end_src
