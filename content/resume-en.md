@@ -1,84 +1,62 @@
----
-title: “Resume”
-date: 2019-02-12T15:14:28+08:00
-tags: [“简历”, “resume”]
-toc: false
-comment: false
----
+Wang Dong
++8613810360963 | wd@wdicc.com
 
-- [中文版](/resume/)
+## About me
 
-## Contact Details
+Engineering leader with extensive experience in building and managing teams for mobile app development, data analysis, database administration, and advertising systems. Developed and maintained a high-traffic ad platform with over 1 billion daily page views. Proficient in JavaScript (TypeScript), Python, React Native, Django, PostgreSQL, and Ansible. Skilled in data analysis, database operations, and enhancing user experiences through mobile and web applications. Known for strong leadership, strategic thinking, and delivering impactful results.
 
-* Name: Dong Wang, Email: wd@wdicc.com
-* Blog: https://wdicc.com/ , GitHub: https://github.com/wd
+## EXPERIENCE
 
-## Brief Introduction
+### Staff Tech Lead, Infrastructure Team (Mar 2020 - Ongoing)
 
-* Over a decade of experience in project development and management, with a broad range of technical knowledge, including expertise in building big data platforms, developing advertising systems, database maintenance, and e-commerce system development. Currently specializing in SRE.
-* Experienced in system architecture decomposition, with high demands on code quality and a strong sense of responsibility. Skilled in integrating various new technologies into projects to improve development quality and speed.
-* Experienced in developing, designing, and maintaining high-concurrency, high-performance systems that handle hundreds of millions of requests per day.
-* Capable of building teams from scratch, managing large teams, and possessing strong communication and teamwork skills.
-* Able to collaborate with overseas colleagues to complete daily tasks.
+Tubi. inc. (Tubi.tv)
 
-## Experience
-### Tubi.tv (2020 - present), Infrastructure Engineer, Staff tech lead
-- Participated in building the company's Kubernetes cluster from scratch, as well as subsequent application migrations.
-- Developed several applications using Go based on the Kubernetes API to facilitate operations and maintenance.
-- Deployed and assisted engineers in migrating to ArgoCD.
-- Conducted several training sessions for internal colleagues on time management.
-- Responsible for the Traffic Engineer and Release Engineer sub-team, mainly in charge of system design and maintenance at the network and traffic level as weel as CI/CD best practice in Kubernetes.
-- Very familiar with IaC, Terraform, Ansible, Rancher, RKE, Datadog, AWS, CI/CD.
+Mainly focused on Kubernetes，AWS cloud, Working with other colleagues to set up and maintain Kubernetes clusters and provide best practices. 
+- **Managed Kubernetes Cluster Lifecycle**: Oversaw the end-to-end lifecycle management of Kubernetes cluster infrastructure on AWS, ensuring high availability and scalability.
+- **Performance Optimization**: Triaged, investigated, and debugged critical application performance issues, improved the system stability.
+- **Containerized Application Configuration**: Researched, implemented, and supported containerized application configurations using tools such as Nginx Ingress, Cert-manager, Argo, Kiam, and others.
+- **Automation and Scripting**: Developed automation scripts using Terraform, Ansible, Python and Golang, enhanced deployment efficiency.
+- **Kubernetes Operators**: Created Kubernetes operators to monitor and deploy critical resources, improving resource management and deployment processes.
+- **Collaboration and Support**: Collaborated with cross-functional teams to set up and maintain Kubernetes clusters, providing ongoing support and expertise in Linux and Kubernetes environments.
 
+### Co-Founder, Tech, and Product Leader (2017 - 2020)
 
-### BrilliantAero.com (2017 - 2020), Co-founder, tech and product leader
+Brilliant Areo technology Co., LTD (brilliantAero.com)
 
-Build and lead both engineer team and product team, wrote application for iOS, Android, setup website. Mainly using JavaScript, Python, and React Native related technology.
+Built and led both the engineering team and product team, wrote the application for iOS and Android, and set up the website. Mainly using JavaScript(TypeScript), Python, and React-native related technology.
 
-- Team: About 10, include front-end/back-end developers, UX/UE designer, product manager.
-- Setup our office environments, like router, GitLab, file server, Wiki, VPN, DNS server and many other related services.
-- Back-end: use frameworks like Django, Celery, Channels to build our API service. The databases were PostgreSQL and Redis.
-   - Use Celery to run timed tasks, and Redis as the broker.
-   - Use Channels to run the WebSocket service, to broadcast notifications to the client(Web/APP) in real-time.
-   - Use PostGIS to do some geographical location calculations.
-- Automated deployment: Use Ansiable for automated deployment solutions, including backend deployment and APP building and packaging.
-   - We use Docker to run our backend services.
-- Front-end APP: Established the RN react development architecture, used popular tools such as Reduc/Reselect/Saga/TypeScript. We used RN to develop two mobile APPs, and one Pad APP. They all packaged using Fastlane.
-   - The code architecture has been changed and migrated to TypeScript.
-   - I spent most of time on building the RN APP, fix bugs on various clients, and third-party modules adaptations, there are lots of trivial problems.
-- Front-end WEB: I didn’t have taken part much, we used frameworks like Vue+Mobx and React+Redux, I only fixed some issues on using of Vue.
-- Android Pad and PC system customization.
-   - Made some customization on Lenovo’s Pads system to prevent the Pad from being abused.
-   - Made a customized Linux system for our customer’s PC based on Porteus, which can limit use, prevent system modifications, and easily restore the system.
-   - I have also tried customizing the Openwrt router system to implement the limits, but this solution was unused in the end.
-- Other things such as domain name application filing, server application initialization and deployment, database backup.
+- **Leadership and Development**: Built and led both the engineering and product teams, overseeing the development of iOS and Android applications and the website using JavaScript (TypeScript), Python, and React Native.
+- **Backend Services**: Developed API services using Django, Celery, and Channels. Managed databases including PostgreSQL (leveraging PostGIS for geographical calculations) and Redis.
+- **Frontend Development**: Established React Native development architecture using Redux, Reselect, Saga, and TypeScript. Led the development of mobile and tablet applications.
+- **DevOps Automation**: Implemented automated deployment solutions using Ansible, streamlining backend deployment and application building/packaging processes.
+- **System Customization**: Customized Lenovo Android Pads to prevent misuse and created a tailored Linux system for client PCs based on Porteus, enhancing security and system integrity.
+- **Office IT Setup**: Configured office IT infrastructure, including routers, GitLab, file servers, Wiki, VPN, DNS servers, and other essential services.
 
+### Senior Technical Director (2010 - 2016)
 
-### Qunar.com (2010 - 2016), senior technical director
+Qunar.com Information Technology Co. Ltd. (qunar.com)
 
-- Team: More than 30 when leaving.
-- Build up a team to analyze data for Vacation BU, including log collection, ETL, and displays.
-   - Designed and promoted the unique identification of Qunar users and built and maintained a Greenplum cluster as our data warehouse.
-   - Developed a data tracking system using Nginx + fluentd.
-   - Developed a Dashboard system for data engineers to make various reports for product managers.
-- Build up a team to operation and maintain over hundred PostgreSQL servers, and setup the monitor system.
-   - The monitoring system initially used Nagios. After encountering performance issues and use Gearman to expanded to multiple nodes didn’t solve the problem very well, I finally switched it to Zabbix, the features of passive discovery and passive checking solved the performance issue.
-   - By collecting some useful information of the databases such as the number of times the index is used, the size of the databases and tables, we can provide the historical information for troubleshoot.
-   - By collecting the queries running in the database to Elastic Search, engineers could use the tool to find slow or frequently queries themselves.
-   - Tried to use Pacemaker + Etcd to implement a centralized cluster for PostgreSQL deployment and management, but didn’t finish yet.
-- Developed and maintained the CPM and CPC AD delivery system, the page view is about 1 billion per day at the moment.
-   - Familiar with every components of the advertising delivery system, such as the AD display engine, anti-cheating, click service, billing system, and adverting sales logic.
-   - During the period, migrated the Ad display engine system which based on Apache+Lua to Nginx+lua(Openresty), improved performance and stability.
-- Mobile App and website for ticket booking related business.
+Built and led four engineering teams: mobile app developing team, data analyzing team, Postgresql database administration team, and advertising system development team.
 
-### Taobao.com (2009 - 2010), software engineer.
+- **Team Leadership**: Built and led four engineering teams: mobile app development, data analysis, PostgreSQL database administration, and advertising system development.
+- **Data Analysis**: Formed and managed a data analysis team for the Vacation BU, handling log collection, ETL processes, and creating dashboards to drive business insights.
+- **Database Administration**: Established a team to operate and maintain over 100 PostgreSQL servers, implementing a robust monitoring system to ensure optimal performance and reliability.
+- **Advertising System Development**: Developed and maintained a CPM and CPC ad delivery system, achieving a daily page view rate of approximately 1 billion.
+- **Mobile App and Website Development**: Led the development of a mobile app and website for ticket booking-related business, enhancing user experience and transaction efficiency.
 
-Analyze data for linezing.com which collecting data/logs from taobao.com using Hadoop/Hive, and some development work for the user website. Tech stack: SQL, Java, Shell, HTML, JavaScript.
+### Software Engineer (2009 - 2010)
 
-### Yahoo China (2007 - 2009), SRE
+Taobao (taobao.com)
 
-Wrote a Nagios plugin to centralize monitoring. Basic SRE duty.
+Analyze data for linezing.com, which collects data/logs from taobao.com using Hadoop/Hive, and some development work for the user website. Tech stack: SQL, Java, Shell, HTML, JavaScript.
 
-## Education
+### DevOps Engineer (2007 - 2009)
 
-BeiHang University(AKA BUAA), China, bachelor (1998-2002)
+Yahoo China (yahoo.com.cn)
+
+Wrote and maintained Nagios plugins to centralize monitoring. Basic SRE duty.
+
+## EDUCATION
+
+B.S. in Applied Physics and Applied Electronics
+BeiHang University(AKA BUAA), China (1998-2002)
