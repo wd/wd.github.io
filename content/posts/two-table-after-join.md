@@ -3,7 +3,6 @@ title = "Join 后面跟两个表"
 tags = ["linux", "mysql", "sql"]
 status = "publish"
 type = "post"
-published = true
 comments = true
 date = "2012-08-05"
 description = ""
