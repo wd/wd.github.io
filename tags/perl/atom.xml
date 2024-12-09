@@ -1,1 +1,327 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Perl on wd and cc</title><link>https://wdicc.com/tags/perl/</link><description>Recent content in Perl on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Sun, 08 May 2011 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/perl/atom.xml" rel="self" type="application/rss+xml"/><item><title>alarm 使用不当遇到的问题</title><link>https://wdicc.com/alarm-signal-in-perl/</link><pubDate>Sun, 08 May 2011 00:00:00 +0000</pubDate><guid>https://wdicc.com/alarm-signal-in-perl/</guid><description>前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就</description></item><item><title>解析纯真 ip 库</title><link>https://wdicc.com/parse-qqwry-dat/</link><pubDate>Thu, 10 Mar 2011 00:00:00 +0000</pubDate><guid>https://wdicc.com/parse-qqwry-dat/</guid><description>纯真的 ip 库应用比较广泛，就那个 qqwry.dat。以前尝试过解析，死活弄不明白那写地址和 pack/unpack 啥的，晕的</description></item><item><title>perl 里面的信号处理</title><link>https://wdicc.com/signal-in-perl/</link><pubDate>Sat, 01 Jan 2011 00:00:00 +0000</pubDate><guid>https://wdicc.com/signal-in-perl/</guid><description>perl 里面的信号处理很简单，就是给 %SIG 这个 hash 赋值就好了。前几天遇到个问题，处理 SIG{CHLD} 的时候，我本来只起一个 child 进</description></item><item><title>无聊又写一个用来发邮件的 pm..</title><link>https://wdicc.com/sendmail-pm/</link><pubDate>Fri, 09 Jul 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sendmail-pm/</guid><description>继使用 perl 发中文标题邮件，和中文附件邮件后，又把他们整合了一下写了一个 pm 干这个事。 其实发带附件的邮件应</description></item><item><title>使用 perl 发带附件的邮件</title><link>https://wdicc.com/sned-mail-with-attachment/</link><pubDate>Mon, 05 Jul 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sned-mail-with-attachment/</guid><description>继 上篇 使用 perl 发带中文标题的邮件后，又研究了下发带附件的。 基本差别不大，主要是那个 Content-type 要变一下。那个 boundary 可</description></item><item><title>使用 perl 发送中文邮件标题乱码</title><link>https://wdicc.com/sendmail-use-perl/</link><pubDate>Wed, 30 Jun 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sendmail-use-perl/</guid><description>代码如下面，解决乱码的方法是使用 base64 编码。 use MIME::Base64::Perl; open(MAIL, '|/usr/sbin/sendmail -t'); my $recver = 'wangdong@abc.com'; my $alertTitle = "中文 asdfsdf sdfsdf sdf sdf s df sd fsd f sd fsd f sdf sdf sdf";</description></item><item><title>perl and fork</title><link>https://wdicc.com/perl-and-fork/</link><pubDate>Sat, 07 Mar 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/perl-and-fork/</guid><description>最近写程序用到了 fork ，记一下。 我在 perl 里面某个地方开始，fork 多个进程去操作 db，主进程等子进程完事后</description></item><item><title>使用 perl 来登录网页</title><link>https://wdicc.com/perl-cookie/</link><pubDate>Tue, 06 Jan 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/perl-cookie/</guid><description>应该不能用。。。只是为了记录 使用 LWP::UserAgent 可以简单的去访问网页，获取页面内容。例如 use LWP::UserAgent; my $ua = LWP::UserAgent->new(); $ua->timeout(10); $ua->agent('mozilla'); my $r = $ua->get('http::/www.google.com'); print</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Perl on wd and cc</title><link>https://wdicc.com/tags/perl/</link><description>Recent content in Perl on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Sun, 08 May 2011 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/perl/atom.xml" rel="self" type="application/rss+xml"/><item><title>alarm 使用不当遇到的问题</title><link>https://wdicc.com/alarm-signal-in-perl/</link><pubDate>Sun, 08 May 2011 00:00:00 +0000</pubDate><guid>https://wdicc.com/alarm-signal-in-perl/</guid><description>&lt;p>前段时间发现有个程序总是运行一段时间就挂掉，看各种日志里面都没有错误信息，感觉就是莫名其妙突然进程就没了。&lt;br />
+&lt;/p></description></item><item><title>解析纯真 ip 库</title><link>https://wdicc.com/parse-qqwry-dat/</link><pubDate>Thu, 10 Mar 2011 00:00:00 +0000</pubDate><guid>https://wdicc.com/parse-qqwry-dat/</guid><description>纯真的 ip 库应用比较广泛，就那个 qqwry.dat。以前尝试过解析，死活弄不明白那写地址和 pack/unpack 啥的，晕的不行。这两天需要解析下，就尝试用 perl 写一个。&lt;br />
+
+开始用 sysread/sysseek 很多都读不出来，看了n遍程序，没觉得有啥问题。后来全部改成了 read/seek 就好了，也不知道怎么回事。画了一个图说明下，参考了 http://lumaqq.linuxsir.org/article/qqwry_format_detail.html 。&lt;br />
+
+&lt;table style="width:auto;">&lt;tr>&lt;td>&lt;a href="https://picasaweb.google.com/lh/photo/f83_NZhjf6QchgG9gGRueg?feat=embedwebsite">&lt;img src="https://lh6.googleusercontent.com/_7OB6ilikjVs/TXie-yreH2I/AAAAAAAAAKY/fTPMq-pkuqU/s640/qqwry.png" height="640" width="269" />&lt;/a>&lt;/td>&lt;/tr>&lt;tr>&lt;td style="font-family:arial,sans-serif; font-size:11px; text-align:right">发件人 &lt;a href="https://picasaweb.google.com/wdicc0/2011310?feat=embedwebsite">2011-3-10&lt;/a>&lt;/td>&lt;/tr>&lt;/table>&lt;br />
+
+读来的3字节地址需要加 "\0" 才能 unpack，不知道怎么回事，对这些问题弄不明白。对了，网上还有个 perl 版的，也能用，需要的话可以搜一下。&lt;br /></description></item><item><title>perl 里面的信号处理</title><link>https://wdicc.com/signal-in-perl/</link><pubDate>Sat, 01 Jan 2011 00:00:00 +0000</pubDate><guid>https://wdicc.com/signal-in-perl/</guid><description>perl 里面的信号处理很简单，就是给 %SIG 这个 hash 赋值就好了。前几天遇到个问题，处理 SIG{CHLD} 的时候，我本来只起一个 child 进程，可是发现这个信号会被触发多次，开始弄不明白，后来偶然想到是不是 system，exec 之类的函数弄出来的，搜了下果然。&lt;br />
+
+perl 里面调用外部命令是会 fork 一个子进程的，所以也会触发那个信号，想避免可以设置局部变量，例如&lt;br />
+&lt;pre class="prettyprint">
+$SIG{CHLD} = sub {
+ print "main\n";
+};
+
+.....
+{
+ local $SIG{CHLD} = undef; # 注意调用外部命令的时候，如果 IGNORE 就捕捉不了结果了
+ `mv xxx yyy`;
+ system(xxxxx);
+}
+
+.....
+&lt;/pre>&lt;br />
+
+使用 {} 来构造局部变量的方法有时候会让问题变的非常简单。&lt;br />
+
+另外，信号触发的时候，会把 sleep 中断，这个在 sleep 的 doc 里面说的很明白。如果还是想 sleep 到足够的时间，可以用下面的方法。&lt;br />
+&lt;pre class="prettyprint">
+my $timeLeft = 10;
+while ( 1 ) {
+ last if $timeLeft &lt;= 0;
+ my $actTime = sleep($timeLeft);
+ $timeLeft = $timeLeft - $actTime;
+}
+&lt;/pre>&lt;br />
+
+越来越感觉写 perl 还是很给力的，很多的奇技淫巧，不过我现在也是属于没弄明白多少，瞎写。&lt;br /></description></item><item><title>无聊又写一个用来发邮件的 pm..</title><link>https://wdicc.com/sendmail-pm/</link><pubDate>Fri, 09 Jul 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sendmail-pm/</guid><description>继使用 perl 发&lt;a href='http://wdicc.com/sendmail-use-perl/'>中文标题邮件&lt;/a>，和&lt;a href='http://wdicc.com/sned-mail-with-attachment/'>中文附件邮件&lt;/a>后，又把他们整合了一下写了一个 pm 干这个事。&lt;br />
+
+其实发带附件的邮件应该是有现成的 pm 干这个事的，比如 MIME::Lite 之类，没特殊需求还是用那个吧，这个纯属无聊写的。&lt;br />
+
+文件前面有使用方法。。&lt;br />
+
+&lt;pre class="prettyprint">
+package SendMail;
+
+use strict;
+use warnings;
+use Data::Dumper;
+use Encode;
+use MIME::Base64;
+
+=head1 Examples
+use SendMail;
+
+my $sm = SendMail->new( {
+ To => 'you@foo.com, other@bar.com',
+ Subject => 'just a test 中文',
+ });
+
+-- or --
+
+my $sm = SendMail->new( {
+ From => 'me@abc.com',
+ To => 'you@foo.com, other@bar.com',
+ Subject => 'just a test 中文',
+ } );
+
+-- or --
+
+my $sm = SendMail->new( {
+ From => 'me@abc.com',
+ To => 'you@foo.com, other@bar.com',
+ Cc => 'cc@foobar.com',
+ Subject => 'just a test 中文',
+ } );
+
+
+$sm->attach( {
+ Type => "text/plain",
+ Data => "只是一个测试..a test"
+ });
+
+$sm->attach( {
+ Type => 'application/octet-stream',
+ Filename => 'test 中文.txt',
+ Data => "只是一个 test ..."
+ });
+
+$sm->test;
+
+-- or --
+
+$sm->send;
+
+=cut
+
+
+
+use vars qw($VERSION);
+$VERSION = '0.01';
+
+our $boundary = "FFFFFFFFKKKKKK";
+our $from = 'no-reply@abc.com';
+our $subject = "No subject";
+
+our $to;
+our $cc;
+our @body;
+
+
+sub new {
+ my $package = shift;
+ my $info = shift;
+
+ $subject = $info->{Subject} || $subject;
+ $subject = encode('MIME-B', decode('utf8', $subject));
+ $from = $info->{From} || $from;
+ $to = $info->{To} || die "Need to set MailTo 'To'!";
+ $cc = $info->{Cc} || "";
+
+ push @body, "MIME-Version: 1.0";
+ push @body, "Content-Type: multipart/mixed; boundary=\"$boundary\"";
+ push @body, "";
+
+ return bless( {}, $package);
+}
+
+sub attach {
+ my $self = shift;
+ my $f_hash = shift;
+
+ die "Need data when attach!" if ( not defined $f_hash->{Data} );
+
+ my $type = "text/plain";
+ $type = $f_hash->{Type} if defined $f_hash->{Type};
+
+ my @t;
+ push @t, "--$boundary";
+ if ( $type eq "text/plain" ) {
+ push @t, "Content-Type: $type; charset=utf-8";
+ } else {
+ my $filename = "file1.txt";
+ $filename = encode('MIME-B', decode('utf8', $f_hash->{Filename})) if defined $f_hash->{Filename};
+ push @t, "Content-Type: $type";
+ push @t, "Content-Disposition: attachment; filename=$filename";
+ }
+ push @t, "Content-Transfer-Encoding: base64";
+ push @t, "";
+ push @t, encode_base64($f_hash->{Data});
+
+ push @body, @t;
+}
+
+sub send {
+ my $self = shift;
+
+ open(my $fh, '|/usr/sbin/sendmail -t');
+ $self->print_to($fh);
+ close($fh);
+}
+
+sub print_to {
+ my $self = shift;
+ my $fh = shift;
+
+ push @body, "--$boundary--";
+
+ print $fh "From: $from\r\n";
+ print $fh "To: $to\r\n";
+ print $fh "Cc: $cc\r\n" if $cc;
+ print $fh "Subject: $subject\r\n";
+
+ for ( @body ) {
+ print $fh "$_\r\n";
+ }
+}
+
+sub test {
+ my $self = shift;
+
+ open ( my $fh, '>-');
+ $self->print_to($fh);
+ close($fh);
+}
+
+1;
+&lt;/pre>&lt;br /></description></item><item><title>使用 perl 发带附件的邮件</title><link>https://wdicc.com/sned-mail-with-attachment/</link><pubDate>Mon, 05 Jul 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sned-mail-with-attachment/</guid><description>继 &lt;a href="http://wdicc.com/sendmail-use-perl/">上篇&lt;/a> 使用 perl 发带中文标题的邮件后，又研究了下发带附件的。&lt;br />
+
+基本差别不大，主要是那个 Content-type 要变一下。那个 boundary 可以自己随便写，和后面的统一就行了。&lt;br />
+
+&lt;pre class="prettyprint lang-perl">
+my $title = encode_base64("标题", "");
+my $body = encode_base64("邮件正文");
+my $attach = encode_base64("附件内容");
+my $filename = encode('MIME-B', decode('utf8', "文件中文.txt"))
+
+open(MAIL, '|/usr/sbin/sendmail -t');
+ 
+print MAIL "From: test\@abs.com\r\n";
+print MAIL "To: test\@abs.com\r\n";
+print MAIL "Subject: =?UTF-8?B?$title?=\r\n";
+print MAIL "MIME-Version: 1.0\r\n";
+# print MAIL "Content-type: text/plain; charset=utf-8\r\n";
+print MAIL &lt;&lt;EOF;
+Content-Type: multipart/mixed; boundary=\"FFFFFFFFKKKKKK\"
+
+--FFFFFFFFKKKKKK
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+
+$body
+--FFFFFFFFKKKKKK
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=$filename.csv
+Content-Transfer-Encoding: base64
+
+$attach
+--FFFFFFFFKKKKKK--
+EOF
+ close(MAIL); 
+
+&lt;/pre>&lt;br /></description></item><item><title>使用 perl 发送中文邮件标题乱码</title><link>https://wdicc.com/sendmail-use-perl/</link><pubDate>Wed, 30 Jun 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sendmail-use-perl/</guid><description>代码如下面，解决乱码的方法是使用 base64 编码。&lt;br />
+
+&lt;pre class="prettyprint lang-perl">
+use MIME::Base64::Perl;
+
+open(MAIL, '|/usr/sbin/sendmail -t');
+
+my $recver = 'wangdong@abc.com';
+my $alertTitle = "中文 asdfsdf sdfsdf sdf sdf s df sd fsd f sd fsd f sdf sdf sdf";
+my $alertText = "body ";
+
+my $encoded = encode_base64($alertTitle, "");
+
+print MAIL "From: alert\@abc.com\r\n";
+print MAIL "To: $recver\r\n";
+print MAIL "Subject: =?UTF-8?B?" . $encoded . "?=\r\n";
+print MAIL "MIME-Version: 1.0\r\n";
+print MAIL "Content-type: text/plain; charset=utf-8\r\n";
+print MAIL "\n";
+print MAIL "$alertText";
+
+close(MAIL);
+&lt;/pre>&lt;br />
+
+这里面 encode_base64 可以把文本做 base64 编码，要注意的是这个方法的第二个参数，是用来把编码结果进行格式化的，会每 76 个字符插入一个这个参数，默认是换行。&lt;br />
+
+如果不是 utf8 的文本，那把里面的 utf8 改一下就好了。&lt;br /></description></item><item><title>perl and fork</title><link>https://wdicc.com/perl-and-fork/</link><pubDate>Sat, 07 Mar 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/perl-and-fork/</guid><description>最近写程序用到了 fork ，记一下。&lt;br />
+
+我在 perl 里面某个地方开始，fork 多个进程去操作 db，主进程等子进程完事后，再继续后面的操作。&lt;br />
+
+&lt;pre class="prettyprint lang-perl">
+use POSIX ":sys_wait_h";
+my $thread_num = 5;
+my %pids = ();
+
+# $dbi->{InactiveDestroy} = 1 用到 dbi 的话还要设置这个，要不子进程exit后，dbi
+# 连接就断了
+
+# .....前面的程序
+for ( 1..$thread_num ) {
+	my $pid = fork;
+	if (not $pid) { # 子进程
+		$pids{$pid} = 1;
+		# blalbalbla... 子进程去干活
+		eixt 0; # 要记得 exit ，要不子进程还会继续执行后面的。
+	} else { # 主进程
+		# balbalbal ... 如果没事做也可以不写
+	}
+}
+
+while( keys( %pids ) ) {
+	my $kid = waitpid(-1,WNOHANG);
+	if ($kid >0) {
+		delete $pids{$kid};
+		print "$kid end.\n";
+	} else {
+		sleep 1; # 继续等，如果有时间限制，可以在这里去 kill 子进程
+	}
+}
+
+# ....继续后面的程序
+
+&lt;/pre>&lt;br />
+
+还可以参考这个 http://www.perlmonks.org/?node_id=619722&lt;br /></description></item><item><title>使用 perl 来登录网页</title><link>https://wdicc.com/perl-cookie/</link><pubDate>Tue, 06 Jan 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/perl-cookie/</guid><description>应该不能用。。。只是为了记录&lt;br />
+
+使用 LWP::UserAgent 可以简单的去访问网页，获取页面内容。例如&lt;br />
+
+&lt;pre class="prettyprint lang-perl">
+use LWP::UserAgent;
+
+my $ua = LWP::UserAgent->new();
+$ua->timeout(10);
+$ua->agent('mozilla');
+
+my $r = $ua->get('http::/www.google.com');
+print $r->content; # or $r->decoded->content
+&lt;/pre>&lt;br />
+
+$r 的其它属性可以去 cpan 看看。这样就获取到了内容。但是，如果一个网页是需要登录的怎么办？可以用保存 cookie 的方式。&lt;br />
+
+&lt;pre class="prettyprint lang-perl">
+use LWP::UserAgent;
+use HTTP::Cookies;
+use Digest::MD5 qw(md5 md5_hex); # 用来生成 md5 的
+use JSON; # 用来在 json 串和 perl 的 hash 串之间转换
+use Data::Dumper;
+
+my $cookie_jar = HTTP::Cookies->new(
+	file => "lw.dat",
+	autosave => 1
+);
+
+my $ua = LWP::UserAgent->new();
+$ua->timeout(10);
+$ua->agent('mozilla');
+
+my(@rest) = ("/", ".yahoo.com", undef, 0, 0, 60*60, 0);
+$cookie_jar->set_cookie(0, 'session', $session, @rest);
+
+$ua->cookie_jar($cookie_jar);
+
+$o = $ua->get($url);
+........
+&lt;/pre>&lt;br /></description></item></channel></rss>

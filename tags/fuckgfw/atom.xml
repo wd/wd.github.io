@@ -1,1 +1,50 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Fuckgfw on wd and cc</title><link>https://wdicc.com/tags/fuckgfw/</link><description>Recent content in Fuckgfw on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 20 Jul 2009 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/fuckgfw/atom.xml" rel="self" type="application/rss+xml"/><item><title>你在用什么方式翻墙？</title><link>https://wdicc.com/best-way-to-fuck-gfw/</link><pubDate>Mon, 20 Jul 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/best-way-to-fuck-gfw/</guid><description>翻墙估计应该是上网的必修课了，当然那些 90 后就别说了，他们大概只上 *qq.com 就好了。 翻墙有不少方法，比如通过找</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Fuckgfw on wd and cc</title><link>https://wdicc.com/tags/fuckgfw/</link><description>Recent content in Fuckgfw on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 20 Jul 2009 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/fuckgfw/atom.xml" rel="self" type="application/rss+xml"/><item><title>你在用什么方式翻墙？</title><link>https://wdicc.com/best-way-to-fuck-gfw/</link><pubDate>Mon, 20 Jul 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/best-way-to-fuck-gfw/</guid><description>翻墙估计应该是上网的必修课了，当然那些 90 后就别说了，他们大概只上 *qq.com 就好了。&lt;br />
+
+翻墙有不少方法，比如通过找公共的 vpn，用 tor，找一些 phpproxy 网站等。我这推荐一个比较好的方法，通过 &lt;a href="http://www.sshgfw.com/">fuckgfw&lt;/a> 提供的 ssh proxy，速度比 tor 快的不是一点半点。&lt;br />
+
+我用的 linux，写了一个 expect 脚本来起代理服务，如下。里面的 USER 和 PWD 换成你申请到的用户名和密码。我把这个脚本命名叫 p, 放到了 ~/bin 下面，当然我的 ~/bin 是在 path 里面的，这样，执行一个 p 命令代理就自动起来了。用完的时候可以按 Ctrl-c 退出。&lt;br />
+
+&lt;pre class="prettyprint lang-bash">
+#!/bin/bash
+
+expect -c '
+spawn ssh -D 7070 -N USER@SERVER
+expect {
+	password { 
+		send "PWD\r";
+	}
+}
+
+interact {
+	\001 exit;
+}'
+&lt;/pre>&lt;br />
+
+当然，我用到的不只这个脚本了，要不也没什么好写的了。(本来觉得自己写了挺好的一个文章，最后还是就 expect 脚本 + autoproxy，唉，丢人。)&lt;del datetime="2009-07-20T02:13:48+00:00">还用到了一个 proxy.pac ，自动使用代理的配置。如下，把这个文件存成 proxy.pac, 然后在 firefox 的 编辑->首选项->高级->网络->设置->自动代理配置URL 这个里面输入 "file:///home/wd/bin/proxy.pac" ，这样，你连接某个网站的时候，他会自动的去判断是不是要用代理。这个文件是 linuxsir 的 狱卒 给我的。:)&lt;br />
+
+&lt;pre class="prettyprint lang-javascript">
+function FindProxyForURL(url, host)
+{
+ url = url.toLowerCase();
+ host = host.toLowerCase();
+ if (dnsDomainIs(host,"twitter.com")
+ || dnsDomainIs(host,"my.opera.com")
+ || dnsDomainIs(host,"hk.yahoo.com")
+ || dnsDomainIs(host,"tw.yahoo.com")
+ || dnsDomainIs(host,"livejournal.com")
+ || dnsDomainIs(host,"mitbbs.com")
+ || dnsDomainIs(host,"friendfeed.com")
+ || dnsDomainIs(host,"youtube.com")
+ || dnsDomainIs(host,"sshgfw.com")
+ )
+ return "SOCKS 127.0.0.1:7070";
+ else 
+		return "DIRECT";
+}
+&lt;/pre>&lt;br />
+
+这么做一个问题就是，如果你要新加某个网站进去，必须得重启 fx 才能生效。实际上 foxproxy 也可以配置使用 自动代理的，而且可以设置让他多长时间自动重载一下这个文件，算是智能一点了吧。不过我用 foxproxy 的时候发现，如果同时打开两个需要用到代理的网站，他会是一个一个打开的，不能同时，不知道是怎么回事。&lt;br />
+
+我现在用的是 multiproxy swith ，这个可以设置 pac 文件，不过是不会自动重载。当然，重启这个事情也不是什么大问题，装一个 quickrestart ext，然后在 toolbar 上面加一个，点一下就重启了，再加上 fx 会 restore session ，也就是等几秒，就生效了。&lt;/del>&lt;br />
+
+再当然一个。如果觉得这个 pac 弄起来还是麻烦，那可以装一个 autoproxy，里面内置了一些列表，你只要设置一个 127.0.0.1:7070 的 socks 代理让他用就好了。哪个用 proxy 哪个不用是全自动的，不用你管。自己添加的列表也能即时生效。目前我用的这个，推荐一下哦。&lt;br /></description></item></channel></rss>

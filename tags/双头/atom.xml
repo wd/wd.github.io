@@ -1,1 +1,266 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>双头 on wd and cc</title><link>https://wdicc.com/tags/%E5%8F%8C%E5%A4%B4/</link><description>Recent content in 双头 on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 08 Sep 2008 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/%E5%8F%8C%E5%A4%B4/atom.xml" rel="self" type="application/rss+xml"/><item><title>ATI 显卡双头显示配置</title><link>https://wdicc.com/ati-dual-head/</link><pubDate>Mon, 08 Sep 2008 00:00:00 +0000</pubDate><guid>https://wdicc.com/ati-dual-head/</guid><description>参考自这里 。 双头就是接第二个显示器，或者接投影仪什么的，ati 里面叫做 bigdesktop，nvid</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>双头 on wd and cc</title><link>https://wdicc.com/tags/%E5%8F%8C%E5%A4%B4/</link><description>Recent content in 双头 on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Mon, 08 Sep 2008 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/%E5%8F%8C%E5%A4%B4/atom.xml" rel="self" type="application/rss+xml"/><item><title>ATI 显卡双头显示配置</title><link>https://wdicc.com/ati-dual-head/</link><pubDate>Mon, 08 Sep 2008 00:00:00 +0000</pubDate><guid>https://wdicc.com/ati-dual-head/</guid><description>参考自&lt;a href="http://gentoo-wiki.com/HOWTO_Dual_Monitors#ATI" target="_blank">这里&lt;/a> 。&lt;br />
+
+双头就是接第二个显示器，或者接投影仪什么的，ati 里面叫做 bigdesktop，nvidia 叫做 twinview ，intel 的不太清楚，我记得好像也有个自己的名字。&lt;br />
+
+Nvidia 的官方驱动有 twinview 的支持，图形界面下面配置起来似乎也不是很难。 ATI 的官方驱动支持的是 bigdesktop ，也有图形界面，不过那个界面很恶心，经常出现问题，不过可以试着删除 &lt;a href="http://wdicc.cn/howto-reset-ati-fglrx-settings/" target="_blank">/etc/ati/amdpcsdb&lt;/a> 文件试试看。&lt;br />
+
+下面是一个 bigdesktop 的 xorg.conf 文件。&lt;br />
+&lt;pre class="prettyprint lang-conf">Section "ServerLayout">
+	Identifier "Default Layout"
+	Screen "Default Screen" 0 0
+	InputDevice "Generic Keyboard"
+	InputDevice "Configured Mouse"
+	InputDevice "Synaptics Touchpad"
+EndSection
+
+Section "ServerFlags"
+	Option	 "AIGLX" "off"
+	#Option	 "AIGLX" "true"
+EndSection
+
+Section "Module"
+	load "dbe"
+EndSection
+
+Section "InputDevice"
+	Identifier "Generic Keyboard"
+	Driver "kbd"
+	Option	 "CoreKeyboard"
+	Option	 "XkbRules" "xorg"
+	Option	 "XkbModel" "pc104"
+	Option	 "XkbLayout" "us"
+	#Option "XkbOptions" "ctrl:nocaps"
+EndSection
+
+Section "InputDevice"
+	Identifier "Configured Mouse"
+	Driver "mouse"
+	Option	 "CorePointer"
+	Option	 "Device" "/dev/input/mice"
+	Option	 "Protocol" "ImPS/2"
+	Option	 "Emulate3Buttons" "true"
+EndSection
+
+Section "InputDevice"
+	Identifier "Synaptics Touchpad"
+	Driver "synaptics"
+	Option	 "SendCoreEvents" "true"
+	Option	 "Device" "/dev/psaux"
+#	Option	 "Protocol" "auto-dev"
+	Option	 "HorizScrollDelta" "0"
+EndSection
+
+Section "Monitor"
+	Identifier "Generic Monitor"
+	HorizSync 28.0 - 51.0
+	VertRefresh 43.0 - 60.0
+	Option	 "DPMS"
+EndSection
+
+Section "Device"
+	Option	 "DesktopSetup" "horizontal" #Enable Big Desktop
+	Option	 "Mode2" "1280x1024" #Resolution for second monitor
+	Option	 "VideoOverlay" "on"
+	Option	 "OpenGLOverlay" "off"
+	Identifier "Generic Video Card"
+	Option "XAANoOffscreenPixmaps" "true"
+	Driver "fglrx"
+	Option		"DRI" "true"
+EndSection
+
+Section "Screen"
+	Identifier "Default Screen"
+	Device "Generic Video Card"
+	Monitor "Generic Monitor"
+	DefaultDepth 24
+	SubSection "Display"
+		Modes "1024x768"
+	EndSubSection
+EndSection
+
+Section "Extensions"
+	Option	 "Composite" "Disable"
+	#Option	 "Composite" "enable"
+EndSection
+
+Section "DRI"
+	Group 0
+	Mode 0666
+EndSection&lt;/pre>
+比较简单，只需要在 device 里面设置好就行了。
+
+用 ati 的开源驱动，也可以双头显示。用下面的 xorg.conf 。
+&lt;pre class="prettyprint lang-conf">Section "ServerLayout">
+	Identifier "Default Layout"
+	Screen "Default Screen"
+	InputDevice "Generic Keyboard"
+	InputDevice "Configured Mouse"
+	InputDevice "Synaptics Touchpad"
+EndSection
+
+Section "ServerFlags"
+	Option	 "AIGLX" "off"
+	#Option	 "AIGLX" "true"
+EndSection
+
+Section "Module"
+	load "dbe"
+EndSection
+
+Section "InputDevice"
+	Identifier "Generic Keyboard"
+	Driver "kbd"
+	Option	 "CoreKeyboard"
+	Option	 "XkbRules" "xorg"
+	Option	 "XkbModel" "pc104"
+	Option	 "XkbLayout" "us"
+	#Option "XkbOptions" "ctrl:nocaps"
+EndSection
+
+Section "InputDevice"
+	Identifier "Configured Mouse"
+	Driver "mouse"
+	Option	 "CorePointer"
+	Option	 "Device" "/dev/input/mice"
+	Option	 "Protocol" "ImPS/2"
+	Option	 "Emulate3Buttons" "true"
+EndSection
+
+Section "InputDevice"
+	Identifier "Synaptics Touchpad"
+	Driver "synaptics"
+	Option	 "SendCoreEvents" "true"
+	Option	 "Device" "/dev/psaux"
+#	Option	 "Protocol" "auto-dev"
+	Option	 "HorizScrollDelta" "0"
+EndSection
+
+Section "Monitor"
+ 	Identifier "Integrated LCD"
+	 Option "DPMS"
+EndSection
+
+Section "Monitor"
+	Identifier "External VGA"
+	Option "RightOf" "Integrated LCD"
+	 Option "DPMS"
+EndSection
+
+Section "Device"
+	Identifier "Generic Video Card"
+	Driver		"radeon"
+#	# accelration
+	Option "AGPMode" "4"
+	Option "EnablePageFlip" "on"
+	Option "RenderAccel" "on"
+	Option "AccelMethod" "EXA" # or XXA
+	Option "DynamicClocks" "on"
+	Option		"DRI" "true"
+ # Color Tiling
+ Option "ColorTiling" "on"
+ Option "Monitor-VGA-0" "External VGA"
+ Option "Monitor-LVDS" "Integrated LCD"
+ # Option "XAANoOffscreenPixmaps" "true" # for composit
+EndSection
+
+Section "Screen"
+	Identifier "Default Screen"
+	Device "Generic Video Card"
+	Monitor "Integrated LCD"
+	DefaultDepth 24
+	SubSection "Display"
+		Modes "1280x1024" "1024x768"
+		Virtual 2304 1024
+	EndSubSection
+EndSection
+
+Section "Extensions"
+	Option	 "Composite" "Disable"
+	#Option	 "Composite" "enable"
+EndSection
+
+Section "DRI"
+	Group 0
+	Mode 0666
+EndSection&lt;/pre>
+可以看到改动也不是很大，主要增加了两个显示器，device里面增加了这两个显示器的设置。另外 screen 里面增加了那个 virtual，这个的参数就是将来两个显示器总共的屏幕大小，我的是 1024+1280 x 1024 ，横向相加，竖向的取最大的。
+
+ok，这样就可以了。注意这里没有用到最上面那个链接里面说的 MergedFB。似乎最新的 xorg 用 xrandr 实现了这个，所以 MergedFB 就不需要了。这有个好处，可以随时调整分辨率什么的。例如 xrandr --output VGA --off ，去掉第二个显示器。 xrandr --output VGA --right-of LVDS ，设置 bigdesktop等等。xrandr 的方法还可以参考&lt;a href="http://wiki.debian.org/XStrikeForce/HowToRandR12" target="_blank">这里&lt;/a>。
+
+升级到 xorg 1.5.3 以后，鼠标键盘的设置可以不在这里了，所以更加简单。
+&lt;pre class="prettyprint lang-text">
+
+# xorg.conf (xorg X Window System server configuration file)
+#
+# This file was generated by dexconf, the Debian X Configuration tool, using
+# values from the debconf database.
+#
+# Edit this file with caution, and see the xorg.conf manual page.
+# (Type "man xorg.conf" at the shell prompt.)
+#
+# This file is automatically updated on xserver-xorg package upgrades *only*
+# if it has not been modified since the last upgrade of the xserver-xorg
+# package.
+#
+# If you have edited this file but would like it to be automatically updated
+# again, run the following command:
+# sudo dpkg-reconfigure -phigh xserver-xorg
+
+Section "ServerFlags"
+	#Option	 "AIGLX" "off"
+	Option	 "AIGLX" "true"
+EndSection
+
+Section "Module"
+	load "dri"
+EndSection
+
+Section "Monitor"
+ 	Identifier "Integrated LCD"
+	Option "DPMS"
+EndSection
+
+Section "Monitor"
+	Identifier "External VGA"
+	Option "RightOf" "Integrated LCD"
+	Option "DPMS"
+EndSection
+
+Section "Device"
+	Identifier "Generic Video Card"
+	Driver		"radeon"
+#	# accelration
+	Option "AGPMode" "8"
+	Option "EnablePageFlip" "on"
+	Option "RenderAccel" "on"
+	Option "AccelMethod" "EXA" # or XXA
+	Option "DynamicClocks" "on"
+	Option		"DRI" "true"
+ # Color Tiling
+ Option "ColorTiling" "on"
+ Option "Monitor-VGA-0" "External VGA"
+ Option "Monitor-LVDS" "Integrated LCD"
+EndSection
+
+Section "Screen"
+	Identifier "Default Screen"
+	Device "Generic Video Card"
+	Monitor "Integrated LCD"
+	DefaultDepth 24
+	SubSection "Display"
+		Modes "1280x1024" "1024x768"
+		#Modes "1024x768"
+		Virtual 2048 1024
+		Virtual 2304 1024
+	EndSubSection
+EndSection
+
+Section "Extensions"
+	#Option	 "Composite" "Disable"
+	Option	 "Composite" "enable"
+EndSection
+
+Section "DRI"
+	Group 0
+	Mode 0666
+EndSection&lt;/pre></description></item></channel></rss>

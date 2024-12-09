@@ -1,1 +1,144 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Hive on wd and cc</title><link>https://wdicc.com/tags/hive/</link><description>Recent content in Hive on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Tue, 03 May 2011 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/hive/atom.xml" rel="self" type="application/rss+xml"/><item><title>hive 里面不能 drop table</title><link>https://wdicc.com/cant-drop-table-in-hive/</link><pubDate>Tue, 03 May 2011 00:00:00 +0000</pubDate><guid>https://wdicc.com/cant-drop-table-in-hive/</guid><description>之前部署 hive 0.6 的时候，发现用 postgress 存 metadb 的时候，不能 drop table，一执行就卡住了。当时试过 mysql，好像是</description></item><item><title>hive 里面的 UDTF</title><link>https://wdicc.com/udf-in-hive/</link><pubDate>Sun, 24 Apr 2011 00:00:00 +0000</pubDate><guid>https://wdicc.com/udf-in-hive/</guid><description>hive 支持 UDF， UDAF， UDTF，这几个让你使用 hive 更加便捷。 UDF udf 就是一个自定义的 function，输</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Hive on wd and cc</title><link>https://wdicc.com/tags/hive/</link><description>Recent content in Hive on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Tue, 03 May 2011 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/hive/atom.xml" rel="self" type="application/rss+xml"/><item><title>hive 里面不能 drop table</title><link>https://wdicc.com/cant-drop-table-in-hive/</link><pubDate>Tue, 03 May 2011 00:00:00 +0000</pubDate><guid>https://wdicc.com/cant-drop-table-in-hive/</guid><description>&lt;p>之前部署 hive 0.6 的时候，发现用 postgress 存 metadb 的时候，不能 drop table，一执行就卡住了。当时试过 mysql，好像是有个什么问题，就没用了，后来只好用 hive 0.5 完事。&lt;br />
+&lt;/p></description></item><item><title>hive 里面的 UDTF</title><link>https://wdicc.com/udf-in-hive/</link><pubDate>Sun, 24 Apr 2011 00:00:00 +0000</pubDate><guid>https://wdicc.com/udf-in-hive/</guid><description>hive 支持 UDF， UDAF， UDTF，这几个让你使用 hive 更加便捷。&lt;br />
+&lt;div id="outline-container-1" class="outline-2">&lt;br />
+&lt;h2 id="sec-1">UDF&lt;/h2>&lt;br />
+&lt;div id="text-1" class="outline-text-2">&lt;br />
+
+udf 就是一个自定义的 function，输入一个或多个参数，返回一个返回值，类似 substr/trim 之类。写起来比较简单，重构 UDF 类的 evaluate 方法就可以了。可以参考 &lt;a href="http://richiehu.blog.51cto.com/2093113/386112">http://richiehu.blog.51cto.com/2093113/386112&lt;/a> 。&lt;br />
+
+这是一个 urldecode 函数。&lt;br />
+&lt;pre class="prettyprint lang-java">
+
+import org.apache.hadoop.hive.ql.exec.UDF;
+import java.net.URLDecoder;
+
+public final class urldecode extends UDF {
+
+ public String evaluate(final String s) {
+ if (s == null) { return null; }
+ return getString(s);
+ }
+
+ public static String getString(String s) {
+ String a;
+ try {
+ a = URLDecoder.decode(s);
+ } catch ( Exception e) {
+ a = "";
+ }
+ return a;
+ }
+
+ public static void main(String args[]) {
+ String t = "%E5%A4%AA%E5%8E%9F-%E4%B8%89%E4%BA%9A";
+ System.out.println( getString(t) );
+ }
+}&lt;/pre>
+&lt;div id="outline-container-2" class="outline-2">
+&lt;h2 id="sec-2">UDAF&lt;/h2>
+&lt;div id="text-2" class="outline-text-2">
+
+udaf 就是自定义的聚合函数，类似 sum/avg 这类，输入多行的一个或多个参数，返回一个返回值。这个还没写过，可以参考 &lt;a href="http://richiehu.blog.51cto.com/2093113/386113">http://richiehu.blog.51cto.com/2093113/386113&lt;/a> 。
+
+&amp;nbsp;
+
+&lt;/div>
+&amp;nbsp;
+
+&lt;/div>
+&lt;div id="outline-container-3" class="outline-2">
+&lt;h2 id="sec-3">UDTF&lt;/h2>
+&lt;div id="text-3" class="outline-text-2">
+
+udtf 是针对输入一行，输出多行的需求来的，类似 explode 函数。可以参考 &lt;a href="http://www.linezing.com/blog/?p=323">http://www.linezing.com/blog/?p=323&lt;/a> 。
+
+这个是输入数组字段，输出两列，一列是数组元素的位置，一列是数组元素。比 explode 多了一列位置，不过数组元素只能是 String 类型的。
+&lt;pre class="prettyprint lang-java">
+
+import java.util.ArrayList;
+import java.util.List;
+
+//import org.apache.hadoop.io.Text;
+
+import org.apache.hadoop.hive.ql.udf.generic.GenericUDTF;
+
+import org.apache.hadoop.hive.ql.exec.UDFArgumentException;
+import org.apache.hadoop.hive.ql.exec.description;
+import org.apache.hadoop.hive.ql.metadata.HiveException;
+import org.apache.hadoop.hive.serde2.objectinspector.ListObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspector;
+import org.apache.hadoop.hive.serde2.objectinspector.ObjectInspectorFactory;
+import org.apache.hadoop.hive.serde2.objectinspector.StructObjectInspector;
+
+import org.apache.hadoop.hive.serde2.objectinspector.primitive.PrimitiveObjectInspectorFactory;
+
+@description(
+ name = "explodeWithPos",
+ value = "_FUNC_(a) - separates the elements of array a into multiple rows with pos as first col "
+ )
+
+public class explodeWithPos extends GenericUDTF {
+
+ ListObjectInspector listOI = null;
+
+ @Override
+ public void close() throws HiveException{
+ }
+
+ @Override
+ public StructObjectInspector initialize(ObjectInspector [] args) throws UDFArgumentException {
+
+ if (args.length != 1) {
+ throw new UDFArgumentException("explodeWithPos() takes only one argument");
+ }
+
+ if (args[0].getCategory() != ObjectInspector.Category.LIST) {
+ throw new UDFArgumentException("explodeWithPos() takes an array as a parameter");
+ }
+
+ listOI = (ListObjectInspector)args[0];
+
+ ArrayList fieldNames = new ArrayList();
+ ArrayList fieldOIs = new ArrayList();
+
+ fieldNames.add("col1");
+ //fieldOIs.add(listOI.getListElementObjectInspector());
+ fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+
+ fieldNames.add("col2");
+ //fieldOIs.add(listOI.getListElementObjectInspector());
+ fieldOIs.add(PrimitiveObjectInspectorFactory.javaStringObjectInspector);
+
+ return ObjectInspectorFactory.getStandardStructObjectInspector(fieldNames, fieldOIs);
+ }
+
+ //Object forwardObj[] = new Object[2];
+ Object forwardObj[] = new String[2];
+
+ @Override
+ public void process(Object [] o) throws HiveException {
+
+ List list = listOI.getList(o[0]);
+
+ if ( list == null ) {
+ return;
+ }
+
+ int i =0;
+ for (Object r : list) {
+ forwardObj[0] = String.valueOf(i);
+ forwardObj[1] = r.toString();
+ this.forward(forwardObj);
+ i++;
+ }
+ }
+
+ @Override
+ public String toString() {
+ return "explodeWithPos";
+ }
+}&lt;/pre>
+&lt;/div>
+&lt;/div>
+&lt;/div>
+&lt;/div></description></item></channel></rss>

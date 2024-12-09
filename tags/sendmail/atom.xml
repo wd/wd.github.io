@@ -1,1 +1,246 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Sendmail on wd and cc</title><link>https://wdicc.com/tags/sendmail/</link><description>Recent content in Sendmail on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Fri, 09 Jul 2010 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/sendmail/atom.xml" rel="self" type="application/rss+xml"/><item><title>无聊又写一个用来发邮件的 pm..</title><link>https://wdicc.com/sendmail-pm/</link><pubDate>Fri, 09 Jul 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sendmail-pm/</guid><description>继使用 perl 发中文标题邮件，和中文附件邮件后，又把他们整合了一下写了一个 pm 干这个事。 其实发带附件的邮件应</description></item><item><title>使用 perl 发带附件的邮件</title><link>https://wdicc.com/sned-mail-with-attachment/</link><pubDate>Mon, 05 Jul 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sned-mail-with-attachment/</guid><description>继 上篇 使用 perl 发带中文标题的邮件后，又研究了下发带附件的。 基本差别不大，主要是那个 Content-type 要变一下。那个 boundary 可</description></item><item><title>使用 perl 发送中文邮件标题乱码</title><link>https://wdicc.com/sendmail-use-perl/</link><pubDate>Wed, 30 Jun 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sendmail-use-perl/</guid><description>代码如下面，解决乱码的方法是使用 base64 编码。 use MIME::Base64::Perl; open(MAIL, '|/usr/sbin/sendmail -t'); my $recver = 'wangdong@abc.com'; my $alertTitle = "中文 asdfsdf sdfsdf sdf sdf s df sd fsd f sd fsd f sdf sdf sdf";</description></item><item><title>命令行发送有附件的邮件</title><link>https://wdicc.com/send-mail-with-attachment/</link><pubDate>Mon, 01 Dec 2008 00:00:00 +0000</pubDate><guid>https://wdicc.com/send-mail-with-attachment/</guid><description>命令行下面发送邮件比较简单，恐怕都会使用。 $ echo "hello .. " | mail -s subject xxx@abc.com $ cat /path/to/file | mail -s subject xxx@abc.com $ mail -s subject xxx@abc.com &lt;&lt; EOF hi the end.. EOF</description></item><item><title>sendmail 中自动抄送某个用户的邮件给别人</title><link>https://wdicc.com/howto-cc-an-email-to-others-in-sendmail/</link><pubDate>Tue, 26 Jun 2007 00:00:00 +0000</pubDate><guid>https://wdicc.com/howto-cc-an-email-to-others-in-sendmail/</guid><description>sendmail有个 /etc/aliases 配置文件，在里面可以给某个帐号设置alias，这样给这个alias发的邮件，都</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Sendmail on wd and cc</title><link>https://wdicc.com/tags/sendmail/</link><description>Recent content in Sendmail on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Fri, 09 Jul 2010 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/sendmail/atom.xml" rel="self" type="application/rss+xml"/><item><title>无聊又写一个用来发邮件的 pm..</title><link>https://wdicc.com/sendmail-pm/</link><pubDate>Fri, 09 Jul 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sendmail-pm/</guid><description>继使用 perl 发&lt;a href='http://wdicc.com/sendmail-use-perl/'>中文标题邮件&lt;/a>，和&lt;a href='http://wdicc.com/sned-mail-with-attachment/'>中文附件邮件&lt;/a>后，又把他们整合了一下写了一个 pm 干这个事。&lt;br />
+
+其实发带附件的邮件应该是有现成的 pm 干这个事的，比如 MIME::Lite 之类，没特殊需求还是用那个吧，这个纯属无聊写的。&lt;br />
+
+文件前面有使用方法。。&lt;br />
+
+&lt;pre class="prettyprint">
+package SendMail;
+
+use strict;
+use warnings;
+use Data::Dumper;
+use Encode;
+use MIME::Base64;
+
+=head1 Examples
+use SendMail;
+
+my $sm = SendMail->new( {
+ To => 'you@foo.com, other@bar.com',
+ Subject => 'just a test 中文',
+ });
+
+-- or --
+
+my $sm = SendMail->new( {
+ From => 'me@abc.com',
+ To => 'you@foo.com, other@bar.com',
+ Subject => 'just a test 中文',
+ } );
+
+-- or --
+
+my $sm = SendMail->new( {
+ From => 'me@abc.com',
+ To => 'you@foo.com, other@bar.com',
+ Cc => 'cc@foobar.com',
+ Subject => 'just a test 中文',
+ } );
+
+
+$sm->attach( {
+ Type => "text/plain",
+ Data => "只是一个测试..a test"
+ });
+
+$sm->attach( {
+ Type => 'application/octet-stream',
+ Filename => 'test 中文.txt',
+ Data => "只是一个 test ..."
+ });
+
+$sm->test;
+
+-- or --
+
+$sm->send;
+
+=cut
+
+
+
+use vars qw($VERSION);
+$VERSION = '0.01';
+
+our $boundary = "FFFFFFFFKKKKKK";
+our $from = 'no-reply@abc.com';
+our $subject = "No subject";
+
+our $to;
+our $cc;
+our @body;
+
+
+sub new {
+ my $package = shift;
+ my $info = shift;
+
+ $subject = $info->{Subject} || $subject;
+ $subject = encode('MIME-B', decode('utf8', $subject));
+ $from = $info->{From} || $from;
+ $to = $info->{To} || die "Need to set MailTo 'To'!";
+ $cc = $info->{Cc} || "";
+
+ push @body, "MIME-Version: 1.0";
+ push @body, "Content-Type: multipart/mixed; boundary=\"$boundary\"";
+ push @body, "";
+
+ return bless( {}, $package);
+}
+
+sub attach {
+ my $self = shift;
+ my $f_hash = shift;
+
+ die "Need data when attach!" if ( not defined $f_hash->{Data} );
+
+ my $type = "text/plain";
+ $type = $f_hash->{Type} if defined $f_hash->{Type};
+
+ my @t;
+ push @t, "--$boundary";
+ if ( $type eq "text/plain" ) {
+ push @t, "Content-Type: $type; charset=utf-8";
+ } else {
+ my $filename = "file1.txt";
+ $filename = encode('MIME-B', decode('utf8', $f_hash->{Filename})) if defined $f_hash->{Filename};
+ push @t, "Content-Type: $type";
+ push @t, "Content-Disposition: attachment; filename=$filename";
+ }
+ push @t, "Content-Transfer-Encoding: base64";
+ push @t, "";
+ push @t, encode_base64($f_hash->{Data});
+
+ push @body, @t;
+}
+
+sub send {
+ my $self = shift;
+
+ open(my $fh, '|/usr/sbin/sendmail -t');
+ $self->print_to($fh);
+ close($fh);
+}
+
+sub print_to {
+ my $self = shift;
+ my $fh = shift;
+
+ push @body, "--$boundary--";
+
+ print $fh "From: $from\r\n";
+ print $fh "To: $to\r\n";
+ print $fh "Cc: $cc\r\n" if $cc;
+ print $fh "Subject: $subject\r\n";
+
+ for ( @body ) {
+ print $fh "$_\r\n";
+ }
+}
+
+sub test {
+ my $self = shift;
+
+ open ( my $fh, '>-');
+ $self->print_to($fh);
+ close($fh);
+}
+
+1;
+&lt;/pre>&lt;br /></description></item><item><title>使用 perl 发带附件的邮件</title><link>https://wdicc.com/sned-mail-with-attachment/</link><pubDate>Mon, 05 Jul 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sned-mail-with-attachment/</guid><description>继 &lt;a href="http://wdicc.com/sendmail-use-perl/">上篇&lt;/a> 使用 perl 发带中文标题的邮件后，又研究了下发带附件的。&lt;br />
+
+基本差别不大，主要是那个 Content-type 要变一下。那个 boundary 可以自己随便写，和后面的统一就行了。&lt;br />
+
+&lt;pre class="prettyprint lang-perl">
+my $title = encode_base64("标题", "");
+my $body = encode_base64("邮件正文");
+my $attach = encode_base64("附件内容");
+my $filename = encode('MIME-B', decode('utf8', "文件中文.txt"))
+
+open(MAIL, '|/usr/sbin/sendmail -t');
+ 
+print MAIL "From: test\@abs.com\r\n";
+print MAIL "To: test\@abs.com\r\n";
+print MAIL "Subject: =?UTF-8?B?$title?=\r\n";
+print MAIL "MIME-Version: 1.0\r\n";
+# print MAIL "Content-type: text/plain; charset=utf-8\r\n";
+print MAIL &lt;&lt;EOF;
+Content-Type: multipart/mixed; boundary=\"FFFFFFFFKKKKKK\"
+
+--FFFFFFFFKKKKKK
+Content-Type: text/plain; charset=utf-8
+Content-Transfer-Encoding: base64
+
+$body
+--FFFFFFFFKKKKKK
+Content-Type: application/octet-stream
+Content-Disposition: attachment; filename=$filename.csv
+Content-Transfer-Encoding: base64
+
+$attach
+--FFFFFFFFKKKKKK--
+EOF
+ close(MAIL); 
+
+&lt;/pre>&lt;br /></description></item><item><title>使用 perl 发送中文邮件标题乱码</title><link>https://wdicc.com/sendmail-use-perl/</link><pubDate>Wed, 30 Jun 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/sendmail-use-perl/</guid><description>代码如下面，解决乱码的方法是使用 base64 编码。&lt;br />
+
+&lt;pre class="prettyprint lang-perl">
+use MIME::Base64::Perl;
+
+open(MAIL, '|/usr/sbin/sendmail -t');
+
+my $recver = 'wangdong@abc.com';
+my $alertTitle = "中文 asdfsdf sdfsdf sdf sdf s df sd fsd f sd fsd f sdf sdf sdf";
+my $alertText = "body ";
+
+my $encoded = encode_base64($alertTitle, "");
+
+print MAIL "From: alert\@abc.com\r\n";
+print MAIL "To: $recver\r\n";
+print MAIL "Subject: =?UTF-8?B?" . $encoded . "?=\r\n";
+print MAIL "MIME-Version: 1.0\r\n";
+print MAIL "Content-type: text/plain; charset=utf-8\r\n";
+print MAIL "\n";
+print MAIL "$alertText";
+
+close(MAIL);
+&lt;/pre>&lt;br />
+
+这里面 encode_base64 可以把文本做 base64 编码，要注意的是这个方法的第二个参数，是用来把编码结果进行格式化的，会每 76 个字符插入一个这个参数，默认是换行。&lt;br />
+
+如果不是 utf8 的文本，那把里面的 utf8 改一下就好了。&lt;br /></description></item><item><title>命令行发送有附件的邮件</title><link>https://wdicc.com/send-mail-with-attachment/</link><pubDate>Mon, 01 Dec 2008 00:00:00 +0000</pubDate><guid>https://wdicc.com/send-mail-with-attachment/</guid><description>命令行下面发送邮件比较简单，恐怕都会使用。&lt;br />
+
+&lt;pre class="prettyprint lang-bash">
+$ echo "hello .. " | mail -s subject xxx@abc.com
+$ cat /path/to/file | mail -s subject xxx@abc.com
+$ mail -s subject xxx@abc.com &lt;&lt; EOF
+hi
+the end..
+EOF
+&lt;/pre>&lt;br />
+
+上面这些方法都可以发送邮件。还有一种方法。&lt;br />
+
+&lt;pre class="prettyprint lang-bash">
+$ cat a.txt
+Subject: test
+From: xxx@abc.com
+To: xxx@abc.com
+
+hi
+sdfsdfsdf
+the end.
+$ cat a.txt | sendmail -t
+&lt;/pre>&lt;br />
+
+这样可以把邮件头信息写到文件里面的，你也可以用 php，perl 来打印类似的信息给 sendmail -t ，让他来发。&lt;br />
+
+那么如果有附件应该怎么办？可以使用 uuencode。&lt;br />
+
+&lt;pre class="prettyprint lang-bash">
+$ uuencode a.txt a.txt | mail -s test xxx@abc.com
+$ (cat a.txt; uuencode b.txt b.txt; cat c.txt) |sendmail -t
+&lt;/pre>&lt;br />
+
+应该说的很明白了吧？&lt;br /></description></item><item><title>sendmail 中自动抄送某个用户的邮件给别人</title><link>https://wdicc.com/howto-cc-an-email-to-others-in-sendmail/</link><pubDate>Tue, 26 Jun 2007 00:00:00 +0000</pubDate><guid>https://wdicc.com/howto-cc-an-email-to-others-in-sendmail/</guid><description>&lt;p>sendmail有个 /etc/aliases 配置文件，在里面可以给某个帐号设置alias，这样给这个alias发的邮件，都会给设置好的用户转发过去。要知道sendmail的帐号是和系统帐号联系在一起的，添加mail帐号得给系统添加帐号（qmail可以实现虚拟用户，或许sendmail也可以，而我不知道罢了）。而这个alias帐号却不是必须有得有系统帐号的，只要设置了alias，就可以给alias用户发邮件，就好像系统真有这么一个帐号一样。&lt;/p></description></item></channel></rss>

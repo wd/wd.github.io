@@ -1,5 +1,82 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Apache on wd and cc</title><link>https://wdicc.com/tags/apache/</link><description>Recent content in Apache on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Fri, 05 Sep 2008 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/apache/atom.xml" rel="self" type="application/rss+xml"/><item><title>Apache优化之KeepAlive</title><link>https://wdicc.com/apache-keepalive/</link><pubDate>Fri, 05 Sep 2008 00:00:00 +0000</pubDate><guid>https://wdicc.com/apache-keepalive/</guid><description>KeepAlive是在HTTP/1.1中定义的，用来保持客户机和服务器的长连接，执子之手与子偕老。通</description></item><item><title>awstats 如何统计以前的日志？</title><link>https://wdicc.com/awstats-log/</link><pubDate>Mon, 02 Apr 2007 00:00:00 +0000</pubDate><guid>https://wdicc.com/awstats-log/</guid><description>突然想安装一个awstats了，参考 车东 的文章，安装了一个。可是发现一个问题，设置了logfile为</description></item><item><title>给apache加了一个compress模块，mod_deflate</title><link>https://wdicc.com/compress-apache/</link><pubDate>Mon, 02 Apr 2007 00:00:00 +0000</pubDate><guid>https://wdicc.com/compress-apache/</guid><description>apache 1.3 里面有个压缩模块叫做 mod_gzip ，不支持 2.x。在2.x 里面有一个 mod_deflate 模块，也是类似的效果。想使用的话，很简</description></item><item><title>tomcat和apache桥接</title><link>https://wdicc.com/tomcat-apache-bridge/</link><pubDate>Wed, 23 Aug 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/tomcat-apache-bridge/</guid><description>1 下载，安装tomcat，jdk和mod_jk 下载jdk http://java.sun.com/javase/downloads/index.jsp tomcat 5.5 需要jre 1.5才可以。下载之后是一个</description></item><item><title>apache的rewrite一点配置心得</title><link>https://wdicc.com/apache-rewrite/</link><pubDate>Wed, 14 Jun 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/apache-rewrite/</guid><description>
-apache这里有一些奇怪的日志。&lt;br />
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Apache on wd and cc</title><link>https://wdicc.com/tags/apache/</link><description>Recent content in Apache on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Fri, 05 Sep 2008 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/apache/atom.xml" rel="self" type="application/rss+xml"/><item><title>Apache优化之KeepAlive</title><link>https://wdicc.com/apache-keepalive/</link><pubDate>Fri, 05 Sep 2008 00:00:00 +0000</pubDate><guid>https://wdicc.com/apache-keepalive/</guid><description>KeepAlive是在HTTP/1.1中定义的，用来保持客户机和服务器的长连接，执子之手与子偕老。通过减少建立TCP Session的次数来提高性能。常用的配置参数有{KeepAlive, KeepAliveTimeout, MaxKeepAliveRequests}。逐个说来：KeepAlive是决定开启KeepAlive支持；KeepAliveTimeout决定一 个KeepAlive的连接能保持多少时间，Timeout就尽快shutdown链接，若还有数据必须再建立新的连接 了；MaxKeepAliveRequests于KeepAliveTimeout相似，意思是服务多少个请求就shutdown连接。看个例子：&lt;br />
+&lt;pre class="prettyprint">
+ KeepAliveTimeout 5&lt;/pre>
+意思是说，打开KeepAlive，每个连接只保持5秒就中断。
+
+对于KeepAlive的配置需要慎重，错误的参数可能导致严重的性能问题。一个高负载的Server，如果建立的很多长连接将无法继续服 务新的连接。因此需要根据server的性质调整KeepAliveTimeout或是MaxKeepAliveRequests的值。
+
+例如：你的网页上有三幅图画2个外部javascript，他们都存放在你自己的server上。因此将 MaxKeepAliveRequests设置为7比较合适。3幅图2个js各一个link，网页本身一个link，还有firefox传说中的 favicon.ico。当然还是要有KeepAliveTimeout的。如果客户机用了该死的IE并且设置了某个该死的选项，IE是不会向服务器发送 HEAD请求查看图片（或是其他资源）是否过期的，而是直接使用本地图片。这个时候服务器是不会计算Request的(因为压根就没有Request 嘛)。再如果只有MaxKeepAliveRequests参数，服务器会默认等待5秒才结束KeepAlive连接。通常这5秒可能玩死一个高负载的服 务器(所以说这个社会需要闪婚...)。因此打开Firefox，启动Firebug，看看你的站究竟需要多少次请求，再决定KeepAlive吧。</description></item><item><title>awstats 如何统计以前的日志？</title><link>https://wdicc.com/awstats-log/</link><pubDate>Mon, 02 Apr 2007 00:00:00 +0000</pubDate><guid>https://wdicc.com/awstats-log/</guid><description>突然想安装一个awstats了，参考 &lt;a href="http://www.chedong.com/tech/awstats.html">车东&lt;/a> 的文章，安装了一个。可是发现一个问题，设置了logfile为 access_log.%YYYY-24%MM-24%DD-24.log 之后，发现只能把昨天的日志统计进来，可是我的log下面还有好多呢，想统计以前的，怎么弄呢？幸好，awstats已经考虑到这个问题了。&lt;br />
+
+awstats.pl 脚本支持在命令行指定logfile，这样简单了，改变这个参数就可以了。不过要注意的是，如果你的data里面已经处理新的日志，那么指定logfile也没用了，以前的没办法更新进来了。只能是删掉data里面的内容，然后重新从最早的开始生成一遍。我写了一个脚本来做这个事情。&lt;br />
+
+&lt;pre class="prettyprint lang-bash">
+
+awstats_dir=/opt/tt2/awstats/wwwroot/cgi-bin
+logfile_dir="/usr/local/apache/logs/"
+
+cd $awstats_dir
+
+for file in `find $logfile_dir -name "access_log.2*" | sort`;do
+ #echo "$file"
+ ./awstats.pl －update -config=wd -LogFile=$file
+done&lt;/pre>
+
+保存为 awstats.sh ，然后执行就可以了。他会查找 logfile_dir 下面所有的 access_log.2 开头的文件，作为参数来更新记录。</description></item><item><title>给apache加了一个compress模块，mod_deflate</title><link>https://wdicc.com/compress-apache/</link><pubDate>Mon, 02 Apr 2007 00:00:00 +0000</pubDate><guid>https://wdicc.com/compress-apache/</guid><description>apache 1.3 里面有个压缩模块叫做 mod_gzip ，不支持 2.x。在2.x 里面有一个 &lt;a href="http://httpd.apache.org/docs/2.0/mod/mod_deflate.html">mod_deflate&lt;/a> 模块，也是类似的效果。想使用的话，很简单，编译的时候加上 --enable-deflate 就可以了。之后可以用 apachectl -l 看是不是正常加载了这个模块。&lt;br />
+
+httpd.conf 添加下面的语句&lt;br />
+&lt;pre class="prettyprint lang-txt">
+
+对所有指定类似的文件都应用这个模块。添加之后访问看看。
+
+&lt;pre class="prettyprint lang-txt">
+203.86.x.x - - [02/Apr/2007:15:24:23 +0800] "GET / HTTP/1.1" 200 &lt;font color="#FF0000">4718&lt;/font> "-" 
+"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) 
+Gecko/20070309 Firefox/2.0.0.3"
+
+203.86.x.x - - [02/Apr/2007:15:46:16 +0800] "GET / HTTP/1.1" 200 &lt;font color="#FF0000">1684&lt;/font> "-" 
+"Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US; rv:1.8.1.3) 
+Gecko/20070309 irefox/2.0.0.3"&lt;/pre>
+
+好像是小了。。。
+
+如果error.log 里面出现了下面的错误
+&lt;pre class="prettyprint lang-txt">
+
+ 这表示apache的那个模块没有安装正确。</description></item><item><title>tomcat和apache桥接</title><link>https://wdicc.com/tomcat-apache-bridge/</link><pubDate>Wed, 23 Aug 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/tomcat-apache-bridge/</guid><description>1 下载，安装tomcat，jdk和mod_jk&lt;br />
+
+下载jdk &lt;a href="http://java.sun.com/javase/downloads/index.jsp">http://java.sun.com/javase/downloads/index.jsp&lt;/a>&lt;br />
+tomcat 5.5 需要jre 1.5才可以。下载之后是一个bin文件&lt;br />
+&lt;pre class="prettyprint lang-bash">
+$chmod +x xx.bin
+$./xx.bin&lt;/pre>
+
+他会将jdk解压到当前目录下面，然后作一个链接
+&lt;pre class="prettyprint lang-bash">
+
+以后访问jdk文件夹即可，此处我们用JAVA_HOME来表示jdk文件夹的路径。
+
+下载tomcat &lt;a href="http://tomcat.apache.org/download-55.cgi">http://tomcat.apache.org/download-55.cgi&lt;/a>
+下载 Core 那个版本就可以，下载之后解压，选择放置地方之后，做一个链接
+&lt;pre class="prettyprint lang-bash">
+
+以后访问tomcat文件夹即可，此处我们用TOMCAT_HOME来表示tomcat的安装路径。
+
+下载 mod_jk ，这个是用来完成apache和tomcat桥接的模块，&lt;a href="http://www.apache.org/dist/tomcat/tomcat-connectors/jk/"> http://www.apache.org/dist/tomcat/tomcat-connectors/jk/&lt;/a> 。
+可以下载已经编译好的模块，不过要注意要和自己的apache版本对应才行。也可以下载source自己编译，这里我们自己编译。
+
+下载source之后，解压，进入解压后的目录，然后
+&lt;pre class="prettyprint lang-bash">
+$./configure --with-apxs=/usr/local/apache/bin/apxs #后面是apxs的目录
+也可以
+$./configure --with-apache=/usr/local/apache #apache的目录
+$make
+&lt;/pre>&lt;br />
+编译完成之后，复制桥接模块到apache的modules目录&lt;br />
+&lt;pre class="prettyprint lang-bash">
+
+2 配置
+
+jdk的环境需要配置一个系统变量JAVA_HOME，可以写到/etc/profile中，或者修改tomcat的启动停止脚本来设置java环境也可以（这</description></item><item><title>apache的rewrite一点配置心得</title><link>https://wdicc.com/apache-rewrite/</link><pubDate>Wed, 14 Jun 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/apache-rewrite/</guid><description>apache这里有一些奇怪的日志。&lt;br />
 
 &lt;span style="color: rgb(0, 0, 255)">211.90.119.118 - - [12/Apr/2006:00:00:12 +0800] "GET http://abc.com.cn/www/x.jsp HTTP/1.1" 200 2994 "-" "SEC-schx639 UP.Browser/4.1.26l"&lt;/span>&lt;br />
 
@@ -7,8 +84,7 @@ apache这里有一些奇怪的日志。&lt;br />
 
 &lt;span style="color: rgb(0, 0, 255)">telnet abc.com.cn 80&lt;/span>&lt;br style="color: rgb(0, 0, 255)" />&lt;span style="color: rgb(0, 0, 255)">GET http://abc.com.cn/www/x.jsp HTTP/1.1&lt;/span>&lt;br />
 
-&lt;br></description></item><item><title>weblogic的“Too many open files”错和apache的“CONNECTION_REFUSED”错</title><link>https://wdicc.com/too-many-open-files/</link><pubDate>Tue, 30 May 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/too-many-open-files/</guid><description>
-weblogic和apache桥接之后，访问量大的时候，遇到了weblogic报下面的错误：&lt;br />
+&lt;br></description></item><item><title>weblogic的“Too many open files”错和apache的“CONNECTION_REFUSED”错</title><link>https://wdicc.com/too-many-open-files/</link><pubDate>Tue, 30 May 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/too-many-open-files/</guid><description>weblogic和apache桥接之后，访问量大的时候，遇到了weblogic报下面的错误：&lt;br />
 
 &lt;span style="color: rgb(255, 0, 0)">####&lt;2006-5-30 ÏÂÎç12Ê±38·Ö19Ãë CST> &lt;Notice> &lt;WebLogicServer> &lt;myapp.vivaful.com> &lt;myserver> &lt;ListenThread.Default> &lt;&lt;WLS Ke&lt;/span>&lt;br style="color: rgb(255, 0, 0)" />&lt;span style="color: rgb(255, 0, 0)">rnel>> &lt;> &lt;BEA-000205> &lt;After having failed to listen, the server is now listening on port 7001.> &lt;/span>&lt;br style="color: rgb(255, 0, 0)" />&lt;span style="color: rgb(255, 0, 0)">####&lt;2006-5-30 ÏÂÎç12Ê±38·Ö19Ãë CST> &lt;Critical> &lt;WebLogicServer> &lt;myapp.vivaful.com> &lt;myserver> &lt;ListenThread.Default> &lt;&lt;WLS &lt;/span>&lt;br style="color: rgb(255, 0, 0)" />&lt;span style="color: rgb(255, 0, 0)">Kernel>> &lt;> &lt;BEA-000204> &lt;Failed to listen on port 7001, failure count: 1, failing for 0 seconds, java.net.SocketException: T&lt;/span>&lt;br style="color: rgb(255, 0, 0)" />&lt;span style="color: rgb(255, 0, 0)">oo many open files> &lt;/span>&lt;br style="color: rgb(255, 0, 0)" />&lt;span style="color: rgb(255, 0, 0)">####&lt;2006-5-30 ÏÂÎç12Ê±38·Ö20Ãë CST> &lt;Notice> &lt;WebLogicServer> &lt;myapp.vivaful.com> &lt;myserver> &lt;ListenThread.Default> &lt;&lt;WLS Ke&lt;/span>&lt;br style="color: rgb(255, 0, 0)" />&lt;span style="color: rgb(255, 0, 0)">rnel>> &lt;> &lt;BEA-000205> &lt;After having failed to listen, the server is now listening on port 7001.> &lt;/span>&lt;br style="color: rgb(255, 0, 0)" />&lt;span style="color: rgb(255, 0, 0)">####&lt;2006-5-30 ÏÂÎç12Ê±38·Ö20Ãë CST> &lt;Critical> &lt;WebLogicServer> &lt;myapp.vivaful.com> &lt;myserver> &lt;ListenThread.Default> &lt;&lt;WLS &lt;/span>&lt;br style="color: rgb(255, 0, 0)" />&lt;span style="color: rgb(255, 0, 0)">Kernel>> &lt;> &lt;BEA-000204> &lt;Failed to listen on port 7001, failure count: 1, failing for 0 seconds, java.net.SocketException: T&lt;/span>&lt;br style="color: rgb(255, 0, 0)" />&lt;span style="color: rgb(255, 0, 0)">oo many open files> &lt;/span>&lt;br />
 &lt;span style="color: rgb(255, 0, 0)">&lt;/span>&lt;span style="color: rgb(255, 0, 0)">&lt;/span>&lt;br />

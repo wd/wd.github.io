@@ -1,1 +1,39 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Fork on wd and cc</title><link>https://wdicc.com/tags/fork/</link><description>Recent content in Fork on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Sat, 07 Mar 2009 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/fork/atom.xml" rel="self" type="application/rss+xml"/><item><title>perl and fork</title><link>https://wdicc.com/perl-and-fork/</link><pubDate>Sat, 07 Mar 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/perl-and-fork/</guid><description>最近写程序用到了 fork ，记一下。 我在 perl 里面某个地方开始，fork 多个进程去操作 db，主进程等子进程完事后</description></item></channel></rss>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Fork on wd and cc</title><link>https://wdicc.com/tags/fork/</link><description>Recent content in Fork on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Sat, 07 Mar 2009 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/fork/atom.xml" rel="self" type="application/rss+xml"/><item><title>perl and fork</title><link>https://wdicc.com/perl-and-fork/</link><pubDate>Sat, 07 Mar 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/perl-and-fork/</guid><description>最近写程序用到了 fork ，记一下。&lt;br />
+
+我在 perl 里面某个地方开始，fork 多个进程去操作 db，主进程等子进程完事后，再继续后面的操作。&lt;br />
+
+&lt;pre class="prettyprint lang-perl">
+use POSIX ":sys_wait_h";
+my $thread_num = 5;
+my %pids = ();
+
+# $dbi->{InactiveDestroy} = 1 用到 dbi 的话还要设置这个，要不子进程exit后，dbi
+# 连接就断了
+
+# .....前面的程序
+for ( 1..$thread_num ) {
+	my $pid = fork;
+	if (not $pid) { # 子进程
+		$pids{$pid} = 1;
+		# blalbalbla... 子进程去干活
+		eixt 0; # 要记得 exit ，要不子进程还会继续执行后面的。
+	} else { # 主进程
+		# balbalbal ... 如果没事做也可以不写
+	}
+}
+
+while( keys( %pids ) ) {
+	my $kid = waitpid(-1,WNOHANG);
+	if ($kid >0) {
+		delete $pids{$kid};
+		print "$kid end.\n";
+	} else {
+		sleep 1; # 继续等，如果有时间限制，可以在这里去 kill 子进程
+	}
+}
+
+# ....继续后面的程序
+
+&lt;/pre>&lt;br />
+
+还可以参考这个 http://www.perlmonks.org/?node_id=619722&lt;br /></description></item></channel></rss>
