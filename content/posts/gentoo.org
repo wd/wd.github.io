@@ -43,6 +43,23 @@ UEFI 和 legacy bios 对应。UEFI 是读取 ESP 分区里面的文件来引导�
 可以使用 =efibootmgr= 来清理之前 windows 遗留的 UEFI 选项。
 
 * 配置系统
+** 翻墙
+在继续配置之前，应该先搞定这个。因为在配置的过程中肯定会需要查找问题的解决方案什么的，如果不能访问 Google 会非常低效。我比较了几个 bing.com 和 Google 的结果，还是差很多。
+解决办法比较多，我选择了 sing-box。因为我手机上面用的就是这个。我感觉这个的配置文件虽然也是 json 但是比 v2ray 那个好理解很多。另外它还支持 tun，全局翻墙非常简单，不用费力去配置 iptables 规则了。
+这里有一个使用 [[https://sing-box.sagernet.org/manual/proxy/client/#basic-tun-usage-for-chinese-users][tun]] 的例子，参考这个就可以。在测试配置的时候，可以使用 =sing-box run -c config.json= 这样的命令来启动。配置好之后再使用 systemd 来启动。
+
+** nvim
+虽然我想要使用 emacs，但是一开始就配置 emacs 可能会增加一些难度。相比较来说 vim 就简单很多了。我只配置了下面的一点。第一行关闭了鼠标支持，第二行让剪贴板和系统剪贴板自动同步。
+#+begin_src
+❯ cat .config/nvim/init.lua
+vim.opt.mouse = ""
+vim.opt.clipboard="unnamed,unnamedplus"
+#+end_src
+对于剪贴板，可以使用 =:checkhealth= 来看剪贴板支持的状态。如果发现使用 sudo 的时候会发现剪贴板又不能同步了，那可以试试看 =sudo -E nvim <file>= 这样的方式。剪贴板同步依赖 wayland display 的环境变量，可以在 =/etc/sudoers= 文件里面增加下面的配置来解决这个问题。
+#+begin_src
+Defaults env_keep += "WAYLAND_DISPLAY"
+#+end_src
+
 ** overlay
 现在已经不用 =layman= 管理了。通过 =eselect repository= 来管理。我目前使用了 guru 和 gentoo-zh 这两个。
 
@@ -63,13 +80,19 @@ UEFI 和 legacy bios 对应。UEFI 是读取 ESP 分区里面的文件来引导�
 
 ** Suspend & hibernate
 Gentoo wiki 有一篇[[https://wiki.gentoo.org/wiki/Suspend_and_hibernate][文档]]讲解这个。中文好像只有一个词“休眠”描述这个，但是实际上有两个东西。hibernate 主要是到 disk 和 file。这好像是比较古老的方式了，这种方式情况下，在休眠的时候会把内存的内容写入到一个分区或者一个文件。下次启动的时候再读取和恢复里面的内容来恢复电脑的状态。
-比较新的电脑似乎会支持 Suspend to idle(s2idle, S0ix)，和 suspend to ram(s2ram,S3)。这两个都是保持内容在内存，并且持续给内存供电，来让内存的内容不丢失。这两种方式恢复的时候比较快速，区别在于 s2ram 会给大部分设备断电，能达到更加省电的结果。
+比较新的电脑似乎会支持 Suspend to idle(s2idle, S0ix)，和 suspend to ram(s2ram,S3)。这两个都是保持内容在内存，并且持续给内存供电，来让内存的内容不丢失。这两种方式恢复的时候比较快速，区别在于 s2ram 会给大部分设备断电，能达到更加省电的结果。但是我看很多人反馈 s2idle 响应更迅速。
 通过 =journalctrl |grep PM:= 能看到你支持什么，通常会有 s0, s3 这样的字样表示不同的类型。可以查看 [[https://www.kernel.org/doc/Documentation/power/states.txt][kernel 的文档]]来查看你的系统支持什么。主要是看 =/sys/power/mem_sleep= 文件的内容。从上面可以理解 s3 是启动最快的方式里面最省电的，但是有的电脑不支持。有的电脑可以通过 bios 里面的配置来打开，我之前用的 IBM 本子是有选项的，现在用的这个就没有这个选项。只支持 s2idle.
-不过我这里测试的结果，使用 s2idle + TLP 24 小时只消耗 10% 的电，感觉也可以了。
+不过我这里测试的结果，使用 s2idle + TLP 合盖 24 小时只消耗 10% 的电，感觉也可以了。
 这里有篇[[https://docs.kernel.org/admin-guide/pm/sleep-states.html][文档]]讲的也很清楚。
 
 ** xremap
 我发现 Mac 和 Linux 的 mode 按键不一样。Ctrl, shift 这两个按键在两个系统是一样的。键盘空格左侧的两个是不一样的。在 Mac 上面依次是 Cmd, option，在 Linux 上面是 alt, super。我目前还没有想好怎么一次性解决这个问题。不过我找到了 [[https://github.com/xremap/xremap][xremap]] 可以像 karabiner 一样帮你改键。他可以实现例如按一次 cpas lock 是 esc，长按是 ctrl 这样的功能。另外也支持在特定程序里面（可以根据程序名字标题名字匹配）做特定的按键更改。
 类似工具在 Linux 上面还挺多，可以参考 [[https://github.com/jtroo/kanata][kanata]] 页面列出来的这些。
+
+** Fcitx5
+Fcitx5 可以在 wayland 上面用。我使用的是 [[https://github.com/Mintimate/oh-my-rime][oh-my-rime]] 这个集成的方案。我在 Mac 上面使用了很长一段时间，发现很好用。输入法本身的配置就是看他们 wiki 就行。我遇到了两个问题。第一个是 sway 里面没有候选词那个浮动窗口。这个只需要更新 sway 到最新的版本就行。第二个是每个候选词后面都有一个拼音提示。这个是因为 librime [[https://github.com/iDvel/rime-ice/issues/431][不支持 lua]] 导致的。安装 librime-lua 就可以。
+
+** rofi
+我在 Mac 上面使用 raycast 来做很多事情，例如启动应用，切换窗口，词典，复制 OTP token。在 Linux 里面的 Launcher 的默认功能没有那么厉害，不过允许你自己写程序做一些事情。我走了一点弯路的地方是一开始对 rofi 的 mode 列表理解的不太对。rofi 执行的时候可以有好几个 mode，但是只显示其中一个，使用 Ctrl+Tab 可以在这些 mode 之间切换。rofi 另外还提供了一个 combi 模式，允许你把一些 mode 合并到一起。比如可以把 window 和 drun 这两个合并到一起。
 
 ** sway
