@@ -1,0 +1,75 @@
+---
+title: "Gentoo"
+date: 2024-12-27T08:22:19+08:00
+tags: [""]
+toc: true
+---
+好久没有玩 Linux 桌面了，上次感觉还是10几年前。最近弄了一个 IBM thinkpad x1 carbon，非常轻薄，对 Linux 的支持也不错。这几天折腾了一下，安装一个 Gentoo。
+
+安装之前我其实使用 LiveUSB 尝试了好几个系统。甚至还安装一个 [[https://manjaro.org/products/download/x86][manjaro]] 看了一下 wayland 的支持。我当时测试 Ubuntu 的时候，发现合盖之后一晚上居然消耗不到 10% 的电感觉很惊讶。就决定把 Windows 彻底干掉了。
+
+选择 Gentoo 是因为我之前用了很多年的 Gentoo 的缘故。当时是一个破本子，也可以说为了性能吧。但是现在感觉已经完全没必要考虑那个原因了，现在的电脑性能都过剩了，自己编译带来的那点可能的优化应该没什么用。我主要是因为使用 Gentoo 可以自己通过 USE 来定义自己的系统的搭配方式。希望能用的明明白白。
+
+* 安装
+
+我忘记从 USB 启动是不是需要关闭 secure boot 了。如果遇到问题记得去 bios 里面把 secure boot 关掉。
+
+这块就是按照 Gentoo 的 [[https://wiki.gentoo.org/wiki/Handbook:AMD64][handbook]] 来就行。我使用的是 Ubuntu 的 liveCD 启动的，网络配置什么的都很简单。另外我选择的是 systemd + desktop 的 stage3。选择 systemd 而没有选择 openrc 是因为 systemd 使用已经非常广泛了，现在很多发行版用的都是它，我也想多熟悉一下。另外我从实际安装过程中也能体验到 systemd 还是确实能简化一些操作的。当然可能带来的 debug 难度也有增加。
+
+** 磁盘分区
+
+这个我决定使用 UEFI 来管理启动，没有使用 GRUB。所以我使用的是 GPT 类型的分区表，UEFI 只支持这个。分区大概是 =/efi= 和 =/= 就完事。不过磁盘太大了，我还分了一下 =/data= 和 =/home= 。
+这块我遇到一个坑是，systemd 期望你的分区的类型要标识清楚。ESP 和 root 分区都需要有[[https://wiki.gentoo.org/wiki/Handbook:AMD64/Installation/Disks#Creating_the_root_partition][正确的分区类型]]。否则可能会找不到分区。
+#+begin_quote
+Setting the root partition's type to "Linux root (x86-64)" is not required and the system will function normally if it is set to the "Linux filesystem" type.
+#+end_quote
+
+上面这个说法在我的使用中是不正确的。比如我遇到的错误是 gpt-auto-root 这个任务启动失败，识别不了 root 分区，导致系统启动失败。这个和 fstab 正确与否没有关系，这个错误卡了我好几天。
+
+** Kernel
+我尝试了一下自己编译 Kernel，然后当然遇到了启动不了的情况。有些需要编译进内核，有些又必须编译成模块，因为这些需要读取文件系统上面的 firemware 文件，实在懒得折腾这些了。我决定使用 gentoo-kernel-bin。本以为会很顺利，结果就是遇到了上面分区类型带来的问题，卡了好几天。
+
+Kernel 本身倒是没什么问题，也挺好用的。
+
+** Boot loader
+我期望使用 UEFI 来做系统引导。可以用systemd boot 或者 GRUB 来启动系统。GRUB 提供的功能更加丰富一点，但是我用的是 systemd 所以就选择了 systemd boot。也是想要尝试一下之前没用过的东西。
+
+UEFI 和 legacy bios 对应。UEFI 是读取 ESP 分区里面的文件来引导，legacy bios 是读取磁盘的 MBR 来引导。Systemd boot 或者 GRUB 就是放一些 UEFI 能识别的文件到 ESP 分区，让 UEFI 先引导他们，然后他们再进一步引导 Linux。大概是这么个逻辑。
+
+通过 =bootctl= 命令可以管理和安装 systemd 的 UEFI 引导文件。以及管理 kernel 的启动选项。 =/efi/loader= 目录下面可以配置 loader 的参数，比如可以配置 timeout 之类。默认 timeout 是 0，就是说你不会看到 systemd boot 的菜单，默认给你选第一个。
+
+我当时遇到一个问题是，一切配置妥当重启之后，发现停在了笔记本 LOGO 界面，就和死机一样。我一直以为是 UEFI 的 loader 装的有问题。检查了无数遍之后，直到改了 timeout 看到了 loader 的界面，才明白问题出在后面的启动步骤上面。因为我用的 bin kernel，一直就没有怀疑过这方面的原因。在我 Debug 的过程中，还去掉了 kernel 的 quiet 和 splash 参数，这样才看到了具体错误。我遇到的错误就是我前面提到过的 gpt-auto-root 这个任务失败，导致启动不了系统。给分区设置了正确的类型之后，就正常启动了。
+
+可以使用 =efibootmgr= 来清理之前 windows 遗留的 UEFI 选项。
+
+* 配置系统
+** overlay
+现在已经不用 =layman= 管理了。通过 =eselect repository= 来管理。我目前使用了 guru 和 gentoo-zh 这两个。
+
+** qfile
+可以列出一个包安装的所有文件。
+
+** eix
+=eix= 可以更加快速的查询包的信息。他还提供了 =eix-update= 命令，可以同时更新所有的 repo。
+
+** equery
+=euqery u pkg= 命令可以看到一个包具体每个 use 的说明。
+
+** e-file
+通过 =pfl= 这个包安装这个命令，可以方便的查看一个命令是在哪个包里面。
+
+** tlp & power-profiles-daemon
+我安装以前的经验尝试通过 =laptop-mode-tools= 来延长电池续航。Gentoo 有关于电源管理的[[https://wiki.gentoo.org/wiki/Power_management/Guide][文档]]，我直接看的里面关于 laptop-mode-tools 的部分，装好之后看了一下感觉也没什么可配置的，然后就发现合盖之后一晚上能耗掉 20-40%的电，这可和之前 ubuntu liveCD 的体验不一样。乱七八糟看了一通之后，发现现在有了 TLP 和 power-profiles-daemon 之类，我看 ubuntu 用的好像是 PPD。我就把 TLP 装上试了一下发现一晚上可以减少到 5% 的电，感觉非常不错。这两个选一个就好，TLP 的文档里面[[https://linrunner.de/tlp/faq/ppd.html][特别说了他已经覆盖了 PPD 的功能并且可能会和 PPD 冲突]]，不要一起用。不过我看 Ubuntu 只使用 PPD 好像也还行，看自己需要吧。
+
+** Suspend & hibernate
+Gentoo wiki 有一篇[[https://wiki.gentoo.org/wiki/Suspend_and_hibernate][文档]]讲解这个。中文好像只有一个词“休眠”描述这个，但是实际上有两个东西。hibernate 主要是到 disk 和 file。这好像是比较古老的方式了，这种方式情况下，在休眠的时候会把内存的内容写入到一个分区或者一个文件。下次启动的时候再读取和恢复里面的内容来恢复电脑的状态。
+比较新的电脑似乎会支持 Suspend to idle(s2idle, S0ix)，和 suspend to ram(s2ram,S3)。这两个都是保持内容在内存，并且持续给内存供电，来让内存的内容不丢失。这两种方式恢复的时候比较快速，区别在于 s2ram 会给大部分设备断电，能达到更加省电的结果。
+通过 =journalctrl |grep PM:= 能看到你支持什么，通常会有 s0, s3 这样的字样表示不同的类型。可以查看 [[https://www.kernel.org/doc/Documentation/power/states.txt][kernel 的文档]]来查看你的系统支持什么。主要是看 =/sys/power/mem_sleep= 文件的内容。从上面可以理解 s3 是启动最快的方式里面最省电的，但是有的电脑不支持。有的电脑可以通过 bios 里面的配置来打开，我之前用的 IBM 本子是有选项的，现在用的这个就没有这个选项。只支持 s2idle.
+不过我这里测试的结果，使用 s2idle + TLP 24 小时只消耗 10% 的电，感觉也可以了。
+这里有篇[[https://docs.kernel.org/admin-guide/pm/sleep-states.html][文档]]讲的也很清楚。
+
+** xremap
+我发现 Mac 和 Linux 的 mode 按键不一样。Ctrl, shift 这两个按键在两个系统是一样的。键盘空格左侧的两个是不一样的。在 Mac 上面依次是 Cmd, option，在 Linux 上面是 alt, super。我目前还没有想好怎么一次性解决这个问题。不过我找到了 [[https://github.com/xremap/xremap][xremap]] 可以像 karabiner 一样帮你改键。他可以实现例如按一次 cpas lock 是 esc，长按是 ctrl 这样的功能。另外也支持在特定程序里面（可以根据程序名字标题名字匹配）做特定的按键更改。
+类似工具在 Linux 上面还挺多，可以参考 [[https://github.com/jtroo/kanata][kanata]] 页面列出来的这些。
+
+** sway
