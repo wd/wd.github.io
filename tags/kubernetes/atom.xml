@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Kubernetes on wd and cc</title><link>https://wdicc.com/tags/kubernetes/</link><description>Recent content in Kubernetes on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Wed, 23 Nov 2022 19:51:18 +0800</lastBuildDate><atom:link href="https://wdicc.com/tags/kubernetes/atom.xml" rel="self" type="application/rss+xml"/><item><title>Make DNS Service in K8s Stable</title><link>https://wdicc.com/make-dns-service-in-k8s-stable/</link><pubDate>Wed, 23 Nov 2022 19:51:18 +0800</pubDate><guid>https://wdicc.com/make-dns-service-in-k8s-stable/</guid><description>&lt;p>我们用的 k8s 是通过 rancher 管理的。rancher 又是使用 rke 这个 engine 来创建集群的。我们使用的 CNI 是 calico，DNS 是 coredns。按说 DNS 服务是核心服务，如果这个玩意不稳定或者有问题，那么整个集群都不安宁。coredns 按说挺有名气来，按说没问题。。吧？&lt;/p></description></item><item><title>Use Kubeconform to Validate Manifests Locally</title><link>https://wdicc.com/use-kubeconform-to-validate-manifests-locally/</link><pubDate>Sat, 29 Oct 2022 17:58:39 +0800</pubDate><guid>https://wdicc.com/use-kubeconform-to-validate-manifests-locally/</guid><description>&lt;p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Kubernetes on wd and cc</title><link>https://wdicc.com/tags/kubernetes/</link><description>Recent content in Kubernetes on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Wed, 23 Nov 2022 19:51:18 +0800</lastBuildDate><atom:link href="https://wdicc.com/tags/kubernetes/atom.xml" rel="self" type="application/rss+xml"/><item><title>Make DNS Service in K8s Stable</title><link>https://wdicc.com/make-dns-service-in-k8s-stable/</link><pubDate>Wed, 23 Nov 2022 19:51:18 +0800</pubDate><guid>https://wdicc.com/make-dns-service-in-k8s-stable/</guid><description>&lt;p>我们用的 k8s 是通过 rancher 管理的。rancher 又是使用 rke 这个 engine 来创建集群的。我们使用的 CNI 是 calico，DNS 是 coredns。按说 DNS 服务是核心服务，如果这个玩意不稳定或者有问题，那么整个集群都不安宁。coredns 按说挺有名气来，按说没问题。。吧？&lt;/p></description></item><item><title>Use Kubeconform to Validate Manifests Locally</title><link>https://wdicc.com/use-kubeconform-to-validate-manifests-locally/</link><pubDate>Sat, 29 Oct 2022 17:58:39 +0800</pubDate><guid>https://wdicc.com/use-kubeconform-to-validate-manifests-locally/</guid><description>&lt;p>
 &lt;a href="https://github.com/yannh/kubeconform">kubeconform&lt;/a> is a tool that allows us to validate Kubernetes manifests.&lt;/p>
 &lt;div id="outline-container-headline-1" class="outline-3">
 &lt;h3 id="headline-1">
@@ -50,12 +50,33 @@ Kubernetes API access control
 &lt;/h2>
 &lt;div id="outline-text-headline-1" class="outline-text-2">
 &lt;p>
-There are two types of control. One is to control which user(token, group) is allowed to access, the other one is to control which resource a user could access. The kube-apiserver has two arguments to allow users to define that.&lt;/p></description></item><item><title>DNS Request in Alpine Image</title><link>https://wdicc.com/dns-request-in-alpine-image/</link><pubDate>Thu, 25 Nov 2021 20:15:39 +0800</pubDate><guid>https://wdicc.com/dns-request-in-alpine-image/</guid><description>&lt;p>
-Alpine 镜像可以带来很小的镜像体积，所以大家比较热衷于使用这个镜像做基础镜像。但是实际上因为一些系统库是阉割版本，可能会导致一些意想不到的问题。例如这里想说的 DNS 的问题。&lt;/p></description></item><item><title>Local Persistent Volume vs HostPath</title><link>https://wdicc.com/local-persist-volume-vs-hostpath/</link><pubDate>Sun, 28 Feb 2021 14:52:23 +0800</pubDate><guid>https://wdicc.com/local-persist-volume-vs-hostpath/</guid><description>&lt;p>Kubernetes 可以用 Local persistent volume 来使用本机的磁盘。那和 hostPath volume 有啥区别呢？ &lt;a href="https://kubernetes.io/blog/2019/04/04/kubernetes-1.14-local-persistent-volumes-ga/">这篇文档&lt;/a>有说明，大致翻译下。&lt;/p>
+There are two types of control. One is to control which user(token, group) is allowed to access, the other one is to control which resource a user could access. The kube-apiserver has two arguments to allow users to define that.&lt;/p>
+&lt;ul>
+&lt;li>Authentication: &lt;a href="https://kubernetes.io/docs/reference/access-authn-authz/authentication/#webhook-token-authentication">–authentication-token-webhook-config-file&lt;/a>&lt;/li>
+&lt;li>Authorization: &lt;a href="https://kubernetes.io/docs/reference/access-authn-authz/webhook/">–authorization-webhook-config-file&lt;/a>&lt;/li>
+&lt;/ul>
+&lt;/div>
+&lt;/div>
+&lt;div id="outline-container-headline-2" class="outline-2">
+&lt;h2 id="headline-2">
+Admission webhook
+&lt;/h2>
+&lt;div id="outline-text-headline-2" class="outline-text-2">
 &lt;p>
-一般来说 Persistent volume 都是通过远程文件系统实现的。远程文件系统可以不依赖 kubernetes 节点而保存数据。但是远程文件系统往往不能提供本地文件系统一样的性能。&lt;/p></description></item><item><title>Use Datadog to Monitor Your Cluster Build by Rke</title><link>https://wdicc.com/use-datadog-to-monitor-your-cluster-build-by-rke/</link><pubDate>Mon, 27 Jul 2020 15:47:33 +0800</pubDate><guid>https://wdicc.com/use-datadog-to-monitor-your-cluster-build-by-rke/</guid><description>&lt;p>There are many tools you can choose when you want to build your kubernetes cluster, we use Rancher Kubernetes Engine (RKE) to build our kubernetes cluster.&lt;/p>
+&lt;a href="https://kubernetes.io/docs/reference/access-authn-authz/extensible-admission-controllers/#what-are-admission-webhooks">Here&lt;/a> is the definition about what admission webhook could do.&lt;/p>
+&lt;blockquote>
+&lt;p>Admission webhooks are HTTP callbacks that receive admission requests and do something with them. You can define two types of admission webhooks, validating admission webhook and mutating admission webhook. Mutating admission webhooks are invoked first, and can modify objects sent to the API server to enforce custom defaults. After all object modifications are complete, and after the incoming object is validated by the API server, validating admission webhooks are invoked and can reject requests to enforce custom policies.&lt;/p></description></item><item><title>DNS Request in Alpine Image</title><link>https://wdicc.com/dns-request-in-alpine-image/</link><pubDate>Thu, 25 Nov 2021 20:15:39 +0800</pubDate><guid>https://wdicc.com/dns-request-in-alpine-image/</guid><description>&lt;p>
+Alpine 镜像可以带来很小的镜像体积，所以大家比较热衷于使用这个镜像做基础镜像。但是实际上因为一些系统库是阉割版本，可能会导致一些意想不到的问题。例如这里想说的 DNS 的问题。&lt;/p>
 &lt;p>
-We run datadog as daemonset in our cluster, and datadog has auto discovery feature to discovery pods/containers need to check. When we deployed a redis database, datadog will notice that and run checks against the redis pods, we didn&amp;#39;t need to do any configurations.&lt;/p></description></item><item><title>10 Most Common Mistakes Using Kubernetes</title><link>https://wdicc.com/10-most-common-mistakes-using-kubernetes/</link><pubDate>Sun, 24 May 2020 09:45:20 +0800</pubDate><guid>https://wdicc.com/10-most-common-mistakes-using-kubernetes/</guid><description>&lt;p>
+有一个同事报告说在他们的应用的 container 里面使用 curl 请求一个网址的时候，有一定概率会收到 &lt;code class="verbatim">Could not resolve host:&lt;/code> 这个错误，但是也有一定概率会成功返回 200。同时在同一个 pod 的一个 sidecar container 里面使用 curl 访问相同的网址就没问题，总是会返回 200。&lt;/p></description></item><item><title>Local Persistent Volume vs HostPath</title><link>https://wdicc.com/local-persist-volume-vs-hostpath/</link><pubDate>Sun, 28 Feb 2021 14:52:23 +0800</pubDate><guid>https://wdicc.com/local-persist-volume-vs-hostpath/</guid><description>&lt;p>Kubernetes 可以用 Local persistent volume 来使用本机的磁盘。那和 hostPath volume 有啥区别呢？ &lt;a href="https://kubernetes.io/blog/2019/04/04/kubernetes-1.14-local-persistent-volumes-ga/">这篇文档&lt;/a>有说明，大致翻译下。&lt;/p>
+&lt;p>
+一般来说 Persistent volume 都是通过远程文件系统实现的。远程文件系统可以不依赖 kubernetes 节点而保存数据。但是远程文件系统往往不能提供本地文件系统一样的性能。&lt;/p>
+&lt;p>
+为了能更好的理解 Local Persistent Volume，有必要把它和 HostPath volume 比较下。HostPath volume 是挂载主机的一个文件或者目录到 pod。类似的 Local Persistent Volume 是挂载主机的一块磁盘或者分区到一个 pod。&lt;/p></description></item><item><title>Use Datadog to Monitor Your Cluster Build by Rke</title><link>https://wdicc.com/use-datadog-to-monitor-your-cluster-build-by-rke/</link><pubDate>Mon, 27 Jul 2020 15:47:33 +0800</pubDate><guid>https://wdicc.com/use-datadog-to-monitor-your-cluster-build-by-rke/</guid><description>&lt;p>There are many tools you can choose when you want to build your kubernetes cluster, we use Rancher Kubernetes Engine (RKE) to build our kubernetes cluster.&lt;/p>
+&lt;p>
+We run datadog as daemonset in our cluster, and datadog has auto discovery feature to discovery pods/containers need to check. When we deployed a redis database, datadog will notice that and run checks against the redis pods, we didn&amp;#39;t need to do any configurations.&lt;/p>
+&lt;p>
+Datadog auto discovery also supports core kubernetes components, like APIServer, KubeScheduler, KubeProxy, etc. But when you setup you cluster by using RKE, you will find the auto discovery didn&amp;#39;t work for these components.&lt;/p></description></item><item><title>10 Most Common Mistakes Using Kubernetes</title><link>https://wdicc.com/10-most-common-mistakes-using-kubernetes/</link><pubDate>Sun, 24 May 2020 09:45:20 +0800</pubDate><guid>https://wdicc.com/10-most-common-mistakes-using-kubernetes/</guid><description>&lt;p>
 翻译自 &lt;a href="https://blog.pipetail.io/posts/2020-05-04-most-common-mistakes-k8s/">10 most common mistakes using kubernetes&lt;/a>&lt;/p>
 &lt;div id="outline-container-headline-1" class="outline-3">
 &lt;h3 id="headline-1">
@@ -69,4 +90,29 @@ CPU 限制通常都是 not set（没设置）或者 set very low（设置很低�
 &lt;p>
 Every pods has to bind to a service account, it will be &lt;code class="verbatim">default&lt;/code>, if you haven&amp;#39;t specify one. And by default, this account didn&amp;#39;t have any access to the kubernetes API.&lt;/p>
 &lt;p>
-First, create a service account.&lt;/p></description></item></channel></rss>
+First, create a service account.&lt;/p>
+&lt;div class="src src-yaml">
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">v1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">ServiceAccount&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">debug-sa&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">namespace&lt;/span>: &lt;span style="color:#ae81ff">default &lt;/span> &lt;span style="color:#75715e"># default namespace&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;/div>
+&lt;p>
+Create a cluster role binding with an exists cluster role named &lt;code class="verbatim">cluster-admin&lt;/code>, you can create one if you want.&lt;/p>
+&lt;div class="src src-yaml">
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-yaml" data-lang="yaml">&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">apiVersion&lt;/span>: &lt;span style="color:#ae81ff">rbac.authorization.k8s.io/v1beta1&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">ClusterRoleBinding&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">metadata&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">debug-admin-crb&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">roleRef&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">apiGroup&lt;/span>: &lt;span style="color:#ae81ff">rbac.authorization.k8s.io&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">ClusterRole&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">cluster-admin&lt;/span> &lt;span style="color:#75715e"># bind to an exists ClusterRole, you can create one if you want&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>&lt;span style="color:#f92672">subjects&lt;/span>:
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>- &lt;span style="color:#f92672">kind&lt;/span>: &lt;span style="color:#ae81ff">ServiceAccount&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">name&lt;/span>: &lt;span style="color:#ae81ff">debug-sa&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">namespace&lt;/span>: &lt;span style="color:#ae81ff">default&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;/div>
+&lt;p>
+Ok, that&amp;#39;s all. Create our pod now.&lt;/p></description></item></channel></rss>

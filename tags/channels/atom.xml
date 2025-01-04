@@ -1,3 +1,22 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Channels on wd and cc</title><link>https://wdicc.com/tags/channels/</link><description>Recent content in Channels on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Sat, 28 Dec 2019 14:11:19 +0800</lastBuildDate><atom:link href="https://wdicc.com/tags/channels/atom.xml" rel="self" type="application/rss+xml"/><item><title>Django Channels2</title><link>https://wdicc.com/django-channels2/</link><pubDate>Sat, 28 Dec 2019 14:11:19 +0800</pubDate><guid>https://wdicc.com/django-channels2/</guid><description>&lt;p>Django 3.0.1 has released for sometime. We still use Django 1.11 in one of our project, with Channels 1.1.8, I think it&amp;#39;s the time to upgrade to newest Django and Channels.&lt;/p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Channels on wd and cc</title><link>https://wdicc.com/tags/channels/</link><description>Recent content in Channels on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Sat, 28 Dec 2019 14:11:19 +0800</lastBuildDate><atom:link href="https://wdicc.com/tags/channels/atom.xml" rel="self" type="application/rss+xml"/><item><title>Django Channels2</title><link>https://wdicc.com/django-channels2/</link><pubDate>Sat, 28 Dec 2019 14:11:19 +0800</pubDate><guid>https://wdicc.com/django-channels2/</guid><description>&lt;p>Django 3.0.1 has released for sometime. We still use Django 1.11 in one of our project, with Channels 1.1.8, I think it&amp;#39;s the time to upgrade to newest Django and Channels.&lt;/p>
 &lt;p>
-According this &lt;a href="https://channels.readthedocs.io/en/latest/one-to-two.html#how-to-upgrade">upgrade guide&lt;/a>, Channels 2 is a fully rewritten, lots of things has changed. This post is just a record about the upgrade I&amp;#39;ve done.&lt;/p></description></item></channel></rss>
+According this &lt;a href="https://channels.readthedocs.io/en/latest/one-to-two.html#how-to-upgrade">upgrade guide&lt;/a>, Channels 2 is a fully rewritten, lots of things has changed. This post is just a record about the upgrade I&amp;#39;ve done.&lt;/p>
+&lt;div id="outline-container-headline-1" class="outline-3">
+&lt;h3 id="headline-1">
+Routing
+&lt;/h3>
+&lt;div id="outline-text-headline-1" class="outline-text-3">
+&lt;p>
+In Channels 2 you need to add an &lt;code class="verbatim">ASGI_APPLICATION&lt;/code> in the settings file, point to the asgi application.&lt;/p>
+&lt;div class="src src-python">
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-python" data-lang="python">&lt;span style="display:flex;">&lt;span>ASGI_APPLICATION &lt;span style="color:#f92672">=&lt;/span> &lt;span style="color:#e6db74">&amp;#34;proj.routing.application&amp;#34;&lt;/span>&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;/div>
+&lt;p>
+And add &lt;code>routing.py&lt;/code> file, add an &lt;code>application&lt;/code> variable in the file like the bellow.&lt;/p>
+&lt;div class="src src-python">
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-python" data-lang="python">&lt;span style="display:flex;">&lt;span>application &lt;span style="color:#f92672">=&lt;/span> ProtocolTypeRouter({
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#e6db74">&amp;#34;websocket&amp;#34;&lt;/span>: URLRouter([url(&lt;span style="color:#e6db74">r&lt;/span>&lt;span style="color:#e6db74">&amp;#34;^ws$&amp;#34;&lt;/span>, MyConsumer)])
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>})&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;/div>
+&lt;p>
+The &lt;code>websocket&lt;/code> key means it will handle websocket requests, the &lt;code>URLRouter&lt;/code> just work as Django&amp;#39;s. &lt;code>MyConsumer&lt;/code> is the handler for the request.&lt;/p></description></item></channel></rss>

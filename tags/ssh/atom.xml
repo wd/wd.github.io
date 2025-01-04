@@ -1,7 +1,22 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Ssh on wd and cc</title><link>https://wdicc.com/tags/ssh/</link><description>Recent content in Ssh on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Sun, 06 May 2012 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/ssh/atom.xml" rel="self" type="application/rss+xml"/><item><title>有跳板机的 ssh 登陆</title><link>https://wdicc.com/controlmaster-in-ssh/</link><pubDate>Sun, 06 May 2012 00:00:00 +0000</pubDate><guid>https://wdicc.com/controlmaster-in-ssh/</guid><description>&lt;p>我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。&lt;br />
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Ssh on wd and cc</title><link>https://wdicc.com/tags/ssh/</link><description>Recent content in Ssh on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Sun, 06 May 2012 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/ssh/atom.xml" rel="self" type="application/rss+xml"/><item><title>有跳板机的 ssh 登陆</title><link>https://wdicc.com/controlmaster-in-ssh/</link><pubDate>Sun, 06 May 2012 00:00:00 +0000</pubDate><guid>https://wdicc.com/controlmaster-in-ssh/</guid><description>&lt;p>我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。&lt;br />
 &lt;/p>&lt;br />
 &lt;p>&lt;br />
 大意是通过设置 proxycommand 来实现，我也写过一个 &lt;a href="http://wdicc.com/cow-ssh-proxycommand/">http://wdicc.com/cow-ssh-proxycommand/&lt;/a> 。配置如下&lt;br />
+&lt;/p>&lt;br />
+
+
+&lt;pre class="prettyprint lang-conf">
+# gateways
+Host abc
+ Hostname abc.com
+
+# servers
+Host *.xxx
+ ProxyCommand ssh abc exec nc %h %p 2>/dev/null
+&lt;/pre>&lt;br />
+
+&lt;p>&lt;br />
+这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。&lt;br />
 &lt;/p></description></item><item><title>自动连接 ssh 并输入密码</title><link>https://wdicc.com/autossh-and-auto-enter-password/</link><pubDate>Wed, 13 Oct 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/autossh-and-auto-enter-password/</guid><description>这年头不翻墙就看不到真像了，前几天整了个 ssh 代理，就研究了下自动登录。&lt;br />
 
 ssh 自动登录首选就是使用 key 了，可对方不干，那就只能使用密码了。自动输入密码可以用 expect。查这个的时候发现了一个 expect-lite，发现也挺有意思的，他把写 expect 脚本简单化了，比如想 send xxx，那就用 >xxxx 就行了，想 expect yyy 那就 &lt;yyy 就好了，等等这些，呵呵。不过我后来没用这个，还是用的标准的 expect，代码如下。&lt;br />
@@ -35,7 +50,7 @@ disconnect
 
 那里面那个 autossh 能自动给你重连，没仔细研究。那个 20000 后面的参数都是给 ssh 的，具体含意可以看 ssh 的 man。&lt;br />
 
-最主要是最后那两行，能做到连接上之后主程序就退出了，不占用你的终端，而不影响 ssh 的连接。&lt;br /></description></item><item><title>ssh 之穿越与反穿越</title><link>https://wdicc.com/ssh-proxy/</link><pubDate>Thu, 21 Jan 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/ssh-proxy/</guid><description>&lt;p>有时候我们不得不和网管对着干，去想办法去穿越某些防火墙，访问到我们要访问的资源。例如下面的情况，A 和 C 之间是有个墙的，不通。可有个 B 能访问到 C，而 A 又能访问到 B ，那我们可以通过你 ssh 做代理穿越那个墙。&lt;/p></description></item><item><title>NB 的 ssh proxycommand</title><link>https://wdicc.com/cow-ssh-proxycommand/</link><pubDate>Wed, 09 Dec 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/cow-ssh-proxycommand/</guid><description>是从水木上面学来的。还参考了&lt;a href="http://benno.id.au/blog/2006/06/08/ssh_proxy_command">这个&lt;/a>。&lt;br />
+最主要是最后那两行，能做到连接上之后主程序就退出了，不占用你的终端，而不影响 ssh 的连接。&lt;br /></description></item><item><title>ssh 之穿越与反穿越</title><link>https://wdicc.com/ssh-proxy/</link><pubDate>Thu, 21 Jan 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/ssh-proxy/</guid><description>&lt;p>有时候我们不得不和网管对着干，去想办法去穿越某些防火墙，访问到我们要访问的资源。例如下面的情况，A 和 C 之间是有个墙的，不通。可有个 B 能访问到 C，而 A 又能访问到 B ，那我们可以通过你 ssh 做代理穿越那个墙。&lt;/p>&lt;p>A -&amp;gt; | -&amp;gt; C&lt;br /> \-&amp;gt; B -&amp;gt; C&lt;/p></description></item><item><title>NB 的 ssh proxycommand</title><link>https://wdicc.com/cow-ssh-proxycommand/</link><pubDate>Wed, 09 Dec 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/cow-ssh-proxycommand/</guid><description>是从水木上面学来的。还参考了&lt;a href="http://benno.id.au/blog/2006/06/08/ssh_proxy_command">这个&lt;/a>。&lt;br />
 
 如果你工作的环境是下面这样的，那 ssh 的 proxycommand 对你会很有用。&lt;br />
 

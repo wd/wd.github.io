@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Kiam on wd and cc</title><link>https://wdicc.com/tags/kiam/</link><description>Recent content in Kiam on wd and cc</description><generator>Hugo</generator><language>zh-CN</language><lastBuildDate>Thu, 10 Sep 2020 10:59:41 +0800</lastBuildDate><atom:link href="https://wdicc.com/tags/kiam/atom.xml" rel="self" type="application/rss+xml"/><item><title>Using Cert-manager + rout53 With Kiam</title><link>https://wdicc.com/use-certmanager-with-kiam/</link><pubDate>Thu, 10 Sep 2020 10:59:41 +0800</pubDate><guid>https://wdicc.com/use-certmanager-with-kiam/</guid><description>&lt;p>
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Kiam on wd and cc</title><link>https://wdicc.com/tags/kiam/</link><description>Recent content in Kiam on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Thu, 10 Sep 2020 10:59:41 +0800</lastBuildDate><atom:link href="https://wdicc.com/tags/kiam/atom.xml" rel="self" type="application/rss+xml"/><item><title>Using Cert-manager + rout53 With Kiam</title><link>https://wdicc.com/use-certmanager-with-kiam/</link><pubDate>Thu, 10 Sep 2020 10:59:41 +0800</pubDate><guid>https://wdicc.com/use-certmanager-with-kiam/</guid><description>&lt;p>
 As described here: &lt;a href="https://cert-manager.io/docs/configuration/acme/dns01/route53/#set-up-an-iam-role,">https://cert-manager.io/docs/configuration/acme/dns01/route53/#set-up-an-iam-role,&lt;/a> First you need to create a role, for example `dns-manager`.&lt;/p>
 &lt;div class="src src-json">
 &lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-json" data-lang="json">&lt;span style="display:flex;">&lt;span>{
@@ -26,4 +26,27 @@ As described here: &lt;a href="https://cert-manager.io/docs/configuration/acme/d
 &lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
 &lt;/div>
 &lt;p>
-You can replace the &lt;code class="verbatim">*&lt;/code> in &lt;code class="verbatim">arn:aws:route53:::hostedzone/*&lt;/code> with a specific zone id.&lt;/p></description></item></channel></rss>
+You can replace the &lt;code class="verbatim">*&lt;/code> in &lt;code class="verbatim">arn:aws:route53:::hostedzone/*&lt;/code> with a specific zone id.&lt;/p>
+&lt;div id="outline-container-headline-1" class="outline-3">
+&lt;h3 id="headline-1">
+Use cert-manager with out kiam
+&lt;/h3>
+&lt;div id="outline-text-headline-1" class="outline-text-3">
+&lt;p>
+If you didn&amp;#39;t use kiam, you just need to allow the instance(role) to assume this role. Attach this policy to the instance role&lt;/p>
+&lt;div class="src src-json">
+&lt;div class="highlight">&lt;pre tabindex="0" style="color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4;">&lt;code class="language-json" data-lang="json">&lt;span style="display:flex;">&lt;span>{
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;Version&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;2012-10-17&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;Statement&amp;#34;&lt;/span>: [
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;Action&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;sts:AssumeRole&amp;#34;&lt;/span>,
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;Principal&amp;#34;&lt;/span>: {
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;AWS&amp;#34;&lt;/span>: &lt;span style="color:#960050;background-color:#1e0010">&amp;lt;role-arn&amp;gt;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> },
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> &lt;span style="color:#f92672">&amp;#34;Effect&amp;#34;&lt;/span>: &lt;span style="color:#e6db74">&amp;#34;Allow&amp;#34;&lt;/span>
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> }
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span> ]
+&lt;/span>&lt;/span>&lt;span style="display:flex;">&lt;span>}&lt;/span>&lt;/span>&lt;/code>&lt;/pre>&lt;/div>
+&lt;/div>
+&lt;p>
+Replace the &lt;code class="verbatim">&amp;lt;role-arn&amp;gt;&lt;/code> to the instance role.&lt;/p></description></item></channel></rss>
