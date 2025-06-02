@@ -1,5 +1,99 @@
-<!doctype html><html lang=en><head><title>写了一个 kde plasma applet &ndash; wd and cc</title>
-<meta name=description content="Good good study, day day up!"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css integrity="sha512-IW0nhlW5MgNydsXJO40En2EoCkTTjZhI3yuODrZIc8cQ4h1XcF53PsqDHa09NqnkXuIe0Oiyyj171BqZFwISBw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://wdicc.com/css/palettes/base16-dark.css><link rel=stylesheet href=https://wdicc.com/css/risotto.css><link rel=stylesheet href=https://wdicc.com/css/custom.css><link rel=icon href=https://wdicc.com/favicon.ico></head><body><div class=page><header class=page__header><nav class="page__nav main-nav"><ul><h1 class=page__logo><a href=https://wdicc.com/ class=page__logo-inner>wd and cc</a></h1><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/posts/ title>Posts</a></li><li class=main-nav__item><a class=nav-main-item href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=" title>Search</a></li><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/atom.xml title>subscribe</a></li></ul></nav></header><section class=page__body><header class=content__header><h1>写了一个 kde plasma applet</h1></header><div class=content__body>用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。<br>第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。<br>这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。<br>昨天花了一个下午，总算弄好了。参考的文档 <a href=http://www.qtopia.org.cn/doc/qiliang.net/qt/classes.html>qt的类</a>, <a href=http://www.zetcode.com/tutorials/pyqt4/>pyqt4 turtorial</a>,<a href=http://techbase.kde.org/Development/Tutorials/Plasma/Python/GettingStarted>plasma python</a> .<br>效果就这样。电池旁边那个就是。<br><a href=http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png target=_blank><img src=http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png alt width=300></a><br>代码<br><pre class="prettyprint lang-python">
+<!doctype html><html lang=en><head><meta http-equiv=X-Clacks-Overhead content="GNU Terry Pratchett"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" href=https://wdicc.com/favicon.ico><title>写了一个 kde plasma applet | wd and cc</title><meta name=title content="写了一个 kde plasma applet"><meta name=description content="用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。
+
+第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。
+
+这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。
+
+昨天花了一个下午，总算弄好了。参考的文档 qt的类, pyqt4 turtorial,plasma python .
+
+效果就这样。电池旁边那个就是。
+
+
+
+代码
+
+from PyQt4.QtCore import *
+from PyQt4.QtGui import *
+from PyKDE4.plasma import Plasma
+from PyKDE4 import plasmascript
+import time                                      
+
+class Cpuinfo(plasmascript.Applet):
+        def __init__(self,parent,args=None):
+                plasmascript.Applet.__init__(self,parent)
+
+        def init(self):
+                self.freqnow = ''
+                self.freqmax = ''
+                self.temp = ''
+                self.text = ''   
+
+                self.getCurrentFreq()
+                self.getMaxFreq()
+                self.getTemp()       
+
+                self.setHasConfigurationInterface(False)
+                self.setMinimumWidth(100)
+                self.setAspectRatioMode(Plasma.Square)
+                self.startTimer(1000)
+
+        def getCurrentFreq (self):
+                line = open ('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqnow = line
+
+        def getMaxFreq (self):
+                line = file('/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq', 'r').read().rstrip('\n')
+                line = int(line) / 1000 /1000.0
+                self.freqmax = line
+
+        def getTemp (self):
+                line = file('/proc/acpi/thermal_zone/TZ1/temperature', 'r').read().rstrip('\n')
+                line = &#34; &#34;.join(line.split()[1:])
+                self.temp = line
+
+        def timerEvent(self, event):
+                self.getCurrentFreq()
+                self.getTemp()
+                self.text = &#34;%s\n%.2f %d%%&#34; % (self.temp, self.freqnow, self.freqnow / self.freqmax * 100)
+                self.update() 
+
+        def paintInterface(self, painter, option, rect):
+                painter.save()
+                painter.setPen(Qt.white)
+                #painter.setFont(QFont('Consolas',11))
+                painter.drawText(rect, Qt.AlignVCenter | Qt.AlignHCenter, self.text)
+                painter.restore()
+
+def CreateApplet(parent):
+                return Cpuinfo(parent)
+
+if __name__ == '__main__':
+        a = Cpuinfo(None)
+        a.init()
+        print a.freqnow"><meta name=keywords content="linux,plasma,pyqt4,python,"><meta property="og:url" content="https://wdicc.com/writing-a-kde-plasma-applet/"><meta property="og:site_name" content="wd and cc"><meta property="og:title" content="写了一个 kde plasma applet"><meta property="og:description" content="用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。
+第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。
+这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。
+昨天花了一个下午，总算弄好了。参考的文档 qt的类, pyqt4 turtorial,plasma python .
+效果就这样。电池旁边那个就是。
+代码
+from PyQt4.QtCore import * from PyQt4.QtGui import * from PyKDE4.plasma import Plasma from PyKDE4 import plasmascript import time class Cpuinfo(plasmascript.Applet): def __init__(self,parent,args=None): plasmascript.Applet.__init__(self,parent) def init(self): self.freqnow = '' self.freqmax = '' self.temp = '' self.text = '' self.getCurrentFreq() self.getMaxFreq() self.getTemp() self.setHasConfigurationInterface(False) self.setMinimumWidth(100) self.setAspectRatioMode(Plasma.Square) self.startTimer(1000) def getCurrentFreq (self): line = open ('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq', 'r').read().rstrip('\n') line = int(line) / 1000 /1000.0 self.freqnow = line def getMaxFreq (self): line = file('/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq', 'r').read().rstrip('\n') line = int(line) / 1000 /1000.0 self.freqmax = line def getTemp (self): line = file('/proc/acpi/thermal_zone/TZ1/temperature', 'r').read().rstrip('\n') line = &#34; &#34;.join(line.split()[1:]) self.temp = line def timerEvent(self, event): self.getCurrentFreq() self.getTemp() self.text = &#34;%s\n%.2f %d%%&#34; % (self.temp, self.freqnow, self.freqnow / self.freqmax * 100) self.update() def paintInterface(self, painter, option, rect): painter.save() painter.setPen(Qt.white) #painter.setFont(QFont('Consolas',11)) painter.drawText(rect, Qt.AlignVCenter | Qt.AlignHCenter, self.text) painter.restore() def CreateApplet(parent): return Cpuinfo(parent) if __name__ == '__main__': a = Cpuinfo(None) a.init() print a.freqnow"><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2009-01-23T00:00:00+00:00"><meta property="article:modified_time" content="2009-01-23T00:00:00+00:00"><meta property="article:tag" content="Linux"><meta property="article:tag" content="Plasma"><meta property="article:tag" content="Pyqt4"><meta property="article:tag" content="Python"><meta name=twitter:card content="summary"><meta name=twitter:title content="写了一个 kde plasma applet"><meta name=twitter:description content="用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。
+第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。
+这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。
+昨天花了一个下午，总算弄好了。参考的文档 qt的类, pyqt4 turtorial,plasma python .
+效果就这样。电池旁边那个就是。
+代码
+from PyQt4.QtCore import * from PyQt4.QtGui import * from PyKDE4.plasma import Plasma from PyKDE4 import plasmascript import time class Cpuinfo(plasmascript.Applet): def __init__(self,parent,args=None): plasmascript.Applet.__init__(self,parent) def init(self): self.freqnow = '' self.freqmax = '' self.temp = '' self.text = '' self.getCurrentFreq() self.getMaxFreq() self.getTemp() self.setHasConfigurationInterface(False) self.setMinimumWidth(100) self.setAspectRatioMode(Plasma.Square) self.startTimer(1000) def getCurrentFreq (self): line = open ('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq', 'r').read().rstrip('\n') line = int(line) / 1000 /1000.0 self.freqnow = line def getMaxFreq (self): line = file('/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq', 'r').read().rstrip('\n') line = int(line) / 1000 /1000.0 self.freqmax = line def getTemp (self): line = file('/proc/acpi/thermal_zone/TZ1/temperature', 'r').read().rstrip('\n') line = &#34; &#34;.join(line.split()[1:]) self.temp = line def timerEvent(self, event): self.getCurrentFreq() self.getTemp() self.text = &#34;%s\n%.2f %d%%&#34; % (self.temp, self.freqnow, self.freqnow / self.freqmax * 100) self.update() def paintInterface(self, painter, option, rect): painter.save() painter.setPen(Qt.white) #painter.setFont(QFont('Consolas',11)) painter.drawText(rect, Qt.AlignVCenter | Qt.AlignHCenter, self.text) painter.restore() def CreateApplet(parent): return Cpuinfo(parent) if __name__ == '__main__': a = Cpuinfo(None) a.init() print a.freqnow"><meta itemprop=name content="写了一个 kde plasma applet"><meta itemprop=description content="用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。
+第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。
+这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。
+昨天花了一个下午，总算弄好了。参考的文档 qt的类, pyqt4 turtorial,plasma python .
+效果就这样。电池旁边那个就是。
+代码
+from PyQt4.QtCore import * from PyQt4.QtGui import * from PyKDE4.plasma import Plasma from PyKDE4 import plasmascript import time class Cpuinfo(plasmascript.Applet): def __init__(self,parent,args=None): plasmascript.Applet.__init__(self,parent) def init(self): self.freqnow = '' self.freqmax = '' self.temp = '' self.text = '' self.getCurrentFreq() self.getMaxFreq() self.getTemp() self.setHasConfigurationInterface(False) self.setMinimumWidth(100) self.setAspectRatioMode(Plasma.Square) self.startTimer(1000) def getCurrentFreq (self): line = open ('/sys/devices/system/cpu/cpu0/cpufreq/scaling_cur_freq', 'r').read().rstrip('\n') line = int(line) / 1000 /1000.0 self.freqnow = line def getMaxFreq (self): line = file('/sys/devices/system/cpu/cpu0/cpufreq/scaling_max_freq', 'r').read().rstrip('\n') line = int(line) / 1000 /1000.0 self.freqmax = line def getTemp (self): line = file('/proc/acpi/thermal_zone/TZ1/temperature', 'r').read().rstrip('\n') line = &#34; &#34;.join(line.split()[1:]) self.temp = line def timerEvent(self, event): self.getCurrentFreq() self.getTemp() self.text = &#34;%s\n%.2f %d%%&#34; % (self.temp, self.freqnow, self.freqnow / self.freqmax * 100) self.update() def paintInterface(self, painter, option, rect): painter.save() painter.setPen(Qt.white) #painter.setFont(QFont('Consolas',11)) painter.drawText(rect, Qt.AlignVCenter | Qt.AlignHCenter, self.text) painter.restore() def CreateApplet(parent): return Cpuinfo(parent) if __name__ == '__main__': a = Cpuinfo(None) a.init() print a.freqnow"><meta itemprop=datePublished content="2009-01-23T00:00:00+00:00"><meta itemprop=dateModified content="2009-01-23T00:00:00+00:00"><meta itemprop=wordCount content="462"><meta itemprop=keywords content="Linux,Plasma,Pyqt4,Python"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--code-background-color:#f2f2f2;--code-color:#222;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--code-background-color:#000;--code-color:#ddd;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px}blockquote{border-left:1px solid #999;color:var(--code-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto !important}.highlight,.code{padding:1px 15px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style></head><body><header><a href=/ class=title><h2>wd and cc</h2></a><p>-- Good good study, day day up!</p><nav><a href=/>Home</a>
+<a href=/posts/>Posts</a>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">Search</a>
+<a href=/tags/>Tags</a>
+<a href=/atom.xml>subscribe</a></nav></header><main><content>用 gnome 的时候，对 panel 上面的 cpu 等 applet 情有独钟。这个东西能让我对自己的系统有第一手信息，有时候某个程序出问题了 cpu 100% 了，这个时候系统反应不一定会变慢的，但是这个程序是必须要被干掉的，有了这个 applet 我就能知道第一时间知道出问题了。还有的时候看 firefox 里面的 flash 的时候也会出类似的情况，这时会导致看别的网页很慢，那就干掉他。<br>第一次装 kde 的时候发现没有那些东西，让我很失望。后来看到 ob 在 openbox 里面把 panel 设的短一点，然后用 conky 在空出来的地方显示一些信息，感觉豁然开朗啊，呵呵。<br>这次装好 kde，就弄了一个 conky，可是发现他的风格和系统不兼容。有点不爽，就琢磨自己能不能弄一个，因为需求实在太简单了。<br>昨天花了一个下午，总算弄好了。参考的文档 <a href=http://www.qtopia.org.cn/doc/qiliang.net/qt/classes.html>qt的类</a>, <a href=http://www.zetcode.com/tutorials/pyqt4/>pyqt4 turtorial</a>,<a href=http://techbase.kde.org/Development/Tutorials/Plasma/Python/GettingStarted>plasma python</a> .<br>效果就这样。电池旁边那个就是。<br><a href=http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png target=_blank><img src=http://img339.imageshack.us/img339/6986/200901231045132304x1024oo0.png alt width=300></a><br>代码<br><pre class="prettyprint lang-python">
 from PyQt4.QtCore import *
 from PyQt4.QtGui import *
 from PyKDE4.plasma import Plasma
@@ -59,4 +153,4 @@ def CreateApplet(parent):
 if __name__ == '__main__':
         a = Cpuinfo(None)
         a.init()
-        print a.freqnow</pre></div><footer class=content__footer></footer></section><section class=page__aside><div class=aside__about><div class=aside__about><img class=about__logo src=https://wdicc.com/favicon.ico alt=Logo><h1 class=about__title>Happy every day!</h1><p class=about__description>Good good study, day day up!</p></div><ul class=aside__social-links><li><a href=https://github.com/wd rel=me aria-label=GitHub title=GitHub><i class="fa-brands fa-github" aria-hidden=true></i></a>&nbsp;</li></ul></div><hr><div class=aside__content><p>2009-01-23</p></div></section><footer class=page__footer><p><br><span class=active>$ echo $LANG<br><b>zh_CN</b></span><br></p><br><br><p class=copyright>wd © 2025</p><p class=advertisement>Powered by <a href=https://gohugo.io/>hugo</a> and <a href=https://github.com/joeroe/risotto>risotto</a>.</p></footer></div></body></html>
+        print a.freqnow</pre></content></main><footer>Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>

@@ -1,5 +1,102 @@
-<!doctype html><html lang=en><head><title>强大的 git 和 git svn &ndash; wd and cc</title>
-<meta name=description content="Good good study, day day up!"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css integrity="sha512-IW0nhlW5MgNydsXJO40En2EoCkTTjZhI3yuODrZIc8cQ4h1XcF53PsqDHa09NqnkXuIe0Oiyyj171BqZFwISBw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://wdicc.com/css/palettes/base16-dark.css><link rel=stylesheet href=https://wdicc.com/css/risotto.css><link rel=stylesheet href=https://wdicc.com/css/custom.css><link rel=icon href=https://wdicc.com/favicon.ico></head><body><div class=page><header class=page__header><nav class="page__nav main-nav"><ul><h1 class=page__logo><a href=https://wdicc.com/ class=page__logo-inner>wd and cc</a></h1><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/posts/ title>Posts</a></li><li class=main-nav__item><a class=nav-main-item href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=" title>Search</a></li><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/atom.xml title>subscribe</a></li></ul></nav></header><section class=page__body><header class=content__header><h1>强大的 git 和 git svn</h1></header><div class=content__body>在春哥的鼓动下，用上了 git。有 git svn 支持，还是很好用的，建议 svn 用户都试试看。<br>使用 git svn clone SVN_URL 来 clone 初始化你的本地 repo，然后就和 svn 没关系了，直到你需要把你的改动提交到 svn 的 repo。<br>先说说 git 的一些本地操作，就捡我自己用的说吧，我觉得应该也够用了。<br>首先 git add 是用来添加文件的，编辑好新的文件后，使用 git add file_name 就能把他加入到 git 里面管理，当然，如果还不打算提交他，那也可以先编辑以后再 add。<br>然后 git mv 改名，git rm 删文件，这和一般的 linux 命令差不多，就不用多说了。要记得的是，如果想让你的改动加入到 git 的管理里面，那就最好使用这两个文件来改名和删文件。如果直接用 linux 命令操作，比如改名，git 会认为你要删一个文件，并且那个新的文件还没不会加入到管理里面。<br>然后就是 git status 了。执行这个能看到当前 repo 的分支（例如下面的第一行说的 wd）里面有哪些改动，这个里面的信息应该是能分四类。一类是对文件的操作，比如添加删除文件等(changes to be committed)，这类文件直接使用 git commit 就能提交。一类是对现有文件的修改(changed but not updated)，这类文件使用 git add 添加后也能用 git commit 提交，不过也可以用 git commit -a 直接提交。一类是没有加入到管理的一些文件(untracked files)，这类文件不会被提交，除非你使用 git add 添加他们。好像还有一类，是你的修改如果和上游冲突的时候，这时候会多出来一类，提示你这些文件和上游冲突，打开这些文件，里面有明显的标记会指出冲突是什么，解决冲突后，git add 添加这个文件，再提交就可以了。<br><pre class=prettyprint>
+<!doctype html><html lang=en><head><meta http-equiv=X-Clacks-Overhead content="GNU Terry Pratchett"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" href=https://wdicc.com/favicon.ico><title>强大的 git 和 git svn | wd and cc</title><meta name=title content="强大的 git 和 git svn"><meta name=description content='在春哥的鼓动下，用上了 git。有 git svn 支持，还是很好用的，建议 svn 用户都试试看。
+
+使用 git svn clone SVN_URL 来 clone 初始化你的本地 repo，然后就和 svn 没关系了，直到你需要把你的改动提交到 svn 的 repo。
+
+先说说 git 的一些本地操作，就捡我自己用的说吧，我觉得应该也够用了。
+
+首先 git add 是用来添加文件的，编辑好新的文件后，使用 git add file_name 就能把他加入到 git 里面管理，当然，如果还不打算提交他，那也可以先编辑以后再 add。
+
+然后 git mv 改名，git rm 删文件，这和一般的 linux 命令差不多，就不用多说了。要记得的是，如果想让你的改动加入到 git 的管理里面，那就最好使用这两个文件来改名和删文件。如果直接用 linux 命令操作，比如改名，git 会认为你要删一个文件，并且那个新的文件还没不会加入到管理里面。
+
+然后就是 git status 了。执行这个能看到当前 repo 的分支（例如下面的第一行说的 wd）里面有哪些改动，这个里面的信息应该是能分四类。一类是对文件的操作，比如添加删除文件等(changes to be committed)，这类文件直接使用 git commit 就能提交。一类是对现有文件的修改(changed but not updated)，这类文件使用 git add 添加后也能用 git commit 提交，不过也可以用 git commit -a 直接提交。一类是没有加入到管理的一些文件(untracked files)，这类文件不会被提交，除非你使用 git add 添加他们。好像还有一类，是你的修改如果和上游冲突的时候，这时候会多出来一类，提示你这些文件和上游冲突，打开这些文件，里面有明显的标记会指出冲突是什么，解决冲突后，git add 添加这个文件，再提交就可以了。
+
+
+# On branch wd
+# Changes to be committed:
+#   (use "git reset HEAD ..." to unstage)
+#
+#	new file:   a
+#
+# Changed but not updated:
+#   (use "git add ..." to update what will be committed)
+#   (use "git checkout -- ..." to discard changes in working directory)
+#
+#	modified:   hello
+#
+# Untracked files:
+#   (use "git add ..." to include in what will be committed)
+#
+#	b
+
+
+上面捎带说了下 git commit，commit 有个 -m 参数可以直接在后面指定 commit message，就不用打开那个编辑窗口了。另外还有个 --amend 能用来修改最后一次提交的 commit message。commit 后面还可以跟具体的文件或目录来只提交指定的东西。
+
+还需要知道的命令，git log。能看到自己和别人提交的每个 commit 的情况。那个类似 commit 0fb8046e4bd0b5ce44d778e3936bda80e7e0ccd7 的那一长串字符就是 commit id。如果想看具体某个 commit 做了什么，那就执行一下 git show commit_id,能看到一个 diff，很方便的。
+
+git diff file_name 可以用来看自己要提交的文件改动了什么。
+
+git branch 还能建分支，非常的方便。使用 git branch wd 就能建立一个叫 wd 的分支，使用 git branch 就能看到当前有哪些分支，使用 git checkout wd 就能切换到 wd 这个分支，在这个分支做的改动不会影响到 master，随时可以切换回去。然后可以使用 git merge 可以把在某个分支做的变更 merge 进来。比如当前是 master 分支，git merge wd 会把在 wd 这个分支建立后，在 wd 上面做的改动 merge 到 master 里面。不过在不熟练的情况下，还是别使用分支了，呵呵。
+
+如果提交了之后又想撤消，那就要用到 git reset 了。reset 分 mixed，soft，hard 几种，看名字应该能看出了一点什么，hard 会把对文件的改动都撤消，soft 只会删掉提交记录，不会对文件操作。具体这几个区别还是看看 man git reset 吧，这个操作也是稍微有点复杂，容易出问题，没熟悉的情况下慎用。我只用过 soft reset，用来修改 commit message，呵呵。
+
+前面说的这些都是在本地操作的，完全不用管别人的情况，在没有网络的情况下，你也可以提交你的修改。
+
+激动人心的时候到来了，怎么把修改提交到 svn 呢？
+
+如果想要把自己的变更应用到 svn repo，那就要用到 git svn dcommit 了。不过别急，这时候还需要了解下 git svn rebase 命令，这个命令是用来把远程别人的改动应用到本地的，类似于 svn update（不过文档里面说还是有点区别，没看明白）。在 rebase 的过程中，难免会遇到一些冲突，这个时候会有提示信息的，而且在 git status 里面也会提醒你的。这时就需要你先去解决冲突，打开那个文件看看就知道了。解决了后使用 git add 添加那个文件，然后 git svn rebase --continue，直到完成。
+
+这样之后，你就可以用 git svn dcommit 来提交你的修改了。这个命令完事后会自动 rebase 一下，所以好像可以直接使用这个命令而不 rebase 先。
+
+好了，这下改动就提交到了 svn 了，整个过程就完事了。这只是一些基本的用法，应该也足够用了，遇到问题或更深入一点的用法可以看看 git 的 man。'><meta name=keywords content="git,linux,svn,"><meta property="og:url" content="https://wdicc.com/powerful-git-and-git-svn/"><meta property="og:site_name" content="wd and cc"><meta property="og:title" content="强大的 git 和 git svn"><meta property="og:description" content='在春哥的鼓动下，用上了 git。有 git svn 支持，还是很好用的，建议 svn 用户都试试看。
+使用 git svn clone SVN_URL 来 clone 初始化你的本地 repo，然后就和 svn 没关系了，直到你需要把你的改动提交到 svn 的 repo。
+先说说 git 的一些本地操作，就捡我自己用的说吧，我觉得应该也够用了。
+首先 git add 是用来添加文件的，编辑好新的文件后，使用 git add file_name 就能把他加入到 git 里面管理，当然，如果还不打算提交他，那也可以先编辑以后再 add。
+然后 git mv 改名，git rm 删文件，这和一般的 linux 命令差不多，就不用多说了。要记得的是，如果想让你的改动加入到 git 的管理里面，那就最好使用这两个文件来改名和删文件。如果直接用 linux 命令操作，比如改名，git 会认为你要删一个文件，并且那个新的文件还没不会加入到管理里面。
+然后就是 git status 了。执行这个能看到当前 repo 的分支（例如下面的第一行说的 wd）里面有哪些改动，这个里面的信息应该是能分四类。一类是对文件的操作，比如添加删除文件等(changes to be committed)，这类文件直接使用 git commit 就能提交。一类是对现有文件的修改(changed but not updated)，这类文件使用 git add 添加后也能用 git commit 提交，不过也可以用 git commit -a 直接提交。一类是没有加入到管理的一些文件(untracked files)，这类文件不会被提交，除非你使用 git add 添加他们。好像还有一类，是你的修改如果和上游冲突的时候，这时候会多出来一类，提示你这些文件和上游冲突，打开这些文件，里面有明显的标记会指出冲突是什么，解决冲突后，git add 添加这个文件，再提交就可以了。
+# On branch wd # Changes to be committed: # (use "git reset HEAD ..." to unstage) # #	new file: a # # Changed but not updated: # (use "git add ..." to update what will be committed) # (use "git checkout -- ..." to discard changes in working directory) # #	modified: hello # # Untracked files: # (use "git add ..." to include in what will be committed) # #	b 上面捎带说了下 git commit，commit 有个 -m 参数可以直接在后面指定 commit message，就不用打开那个编辑窗口了。另外还有个 --amend 能用来修改最后一次提交的 commit message。commit 后面还可以跟具体的文件或目录来只提交指定的东西。
+还需要知道的命令，git log。能看到自己和别人提交的每个 commit 的情况。那个类似 commit 0fb8046e4bd0b5ce44d778e3936bda80e7e0ccd7 的那一长串字符就是 commit id。如果想看具体某个 commit 做了什么，那就执行一下 git show commit_id,能看到一个 diff，很方便的。
+git diff file_name 可以用来看自己要提交的文件改动了什么。
+git branch 还能建分支，非常的方便。使用 git branch wd 就能建立一个叫 wd 的分支，使用 git branch 就能看到当前有哪些分支，使用 git checkout wd 就能切换到 wd 这个分支，在这个分支做的改动不会影响到 master，随时可以切换回去。然后可以使用 git merge 可以把在某个分支做的变更 merge 进来。比如当前是 master 分支，git merge wd 会把在 wd 这个分支建立后，在 wd 上面做的改动 merge 到 master 里面。不过在不熟练的情况下，还是别使用分支了，呵呵。
+如果提交了之后又想撤消，那就要用到 git reset 了。reset 分 mixed，soft，hard 几种，看名字应该能看出了一点什么，hard 会把对文件的改动都撤消，soft 只会删掉提交记录，不会对文件操作。具体这几个区别还是看看 man git reset 吧，这个操作也是稍微有点复杂，容易出问题，没熟悉的情况下慎用。我只用过 soft reset，用来修改 commit message，呵呵。
+前面说的这些都是在本地操作的，完全不用管别人的情况，在没有网络的情况下，你也可以提交你的修改。
+激动人心的时候到来了，怎么把修改提交到 svn 呢？
+如果想要把自己的变更应用到 svn repo，那就要用到 git svn dcommit 了。不过别急，这时候还需要了解下 git svn rebase 命令，这个命令是用来把远程别人的改动应用到本地的，类似于 svn update（不过文档里面说还是有点区别，没看明白）。在 rebase 的过程中，难免会遇到一些冲突，这个时候会有提示信息的，而且在 git status 里面也会提醒你的。这时就需要你先去解决冲突，打开那个文件看看就知道了。解决了后使用 git add 添加那个文件，然后 git svn rebase --continue，直到完成。
+这样之后，你就可以用 git svn dcommit 来提交你的修改了。这个命令完事后会自动 rebase 一下，所以好像可以直接使用这个命令而不 rebase 先。
+好了，这下改动就提交到了 svn 了，整个过程就完事了。这只是一些基本的用法，应该也足够用了，遇到问题或更深入一点的用法可以看看 git 的 man。'><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2010-04-04T00:00:00+00:00"><meta property="article:modified_time" content="2010-04-04T00:00:00+00:00"><meta property="article:tag" content="Git"><meta property="article:tag" content="Linux"><meta property="article:tag" content="Svn"><meta name=twitter:card content="summary"><meta name=twitter:title content="强大的 git 和 git svn"><meta name=twitter:description content='在春哥的鼓动下，用上了 git。有 git svn 支持，还是很好用的，建议 svn 用户都试试看。
+使用 git svn clone SVN_URL 来 clone 初始化你的本地 repo，然后就和 svn 没关系了，直到你需要把你的改动提交到 svn 的 repo。
+先说说 git 的一些本地操作，就捡我自己用的说吧，我觉得应该也够用了。
+首先 git add 是用来添加文件的，编辑好新的文件后，使用 git add file_name 就能把他加入到 git 里面管理，当然，如果还不打算提交他，那也可以先编辑以后再 add。
+然后 git mv 改名，git rm 删文件，这和一般的 linux 命令差不多，就不用多说了。要记得的是，如果想让你的改动加入到 git 的管理里面，那就最好使用这两个文件来改名和删文件。如果直接用 linux 命令操作，比如改名，git 会认为你要删一个文件，并且那个新的文件还没不会加入到管理里面。
+然后就是 git status 了。执行这个能看到当前 repo 的分支（例如下面的第一行说的 wd）里面有哪些改动，这个里面的信息应该是能分四类。一类是对文件的操作，比如添加删除文件等(changes to be committed)，这类文件直接使用 git commit 就能提交。一类是对现有文件的修改(changed but not updated)，这类文件使用 git add 添加后也能用 git commit 提交，不过也可以用 git commit -a 直接提交。一类是没有加入到管理的一些文件(untracked files)，这类文件不会被提交，除非你使用 git add 添加他们。好像还有一类，是你的修改如果和上游冲突的时候，这时候会多出来一类，提示你这些文件和上游冲突，打开这些文件，里面有明显的标记会指出冲突是什么，解决冲突后，git add 添加这个文件，再提交就可以了。
+# On branch wd # Changes to be committed: # (use "git reset HEAD ..." to unstage) # #	new file: a # # Changed but not updated: # (use "git add ..." to update what will be committed) # (use "git checkout -- ..." to discard changes in working directory) # #	modified: hello # # Untracked files: # (use "git add ..." to include in what will be committed) # #	b 上面捎带说了下 git commit，commit 有个 -m 参数可以直接在后面指定 commit message，就不用打开那个编辑窗口了。另外还有个 --amend 能用来修改最后一次提交的 commit message。commit 后面还可以跟具体的文件或目录来只提交指定的东西。
+还需要知道的命令，git log。能看到自己和别人提交的每个 commit 的情况。那个类似 commit 0fb8046e4bd0b5ce44d778e3936bda80e7e0ccd7 的那一长串字符就是 commit id。如果想看具体某个 commit 做了什么，那就执行一下 git show commit_id,能看到一个 diff，很方便的。
+git diff file_name 可以用来看自己要提交的文件改动了什么。
+git branch 还能建分支，非常的方便。使用 git branch wd 就能建立一个叫 wd 的分支，使用 git branch 就能看到当前有哪些分支，使用 git checkout wd 就能切换到 wd 这个分支，在这个分支做的改动不会影响到 master，随时可以切换回去。然后可以使用 git merge 可以把在某个分支做的变更 merge 进来。比如当前是 master 分支，git merge wd 会把在 wd 这个分支建立后，在 wd 上面做的改动 merge 到 master 里面。不过在不熟练的情况下，还是别使用分支了，呵呵。
+如果提交了之后又想撤消，那就要用到 git reset 了。reset 分 mixed，soft，hard 几种，看名字应该能看出了一点什么，hard 会把对文件的改动都撤消，soft 只会删掉提交记录，不会对文件操作。具体这几个区别还是看看 man git reset 吧，这个操作也是稍微有点复杂，容易出问题，没熟悉的情况下慎用。我只用过 soft reset，用来修改 commit message，呵呵。
+前面说的这些都是在本地操作的，完全不用管别人的情况，在没有网络的情况下，你也可以提交你的修改。
+激动人心的时候到来了，怎么把修改提交到 svn 呢？
+如果想要把自己的变更应用到 svn repo，那就要用到 git svn dcommit 了。不过别急，这时候还需要了解下 git svn rebase 命令，这个命令是用来把远程别人的改动应用到本地的，类似于 svn update（不过文档里面说还是有点区别，没看明白）。在 rebase 的过程中，难免会遇到一些冲突，这个时候会有提示信息的，而且在 git status 里面也会提醒你的。这时就需要你先去解决冲突，打开那个文件看看就知道了。解决了后使用 git add 添加那个文件，然后 git svn rebase --continue，直到完成。
+这样之后，你就可以用 git svn dcommit 来提交你的修改了。这个命令完事后会自动 rebase 一下，所以好像可以直接使用这个命令而不 rebase 先。
+好了，这下改动就提交到了 svn 了，整个过程就完事了。这只是一些基本的用法，应该也足够用了，遇到问题或更深入一点的用法可以看看 git 的 man。'><meta itemprop=name content="强大的 git 和 git svn"><meta itemprop=description content='在春哥的鼓动下，用上了 git。有 git svn 支持，还是很好用的，建议 svn 用户都试试看。
+使用 git svn clone SVN_URL 来 clone 初始化你的本地 repo，然后就和 svn 没关系了，直到你需要把你的改动提交到 svn 的 repo。
+先说说 git 的一些本地操作，就捡我自己用的说吧，我觉得应该也够用了。
+首先 git add 是用来添加文件的，编辑好新的文件后，使用 git add file_name 就能把他加入到 git 里面管理，当然，如果还不打算提交他，那也可以先编辑以后再 add。
+然后 git mv 改名，git rm 删文件，这和一般的 linux 命令差不多，就不用多说了。要记得的是，如果想让你的改动加入到 git 的管理里面，那就最好使用这两个文件来改名和删文件。如果直接用 linux 命令操作，比如改名，git 会认为你要删一个文件，并且那个新的文件还没不会加入到管理里面。
+然后就是 git status 了。执行这个能看到当前 repo 的分支（例如下面的第一行说的 wd）里面有哪些改动，这个里面的信息应该是能分四类。一类是对文件的操作，比如添加删除文件等(changes to be committed)，这类文件直接使用 git commit 就能提交。一类是对现有文件的修改(changed but not updated)，这类文件使用 git add 添加后也能用 git commit 提交，不过也可以用 git commit -a 直接提交。一类是没有加入到管理的一些文件(untracked files)，这类文件不会被提交，除非你使用 git add 添加他们。好像还有一类，是你的修改如果和上游冲突的时候，这时候会多出来一类，提示你这些文件和上游冲突，打开这些文件，里面有明显的标记会指出冲突是什么，解决冲突后，git add 添加这个文件，再提交就可以了。
+# On branch wd # Changes to be committed: # (use "git reset HEAD ..." to unstage) # #	new file: a # # Changed but not updated: # (use "git add ..." to update what will be committed) # (use "git checkout -- ..." to discard changes in working directory) # #	modified: hello # # Untracked files: # (use "git add ..." to include in what will be committed) # #	b 上面捎带说了下 git commit，commit 有个 -m 参数可以直接在后面指定 commit message，就不用打开那个编辑窗口了。另外还有个 --amend 能用来修改最后一次提交的 commit message。commit 后面还可以跟具体的文件或目录来只提交指定的东西。
+还需要知道的命令，git log。能看到自己和别人提交的每个 commit 的情况。那个类似 commit 0fb8046e4bd0b5ce44d778e3936bda80e7e0ccd7 的那一长串字符就是 commit id。如果想看具体某个 commit 做了什么，那就执行一下 git show commit_id,能看到一个 diff，很方便的。
+git diff file_name 可以用来看自己要提交的文件改动了什么。
+git branch 还能建分支，非常的方便。使用 git branch wd 就能建立一个叫 wd 的分支，使用 git branch 就能看到当前有哪些分支，使用 git checkout wd 就能切换到 wd 这个分支，在这个分支做的改动不会影响到 master，随时可以切换回去。然后可以使用 git merge 可以把在某个分支做的变更 merge 进来。比如当前是 master 分支，git merge wd 会把在 wd 这个分支建立后，在 wd 上面做的改动 merge 到 master 里面。不过在不熟练的情况下，还是别使用分支了，呵呵。
+如果提交了之后又想撤消，那就要用到 git reset 了。reset 分 mixed，soft，hard 几种，看名字应该能看出了一点什么，hard 会把对文件的改动都撤消，soft 只会删掉提交记录，不会对文件操作。具体这几个区别还是看看 man git reset 吧，这个操作也是稍微有点复杂，容易出问题，没熟悉的情况下慎用。我只用过 soft reset，用来修改 commit message，呵呵。
+前面说的这些都是在本地操作的，完全不用管别人的情况，在没有网络的情况下，你也可以提交你的修改。
+激动人心的时候到来了，怎么把修改提交到 svn 呢？
+如果想要把自己的变更应用到 svn repo，那就要用到 git svn dcommit 了。不过别急，这时候还需要了解下 git svn rebase 命令，这个命令是用来把远程别人的改动应用到本地的，类似于 svn update（不过文档里面说还是有点区别，没看明白）。在 rebase 的过程中，难免会遇到一些冲突，这个时候会有提示信息的，而且在 git status 里面也会提醒你的。这时就需要你先去解决冲突，打开那个文件看看就知道了。解决了后使用 git add 添加那个文件，然后 git svn rebase --continue，直到完成。
+这样之后，你就可以用 git svn dcommit 来提交你的修改了。这个命令完事后会自动 rebase 一下，所以好像可以直接使用这个命令而不 rebase 先。
+好了，这下改动就提交到了 svn 了，整个过程就完事了。这只是一些基本的用法，应该也足够用了，遇到问题或更深入一点的用法可以看看 git 的 man。'><meta itemprop=datePublished content="2010-04-04T00:00:00+00:00"><meta itemprop=dateModified content="2010-04-04T00:00:00+00:00"><meta itemprop=wordCount content="1694"><meta itemprop=keywords content="Git,Linux,Svn"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--code-background-color:#f2f2f2;--code-color:#222;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--code-background-color:#000;--code-color:#ddd;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px}blockquote{border-left:1px solid #999;color:var(--code-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto !important}.highlight,.code{padding:1px 15px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style></head><body><header><a href=/ class=title><h2>wd and cc</h2></a><p>-- Good good study, day day up!</p><nav><a href=/>Home</a>
+<a href=/posts/>Posts</a>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">Search</a>
+<a href=/tags/>Tags</a>
+<a href=/atom.xml>subscribe</a></nav></header><main><content>在春哥的鼓动下，用上了 git。有 git svn 支持，还是很好用的，建议 svn 用户都试试看。<br>使用 git svn clone SVN_URL 来 clone 初始化你的本地 repo，然后就和 svn 没关系了，直到你需要把你的改动提交到 svn 的 repo。<br>先说说 git 的一些本地操作，就捡我自己用的说吧，我觉得应该也够用了。<br>首先 git add 是用来添加文件的，编辑好新的文件后，使用 git add file_name 就能把他加入到 git 里面管理，当然，如果还不打算提交他，那也可以先编辑以后再 add。<br>然后 git mv 改名，git rm 删文件，这和一般的 linux 命令差不多，就不用多说了。要记得的是，如果想让你的改动加入到 git 的管理里面，那就最好使用这两个文件来改名和删文件。如果直接用 linux 命令操作，比如改名，git 会认为你要删一个文件，并且那个新的文件还没不会加入到管理里面。<br>然后就是 git status 了。执行这个能看到当前 repo 的分支（例如下面的第一行说的 wd）里面有哪些改动，这个里面的信息应该是能分四类。一类是对文件的操作，比如添加删除文件等(changes to be committed)，这类文件直接使用 git commit 就能提交。一类是对现有文件的修改(changed but not updated)，这类文件使用 git add 添加后也能用 git commit 提交，不过也可以用 git commit -a 直接提交。一类是没有加入到管理的一些文件(untracked files)，这类文件不会被提交，除非你使用 git add 添加他们。好像还有一类，是你的修改如果和上游冲突的时候，这时候会多出来一类，提示你这些文件和上游冲突，打开这些文件，里面有明显的标记会指出冲突是什么，解决冲突后，git add 添加这个文件，再提交就可以了。<br><pre class=prettyprint>
 # On branch wd
 # Changes to be committed:
 #   (use "git reset HEAD <file>..." to unstage)
@@ -16,4 +113,4 @@
 #   (use "git add <file>..." to include in what will be committed)
 #
 #	b
-</pre><br>上面捎带说了下 git commit，commit 有个 -m 参数可以直接在后面指定 commit message，就不用打开那个编辑窗口了。另外还有个 --amend 能用来修改最后一次提交的 commit message。commit 后面还可以跟具体的文件或目录来只提交指定的东西。<br>还需要知道的命令，git log。能看到自己和别人提交的每个 commit 的情况。那个类似 commit 0fb8046e4bd0b5ce44d778e3936bda80e7e0ccd7 的那一长串字符就是 commit id。如果想看具体某个 commit 做了什么，那就执行一下 git show commit_id,能看到一个 diff，很方便的。<br>git diff file_name 可以用来看自己要提交的文件改动了什么。<br>git branch 还能建分支，非常的方便。使用 git branch wd 就能建立一个叫 wd 的分支，使用 git branch 就能看到当前有哪些分支，使用 git checkout wd 就能切换到 wd 这个分支，在这个分支做的改动不会影响到 master，随时可以切换回去。然后可以使用 git merge 可以把在某个分支做的变更 merge 进来。比如当前是 master 分支，git merge wd 会把在 wd 这个分支建立后，在 wd 上面做的改动 merge 到 master 里面。不过在不熟练的情况下，还是别使用分支了，呵呵。<br>如果提交了之后又想撤消，那就要用到 git reset 了。reset 分 mixed，soft，hard 几种，看名字应该能看出了一点什么，hard 会把对文件的改动都撤消，soft 只会删掉提交记录，不会对文件操作。具体这几个区别还是看看 man git reset 吧，这个操作也是稍微有点复杂，容易出问题，没熟悉的情况下慎用。我只用过 soft reset，用来修改 commit message，呵呵。<br>前面说的这些都是在本地操作的，完全不用管别人的情况，在没有网络的情况下，你也可以提交你的修改。<br>激动人心的时候到来了，怎么把修改提交到 svn 呢？<br>如果想要把自己的变更应用到 svn repo，那就要用到 git svn dcommit 了。不过别急，这时候还需要了解下 git svn rebase 命令，这个命令是用来把远程别人的改动应用到本地的，类似于 svn update（不过文档里面说还是有点区别，没看明白）。在 rebase 的过程中，难免会遇到一些冲突，这个时候会有提示信息的，而且在 git status 里面也会提醒你的。这时就需要你先去解决冲突，打开那个文件看看就知道了。解决了后使用 git add 添加那个文件，然后 git svn rebase --continue，直到完成。<br>这样之后，你就可以用 git svn dcommit 来提交你的修改了。这个命令完事后会自动 rebase 一下，所以好像可以直接使用这个命令而不 rebase 先。<br>好了，这下改动就提交到了 svn 了，整个过程就完事了。这只是一些基本的用法，应该也足够用了，遇到问题或更深入一点的用法可以看看 git 的 man。<br></div><footer class=content__footer></footer></section><section class=page__aside><div class=aside__about><div class=aside__about><img class=about__logo src=https://wdicc.com/favicon.ico alt=Logo><h1 class=about__title>Happy every day!</h1><p class=about__description>Good good study, day day up!</p></div><ul class=aside__social-links><li><a href=https://github.com/wd rel=me aria-label=GitHub title=GitHub><i class="fa-brands fa-github" aria-hidden=true></i></a>&nbsp;</li></ul></div><hr><div class=aside__content><p>2010-04-04</p></div></section><footer class=page__footer><p><br><span class=active>$ echo $LANG<br><b>zh_CN</b></span><br></p><br><br><p class=copyright>wd © 2025</p><p class=advertisement>Powered by <a href=https://gohugo.io/>hugo</a> and <a href=https://github.com/joeroe/risotto>risotto</a>.</p></footer></div></body></html>
+</pre><br>上面捎带说了下 git commit，commit 有个 -m 参数可以直接在后面指定 commit message，就不用打开那个编辑窗口了。另外还有个 --amend 能用来修改最后一次提交的 commit message。commit 后面还可以跟具体的文件或目录来只提交指定的东西。<br>还需要知道的命令，git log。能看到自己和别人提交的每个 commit 的情况。那个类似 commit 0fb8046e4bd0b5ce44d778e3936bda80e7e0ccd7 的那一长串字符就是 commit id。如果想看具体某个 commit 做了什么，那就执行一下 git show commit_id,能看到一个 diff，很方便的。<br>git diff file_name 可以用来看自己要提交的文件改动了什么。<br>git branch 还能建分支，非常的方便。使用 git branch wd 就能建立一个叫 wd 的分支，使用 git branch 就能看到当前有哪些分支，使用 git checkout wd 就能切换到 wd 这个分支，在这个分支做的改动不会影响到 master，随时可以切换回去。然后可以使用 git merge 可以把在某个分支做的变更 merge 进来。比如当前是 master 分支，git merge wd 会把在 wd 这个分支建立后，在 wd 上面做的改动 merge 到 master 里面。不过在不熟练的情况下，还是别使用分支了，呵呵。<br>如果提交了之后又想撤消，那就要用到 git reset 了。reset 分 mixed，soft，hard 几种，看名字应该能看出了一点什么，hard 会把对文件的改动都撤消，soft 只会删掉提交记录，不会对文件操作。具体这几个区别还是看看 man git reset 吧，这个操作也是稍微有点复杂，容易出问题，没熟悉的情况下慎用。我只用过 soft reset，用来修改 commit message，呵呵。<br>前面说的这些都是在本地操作的，完全不用管别人的情况，在没有网络的情况下，你也可以提交你的修改。<br>激动人心的时候到来了，怎么把修改提交到 svn 呢？<br>如果想要把自己的变更应用到 svn repo，那就要用到 git svn dcommit 了。不过别急，这时候还需要了解下 git svn rebase 命令，这个命令是用来把远程别人的改动应用到本地的，类似于 svn update（不过文档里面说还是有点区别，没看明白）。在 rebase 的过程中，难免会遇到一些冲突，这个时候会有提示信息的，而且在 git status 里面也会提醒你的。这时就需要你先去解决冲突，打开那个文件看看就知道了。解决了后使用 git add 添加那个文件，然后 git svn rebase --continue，直到完成。<br>这样之后，你就可以用 git svn dcommit 来提交你的修改了。这个命令完事后会自动 rebase 一下，所以好像可以直接使用这个命令而不 rebase 先。<br>好了，这下改动就提交到了 svn 了，整个过程就完事了。这只是一些基本的用法，应该也足够用了，遇到问题或更深入一点的用法可以看看 git 的 man。<br></content></main><footer>Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>

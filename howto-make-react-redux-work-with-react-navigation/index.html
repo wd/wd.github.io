@@ -1,254 +1,519 @@
-<!doctype html><html lang=en><head><title>Howto Make react-redux Work With react-navigation &ndash; wd and cc</title>
-<meta name=description content="Good good study, day day up!"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css integrity="sha512-IW0nhlW5MgNydsXJO40En2EoCkTTjZhI3yuODrZIc8cQ4h1XcF53PsqDHa09NqnkXuIe0Oiyyj171BqZFwISBw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://wdicc.com/css/palettes/base16-dark.css><link rel=stylesheet href=https://wdicc.com/css/risotto.css><link rel=stylesheet href=https://wdicc.com/css/custom.css><link rel=icon href=https://wdicc.com/favicon.ico></head><body><div class=page><header class=page__header><nav class="page__nav main-nav"><ul><h1 class=page__logo><a href=https://wdicc.com/ class=page__logo-inner>wd and cc</a></h1><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/posts/ title>Posts</a></li><li class=main-nav__item><a class=nav-main-item href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=" title>Search</a></li><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/atom.xml title>subscribe</a></li></ul></nav></header><section class=page__body><header class=content__header><h1>Howto Make react-redux Work With react-navigation</h1></header><div class=content__body><p>这周花了一些时间研究 <code class=verbatim>react-redux</code> 和怎么让它和 <code class=verbatim>react-navigation</code> 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 <a href=https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3>gist</a>。</p><div class="src src-javascript"><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span><span style=color:#75715e>/**
-</span></span></span><span style=display:flex><span><span style=color:#75715e> * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理
-</span></span></span><span style=display:flex><span><span style=color:#75715e> * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合
-</span></span></span><span style=display:flex><span><span style=color:#75715e> * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做
-</span></span></span><span style=display:flex><span><span style=color:#75715e> * 参考：
-</span></span></span><span style=display:flex><span><span style=color:#75715e> *  https://github.com/jackielii/simplest-redux-example
-</span></span></span><span style=display:flex><span><span style=color:#75715e> *  http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html
-</span></span></span><span style=display:flex><span><span style=color:#75715e> */</span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> <span style=color:#a6e22e>React</span>, { <span style=color:#a6e22e>Component</span> } <span style=color:#a6e22e>from</span> <span style=color:#e6db74>&#39;react&#39;</span>;
-</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>StyleSheet</span>,
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Text</span>,
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>View</span>,
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Button</span>
-</span></span><span style=display:flex><span>} <span style=color:#a6e22e>from</span> <span style=color:#e6db74>&#39;react-native&#39;</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>Provider</span>, <span style=color:#a6e22e>connect</span> } <span style=color:#a6e22e>from</span> <span style=color:#e6db74>&#39;react-redux&#39;</span>;
-</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>createStore</span>, <span style=color:#a6e22e>combineReducers</span> } <span style=color:#a6e22e>from</span> <span style=color:#e6db74>&#39;redux&#39;</span>;
-</span></span><span style=display:flex><span><span style=color:#66d9ef>import</span> { <span style=color:#a6e22e>StackNavigator</span>, <span style=color:#a6e22e>addNavigationHelpers</span> } <span style=color:#a6e22e>from</span> <span style=color:#e6db74>&#39;react-navigation&#39;</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// Home 页面，UI 组件
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MyHome</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>Component</span> {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>constructor</span>(<span style=color:#a6e22e>props</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>props</span>);
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;init home, props&#39;</span>, <span style=color:#a6e22e>props</span>);
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>_nextPage</span>() {
-</span></span><span style=display:flex><span>        <span style=color:#75715e>// navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>let</span> {<span style=color:#a6e22e>navigation</span>} <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>props</span>;
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>navigation</span>.<span style=color:#a6e22e>navigate</span>(<span style=color:#e6db74>&#34;App&#34;</span>);
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>render</span>() {
-</span></span><span style=display:flex><span>        <span style=color:#75715e>// 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#75715e>// 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>let</span> {<span style=color:#a6e22e>onIncButtonClicked</span>} <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>screenProps</span>.<span style=color:#a6e22e>MyAppActions</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#75715e>// 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>return</span> (
-</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;</span><span style=color:#a6e22e>View</span> <span style=color:#a6e22e>style</span><span style=color:#f92672>=</span>{<span style=color:#a6e22e>styles</span>.<span style=color:#a6e22e>container</span>}<span style=color:#f92672>&gt;</span>
-</span></span><span style=display:flex><span>                <span style=color:#f92672>&lt;</span><span style=color:#a6e22e>Button</span> <span style=color:#a6e22e>title</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;Inc counter&#34;</span> <span style=color:#a6e22e>onPress</span><span style=color:#f92672>=</span>{<span style=color:#a6e22e>onIncButtonClicked</span>}<span style=color:#f92672>&gt;&lt;</span><span style=color:#960050;background-color:#1e0010>/Button&gt;</span>
-</span></span><span style=display:flex><span>                <span style=color:#f92672>&lt;</span><span style=color:#a6e22e>Button</span> <span style=color:#a6e22e>title</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;Next page&#34;</span> <span style=color:#a6e22e>onPress</span><span style=color:#f92672>=</span>{()=&gt;<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>_nextPage</span>()}<span style=color:#f92672>&gt;&lt;</span><span style=color:#960050;background-color:#1e0010>/Button&gt;</span>
-</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;</span><span style=color:#960050;background-color:#1e0010>/View&gt;</span>
-</span></span><span style=display:flex><span>        )
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>ShowText</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>Component</span> {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>render</span>() {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>let</span> {<span style=color:#a6e22e>counter</span>} <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>props</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> (
-</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;</span><span style=color:#a6e22e>Text</span><span style=color:#f92672>&gt;</span>{<span style=color:#a6e22e>counter</span>}<span style=color:#f92672>&lt;</span><span style=color:#960050;background-color:#1e0010>/Text&gt;</span>
-</span></span><span style=display:flex><span>        )
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// App 页面，UI 组件
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MyApp</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>Component</span> {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>constructor</span>(<span style=color:#a6e22e>props</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>props</span>);
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;init App, props&#39;</span>, <span style=color:#a6e22e>props</span>);
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>componentWillReceiveProps</span>(<span style=color:#a6e22e>newProps</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#39;myapp recive props&#39;</span>, <span style=color:#a6e22e>newProps</span>);
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>render</span>() {
-</span></span><span style=display:flex><span>        <span style=color:#75715e>// 组件的 state/props 获取，有自己的命名空间 (1)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>let</span> {<span style=color:#a6e22e>counter</span>} <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>screenProps</span>.<span style=color:#a6e22e>MyApp</span>;
-</span></span><span style=display:flex><span>        <span style=color:#75715e>// 组件的 action props (5)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>let</span> {<span style=color:#a6e22e>onIncButtonClicked</span>, <span style=color:#a6e22e>onDecButtonClicked</span>} <span style=color:#f92672>=</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>screenProps</span>.<span style=color:#a6e22e>MyAppActions</span>;
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>        <span style=color:#75715e>// 界面有一个计数器的结果，两个按钮
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>return</span> (
-</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;</span><span style=color:#a6e22e>View</span> <span style=color:#a6e22e>style</span><span style=color:#f92672>=</span>{<span style=color:#a6e22e>styles</span>.<span style=color:#a6e22e>container</span>}<span style=color:#f92672>&gt;</span>
-</span></span><span style=display:flex><span>                <span style=color:#f92672>&lt;</span><span style=color:#a6e22e>ShowText</span> <span style=color:#a6e22e>counter</span><span style=color:#f92672>=</span>{<span style=color:#a6e22e>counter</span>} <span style=color:#f92672>/&gt;</span>
-</span></span><span style=display:flex><span>                <span style=color:#f92672>&lt;</span><span style=color:#a6e22e>Button</span> <span style=color:#a6e22e>title</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;Inc counter&#34;</span> <span style=color:#a6e22e>onPress</span><span style=color:#f92672>=</span>{<span style=color:#a6e22e>onIncButtonClicked</span>}<span style=color:#f92672>&gt;&lt;</span><span style=color:#960050;background-color:#1e0010>/Button&gt;</span>
-</span></span><span style=display:flex><span>                <span style=color:#f92672>&lt;</span><span style=color:#a6e22e>Button</span> <span style=color:#a6e22e>title</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;Dec counter&#34;</span> <span style=color:#a6e22e>onPress</span><span style=color:#f92672>=</span>{<span style=color:#a6e22e>onDecButtonClicked</span>}<span style=color:#f92672>&gt;&lt;</span><span style=color:#960050;background-color:#1e0010>/Button&gt;</span>
-</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;</span><span style=color:#960050;background-color:#1e0010>/View&gt;</span>
-</span></span><span style=display:flex><span>        )
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// 初始化 StackNavigator，定义页面路由
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>AppNavigator</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>StackNavigator</span>({
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>Home</span><span style=color:#f92672>:</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>screen</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>MyHome</span>
-</span></span><span style=display:flex><span>    },
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>App</span><span style=color:#f92672>:</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>screen</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>MyApp</span>
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>});
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// 包装一下 StackNavigator，因为有些参数需要定制一下
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>class</span> <span style=color:#a6e22e>MyStackNavigator</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>Component</span> {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>constructor</span>(<span style=color:#a6e22e>props</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>props</span>);
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;inside MyStackNavigator&#34;</span>, <span style=color:#a6e22e>props</span>);
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>render</span>() {
-</span></span><span style=display:flex><span>        <span style=color:#75715e>// screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#75715e>// navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#66d9ef>return</span> (
-</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;</span><span style=color:#a6e22e>AppNavigator</span>
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>screenProps</span><span style=color:#f92672>=</span>{<span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>props</span>}
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>navigation</span><span style=color:#f92672>=</span>{<span style=color:#a6e22e>addNavigationHelpers</span>({
-</span></span><span style=display:flex><span>                    <span style=color:#a6e22e>dispatch</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>dispatch</span>, <span style=color:#75715e>// 通过 action props 定义 (2)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                    <span style=color:#a6e22e>state</span><span style=color:#f92672>:</span> <span style=color:#66d9ef>this</span>.<span style=color:#a6e22e>props</span>.<span style=color:#a6e22e>nav</span>, <span style=color:#75715e>// 通过 state props 定义 (3)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>                })} <span style=color:#f92672>/&gt;</span>
-</span></span><span style=display:flex><span>        )
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// 定义 state 和 props 的关系，所有 redux 应用都需要 (6)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>mapStateToProps</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>state</span>, <span style=color:#a6e22e>ownProps</span>) =&gt; {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;inside mapstate to props&#34;</span>, <span style=color:#a6e22e>state</span>, <span style=color:#a6e22e>ownProps</span>);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
-</span></span><span style=display:flex><span>        <span style=color:#75715e>// 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#e6db74>&#34;MyApp&#34;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>state</span>.<span style=color:#a6e22e>MyApp</span>,
-</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#34;MyHome&#34;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>state</span>.<span style=color:#a6e22e>MyHome</span>,
-</span></span><span style=display:flex><span>        <span style=color:#75715e>// 定义 StackNavigator 的 state (3)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#e6db74>&#34;nav&#34;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>state</span>.<span style=color:#a6e22e>nav</span>
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>};
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// 定义 action 和 props 的关系，所有 redux 应用都需要
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>mapDispatchToProps</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>dispatch</span>, <span style=color:#a6e22e>ownProps</span>) =&gt; {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;inside map dispath to props&#34;</span>);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> {
-</span></span><span style=display:flex><span>        <span style=color:#75715e>// 这两个也是不同的命名空间，和上面使用的时候路径对应 (5)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#e6db74>&#39;MyAppActions&#39;</span><span style=color:#f92672>:</span> {
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>onIncButtonClicked</span><span style=color:#f92672>:</span> () =&gt; {
-</span></span><span style=display:flex><span>                <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>action</span> <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>                    <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;INC_COUNTER&#34;</span>,
-</span></span><span style=display:flex><span>                    <span style=color:#a6e22e>payload</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>1</span>
-</span></span><span style=display:flex><span>                };
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>dispatch</span>(<span style=color:#a6e22e>action</span>);
-</span></span><span style=display:flex><span>            },
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>onDecButtonClicked</span><span style=color:#f92672>:</span> () =&gt; {
-</span></span><span style=display:flex><span>                <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>action</span> <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>                    <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;DEC_COUNTER&#34;</span>,
-</span></span><span style=display:flex><span>                    <span style=color:#a6e22e>payload</span><span style=color:#f92672>:</span> <span style=color:#f92672>-</span><span style=color:#ae81ff>1</span>
-</span></span><span style=display:flex><span>                };
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>dispatch</span>(<span style=color:#a6e22e>action</span>);
-</span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>        },
-</span></span><span style=display:flex><span>        <span style=color:#e6db74>&#39;MyHomeActions&#39;</span><span style=color:#f92672>:</span> {
-</span></span><span style=display:flex><span>            <span style=color:#a6e22e>onNextButtonClicked</span><span style=color:#f92672>:</span> () =&gt; {
-</span></span><span style=display:flex><span>                <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>action</span> <span style=color:#f92672>=</span> {
-</span></span><span style=display:flex><span>                    <span style=color:#a6e22e>type</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#34;NEXT_PAGE&#34;</span>
-</span></span><span style=display:flex><span>                };
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>                <span style=color:#a6e22e>dispatch</span>(<span style=color:#a6e22e>action</span>);
-</span></span><span style=display:flex><span>            }
-</span></span><span style=display:flex><span>        },
-</span></span><span style=display:flex><span>        <span style=color:#75715e>// 定义 StackNavigator 的 action props (2)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>        <span style=color:#e6db74>&#39;dispatch&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>dispatch</span>
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有
-</span></span></span><span style=display:flex><span><span style=color:#75715e>// 所以从这里也能看出来，reducer 并不一定按照页面去分
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>homeReducer</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>state</span>, <span style=color:#a6e22e>action</span>) =&gt; {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;inside home reducer&#34;</span>, <span style=color:#a6e22e>state</span>, <span style=color:#a6e22e>action</span>);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>state</span> <span style=color:#f92672>||</span> {};
-</span></span><span style=display:flex><span>};
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// 定义一个初始化的 state
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>myAppInitState</span> <span style=color:#f92672>=</span> { <span style=color:#e6db74>&#39;counter&#39;</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>10</span>};
-</span></span><span style=display:flex><span><span style=color:#75715e>// 定义 app 页面的 reducer
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>myAppReducer</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>state</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>myAppInitState</span>, <span style=color:#a6e22e>action</span>) =&gt; {
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 收到的 state 实际上只是自己命名空间下的 (6)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;inside myAppReducer&#34;</span>, <span style=color:#a6e22e>state</span>, <span style=color:#a6e22e>action</span>);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>let</span> <span style=color:#a6e22e>myState</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>state</span>;
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 需要处理的 action 的逻辑
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>switch</span> (<span style=color:#a6e22e>action</span>.<span style=color:#a6e22e>type</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#34;DEC_COUNTER&#34;</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>case</span> <span style=color:#e6db74>&#34;INC_COUNTER&#34;</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>            <span style=color:#75715e>// 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>            <span style=color:#66d9ef>return</span> Object.<span style=color:#a6e22e>assign</span>({}, <span style=color:#a6e22e>myState</span>, {
-</span></span><span style=display:flex><span>                <span style=color:#e6db74>&#39;counter&#39;</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>myState</span>.<span style=color:#a6e22e>counter</span> <span style=color:#f92672>+</span> <span style=color:#a6e22e>action</span>.<span style=color:#a6e22e>payload</span>
-</span></span><span style=display:flex><span>            });
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>default</span><span style=color:#f92672>:</span>
-</span></span><span style=display:flex><span>            <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>state</span>;
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>};
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// 定义一个 StackNavigator 用到的初始化状态，这个很重要
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>initialState</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>AppNavigator</span>.<span style=color:#a6e22e>router</span>.<span style=color:#a6e22e>getStateForAction</span>(<span style=color:#a6e22e>AppNavigator</span>.<span style=color:#a6e22e>router</span>.<span style=color:#a6e22e>getActionForPathAndParams</span>(<span style=color:#e6db74>&#39;Home&#39;</span>));
-</span></span><span style=display:flex><span><span style=color:#75715e>// 定义 StackNavigator 的 reducer，代码直接复制来的
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>navReducer</span> <span style=color:#f92672>=</span> (<span style=color:#a6e22e>state</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>initialState</span>, <span style=color:#a6e22e>action</span>) =&gt; {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>console</span>.<span style=color:#a6e22e>log</span>(<span style=color:#e6db74>&#34;inside nav reducer&#34;</span>, <span style=color:#a6e22e>state</span>, <span style=color:#a6e22e>action</span>);
-</span></span><span style=display:flex><span>    <span style=color:#66d9ef>const</span> <span style=color:#a6e22e>nextState</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>AppNavigator</span>.<span style=color:#a6e22e>router</span>.<span style=color:#a6e22e>getStateForAction</span>(<span style=color:#a6e22e>action</span>, <span style=color:#a6e22e>state</span>);
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// Simply return the original `state` if `nextState` is null or undefined.
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#66d9ef>return</span> <span style=color:#a6e22e>nextState</span> <span style=color:#f92672>||</span> <span style=color:#a6e22e>state</span>;
-</span></span><span style=display:flex><span>};
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// 创建 store
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>store</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>createStore</span>(<span style=color:#a6e22e>combineReducers</span>({
-</span></span><span style=display:flex><span>    <span style=color:#75715e>// 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#75715e>// 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6)
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>    <span style=color:#a6e22e>MyApp</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>myAppReducer</span>,
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>MyHome</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>homeReducer</span>,
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>nav</span><span style=color:#f92672>:</span> <span style=color:#a6e22e>navReducer</span>
-</span></span><span style=display:flex><span>}));
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// 让 redux 加持一下，保佑
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>let</span> <span style=color:#a6e22e>App</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>connect</span>(<span style=color:#a6e22e>mapStateToProps</span>, <span style=color:#a6e22e>mapDispatchToProps</span>)(<span style=color:#a6e22e>MyStackNavigator</span>);
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#75715e>// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span><span style=color:#66d9ef>export</span> <span style=color:#66d9ef>default</span> <span style=color:#66d9ef>class</span> <span style=color:#a6e22e>Root</span> <span style=color:#66d9ef>extends</span> <span style=color:#a6e22e>Component</span><span style=color:#f92672>&lt;</span>{}<span style=color:#f92672>&gt;</span> {
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>constructor</span>(<span style=color:#a6e22e>props</span>) {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>super</span>(<span style=color:#a6e22e>props</span>);
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>render</span>() {
-</span></span><span style=display:flex><span>        <span style=color:#66d9ef>return</span> (
-</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;</span><span style=color:#a6e22e>Provider</span> <span style=color:#a6e22e>store</span><span style=color:#f92672>=</span>{<span style=color:#a6e22e>store</span>}<span style=color:#f92672>&gt;</span>
-</span></span><span style=display:flex><span>                <span style=color:#f92672>&lt;</span><span style=color:#a6e22e>App</span> <span style=color:#a6e22e>prop1</span><span style=color:#f92672>=</span><span style=color:#e6db74>&#34;prop1&#34;</span> <span style=color:#f92672>/&gt;</span>
-</span></span><span style=display:flex><span>            <span style=color:#f92672>&lt;</span><span style=color:#960050;background-color:#1e0010>/Provider&gt;</span>
-</span></span><span style=display:flex><span>        );
-</span></span><span style=display:flex><span>    }
-</span></span><span style=display:flex><span>}
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#66d9ef>const</span> <span style=color:#a6e22e>styles</span> <span style=color:#f92672>=</span> <span style=color:#a6e22e>StyleSheet</span>.<span style=color:#a6e22e>create</span>({
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>container</span><span style=color:#f92672>:</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>flex</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>1</span>,
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>justifyContent</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;center&#39;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>alignItems</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;center&#39;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>backgroundColor</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;#F5FCFF&#39;</span>,
-</span></span><span style=display:flex><span>    },
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>welcome</span><span style=color:#f92672>:</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>fontSize</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>20</span>,
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>textAlign</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;center&#39;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>margin</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>10</span>,
-</span></span><span style=display:flex><span>    },
-</span></span><span style=display:flex><span>    <span style=color:#a6e22e>instructions</span><span style=color:#f92672>:</span> {
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>textAlign</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;center&#39;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>color</span><span style=color:#f92672>:</span> <span style=color:#e6db74>&#39;#333333&#39;</span>,
-</span></span><span style=display:flex><span>        <span style=color:#a6e22e>marginBottom</span><span style=color:#f92672>:</span> <span style=color:#ae81ff>5</span>,
-</span></span><span style=display:flex><span>    },
-</span></span><span style=display:flex><span>});</span></span></code></pre></div></div></div><footer class=content__footer></footer></section><section class=page__aside><div class=aside__about><div class=aside__about><img class=about__logo src=https://wdicc.com/favicon.ico alt=Logo><h1 class=about__title>Happy every day!</h1><p class=about__description>Good good study, day day up!</p></div><ul class=aside__social-links><li><a href=https://github.com/wd rel=me aria-label=GitHub title=GitHub><i class="fa-brands fa-github" aria-hidden=true></i></a>&nbsp;</li></ul></div><hr><div class=aside__content><p>2017-10-21</p></div></section><footer class=page__footer><p><br><span class=active>$ echo $LANG<br><b>zh_CN</b></span><br></p><br><br><p class=copyright>wd © 2025</p><p class=advertisement>Powered by <a href=https://gohugo.io/>hugo</a> and <a href=https://github.com/joeroe/risotto>risotto</a>.</p></footer></div></body></html>
+<!doctype html><html lang=en><head><meta http-equiv=X-Clacks-Overhead content="GNU Terry Pratchett"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" href=https://wdicc.com/favicon.ico><title>Howto Make react-redux Work With react-navigation | wd and cc</title><meta name=title content="Howto Make react-redux Work With react-navigation"><meta name=description content="这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 gist。
+
+  1/**
+  2 * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理
+  3 * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合
+  4 * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做
+  5 * 参考：
+  6 *  https://github.com/jackielii/simplest-redux-example
+  7 *  http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html
+  8 */
+  9
+ 10import React, { Component } from 'react';
+ 11import {
+ 12    StyleSheet,
+ 13    Text,
+ 14    View,
+ 15    Button
+ 16} from 'react-native';
+ 17
+ 18import { Provider, connect } from 'react-redux';
+ 19import { createStore, combineReducers } from 'redux';
+ 20import { StackNavigator, addNavigationHelpers } from 'react-navigation';
+ 21
+ 22// Home 页面，UI 组件
+ 23class MyHome extends Component {
+ 24    constructor(props) {
+ 25        super(props);
+ 26        console.log('init home, props', props);
+ 27    }
+ 28
+ 29    _nextPage() {
+ 30        // navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样
+ 31        let {navigation} = this.props;
+ 32        navigation.navigate(&#34;App&#34;);
+ 33    }
+ 34
+ 35    render() {
+ 36        // 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4)
+ 37        // 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5)
+ 38        let {onIncButtonClicked} = this.props.screenProps.MyAppActions;
+ 39
+ 40        // 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面
+ 41        return (
+ 42            <View style={styles.container}>
+ 43                <Button title=&#34;Inc counter&#34; onPress={onIncButtonClicked}></Button>
+ 44                <Button title=&#34;Next page&#34; onPress={()=>this._nextPage()}></Button>
+ 45            </View>
+ 46        )
+ 47    }
+ 48}
+ 49
+ 50// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新
+ 51class ShowText extends Component {
+ 52    render() {
+ 53        let {counter} = this.props;
+ 54
+ 55        return (
+ 56            <Text>{counter}</Text>
+ 57        )
+ 58    }
+ 59}
+ 60
+ 61// App 页面，UI 组件
+ 62class MyApp extends Component {
+ 63    constructor(props) {
+ 64        super(props);
+ 65        console.log('init App, props', props);
+ 66    }
+ 67
+ 68    componentWillReceiveProps(newProps) {
+ 69        console.log('myapp recive props', newProps);
+ 70    }
+ 71
+ 72    render() {
+ 73        // 组件的 state/props 获取，有自己的命名空间 (1)
+ 74        let {counter} = this.props.screenProps.MyApp;
+ 75        // 组件的 action props (5)
+ 76        let {onIncButtonClicked, onDecButtonClicked} = this.props.screenProps.MyAppActions;
+ 77
+ 78        // 界面有一个计数器的结果，两个按钮
+ 79        return (
+ 80            <View style={styles.container}>
+ 81                <ShowText counter={counter} />
+ 82                <Button title=&#34;Inc counter&#34; onPress={onIncButtonClicked}></Button>
+ 83                <Button title=&#34;Dec counter&#34; onPress={onDecButtonClicked}></Button>
+ 84            </View>
+ 85        )
+ 86    }
+ 87}
+ 88
+ 89// 初始化 StackNavigator，定义页面路由
+ 90let AppNavigator = StackNavigator({
+ 91    Home: {
+ 92        screen: MyHome
+ 93    },
+ 94    App: {
+ 95        screen: MyApp
+ 96    }
+ 97});
+ 98
+ 99// 包装一下 StackNavigator，因为有些参数需要定制一下
+100class MyStackNavigator extends Component {
+101    constructor(props) {
+102        super(props);
+103        console.log(&#34;inside MyStackNavigator&#34;, props);
+104    }
+105
+106    render() {
+107        // screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4)
+108        // navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取
+109        return (
+110            <AppNavigator
+111                screenProps={this.props}
+112                navigation={addNavigationHelpers({
+113                    dispatch: this.props.dispatch, // 通过 action props 定义 (2)
+114                    state: this.props.nav, // 通过 state props 定义 (3)
+115                })} />
+116        )
+117    }
+118}
+119
+120// 定义 state 和 props 的关系，所有 redux 应用都需要 (6)
+121let mapStateToProps = (state, ownProps) => {
+122    console.log(&#34;inside mapstate to props&#34;, state, ownProps);
+123    return {
+124        // 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1)
+125        &#34;MyApp&#34;: state.MyApp,
+126        &#34;MyHome&#34;: state.MyHome,
+127        // 定义 StackNavigator 的 state (3)
+128        &#34;nav&#34;: state.nav
+129    }
+130};
+131
+132// 定义 action 和 props 的关系，所有 redux 应用都需要
+133let mapDispatchToProps = (dispatch, ownProps) => {
+134    console.log(&#34;inside map dispath to props&#34;);
+135    return {
+136        // 这两个也是不同的命名空间，和上面使用的时候路径对应 (5)
+137        'MyAppActions': {
+138            onIncButtonClicked: () => {
+139                let action = {
+140                    type: &#34;INC_COUNTER&#34;,
+141                    payload: 1
+142                };
+143
+144                dispatch(action);
+145            },
+146            onDecButtonClicked: () => {
+147                let action = {
+148                    type: &#34;DEC_COUNTER&#34;,
+149                    payload: -1
+150                };
+151
+152                dispatch(action);
+153            }
+154        },
+155        'MyHomeActions': {
+156            onNextButtonClicked: () => {
+157                let action = {
+158                    type: &#34;NEXT_PAGE&#34;
+159                };
+160
+161                dispatch(action);
+162            }
+163        },
+164        // 定义 StackNavigator 的 action props (2)
+165        'dispatch': dispatch
+166    }
+167}
+168
+169// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有
+170// 所以从这里也能看出来，reducer 并不一定按照页面去分
+171let homeReducer = (state, action) => {
+172    console.log(&#34;inside home reducer&#34;, state, action);
+173    return state || {};
+174};
+175
+176// 定义一个初始化的 state
+177let myAppInitState = { 'counter': 10};
+178// 定义 app 页面的 reducer
+179let myAppReducer = (state = myAppInitState, action) => {
+180    // 收到的 state 实际上只是自己命名空间下的 (6)
+181    console.log(&#34;inside myAppReducer&#34;, state, action);
+182    let myState = state;
+183    // 需要处理的 action 的逻辑
+184    // 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action
+185    switch (action.type) {
+186        case &#34;DEC_COUNTER&#34;:
+187        case &#34;INC_COUNTER&#34;:
+188            // 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新
+189            return Object.assign({}, myState, {
+190                'counter': myState.counter + action.payload
+191            });
+192        default:
+193            return state;
+194    }
+195};
+196
+197// 定义一个 StackNavigator 用到的初始化状态，这个很重要
+198const initialState = AppNavigator.router.getStateForAction(AppNavigator.router.getActionForPathAndParams('Home'));
+199// 定义 StackNavigator 的 reducer，代码直接复制来的
+200const navReducer = (state = initialState, action) => {
+201    console.log(&#34;inside nav reducer&#34;, state, action);
+202    const nextState = AppNavigator.router.getStateForAction(action, state);
+203
+204    // Simply return the original `state` if `nextState` is null or undefined.
+205    return nextState || state;
+206};
+207
+208// 创建 store
+209let store = createStore(combineReducers({
+210    // 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6)
+211    // 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6)
+212    MyApp: myAppReducer,
+213    MyHome: homeReducer,
+214    nav: navReducer
+215}));
+216
+217// 让 redux 加持一下，保佑
+218let App = connect(mapStateToProps, mapDispatchToProps)(MyStackNavigator);
+219
+220// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索
+221export default class Root extends Component<{}> {
+222    constructor(props) {
+223        super(props);
+224    }
+225
+226    render() {
+227        return (
+228            <Provider store={store}>
+229                <App prop1=&#34;prop1&#34; />
+230            </Provider>
+231        );
+232    }
+233}
+234
+235
+236const styles = StyleSheet.create({
+237    container: {
+238        flex: 1,
+239        justifyContent: 'center',
+240        alignItems: 'center',
+241        backgroundColor: '#F5FCFF',
+242    },
+243    welcome: {
+244        fontSize: 20,
+245        textAlign: 'center',
+246        margin: 10,
+247    },
+248    instructions: {
+249        textAlign: 'center',
+250        color: '#333333',
+251        marginBottom: 5,
+252    },
+253});
+"><meta name=keywords content="react-native,redux,react-redux,react-navigation,"><meta property="og:url" content="https://wdicc.com/howto-make-react-redux-work-with-react-navigation/"><meta property="og:site_name" content="wd and cc"><meta property="og:title" content="Howto Make react-redux Work With react-navigation"><meta property="og:description" content="这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 gist。
+1/** 2 * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理 3 * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合 4 * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做 5 * 参考： 6 * https://github.com/jackielii/simplest-redux-example 7 * http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html 8 */ 9 10import React, { Component } from 'react'; 11import { 12 StyleSheet, 13 Text, 14 View, 15 Button 16} from 'react-native'; 17 18import { Provider, connect } from 'react-redux'; 19import { createStore, combineReducers } from 'redux'; 20import { StackNavigator, addNavigationHelpers } from 'react-navigation'; 21 22// Home 页面，UI 组件 23class MyHome extends Component { 24 constructor(props) { 25 super(props); 26 console.log('init home, props', props); 27 } 28 29 _nextPage() { 30 // navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样 31 let {navigation} = this.props; 32 navigation.navigate(&#34;App&#34;); 33 } 34 35 render() { 36 // 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4) 37 // 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5) 38 let {onIncButtonClicked} = this.props.screenProps.MyAppActions; 39 40 // 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面 41 return ( 42 <View style={styles.container}> 43 <Button title=&#34;Inc counter&#34; onPress={onIncButtonClicked}></Button> 44 <Button title=&#34;Next page&#34; onPress={()=>this._nextPage()}></Button> 45 </View> 46 ) 47 } 48} 49 50// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新 51class ShowText extends Component { 52 render() { 53 let {counter} = this.props; 54 55 return ( 56 <Text>{counter}</Text> 57 ) 58 } 59} 60 61// App 页面，UI 组件 62class MyApp extends Component { 63 constructor(props) { 64 super(props); 65 console.log('init App, props', props); 66 } 67 68 componentWillReceiveProps(newProps) { 69 console.log('myapp recive props', newProps); 70 } 71 72 render() { 73 // 组件的 state/props 获取，有自己的命名空间 (1) 74 let {counter} = this.props.screenProps.MyApp; 75 // 组件的 action props (5) 76 let {onIncButtonClicked, onDecButtonClicked} = this.props.screenProps.MyAppActions; 77 78 // 界面有一个计数器的结果，两个按钮 79 return ( 80 <View style={styles.container}> 81 <ShowText counter={counter} /> 82 <Button title=&#34;Inc counter&#34; onPress={onIncButtonClicked}></Button> 83 <Button title=&#34;Dec counter&#34; onPress={onDecButtonClicked}></Button> 84 </View> 85 ) 86 } 87} 88 89// 初始化 StackNavigator，定义页面路由 90let AppNavigator = StackNavigator({ 91 Home: { 92 screen: MyHome 93 }, 94 App: { 95 screen: MyApp 96 } 97}); 98 99// 包装一下 StackNavigator，因为有些参数需要定制一下 100class MyStackNavigator extends Component { 101 constructor(props) { 102 super(props); 103 console.log(&#34;inside MyStackNavigator&#34;, props); 104 } 105 106 render() { 107 // screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4) 108 // navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取 109 return ( 110 <AppNavigator 111 screenProps={this.props} 112 navigation={addNavigationHelpers({ 113 dispatch: this.props.dispatch, // 通过 action props 定义 (2) 114 state: this.props.nav, // 通过 state props 定义 (3) 115 })} /> 116 ) 117 } 118} 119 120// 定义 state 和 props 的关系，所有 redux 应用都需要 (6) 121let mapStateToProps = (state, ownProps) => { 122 console.log(&#34;inside mapstate to props&#34;, state, ownProps); 123 return { 124 // 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1) 125 &#34;MyApp&#34;: state.MyApp, 126 &#34;MyHome&#34;: state.MyHome, 127 // 定义 StackNavigator 的 state (3) 128 &#34;nav&#34;: state.nav 129 } 130}; 131 132// 定义 action 和 props 的关系，所有 redux 应用都需要 133let mapDispatchToProps = (dispatch, ownProps) => { 134 console.log(&#34;inside map dispath to props&#34;); 135 return { 136 // 这两个也是不同的命名空间，和上面使用的时候路径对应 (5) 137 'MyAppActions': { 138 onIncButtonClicked: () => { 139 let action = { 140 type: &#34;INC_COUNTER&#34;, 141 payload: 1 142 }; 143 144 dispatch(action); 145 }, 146 onDecButtonClicked: () => { 147 let action = { 148 type: &#34;DEC_COUNTER&#34;, 149 payload: -1 150 }; 151 152 dispatch(action); 153 } 154 }, 155 'MyHomeActions': { 156 onNextButtonClicked: () => { 157 let action = { 158 type: &#34;NEXT_PAGE&#34; 159 }; 160 161 dispatch(action); 162 } 163 }, 164 // 定义 StackNavigator 的 action props (2) 165 'dispatch': dispatch 166 } 167} 168 169// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有 170// 所以从这里也能看出来，reducer 并不一定按照页面去分 171let homeReducer = (state, action) => { 172 console.log(&#34;inside home reducer&#34;, state, action); 173 return state || {}; 174}; 175 176// 定义一个初始化的 state 177let myAppInitState = { 'counter': 10}; 178// 定义 app 页面的 reducer 179let myAppReducer = (state = myAppInitState, action) => { 180 // 收到的 state 实际上只是自己命名空间下的 (6) 181 console.log(&#34;inside myAppReducer&#34;, state, action); 182 let myState = state; 183 // 需要处理的 action 的逻辑 184 // 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action 185 switch (action.type) { 186 case &#34;DEC_COUNTER&#34;: 187 case &#34;INC_COUNTER&#34;: 188 // 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新 189 return Object.assign({}, myState, { 190 'counter': myState.counter + action.payload 191 }); 192 default: 193 return state; 194 } 195}; 196 197// 定义一个 StackNavigator 用到的初始化状态，这个很重要 198const initialState = AppNavigator.router.getStateForAction(AppNavigator.router.getActionForPathAndParams('Home')); 199// 定义 StackNavigator 的 reducer，代码直接复制来的 200const navReducer = (state = initialState, action) => { 201 console.log(&#34;inside nav reducer&#34;, state, action); 202 const nextState = AppNavigator.router.getStateForAction(action, state); 203 204 // Simply return the original `state` if `nextState` is null or undefined. 205 return nextState || state; 206}; 207 208// 创建 store 209let store = createStore(combineReducers({ 210 // 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6) 211 // 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6) 212 MyApp: myAppReducer, 213 MyHome: homeReducer, 214 nav: navReducer 215})); 216 217// 让 redux 加持一下，保佑 218let App = connect(mapStateToProps, mapDispatchToProps)(MyStackNavigator); 219 220// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索 221export default class Root extends Component<{}> { 222 constructor(props) { 223 super(props); 224 } 225 226 render() { 227 return ( 228 <Provider store={store}> 229 <App prop1=&#34;prop1&#34; /> 230 </Provider> 231 ); 232 } 233} 234 235 236const styles = StyleSheet.create({ 237 container: { 238 flex: 1, 239 justifyContent: 'center', 240 alignItems: 'center', 241 backgroundColor: '#F5FCFF', 242 }, 243 welcome: { 244 fontSize: 20, 245 textAlign: 'center', 246 margin: 10, 247 }, 248 instructions: { 249 textAlign: 'center', 250 color: '#333333', 251 marginBottom: 5, 252 }, 253});"><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2017-10-21T08:19:28+08:00"><meta property="article:modified_time" content="2017-10-21T08:19:28+08:00"><meta property="article:tag" content="React-Native"><meta property="article:tag" content="Redux"><meta property="article:tag" content="React-Redux"><meta property="article:tag" content="React-Navigation"><meta name=twitter:card content="summary"><meta name=twitter:title content="Howto Make react-redux Work With react-navigation"><meta name=twitter:description content="这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 gist。
+1/** 2 * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理 3 * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合 4 * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做 5 * 参考： 6 * https://github.com/jackielii/simplest-redux-example 7 * http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html 8 */ 9 10import React, { Component } from 'react'; 11import { 12 StyleSheet, 13 Text, 14 View, 15 Button 16} from 'react-native'; 17 18import { Provider, connect } from 'react-redux'; 19import { createStore, combineReducers } from 'redux'; 20import { StackNavigator, addNavigationHelpers } from 'react-navigation'; 21 22// Home 页面，UI 组件 23class MyHome extends Component { 24 constructor(props) { 25 super(props); 26 console.log('init home, props', props); 27 } 28 29 _nextPage() { 30 // navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样 31 let {navigation} = this.props; 32 navigation.navigate(&#34;App&#34;); 33 } 34 35 render() { 36 // 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4) 37 // 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5) 38 let {onIncButtonClicked} = this.props.screenProps.MyAppActions; 39 40 // 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面 41 return ( 42 <View style={styles.container}> 43 <Button title=&#34;Inc counter&#34; onPress={onIncButtonClicked}></Button> 44 <Button title=&#34;Next page&#34; onPress={()=>this._nextPage()}></Button> 45 </View> 46 ) 47 } 48} 49 50// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新 51class ShowText extends Component { 52 render() { 53 let {counter} = this.props; 54 55 return ( 56 <Text>{counter}</Text> 57 ) 58 } 59} 60 61// App 页面，UI 组件 62class MyApp extends Component { 63 constructor(props) { 64 super(props); 65 console.log('init App, props', props); 66 } 67 68 componentWillReceiveProps(newProps) { 69 console.log('myapp recive props', newProps); 70 } 71 72 render() { 73 // 组件的 state/props 获取，有自己的命名空间 (1) 74 let {counter} = this.props.screenProps.MyApp; 75 // 组件的 action props (5) 76 let {onIncButtonClicked, onDecButtonClicked} = this.props.screenProps.MyAppActions; 77 78 // 界面有一个计数器的结果，两个按钮 79 return ( 80 <View style={styles.container}> 81 <ShowText counter={counter} /> 82 <Button title=&#34;Inc counter&#34; onPress={onIncButtonClicked}></Button> 83 <Button title=&#34;Dec counter&#34; onPress={onDecButtonClicked}></Button> 84 </View> 85 ) 86 } 87} 88 89// 初始化 StackNavigator，定义页面路由 90let AppNavigator = StackNavigator({ 91 Home: { 92 screen: MyHome 93 }, 94 App: { 95 screen: MyApp 96 } 97}); 98 99// 包装一下 StackNavigator，因为有些参数需要定制一下 100class MyStackNavigator extends Component { 101 constructor(props) { 102 super(props); 103 console.log(&#34;inside MyStackNavigator&#34;, props); 104 } 105 106 render() { 107 // screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4) 108 // navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取 109 return ( 110 <AppNavigator 111 screenProps={this.props} 112 navigation={addNavigationHelpers({ 113 dispatch: this.props.dispatch, // 通过 action props 定义 (2) 114 state: this.props.nav, // 通过 state props 定义 (3) 115 })} /> 116 ) 117 } 118} 119 120// 定义 state 和 props 的关系，所有 redux 应用都需要 (6) 121let mapStateToProps = (state, ownProps) => { 122 console.log(&#34;inside mapstate to props&#34;, state, ownProps); 123 return { 124 // 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1) 125 &#34;MyApp&#34;: state.MyApp, 126 &#34;MyHome&#34;: state.MyHome, 127 // 定义 StackNavigator 的 state (3) 128 &#34;nav&#34;: state.nav 129 } 130}; 131 132// 定义 action 和 props 的关系，所有 redux 应用都需要 133let mapDispatchToProps = (dispatch, ownProps) => { 134 console.log(&#34;inside map dispath to props&#34;); 135 return { 136 // 这两个也是不同的命名空间，和上面使用的时候路径对应 (5) 137 'MyAppActions': { 138 onIncButtonClicked: () => { 139 let action = { 140 type: &#34;INC_COUNTER&#34;, 141 payload: 1 142 }; 143 144 dispatch(action); 145 }, 146 onDecButtonClicked: () => { 147 let action = { 148 type: &#34;DEC_COUNTER&#34;, 149 payload: -1 150 }; 151 152 dispatch(action); 153 } 154 }, 155 'MyHomeActions': { 156 onNextButtonClicked: () => { 157 let action = { 158 type: &#34;NEXT_PAGE&#34; 159 }; 160 161 dispatch(action); 162 } 163 }, 164 // 定义 StackNavigator 的 action props (2) 165 'dispatch': dispatch 166 } 167} 168 169// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有 170// 所以从这里也能看出来，reducer 并不一定按照页面去分 171let homeReducer = (state, action) => { 172 console.log(&#34;inside home reducer&#34;, state, action); 173 return state || {}; 174}; 175 176// 定义一个初始化的 state 177let myAppInitState = { 'counter': 10}; 178// 定义 app 页面的 reducer 179let myAppReducer = (state = myAppInitState, action) => { 180 // 收到的 state 实际上只是自己命名空间下的 (6) 181 console.log(&#34;inside myAppReducer&#34;, state, action); 182 let myState = state; 183 // 需要处理的 action 的逻辑 184 // 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action 185 switch (action.type) { 186 case &#34;DEC_COUNTER&#34;: 187 case &#34;INC_COUNTER&#34;: 188 // 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新 189 return Object.assign({}, myState, { 190 'counter': myState.counter + action.payload 191 }); 192 default: 193 return state; 194 } 195}; 196 197// 定义一个 StackNavigator 用到的初始化状态，这个很重要 198const initialState = AppNavigator.router.getStateForAction(AppNavigator.router.getActionForPathAndParams('Home')); 199// 定义 StackNavigator 的 reducer，代码直接复制来的 200const navReducer = (state = initialState, action) => { 201 console.log(&#34;inside nav reducer&#34;, state, action); 202 const nextState = AppNavigator.router.getStateForAction(action, state); 203 204 // Simply return the original `state` if `nextState` is null or undefined. 205 return nextState || state; 206}; 207 208// 创建 store 209let store = createStore(combineReducers({ 210 // 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6) 211 // 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6) 212 MyApp: myAppReducer, 213 MyHome: homeReducer, 214 nav: navReducer 215})); 216 217// 让 redux 加持一下，保佑 218let App = connect(mapStateToProps, mapDispatchToProps)(MyStackNavigator); 219 220// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索 221export default class Root extends Component<{}> { 222 constructor(props) { 223 super(props); 224 } 225 226 render() { 227 return ( 228 <Provider store={store}> 229 <App prop1=&#34;prop1&#34; /> 230 </Provider> 231 ); 232 } 233} 234 235 236const styles = StyleSheet.create({ 237 container: { 238 flex: 1, 239 justifyContent: 'center', 240 alignItems: 'center', 241 backgroundColor: '#F5FCFF', 242 }, 243 welcome: { 244 fontSize: 20, 245 textAlign: 'center', 246 margin: 10, 247 }, 248 instructions: { 249 textAlign: 'center', 250 color: '#333333', 251 marginBottom: 5, 252 }, 253});"><meta itemprop=name content="Howto Make react-redux Work With react-navigation"><meta itemprop=description content="这周花了一些时间研究 react-redux 和怎么让它和 react-navigation 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 gist。
+1/** 2 * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理 3 * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合 4 * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做 5 * 参考： 6 * https://github.com/jackielii/simplest-redux-example 7 * http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html 8 */ 9 10import React, { Component } from 'react'; 11import { 12 StyleSheet, 13 Text, 14 View, 15 Button 16} from 'react-native'; 17 18import { Provider, connect } from 'react-redux'; 19import { createStore, combineReducers } from 'redux'; 20import { StackNavigator, addNavigationHelpers } from 'react-navigation'; 21 22// Home 页面，UI 组件 23class MyHome extends Component { 24 constructor(props) { 25 super(props); 26 console.log('init home, props', props); 27 } 28 29 _nextPage() { 30 // navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样 31 let {navigation} = this.props; 32 navigation.navigate(&#34;App&#34;); 33 } 34 35 render() { 36 // 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4) 37 // 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5) 38 let {onIncButtonClicked} = this.props.screenProps.MyAppActions; 39 40 // 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面 41 return ( 42 <View style={styles.container}> 43 <Button title=&#34;Inc counter&#34; onPress={onIncButtonClicked}></Button> 44 <Button title=&#34;Next page&#34; onPress={()=>this._nextPage()}></Button> 45 </View> 46 ) 47 } 48} 49 50// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新 51class ShowText extends Component { 52 render() { 53 let {counter} = this.props; 54 55 return ( 56 <Text>{counter}</Text> 57 ) 58 } 59} 60 61// App 页面，UI 组件 62class MyApp extends Component { 63 constructor(props) { 64 super(props); 65 console.log('init App, props', props); 66 } 67 68 componentWillReceiveProps(newProps) { 69 console.log('myapp recive props', newProps); 70 } 71 72 render() { 73 // 组件的 state/props 获取，有自己的命名空间 (1) 74 let {counter} = this.props.screenProps.MyApp; 75 // 组件的 action props (5) 76 let {onIncButtonClicked, onDecButtonClicked} = this.props.screenProps.MyAppActions; 77 78 // 界面有一个计数器的结果，两个按钮 79 return ( 80 <View style={styles.container}> 81 <ShowText counter={counter} /> 82 <Button title=&#34;Inc counter&#34; onPress={onIncButtonClicked}></Button> 83 <Button title=&#34;Dec counter&#34; onPress={onDecButtonClicked}></Button> 84 </View> 85 ) 86 } 87} 88 89// 初始化 StackNavigator，定义页面路由 90let AppNavigator = StackNavigator({ 91 Home: { 92 screen: MyHome 93 }, 94 App: { 95 screen: MyApp 96 } 97}); 98 99// 包装一下 StackNavigator，因为有些参数需要定制一下 100class MyStackNavigator extends Component { 101 constructor(props) { 102 super(props); 103 console.log(&#34;inside MyStackNavigator&#34;, props); 104 } 105 106 render() { 107 // screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4) 108 // navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取 109 return ( 110 <AppNavigator 111 screenProps={this.props} 112 navigation={addNavigationHelpers({ 113 dispatch: this.props.dispatch, // 通过 action props 定义 (2) 114 state: this.props.nav, // 通过 state props 定义 (3) 115 })} /> 116 ) 117 } 118} 119 120// 定义 state 和 props 的关系，所有 redux 应用都需要 (6) 121let mapStateToProps = (state, ownProps) => { 122 console.log(&#34;inside mapstate to props&#34;, state, ownProps); 123 return { 124 // 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1) 125 &#34;MyApp&#34;: state.MyApp, 126 &#34;MyHome&#34;: state.MyHome, 127 // 定义 StackNavigator 的 state (3) 128 &#34;nav&#34;: state.nav 129 } 130}; 131 132// 定义 action 和 props 的关系，所有 redux 应用都需要 133let mapDispatchToProps = (dispatch, ownProps) => { 134 console.log(&#34;inside map dispath to props&#34;); 135 return { 136 // 这两个也是不同的命名空间，和上面使用的时候路径对应 (5) 137 'MyAppActions': { 138 onIncButtonClicked: () => { 139 let action = { 140 type: &#34;INC_COUNTER&#34;, 141 payload: 1 142 }; 143 144 dispatch(action); 145 }, 146 onDecButtonClicked: () => { 147 let action = { 148 type: &#34;DEC_COUNTER&#34;, 149 payload: -1 150 }; 151 152 dispatch(action); 153 } 154 }, 155 'MyHomeActions': { 156 onNextButtonClicked: () => { 157 let action = { 158 type: &#34;NEXT_PAGE&#34; 159 }; 160 161 dispatch(action); 162 } 163 }, 164 // 定义 StackNavigator 的 action props (2) 165 'dispatch': dispatch 166 } 167} 168 169// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有 170// 所以从这里也能看出来，reducer 并不一定按照页面去分 171let homeReducer = (state, action) => { 172 console.log(&#34;inside home reducer&#34;, state, action); 173 return state || {}; 174}; 175 176// 定义一个初始化的 state 177let myAppInitState = { 'counter': 10}; 178// 定义 app 页面的 reducer 179let myAppReducer = (state = myAppInitState, action) => { 180 // 收到的 state 实际上只是自己命名空间下的 (6) 181 console.log(&#34;inside myAppReducer&#34;, state, action); 182 let myState = state; 183 // 需要处理的 action 的逻辑 184 // 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action 185 switch (action.type) { 186 case &#34;DEC_COUNTER&#34;: 187 case &#34;INC_COUNTER&#34;: 188 // 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新 189 return Object.assign({}, myState, { 190 'counter': myState.counter + action.payload 191 }); 192 default: 193 return state; 194 } 195}; 196 197// 定义一个 StackNavigator 用到的初始化状态，这个很重要 198const initialState = AppNavigator.router.getStateForAction(AppNavigator.router.getActionForPathAndParams('Home')); 199// 定义 StackNavigator 的 reducer，代码直接复制来的 200const navReducer = (state = initialState, action) => { 201 console.log(&#34;inside nav reducer&#34;, state, action); 202 const nextState = AppNavigator.router.getStateForAction(action, state); 203 204 // Simply return the original `state` if `nextState` is null or undefined. 205 return nextState || state; 206}; 207 208// 创建 store 209let store = createStore(combineReducers({ 210 // 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6) 211 // 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6) 212 MyApp: myAppReducer, 213 MyHome: homeReducer, 214 nav: navReducer 215})); 216 217// 让 redux 加持一下，保佑 218let App = connect(mapStateToProps, mapDispatchToProps)(MyStackNavigator); 219 220// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索 221export default class Root extends Component<{}> { 222 constructor(props) { 223 super(props); 224 } 225 226 render() { 227 return ( 228 <Provider store={store}> 229 <App prop1=&#34;prop1&#34; /> 230 </Provider> 231 ); 232 } 233} 234 235 236const styles = StyleSheet.create({ 237 container: { 238 flex: 1, 239 justifyContent: 'center', 240 alignItems: 'center', 241 backgroundColor: '#F5FCFF', 242 }, 243 welcome: { 244 fontSize: 20, 245 textAlign: 'center', 246 margin: 10, 247 }, 248 instructions: { 249 textAlign: 'center', 250 color: '#333333', 251 marginBottom: 5, 252 }, 253});"><meta itemprop=datePublished content="2017-10-21T08:19:28+08:00"><meta itemprop=dateModified content="2017-10-21T08:19:28+08:00"><meta itemprop=wordCount content="1682"><meta itemprop=keywords content="React-Native,Redux,React-Redux,React-Navigation"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--code-background-color:#f2f2f2;--code-color:#222;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--code-background-color:#000;--code-color:#ddd;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px}blockquote{border-left:1px solid #999;color:var(--code-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto !important}.highlight,.code{padding:1px 15px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style></head><body><header><a href=/ class=title><h2>wd and cc</h2></a><p>-- Good good study, day day up!</p><nav><a href=/>Home</a>
+<a href=/posts/>Posts</a>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">Search</a>
+<a href=/tags/>Tags</a>
+<a href=/atom.xml>subscribe</a></nav></header><main><h1>Howto Make react-redux Work With react-navigation</h1><p><i><time datetime=2017-10-21>21 Oct, 2017
+</time></i><a href=https://wdicc.com/tags/react-native/>#React-Native</a>
+<a href=https://wdicc.com/tags/redux/>#Redux</a>
+<a href=https://wdicc.com/tags/react-redux/>#React-Redux</a>
+<a href=https://wdicc.com/tags/react-navigation/>#React-Navigation</a></p><content><p>这周花了一些时间研究 <code class=verbatim>react-redux</code> 和怎么让它和 <code class=verbatim>react-navigation</code> 配合一起工作，总结一下，把代码和注释直接贴这里了，也可以看这个 <a href=https://gist.github.com/wd/7935c3fb20f2517280b8e050796310b3>gist</a>。</p><div class="src src-javascript"><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-javascript data-lang=javascript><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  1</span><span><span style=color:#60a0b0;font-style:italic>/**
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  2</span><span><span style=color:#60a0b0;font-style:italic> * 一个简单的 RN 应用，有 2 个页面，使用了 react-navigation 的 StackNavigator 来做界面管理
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  3</span><span><span style=color:#60a0b0;font-style:italic> * 为了说明如何使用 redux，以及如何让 redux 和 StackNavigator 配合
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  4</span><span><span style=color:#60a0b0;font-style:italic> * 为了容易理解，把所有内容都放到了一个页面里面，实际开发的时候不要这么做
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  5</span><span><span style=color:#60a0b0;font-style:italic> * 参考：
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  6</span><span><span style=color:#60a0b0;font-style:italic> *  https://github.com/jackielii/simplest-redux-example
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  7</span><span><span style=color:#60a0b0;font-style:italic> *  http://www.ruanyifeng.com/blog/2016/09/redux_tutorial_part_three_react-redux.html
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  8</span><span><span style=color:#60a0b0;font-style:italic> */</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">  9</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 10</span><span><span style=color:#007020;font-weight:700>import</span> React, { Component } from <span style=color:#4070a0>&#39;react&#39;</span>;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 11</span><span><span style=color:#007020;font-weight:700>import</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 12</span><span>    StyleSheet,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 13</span><span>    Text,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 14</span><span>    View,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 15</span><span>    Button
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 16</span><span>} from <span style=color:#4070a0>&#39;react-native&#39;</span>;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 17</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 18</span><span><span style=color:#007020;font-weight:700>import</span> { Provider, connect } from <span style=color:#4070a0>&#39;react-redux&#39;</span>;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 19</span><span><span style=color:#007020;font-weight:700>import</span> { createStore, combineReducers } from <span style=color:#4070a0>&#39;redux&#39;</span>;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 20</span><span><span style=color:#007020;font-weight:700>import</span> { StackNavigator, addNavigationHelpers } from <span style=color:#4070a0>&#39;react-navigation&#39;</span>;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 21</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 22</span><span><span style=color:#60a0b0;font-style:italic>// Home 页面，UI 组件
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 23</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>class</span> MyHome <span style=color:#007020;font-weight:700>extends</span> Component {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 24</span><span>    constructor(props) {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 25</span><span>        <span style=color:#007020;font-weight:700>super</span>(props);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 26</span><span>        console.log(<span style=color:#4070a0>&#39;init home, props&#39;</span>, props);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 27</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 28</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 29</span><span>    _nextPage() {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 30</span><span>        <span style=color:#60a0b0;font-style:italic>// navigation 依然在 this.props 里面获取，和不用 redux 的时候用法一样
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 31</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#007020;font-weight:700>let</span> {navigation} <span style=color:#666>=</span> <span style=color:#007020;font-weight:700>this</span>.props;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 32</span><span>        navigation.navigate(<span style=color:#4070a0>&#34;App&#34;</span>);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 33</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 34</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 35</span><span>    render() {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 36</span><span>        <span style=color:#60a0b0;font-style:italic>// 所有的传递过来的状态，都需要从 this.props.screenProps 里面读取 (4)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 37</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#60a0b0;font-style:italic>// 我这里给不同页面的 action 取了各自的命名空间，避免冲突，也可以直接所有 action 都在一个命名空间，这块我还在摸索如何处理比较好 (5)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 38</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#007020;font-weight:700>let</span> {onIncButtonClicked} <span style=color:#666>=</span> <span style=color:#007020;font-weight:700>this</span>.props.screenProps.MyAppActions;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 39</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 40</span><span>        <span style=color:#60a0b0;font-style:italic>// 界面有两个按钮，一个用来增加另外一个页面的计数器，一个用来访问下一个页面
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 41</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#007020;font-weight:700>return</span> (
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 42</span><span>            <span style=color:#666>&lt;</span>View style<span style=color:#666>=</span>{styles.container}<span style=color:#666>&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 43</span><span>                <span style=color:#666>&lt;</span>Button title<span style=color:#666>=</span><span style=color:#4070a0>&#34;Inc counter&#34;</span> onPress<span style=color:#666>=</span>{onIncButtonClicked}<span style=color:#666>&gt;&lt;</span><span>/Button&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 44</span><span>                <span style=color:#666>&lt;</span>Button title<span style=color:#666>=</span><span style=color:#4070a0>&#34;Next page&#34;</span> onPress<span style=color:#666>=</span>{()=&gt;<span style=color:#007020;font-weight:700>this</span>._nextPage()}<span style=color:#666>&gt;&lt;</span><span>/Button&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 45</span><span>            <span style=color:#666>&lt;</span><span>/View&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 46</span><span>        )
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 47</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 48</span><span>}
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 49</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 50</span><span><span style=color:#60a0b0;font-style:italic>// 这个组件只是用来测试就算一个 props 传递给子组件，在 props 被修改的时候也会被自动刷新
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 51</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>class</span> ShowText <span style=color:#007020;font-weight:700>extends</span> Component {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 52</span><span>    render() {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 53</span><span>        <span style=color:#007020;font-weight:700>let</span> {counter} <span style=color:#666>=</span> <span style=color:#007020;font-weight:700>this</span>.props;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 54</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 55</span><span>        <span style=color:#007020;font-weight:700>return</span> (
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 56</span><span>            <span style=color:#666>&lt;</span>Text<span style=color:#666>&gt;</span>{counter}<span style=color:#666>&lt;</span><span>/Text&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 57</span><span>        )
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 58</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 59</span><span>}
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 60</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 61</span><span><span style=color:#60a0b0;font-style:italic>// App 页面，UI 组件
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 62</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>class</span> MyApp <span style=color:#007020;font-weight:700>extends</span> Component {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 63</span><span>    constructor(props) {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 64</span><span>        <span style=color:#007020;font-weight:700>super</span>(props);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 65</span><span>        console.log(<span style=color:#4070a0>&#39;init App, props&#39;</span>, props);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 66</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 67</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 68</span><span>    componentWillReceiveProps(newProps) {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 69</span><span>        console.log(<span style=color:#4070a0>&#39;myapp recive props&#39;</span>, newProps);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 70</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 71</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 72</span><span>    render() {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 73</span><span>        <span style=color:#60a0b0;font-style:italic>// 组件的 state/props 获取，有自己的命名空间 (1)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 74</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#007020;font-weight:700>let</span> {counter} <span style=color:#666>=</span> <span style=color:#007020;font-weight:700>this</span>.props.screenProps.MyApp;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 75</span><span>        <span style=color:#60a0b0;font-style:italic>// 组件的 action props (5)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 76</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#007020;font-weight:700>let</span> {onIncButtonClicked, onDecButtonClicked} <span style=color:#666>=</span> <span style=color:#007020;font-weight:700>this</span>.props.screenProps.MyAppActions;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 77</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 78</span><span>        <span style=color:#60a0b0;font-style:italic>// 界面有一个计数器的结果，两个按钮
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 79</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#007020;font-weight:700>return</span> (
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 80</span><span>            <span style=color:#666>&lt;</span>View style<span style=color:#666>=</span>{styles.container}<span style=color:#666>&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 81</span><span>                <span style=color:#666>&lt;</span>ShowText counter<span style=color:#666>=</span>{counter} <span style=color:#666>/&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 82</span><span>                <span style=color:#666>&lt;</span>Button title<span style=color:#666>=</span><span style=color:#4070a0>&#34;Inc counter&#34;</span> onPress<span style=color:#666>=</span>{onIncButtonClicked}<span style=color:#666>&gt;&lt;</span><span>/Button&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 83</span><span>                <span style=color:#666>&lt;</span>Button title<span style=color:#666>=</span><span style=color:#4070a0>&#34;Dec counter&#34;</span> onPress<span style=color:#666>=</span>{onDecButtonClicked}<span style=color:#666>&gt;&lt;</span><span>/Button&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 84</span><span>            <span style=color:#666>&lt;</span><span>/View&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 85</span><span>        )
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 86</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 87</span><span>}
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 88</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 89</span><span><span style=color:#60a0b0;font-style:italic>// 初始化 StackNavigator，定义页面路由
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 90</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>let</span> AppNavigator <span style=color:#666>=</span> StackNavigator({
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 91</span><span>    Home<span style=color:#666>:</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 92</span><span>        screen<span style=color:#666>:</span> MyHome
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 93</span><span>    },
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 94</span><span>    App<span style=color:#666>:</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 95</span><span>        screen<span style=color:#666>:</span> MyApp
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 96</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 97</span><span>});
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 98</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 99</span><span><span style=color:#60a0b0;font-style:italic>// 包装一下 StackNavigator，因为有些参数需要定制一下
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">100</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>class</span> MyStackNavigator <span style=color:#007020;font-weight:700>extends</span> Component {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">101</span><span>    constructor(props) {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">102</span><span>        <span style=color:#007020;font-weight:700>super</span>(props);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">103</span><span>        console.log(<span style=color:#4070a0>&#34;inside MyStackNavigator&#34;</span>, props);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">104</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">105</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">106</span><span>    render() {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">107</span><span>        <span style=color:#60a0b0;font-style:italic>// screenProps: 使用这个往所有的页面传递 props，这个是和直接使用 redux 不同的地方 (4)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">108</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#60a0b0;font-style:italic>// navigation: 因为使用 redux 之后，就不会直接操作 this.state 了，所以得告诉 StackNavigator dispatch 方法和 state 从哪里读取
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">109</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#007020;font-weight:700>return</span> (
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">110</span><span>            <span style=color:#666>&lt;</span>AppNavigator
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">111</span><span>                screenProps<span style=color:#666>=</span>{<span style=color:#007020;font-weight:700>this</span>.props}
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">112</span><span>                navigation<span style=color:#666>=</span>{addNavigationHelpers({
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">113</span><span>                    dispatch<span style=color:#666>:</span> <span style=color:#007020;font-weight:700>this</span>.props.dispatch, <span style=color:#60a0b0;font-style:italic>// 通过 action props 定义 (2)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">114</span><span><span style=color:#60a0b0;font-style:italic></span>                    state<span style=color:#666>:</span> <span style=color:#007020;font-weight:700>this</span>.props.nav, <span style=color:#60a0b0;font-style:italic>// 通过 state props 定义 (3)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">115</span><span><span style=color:#60a0b0;font-style:italic></span>                })} <span style=color:#666>/&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">116</span><span>        )
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">117</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">118</span><span>}
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">119</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">120</span><span><span style=color:#60a0b0;font-style:italic>// 定义 state 和 props 的关系，所有 redux 应用都需要 (6)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">121</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>let</span> mapStateToProps <span style=color:#666>=</span> (state, ownProps) =&gt; {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">122</span><span>    console.log(<span style=color:#4070a0>&#34;inside mapstate to props&#34;</span>, state, ownProps);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">123</span><span>    <span style=color:#007020;font-weight:700>return</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">124</span><span>        <span style=color:#60a0b0;font-style:italic>// 这两个是不同的命名空间，和上面你使用的时候的路径对应 (1)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">125</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#4070a0>&#34;MyApp&#34;</span><span style=color:#666>:</span> state.MyApp,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">126</span><span>        <span style=color:#4070a0>&#34;MyHome&#34;</span><span style=color:#666>:</span> state.MyHome,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">127</span><span>        <span style=color:#60a0b0;font-style:italic>// 定义 StackNavigator 的 state (3)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">128</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#4070a0>&#34;nav&#34;</span><span style=color:#666>:</span> state.nav
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">129</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">130</span><span>};
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">131</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">132</span><span><span style=color:#60a0b0;font-style:italic>// 定义 action 和 props 的关系，所有 redux 应用都需要
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">133</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>let</span> mapDispatchToProps <span style=color:#666>=</span> (dispatch, ownProps) =&gt; {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">134</span><span>    console.log(<span style=color:#4070a0>&#34;inside map dispath to props&#34;</span>);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">135</span><span>    <span style=color:#007020;font-weight:700>return</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">136</span><span>        <span style=color:#60a0b0;font-style:italic>// 这两个也是不同的命名空间，和上面使用的时候路径对应 (5)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">137</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#4070a0>&#39;MyAppActions&#39;</span><span style=color:#666>:</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">138</span><span>            onIncButtonClicked<span style=color:#666>:</span> () =&gt; {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">139</span><span>                <span style=color:#007020;font-weight:700>let</span> action <span style=color:#666>=</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">140</span><span>                    type<span style=color:#666>:</span> <span style=color:#4070a0>&#34;INC_COUNTER&#34;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">141</span><span>                    payload<span style=color:#666>:</span> <span style=color:#40a070>1</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">142</span><span>                };
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">143</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">144</span><span>                dispatch(action);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">145</span><span>            },
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">146</span><span>            onDecButtonClicked<span style=color:#666>:</span> () =&gt; {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">147</span><span>                <span style=color:#007020;font-weight:700>let</span> action <span style=color:#666>=</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">148</span><span>                    type<span style=color:#666>:</span> <span style=color:#4070a0>&#34;DEC_COUNTER&#34;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">149</span><span>                    payload<span style=color:#666>:</span> <span style=color:#666>-</span><span style=color:#40a070>1</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">150</span><span>                };
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">151</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">152</span><span>                dispatch(action);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">153</span><span>            }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">154</span><span>        },
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">155</span><span>        <span style=color:#4070a0>&#39;MyHomeActions&#39;</span><span style=color:#666>:</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">156</span><span>            onNextButtonClicked<span style=color:#666>:</span> () =&gt; {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">157</span><span>                <span style=color:#007020;font-weight:700>let</span> action <span style=color:#666>=</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">158</span><span>                    type<span style=color:#666>:</span> <span style=color:#4070a0>&#34;NEXT_PAGE&#34;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">159</span><span>                };
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">160</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">161</span><span>                dispatch(action);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">162</span><span>            }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">163</span><span>        },
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">164</span><span>        <span style=color:#60a0b0;font-style:italic>// 定义 StackNavigator 的 action props (2)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">165</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#4070a0>&#39;dispatch&#39;</span><span style=color:#666>:</span> dispatch
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">166</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">167</span><span>}
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">168</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">169</span><span><span style=color:#60a0b0;font-style:italic>// 定义 home 页面的 reducer，不过因为那个页面唯一的一个 action 是触发别的页面的动作的，所以这个 reducer 其实也可以没有
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">170</span><span><span style=color:#60a0b0;font-style:italic>// 所以从这里也能看出来，reducer 并不一定按照页面去分
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">171</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>let</span> homeReducer <span style=color:#666>=</span> (state, action) =&gt; {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">172</span><span>    console.log(<span style=color:#4070a0>&#34;inside home reducer&#34;</span>, state, action);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">173</span><span>    <span style=color:#007020;font-weight:700>return</span> state <span style=color:#666>||</span> {};
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">174</span><span>};
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">175</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">176</span><span><span style=color:#60a0b0;font-style:italic>// 定义一个初始化的 state
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">177</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>let</span> myAppInitState <span style=color:#666>=</span> { <span style=color:#4070a0>&#39;counter&#39;</span><span style=color:#666>:</span> <span style=color:#40a070>10</span>};
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">178</span><span><span style=color:#60a0b0;font-style:italic>// 定义 app 页面的 reducer
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">179</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>let</span> myAppReducer <span style=color:#666>=</span> (state <span style=color:#666>=</span> myAppInitState, action) =&gt; {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">180</span><span>    <span style=color:#60a0b0;font-style:italic>// 收到的 state 实际上只是自己命名空间下的 (6)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">181</span><span><span style=color:#60a0b0;font-style:italic></span>    console.log(<span style=color:#4070a0>&#34;inside myAppReducer&#34;</span>, state, action);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">182</span><span>    <span style=color:#007020;font-weight:700>let</span> myState <span style=color:#666>=</span> state;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">183</span><span>    <span style=color:#60a0b0;font-style:italic>// 需要处理的 action 的逻辑
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">184</span><span><span style=color:#60a0b0;font-style:italic></span>    <span style=color:#60a0b0;font-style:italic>// 要注意，一个 action 被触发的时候，所有的 reducer 都会被调用，所以其实更像是订阅自己想要处理的 action
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">185</span><span><span style=color:#60a0b0;font-style:italic></span>    <span style=color:#007020;font-weight:700>switch</span> (action.type) {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">186</span><span>        <span style=color:#007020;font-weight:700>case</span> <span style=color:#4070a0>&#34;DEC_COUNTER&#34;</span><span style=color:#666>:</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">187</span><span>        <span style=color:#007020;font-weight:700>case</span> <span style=color:#4070a0>&#34;INC_COUNTER&#34;</span><span style=color:#666>:</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">188</span><span>            <span style=color:#60a0b0;font-style:italic>// 如果修改了 state，必须要返回一个新的对象，不能直接在原对象上修改，否则 state 变化不会触发组件的刷新
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">189</span><span><span style=color:#60a0b0;font-style:italic></span>            <span style=color:#007020;font-weight:700>return</span> <span style=color:#007020>Object</span>.assign({}, myState, {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">190</span><span>                <span style=color:#4070a0>&#39;counter&#39;</span><span style=color:#666>:</span> myState.counter <span style=color:#666>+</span> action.payload
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">191</span><span>            });
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">192</span><span>        <span style=color:#007020;font-weight:700>default</span><span style=color:#666>:</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">193</span><span>            <span style=color:#007020;font-weight:700>return</span> state;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">194</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">195</span><span>};
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">196</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">197</span><span><span style=color:#60a0b0;font-style:italic>// 定义一个 StackNavigator 用到的初始化状态，这个很重要
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">198</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>const</span> initialState <span style=color:#666>=</span> AppNavigator.router.getStateForAction(AppNavigator.router.getActionForPathAndParams(<span style=color:#4070a0>&#39;Home&#39;</span>));
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">199</span><span><span style=color:#60a0b0;font-style:italic>// 定义 StackNavigator 的 reducer，代码直接复制来的
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">200</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>const</span> navReducer <span style=color:#666>=</span> (state <span style=color:#666>=</span> initialState, action) =&gt; {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">201</span><span>    console.log(<span style=color:#4070a0>&#34;inside nav reducer&#34;</span>, state, action);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">202</span><span>    <span style=color:#007020;font-weight:700>const</span> nextState <span style=color:#666>=</span> AppNavigator.router.getStateForAction(action, state);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">203</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">204</span><span>    <span style=color:#60a0b0;font-style:italic>// Simply return the original `state` if `nextState` is null or undefined.
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">205</span><span><span style=color:#60a0b0;font-style:italic></span>    <span style=color:#007020;font-weight:700>return</span> nextState <span style=color:#666>||</span> state;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">206</span><span>};
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">207</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">208</span><span><span style=color:#60a0b0;font-style:italic>// 创建 store
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">209</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>let</span> store <span style=color:#666>=</span> createStore(combineReducers({
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">210</span><span>    <span style=color:#60a0b0;font-style:italic>// 这里的 MyApp 等和前面定义 mapStateToProps 的地方对应 (6)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">211</span><span><span style=color:#60a0b0;font-style:italic></span>    <span style=color:#60a0b0;font-style:italic>// 这里也是导致 reducer 收到的 state 只有自己命名空间下数据的一个原因 (6)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">212</span><span><span style=color:#60a0b0;font-style:italic></span>    MyApp<span style=color:#666>:</span> myAppReducer,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">213</span><span>    MyHome<span style=color:#666>:</span> homeReducer,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">214</span><span>    nav<span style=color:#666>:</span> navReducer
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">215</span><span>}));
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">216</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">217</span><span><span style=color:#60a0b0;font-style:italic>// 让 redux 加持一下，保佑
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">218</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>let</span> App <span style=color:#666>=</span> connect(mapStateToProps, mapDispatchToProps)(MyStackNavigator);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">219</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">220</span><span><span style=color:#60a0b0;font-style:italic>// 其他的就是比较常见的 redux 的逻辑了，另外需要说明的是实际使用的时候，肯定会做页面拆分，如何拆分可能都会有不同的看法，我也还在摸索
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">221</span><span><span style=color:#60a0b0;font-style:italic></span><span style=color:#007020;font-weight:700>export</span> <span style=color:#007020;font-weight:700>default</span> <span style=color:#007020;font-weight:700>class</span> Root <span style=color:#007020;font-weight:700>extends</span> Component<span style=color:#666>&lt;</span>{}<span style=color:#666>&gt;</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">222</span><span>    constructor(props) {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">223</span><span>        <span style=color:#007020;font-weight:700>super</span>(props);
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">224</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">225</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">226</span><span>    render() {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">227</span><span>        <span style=color:#007020;font-weight:700>return</span> (
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">228</span><span>            <span style=color:#666>&lt;</span>Provider store<span style=color:#666>=</span>{store}<span style=color:#666>&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">229</span><span>                <span style=color:#666>&lt;</span>App prop1<span style=color:#666>=</span><span style=color:#4070a0>&#34;prop1&#34;</span> <span style=color:#666>/&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">230</span><span>            <span style=color:#666>&lt;</span><span>/Provider&gt;</span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">231</span><span>        );
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">232</span><span>    }
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">233</span><span>}
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">234</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">235</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">236</span><span><span style=color:#007020;font-weight:700>const</span> styles <span style=color:#666>=</span> StyleSheet.create({
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">237</span><span>    container<span style=color:#666>:</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">238</span><span>        flex<span style=color:#666>:</span> <span style=color:#40a070>1</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">239</span><span>        justifyContent<span style=color:#666>:</span> <span style=color:#4070a0>&#39;center&#39;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">240</span><span>        alignItems<span style=color:#666>:</span> <span style=color:#4070a0>&#39;center&#39;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">241</span><span>        backgroundColor<span style=color:#666>:</span> <span style=color:#4070a0>&#39;#F5FCFF&#39;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">242</span><span>    },
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">243</span><span>    welcome<span style=color:#666>:</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">244</span><span>        fontSize<span style=color:#666>:</span> <span style=color:#40a070>20</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">245</span><span>        textAlign<span style=color:#666>:</span> <span style=color:#4070a0>&#39;center&#39;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">246</span><span>        margin<span style=color:#666>:</span> <span style=color:#40a070>10</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">247</span><span>    },
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">248</span><span>    instructions<span style=color:#666>:</span> {
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">249</span><span>        textAlign<span style=color:#666>:</span> <span style=color:#4070a0>&#39;center&#39;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">250</span><span>        color<span style=color:#666>:</span> <span style=color:#4070a0>&#39;#333333&#39;</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">251</span><span>        marginBottom<span style=color:#666>:</span> <span style=color:#40a070>5</span>,
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">252</span><span>    },
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">253</span><span>});</span></span></code></pre></div></div></content></main><footer>Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>

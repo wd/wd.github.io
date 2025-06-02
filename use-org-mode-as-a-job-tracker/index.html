@@ -1,5 +1,107 @@
-<!doctype html><html lang=en><head><title>使用 org-mode 来做自己的 job tracker &ndash; wd and cc</title>
-<meta name=description content="Good good study, day day up!"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css integrity="sha512-IW0nhlW5MgNydsXJO40En2EoCkTTjZhI3yuODrZIc8cQ4h1XcF53PsqDHa09NqnkXuIe0Oiyyj171BqZFwISBw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://wdicc.com/css/palettes/base16-dark.css><link rel=stylesheet href=https://wdicc.com/css/risotto.css><link rel=stylesheet href=https://wdicc.com/css/custom.css><link rel=icon href=https://wdicc.com/favicon.ico></head><body><div class=page><header class=page__header><nav class="page__nav main-nav"><ul><h1 class=page__logo><a href=https://wdicc.com/ class=page__logo-inner>wd and cc</a></h1><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/posts/ title>Posts</a></li><li class=main-nav__item><a class=nav-main-item href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=" title>Search</a></li><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/atom.xml title>subscribe</a></li></ul></nav></header><section class=page__body><header class=content__header><h1>使用 org-mode 来做自己的 job tracker</h1></header><div class=content__body>用 emacs 的应该都知道 org-mode 这个大杀器，一直以来都想在工作里面用上他，可总是习惯不了。<br>这几天尝试把 org-mode 打造成了我的一个 job tracker，用来记录自己的 todo 和完成情况。<br><pre class="prettyprint lang-lisp">
+<!doctype html><html lang=en><head><meta http-equiv=X-Clacks-Overhead content="GNU Terry Pratchett"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" href=https://wdicc.com/favicon.ico><title>使用 org-mode 来做自己的 job tracker | wd and cc</title><meta name=title content="使用 org-mode 来做自己的 job tracker"><meta name=description content='用 emacs 的应该都知道 org-mode 这个大杀器，一直以来都想在工作里面用上他，可总是习惯不了。
+
+这几天尝试把 org-mode 打造成了我的一个 job tracker，用来记录自己的 todo 和完成情况。
+
+
+;;
+;; org-mode
+;;
+
+;; (setq org-agenda-files &#39;("~/org"))
+(setq org-agenda-files (file-expand-wildcards "~/org/*.org"))  ;; 把 ~/org/*.org 都加入到 agenda 里面，使用 C-c a a 看 agenda 的时候，会从这些文件里面读
+(add-to-list &#39;auto-mode-alist &#39;("\\.org$" . org-mode))
+(define-key global-map "\C-cl" &#39;org-store-link)
+(define-key global-map "\C-ca" &#39;org-agenda)
+(setq org-log-done t) ;; 变到 done 状态的时候，记录一下时间
+
+(add-hook &#39;org-mode-hook
+          (lambda ()
+            (org-set-local &#39;yas/trigger-key [tab])
+            (define-key yas/keymap [tab] &#39;yas/next-field-group)))
+
+(setq org-todo-keywords
+      &#39;((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)")))  ;; 设置一下 todo 的关键字，| 左边的是未完成状态，右边是 done 的状态
+
+
+(setq org-default-notes-file "~/org/todo.org") ;; 设置 remember 的默认文件 
+
+;;;  Load Org Remember Stuff
+(require &#39;remember)
+(org-remember-insinuate)
+
+;; Start clock in a remember buffer and switch back to previous clocking task on save
+;; (add-hook &#39;remember-mode-hook &#39;org-clock-in &#39;append)
+;; (add-hook &#39;org-remember-before-finalize-hook &#39;bh/clock-in-interrupted-task)
+
+;; I use C-M-r to start org-remember
+(global-set-key (kbd "C-c m r") &#39;org-remember)
+;; (define-key global-map "\C-cr" &#39;org-remember)
+
+;; Keep clocks running
+(setq org-remember-clock-out-on-exit nil)
+
+;; C-c C-c stores the note immediately
+(setq org-remember-store-without-prompt t)
+
+;; I don&#39;t use this -- but set it in case I forget to specify a location in a future template
+(setq org-remember-default-headline "Tasks") ;; 设置默认 remember 添加的 headline
+
+;; 3 remember templates for TODO tasks, Notes, and Phone calls
+(setq org-remember-templates (quote (("todo" ?t "** TODO %?\nCREATED: %U" nil nil nil)
+                                     ;; ("note" ?n "* %?                                                                            :NOTE:\n  %U\n  %a\n  :CLOCK:\n  :END:" nil bottom nil)
+                                     ;; ("appointment" ?a "* %?\n  %U" "~/git/org/todo.org" "Appointments" nil)
+                                     ;; ("org-protocol" ?w "* TODO Review %c%!\n  %U" nil bottom nil))))
+                                     ))) ;;设置 todo 的模板，里面第三个参数是模板，里面的变量的意思 google 下
+
+
+
+
+在 todo.org 里面有两个 headline，一个是 * Tasks ，一个是 * Done。
+
+配置好后，在任意的 buffer 按 C-c m r 就可以打开个 buffer，输入 todo 信息，然后按 C-c C-c 就可以把 todo 添加到 todo.org 里面去了，会添加到 * Tasks 这个 headline 下面。
+
+完成一个任务的时候，在那上面按 C-c C-t 然后选择 done 就可以设置完成。手动（还不会自动。。。）把完成的任务挪到 Done 里面。
+
+如果想看看有完成情况的统计，可以在 agenda 里面看，C-c a a，然后按 v，选择不同的模式看。每周的工作情况在那里面一目了然，呵呵。
+
+
+Week-agenda (W29):
+Monday     19 July 2010 W29
+Tuesday    20 July 2010
+Wednesday  21 July 2010
+  todo:       17:33...... [ TODO 多看看 org-mode 的 agenda
+Thursday   22 July 2010
+  todo:       15:18...... Closed:     DONE a test
+  todo:       15:18...... [ DONE a test
+Friday     23 July 2010
+  todo:       14:50...... [ TODO 梳理一下
+  todo:       17:08...... [ TODO 了解下
+  todo:       22:49...... [ TODO 申请
+Saturday   24 July 2010
+Sunday     25 July 2010
+'><meta name=keywords content="job,linux,org-mode,todo,"><meta property="og:url" content="https://wdicc.com/use-org-mode-as-a-job-tracker/"><meta property="og:site_name" content="wd and cc"><meta property="og:title" content="使用 org-mode 来做自己的 job tracker"><meta property="og:description" content='用 emacs 的应该都知道 org-mode 这个大杀器，一直以来都想在工作里面用上他，可总是习惯不了。
+这几天尝试把 org-mode 打造成了我的一个 job tracker，用来记录自己的 todo 和完成情况。
+;; ;; org-mode ;; ;; (setq org-agenda-files &#39;("~/org")) (setq org-agenda-files (file-expand-wildcards "~/org/*.org")) ;; 把 ~/org/*.org 都加入到 agenda 里面，使用 C-c a a 看 agenda 的时候，会从这些文件里面读 (add-to-list &#39;auto-mode-alist &#39;("\\.org$" . org-mode)) (define-key global-map "\C-cl" &#39;org-store-link) (define-key global-map "\C-ca" &#39;org-agenda) (setq org-log-done t) ;; 变到 done 状态的时候，记录一下时间 (add-hook &#39;org-mode-hook (lambda () (org-set-local &#39;yas/trigger-key [tab]) (define-key yas/keymap [tab] &#39;yas/next-field-group))) (setq org-todo-keywords &#39;((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)"))) ;; 设置一下 todo 的关键字，| 左边的是未完成状态，右边是 done 的状态 (setq org-default-notes-file "~/org/todo.org") ;; 设置 remember 的默认文件 ;;; Load Org Remember Stuff (require &#39;remember) (org-remember-insinuate) ;; Start clock in a remember buffer and switch back to previous clocking task on save ;; (add-hook &#39;remember-mode-hook &#39;org-clock-in &#39;append) ;; (add-hook &#39;org-remember-before-finalize-hook &#39;bh/clock-in-interrupted-task) ;; I use C-M-r to start org-remember (global-set-key (kbd "C-c m r") &#39;org-remember) ;; (define-key global-map "\C-cr" &#39;org-remember) ;; Keep clocks running (setq org-remember-clock-out-on-exit nil) ;; C-c C-c stores the note immediately (setq org-remember-store-without-prompt t) ;; I don&#39;t use this -- but set it in case I forget to specify a location in a future template (setq org-remember-default-headline "Tasks") ;; 设置默认 remember 添加的 headline ;; 3 remember templates for TODO tasks, Notes, and Phone calls (setq org-remember-templates (quote (("todo" ?t "** TODO %?\nCREATED: %U" nil nil nil) ;; ("note" ?n "* %? :NOTE:\n %U\n %a\n :CLOCK:\n :END:" nil bottom nil) ;; ("appointment" ?a "* %?\n %U" "~/git/org/todo.org" "Appointments" nil) ;; ("org-protocol" ?w "* TODO Review %c%!\n %U" nil bottom nil)))) ))) ;;设置 todo 的模板，里面第三个参数是模板，里面的变量的意思 google 下 在 todo.org 里面有两个 headline，一个是 * Tasks ，一个是 * Done。
+配置好后，在任意的 buffer 按 C-c m r 就可以打开个 buffer，输入 todo 信息，然后按 C-c C-c 就可以把 todo 添加到 todo.org 里面去了，会添加到 * Tasks 这个 headline 下面。
+完成一个任务的时候，在那上面按 C-c C-t 然后选择 done 就可以设置完成。手动（还不会自动。。。）把完成的任务挪到 Done 里面。
+如果想看看有完成情况的统计，可以在 agenda 里面看，C-c a a，然后按 v，选择不同的模式看。每周的工作情况在那里面一目了然，呵呵。
+Week-agenda (W29): Monday 19 July 2010 W29 Tuesday 20 July 2010 Wednesday 21 July 2010 todo: 17:33...... [ TODO 多看看 org-mode 的 agenda Thursday 22 July 2010 todo: 15:18...... Closed: DONE a test todo: 15:18...... [ DONE a test Friday 23 July 2010 todo: 14:50...... [ TODO 梳理一下 todo: 17:08...... [ TODO 了解下 todo: 22:49...... [ TODO 申请 Saturday 24 July 2010 Sunday 25 July 2010'><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2010-07-23T00:00:00+00:00"><meta property="article:modified_time" content="2010-07-23T00:00:00+00:00"><meta property="article:tag" content="Job"><meta property="article:tag" content="Linux"><meta property="article:tag" content="Org-Mode"><meta property="article:tag" content="Todo"><meta name=twitter:card content="summary"><meta name=twitter:title content="使用 org-mode 来做自己的 job tracker"><meta name=twitter:description content='用 emacs 的应该都知道 org-mode 这个大杀器，一直以来都想在工作里面用上他，可总是习惯不了。
+这几天尝试把 org-mode 打造成了我的一个 job tracker，用来记录自己的 todo 和完成情况。
+;; ;; org-mode ;; ;; (setq org-agenda-files &#39;("~/org")) (setq org-agenda-files (file-expand-wildcards "~/org/*.org")) ;; 把 ~/org/*.org 都加入到 agenda 里面，使用 C-c a a 看 agenda 的时候，会从这些文件里面读 (add-to-list &#39;auto-mode-alist &#39;("\\.org$" . org-mode)) (define-key global-map "\C-cl" &#39;org-store-link) (define-key global-map "\C-ca" &#39;org-agenda) (setq org-log-done t) ;; 变到 done 状态的时候，记录一下时间 (add-hook &#39;org-mode-hook (lambda () (org-set-local &#39;yas/trigger-key [tab]) (define-key yas/keymap [tab] &#39;yas/next-field-group))) (setq org-todo-keywords &#39;((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)"))) ;; 设置一下 todo 的关键字，| 左边的是未完成状态，右边是 done 的状态 (setq org-default-notes-file "~/org/todo.org") ;; 设置 remember 的默认文件 ;;; Load Org Remember Stuff (require &#39;remember) (org-remember-insinuate) ;; Start clock in a remember buffer and switch back to previous clocking task on save ;; (add-hook &#39;remember-mode-hook &#39;org-clock-in &#39;append) ;; (add-hook &#39;org-remember-before-finalize-hook &#39;bh/clock-in-interrupted-task) ;; I use C-M-r to start org-remember (global-set-key (kbd "C-c m r") &#39;org-remember) ;; (define-key global-map "\C-cr" &#39;org-remember) ;; Keep clocks running (setq org-remember-clock-out-on-exit nil) ;; C-c C-c stores the note immediately (setq org-remember-store-without-prompt t) ;; I don&#39;t use this -- but set it in case I forget to specify a location in a future template (setq org-remember-default-headline "Tasks") ;; 设置默认 remember 添加的 headline ;; 3 remember templates for TODO tasks, Notes, and Phone calls (setq org-remember-templates (quote (("todo" ?t "** TODO %?\nCREATED: %U" nil nil nil) ;; ("note" ?n "* %? :NOTE:\n %U\n %a\n :CLOCK:\n :END:" nil bottom nil) ;; ("appointment" ?a "* %?\n %U" "~/git/org/todo.org" "Appointments" nil) ;; ("org-protocol" ?w "* TODO Review %c%!\n %U" nil bottom nil)))) ))) ;;设置 todo 的模板，里面第三个参数是模板，里面的变量的意思 google 下 在 todo.org 里面有两个 headline，一个是 * Tasks ，一个是 * Done。
+配置好后，在任意的 buffer 按 C-c m r 就可以打开个 buffer，输入 todo 信息，然后按 C-c C-c 就可以把 todo 添加到 todo.org 里面去了，会添加到 * Tasks 这个 headline 下面。
+完成一个任务的时候，在那上面按 C-c C-t 然后选择 done 就可以设置完成。手动（还不会自动。。。）把完成的任务挪到 Done 里面。
+如果想看看有完成情况的统计，可以在 agenda 里面看，C-c a a，然后按 v，选择不同的模式看。每周的工作情况在那里面一目了然，呵呵。
+Week-agenda (W29): Monday 19 July 2010 W29 Tuesday 20 July 2010 Wednesday 21 July 2010 todo: 17:33...... [ TODO 多看看 org-mode 的 agenda Thursday 22 July 2010 todo: 15:18...... Closed: DONE a test todo: 15:18...... [ DONE a test Friday 23 July 2010 todo: 14:50...... [ TODO 梳理一下 todo: 17:08...... [ TODO 了解下 todo: 22:49...... [ TODO 申请 Saturday 24 July 2010 Sunday 25 July 2010'><meta itemprop=name content="使用 org-mode 来做自己的 job tracker"><meta itemprop=description content='用 emacs 的应该都知道 org-mode 这个大杀器，一直以来都想在工作里面用上他，可总是习惯不了。
+这几天尝试把 org-mode 打造成了我的一个 job tracker，用来记录自己的 todo 和完成情况。
+;; ;; org-mode ;; ;; (setq org-agenda-files &#39;("~/org")) (setq org-agenda-files (file-expand-wildcards "~/org/*.org")) ;; 把 ~/org/*.org 都加入到 agenda 里面，使用 C-c a a 看 agenda 的时候，会从这些文件里面读 (add-to-list &#39;auto-mode-alist &#39;("\\.org$" . org-mode)) (define-key global-map "\C-cl" &#39;org-store-link) (define-key global-map "\C-ca" &#39;org-agenda) (setq org-log-done t) ;; 变到 done 状态的时候，记录一下时间 (add-hook &#39;org-mode-hook (lambda () (org-set-local &#39;yas/trigger-key [tab]) (define-key yas/keymap [tab] &#39;yas/next-field-group))) (setq org-todo-keywords &#39;((sequence "TODO(t)" "WAIT(w@/!)" "|" "DONE(d!)" "CANCELED(c@)"))) ;; 设置一下 todo 的关键字，| 左边的是未完成状态，右边是 done 的状态 (setq org-default-notes-file "~/org/todo.org") ;; 设置 remember 的默认文件 ;;; Load Org Remember Stuff (require &#39;remember) (org-remember-insinuate) ;; Start clock in a remember buffer and switch back to previous clocking task on save ;; (add-hook &#39;remember-mode-hook &#39;org-clock-in &#39;append) ;; (add-hook &#39;org-remember-before-finalize-hook &#39;bh/clock-in-interrupted-task) ;; I use C-M-r to start org-remember (global-set-key (kbd "C-c m r") &#39;org-remember) ;; (define-key global-map "\C-cr" &#39;org-remember) ;; Keep clocks running (setq org-remember-clock-out-on-exit nil) ;; C-c C-c stores the note immediately (setq org-remember-store-without-prompt t) ;; I don&#39;t use this -- but set it in case I forget to specify a location in a future template (setq org-remember-default-headline "Tasks") ;; 设置默认 remember 添加的 headline ;; 3 remember templates for TODO tasks, Notes, and Phone calls (setq org-remember-templates (quote (("todo" ?t "** TODO %?\nCREATED: %U" nil nil nil) ;; ("note" ?n "* %? :NOTE:\n %U\n %a\n :CLOCK:\n :END:" nil bottom nil) ;; ("appointment" ?a "* %?\n %U" "~/git/org/todo.org" "Appointments" nil) ;; ("org-protocol" ?w "* TODO Review %c%!\n %U" nil bottom nil)))) ))) ;;设置 todo 的模板，里面第三个参数是模板，里面的变量的意思 google 下 在 todo.org 里面有两个 headline，一个是 * Tasks ，一个是 * Done。
+配置好后，在任意的 buffer 按 C-c m r 就可以打开个 buffer，输入 todo 信息，然后按 C-c C-c 就可以把 todo 添加到 todo.org 里面去了，会添加到 * Tasks 这个 headline 下面。
+完成一个任务的时候，在那上面按 C-c C-t 然后选择 done 就可以设置完成。手动（还不会自动。。。）把完成的任务挪到 Done 里面。
+如果想看看有完成情况的统计，可以在 agenda 里面看，C-c a a，然后按 v，选择不同的模式看。每周的工作情况在那里面一目了然，呵呵。
+Week-agenda (W29): Monday 19 July 2010 W29 Tuesday 20 July 2010 Wednesday 21 July 2010 todo: 17:33...... [ TODO 多看看 org-mode 的 agenda Thursday 22 July 2010 todo: 15:18...... Closed: DONE a test todo: 15:18...... [ DONE a test Friday 23 July 2010 todo: 14:50...... [ TODO 梳理一下 todo: 17:08...... [ TODO 了解下 todo: 22:49...... [ TODO 申请 Saturday 24 July 2010 Sunday 25 July 2010'><meta itemprop=datePublished content="2010-07-23T00:00:00+00:00"><meta itemprop=dateModified content="2010-07-23T00:00:00+00:00"><meta itemprop=wordCount content="684"><meta itemprop=keywords content="Job,Linux,Org-Mode,Todo"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--code-background-color:#f2f2f2;--code-color:#222;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--code-background-color:#000;--code-color:#ddd;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px}blockquote{border-left:1px solid #999;color:var(--code-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto !important}.highlight,.code{padding:1px 15px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style></head><body><header><a href=/ class=title><h2>wd and cc</h2></a><p>-- Good good study, day day up!</p><nav><a href=/>Home</a>
+<a href=/posts/>Posts</a>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">Search</a>
+<a href=/tags/>Tags</a>
+<a href=/atom.xml>subscribe</a></nav></header><main><content>用 emacs 的应该都知道 org-mode 这个大杀器，一直以来都想在工作里面用上他，可总是习惯不了。<br>这几天尝试把 org-mode 打造成了我的一个 job tracker，用来记录自己的 todo 和完成情况。<br><pre class="prettyprint lang-lisp">
 ;;
 ;; org-mode
 ;;
@@ -66,4 +168,4 @@ Friday     23 July 2010
   todo:       22:49...... [ TODO 申请
 Saturday   24 July 2010
 Sunday     25 July 2010
-</pre><br></div><footer class=content__footer></footer></section><section class=page__aside><div class=aside__about><div class=aside__about><img class=about__logo src=https://wdicc.com/favicon.ico alt=Logo><h1 class=about__title>Happy every day!</h1><p class=about__description>Good good study, day day up!</p></div><ul class=aside__social-links><li><a href=https://github.com/wd rel=me aria-label=GitHub title=GitHub><i class="fa-brands fa-github" aria-hidden=true></i></a>&nbsp;</li></ul></div><hr><div class=aside__content><p>2010-07-23</p></div></section><footer class=page__footer><p><br><span class=active>$ echo $LANG<br><b>zh_CN</b></span><br></p><br><br><p class=copyright>wd © 2025</p><p class=advertisement>Powered by <a href=https://gohugo.io/>hugo</a> and <a href=https://github.com/joeroe/risotto>risotto</a>.</p></footer></div></body></html>
+</pre><br></content></main><footer>Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>

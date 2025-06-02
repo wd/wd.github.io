@@ -1,2 +1,139 @@
-<!doctype html><html lang=en><head><title>用split分割备份文件，和用cat恢复备份 &ndash; wd and cc</title>
-<meta name=description content="Good good study, day day up!"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css integrity="sha512-IW0nhlW5MgNydsXJO40En2EoCkTTjZhI3yuODrZIc8cQ4h1XcF53PsqDHa09NqnkXuIe0Oiyyj171BqZFwISBw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://wdicc.com/css/palettes/base16-dark.css><link rel=stylesheet href=https://wdicc.com/css/risotto.css><link rel=stylesheet href=https://wdicc.com/css/custom.css><link rel=icon href=https://wdicc.com/favicon.ico></head><body><div class=page><header class=page__header><nav class="page__nav main-nav"><ul><h1 class=page__logo><a href=https://wdicc.com/ class=page__logo-inner>wd and cc</a></h1><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/posts/ title>Posts</a></li><li class=main-nav__item><a class=nav-main-item href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=" title>Search</a></li><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/atom.xml title>subscribe</a></li></ul></nav></header><section class=page__body><header class=content__header><h1>用split分割备份文件，和用cat恢复备份</h1></header><div class=content__body>split命令的使用格式如下：<br>$split --help<br>Usage: split [OPTION] [INPUT [PREFIX]]<br>Output fixed-size pieces of INPUT to PREFIXaa, PREFIXab, ...; default<br>PREFIX is `x'.&nbsp; With no INPUT, or when INPUT is -, read standard input.<br>Mandatory arguments to long options are mandatory for short options too.<br>&nbsp; -a, --suffix-length=N &nbsp; use suffixes of length N (default 2)<br>&nbsp; -b, --bytes=SIZE &nbsp; &nbsp; &nbsp;&nbsp; put SIZE bytes per output file<br>&nbsp; -C, --line-bytes=SIZE &nbsp; put at most SIZE bytes of lines per output file<br>&nbsp; -d, --numeric-suffixes&nbsp; use numeric suffixes instead of alphabetic<br>&nbsp; -l, --lines=NUMBER &nbsp; &nbsp;&nbsp; put NUMBER lines per output file<br>&nbsp; &nbsp;&nbsp; --verbose &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; print a diagnostic to standard error just<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; before each output file is opened<br>&nbsp; &nbsp;&nbsp; --help &nbsp; &nbsp; display this help and exit<br>&nbsp; &nbsp;&nbsp; --version&nbsp; output version information and exit<br>SIZE may have a multiplier suffix: b for 512, k for 1K, m for 1 Meg.<br>通常使用的都是-b参数指定分割之后的文件的大小。<br>我们先建立一个测试文件。<br>#dd if=/dev/zero of=./test bs=1M count=512<br>就是以1M为单位，重复512次，也就是建立一个512M的文件。<br>$split -b 200m test test_back<br>执行这个命令之后，等执行完毕会看到目录下面多了几个文件<br>$ls<br>test test_backaa test_backab test_backac<br>这样就完成了文件的分割。如果对于文本文件，还可以使用split的-l参数针对行数进行分割。<br>这样分割传输之后，还需要重新合并才能使用，可以使用cat命令来完成。<br>$cat test_backa* > test_back<br>执行完毕之后，可以看一下恢复的test_back文件和test文件的md5。<br>$md5sum test test_back<br>返回值应该是一样的。<br>使用tar备份的时候有时也需要对大的备份文件进行分割。<br>$tar czvf - /data | split -b 1024m - data<br></div><footer class=content__footer></footer></section><section class=page__aside><div class=aside__about><div class=aside__about><img class=about__logo src=https://wdicc.com/favicon.ico alt=Logo><h1 class=about__title>Happy every day!</h1><p class=about__description>Good good study, day day up!</p></div><ul class=aside__social-links><li><a href=https://github.com/wd rel=me aria-label=GitHub title=GitHub><i class="fa-brands fa-github" aria-hidden=true></i></a>&nbsp;</li></ul></div><hr><div class=aside__content><p>2006-05-22</p></div></section><footer class=page__footer><p><br><span class=active>$ echo $LANG<br><b>zh_CN</b></span><br></p><br><br><p class=copyright>wd © 2025</p><p class=advertisement>Powered by <a href=https://gohugo.io/>hugo</a> and <a href=https://github.com/joeroe/risotto>risotto</a>.</p></footer></div></body></html>
+<!doctype html><html lang=en><head><meta http-equiv=X-Clacks-Overhead content="GNU Terry Pratchett"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" href=https://wdicc.com/favicon.ico><title>用split分割备份文件，和用cat恢复备份 | wd and cc</title><meta name=title content="用split分割备份文件，和用cat恢复备份"><meta name=description content="split命令的使用格式如下：
+$split --help
+Usage: split [OPTION] [INPUT [PREFIX]]
+Output fixed-size pieces of INPUT to PREFIXaa, PREFIXab, ...; default
+PREFIX is `x'.&nbsp; With no INPUT, or when INPUT is -, read standard input.
+
+Mandatory arguments to long options are mandatory for short options too.
+&nbsp; -a, --suffix-length=N &nbsp; use suffixes of length N (default 2)
+&nbsp; -b, --bytes=SIZE &nbsp; &nbsp; &nbsp;&nbsp; put SIZE bytes per output file
+&nbsp; -C, --line-bytes=SIZE &nbsp; put at most SIZE bytes of lines per output file
+&nbsp; -d, --numeric-suffixes&nbsp; use numeric suffixes instead of alphabetic
+&nbsp; -l, --lines=NUMBER &nbsp; &nbsp;&nbsp; put NUMBER lines per output file
+ &nbsp; &nbsp;&nbsp; --verbose &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; print a diagnostic to standard error just
+ &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; before each output file is opened
+ &nbsp; &nbsp;&nbsp; --help &nbsp; &nbsp; display this help and exit
+ &nbsp; &nbsp;&nbsp; --version&nbsp; output version information and exit
+
+SIZE may have a multiplier suffix: b for 512, k for 1K, m for 1 Meg.
+
+
+通常使用的都是-b参数指定分割之后的文件的大小。
+
+我们先建立一个测试文件。
+#dd if=/dev/zero of=./test bs=1M count=512
+就是以1M为单位，重复512次，也就是建立一个512M的文件。
+
+$split -b 200m test test_back
+执行这个命令之后，等执行完毕会看到目录下面多了几个文件
+$ls
+test test_backaa test_backab test_backac
+
+这样就完成了文件的分割。如果对于文本文件，还可以使用split的-l参数针对行数进行分割。
+
+这样分割传输之后，还需要重新合并才能使用，可以使用cat命令来完成。
+$cat test_backa* > test_back
+
+执行完毕之后，可以看一下恢复的test_back文件和test文件的md5。
+$md5sum test test_back
+返回值应该是一样的。
+
+使用tar备份的时候有时也需要对大的备份文件进行分割。
+$tar czvf - /data | split -b 1024m - data"><meta name=keywords content="other,"><meta property="og:url" content="https://wdicc.com/split-and-cat/"><meta property="og:site_name" content="wd and cc"><meta property="og:title" content="用split分割备份文件，和用cat恢复备份"><meta property="og:description" content="split命令的使用格式如下：
+$split --help
+Usage: split [OPTION] [INPUT [PREFIX]]
+Output fixed-size pieces of INPUT to PREFIXaa, PREFIXab, ...; default
+PREFIX is `x'.  With no INPUT, or when INPUT is -, read standard input.
+Mandatory arguments to long options are mandatory for short options too.
+  -a, --suffix-length=N   use suffixes of length N (default 2)
+  -b, --bytes=SIZE        put SIZE bytes per output file
+  -C, --line-bytes=SIZE   put at most SIZE bytes of lines per output file
+  -d, --numeric-suffixes  use numeric suffixes instead of alphabetic
+  -l, --lines=NUMBER      put NUMBER lines per output file
+     --verbose           print a diagnostic to standard error just
+                           before each output file is opened
+     --help     display this help and exit
+     --version  output version information and exit
+SIZE may have a multiplier suffix: b for 512, k for 1K, m for 1 Meg.
+通常使用的都是-b参数指定分割之后的文件的大小。
+我们先建立一个测试文件。
+#dd if=/dev/zero of=./test bs=1M count=512
+就是以1M为单位，重复512次，也就是建立一个512M的文件。
+$split -b 200m test test_back
+执行这个命令之后，等执行完毕会看到目录下面多了几个文件
+$ls
+test test_backaa test_backab test_backac
+这样就完成了文件的分割。如果对于文本文件，还可以使用split的-l参数针对行数进行分割。
+这样分割传输之后，还需要重新合并才能使用，可以使用cat命令来完成。
+$cat test_backa* > test_back
+执行完毕之后，可以看一下恢复的test_back文件和test文件的md5。
+$md5sum test test_back
+返回值应该是一样的。
+使用tar备份的时候有时也需要对大的备份文件进行分割。
+$tar czvf - /data | split -b 1024m - data"><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2006-05-22T00:00:00+00:00"><meta property="article:modified_time" content="2006-05-22T00:00:00+00:00"><meta property="article:tag" content="Other"><meta name=twitter:card content="summary"><meta name=twitter:title content="用split分割备份文件，和用cat恢复备份"><meta name=twitter:description content="split命令的使用格式如下：
+$split --help
+Usage: split [OPTION] [INPUT [PREFIX]]
+Output fixed-size pieces of INPUT to PREFIXaa, PREFIXab, ...; default
+PREFIX is `x'.  With no INPUT, or when INPUT is -, read standard input.
+Mandatory arguments to long options are mandatory for short options too.
+  -a, --suffix-length=N   use suffixes of length N (default 2)
+  -b, --bytes=SIZE        put SIZE bytes per output file
+  -C, --line-bytes=SIZE   put at most SIZE bytes of lines per output file
+  -d, --numeric-suffixes  use numeric suffixes instead of alphabetic
+  -l, --lines=NUMBER      put NUMBER lines per output file
+     --verbose           print a diagnostic to standard error just
+                           before each output file is opened
+     --help     display this help and exit
+     --version  output version information and exit
+SIZE may have a multiplier suffix: b for 512, k for 1K, m for 1 Meg.
+通常使用的都是-b参数指定分割之后的文件的大小。
+我们先建立一个测试文件。
+#dd if=/dev/zero of=./test bs=1M count=512
+就是以1M为单位，重复512次，也就是建立一个512M的文件。
+$split -b 200m test test_back
+执行这个命令之后，等执行完毕会看到目录下面多了几个文件
+$ls
+test test_backaa test_backab test_backac
+这样就完成了文件的分割。如果对于文本文件，还可以使用split的-l参数针对行数进行分割。
+这样分割传输之后，还需要重新合并才能使用，可以使用cat命令来完成。
+$cat test_backa* > test_back
+执行完毕之后，可以看一下恢复的test_back文件和test文件的md5。
+$md5sum test test_back
+返回值应该是一样的。
+使用tar备份的时候有时也需要对大的备份文件进行分割。
+$tar czvf - /data | split -b 1024m - data"><meta itemprop=name content="用split分割备份文件，和用cat恢复备份"><meta itemprop=description content="split命令的使用格式如下：
+$split --help
+Usage: split [OPTION] [INPUT [PREFIX]]
+Output fixed-size pieces of INPUT to PREFIXaa, PREFIXab, ...; default
+PREFIX is `x'.  With no INPUT, or when INPUT is -, read standard input.
+Mandatory arguments to long options are mandatory for short options too.
+  -a, --suffix-length=N   use suffixes of length N (default 2)
+  -b, --bytes=SIZE        put SIZE bytes per output file
+  -C, --line-bytes=SIZE   put at most SIZE bytes of lines per output file
+  -d, --numeric-suffixes  use numeric suffixes instead of alphabetic
+  -l, --lines=NUMBER      put NUMBER lines per output file
+     --verbose           print a diagnostic to standard error just
+                           before each output file is opened
+     --help     display this help and exit
+     --version  output version information and exit
+SIZE may have a multiplier suffix: b for 512, k for 1K, m for 1 Meg.
+通常使用的都是-b参数指定分割之后的文件的大小。
+我们先建立一个测试文件。
+#dd if=/dev/zero of=./test bs=1M count=512
+就是以1M为单位，重复512次，也就是建立一个512M的文件。
+$split -b 200m test test_back
+执行这个命令之后，等执行完毕会看到目录下面多了几个文件
+$ls
+test test_backaa test_backab test_backac
+这样就完成了文件的分割。如果对于文本文件，还可以使用split的-l参数针对行数进行分割。
+这样分割传输之后，还需要重新合并才能使用，可以使用cat命令来完成。
+$cat test_backa* > test_back
+执行完毕之后，可以看一下恢复的test_back文件和test文件的md5。
+$md5sum test test_back
+返回值应该是一样的。
+使用tar备份的时候有时也需要对大的备份文件进行分割。
+$tar czvf - /data | split -b 1024m - data"><meta itemprop=datePublished content="2006-05-22T00:00:00+00:00"><meta itemprop=dateModified content="2006-05-22T00:00:00+00:00"><meta itemprop=wordCount content="462"><meta itemprop=keywords content="Other"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--code-background-color:#f2f2f2;--code-color:#222;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--code-background-color:#000;--code-color:#ddd;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px}blockquote{border-left:1px solid #999;color:var(--code-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto !important}.highlight,.code{padding:1px 15px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style></head><body><header><a href=/ class=title><h2>wd and cc</h2></a><p>-- Good good study, day day up!</p><nav><a href=/>Home</a>
+<a href=/posts/>Posts</a>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">Search</a>
+<a href=/tags/>Tags</a>
+<a href=/atom.xml>subscribe</a></nav></header><main><content>split命令的使用格式如下：<br>$split --help<br>Usage: split [OPTION] [INPUT [PREFIX]]<br>Output fixed-size pieces of INPUT to PREFIXaa, PREFIXab, ...; default<br>PREFIX is `x'.&nbsp; With no INPUT, or when INPUT is -, read standard input.<br>Mandatory arguments to long options are mandatory for short options too.<br>&nbsp; -a, --suffix-length=N &nbsp; use suffixes of length N (default 2)<br>&nbsp; -b, --bytes=SIZE &nbsp; &nbsp; &nbsp;&nbsp; put SIZE bytes per output file<br>&nbsp; -C, --line-bytes=SIZE &nbsp; put at most SIZE bytes of lines per output file<br>&nbsp; -d, --numeric-suffixes&nbsp; use numeric suffixes instead of alphabetic<br>&nbsp; -l, --lines=NUMBER &nbsp; &nbsp;&nbsp; put NUMBER lines per output file<br>&nbsp; &nbsp;&nbsp; --verbose &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; print a diagnostic to standard error just<br>&nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp; &nbsp;&nbsp; before each output file is opened<br>&nbsp; &nbsp;&nbsp; --help &nbsp; &nbsp; display this help and exit<br>&nbsp; &nbsp;&nbsp; --version&nbsp; output version information and exit<br>SIZE may have a multiplier suffix: b for 512, k for 1K, m for 1 Meg.<br>通常使用的都是-b参数指定分割之后的文件的大小。<br>我们先建立一个测试文件。<br>#dd if=/dev/zero of=./test bs=1M count=512<br>就是以1M为单位，重复512次，也就是建立一个512M的文件。<br>$split -b 200m test test_back<br>执行这个命令之后，等执行完毕会看到目录下面多了几个文件<br>$ls<br>test test_backaa test_backab test_backac<br>这样就完成了文件的分割。如果对于文本文件，还可以使用split的-l参数针对行数进行分割。<br>这样分割传输之后，还需要重新合并才能使用，可以使用cat命令来完成。<br>$cat test_backa* > test_back<br>执行完毕之后，可以看一下恢复的test_back文件和test文件的md5。<br>$md5sum test test_back<br>返回值应该是一样的。<br>使用tar备份的时候有时也需要对大的备份文件进行分割。<br>$tar czvf - /data | split -b 1024m - data<br></content></main><footer>Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>

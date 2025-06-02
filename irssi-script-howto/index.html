@@ -1,5 +1,111 @@
-<!doctype html><html lang=en><head><title>Irssi script howto &ndash; wd and cc</title>
-<meta name=description content="Good good study, day day up!"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css integrity="sha512-IW0nhlW5MgNydsXJO40En2EoCkTTjZhI3yuODrZIc8cQ4h1XcF53PsqDHa09NqnkXuIe0Oiyyj171BqZFwISBw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://wdicc.com/css/palettes/base16-dark.css><link rel=stylesheet href=https://wdicc.com/css/risotto.css><link rel=stylesheet href=https://wdicc.com/css/custom.css><link rel=icon href=https://wdicc.com/favicon.ico></head><body><div class=page><header class=page__header><nav class="page__nav main-nav"><ul><h1 class=page__logo><a href=https://wdicc.com/ class=page__logo-inner>wd and cc</a></h1><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/posts/ title>Posts</a></li><li class=main-nav__item><a class=nav-main-item href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=" title>Search</a></li><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/atom.xml title>subscribe</a></li></ul></nav></header><section class=page__body><header class=content__header><h1>Irssi script howto</h1></header><div class=content__body>为 irssi 写一些简单的脚本其实不是很难。我大概讲解一下如何写作。<br><b>== 理解 signal ==</b><br>写过 vb 程序的都应该知道，vb 都是按照事件来触发执行程序的。例如你给某个窗体的 单击事件 写了代码，那么当这个窗体被单击的时候，就会执行你写的代码。<br>在 irssi 也是类似，不过他的不是事件，是 signal 。你所要做的就是针对不同的 signal 写不同代码即可。<br>irssi 的 signal 在这个 <a href=http://irssi.org/documentation/signals>文档</a> 里面都写的很全了，此外安装 irssi 的时候也会安装 irssi 的一些文档，里面也有 signal 的相关文档。<br><b>== 一个简单脚本 ==</b><br>脚本头部要包含一些脚本的信息，例如下面。<br><pre class="prettyprint lang-perl">
+<!doctype html><html lang=en><head><meta http-equiv=X-Clacks-Overhead content="GNU Terry Pratchett"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" href=https://wdicc.com/favicon.ico><title>Irssi script howto | wd and cc</title><meta name=title content="Irssi script howto"><meta name=description content='为 irssi 写一些简单的脚本其实不是很难。我大概讲解一下如何写作。
+
+== 理解 signal ==
+
+写过 vb 程序的都应该知道，vb 都是按照事件来触发执行程序的。例如你给某个窗体的 单击事件 写了代码，那么当这个窗体被单击的时候，就会执行你写的代码。
+
+在 irssi 也是类似，不过他的不是事件，是 signal 。你所要做的就是针对不同的 signal 写不同代码即可。
+
+irssi 的 signal 在这个 文档 里面都写的很全了，此外安装 irssi 的时候也会安装 irssi 的一些文档，里面也有 signal 的相关文档。
+
+== 一个简单脚本 ==
+
+脚本头部要包含一些脚本的信息，例如下面。
+
+
+use vars qw($VERSION %IRSSI);
+use Irssi;
+
+$VERSION = &#39;1.00&#39;;
+%IRSSI = (
+    authors     => &#39;wd&#39;,
+    contact     => &#39;wd#wdicc.com&#39;,
+    name        => &#39;My first Script&#39;,
+    description => &#39;This script notify &#39; .
+                   &#39;you when recive msg.&#39;,
+    license     => &#39;Public Domain&#39;,
+);
+
+sub recive_msg{
+    my ($server, $msg, $nick, $address, $target) = @_;
+    #do nothing 
+
+}
+
+Irssi::signal_add_first(&#39;message public&#39;,  &#39;recive_msg&#39;);
+
+最下面那行就是截获 irssi 的 signal 了。“message public”这个 signal 是在 irssi 接收到 public message 的时候产生，上面的脚本截获这个 signal 之后，执行后面的 revice_msg 函数 。查一下上面的 signal 文档可以找到下面的内容。
+
+ "message public", SERVER_REC, char *msg, char *nick, char *address, char *target
+
+这表示 irssi 在产生 message public 这个 signal 之后，还会同时传递后面的那些信息。上面那个脚本里面，这些信息都传递给了 recive_msg 函数。这样 recive_msg 函数的第一行就是设置一些变量来接收这些信息。
+
+这就是一个简单的 signal 的处理过程，当然，上面的这个脚本在截获 signal 之后其实什么都没有做。那么怎么让脚本和 irssi 交互呢？
+
+== 和 irssi 交互 ==
+
+按照上面的例子，可以用 $server->command() 或者 $server->print() 来和 irssi 交互。
+
+$server->command 可以在 irssi 里面执行一个 irssi 命令。例如
+
+ $server->command("msg wd hi");
+
+这样相当于在 irssi 里面输入 "/msg wd hi" 这个命令。其他命令类推一下。
+
+$server->print 可以在 irssi 里面打印一些信息，这些信息别人是看不到的，这些信息类似于 irssi 给你的消息。例如
+
+ $server->print("$server","a test msg");
+
+这些信息会在1号窗口（这个不一定，看连接了几个server）里面显示。
+
+有了 print 就可以在 irssi 里面测试 recive_msg 函数接收的信息都是什么意义了。试试看下面的命令
+
+ $server->print("$server","$nick send you a msg : $msg");
+
+== 设置一些选项 ==
+
+可以为脚本设置一些选项，这样也可以让脚本适合更多人使用。
+
+ Irssi::settings_add_str("wd","test","just for test");
+ Irssi::settings_add_bool(&#39;blah&#39;, &#39;blah_color&#39;, 1);;
+
+上面这两行设置了两个变量，一个是字符串 test，初始值为 "just for test"，另一个是布尔变量 blah_color ，初始值是1。第一个参数是设置将变量显示在哪个段，用 /set 命令查看的时候会看到。
+
+使用下面的命令可以获取设置。
+
+ $a = Irssi::settings_get_str("test");
+ $b = Irssi::settings_get_bool(&#39;blah_color&#39;);
+
+这样按照上面的设置， $a 的值就是 "just for test" ， $b 的值就是 1。当然，用户如果用 /set 命令来设置了这些参数，那么取回的信息就不一定是这些了。
+
+== 参考资料 ==
+
+Scripting Irssi'><meta name=keywords content="heart,irssi,"><meta property="og:url" content="https://wdicc.com/irssi-script-howto/"><meta property="og:site_name" content="wd and cc"><meta property="og:title" content="Irssi script howto"><meta property="og:description" content='为 irssi 写一些简单的脚本其实不是很难。我大概讲解一下如何写作。
+== 理解 signal ==
+写过 vb 程序的都应该知道，vb 都是按照事件来触发执行程序的。例如你给某个窗体的 单击事件 写了代码，那么当这个窗体被单击的时候，就会执行你写的代码。
+在 irssi 也是类似，不过他的不是事件，是 signal 。你所要做的就是针对不同的 signal 写不同代码即可。
+irssi 的 signal 在这个 文档 里面都写的很全了，此外安装 irssi 的时候也会安装 irssi 的一些文档，里面也有 signal 的相关文档。
+== 一个简单脚本 ==
+脚本头部要包含一些脚本的信息，例如下面。
+use vars qw($VERSION %IRSSI); use Irssi; $VERSION = &#39;1.00&#39;; %IRSSI = ( authors => &#39;wd&#39;, contact => &#39;wd#wdicc.com&#39;, name => &#39;My first Script&#39;, description => &#39;This script notify &#39; . &#39;you when recive msg.&#39;, license => &#39;Public Domain&#39;, ); sub recive_msg{ my ($server, $msg, $nick, $address, $target) = @_; #do nothing } Irssi::signal_add_first(&#39;message public&#39;, &#39;recive_msg&#39;); 最下面那行就是截获 irssi 的 signal 了。“message public”这个 signal 是在 irssi 接收到 public message 的时候产生，上面的脚本截获这个 signal 之后，执行后面的 revice_msg 函数 。查一下上面的 signal 文档可以找到下面的内容。 "message public", SERVER_REC, char *msg, char *nick, char *address, char *target 这表示 irssi 在产生 message public 这个 signal 之后，还会同时传递后面的那些信息。上面那个脚本里面，这些信息都传递给了 recive_msg 函数。这样 recive_msg 函数的第一行就是设置一些变量来接收这些信息。 这就是一个简单的 signal 的处理过程，当然，上面的这个脚本在截获 signal 之后其实什么都没有做。那么怎么让脚本和 irssi 交互呢？ == 和 irssi 交互 == 按照上面的例子，可以用 $server->command() 或者 $server->print() 来和 irssi 交互。 $server->command 可以在 irssi 里面执行一个 irssi 命令。例如 $server->command("msg wd hi"); 这样相当于在 irssi 里面输入 "/msg wd hi" 这个命令。其他命令类推一下。 $server->print 可以在 irssi 里面打印一些信息，这些信息别人是看不到的，这些信息类似于 irssi 给你的消息。例如 $server->print("$server","a test msg"); 这些信息会在1号窗口（这个不一定，看连接了几个server）里面显示。 有了 print 就可以在 irssi 里面测试 recive_msg 函数接收的信息都是什么意义了。试试看下面的命令 $server->print("$server","$nick send you a msg : $msg"); == 设置一些选项 == 可以为脚本设置一些选项，这样也可以让脚本适合更多人使用。 Irssi::settings_add_str("wd","test","just for test"); Irssi::settings_add_bool(&#39;blah&#39;, &#39;blah_color&#39;, 1);; 上面这两行设置了两个变量，一个是字符串 test，初始值为 "just for test"，另一个是布尔变量 blah_color ，初始值是1。第一个参数是设置将变量显示在哪个段，用 /set 命令查看的时候会看到。 使用下面的命令可以获取设置。 $a = Irssi::settings_get_str("test"); $b = Irssi::settings_get_bool(&#39;blah_color&#39;); 这样按照上面的设置， $a 的值就是 "just for test" ， $b 的值就是 1。当然，用户如果用 /set 命令来设置了这些参数，那么取回的信息就不一定是这些了。 == 参考资料 == Scripting Irssi'><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2007-03-21T00:00:00+00:00"><meta property="article:modified_time" content="2007-03-21T00:00:00+00:00"><meta property="article:tag" content="Heart"><meta property="article:tag" content="Irssi"><meta name=twitter:card content="summary"><meta name=twitter:title content="Irssi script howto"><meta name=twitter:description content='为 irssi 写一些简单的脚本其实不是很难。我大概讲解一下如何写作。
+== 理解 signal ==
+写过 vb 程序的都应该知道，vb 都是按照事件来触发执行程序的。例如你给某个窗体的 单击事件 写了代码，那么当这个窗体被单击的时候，就会执行你写的代码。
+在 irssi 也是类似，不过他的不是事件，是 signal 。你所要做的就是针对不同的 signal 写不同代码即可。
+irssi 的 signal 在这个 文档 里面都写的很全了，此外安装 irssi 的时候也会安装 irssi 的一些文档，里面也有 signal 的相关文档。
+== 一个简单脚本 ==
+脚本头部要包含一些脚本的信息，例如下面。
+use vars qw($VERSION %IRSSI); use Irssi; $VERSION = &#39;1.00&#39;; %IRSSI = ( authors => &#39;wd&#39;, contact => &#39;wd#wdicc.com&#39;, name => &#39;My first Script&#39;, description => &#39;This script notify &#39; . &#39;you when recive msg.&#39;, license => &#39;Public Domain&#39;, ); sub recive_msg{ my ($server, $msg, $nick, $address, $target) = @_; #do nothing } Irssi::signal_add_first(&#39;message public&#39;, &#39;recive_msg&#39;); 最下面那行就是截获 irssi 的 signal 了。“message public”这个 signal 是在 irssi 接收到 public message 的时候产生，上面的脚本截获这个 signal 之后，执行后面的 revice_msg 函数 。查一下上面的 signal 文档可以找到下面的内容。 "message public", SERVER_REC, char *msg, char *nick, char *address, char *target 这表示 irssi 在产生 message public 这个 signal 之后，还会同时传递后面的那些信息。上面那个脚本里面，这些信息都传递给了 recive_msg 函数。这样 recive_msg 函数的第一行就是设置一些变量来接收这些信息。 这就是一个简单的 signal 的处理过程，当然，上面的这个脚本在截获 signal 之后其实什么都没有做。那么怎么让脚本和 irssi 交互呢？ == 和 irssi 交互 == 按照上面的例子，可以用 $server->command() 或者 $server->print() 来和 irssi 交互。 $server->command 可以在 irssi 里面执行一个 irssi 命令。例如 $server->command("msg wd hi"); 这样相当于在 irssi 里面输入 "/msg wd hi" 这个命令。其他命令类推一下。 $server->print 可以在 irssi 里面打印一些信息，这些信息别人是看不到的，这些信息类似于 irssi 给你的消息。例如 $server->print("$server","a test msg"); 这些信息会在1号窗口（这个不一定，看连接了几个server）里面显示。 有了 print 就可以在 irssi 里面测试 recive_msg 函数接收的信息都是什么意义了。试试看下面的命令 $server->print("$server","$nick send you a msg : $msg"); == 设置一些选项 == 可以为脚本设置一些选项，这样也可以让脚本适合更多人使用。 Irssi::settings_add_str("wd","test","just for test"); Irssi::settings_add_bool(&#39;blah&#39;, &#39;blah_color&#39;, 1);; 上面这两行设置了两个变量，一个是字符串 test，初始值为 "just for test"，另一个是布尔变量 blah_color ，初始值是1。第一个参数是设置将变量显示在哪个段，用 /set 命令查看的时候会看到。 使用下面的命令可以获取设置。 $a = Irssi::settings_get_str("test"); $b = Irssi::settings_get_bool(&#39;blah_color&#39;); 这样按照上面的设置， $a 的值就是 "just for test" ， $b 的值就是 1。当然，用户如果用 /set 命令来设置了这些参数，那么取回的信息就不一定是这些了。 == 参考资料 == Scripting Irssi'><meta itemprop=name content="Irssi script howto"><meta itemprop=description content='为 irssi 写一些简单的脚本其实不是很难。我大概讲解一下如何写作。
+== 理解 signal ==
+写过 vb 程序的都应该知道，vb 都是按照事件来触发执行程序的。例如你给某个窗体的 单击事件 写了代码，那么当这个窗体被单击的时候，就会执行你写的代码。
+在 irssi 也是类似，不过他的不是事件，是 signal 。你所要做的就是针对不同的 signal 写不同代码即可。
+irssi 的 signal 在这个 文档 里面都写的很全了，此外安装 irssi 的时候也会安装 irssi 的一些文档，里面也有 signal 的相关文档。
+== 一个简单脚本 ==
+脚本头部要包含一些脚本的信息，例如下面。
+use vars qw($VERSION %IRSSI); use Irssi; $VERSION = &#39;1.00&#39;; %IRSSI = ( authors => &#39;wd&#39;, contact => &#39;wd#wdicc.com&#39;, name => &#39;My first Script&#39;, description => &#39;This script notify &#39; . &#39;you when recive msg.&#39;, license => &#39;Public Domain&#39;, ); sub recive_msg{ my ($server, $msg, $nick, $address, $target) = @_; #do nothing } Irssi::signal_add_first(&#39;message public&#39;, &#39;recive_msg&#39;); 最下面那行就是截获 irssi 的 signal 了。“message public”这个 signal 是在 irssi 接收到 public message 的时候产生，上面的脚本截获这个 signal 之后，执行后面的 revice_msg 函数 。查一下上面的 signal 文档可以找到下面的内容。 "message public", SERVER_REC, char *msg, char *nick, char *address, char *target 这表示 irssi 在产生 message public 这个 signal 之后，还会同时传递后面的那些信息。上面那个脚本里面，这些信息都传递给了 recive_msg 函数。这样 recive_msg 函数的第一行就是设置一些变量来接收这些信息。 这就是一个简单的 signal 的处理过程，当然，上面的这个脚本在截获 signal 之后其实什么都没有做。那么怎么让脚本和 irssi 交互呢？ == 和 irssi 交互 == 按照上面的例子，可以用 $server->command() 或者 $server->print() 来和 irssi 交互。 $server->command 可以在 irssi 里面执行一个 irssi 命令。例如 $server->command("msg wd hi"); 这样相当于在 irssi 里面输入 "/msg wd hi" 这个命令。其他命令类推一下。 $server->print 可以在 irssi 里面打印一些信息，这些信息别人是看不到的，这些信息类似于 irssi 给你的消息。例如 $server->print("$server","a test msg"); 这些信息会在1号窗口（这个不一定，看连接了几个server）里面显示。 有了 print 就可以在 irssi 里面测试 recive_msg 函数接收的信息都是什么意义了。试试看下面的命令 $server->print("$server","$nick send you a msg : $msg"); == 设置一些选项 == 可以为脚本设置一些选项，这样也可以让脚本适合更多人使用。 Irssi::settings_add_str("wd","test","just for test"); Irssi::settings_add_bool(&#39;blah&#39;, &#39;blah_color&#39;, 1);; 上面这两行设置了两个变量，一个是字符串 test，初始值为 "just for test"，另一个是布尔变量 blah_color ，初始值是1。第一个参数是设置将变量显示在哪个段，用 /set 命令查看的时候会看到。 使用下面的命令可以获取设置。 $a = Irssi::settings_get_str("test"); $b = Irssi::settings_get_bool(&#39;blah_color&#39;); 这样按照上面的设置， $a 的值就是 "just for test" ， $b 的值就是 1。当然，用户如果用 /set 命令来设置了这些参数，那么取回的信息就不一定是这些了。 == 参考资料 == Scripting Irssi'><meta itemprop=datePublished content="2007-03-21T00:00:00+00:00"><meta itemprop=dateModified content="2007-03-21T00:00:00+00:00"><meta itemprop=wordCount content="915"><meta itemprop=keywords content="Heart,Irssi"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--code-background-color:#f2f2f2;--code-color:#222;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--code-background-color:#000;--code-color:#ddd;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px}blockquote{border-left:1px solid #999;color:var(--code-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto !important}.highlight,.code{padding:1px 15px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style></head><body><header><a href=/ class=title><h2>wd and cc</h2></a><p>-- Good good study, day day up!</p><nav><a href=/>Home</a>
+<a href=/posts/>Posts</a>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">Search</a>
+<a href=/tags/>Tags</a>
+<a href=/atom.xml>subscribe</a></nav></header><main><content>为 irssi 写一些简单的脚本其实不是很难。我大概讲解一下如何写作。<br><b>== 理解 signal ==</b><br>写过 vb 程序的都应该知道，vb 都是按照事件来触发执行程序的。例如你给某个窗体的 单击事件 写了代码，那么当这个窗体被单击的时候，就会执行你写的代码。<br>在 irssi 也是类似，不过他的不是事件，是 signal 。你所要做的就是针对不同的 signal 写不同代码即可。<br>irssi 的 signal 在这个 <a href=http://irssi.org/documentation/signals>文档</a> 里面都写的很全了，此外安装 irssi 的时候也会安装 irssi 的一些文档，里面也有 signal 的相关文档。<br><b>== 一个简单脚本 ==</b><br>脚本头部要包含一些脚本的信息，例如下面。<br><pre class="prettyprint lang-perl">
 use vars qw($VERSION %IRSSI);
 use Irssi;
 
@@ -43,4 +149,4 @@ $a = Irssi::settings_get_str("test");
 $b = Irssi::settings_get_bool('blah_color');
 这样按照上面的设置， $a 的值就是 "just for test" ， $b 的值就是 1。当然，用户如果用 /set 命令来设置了这些参数，那么取回的信息就不一定是这些了。
 <b>== 参考资料 ==</b>
-<a href=http://juerd.nl/site.plp/irssiscripttut>Scripting Irssi</a></div><footer class=content__footer></footer></section><section class=page__aside><div class=aside__about><div class=aside__about><img class=about__logo src=https://wdicc.com/favicon.ico alt=Logo><h1 class=about__title>Happy every day!</h1><p class=about__description>Good good study, day day up!</p></div><ul class=aside__social-links><li><a href=https://github.com/wd rel=me aria-label=GitHub title=GitHub><i class="fa-brands fa-github" aria-hidden=true></i></a>&nbsp;</li></ul></div><hr><div class=aside__content><p>2007-03-21</p></div></section><footer class=page__footer><p><br><span class=active>$ echo $LANG<br><b>zh_CN</b></span><br></p><br><br><p class=copyright>wd © 2025</p><p class=advertisement>Powered by <a href=https://gohugo.io/>hugo</a> and <a href=https://github.com/joeroe/risotto>risotto</a>.</p></footer></div></body></html>
+<a href=http://juerd.nl/site.plp/irssiscripttut>Scripting Irssi</a></content></main><footer>Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>

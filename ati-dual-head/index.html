@@ -1,5 +1,285 @@
-<!doctype html><html lang=en><head><title>ATI 显卡双头显示配置 &ndash; wd and cc</title>
-<meta name=description content="Good good study, day day up!"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css integrity="sha512-IW0nhlW5MgNydsXJO40En2EoCkTTjZhI3yuODrZIc8cQ4h1XcF53PsqDHa09NqnkXuIe0Oiyyj171BqZFwISBw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://wdicc.com/css/palettes/base16-dark.css><link rel=stylesheet href=https://wdicc.com/css/risotto.css><link rel=stylesheet href=https://wdicc.com/css/custom.css><link rel=icon href=https://wdicc.com/favicon.ico></head><body><div class=page><header class=page__header><nav class="page__nav main-nav"><ul><h1 class=page__logo><a href=https://wdicc.com/ class=page__logo-inner>wd and cc</a></h1><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/posts/ title>Posts</a></li><li class=main-nav__item><a class=nav-main-item href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=" title>Search</a></li><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/atom.xml title>subscribe</a></li></ul></nav></header><section class=page__body><header class=content__header><h1>ATI 显卡双头显示配置</h1></header><div class=content__body>参考自<a href=http://gentoo-wiki.com/HOWTO_Dual_Monitors#ATI target=_blank>这里</a> 。<br>双头就是接第二个显示器，或者接投影仪什么的，ati 里面叫做 bigdesktop，nvidia 叫做 twinview ，intel 的不太清楚，我记得好像也有个自己的名字。<br>Nvidia 的官方驱动有 twinview 的支持，图形界面下面配置起来似乎也不是很难。 ATI 的官方驱动支持的是 bigdesktop ，也有图形界面，不过那个界面很恶心，经常出现问题，不过可以试着删除 <a href=http://wdicc.cn/howto-reset-ati-fglrx-settings/ target=_blank>/etc/ati/amdpcsdb</a> 文件试试看。<br>下面是一个 bigdesktop 的 xorg.conf 文件。<br><pre class="prettyprint lang-conf">Section "ServerLayout">
+<!doctype html><html lang=en><head><meta http-equiv=X-Clacks-Overhead content="GNU Terry Pratchett"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" href=https://wdicc.com/favicon.ico><title>ATI 显卡双头显示配置 | wd and cc</title><meta name=title content="ATI 显卡双头显示配置"><meta name=description content='参考自这里 。
+
+双头就是接第二个显示器，或者接投影仪什么的，ati 里面叫做 bigdesktop，nvidia 叫做 twinview ，intel 的不太清楚，我记得好像也有个自己的名字。
+
+Nvidia 的官方驱动有 twinview 的支持，图形界面下面配置起来似乎也不是很难。 ATI 的官方驱动支持的是 bigdesktop ，也有图形界面，不过那个界面很恶心，经常出现问题，不过可以试着删除 /etc/ati/amdpcsdb 文件试试看。
+
+下面是一个 bigdesktop 的 xorg.conf 文件。
+Section "ServerLayout">
+	Identifier     "Default Layout"
+	Screen         "Default Screen" 0 0
+	InputDevice    "Generic Keyboard"
+	InputDevice    "Configured Mouse"
+	InputDevice    "Synaptics Touchpad"
+EndSection
+
+Section "ServerFlags"
+	Option	    "AIGLX" "off"
+	#Option	    "AIGLX" "true"
+EndSection
+
+Section "Module"
+	load "dbe"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Generic Keyboard"
+	Driver      "kbd"
+	Option	    "CoreKeyboard"
+	Option	    "XkbRules" "xorg"
+	Option	    "XkbModel" "pc104"
+	Option	    "XkbLayout" "us"
+	#Option "XkbOptions" "ctrl:nocaps"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Configured Mouse"
+	Driver      "mouse"
+	Option	    "CorePointer"
+	Option	    "Device" "/dev/input/mice"
+	Option	    "Protocol" "ImPS/2"
+	Option	    "Emulate3Buttons" "true"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Synaptics Touchpad"
+	Driver      "synaptics"
+	Option	    "SendCoreEvents" "true"
+	Option	    "Device" "/dev/psaux"
+#	Option	    "Protocol" "auto-dev"
+	Option	    "HorizScrollDelta" "0"
+EndSection
+
+Section "Monitor"
+	Identifier   "Generic Monitor"
+	HorizSync    28.0 - 51.0
+	VertRefresh  43.0 - 60.0
+	Option	    "DPMS"
+EndSection
+
+Section "Device"
+	Option	    "DesktopSetup" "horizontal" #Enable Big Desktop
+	Option	    "Mode2" "1280x1024" #Resolution for second monitor
+	Option	    "VideoOverlay" "on"
+	Option	    "OpenGLOverlay" "off"
+	Identifier  "Generic Video Card"
+	Option "XAANoOffscreenPixmaps" "true"
+	Driver      "fglrx"
+	Option		"DRI" "true"
+EndSection
+
+Section "Screen"
+	Identifier "Default Screen"
+	Device     "Generic Video Card"
+	Monitor    "Generic Monitor"
+	DefaultDepth     24
+	SubSection "Display"
+		Modes    "1024x768"
+	EndSubSection
+EndSection
+
+Section "Extensions"
+	Option	    "Composite" "Disable"
+	#Option	    "Composite" "enable"
+EndSection
+
+Section "DRI"
+	Group 0
+	Mode 0666
+EndSection
+比较简单，只需要在 device 里面设置好就行了。
+
+用 ati 的开源驱动，也可以双头显示。用下面的 xorg.conf 。
+Section "ServerLayout">
+	Identifier     "Default Layout"
+	Screen         "Default Screen"
+	InputDevice    "Generic Keyboard"
+	InputDevice    "Configured Mouse"
+	InputDevice    "Synaptics Touchpad"
+EndSection
+
+Section "ServerFlags"
+	Option	    "AIGLX" "off"
+	#Option	    "AIGLX" "true"
+EndSection
+
+Section "Module"
+	load "dbe"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Generic Keyboard"
+	Driver      "kbd"
+	Option	    "CoreKeyboard"
+	Option	    "XkbRules" "xorg"
+	Option	    "XkbModel" "pc104"
+	Option	    "XkbLayout" "us"
+	#Option "XkbOptions" "ctrl:nocaps"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Configured Mouse"
+	Driver      "mouse"
+	Option	    "CorePointer"
+	Option	    "Device" "/dev/input/mice"
+	Option	    "Protocol" "ImPS/2"
+	Option	    "Emulate3Buttons" "true"
+EndSection
+
+Section "InputDevice"
+	Identifier  "Synaptics Touchpad"
+	Driver      "synaptics"
+	Option	    "SendCoreEvents" "true"
+	Option	    "Device" "/dev/psaux"
+#	Option	    "Protocol" "auto-dev"
+	Option	    "HorizScrollDelta" "0"
+EndSection
+
+Section "Monitor"
+    	Identifier      "Integrated LCD"
+	 Option      "DPMS"
+EndSection
+
+Section "Monitor"
+	Identifier      "External VGA"
+	Option "RightOf" "Integrated LCD"
+	 Option      "DPMS"
+EndSection
+
+Section "Device"
+	Identifier  "Generic Video Card"
+	Driver		"radeon"
+#	# accelration
+	Option          "AGPMode" "4"
+	Option          "EnablePageFlip" "on"
+	Option          "RenderAccel" "on"
+	Option          "AccelMethod"   "EXA" # or XXA
+	Option          "DynamicClocks" "on"
+	Option		"DRI" "true"
+        # Color Tiling
+        Option          "ColorTiling"   "on"
+    Option          "Monitor-VGA-0" "External VGA"
+    Option          "Monitor-LVDS"  "Integrated LCD"
+    # Option "XAANoOffscreenPixmaps" "true" # for composit
+EndSection
+
+Section "Screen"
+	Identifier "Default Screen"
+	Device     "Generic Video Card"
+	Monitor    "Integrated LCD"
+	DefaultDepth     24
+	SubSection "Display"
+		Modes    "1280x1024" "1024x768"
+		Virtual 2304 1024
+	EndSubSection
+EndSection
+
+Section "Extensions"
+	Option	    "Composite" "Disable"
+	#Option	    "Composite" "enable"
+EndSection
+
+Section "DRI"
+	Group 0
+	Mode 0666
+EndSection
+可以看到改动也不是很大，主要增加了两个显示器，device里面增加了这两个显示器的设置。另外 screen 里面增加了那个 virtual，这个的参数就是将来两个显示器总共的屏幕大小，我的是 1024+1280 x 1024 ，横向相加，竖向的取最大的。
+
+ok，这样就可以了。注意这里没有用到最上面那个链接里面说的 MergedFB。似乎最新的 xorg 用 xrandr 实现了这个，所以 MergedFB 就不需要了。这有个好处，可以随时调整分辨率什么的。例如 xrandr --output VGA --off ，去掉第二个显示器。 xrandr --output VGA --right-of LVDS ，设置 bigdesktop等等。xrandr 的方法还可以参考这里。
+
+升级到 xorg 1.5.3 以后，鼠标键盘的设置可以不在这里了，所以更加简单。
+
+
+# xorg.conf (xorg X Window System server configuration file)
+#
+# This file was generated by dexconf, the Debian X Configuration tool, using
+# values from the debconf database.
+#
+# Edit this file with caution, and see the xorg.conf manual page.
+# (Type "man xorg.conf" at the shell prompt.)
+#
+# This file is automatically updated on xserver-xorg package upgrades *only*
+# if it has not been modified since the last upgrade of the xserver-xorg
+# package.
+#
+# If you have edited this file but would like it to be automatically updated
+# again, run the following command:
+#   sudo dpkg-reconfigure -phigh xserver-xorg
+
+Section "ServerFlags"
+	#Option	    "AIGLX" "off"
+	Option	    "AIGLX" "true"
+EndSection
+
+Section "Module"
+	load "dri"
+EndSection
+
+Section "Monitor"
+    	Identifier      "Integrated LCD"
+	Option      "DPMS"
+EndSection
+
+Section "Monitor"
+	Identifier      "External VGA"
+	Option "RightOf" "Integrated LCD"
+	Option      "DPMS"
+EndSection
+
+Section "Device"
+	Identifier  "Generic Video Card"
+	Driver		"radeon"
+#	# accelration
+	Option          "AGPMode" "8"
+	Option          "EnablePageFlip" "on"
+	Option          "RenderAccel" "on"
+	Option          "AccelMethod"   "EXA" # or XXA
+	Option          "DynamicClocks" "on"
+	Option		"DRI" "true"
+        # Color Tiling
+        Option          "ColorTiling"   "on"
+    Option          "Monitor-VGA-0" "External VGA"
+    Option          "Monitor-LVDS"  "Integrated LCD"
+EndSection
+
+Section "Screen"
+	Identifier "Default Screen"
+	Device     "Generic Video Card"
+	Monitor    "Integrated LCD"
+	DefaultDepth     24
+	SubSection "Display"
+		Modes    "1280x1024" "1024x768"
+		#Modes    "1024x768"
+		Virtual 2048 1024
+		Virtual 2304 1024
+	EndSubSection
+EndSection
+
+Section "Extensions"
+	#Option	    "Composite" "Disable"
+	Option	    "Composite" "enable"
+EndSection
+
+Section "DRI"
+	Group 0
+	Mode 0666
+EndSection'><meta name=keywords content="bigdesktop,dual-head,linux,twinview,双头,"><meta property="og:url" content="https://wdicc.com/ati-dual-head/"><meta property="og:site_name" content="wd and cc"><meta property="og:title" content="ATI 显卡双头显示配置"><meta property="og:description" content='参考自这里 。
+双头就是接第二个显示器，或者接投影仪什么的，ati 里面叫做 bigdesktop，nvidia 叫做 twinview ，intel 的不太清楚，我记得好像也有个自己的名字。
+Nvidia 的官方驱动有 twinview 的支持，图形界面下面配置起来似乎也不是很难。 ATI 的官方驱动支持的是 bigdesktop ，也有图形界面，不过那个界面很恶心，经常出现问题，不过可以试着删除 /etc/ati/amdpcsdb 文件试试看。
+下面是一个 bigdesktop 的 xorg.conf 文件。
+Section "ServerLayout"> Identifier "Default Layout" Screen "Default Screen" 0 0 InputDevice "Generic Keyboard" InputDevice "Configured Mouse" InputDevice "Synaptics Touchpad" EndSection Section "ServerFlags" Option	"AIGLX" "off" #Option	"AIGLX" "true" EndSection Section "Module" load "dbe" EndSection Section "InputDevice" Identifier "Generic Keyboard" Driver "kbd" Option	"CoreKeyboard" Option	"XkbRules" "xorg" Option	"XkbModel" "pc104" Option	"XkbLayout" "us" #Option "XkbOptions" "ctrl:nocaps" EndSection Section "InputDevice" Identifier "Configured Mouse" Driver "mouse" Option	"CorePointer" Option	"Device" "/dev/input/mice" Option	"Protocol" "ImPS/2" Option	"Emulate3Buttons" "true" EndSection Section "InputDevice" Identifier "Synaptics Touchpad" Driver "synaptics" Option	"SendCoreEvents" "true" Option	"Device" "/dev/psaux" #	Option	"Protocol" "auto-dev" Option	"HorizScrollDelta" "0" EndSection Section "Monitor" Identifier "Generic Monitor" HorizSync 28.0 - 51.0 VertRefresh 43.0 - 60.0 Option	"DPMS" EndSection Section "Device" Option	"DesktopSetup" "horizontal" #Enable Big Desktop Option	"Mode2" "1280x1024" #Resolution for second monitor Option	"VideoOverlay" "on" Option	"OpenGLOverlay" "off" Identifier "Generic Video Card" Option "XAANoOffscreenPixmaps" "true" Driver "fglrx" Option	"DRI" "true" EndSection Section "Screen" Identifier "Default Screen" Device "Generic Video Card" Monitor "Generic Monitor" DefaultDepth 24 SubSection "Display" Modes "1024x768" EndSubSection EndSection Section "Extensions" Option	"Composite" "Disable" #Option	"Composite" "enable" EndSection Section "DRI" Group 0 Mode 0666 EndSection 比较简单，只需要在 device 里面设置好就行了。 用 ati 的开源驱动，也可以双头显示。用下面的 xorg.conf 。 Section "ServerLayout"> Identifier "Default Layout" Screen "Default Screen" InputDevice "Generic Keyboard" InputDevice "Configured Mouse" InputDevice "Synaptics Touchpad" EndSection Section "ServerFlags" Option	"AIGLX" "off" #Option	"AIGLX" "true" EndSection Section "Module" load "dbe" EndSection Section "InputDevice" Identifier "Generic Keyboard" Driver "kbd" Option	"CoreKeyboard" Option	"XkbRules" "xorg" Option	"XkbModel" "pc104" Option	"XkbLayout" "us" #Option "XkbOptions" "ctrl:nocaps" EndSection Section "InputDevice" Identifier "Configured Mouse" Driver "mouse" Option	"CorePointer" Option	"Device" "/dev/input/mice" Option	"Protocol" "ImPS/2" Option	"Emulate3Buttons" "true" EndSection Section "InputDevice" Identifier "Synaptics Touchpad" Driver "synaptics" Option	"SendCoreEvents" "true" Option	"Device" "/dev/psaux" #	Option	"Protocol" "auto-dev" Option	"HorizScrollDelta" "0" EndSection Section "Monitor" Identifier "Integrated LCD" Option "DPMS" EndSection Section "Monitor" Identifier "External VGA" Option "RightOf" "Integrated LCD" Option "DPMS" EndSection Section "Device" Identifier "Generic Video Card" Driver	"radeon" #	# accelration Option "AGPMode" "4" Option "EnablePageFlip" "on" Option "RenderAccel" "on" Option "AccelMethod" "EXA" # or XXA Option "DynamicClocks" "on" Option	"DRI" "true" # Color Tiling Option "ColorTiling" "on" Option "Monitor-VGA-0" "External VGA" Option "Monitor-LVDS" "Integrated LCD" # Option "XAANoOffscreenPixmaps" "true" # for composit EndSection Section "Screen" Identifier "Default Screen" Device "Generic Video Card" Monitor "Integrated LCD" DefaultDepth 24 SubSection "Display" Modes "1280x1024" "1024x768" Virtual 2304 1024 EndSubSection EndSection Section "Extensions" Option	"Composite" "Disable" #Option	"Composite" "enable" EndSection Section "DRI" Group 0 Mode 0666 EndSection 可以看到改动也不是很大，主要增加了两个显示器，device里面增加了这两个显示器的设置。另外 screen 里面增加了那个 virtual，这个的参数就是将来两个显示器总共的屏幕大小，我的是 1024+1280 x 1024 ，横向相加，竖向的取最大的。 ok，这样就可以了。注意这里没有用到最上面那个链接里面说的 MergedFB。似乎最新的 xorg 用 xrandr 实现了这个，所以 MergedFB 就不需要了。这有个好处，可以随时调整分辨率什么的。例如 xrandr --output VGA --off ，去掉第二个显示器。 xrandr --output VGA --right-of LVDS ，设置 bigdesktop等等。xrandr 的方法还可以参考这里。 升级到 xorg 1.5.3 以后，鼠标键盘的设置可以不在这里了，所以更加简单。 # xorg.conf (xorg X Window System server configuration file) # # This file was generated by dexconf, the Debian X Configuration tool, using # values from the debconf database. # # Edit this file with caution, and see the xorg.conf manual page. # (Type "man xorg.conf" at the shell prompt.) # # This file is automatically updated on xserver-xorg package upgrades *only* # if it has not been modified since the last upgrade of the xserver-xorg # package. # # If you have edited this file but would like it to be automatically updated # again, run the following command: # sudo dpkg-reconfigure -phigh xserver-xorg Section "ServerFlags" #Option	"AIGLX" "off" Option	"AIGLX" "true" EndSection Section "Module" load "dri" EndSection Section "Monitor" Identifier "Integrated LCD" Option "DPMS" EndSection Section "Monitor" Identifier "External VGA" Option "RightOf" "Integrated LCD" Option "DPMS" EndSection Section "Device" Identifier "Generic Video Card" Driver	"radeon" #	# accelration Option "AGPMode" "8" Option "EnablePageFlip" "on" Option "RenderAccel" "on" Option "AccelMethod" "EXA" # or XXA Option "DynamicClocks" "on" Option	"DRI" "true" # Color Tiling Option "ColorTiling" "on" Option "Monitor-VGA-0" "External VGA" Option "Monitor-LVDS" "Integrated LCD" EndSection Section "Screen" Identifier "Default Screen" Device "Generic Video Card" Monitor "Integrated LCD" DefaultDepth 24 SubSection "Display" Modes "1280x1024" "1024x768" #Modes "1024x768" Virtual 2048 1024 Virtual 2304 1024 EndSubSection EndSection Section "Extensions" #Option	"Composite" "Disable" Option	"Composite" "enable" EndSection Section "DRI" Group 0 Mode 0666 EndSection'><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2008-09-08T00:00:00+00:00"><meta property="article:modified_time" content="2008-09-08T00:00:00+00:00"><meta property="article:tag" content="Bigdesktop"><meta property="article:tag" content="Dual-Head"><meta property="article:tag" content="Linux"><meta property="article:tag" content="Twinview"><meta property="article:tag" content="双头"><meta name=twitter:card content="summary"><meta name=twitter:title content="ATI 显卡双头显示配置"><meta name=twitter:description content='参考自这里 。
+双头就是接第二个显示器，或者接投影仪什么的，ati 里面叫做 bigdesktop，nvidia 叫做 twinview ，intel 的不太清楚，我记得好像也有个自己的名字。
+Nvidia 的官方驱动有 twinview 的支持，图形界面下面配置起来似乎也不是很难。 ATI 的官方驱动支持的是 bigdesktop ，也有图形界面，不过那个界面很恶心，经常出现问题，不过可以试着删除 /etc/ati/amdpcsdb 文件试试看。
+下面是一个 bigdesktop 的 xorg.conf 文件。
+Section "ServerLayout"> Identifier "Default Layout" Screen "Default Screen" 0 0 InputDevice "Generic Keyboard" InputDevice "Configured Mouse" InputDevice "Synaptics Touchpad" EndSection Section "ServerFlags" Option	"AIGLX" "off" #Option	"AIGLX" "true" EndSection Section "Module" load "dbe" EndSection Section "InputDevice" Identifier "Generic Keyboard" Driver "kbd" Option	"CoreKeyboard" Option	"XkbRules" "xorg" Option	"XkbModel" "pc104" Option	"XkbLayout" "us" #Option "XkbOptions" "ctrl:nocaps" EndSection Section "InputDevice" Identifier "Configured Mouse" Driver "mouse" Option	"CorePointer" Option	"Device" "/dev/input/mice" Option	"Protocol" "ImPS/2" Option	"Emulate3Buttons" "true" EndSection Section "InputDevice" Identifier "Synaptics Touchpad" Driver "synaptics" Option	"SendCoreEvents" "true" Option	"Device" "/dev/psaux" #	Option	"Protocol" "auto-dev" Option	"HorizScrollDelta" "0" EndSection Section "Monitor" Identifier "Generic Monitor" HorizSync 28.0 - 51.0 VertRefresh 43.0 - 60.0 Option	"DPMS" EndSection Section "Device" Option	"DesktopSetup" "horizontal" #Enable Big Desktop Option	"Mode2" "1280x1024" #Resolution for second monitor Option	"VideoOverlay" "on" Option	"OpenGLOverlay" "off" Identifier "Generic Video Card" Option "XAANoOffscreenPixmaps" "true" Driver "fglrx" Option	"DRI" "true" EndSection Section "Screen" Identifier "Default Screen" Device "Generic Video Card" Monitor "Generic Monitor" DefaultDepth 24 SubSection "Display" Modes "1024x768" EndSubSection EndSection Section "Extensions" Option	"Composite" "Disable" #Option	"Composite" "enable" EndSection Section "DRI" Group 0 Mode 0666 EndSection 比较简单，只需要在 device 里面设置好就行了。 用 ati 的开源驱动，也可以双头显示。用下面的 xorg.conf 。 Section "ServerLayout"> Identifier "Default Layout" Screen "Default Screen" InputDevice "Generic Keyboard" InputDevice "Configured Mouse" InputDevice "Synaptics Touchpad" EndSection Section "ServerFlags" Option	"AIGLX" "off" #Option	"AIGLX" "true" EndSection Section "Module" load "dbe" EndSection Section "InputDevice" Identifier "Generic Keyboard" Driver "kbd" Option	"CoreKeyboard" Option	"XkbRules" "xorg" Option	"XkbModel" "pc104" Option	"XkbLayout" "us" #Option "XkbOptions" "ctrl:nocaps" EndSection Section "InputDevice" Identifier "Configured Mouse" Driver "mouse" Option	"CorePointer" Option	"Device" "/dev/input/mice" Option	"Protocol" "ImPS/2" Option	"Emulate3Buttons" "true" EndSection Section "InputDevice" Identifier "Synaptics Touchpad" Driver "synaptics" Option	"SendCoreEvents" "true" Option	"Device" "/dev/psaux" #	Option	"Protocol" "auto-dev" Option	"HorizScrollDelta" "0" EndSection Section "Monitor" Identifier "Integrated LCD" Option "DPMS" EndSection Section "Monitor" Identifier "External VGA" Option "RightOf" "Integrated LCD" Option "DPMS" EndSection Section "Device" Identifier "Generic Video Card" Driver	"radeon" #	# accelration Option "AGPMode" "4" Option "EnablePageFlip" "on" Option "RenderAccel" "on" Option "AccelMethod" "EXA" # or XXA Option "DynamicClocks" "on" Option	"DRI" "true" # Color Tiling Option "ColorTiling" "on" Option "Monitor-VGA-0" "External VGA" Option "Monitor-LVDS" "Integrated LCD" # Option "XAANoOffscreenPixmaps" "true" # for composit EndSection Section "Screen" Identifier "Default Screen" Device "Generic Video Card" Monitor "Integrated LCD" DefaultDepth 24 SubSection "Display" Modes "1280x1024" "1024x768" Virtual 2304 1024 EndSubSection EndSection Section "Extensions" Option	"Composite" "Disable" #Option	"Composite" "enable" EndSection Section "DRI" Group 0 Mode 0666 EndSection 可以看到改动也不是很大，主要增加了两个显示器，device里面增加了这两个显示器的设置。另外 screen 里面增加了那个 virtual，这个的参数就是将来两个显示器总共的屏幕大小，我的是 1024+1280 x 1024 ，横向相加，竖向的取最大的。 ok，这样就可以了。注意这里没有用到最上面那个链接里面说的 MergedFB。似乎最新的 xorg 用 xrandr 实现了这个，所以 MergedFB 就不需要了。这有个好处，可以随时调整分辨率什么的。例如 xrandr --output VGA --off ，去掉第二个显示器。 xrandr --output VGA --right-of LVDS ，设置 bigdesktop等等。xrandr 的方法还可以参考这里。 升级到 xorg 1.5.3 以后，鼠标键盘的设置可以不在这里了，所以更加简单。 # xorg.conf (xorg X Window System server configuration file) # # This file was generated by dexconf, the Debian X Configuration tool, using # values from the debconf database. # # Edit this file with caution, and see the xorg.conf manual page. # (Type "man xorg.conf" at the shell prompt.) # # This file is automatically updated on xserver-xorg package upgrades *only* # if it has not been modified since the last upgrade of the xserver-xorg # package. # # If you have edited this file but would like it to be automatically updated # again, run the following command: # sudo dpkg-reconfigure -phigh xserver-xorg Section "ServerFlags" #Option	"AIGLX" "off" Option	"AIGLX" "true" EndSection Section "Module" load "dri" EndSection Section "Monitor" Identifier "Integrated LCD" Option "DPMS" EndSection Section "Monitor" Identifier "External VGA" Option "RightOf" "Integrated LCD" Option "DPMS" EndSection Section "Device" Identifier "Generic Video Card" Driver	"radeon" #	# accelration Option "AGPMode" "8" Option "EnablePageFlip" "on" Option "RenderAccel" "on" Option "AccelMethod" "EXA" # or XXA Option "DynamicClocks" "on" Option	"DRI" "true" # Color Tiling Option "ColorTiling" "on" Option "Monitor-VGA-0" "External VGA" Option "Monitor-LVDS" "Integrated LCD" EndSection Section "Screen" Identifier "Default Screen" Device "Generic Video Card" Monitor "Integrated LCD" DefaultDepth 24 SubSection "Display" Modes "1280x1024" "1024x768" #Modes "1024x768" Virtual 2048 1024 Virtual 2304 1024 EndSubSection EndSection Section "Extensions" #Option	"Composite" "Disable" Option	"Composite" "enable" EndSection Section "DRI" Group 0 Mode 0666 EndSection'><meta itemprop=name content="ATI 显卡双头显示配置"><meta itemprop=description content='参考自这里 。
+双头就是接第二个显示器，或者接投影仪什么的，ati 里面叫做 bigdesktop，nvidia 叫做 twinview ，intel 的不太清楚，我记得好像也有个自己的名字。
+Nvidia 的官方驱动有 twinview 的支持，图形界面下面配置起来似乎也不是很难。 ATI 的官方驱动支持的是 bigdesktop ，也有图形界面，不过那个界面很恶心，经常出现问题，不过可以试着删除 /etc/ati/amdpcsdb 文件试试看。
+下面是一个 bigdesktop 的 xorg.conf 文件。
+Section "ServerLayout"> Identifier "Default Layout" Screen "Default Screen" 0 0 InputDevice "Generic Keyboard" InputDevice "Configured Mouse" InputDevice "Synaptics Touchpad" EndSection Section "ServerFlags" Option	"AIGLX" "off" #Option	"AIGLX" "true" EndSection Section "Module" load "dbe" EndSection Section "InputDevice" Identifier "Generic Keyboard" Driver "kbd" Option	"CoreKeyboard" Option	"XkbRules" "xorg" Option	"XkbModel" "pc104" Option	"XkbLayout" "us" #Option "XkbOptions" "ctrl:nocaps" EndSection Section "InputDevice" Identifier "Configured Mouse" Driver "mouse" Option	"CorePointer" Option	"Device" "/dev/input/mice" Option	"Protocol" "ImPS/2" Option	"Emulate3Buttons" "true" EndSection Section "InputDevice" Identifier "Synaptics Touchpad" Driver "synaptics" Option	"SendCoreEvents" "true" Option	"Device" "/dev/psaux" #	Option	"Protocol" "auto-dev" Option	"HorizScrollDelta" "0" EndSection Section "Monitor" Identifier "Generic Monitor" HorizSync 28.0 - 51.0 VertRefresh 43.0 - 60.0 Option	"DPMS" EndSection Section "Device" Option	"DesktopSetup" "horizontal" #Enable Big Desktop Option	"Mode2" "1280x1024" #Resolution for second monitor Option	"VideoOverlay" "on" Option	"OpenGLOverlay" "off" Identifier "Generic Video Card" Option "XAANoOffscreenPixmaps" "true" Driver "fglrx" Option	"DRI" "true" EndSection Section "Screen" Identifier "Default Screen" Device "Generic Video Card" Monitor "Generic Monitor" DefaultDepth 24 SubSection "Display" Modes "1024x768" EndSubSection EndSection Section "Extensions" Option	"Composite" "Disable" #Option	"Composite" "enable" EndSection Section "DRI" Group 0 Mode 0666 EndSection 比较简单，只需要在 device 里面设置好就行了。 用 ati 的开源驱动，也可以双头显示。用下面的 xorg.conf 。 Section "ServerLayout"> Identifier "Default Layout" Screen "Default Screen" InputDevice "Generic Keyboard" InputDevice "Configured Mouse" InputDevice "Synaptics Touchpad" EndSection Section "ServerFlags" Option	"AIGLX" "off" #Option	"AIGLX" "true" EndSection Section "Module" load "dbe" EndSection Section "InputDevice" Identifier "Generic Keyboard" Driver "kbd" Option	"CoreKeyboard" Option	"XkbRules" "xorg" Option	"XkbModel" "pc104" Option	"XkbLayout" "us" #Option "XkbOptions" "ctrl:nocaps" EndSection Section "InputDevice" Identifier "Configured Mouse" Driver "mouse" Option	"CorePointer" Option	"Device" "/dev/input/mice" Option	"Protocol" "ImPS/2" Option	"Emulate3Buttons" "true" EndSection Section "InputDevice" Identifier "Synaptics Touchpad" Driver "synaptics" Option	"SendCoreEvents" "true" Option	"Device" "/dev/psaux" #	Option	"Protocol" "auto-dev" Option	"HorizScrollDelta" "0" EndSection Section "Monitor" Identifier "Integrated LCD" Option "DPMS" EndSection Section "Monitor" Identifier "External VGA" Option "RightOf" "Integrated LCD" Option "DPMS" EndSection Section "Device" Identifier "Generic Video Card" Driver	"radeon" #	# accelration Option "AGPMode" "4" Option "EnablePageFlip" "on" Option "RenderAccel" "on" Option "AccelMethod" "EXA" # or XXA Option "DynamicClocks" "on" Option	"DRI" "true" # Color Tiling Option "ColorTiling" "on" Option "Monitor-VGA-0" "External VGA" Option "Monitor-LVDS" "Integrated LCD" # Option "XAANoOffscreenPixmaps" "true" # for composit EndSection Section "Screen" Identifier "Default Screen" Device "Generic Video Card" Monitor "Integrated LCD" DefaultDepth 24 SubSection "Display" Modes "1280x1024" "1024x768" Virtual 2304 1024 EndSubSection EndSection Section "Extensions" Option	"Composite" "Disable" #Option	"Composite" "enable" EndSection Section "DRI" Group 0 Mode 0666 EndSection 可以看到改动也不是很大，主要增加了两个显示器，device里面增加了这两个显示器的设置。另外 screen 里面增加了那个 virtual，这个的参数就是将来两个显示器总共的屏幕大小，我的是 1024+1280 x 1024 ，横向相加，竖向的取最大的。 ok，这样就可以了。注意这里没有用到最上面那个链接里面说的 MergedFB。似乎最新的 xorg 用 xrandr 实现了这个，所以 MergedFB 就不需要了。这有个好处，可以随时调整分辨率什么的。例如 xrandr --output VGA --off ，去掉第二个显示器。 xrandr --output VGA --right-of LVDS ，设置 bigdesktop等等。xrandr 的方法还可以参考这里。 升级到 xorg 1.5.3 以后，鼠标键盘的设置可以不在这里了，所以更加简单。 # xorg.conf (xorg X Window System server configuration file) # # This file was generated by dexconf, the Debian X Configuration tool, using # values from the debconf database. # # Edit this file with caution, and see the xorg.conf manual page. # (Type "man xorg.conf" at the shell prompt.) # # This file is automatically updated on xserver-xorg package upgrades *only* # if it has not been modified since the last upgrade of the xserver-xorg # package. # # If you have edited this file but would like it to be automatically updated # again, run the following command: # sudo dpkg-reconfigure -phigh xserver-xorg Section "ServerFlags" #Option	"AIGLX" "off" Option	"AIGLX" "true" EndSection Section "Module" load "dri" EndSection Section "Monitor" Identifier "Integrated LCD" Option "DPMS" EndSection Section "Monitor" Identifier "External VGA" Option "RightOf" "Integrated LCD" Option "DPMS" EndSection Section "Device" Identifier "Generic Video Card" Driver	"radeon" #	# accelration Option "AGPMode" "8" Option "EnablePageFlip" "on" Option "RenderAccel" "on" Option "AccelMethod" "EXA" # or XXA Option "DynamicClocks" "on" Option	"DRI" "true" # Color Tiling Option "ColorTiling" "on" Option "Monitor-VGA-0" "External VGA" Option "Monitor-LVDS" "Integrated LCD" EndSection Section "Screen" Identifier "Default Screen" Device "Generic Video Card" Monitor "Integrated LCD" DefaultDepth 24 SubSection "Display" Modes "1280x1024" "1024x768" #Modes "1024x768" Virtual 2048 1024 Virtual 2304 1024 EndSubSection EndSection Section "Extensions" #Option	"Composite" "Disable" Option	"Composite" "enable" EndSection Section "DRI" Group 0 Mode 0666 EndSection'><meta itemprop=datePublished content="2008-09-08T00:00:00+00:00"><meta itemprop=dateModified content="2008-09-08T00:00:00+00:00"><meta itemprop=wordCount content="1103"><meta itemprop=keywords content="Bigdesktop,Dual-Head,Linux,Twinview,双头"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--code-background-color:#f2f2f2;--code-color:#222;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--code-background-color:#000;--code-color:#ddd;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px}blockquote{border-left:1px solid #999;color:var(--code-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto !important}.highlight,.code{padding:1px 15px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style></head><body><header><a href=/ class=title><h2>wd and cc</h2></a><p>-- Good good study, day day up!</p><nav><a href=/>Home</a>
+<a href=/posts/>Posts</a>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">Search</a>
+<a href=/tags/>Tags</a>
+<a href=/atom.xml>subscribe</a></nav></header><main><content>参考自<a href=http://gentoo-wiki.com/HOWTO_Dual_Monitors#ATI target=_blank>这里</a> 。<br>双头就是接第二个显示器，或者接投影仪什么的，ati 里面叫做 bigdesktop，nvidia 叫做 twinview ，intel 的不太清楚，我记得好像也有个自己的名字。<br>Nvidia 的官方驱动有 twinview 的支持，图形界面下面配置起来似乎也不是很难。 ATI 的官方驱动支持的是 bigdesktop ，也有图形界面，不过那个界面很恶心，经常出现问题，不过可以试着删除 <a href=http://wdicc.cn/howto-reset-ati-fglrx-settings/ target=_blank>/etc/ati/amdpcsdb</a> 文件试试看。<br>下面是一个 bigdesktop 的 xorg.conf 文件。<br><pre class="prettyprint lang-conf">Section "ServerLayout">
 	Identifier     "Default Layout"
 	Screen         "Default Screen" 0 0
 	InputDevice    "Generic Keyboard"
@@ -250,4 +530,4 @@ EndSection
 Section "DRI"
 	Group 0
 	Mode 0666
-EndSection</pre></div><footer class=content__footer></footer></section><section class=page__aside><div class=aside__about><div class=aside__about><img class=about__logo src=https://wdicc.com/favicon.ico alt=Logo><h1 class=about__title>Happy every day!</h1><p class=about__description>Good good study, day day up!</p></div><ul class=aside__social-links><li><a href=https://github.com/wd rel=me aria-label=GitHub title=GitHub><i class="fa-brands fa-github" aria-hidden=true></i></a>&nbsp;</li></ul></div><hr><div class=aside__content><p>2008-09-08</p></div></section><footer class=page__footer><p><br><span class=active>$ echo $LANG<br><b>zh_CN</b></span><br></p><br><br><p class=copyright>wd © 2025</p><p class=advertisement>Powered by <a href=https://gohugo.io/>hugo</a> and <a href=https://github.com/joeroe/risotto>risotto</a>.</p></footer></div></body></html>
+EndSection</pre></content></main><footer>Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>

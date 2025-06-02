@@ -1,5 +1,33 @@
-<!doctype html><html lang=en><head><title>lvm 学习笔记 &ndash; wd and cc</title>
-<meta name=description content="Good good study, day day up!"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css integrity="sha512-IW0nhlW5MgNydsXJO40En2EoCkTTjZhI3yuODrZIc8cQ4h1XcF53PsqDHa09NqnkXuIe0Oiyyj171BqZFwISBw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://wdicc.com/css/palettes/base16-dark.css><link rel=stylesheet href=https://wdicc.com/css/risotto.css><link rel=stylesheet href=https://wdicc.com/css/custom.css><link rel=icon href=https://wdicc.com/favicon.ico></head><body><div class=page><header class=page__header><nav class="page__nav main-nav"><ul><h1 class=page__logo><a href=https://wdicc.com/ class=page__logo-inner>wd and cc</a></h1><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/posts/ title>Posts</a></li><li class=main-nav__item><a class=nav-main-item href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=" title>Search</a></li><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/atom.xml title>subscribe</a></li></ul></nav></header><section class=page__body><header class=content__header><h1>lvm 学习笔记</h1></header><div class=content__body>lvm出来很久了，一直没弄过。当初的了解就是使用他之后就获得动态调整分区的特性。昨天装了一个rh，先尝试了一下使用这个lvm。<br><strong>lvm里面用到的一些概念</strong><br>lvm其实就是将一些“物理”分区，比如 /dev/hda1，/dev/hda6 ，或者“物理”硬盘，比如 /dev/hda，/dev/hdb 这些，都弄到一起，然后在外面看来，他们是一个整体，也就是一个VG（Volume Group，卷组），其实就类似于一块硬盘了。<br>而这些“物理”分区，或者“物理”硬盘，就是 /dev/hda1，/dev/hdb 这些，就是一个个PV（Physical Volume，物理卷）。可以看到PV可以是一个分区，也可以是一块硬盘。<br>有了VG我们还不能直接使用他，就和我们还需要给硬盘分区一样，我们也需要给VG分区，也就是创建LV（Logical Volume，逻辑卷）。这样，LV的数据其实就分布到了LV所在的VG里面，也就是所有的PV对应的分区或者硬盘里面。<br>掌握了VG，PV，LV这些概念之后，操作起来就很容易了。<br><br><strong>lvm的一些操作</strong><br>首先就是创建PV了，有了PV才能组建VG嘛。创建PV用 pvcreate 命令。<br># pvcreate /dev/hda6<br><pre class="prettyprint lang-text">Physical volume "/dev/hda6">
+<!doctype html><html lang=en><head><meta http-equiv=X-Clacks-Overhead content="GNU Terry Pratchett"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" href=https://wdicc.com/favicon.ico><title>lvm 学习笔记 | wd and cc</title><meta name=title content="lvm 学习笔记"><meta name=description content="lvm出来很久了，一直没弄过。当初的了解就是使用他之后就获得动态调整分区的特性。昨天装了一个rh，先尝试了一下使用这个lvm。
+
+lvm里面用到的一些概念
+
+lvm其实就是将一些“物理”分区，比如 /dev/hda1，/dev/hda6 ，或者“物理”硬盘，比如 /dev/hda，/dev/hdb 这些，都弄到一起，然后在外面看来，他们是一个整体，也就是一个VG（Volume Group，卷组），其实就类似于一块硬盘了。
+
+而这些“物理”分区，或者“物理”硬盘，就是 /dev/hda1，/dev/hdb 这些，就是一个个PV（Physical Volume，物理卷）。可以看到PV可以是一个分区，也可以是一块硬盘。
+
+有了VG我们还不能直接使用他，就和我们还需要给硬盘分区一样，我们也需要给VG分区，也就是创建LV（Logical Volume，逻辑卷）。这样，LV的数据其实就分布到了LV所在的VG里面，也就是所有的PV对应的分区或者硬盘里面。
+
+掌握了VG，PV，LV这些概念之后，操作起来就很容易了。"><meta name=keywords content="linux,LVM,other,"><meta property="og:url" content="https://wdicc.com/lvm-note/"><meta property="og:site_name" content="wd and cc"><meta property="og:title" content="lvm 学习笔记"><meta property="og:description" content="lvm出来很久了，一直没弄过。当初的了解就是使用他之后就获得动态调整分区的特性。昨天装了一个rh，先尝试了一下使用这个lvm。
+lvm里面用到的一些概念
+lvm其实就是将一些“物理”分区，比如 /dev/hda1，/dev/hda6 ，或者“物理”硬盘，比如 /dev/hda，/dev/hdb 这些，都弄到一起，然后在外面看来，他们是一个整体，也就是一个VG（Volume Group，卷组），其实就类似于一块硬盘了。
+而这些“物理”分区，或者“物理”硬盘，就是 /dev/hda1，/dev/hdb 这些，就是一个个PV（Physical Volume，物理卷）。可以看到PV可以是一个分区，也可以是一块硬盘。
+有了VG我们还不能直接使用他，就和我们还需要给硬盘分区一样，我们也需要给VG分区，也就是创建LV（Logical Volume，逻辑卷）。这样，LV的数据其实就分布到了LV所在的VG里面，也就是所有的PV对应的分区或者硬盘里面。
+掌握了VG，PV，LV这些概念之后，操作起来就很容易了。"><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2007-03-06T00:00:00+00:00"><meta property="article:modified_time" content="2007-03-06T00:00:00+00:00"><meta property="article:tag" content="Linux"><meta property="article:tag" content="LVM"><meta property="article:tag" content="Other"><meta name=twitter:card content="summary"><meta name=twitter:title content="lvm 学习笔记"><meta name=twitter:description content="lvm出来很久了，一直没弄过。当初的了解就是使用他之后就获得动态调整分区的特性。昨天装了一个rh，先尝试了一下使用这个lvm。
+lvm里面用到的一些概念
+lvm其实就是将一些“物理”分区，比如 /dev/hda1，/dev/hda6 ，或者“物理”硬盘，比如 /dev/hda，/dev/hdb 这些，都弄到一起，然后在外面看来，他们是一个整体，也就是一个VG（Volume Group，卷组），其实就类似于一块硬盘了。
+而这些“物理”分区，或者“物理”硬盘，就是 /dev/hda1，/dev/hdb 这些，就是一个个PV（Physical Volume，物理卷）。可以看到PV可以是一个分区，也可以是一块硬盘。
+有了VG我们还不能直接使用他，就和我们还需要给硬盘分区一样，我们也需要给VG分区，也就是创建LV（Logical Volume，逻辑卷）。这样，LV的数据其实就分布到了LV所在的VG里面，也就是所有的PV对应的分区或者硬盘里面。
+掌握了VG，PV，LV这些概念之后，操作起来就很容易了。"><meta itemprop=name content="lvm 学习笔记"><meta itemprop=description content="lvm出来很久了，一直没弄过。当初的了解就是使用他之后就获得动态调整分区的特性。昨天装了一个rh，先尝试了一下使用这个lvm。
+lvm里面用到的一些概念
+lvm其实就是将一些“物理”分区，比如 /dev/hda1，/dev/hda6 ，或者“物理”硬盘，比如 /dev/hda，/dev/hdb 这些，都弄到一起，然后在外面看来，他们是一个整体，也就是一个VG（Volume Group，卷组），其实就类似于一块硬盘了。
+而这些“物理”分区，或者“物理”硬盘，就是 /dev/hda1，/dev/hdb 这些，就是一个个PV（Physical Volume，物理卷）。可以看到PV可以是一个分区，也可以是一块硬盘。
+有了VG我们还不能直接使用他，就和我们还需要给硬盘分区一样，我们也需要给VG分区，也就是创建LV（Logical Volume，逻辑卷）。这样，LV的数据其实就分布到了LV所在的VG里面，也就是所有的PV对应的分区或者硬盘里面。
+掌握了VG，PV，LV这些概念之后，操作起来就很容易了。"><meta itemprop=datePublished content="2007-03-06T00:00:00+00:00"><meta itemprop=dateModified content="2007-03-06T00:00:00+00:00"><meta itemprop=wordCount content="1852"><meta itemprop=keywords content="Linux,LVM,Other"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--code-background-color:#f2f2f2;--code-color:#222;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--code-background-color:#000;--code-color:#ddd;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px}blockquote{border-left:1px solid #999;color:var(--code-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto !important}.highlight,.code{padding:1px 15px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style></head><body><header><a href=/ class=title><h2>wd and cc</h2></a><p>-- Good good study, day day up!</p><nav><a href=/>Home</a>
+<a href=/posts/>Posts</a>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">Search</a>
+<a href=/tags/>Tags</a>
+<a href=/atom.xml>subscribe</a></nav></header><main><content>lvm出来很久了，一直没弄过。当初的了解就是使用他之后就获得动态调整分区的特性。昨天装了一个rh，先尝试了一下使用这个lvm。<br><strong>lvm里面用到的一些概念</strong><br>lvm其实就是将一些“物理”分区，比如 /dev/hda1，/dev/hda6 ，或者“物理”硬盘，比如 /dev/hda，/dev/hdb 这些，都弄到一起，然后在外面看来，他们是一个整体，也就是一个VG（Volume Group，卷组），其实就类似于一块硬盘了。<br>而这些“物理”分区，或者“物理”硬盘，就是 /dev/hda1，/dev/hdb 这些，就是一个个PV（Physical Volume，物理卷）。可以看到PV可以是一个分区，也可以是一块硬盘。<br>有了VG我们还不能直接使用他，就和我们还需要给硬盘分区一样，我们也需要给VG分区，也就是创建LV（Logical Volume，逻辑卷）。这样，LV的数据其实就分布到了LV所在的VG里面，也就是所有的PV对应的分区或者硬盘里面。<br>掌握了VG，PV，LV这些概念之后，操作起来就很容易了。<br><br><strong>lvm的一些操作</strong><br>首先就是创建PV了，有了PV才能组建VG嘛。创建PV用 pvcreate 命令。<br># pvcreate /dev/hda6<br><pre class="prettyprint lang-text">Physical volume "/dev/hda6">
 # pvdisplay
 <pre class="prettyprint lang-text">
 PV Name               /dev/hda6
@@ -227,76 +255,13 @@ Total PE / Free PE    2500 / 2417</pre># vgchange -a y wd<pre class="prettyprint
 
 lvm的配置在 /etc/lvm/backup 下面。
 参考自 <a href=http://www.linuxforum.net/books/LVM-HOWTO.html>这里</a>。
-    </div>
-    <footer class=content__footer></footer>
+</content>
 
-            </section>
-
-            <section class=page__aside>
-                <div class=aside__about>
-<div class=aside__about>
-    <img class=about__logo src=https://wdicc.com/favicon.ico alt=Logo>
-<h1 class=about__title>Happy every day!</h1>
-<p class=about__description>Good good study, day day up!</p>
-</div>
-
-
-<ul class=aside__social-links>
-    
-    <li>
-        <a href=https://github.com/wd rel=me aria-label=GitHub title=GitHub><i class="fa-brands fa-github" aria-hidden=true></i></a>&nbsp;
-    </li>
-    
-</ul>
-</div>
-                <hr>
-                <div class=aside__content>
-    
-    
-        <p>
-            
-            2007-03-06
-        </p>
-    
-
-    
-
-                </div>
-            </section>
-
-            <footer class=page__footer><p>
-    
-    
-    
-    
-    
-    
-      
-    
-      
-    
-      
-    
-    
-    
-      
-      
-          
-            
-            
-                <br><span class=active>$ echo $LANG<br><b>zh_CN</b></span><br>
-
-            
-          
-      
-    
-</p>
-<br><br>
-<p class=copyright>wd © 2025</p>
-<p class=advertisement>Powered by <a href=https://gohugo.io/>hugo</a> and <a href=https://github.com/joeroe/risotto>risotto</a>.</p>
+  </main>
+  <footer>Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a>
 </footer>
 
-        </div>
-    </body>
+  
+</body>
 
 </html>

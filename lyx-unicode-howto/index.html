@@ -1,5 +1,108 @@
-<!doctype html><html lang=en><head><title>lyx 的中文化 &ndash; wd and cc</title>
-<meta name=description content="Good good study, day day up!"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css integrity="sha512-IW0nhlW5MgNydsXJO40En2EoCkTTjZhI3yuODrZIc8cQ4h1XcF53PsqDHa09NqnkXuIe0Oiyyj171BqZFwISBw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://wdicc.com/css/palettes/base16-dark.css><link rel=stylesheet href=https://wdicc.com/css/risotto.css><link rel=stylesheet href=https://wdicc.com/css/custom.css><link rel=icon href=https://wdicc.com/favicon.ico></head><body><div class=page><header class=page__header><nav class="page__nav main-nav"><ul><h1 class=page__logo><a href=https://wdicc.com/ class=page__logo-inner>wd and cc</a></h1><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/posts/ title>Posts</a></li><li class=main-nav__item><a class=nav-main-item href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=" title>Search</a></li><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/atom.xml title>subscribe</a></li></ul></nav></header><section class=page__body><header class=content__header><h1>lyx 的中文化</h1></header><div class=content__body>lyx 可以认为是一个 latex 的所见即所得的编辑工具。<br>先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。<br>首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。<br>此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。<br><pre class="prettyprint lang-latex">
+<!doctype html><html lang=en><head><meta http-equiv=X-Clacks-Overhead content="GNU Terry Pratchett"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" href=https://wdicc.com/favicon.ico><title>lyx 的中文化 | wd and cc</title><meta name=title content="lyx 的中文化"><meta name=description content="lyx 可以认为是一个 latex 的所见即所得的编辑工具。
+
+先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。
+
+首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。
+
+此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。
+
+\usepackage{fontspec}
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing
+\begin{document}
+中Eng文混排，“标点压缩”，间 距 调 整 ……
+\end{document}
+里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。
+
+接下来配置 lyx。我参考了这个文章，新建一个文档，设置几个地方。
+
+文档-> 首选项-> 语言 使用 utf8。
+
+文档-> 首选项-> latex序 添加下面的内容。
+
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing
+我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。
+
+还需要设置
+
+lyx 可以认为是一个 latex 的所见即所得的编辑工具。
+
+先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。
+
+首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。
+
+此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。
+
+\usepackage{fontspec}
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing
+\begin{document}
+中Eng文混排，“标点压缩”，间 距 调 整 ……
+\end{document}
+里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。
+
+接下来配置 lyx。我参考了这个文章，新建一个文档，设置几个地方。
+
+文档-> 首选项-> 语言 使用 utf8。
+
+文档-> 首选项-> latex序 添加下面的内容。
+
+\newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
+\newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
+%\makeglossary
+
+\setmainfont{Consolas}           %这里设置英文衬线字体
+\setmonofont{Consolas}                     %英文等宽字体
+\setsansfont{Consolas}               %英文无衬线字体
+
+\usepackage{zhspacing}
+\zhspacing
+我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。
+
+还需要设置 工具->首选项->file handling->转换器 这里的 latex(pdflatex)->PDF(pdflatex) 这项，然后设置 转换器 为 xelatex $$i 。点击那个修改按钮，保存，应用。
+
+这样，以后写好文件，点那个 pdf 的图标就可以直接预览到 pdf 文件啦。"><meta name=keywords content="latex,linux,lyx,pdf,"><meta property="og:url" content="https://wdicc.com/lyx-unicode-howto/"><meta property="og:site_name" content="wd and cc"><meta property="og:title" content="lyx 的中文化"><meta property="og:description" content="lyx 可以认为是一个 latex 的所见即所得的编辑工具。
+先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。
+首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。
+此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。
+\usepackage{fontspec} \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing \begin{document} 中Eng文混排，“标点压缩”，间 距 调 整 …… \end{document} 里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。 接下来配置 lyx。我参考了这个文章，新建一个文档，设置几个地方。 文档-> 首选项-> 语言 使用 utf8。 文档-> 首选项-> latex序 添加下面的内容。 \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing 我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。 还需要设置 lyx 可以认为是一个 latex 的所见即所得的编辑工具。 先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。 首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。 此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。 \usepackage{fontspec} \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing \begin{document} 中Eng文混排，“标点压缩”，间 距 调 整 …… \end{document} 里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。 接下来配置 lyx。我参考了这个文章，新建一个文档，设置几个地方。 文档-> 首选项-> 语言 使用 utf8。 文档-> 首选项-> latex序 添加下面的内容。 \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing 我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。 还需要设置 工具->首选项->file handling->转换器 这里的 latex(pdflatex)->PDF(pdflatex) 这项，然后设置 转换器 为 xelatex $$i 。点击那个修改按钮，保存，应用。 这样，以后写好文件，点那个 pdf 的图标就可以直接预览到 pdf 文件啦。"><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2008-11-27T00:00:00+00:00"><meta property="article:modified_time" content="2008-11-27T00:00:00+00:00"><meta property="article:tag" content="Latex"><meta property="article:tag" content="Linux"><meta property="article:tag" content="Lyx"><meta property="article:tag" content="Pdf"><meta name=twitter:card content="summary"><meta name=twitter:title content="lyx 的中文化"><meta name=twitter:description content="lyx 可以认为是一个 latex 的所见即所得的编辑工具。
+先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。
+首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。
+此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。
+\usepackage{fontspec} \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing \begin{document} 中Eng文混排，“标点压缩”，间 距 调 整 …… \end{document} 里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。 接下来配置 lyx。我参考了这个文章，新建一个文档，设置几个地方。 文档-> 首选项-> 语言 使用 utf8。 文档-> 首选项-> latex序 添加下面的内容。 \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing 我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。 还需要设置 lyx 可以认为是一个 latex 的所见即所得的编辑工具。 先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。 首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。 此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。 \usepackage{fontspec} \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing \begin{document} 中Eng文混排，“标点压缩”，间 距 调 整 …… \end{document} 里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。 接下来配置 lyx。我参考了这个文章，新建一个文档，设置几个地方。 文档-> 首选项-> 语言 使用 utf8。 文档-> 首选项-> latex序 添加下面的内容。 \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing 我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。 还需要设置 工具->首选项->file handling->转换器 这里的 latex(pdflatex)->PDF(pdflatex) 这项，然后设置 转换器 为 xelatex $$i 。点击那个修改按钮，保存，应用。 这样，以后写好文件，点那个 pdf 的图标就可以直接预览到 pdf 文件啦。"><meta itemprop=name content="lyx 的中文化"><meta itemprop=description content="lyx 可以认为是一个 latex 的所见即所得的编辑工具。
+先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。
+首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。
+此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。
+\usepackage{fontspec} \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing \begin{document} 中Eng文混排，“标点压缩”，间 距 调 整 …… \end{document} 里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。 接下来配置 lyx。我参考了这个文章，新建一个文档，设置几个地方。 文档-> 首选项-> 语言 使用 utf8。 文档-> 首选项-> latex序 添加下面的内容。 \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing 我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。 还需要设置 lyx 可以认为是一个 latex 的所见即所得的编辑工具。 先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。 首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。 此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。 \usepackage{fontspec} \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing \begin{document} 中Eng文混排，“标点压缩”，间 距 调 整 …… \end{document} 里面那几行有注释的，就是用来设置字体的。设置为 fc-list 列表里面的一个或者几个字体，然后使用 xelatex xx.tex 命令来编译你的 tex 文件，是不是生成了相应的 pdf？可以去看看里面的中文英文是不是都正常显示了。 接下来配置 lyx。我参考了这个文章，新建一个文档，设置几个地方。 文档-> 首选项-> 语言 使用 utf8。 文档-> 首选项-> latex序 添加下面的内容。 \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文 %\makeglossary \setmainfont{Consolas} %这里设置英文衬线字体 \setmonofont{Consolas} %英文等宽字体 \setsansfont{Consolas} %英文无衬线字体 \usepackage{zhspacing} \zhspacing 我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。 还需要设置 工具->首选项->file handling->转换器 这里的 latex(pdflatex)->PDF(pdflatex) 这项，然后设置 转换器 为 xelatex $$i 。点击那个修改按钮，保存，应用。 这样，以后写好文件，点那个 pdf 的图标就可以直接预览到 pdf 文件啦。"><meta itemprop=datePublished content="2008-11-27T00:00:00+00:00"><meta itemprop=dateModified content="2008-11-27T00:00:00+00:00"><meta itemprop=wordCount content="1180"><meta itemprop=keywords content="Latex,Linux,Lyx,Pdf"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--code-background-color:#f2f2f2;--code-color:#222;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--code-background-color:#000;--code-color:#ddd;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px}blockquote{border-left:1px solid #999;color:var(--code-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto !important}.highlight,.code{padding:1px 15px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style></head><body><header><a href=/ class=title><h2>wd and cc</h2></a><p>-- Good good study, day day up!</p><nav><a href=/>Home</a>
+<a href=/posts/>Posts</a>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">Search</a>
+<a href=/tags/>Tags</a>
+<a href=/atom.xml>subscribe</a></nav></header><main><content>lyx 可以认为是一个 latex 的所见即所得的编辑工具。<br>先来搞定 latex 的中文。latex 的中文配置是千奇百怪的，怎么配的都有。看到那些帖子真的很头疼，不知道从哪里下手好。最近从 linuxsir gentoo 的论坛上面看到了一个简单的配置方法，总算我也可以使用 latex 生成支持中英文混排的 pdf 文件了。<br>首先需要安装 dev-tex/zhspacing(gentoo-china-overlay) 和 dev-texlive/texlive-fontsrecommended 这两个包，会依赖安装一些别的包。<br>此后就可以使用 xelatex 命令来编译 tex 文件了。如果没有 simsun simhei 那些字体，就还需要下面的操作。<br><pre class="prettyprint lang-latex">
 \usepackage{fontspec}
 \newfontfamily\zhfont[BoldFont=Microsoft YaHei]{Microsoft YaHei} %设置中文
 \newfontfamily\zhpunctfont{Microsoft YaHei} % 设置中文
@@ -60,4 +163,4 @@ lyx 可以认为是一个 latex 的所见即所得的编辑工具。
 \usepackage{zhspacing}
 \zhspacing</pre>我还设置了保存为文档缺省设置，这样新编辑的文件就不用设置了，当然也可以保存成模板，这样每次加载这个模板就可以了。
 还需要设置 工具->首选项->file handling->转换器 这里的 latex(pdflatex)->PDF(pdflatex) 这项，然后设置 转换器 为 xelatex $$i 。点击那个修改按钮，保存，应用。
-这样，以后写好文件，点那个 pdf 的图标就可以直接预览到 pdf 文件啦。</div><footer class=content__footer></footer></section><section class=page__aside><div class=aside__about><div class=aside__about><img class=about__logo src=https://wdicc.com/favicon.ico alt=Logo><h1 class=about__title>Happy every day!</h1><p class=about__description>Good good study, day day up!</p></div><ul class=aside__social-links><li><a href=https://github.com/wd rel=me aria-label=GitHub title=GitHub><i class="fa-brands fa-github" aria-hidden=true></i></a>&nbsp;</li></ul></div><hr><div class=aside__content><p>2008-11-27</p></div></section><footer class=page__footer><p><br><span class=active>$ echo $LANG<br><b>zh_CN</b></span><br></p><br><br><p class=copyright>wd © 2025</p><p class=advertisement>Powered by <a href=https://gohugo.io/>hugo</a> and <a href=https://github.com/joeroe/risotto>risotto</a>.</p></footer></div></body></html>
+这样，以后写好文件，点那个 pdf 的图标就可以直接预览到 pdf 文件啦。</content></main><footer>Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>

@@ -1,2 +1,186 @@
-<!doctype html><html lang=en><head><title>qmail中的几个error的产生的原因和解决方法 &ndash; wd and cc</title>
-<meta name=description content="Good good study, day day up!"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css integrity="sha512-IW0nhlW5MgNydsXJO40En2EoCkTTjZhI3yuODrZIc8cQ4h1XcF53PsqDHa09NqnkXuIe0Oiyyj171BqZFwISBw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://wdicc.com/css/palettes/base16-dark.css><link rel=stylesheet href=https://wdicc.com/css/risotto.css><link rel=stylesheet href=https://wdicc.com/css/custom.css><link rel=icon href=https://wdicc.com/favicon.ico></head><body><div class=page><header class=page__header><nav class="page__nav main-nav"><ul><h1 class=page__logo><a href=https://wdicc.com/ class=page__logo-inner>wd and cc</a></h1><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/posts/ title>Posts</a></li><li class=main-nav__item><a class=nav-main-item href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=" title>Search</a></li><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/atom.xml title>subscribe</a></li></ul></nav></header><section class=page__body><header class=content__header><h1>qmail中的几个error的产生的原因和解决方法</h1></header><div class=content__body>deferral: Unable_to_chdir_to_maildir._(#4.2.1)<br>这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。<br>如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。<br>deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)<br>这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。<br>454 oops, unable to write pipe and I can't auth (#4.3.0)<br>这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。<br>[root@caph qmail-smtpd]# telnet localhost 25<br>Trying 127.0.0.1...<br>Connected to localhost.<br>Escape character is '^]'.<br>220 xxx.com ESMTP<br>ehlo<br>250-xxx.com<br>250-PIPELINING<br>250-8BITMIME<br>250-SIZE 104857600<br>250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。<br>auth login<br>334 VXNlcm5hbWU6<br>awefaq23rasdf<br>334 UGFzc3dvcmQ6<br>awefwaef<br>454 oops, unable to write pipe and I can't auth (#4.3.0)<br>quit<br>221 xxx.com<br>Connection closed by foreign host.<br>出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。<br>QMAILDUID=`id -u vpopmail`<br>QMAILDGID=`id -g vpopmail`<br>/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"<br>-u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org<br>/var/qmail/bin/qmail-smtpd<br>/home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1<br>不需要修改~vpopmail/bin/vchkpw的属性。<br>451 qq write error or disk full (#4.3.0)<br>通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。<br>qq temporary problem (#4.3.0)<br>看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。<br>-rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl<br>vchkpw-smtp: vpopmail user not found<br>查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。<br></div><footer class=content__footer></footer></section><section class=page__aside><div class=aside__about><div class=aside__about><img class=about__logo src=https://wdicc.com/favicon.ico alt=Logo><h1 class=about__title>Happy every day!</h1><p class=about__description>Good good study, day day up!</p></div><ul class=aside__social-links><li><a href=https://github.com/wd rel=me aria-label=GitHub title=GitHub><i class="fa-brands fa-github" aria-hidden=true></i></a>&nbsp;</li></ul></div><hr><div class=aside__content><p>2006-01-16</p></div></section><footer class=page__footer><p><br><span class=active>$ echo $LANG<br><b>zh_CN</b></span><br></p><br><br><p class=copyright>wd © 2025</p><p class=advertisement>Powered by <a href=https://gohugo.io/>hugo</a> and <a href=https://github.com/joeroe/risotto>risotto</a>.</p></footer></div></body></html>
+<!doctype html><html lang=en><head><meta http-equiv=X-Clacks-Overhead content="GNU Terry Pratchett"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" href=https://wdicc.com/favicon.ico><title>qmail中的几个error的产生的原因和解决方法 | wd and cc</title><meta name=title content="qmail中的几个error的产生的原因和解决方法"><meta name=description content='deferral: Unable_to_chdir_to_maildir._(#4.2.1)
+
+   这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
+
+如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
+
+deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
+
+   这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
+
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+
+  这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
+
+[root@caph qmail-smtpd]# telnet localhost 25
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is &#39;^]&#39;.
+220 xxx.com ESMTP
+ehlo
+250-xxx.com
+250-PIPELINING
+250-8BITMIME
+250-SIZE 104857600
+250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
+auth login
+334 VXNlcm5hbWU6
+awefaq23rasdf
+334 UGFzc3dvcmQ6
+awefwaef
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+quit
+221 xxx.com
+Connection closed by foreign host.
+
+出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
+
+QMAILDUID=`id -u vpopmail`
+QMAILDGID=`id -g vpopmail`
+
+/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
+        -u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
+        /var/qmail/bin/qmail-smtpd
+        /home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1
+
+不需要修改~vpopmail/bin/vchkpw的属性。
+
+451 qq write error or disk full (#4.3.0)
+
+通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
+
+qq temporary problem (#4.3.0)
+
+看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
+-rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
+
+vchkpw-smtp: vpopmail user not found
+
+查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。'><meta name=keywords content="Mail,"><meta property="og:url" content="https://wdicc.com/solve-qmail-error/"><meta property="og:site_name" content="wd and cc"><meta property="og:title" content="qmail中的几个error的产生的原因和解决方法"><meta property="og:description" content='deferral: Unable_to_chdir_to_maildir._(#4.2.1)
+这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
+如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
+deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
+这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
+[root@caph qmail-smtpd]# telnet localhost 25
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is &#39;^]&#39;.
+220 xxx.com ESMTP
+ehlo
+250-xxx.com
+250-PIPELINING
+250-8BITMIME
+250-SIZE 104857600
+250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
+auth login
+334 VXNlcm5hbWU6
+awefaq23rasdf
+334 UGFzc3dvcmQ6
+awefwaef
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+quit
+221 xxx.com
+Connection closed by foreign host.
+出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
+QMAILDUID=`id -u vpopmail`
+QMAILDGID=`id -g vpopmail`
+/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
+-u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
+/var/qmail/bin/qmail-smtpd
+/home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&amp;1
+不需要修改~vpopmail/bin/vchkpw的属性。
+451 qq write error or disk full (#4.3.0)
+通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
+qq temporary problem (#4.3.0)
+看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
+-rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
+vchkpw-smtp: vpopmail user not found
+查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。'><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2006-01-16T00:00:00+00:00"><meta property="article:modified_time" content="2006-01-16T00:00:00+00:00"><meta property="article:tag" content="Mail"><meta name=twitter:card content="summary"><meta name=twitter:title content="qmail中的几个error的产生的原因和解决方法"><meta name=twitter:description content='deferral: Unable_to_chdir_to_maildir._(#4.2.1)
+这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
+如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
+deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
+这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
+[root@caph qmail-smtpd]# telnet localhost 25
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is &#39;^]&#39;.
+220 xxx.com ESMTP
+ehlo
+250-xxx.com
+250-PIPELINING
+250-8BITMIME
+250-SIZE 104857600
+250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
+auth login
+334 VXNlcm5hbWU6
+awefaq23rasdf
+334 UGFzc3dvcmQ6
+awefwaef
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+quit
+221 xxx.com
+Connection closed by foreign host.
+出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
+QMAILDUID=`id -u vpopmail`
+QMAILDGID=`id -g vpopmail`
+/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
+-u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
+/var/qmail/bin/qmail-smtpd
+/home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&amp;1
+不需要修改~vpopmail/bin/vchkpw的属性。
+451 qq write error or disk full (#4.3.0)
+通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
+qq temporary problem (#4.3.0)
+看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
+-rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
+vchkpw-smtp: vpopmail user not found
+查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。'><meta itemprop=name content="qmail中的几个error的产生的原因和解决方法"><meta itemprop=description content='deferral: Unable_to_chdir_to_maildir._(#4.2.1)
+这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。
+如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。
+deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)
+这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。
+[root@caph qmail-smtpd]# telnet localhost 25
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is &#39;^]&#39;.
+220 xxx.com ESMTP
+ehlo
+250-xxx.com
+250-PIPELINING
+250-8BITMIME
+250-SIZE 104857600
+250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。
+auth login
+334 VXNlcm5hbWU6
+awefaq23rasdf
+334 UGFzc3dvcmQ6
+awefwaef
+454 oops, unable to write pipe and I can&#39;t auth (#4.3.0)
+quit
+221 xxx.com
+Connection closed by foreign host.
+出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。
+QMAILDUID=`id -u vpopmail`
+QMAILDGID=`id -g vpopmail`
+/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"
+-u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org
+/var/qmail/bin/qmail-smtpd
+/home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&amp;1
+不需要修改~vpopmail/bin/vchkpw的属性。
+451 qq write error or disk full (#4.3.0)
+通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。
+qq temporary problem (#4.3.0)
+看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。
+-rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl
+vchkpw-smtp: vpopmail user not found
+查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。'><meta itemprop=datePublished content="2006-01-16T00:00:00+00:00"><meta itemprop=dateModified content="2006-01-16T00:00:00+00:00"><meta itemprop=wordCount content="928"><meta itemprop=keywords content="Mail"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--code-background-color:#f2f2f2;--code-color:#222;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--code-background-color:#000;--code-color:#ddd;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px}blockquote{border-left:1px solid #999;color:var(--code-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto !important}.highlight,.code{padding:1px 15px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style></head><body><header><a href=/ class=title><h2>wd and cc</h2></a><p>-- Good good study, day day up!</p><nav><a href=/>Home</a>
+<a href=/posts/>Posts</a>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">Search</a>
+<a href=/tags/>Tags</a>
+<a href=/atom.xml>subscribe</a></nav></header><main><content>deferral: Unable_to_chdir_to_maildir._(#4.2.1)<br>这个是qmail找不到用户的收信目录所致。如果你是用vpopmail的虚拟域名来管理的，那看看你的control/locals文件，里面不能有虚拟域名，只能有实际域名（这个实际域名的意思应该是使用系统用户作为用户的域，而不是使用vpopmail的虚拟用户的域）。因此呢，如果不是用 vpopmail，那么可能是系统用户的目录权限设置不正确。<br>如果发生这个错误，首先保证你没有对user/assign做过手动修改，添加域名都是使用vpopmail的vadddomin命令来添加的，没有修改过~vopmail/domins目录以及其下面目录的权限和属主，然后修改了locals文件之后重启应该就没有问题了。<br>deferral: Uh-oh:_.qmail_has_prog_delivery_but_has_x_bit_set._(#4.7.0)<br>这个是因为你的.qmail文件设置了x属性，把.qmail文件的x去掉就ok了。这个.qmail文件就在你的domins/xxx.com下面，包括比如.qmail-default之类的文件，修改一下权限，去掉x就ok了。<br>454 oops, unable to write pipe and I can't auth (#4.3.0)<br>这个错误是在你打了smtp auth的补丁之后，却发现不能正常auth，输入了正确的用户名密码还是提示不正确。可以通过下面的命令来测试。<br>[root@caph qmail-smtpd]# telnet localhost 25<br>Trying 127.0.0.1...<br>Connected to localhost.<br>Escape character is '^]'.<br>220 xxx.com ESMTP<br>ehlo<br>250-xxx.com<br>250-PIPELINING<br>250-8BITMIME<br>250-SIZE 104857600<br>250 AUTH LOGIN PLAIN CRAM-MD5 //显示这个通常表示你已经打好了补丁，不过这个是可以通过修改qmail-smtpd.c文件来定制的。<br>auth login<br>334 VXNlcm5hbWU6<br>awefaq23rasdf<br>334 UGFzc3dvcmQ6<br>awefwaef<br>454 oops, unable to write pipe and I can't auth (#4.3.0)<br>quit<br>221 xxx.com<br>Connection closed by foreign host.<br>出现了这种问题是因为smtp运行脚本没有设置正确的用户所致。将你的smtp的tcpserver命令的运行用户和组指定一下。<br>QMAILDUID=`id -u vpopmail`<br>QMAILDGID=`id -g vpopmail`<br>/usr/local/bin/tcpserver -v -H -R -l "$LOCAL" -x /etc/tcp.smtp.cdb -c "$MAXSMTPD"<br>-u "$QMAILDUID" -g "$QMAILDGID" 0 smtp /usr/local/bin/rblsmtpd -r relays.ordb.org<br>/var/qmail/bin/qmail-smtpd<br>/home/vpopmail/bin/vchkpw /bin/true /bin/cmd5checkpw /bin/true 2>&1<br>不需要修改~vpopmail/bin/vchkpw的属性。<br>451 qq write error or disk full (#4.3.0)<br>通常产生这个可能有2个原因：（1）你的qmail queue所在的磁盘空间不足。（2）qmail-scanner-queue的.pl权限设置不正确或者文件有问题。<br>qq temporary problem (#4.3.0)<br>看到的都是说不是suidperl就是qmail-scanner-queue.pl的权限设置不对这两个可能。<br>-rwsr-xr-x 1 qscand qscand 98594 12月 21 10:18 qmail-scanner-queue.pl<br>vchkpw-smtp: vpopmail user not found<br>查看/home/vpopmail/bin/vchkpw的属性和smtpd启动的用户名和组有没有问题。<br></content></main><footer>Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>

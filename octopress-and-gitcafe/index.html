@@ -1,68 +1,140 @@
-<!doctype html><html lang=en><head><title>octopress and gitcafe &ndash; wd and cc</title>
-<meta name=description content="Good good study, day day up!"><meta name=viewport content="width=device-width,initial-scale=1"><meta charset=UTF-8><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css integrity="sha512-DTOQO9RWCH3ppGqcWaEA1BIZOC6xxalwEsw9c2QQeAIftl+Vegovlnee1c9QX4TctnWMn13TZye+giMm8e2LwA==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.4/css/academicons.min.css integrity="sha512-IW0nhlW5MgNydsXJO40En2EoCkTTjZhI3yuODrZIc8cQ4h1XcF53PsqDHa09NqnkXuIe0Oiyyj171BqZFwISBw==" crossorigin=anonymous referrerpolicy=no-referrer><link rel=stylesheet href=https://wdicc.com/css/palettes/base16-dark.css><link rel=stylesheet href=https://wdicc.com/css/risotto.css><link rel=stylesheet href=https://wdicc.com/css/custom.css><link rel=icon href=https://wdicc.com/favicon.ico></head><body><div class=page><header class=page__header><nav class="page__nav main-nav"><ul><h1 class=page__logo><a href=https://wdicc.com/ class=page__logo-inner>wd and cc</a></h1><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/posts/ title>Posts</a></li><li class=main-nav__item><a class=nav-main-item href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=" title>Search</a></li><li class=main-nav__item><a class=nav-main-item href=https://wdicc.com/atom.xml title>subscribe</a></li></ul></nav></header><section class=page__body><header class=content__header><h1>octopress and gitcafe</h1></header><div class=content__body><p>ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-diff data-lang=diff><span style=display:flex><span>diff --git a/.gitignore b/.gitignore
-</span></span><span style=display:flex><span>index 85ed25d..5858b25 100644
-</span></span><span style=display:flex><span><span style=color:#f92672>--- a/.gitignore
-</span></span></span><span style=display:flex><span><span style=color:#f92672></span><span style=color:#a6e22e>+++ b/.gitignore
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e></span><span style=color:#75715e>@@ -12,3 +12,4 @@ source/stylesheets/screen.css
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span> vendor
-</span></span><span style=display:flex><span> node_modules
-</span></span><span style=display:flex><span> .themes/fabric/
-</span></span><span style=display:flex><span><span style=color:#a6e22e>+gitcafe
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e></span>diff --git a/Rakefile b/Rakefile
-</span></span><span style=display:flex><span>index 53072e5..62061e0 100644
-</span></span><span style=display:flex><span><span style=color:#f92672>--- a/Rakefile
-</span></span></span><span style=display:flex><span><span style=color:#f92672></span><span style=color:#a6e22e>+++ b/Rakefile
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e></span><span style=color:#75715e>@@ -27,6 +27,9 @@ new_post_ext    = &#34;markdown&#34;  # default new post file extension when using the n
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span> new_page_ext    = &#34;markdown&#34;  # default new page file extension when using the new_page task
-</span></span><span style=display:flex><span> server_port     = &#34;4000&#34;      # port for preview server eg. localhost:4000
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#a6e22e>+gitcafe_dir      = &#34;gitcafe&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+gitcafe_branch   = &#34;gitcafe-pages&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e></span>
-</span></span><span style=display:flex><span> desc &#34;Initial setup for Octopress: copies the default theme into the path of Jekyll&#39;s generator. Rake install defaults to rake install[classic] to install a different them
-</span></span><span style=display:flex><span> task :install, :theme do |t, args|
-</span></span><span style=display:flex><span><span style=color:#75715e>@@ -219,7 +214,7 @@ end
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span> ##############
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span> desc &#34;Default deploy task&#34;
-</span></span><span style=display:flex><span><span style=color:#f92672>-task :deploy do
-</span></span></span><span style=display:flex><span><span style=color:#f92672></span><span style=color:#a6e22e>+task :deploy_old do
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e></span>   # Check if preview posts exist, which should not be published
-</span></span><span style=display:flex><span>   if File.exists?(&#34;.preview-mode&#34;)
-</span></span><span style=display:flex><span>     puts &#34;## Found posts in preview mode, regenerating files ...&#34;
-</span></span><span style=display:flex><span><span style=color:#75715e>@@ -231,6 +226,31 @@ task :deploy do
-</span></span></span><span style=display:flex><span><span style=color:#75715e></span>   Rake::Task[&#34;#{deploy_default}&#34;].execute
-</span></span><span style=display:flex><span> end
-</span></span><span style=display:flex><span>
-</span></span><span style=display:flex><span><span style=color:#a6e22e>+desc &#34;deploy gitcafe&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+task :deploy do
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+  # Check if preview posts exist, which should not be published
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+  if File.exists?(&#34;.preview-mode&#34;)
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+    puts &#34;## Found posts in preview mode, regenerating files ...&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+    File.delete(&#34;.preview-mode&#34;)
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+    #Rake::Task[:generate].execute # 这个地方每次都会 generate 我一般喜欢先 generate 本地看好没问题之后再 deploy，所以就注释掉了
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+  end
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+  puts &#34;## Deploying branch to Gitcafe Pages &#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+  puts &#34;\n## copying #{public_dir} to #{gitcafe_dir}&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+  cp_r &#34;#{public_dir}/.&#34;, gitcafe_dir
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+  cd &#34;#{gitcafe_dir}&#34; do
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+    system &#34;git add .&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+    system &#34;git add -u&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+    puts &#34;\n## Commiting: Site updated at #{Time.now.utc}&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+    message = &#34;Site updated at #{Time.now.utc}&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+    system &#34;git commit -m \&#34;#{message}\&#34;&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+    puts &#34;\n## Pushing generated #{gitcafe_dir} website&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+    system &#34;git push origin #{gitcafe_branch} --force&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+    puts &#34;\n## Gcafe Pages deploy complete&#34;
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+  end
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+end
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e>+
-</span></span></span><span style=display:flex><span><span style=color:#a6e22e></span> desc &#34;Generate website and deploy&#34;
-</span></span><span style=display:flex><span> task :gen_deploy =&gt; [:integrate, :generate, :deploy] do
-</span></span><span style=display:flex><span> end
-</span></span></code></pre></div><p>然后需要在 octopus 根目录 clone 一下你的 gitcafe 项目到 gitcafe 目录</p><div class=highlight><pre tabindex=0 style=color:#f8f8f2;background-color:#272822;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span>$ git clone git@gitcafe.com:wd/wd gitcafe
-</span></span><span style=display:flex><span>....
-</span></span></code></pre></div><p>然后就可以试试看 <code>rake generate</code> , <code>rake preview</code>, <code>rake deploy</code> 了。</p></div><footer class=content__footer></footer></section><section class=page__aside><div class=aside__about><div class=aside__about><img class=about__logo src=https://wdicc.com/favicon.ico alt=Logo><h1 class=about__title>Happy every day!</h1><p class=about__description>Good good study, day day up!</p></div><ul class=aside__social-links><li><a href=https://github.com/wd rel=me aria-label=GitHub title=GitHub><i class="fa-brands fa-github" aria-hidden=true></i></a>&nbsp;</li></ul></div><hr><div class=aside__content><p>2013-06-12</p></div></section><footer class=page__footer><p><br><span class=active>$ echo $LANG<br><b>zh_CN</b></span><br></p><br><br><p class=copyright>wd © 2025</p><p class=advertisement>Powered by <a href=https://gohugo.io/>hugo</a> and <a href=https://github.com/joeroe/risotto>risotto</a>.</p></footer></div></body></html>
+<!doctype html><html lang=en><head><meta http-equiv=X-Clacks-Overhead content="GNU Terry Pratchett"><meta charset=utf-8><meta name=viewport content="width=device-width,initial-scale=1"><link rel="shortcut icon" href=https://wdicc.com/favicon.ico><title>octopress and gitcafe | wd and cc</title><meta name=title content="octopress and gitcafe"><meta name=description content='ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。
+ 1diff --git a/.gitignore b/.gitignore
+ 2index 85ed25d..5858b25 100644
+ 3--- a/.gitignore
+ 4+++ b/.gitignore
+ 5@@ -12,3 +12,4 @@ source/stylesheets/screen.css
+ 6 vendor
+ 7 node_modules
+ 8 .themes/fabric/
+ 9+gitcafe
+10diff --git a/Rakefile b/Rakefile
+11index 53072e5..62061e0 100644
+12--- a/Rakefile
+13+++ b/Rakefile
+14@@ -27,6 +27,9 @@ new_post_ext    = "markdown"  # default new post file extension when using the n
+15 new_page_ext    = "markdown"  # default new page file extension when using the new_page task
+16 server_port     = "4000"      # port for preview server eg. localhost:4000
+17
+18+gitcafe_dir      = "gitcafe"
+19+gitcafe_branch   = "gitcafe-pages"
+20+
+21
+22 desc "Initial setup for Octopress: copies the default theme into the path of Jekyll&#39;s generator. Rake install defaults to rake install[classic] to install a different them
+23 task :install, :theme do |t, args|
+24@@ -219,7 +214,7 @@ end
+25 ##############
+26
+27 desc "Default deploy task"
+28-task :deploy do
+29+task :deploy_old do
+30   # Check if preview posts exist, which should not be published
+31   if File.exists?(".preview-mode")
+32     puts "## Found posts in preview mode, regenerating files ..."
+33@@ -231,6 +226,31 @@ task :deploy do
+34   Rake::Task["#{deploy_default}"].execute
+35 end
+36
+37+desc "deploy gitcafe"
+38+task :deploy do
+39+  # Check if preview posts exist, which should not be published
+40+  if File.exists?(".preview-mode")
+41+    puts "## Found posts in preview mode, regenerating files ..."
+42+    File.delete(".preview-mode")
+43+    #Rake::Task[:generate].execute # 这个地方每次都会 generate 我一般喜欢先 generate 本地看好没问题之后再 deploy，所以就注释掉了
+44+  end
+45+
+46+  puts "## Deploying branch to Gitcafe Pages "
+47+  puts "\n## copying #{public_dir} to #{gitcafe_dir}"
+48+  cp_r "#{public_dir}/.", gitcafe_dir
+49+  cd "#{gitcafe_dir}" do
+50+    system "git add ."
+51+    system "git add -u"
+52+    puts "\n## Commiting: Site updated at #{Time.now.utc}"
+53+    message = "Site updated at #{Time.now.utc}"
+54+    system "git commit -m \"#{message}\""
+55+    puts "\n## Pushing generated #{gitcafe_dir} website"
+56+    system "git push origin #{gitcafe_branch} --force"
+57+    puts "\n## Gcafe Pages deploy complete"
+58+  end
+59+end
+60+
+61+
+62 desc "Generate website and deploy"
+63 task :gen_deploy => [:integrate, :generate, :deploy] do
+64 end
+然后需要在 octopus 根目录 clone 一下你的 gitcafe 项目到 gitcafe 目录'><meta name=keywords content="linux,"><meta property="og:url" content="https://wdicc.com/octopress-and-gitcafe/"><meta property="og:site_name" content="wd and cc"><meta property="og:title" content="octopress and gitcafe"><meta property="og:description" content='ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。
+1diff --git a/.gitignore b/.gitignore 2index 85ed25d..5858b25 100644 3--- a/.gitignore 4+++ b/.gitignore 5@@ -12,3 +12,4 @@ source/stylesheets/screen.css 6 vendor 7 node_modules 8 .themes/fabric/ 9+gitcafe 10diff --git a/Rakefile b/Rakefile 11index 53072e5..62061e0 100644 12--- a/Rakefile 13+++ b/Rakefile 14@@ -27,6 +27,9 @@ new_post_ext = "markdown" # default new post file extension when using the n 15 new_page_ext = "markdown" # default new page file extension when using the new_page task 16 server_port = "4000" # port for preview server eg. localhost:4000 17 18+gitcafe_dir = "gitcafe" 19+gitcafe_branch = "gitcafe-pages" 20+ 21 22 desc "Initial setup for Octopress: copies the default theme into the path of Jekyll&#39;s generator. Rake install defaults to rake install[classic] to install a different them 23 task :install, :theme do |t, args| 24@@ -219,7 +214,7 @@ end 25 ############## 26 27 desc "Default deploy task" 28-task :deploy do 29+task :deploy_old do 30 # Check if preview posts exist, which should not be published 31 if File.exists?(".preview-mode") 32 puts "## Found posts in preview mode, regenerating files ..." 33@@ -231,6 +226,31 @@ task :deploy do 34 Rake::Task["#{deploy_default}"].execute 35 end 36 37+desc "deploy gitcafe" 38+task :deploy do 39+ # Check if preview posts exist, which should not be published 40+ if File.exists?(".preview-mode") 41+ puts "## Found posts in preview mode, regenerating files ..." 42+ File.delete(".preview-mode") 43+ #Rake::Task[:generate].execute # 这个地方每次都会 generate 我一般喜欢先 generate 本地看好没问题之后再 deploy，所以就注释掉了 44+ end 45+ 46+ puts "## Deploying branch to Gitcafe Pages " 47+ puts "\n## copying #{public_dir} to #{gitcafe_dir}" 48+ cp_r "#{public_dir}/.", gitcafe_dir 49+ cd "#{gitcafe_dir}" do 50+ system "git add ." 51+ system "git add -u" 52+ puts "\n## Commiting: Site updated at #{Time.now.utc}" 53+ message = "Site updated at #{Time.now.utc}" 54+ system "git commit -m \"#{message}\"" 55+ puts "\n## Pushing generated #{gitcafe_dir} website" 56+ system "git push origin #{gitcafe_branch} --force" 57+ puts "\n## Gcafe Pages deploy complete" 58+ end 59+end 60+ 61+ 62 desc "Generate website and deploy" 63 task :gen_deploy => [:integrate, :generate, :deploy] do 64 end 然后需要在 octopus 根目录 clone 一下你的 gitcafe 项目到 gitcafe 目录'><meta property="og:locale" content="en"><meta property="og:type" content="article"><meta property="article:section" content="posts"><meta property="article:published_time" content="2013-06-12T21:30:00+08:00"><meta property="article:modified_time" content="2013-06-12T21:30:00+08:00"><meta property="article:tag" content="Linux"><meta name=twitter:card content="summary"><meta name=twitter:title content="octopress and gitcafe"><meta name=twitter:description content='ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。
+1diff --git a/.gitignore b/.gitignore 2index 85ed25d..5858b25 100644 3--- a/.gitignore 4+++ b/.gitignore 5@@ -12,3 +12,4 @@ source/stylesheets/screen.css 6 vendor 7 node_modules 8 .themes/fabric/ 9+gitcafe 10diff --git a/Rakefile b/Rakefile 11index 53072e5..62061e0 100644 12--- a/Rakefile 13+++ b/Rakefile 14@@ -27,6 +27,9 @@ new_post_ext = "markdown" # default new post file extension when using the n 15 new_page_ext = "markdown" # default new page file extension when using the new_page task 16 server_port = "4000" # port for preview server eg. localhost:4000 17 18+gitcafe_dir = "gitcafe" 19+gitcafe_branch = "gitcafe-pages" 20+ 21 22 desc "Initial setup for Octopress: copies the default theme into the path of Jekyll&#39;s generator. Rake install defaults to rake install[classic] to install a different them 23 task :install, :theme do |t, args| 24@@ -219,7 +214,7 @@ end 25 ############## 26 27 desc "Default deploy task" 28-task :deploy do 29+task :deploy_old do 30 # Check if preview posts exist, which should not be published 31 if File.exists?(".preview-mode") 32 puts "## Found posts in preview mode, regenerating files ..." 33@@ -231,6 +226,31 @@ task :deploy do 34 Rake::Task["#{deploy_default}"].execute 35 end 36 37+desc "deploy gitcafe" 38+task :deploy do 39+ # Check if preview posts exist, which should not be published 40+ if File.exists?(".preview-mode") 41+ puts "## Found posts in preview mode, regenerating files ..." 42+ File.delete(".preview-mode") 43+ #Rake::Task[:generate].execute # 这个地方每次都会 generate 我一般喜欢先 generate 本地看好没问题之后再 deploy，所以就注释掉了 44+ end 45+ 46+ puts "## Deploying branch to Gitcafe Pages " 47+ puts "\n## copying #{public_dir} to #{gitcafe_dir}" 48+ cp_r "#{public_dir}/.", gitcafe_dir 49+ cd "#{gitcafe_dir}" do 50+ system "git add ." 51+ system "git add -u" 52+ puts "\n## Commiting: Site updated at #{Time.now.utc}" 53+ message = "Site updated at #{Time.now.utc}" 54+ system "git commit -m \"#{message}\"" 55+ puts "\n## Pushing generated #{gitcafe_dir} website" 56+ system "git push origin #{gitcafe_branch} --force" 57+ puts "\n## Gcafe Pages deploy complete" 58+ end 59+end 60+ 61+ 62 desc "Generate website and deploy" 63 task :gen_deploy => [:integrate, :generate, :deploy] do 64 end 然后需要在 octopus 根目录 clone 一下你的 gitcafe 项目到 gitcafe 目录'><meta itemprop=name content="octopress and gitcafe"><meta itemprop=description content='ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。
+1diff --git a/.gitignore b/.gitignore 2index 85ed25d..5858b25 100644 3--- a/.gitignore 4+++ b/.gitignore 5@@ -12,3 +12,4 @@ source/stylesheets/screen.css 6 vendor 7 node_modules 8 .themes/fabric/ 9+gitcafe 10diff --git a/Rakefile b/Rakefile 11index 53072e5..62061e0 100644 12--- a/Rakefile 13+++ b/Rakefile 14@@ -27,6 +27,9 @@ new_post_ext = "markdown" # default new post file extension when using the n 15 new_page_ext = "markdown" # default new page file extension when using the new_page task 16 server_port = "4000" # port for preview server eg. localhost:4000 17 18+gitcafe_dir = "gitcafe" 19+gitcafe_branch = "gitcafe-pages" 20+ 21 22 desc "Initial setup for Octopress: copies the default theme into the path of Jekyll&#39;s generator. Rake install defaults to rake install[classic] to install a different them 23 task :install, :theme do |t, args| 24@@ -219,7 +214,7 @@ end 25 ############## 26 27 desc "Default deploy task" 28-task :deploy do 29+task :deploy_old do 30 # Check if preview posts exist, which should not be published 31 if File.exists?(".preview-mode") 32 puts "## Found posts in preview mode, regenerating files ..." 33@@ -231,6 +226,31 @@ task :deploy do 34 Rake::Task["#{deploy_default}"].execute 35 end 36 37+desc "deploy gitcafe" 38+task :deploy do 39+ # Check if preview posts exist, which should not be published 40+ if File.exists?(".preview-mode") 41+ puts "## Found posts in preview mode, regenerating files ..." 42+ File.delete(".preview-mode") 43+ #Rake::Task[:generate].execute # 这个地方每次都会 generate 我一般喜欢先 generate 本地看好没问题之后再 deploy，所以就注释掉了 44+ end 45+ 46+ puts "## Deploying branch to Gitcafe Pages " 47+ puts "\n## copying #{public_dir} to #{gitcafe_dir}" 48+ cp_r "#{public_dir}/.", gitcafe_dir 49+ cd "#{gitcafe_dir}" do 50+ system "git add ." 51+ system "git add -u" 52+ puts "\n## Commiting: Site updated at #{Time.now.utc}" 53+ message = "Site updated at #{Time.now.utc}" 54+ system "git commit -m \"#{message}\"" 55+ puts "\n## Pushing generated #{gitcafe_dir} website" 56+ system "git push origin #{gitcafe_branch} --force" 57+ puts "\n## Gcafe Pages deploy complete" 58+ end 59+end 60+ 61+ 62 desc "Generate website and deploy" 63 task :gen_deploy => [:integrate, :generate, :deploy] do 64 end 然后需要在 octopus 根目录 clone 一下你的 gitcafe 项目到 gitcafe 目录'><meta itemprop=datePublished content="2013-06-12T21:30:00+08:00"><meta itemprop=dateModified content="2013-06-12T21:30:00+08:00"><meta itemprop=wordCount content="471"><meta itemprop=keywords content="Linux"><meta name=referrer content="no-referrer-when-downgrade"><style>:root{--width:720px;--font-main:Verdana, sans-serif;--font-secondary:Verdana, sans-serif;--font-scale:1em;--background-color:#fff;--heading-color:#222;--text-color:#444;--link-color:#3273dc;--visited-color:#8b6fcb;--code-background-color:#f2f2f2;--code-color:#222;--blockquote-color:#222}@media(prefers-color-scheme:dark){:root{--background-color:#01242e;--heading-color:#eee;--text-color:#ddd;--link-color:#8cc2dd;--visited-color:#8b6fcb;--code-background-color:#000;--code-color:#ddd;--blockquote-color:#ccc}}body{font-family:var(--font-secondary);font-size:var(--font-scale);margin:auto;padding:20px;max-width:var(--width);text-align:left;background-color:var(--background-color);word-wrap:break-word;overflow-wrap:break-word;line-height:1.5;color:var(--text-color)}h1,h2,h3,h4,h5,h6{font-family:var(--font-main);color:var(--heading-color)}a{color:var(--link-color);cursor:pointer;text-decoration:none}a:hover{text-decoration:underline}nav a{margin-right:8px}strong,b{color:var(--heading-color)}button{margin:0;cursor:pointer}time{font-family:monospace;font-style:normal;font-size:15px}main{line-height:1.6}table{width:100%}hr{border:0;border-top:1px dashed}img{max-width:100%}code{font-family:monospace;padding:2px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px}blockquote{border-left:1px solid #999;color:var(--code-color);padding-left:20px;font-style:italic}footer{padding:25px 0;text-align:center}.title:hover{text-decoration:none}.title h1{font-size:1.5em}.inline{width:auto !important}.highlight,.code{padding:1px 15px;background-color:var(--code-background-color);color:var(--code-color);border-radius:3px;margin-block-start:1em;margin-block-end:1em;overflow-x:auto}ul.blog-posts{list-style-type:none;padding:unset}ul.blog-posts li{display:flex}ul.blog-posts li span{flex:0 0 130px}ul.blog-posts li a:visited{color:var(--visited-color)}</style></head><body><header><a href=/ class=title><h2>wd and cc</h2></a><p>-- Good good study, day day up!</p><nav><a href=/>Home</a>
+<a href=/posts/>Posts</a>
+<a href="https://www.google.com.hk/search?sitesearch=https%3A%2F%2Fwdicc.com%2F&amp;q=">Search</a>
+<a href=/tags/>Tags</a>
+<a href=/atom.xml>subscribe</a></nav></header><main><h1>octopress and gitcafe</h1><p><i><time datetime=2013-06-12>12 Jun, 2013
+</time></i><a href=https://wdicc.com/tags/linux/>#Linux</a></p><content><p>ocotpress 支持 github，不过 github 的 pages 貌似被墙了，且速度慢。gitcafe 速度还不错，也支持 pages，刚好可以切换过去。我只是简单粗暴的修改了几个文件。</p><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-diff data-lang=diff><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 1</span><span><span style=color:navy;font-weight:700>diff --git a/.gitignore b/.gitignore
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 2</span><span><span style=color:navy;font-weight:700>index 85ed25d..5858b25 100644
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 3</span><span><span style=color:navy;font-weight:700></span><span style=color:#a00000>--- a/.gitignore
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4</span><span><span style=color:#a00000></span><span style=color:#00a000>+++ b/.gitignore
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5</span><span><span style=color:#00a000></span><span style=color:purple;font-weight:700>@@ -12,3 +12,4 @@ source/stylesheets/screen.css
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6</span><span><span style=color:purple;font-weight:700></span> vendor
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7</span><span> node_modules
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8</span><span> .themes/fabric/
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9</span><span><span style=color:#00a000>+gitcafe
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10</span><span><span style=color:#00a000></span><span style=color:navy;font-weight:700>diff --git a/Rakefile b/Rakefile
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">11</span><span><span style=color:navy;font-weight:700>index 53072e5..62061e0 100644
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">12</span><span><span style=color:navy;font-weight:700></span><span style=color:#a00000>--- a/Rakefile
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">13</span><span><span style=color:#a00000></span><span style=color:#00a000>+++ b/Rakefile
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">14</span><span><span style=color:#00a000></span><span style=color:purple;font-weight:700>@@ -27,6 +27,9 @@ new_post_ext    = &#34;markdown&#34;  # default new post file extension when using the n
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">15</span><span><span style=color:purple;font-weight:700></span> new_page_ext    = &#34;markdown&#34;  # default new page file extension when using the new_page task
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">16</span><span> server_port     = &#34;4000&#34;      # port for preview server eg. localhost:4000
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">17</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">18</span><span><span style=color:#00a000>+gitcafe_dir      = &#34;gitcafe&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">19</span><span><span style=color:#00a000>+gitcafe_branch   = &#34;gitcafe-pages&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">20</span><span><span style=color:#00a000>+
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">21</span><span><span style=color:#00a000></span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">22</span><span> desc &#34;Initial setup for Octopress: copies the default theme into the path of Jekyll&#39;s generator. Rake install defaults to rake install[classic] to install a different them
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">23</span><span> task :install, :theme do |t, args|
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">24</span><span><span style=color:purple;font-weight:700>@@ -219,7 +214,7 @@ end
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">25</span><span><span style=color:purple;font-weight:700></span> ##############
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">26</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">27</span><span> desc &#34;Default deploy task&#34;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">28</span><span><span style=color:#a00000>-task :deploy do
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">29</span><span><span style=color:#a00000></span><span style=color:#00a000>+task :deploy_old do
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">30</span><span><span style=color:#00a000></span>   # Check if preview posts exist, which should not be published
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">31</span><span>   if File.exists?(&#34;.preview-mode&#34;)
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">32</span><span>     puts &#34;## Found posts in preview mode, regenerating files ...&#34;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">33</span><span><span style=color:purple;font-weight:700>@@ -231,6 +226,31 @@ task :deploy do
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">34</span><span><span style=color:purple;font-weight:700></span>   Rake::Task[&#34;#{deploy_default}&#34;].execute
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">35</span><span> end
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">36</span><span>
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">37</span><span><span style=color:#00a000>+desc &#34;deploy gitcafe&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">38</span><span><span style=color:#00a000>+task :deploy do
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">39</span><span><span style=color:#00a000>+  # Check if preview posts exist, which should not be published
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">40</span><span><span style=color:#00a000>+  if File.exists?(&#34;.preview-mode&#34;)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">41</span><span><span style=color:#00a000>+    puts &#34;## Found posts in preview mode, regenerating files ...&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">42</span><span><span style=color:#00a000>+    File.delete(&#34;.preview-mode&#34;)
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">43</span><span><span style=color:#00a000>+    #Rake::Task[:generate].execute # 这个地方每次都会 generate 我一般喜欢先 generate 本地看好没问题之后再 deploy，所以就注释掉了
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">44</span><span><span style=color:#00a000>+  end
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">45</span><span><span style=color:#00a000>+
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">46</span><span><span style=color:#00a000>+  puts &#34;## Deploying branch to Gitcafe Pages &#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">47</span><span><span style=color:#00a000>+  puts &#34;\n## copying #{public_dir} to #{gitcafe_dir}&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">48</span><span><span style=color:#00a000>+  cp_r &#34;#{public_dir}/.&#34;, gitcafe_dir
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">49</span><span><span style=color:#00a000>+  cd &#34;#{gitcafe_dir}&#34; do
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">50</span><span><span style=color:#00a000>+    system &#34;git add .&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">51</span><span><span style=color:#00a000>+    system &#34;git add -u&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">52</span><span><span style=color:#00a000>+    puts &#34;\n## Commiting: Site updated at #{Time.now.utc}&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">53</span><span><span style=color:#00a000>+    message = &#34;Site updated at #{Time.now.utc}&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">54</span><span><span style=color:#00a000>+    system &#34;git commit -m \&#34;#{message}\&#34;&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">55</span><span><span style=color:#00a000>+    puts &#34;\n## Pushing generated #{gitcafe_dir} website&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">56</span><span><span style=color:#00a000>+    system &#34;git push origin #{gitcafe_branch} --force&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">57</span><span><span style=color:#00a000>+    puts &#34;\n## Gcafe Pages deploy complete&#34;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">58</span><span><span style=color:#00a000>+  end
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">59</span><span><span style=color:#00a000>+end
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">60</span><span><span style=color:#00a000>+
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">61</span><span><span style=color:#00a000>+
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">62</span><span><span style=color:#00a000></span> desc &#34;Generate website and deploy&#34;
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">63</span><span> task :gen_deploy =&gt; [:integrate, :generate, :deploy] do
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">64</span><span> end
+</span></span></code></pre></div><p>然后需要在 octopus 根目录 clone 一下你的 gitcafe 项目到 gitcafe 目录</p><div class=highlight><pre tabindex=0 style=background-color:#f0f0f0;-moz-tab-size:4;-o-tab-size:4;tab-size:4><code class=language-bash data-lang=bash><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">1</span><span>$ git clone git@gitcafe.com:wd/wd gitcafe
+</span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">2</span><span>....
+</span></span></code></pre></div><p>然后就可以试试看 <code>rake generate</code> , <code>rake preview</code>, <code>rake deploy</code> 了。</p></content></main><footer>Made with <a href=https://github.com/janraasch/hugo-bearblog/>Hugo ʕ•ᴥ•ʔ Bear</a></footer></body></html>
