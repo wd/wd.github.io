@@ -16,3 +16,5 @@ Welcome to my personal blog, where I collect and record my thoughts and learning
 My name is WD, which is also the abbreviation for West Digital. Unfortunately, this can be quite annoying since many people on Twitter approach me for help with their hard disk problems. SAD...
 
 My wife's nickname is CC, pronounced "cici" like her given name. I suggested that she change it to Cici, as there are no vowel letters in the name and people may have difficulty pronouncing it. However, she didn't agree, and I can understand why. Upon reflection, I realized that my nickname is in the same situation, so I don't think I'll be changing it either... :)
+
+## Recent posts
