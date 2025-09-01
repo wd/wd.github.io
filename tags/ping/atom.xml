@@ -1,25 +1,25 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Ping on wd and cc</title><link>https://wdicc.com/tags/ping/</link><description>Recent content in Ping on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Wed, 30 Aug 2006 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/ping/atom.xml" rel="self" type="application/rss+xml"/><item><title>PING命令中TTL的具体含义zz</title><link>https://wdicc.com/ttl-in-ping/</link><pubDate>Wed, 30 Aug 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/ttl-in-ping/</guid><description>有台服务器ping的时候老出现 Time to live exceeded 这个错误，这样就会误报服务器挂掉，很烦人。找了半天似乎找到了解决方法了。&lt;br />
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Ping on wd and cc</title><link>https://wdicc.com/tags/ping/</link><description>Recent content in Ping on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Wed, 30 Aug 2006 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/ping/atom.xml" rel="self" type="application/rss+xml"/><item><title>PING命令中TTL的具体含义zz</title><link>https://wdicc.com/ttl-in-ping/</link><pubDate>Wed, 30 Aug 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/ttl-in-ping/</guid><description>有台服务器ping的时候老出现 Time to live exceeded 这个错误，这样就会误报服务器挂掉，很烦人。找了半天似乎找到了解决方法了。&lt;br /&gt;
 
-ping的时候返回的包的ttl值是根据对方系统的设置来的，默认情况下，win是128,linux是64,返回的时候，每经过一个节点，就减1,这样，根据返回包的ttl值就可以判断经过了几个路由节点。而节点要是比较多的话，会导致这个ttl值为0,这样就出现上面提到的问题了。当然，要是遇到包进了环路，也会产生这样的问题，详细的内容可以看下面的转载文章。&lt;br />
+ping的时候返回的包的ttl值是根据对方系统的设置来的，默认情况下，win是128,linux是64,返回的时候，每经过一个节点，就减1,这样，根据返回包的ttl值就可以判断经过了几个路由节点。而节点要是比较多的话，会导致这个ttl值为0,这样就出现上面提到的问题了。当然，要是遇到包进了环路，也会产生这样的问题，详细的内容可以看下面的转载文章。&lt;br /&gt;
 
-这样，解决这个问题的方法就是修改对方系统的默认ttl 值，比如修改为255，这样如果还产生上面的错误的话，那就没准是哪里的问题了。呵呵。&lt;br />
+这样，解决这个问题的方法就是修改对方系统的默认ttl 值，比如修改为255，这样如果还产生上面的错误的话，那就没准是哪里的问题了。呵呵。&lt;br /&gt;
 
-&lt;font color="#333333" style="line-height: 18px"> Linux下修改方法:&lt;br />
+&lt;font color="#333333" style="line-height: 18px"&gt; Linux下修改方法:&lt;br /&gt;
 
-方法1(重启后有效)：&lt;br />
-#sysctl -w net.ipv4.ip_default_ttl=N&lt;br />
-(N=0~255),若N>255,则ttl=0&lt;br />
-方法2(重启后无效)：&lt;br />
-#echo N(N为0～255) > /proc/sys/net/ipv4/ip_default_ttl&lt;/font>&lt;br />
+方法1(重启后有效)：&lt;br /&gt;
+#sysctl -w net.ipv4.ip_default_ttl=N&lt;br /&gt;
+(N=0~255),若N&gt;255,则ttl=0&lt;br /&gt;
+方法2(重启后无效)：&lt;br /&gt;
+#echo N(N为0～255) &gt; /proc/sys/net/ipv4/ip_default_ttl&lt;/font&gt;&lt;br /&gt;
 
-原文地址：&lt;a href="http://blog.zol.com.cn/blog/wjf_top/35836.html">这里&lt;/a>&lt;br />
-&lt;div align="left" style="width: 98%">&lt;span class="neirong1_12u" style="overflow: hidden; width: 100%"> 								PING命令中TTL的具体含义&lt;br />
-提供者 vitty简单来说，TTL全程Time to Live，意思就是生存周期。&lt;br />
-首先要说明ping命令是使用的网络层协议ICMP，所以TTL指的是一个网络层的网络数据包（package）的生存周期，这句话不懂的先回去复习OSI7层协议去。&lt;br />
+原文地址：&lt;a href="http://blog.zol.com.cn/blog/wjf_top/35836.html"&gt;这里&lt;/a&gt;&lt;br /&gt;
+&lt;div align="left" style="width: 98%"&gt;&lt;span class="neirong1_12u" style="overflow: hidden; width: 100%"&gt; 								PING命令中TTL的具体含义&lt;br /&gt;
+提供者 vitty简单来说，TTL全程Time to Live，意思就是生存周期。&lt;br /&gt;
+首先要说明ping命令是使用的网络层协议ICMP，所以TTL指的是一个网络层的网络数据包（package）的生存周期，这句话不懂的先回去复习OSI7层协议去。&lt;br /&gt;
 
-第一个问题，为什么要有生存周期这个概念。&lt;br />
+第一个问题，为什么要有生存周期这个概念。&lt;br /&gt;
 
-很 显然，一个package从一台机器到另一台机器中间需要经过很长的路径，显然这个路径不是单一的，是很复杂的，并且很可能存在环路。如果一个数据包在传 输过程中进入了环路，如果不终止它的话，它会一直循环下去，如果很多个数据包都这样循环的话，那对于网络来说这就是灾难了。所以需要在包中设置这样一个 值，包在每经过一个节点，将这个值减1，反复这样操作，最终可能造成2个结果：包在这个值还为正数的时候到达了目的地，或者是在经过一定数量的节点后，这 个值减为了0。前者代表完成了一次正常的传输，后者代表包可能选择了一条非常长的路径甚至是进入了环路，这显然不是我们期望的，所以在这个值为0的时候， 网络设备将不会再传递这个包而是直接将他抛弃，并发送一个通知给包的源地址，说这个包已死。&lt;br />
-其实TTL值这个东西本身并代表不了什么，对于使用者来说，关心的问题应该是包是否到达了目的地而不是经过了几个节点后到达。但是TTL值还是可以得到有意思的信息的。&lt;br />
+很 显然，一个package从一台机器到另一台机器中间需要经过很长的路径，显然这个路径不是单一的，是很复杂的，并且很可能存在环路。如果一个数据包在传 输过程中进入了环路，如果不终止它的话，它会一直循环下去，如果很多个数据包都这样循环的话，那对于网络来说这就是灾难了。所以需要在包中设置这样一个 值，包在每经过一个节点，将这个值减1，反复这样操作，最终可能造成2个结果：包在这个值还为正数的时候到达了目的地，或者是在经过一定数量的节点后，这 个值减为了0。前者代表完成了一次正常的传输，后者代表包可能选择了一条非常长的路径甚至是进入了环路，这显然不是我们期望的，所以在这个值为0的时候， 网络设备将不会再传递这个包而是直接将他抛弃，并发送一个通知给包的源地址，说这个包已死。&lt;br /&gt;
+其实TTL值这个东西本身并代表不了什么，对于使用者来说，关心的问题应该是包是否到达了目的地而不是经过了几个节点后到达。但是TTL值还是可以得到有意思的信息的。&lt;br /&gt;
 
-每 个操作系统对TTL值得定义都不同，这个值甚至可以通过修改某些系统的网络参数来修改，例如Win2000默认为128，通过注册表也可以修改。而 Linux大多定义为64。不过一般来说，很少有人会去修改自己机器的这个值的，这就给了我们机会可以通过ping的回显TTL来大体判断一台机器是什么 操作系统。&lt;br /></description></item></channel></rss>
+每 个操作系统对TTL值得定义都不同，这个值甚至可以通过修改某些系统的网络参数来修改，例如Win2000默认为128，通过注册表也可以修改。而 Linux大多定义为64。不过一般来说，很少有人会去修改自己机器的这个值的，这就给了我们机会可以通过ping的回显TTL来大体判断一台机器是什么 操作系统。&lt;br /&gt;</description></item></channel></rss>

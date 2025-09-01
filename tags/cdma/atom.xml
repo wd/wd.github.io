@@ -1,11 +1,11 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cdma on wd and cc</title><link>https://wdicc.com/tags/cdma/</link><description>Recent content in Cdma on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Sat, 26 Jul 2008 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/cdma/atom.xml" rel="self" type="application/rss+xml"/><item><title>总算搞定了我的CDMA无线上网卡</title><link>https://wdicc.com/cmda-1x-in-gentoo-linux/</link><pubDate>Sat, 26 Jul 2008 00:00:00 +0000</pubDate><guid>https://wdicc.com/cmda-1x-in-gentoo-linux/</guid><description>早先在 Archlinux 的时候，就使用过这块卡。现在换了 gentoo，内核要自己编译，昨天拿回网卡后一直没搞定，今天总算搞定了。&lt;br />
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Cdma on wd and cc</title><link>https://wdicc.com/tags/cdma/</link><description>Recent content in Cdma on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Sat, 26 Jul 2008 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/cdma/atom.xml" rel="self" type="application/rss+xml"/><item><title>总算搞定了我的CDMA无线上网卡</title><link>https://wdicc.com/cmda-1x-in-gentoo-linux/</link><pubDate>Sat, 26 Jul 2008 00:00:00 +0000</pubDate><guid>https://wdicc.com/cmda-1x-in-gentoo-linux/</guid><description>早先在 Archlinux 的时候，就使用过这块卡。现在换了 gentoo，内核要自己编译，昨天拿回网卡后一直没搞定，今天总算搞定了。&lt;br /&gt;
 
-我的是一块品速的 pinsu-100c 网卡，是 pccard（pcmcia）类型的。&lt;br />
+我的是一块品速的 pinsu-100c 网卡，是 pccard（pcmcia）类型的。&lt;br /&gt;
 
-如果是大于2.6.13内核的，先安装 sys-apps/pcmciautils 这个包。否则安装 pcmcia-cs 这个包。&lt;br />
+如果是大于2.6.13内核的，先安装 sys-apps/pcmciautils 这个包。否则安装 pcmcia-cs 这个包。&lt;br /&gt;
 
-内核参数需要设置的有下面几个：&lt;br />
-&lt;pre class="prettyprint lang-text">
+内核参数需要设置的有下面几个：&lt;br /&gt;
+&lt;pre class="prettyprint lang-text"&gt;
 Device Drivers
  Network device support (NETDEVICES [=y]) 下面的
  ppp
@@ -21,11 +21,11 @@ Device Drivers
  PCMCIA character devices
 # 相关的模块
 pcmcia_core 31892 4 serial_cs,pcmcia,yenta_socket,rsrc_nonstatic
-&lt;/pre>&lt;br />
+&lt;/pre&gt;&lt;br /&gt;
 
-搞定这些kernel选项之后，插入 pccard，应该会看到类似下面的信息，我之前因为kernel没有支持最后那个 serial_cs 模块，插入的时候没有最后两行信息。&lt;br />
+搞定这些kernel选项之后，插入 pccard，应该会看到类似下面的信息，我之前因为kernel没有支持最后那个 serial_cs 模块，插入的时候没有最后两行信息。&lt;br /&gt;
 
-&lt;pre class="prettyprint lang-text">
+&lt;pre class="prettyprint lang-text"&gt;
 $ dmesg
 pccard: card ejected from slot 1
 pccard: PCMCIA card inserted into slot 1
@@ -37,14 +37,14 @@ $ ls -alh /dev/ttyS1
 crw-rw---- 1 root uucp 4, 65 07-26 22:28 /dev/ttyS1
 
 # 要注意那个时间，应该是你插入的时间，否则就有问题了。
-&lt;/pre>&lt;br />
+&lt;/pre&gt;&lt;br /&gt;
 
-好了，设备识别出来了。那再安装 net-dialup/wvdial 这个包，用来拨号的。如果是 gnome 环境，也可以安装 net-dialup/gnome-ppp ，他会关联安装 wvdial，这个是 gui 的，可能更友好一点。&lt;br />
+好了，设备识别出来了。那再安装 net-dialup/wvdial 这个包，用来拨号的。如果是 gnome 环境，也可以安装 net-dialup/gnome-ppp ，他会关联安装 wvdial，这个是 gui 的，可能更友好一点。&lt;br /&gt;
 
-同时还需要安装一个叫做 sys-apps/setserial 的包，用来给 ttyS1 设备设置比特率，不太清楚为什么需要设置。用命令 sudo setserial /dev/ttyS1 baud_base 230400 ，要注意那个 230400，我从网上搜到的说网卡支持最高的比特率是这个，所以设置了这个，设置别得行不行，没试过。&lt;br />
+同时还需要安装一个叫做 sys-apps/setserial 的包，用来给 ttyS1 设备设置比特率，不太清楚为什么需要设置。用命令 sudo setserial /dev/ttyS1 baud_base 230400 ，要注意那个 230400，我从网上搜到的说网卡支持最高的比特率是这个，所以设置了这个，设置别得行不行，没试过。&lt;br /&gt;
 
-然后呢，还需要有一个 /etc/wvdial.conf 文件。&lt;br />
-&lt;pre class="prettyprint lang-text">
+然后呢，还需要有一个 /etc/wvdial.conf 文件。&lt;br /&gt;
+&lt;pre class="prettyprint lang-text"&gt;
 [Modem0]
  Modem = /dev/ttyS1
  Baud = 57600
@@ -58,40 +58,40 @@ crw-rw---- 1 root uucp 4, 65 07-26 22:28 /dev/ttyS1
  Phone = #777
  Stupid Mode = 1
  Inherits = Modem0
-&lt;/pre>&lt;br />
+&lt;/pre&gt;&lt;br /&gt;
 
-从网上搜到的，照抄就行了。关键是那个 /dev/ttyS1 ，和那个 Baud。一个对应你的设备，一个是比特率。我不太清楚为什么和上面设置的那个比特率不一样，不过我使用 minicom 测试的，只有这个比特率能 work。但是或许你那的情况会不一样，可以使用 minicom 来测试，minicom 里面设置了比特率之后，可以多输入几个 AT 回车看看有没有返回 OK，返回就能工作。&lt;br />
+从网上搜到的，照抄就行了。关键是那个 /dev/ttyS1 ，和那个 Baud。一个对应你的设备，一个是比特率。我不太清楚为什么和上面设置的那个比特率不一样，不过我使用 minicom 测试的，只有这个比特率能 work。但是或许你那的情况会不一样，可以使用 minicom 来测试，minicom 里面设置了比特率之后，可以多输入几个 AT 回车看看有没有返回 OK，返回就能工作。&lt;br /&gt;
 
-这样就一切ok了，sudo wvdial 就可以拨号了。&lt;br />
-&lt;pre class="prettyprint lang-text">
+这样就一切ok了，sudo wvdial 就可以拨号了。&lt;br /&gt;
+&lt;pre class="prettyprint lang-text"&gt;
 $ sudo wvdial
---> WvDial: Internet dialer version 1.60
---> Initializing modem.
---> Sending: ATZ
+--&gt; WvDial: Internet dialer version 1.60
+--&gt; Initializing modem.
+--&gt; Sending: ATZ
 OK
---> Modem initialized.
---> Sending: ATDT#777
---> Waiting for carrier.
+--&gt; Modem initialized.
+--&gt; Sending: ATDT#777
+--&gt; Waiting for carrier.
 CONNECT
---> Carrier detected. Starting PPP immediately.
---> Starting pppd at Sat Jul 26 22:15:52 2008
---> Pid of pppd: 11766
---> Using interface ppp0
---> pppd: ��[06][08]��[06][08][08]�[06][08]
---> pppd: ��[06][08]��[06][08][08]�[06][08]
---> pppd: ��[06][08]��[06][08][08]�[06][08]
---> pppd: ��[06][08]��[06][08][08]�[06][08]
---> pppd: ��[06][08]��[06][08][08]�[06][08]
---> local IP address 211.145.60.183
---> pppd: ��[06][08]��[06][08][08]�[06][08]
---> remote IP address 220.192.0.22
---> pppd: ��[06][08]��[06][08][08]�[06][08]
---> primary DNS address 220.192.0.130
---> pppd: ��[06][08]��[06][08][08]�[06][08]
---> secondary DNS address 220.192.8.58
---> pppd: ��[06][08]��[06][08][08]�[06][08]
-&lt;/pre>&lt;br />
+--&gt; Carrier detected. Starting PPP immediately.
+--&gt; Starting pppd at Sat Jul 26 22:15:52 2008
+--&gt; Pid of pppd: 11766
+--&gt; Using interface ppp0
+--&gt; pppd: ��[06][08]��[06][08][08]�[06][08]
+--&gt; pppd: ��[06][08]��[06][08][08]�[06][08]
+--&gt; pppd: ��[06][08]��[06][08][08]�[06][08]
+--&gt; pppd: ��[06][08]��[06][08][08]�[06][08]
+--&gt; pppd: ��[06][08]��[06][08][08]�[06][08]
+--&gt; local IP address 211.145.60.183
+--&gt; pppd: ��[06][08]��[06][08][08]�[06][08]
+--&gt; remote IP address 220.192.0.22
+--&gt; pppd: ��[06][08]��[06][08][08]�[06][08]
+--&gt; primary DNS address 220.192.0.130
+--&gt; pppd: ��[06][08]��[06][08][08]�[06][08]
+--&gt; secondary DNS address 220.192.8.58
+--&gt; pppd: ��[06][08]��[06][08][08]�[06][08]
+&lt;/pre&gt;&lt;br /&gt;
 
-最主要那个 ATZ 发送之后，要返回一个 OK，如果没有，那就是表示没 work，继续搞吧，设备文件没问题的话，一般就出在比特率上面了，结合 setserial 和 minicom 多修改几个看看。&lt;br />
+最主要那个 ATZ 发送之后，要返回一个 OK，如果没有，那就是表示没 work，继续搞吧，设备文件没问题的话，一般就出在比特率上面了，结合 setserial 和 minicom 多修改几个看看。&lt;br /&gt;
 
-gnome-ppp 使用很简单了，自己琢磨吧。&lt;br /></description></item></channel></rss>
+gnome-ppp 使用很简单了，自己琢磨吧。&lt;br /&gt;</description></item></channel></rss>

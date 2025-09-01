@@ -1,18 +1,18 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Envoy on wd and cc</title><link>https://wdicc.com/tags/envoy/</link><description>Recent content in Envoy on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Sat, 31 Aug 2024 09:58:48 +0800</lastBuildDate><atom:link href="https://wdicc.com/tags/envoy/atom.xml" rel="self" type="application/rss+xml"/><item><title>Resolve Dependency Issue for a Simple Java Program</title><link>https://wdicc.com/resolve-dependency-issue-for-a-simple-java-program/</link><pubDate>Sat, 31 Aug 2024 09:58:48 +0800</pubDate><guid>https://wdicc.com/resolve-dependency-issue-for-a-simple-java-program/</guid><description>&lt;p>最近需要把一个服务从对 Envoy 的依赖迁移到 Nginx。我们大都是 GRPC 请求，所以需要代码对 http2 + ssl 做支持。&lt;/p>
-&lt;p>
-GRPC 是基于 h2 的，当使用 Envoy 的时候，代码都是发 h2c 的情况给本地的 envoy。这个过程没有 ssl 握手。而 Nginx 不支持 h2c 的支持，必须处理 ssl 握手。我们的服务都是在 Nginx 后面的，Nginx 层面也做了会多 Virtual Host 的配置，所以需要通过 Host 来做匹配，这个 Host 也必须得正确，要不然就是会匹配到 default 的 server，无非是得到一个 404。&lt;/p></description></item><item><title>HTTPS SNI Host and Envoy</title><link>https://wdicc.com/https-sni-host-and-envoy/</link><pubDate>Sun, 14 Feb 2021 19:24:36 +0800</pubDate><guid>https://wdicc.com/https-sni-host-and-envoy/</guid><description>&lt;div id="outline-container-headline-1" class="outline-3">
-&lt;h3 id="headline-1">
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Envoy on wd and cc</title><link>https://wdicc.com/tags/envoy/</link><description>Recent content in Envoy on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Sat, 31 Aug 2024 09:58:48 +0800</lastBuildDate><atom:link href="https://wdicc.com/tags/envoy/atom.xml" rel="self" type="application/rss+xml"/><item><title>Resolve Dependency Issue for a Simple Java Program</title><link>https://wdicc.com/resolve-dependency-issue-for-a-simple-java-program/</link><pubDate>Sat, 31 Aug 2024 09:58:48 +0800</pubDate><guid>https://wdicc.com/resolve-dependency-issue-for-a-simple-java-program/</guid><description>&lt;p&gt;最近需要把一个服务从对 Envoy 的依赖迁移到 Nginx。我们大都是 GRPC 请求，所以需要代码对 http2 + ssl 做支持。&lt;/p&gt;
+&lt;p&gt;
+GRPC 是基于 h2 的，当使用 Envoy 的时候，代码都是发 h2c 的情况给本地的 envoy。这个过程没有 ssl 握手。而 Nginx 不支持 h2c 的支持，必须处理 ssl 握手。我们的服务都是在 Nginx 后面的，Nginx 层面也做了会多 Virtual Host 的配置，所以需要通过 Host 来做匹配，这个 Host 也必须得正确，要不然就是会匹配到 default 的 server，无非是得到一个 404。&lt;/p&gt;</description></item><item><title>HTTPS SNI Host and Envoy</title><link>https://wdicc.com/https-sni-host-and-envoy/</link><pubDate>Sun, 14 Feb 2021 19:24:36 +0800</pubDate><guid>https://wdicc.com/https-sni-host-and-envoy/</guid><description>&lt;div id="outline-container-headline-1" class="outline-3"&gt;
+&lt;h3 id="headline-1"&gt;
 TLS handshake
-&lt;/h3>
-&lt;div id="outline-text-headline-1" class="outline-text-3">
-&lt;p>
- TLS 握手之前需要先 TCP 三次握手，之后就是正式的 Client hello, Server hello, Cert key exchange 等等正常的 TLS 握手动作了。这期间会决定使用的加密版本，协商用来对称加密的密钥等。Cloudflare &lt;a href="https://www.cloudflare.com/zh-cn/learning/ssl/what-happens-in-a-tls-handshake/">这篇文章&lt;/a>似乎讲的很清楚。&lt;/p>
-&lt;/div>
-&lt;/div>
-&lt;div id="outline-container-headline-2" class="outline-3">
-&lt;h3 id="headline-2">
+&lt;/h3&gt;
+&lt;div id="outline-text-headline-1" class="outline-text-3"&gt;
+&lt;p&gt;
+ TLS 握手之前需要先 TCP 三次握手，之后就是正式的 Client hello, Server hello, Cert key exchange 等等正常的 TLS 握手动作了。这期间会决定使用的加密版本，协商用来对称加密的密钥等。Cloudflare &lt;a href="https://www.cloudflare.com/zh-cn/learning/ssl/what-happens-in-a-tls-handshake/"&gt;这篇文章&lt;/a&gt;似乎讲的很清楚。&lt;/p&gt;
+&lt;/div&gt;
+&lt;/div&gt;
+&lt;div id="outline-container-headline-2" class="outline-3"&gt;
+&lt;h3 id="headline-2"&gt;
 HTTP2
-&lt;/h3>
-&lt;div id="outline-text-headline-2" class="outline-text-3">
-&lt;p>
- http2 并不是必须使用 https 部署。但是因为主流浏览器都只支持基于 https 的 http2，所以如果服务是面向浏览器的，那还是应该使用 https。&lt;a href="https://imququ.com/post/protocol-negotiation-in-http2.html">这篇文章&lt;/a>讲的很好。&lt;/p></description></item></channel></rss>
+&lt;/h3&gt;
+&lt;div id="outline-text-headline-2" class="outline-text-3"&gt;
+&lt;p&gt;
+ http2 并不是必须使用 https 部署。但是因为主流浏览器都只支持基于 https 的 http2，所以如果服务是面向浏览器的，那还是应该使用 https。&lt;a href="https://imququ.com/post/protocol-negotiation-in-http2.html"&gt;这篇文章&lt;/a&gt;讲的很好。&lt;/p&gt;</description></item></channel></rss>

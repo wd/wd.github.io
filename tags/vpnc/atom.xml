@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Vpnc on wd and cc</title><link>https://wdicc.com/tags/vpnc/</link><description>Recent content in Vpnc on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Mon, 17 Nov 2008 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/vpnc/atom.xml" rel="self" type="application/rss+xml"/><item><title>说说 vpn</title><link>https://wdicc.com/vpnc-howto/</link><pubDate>Mon, 17 Nov 2008 00:00:00 +0000</pubDate><guid>https://wdicc.com/vpnc-howto/</guid><description>好久没更新了，最近改了改 vpnc 的设置，就发一个吧。&lt;br />
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Vpnc on wd and cc</title><link>https://wdicc.com/tags/vpnc/</link><description>Recent content in Vpnc on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Mon, 17 Nov 2008 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/vpnc/atom.xml" rel="self" type="application/rss+xml"/><item><title>说说 vpn</title><link>https://wdicc.com/vpnc-howto/</link><pubDate>Mon, 17 Nov 2008 00:00:00 +0000</pubDate><guid>https://wdicc.com/vpnc-howto/</guid><description>好久没更新了，最近改了改 vpnc 的设置，就发一个吧。&lt;br /&gt;
 
-有些公司启用了 vpn 来让员工可以访问到公司内网的一些信息，或者让员工访问公司服务器的时候更加安全。一般可以用 cisco 的硬件 vpn 来搞定，也可以用 linux 下面的 openvpn 之类软件来构建一个 vpn server。&lt;br />
+有些公司启用了 vpn 来让员工可以访问到公司内网的一些信息，或者让员工访问公司服务器的时候更加安全。一般可以用 cisco 的硬件 vpn 来搞定，也可以用 linux 下面的 openvpn 之类软件来构建一个 vpn server。&lt;br /&gt;
 
-构建 vpn server 咱没搞过，我们公司用的是 cisco 的产品。连接 vpn server 的 client 有 vpnc 和 openvpn 什么的。&lt;br />
+构建 vpn server 咱没搞过，我们公司用的是 cisco 的产品。连接 vpn server 的 client 有 vpnc 和 openvpn 什么的。&lt;br /&gt;
 
-我使用的是 vpnc。networkmanager 还有他的插件（当然，也有 openvpn 的），就是说你可以做到点点鼠标就连接上你的 vpn。不过我这里没用他，因为他缺少一些 vpnc 配置文件支持的配置项，曾经还修改过 net-misc/networkmanager-vpnc 0.6.4 的源代码，来做到支持我的 vpn server，后来发现图形界面的不可靠，有时候连不上，一些错误信息还看不到。升级到了 0.7 之后，也一直懒得改源代码，字符界面的用起来也不错。图形界面一定要改，因为我不能让他记住密码我们的密码是一个 pin 码 + token 生成的，token 是变化的。而有个 group 密码是必须要记住的，因为这个又长又没有规律。图形界面没办法实现这个组合，只能修改源代码硬写到代码里面。&lt;br />
+我使用的是 vpnc。networkmanager 还有他的插件（当然，也有 openvpn 的），就是说你可以做到点点鼠标就连接上你的 vpn。不过我这里没用他，因为他缺少一些 vpnc 配置文件支持的配置项，曾经还修改过 net-misc/networkmanager-vpnc 0.6.4 的源代码，来做到支持我的 vpn server，后来发现图形界面的不可靠，有时候连不上，一些错误信息还看不到。升级到了 0.7 之后，也一直懒得改源代码，字符界面的用起来也不错。图形界面一定要改，因为我不能让他记住密码我们的密码是一个 pin 码 + token 生成的，token 是变化的。而有个 group 密码是必须要记住的，因为这个又长又没有规律。图形界面没办法实现这个组合，只能修改源代码硬写到代码里面。&lt;br /&gt;
 
-vpnc 的配置文件在 /etc/vpnc/ 下面。这里面有个 default.conf，当然你也可以写自己的 xxx.conf。如果执行 sudo vpnc xxx，那么用到的就是 xxx.conf，如果没有参数，那么使用 default.conf。&lt;br />
-&lt;pre class="prettyprint lang-conf">
+vpnc 的配置文件在 /etc/vpnc/ 下面。这里面有个 default.conf，当然你也可以写自己的 xxx.conf。如果执行 sudo vpnc xxx，那么用到的就是 xxx.conf，如果没有参数，那么使用 default.conf。&lt;br /&gt;
+&lt;pre class="prettyprint lang-conf"&gt;
 # example vpnc configuration file
 # see vpnc --long-help for details
 
@@ -23,7 +23,7 @@ IPSec ID General
 IPSec secret xxxxxx
 Xauth username wd
 NAT Traversal Mode cisco-udp
-#Xauth password&lt;/pre>
+#Xauth password&lt;/pre&gt;
 gateway 就是你的 vpn server 的地址，IPSec secret 就是我说的 group pwd，Xauth password 是你的密码。还可以加上 debug level xxx 来显示 debug 信息，xxx 是一个数字，越大信息越多。
 
 注意里面有个 script 行，这个就是最近修改的一个参数。有时候使用 vpn 可能只是需要连接一下公司的服务器而已，我可不想让他作为我的默认路由，比如我在开 bt 下载的时候如果用了 vpn 作%</description></item></channel></rss>

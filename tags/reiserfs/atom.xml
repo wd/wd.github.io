@@ -1,13 +1,13 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Reiserfs on wd and cc</title><link>https://wdicc.com/tags/reiserfs/</link><description>Recent content in Reiserfs on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Sat, 03 Jan 2009 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/reiserfs/atom.xml" rel="self" type="application/rss+xml"/><item><title>把硬盘的分区都换成了 ext4</title><link>https://wdicc.com/convert-reiserfs-t-ext4/</link><pubDate>Sat, 03 Jan 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/convert-reiserfs-t-ext4/</guid><description>我的分区都是 reiserfs 的。这次 ext4 吵的这么火爆，实在忍不住了，就换过去了。&lt;br />
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Reiserfs on wd and cc</title><link>https://wdicc.com/tags/reiserfs/</link><description>Recent content in Reiserfs on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Sat, 03 Jan 2009 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/reiserfs/atom.xml" rel="self" type="application/rss+xml"/><item><title>把硬盘的分区都换成了 ext4</title><link>https://wdicc.com/convert-reiserfs-t-ext4/</link><pubDate>Sat, 03 Jan 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/convert-reiserfs-t-ext4/</guid><description>我的分区都是 reiserfs 的。这次 ext4 吵的这么火爆，实在忍不住了，就换过去了。&lt;br /&gt;
 
-我的磁盘比较小，转换还费了点功夫。先找一个和 / 分区差不多的分区，用来放 / 的数据。我找的是 /home ，然后把 / /home 之外的分区转换了。方法就是先把其中一个的数据弄到其它的上面，然后重新格式化，然后再把数据弄回来。&lt;br />
+我的磁盘比较小，转换还费了点功夫。先找一个和 / 分区差不多的分区，用来放 / 的数据。我找的是 /home ，然后把 / /home 之外的分区转换了。方法就是先把其中一个的数据弄到其它的上面，然后重新格式化，然后再把数据弄回来。&lt;br /&gt;
 
-可以用 cp -p /source /dest 的方式，也可以用 tar cpf - --exclude=/home | tar xpf - 的方式，后面这个方法可以支持过滤掉某个目录不考。&lt;br />
+可以用 cp -p /source /dest 的方式，也可以用 tar cpf - --exclude=/home | tar xpf - 的方式，后面这个方法可以支持过滤掉某个目录不考。&lt;br /&gt;
 
-这些都弄好之后就可以弄 / /home 了。先把 /home 的东西备分一下， tar cpf /data/home.tar ，/data 最好是一个单独的分区。&lt;br />
+这些都弄好之后就可以弄 / /home 了。先把 /home 的东西备分一下， tar cpf /data/home.tar ，/data 最好是一个单独的分区。&lt;br /&gt;
 
-rc-update del xdm ，然后重启 root 登录。格式化 /home，再 mount 上他，用来复制 / 的内容过来。复制的时候需要注意下，先把 / /home 之外的那些分区都 umount，省得复制的时候不小心一起复制了过来。&lt;br />
+rc-update del xdm ，然后重启 root 登录。格式化 /home，再 mount 上他，用来复制 / 的内容过来。复制的时候需要注意下，先把 / /home 之外的那些分区都 umount，省得复制的时候不小心一起复制了过来。&lt;br /&gt;
 
-cd /home; tar cpf - --exclude=/home --exclude=/proc --exclude=/sys | tar xpf -&lt;br />
+cd /home; tar cpf - --exclude=/home --exclude=/proc --exclude=/sys | tar xpf -&lt;br /&gt;
 
-复制完之后，在 /home 下建立 /home/proc /home/sys 目录。修改 /home/boot/grub/menu.lst 文件（如果是独立的 boot 分区，需要挂上再修改），kernel 参数为新的 root，建议新加一行，保留原来的，免得有问题还能方便回去。然后修改 /etc/fstab。就可以重启了。&lt;br /></description></item></channel></rss>
+复制完之后，在 /home 下建立 /home/proc /home/sys 目录。修改 /home/boot/grub/menu.lst 文件（如果是独立的 boot 分区，需要挂上再修改），kernel 参数为新的 root，建议新加一行，保留原来的，免得有问题还能方便回去。然后修改 /etc/fstab。就可以重启了。&lt;br /&gt;</description></item></channel></rss>

@@ -1,27 +1,27 @@
-<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Ssh on wd and cc</title><link>https://wdicc.com/tags/ssh/</link><description>Recent content in Ssh on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Sun, 06 May 2012 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/ssh/atom.xml" rel="self" type="application/rss+xml"/><item><title>有跳板机的 ssh 登陆</title><link>https://wdicc.com/controlmaster-in-ssh/</link><pubDate>Sun, 06 May 2012 00:00:00 +0000</pubDate><guid>https://wdicc.com/controlmaster-in-ssh/</guid><description>&lt;p>我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。&lt;br />
-&lt;/p>&lt;br />
-&lt;p>&lt;br />
-大意是通过设置 proxycommand 来实现，我也写过一个 &lt;a href="http://wdicc.com/cow-ssh-proxycommand/">http://wdicc.com/cow-ssh-proxycommand/&lt;/a> 。配置如下&lt;br />
-&lt;/p>&lt;br />
+<?xml version="1.0" encoding="utf-8" standalone="yes"?><rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom"><channel><title>Ssh on wd and cc</title><link>https://wdicc.com/tags/ssh/</link><description>Recent content in Ssh on wd and cc</description><generator>Hugo</generator><language>en</language><copyright>wd © 2025</copyright><lastBuildDate>Sun, 06 May 2012 00:00:00 +0000</lastBuildDate><atom:link href="https://wdicc.com/tags/ssh/atom.xml" rel="self" type="application/rss+xml"/><item><title>有跳板机的 ssh 登陆</title><link>https://wdicc.com/controlmaster-in-ssh/</link><pubDate>Sun, 06 May 2012 00:00:00 +0000</pubDate><guid>https://wdicc.com/controlmaster-in-ssh/</guid><description>&lt;p&gt;我厂登陆服务器需要先走一个跳板机，不能直接登陆，很是蛋疼。实际上 ssh 早就解决了这个问题。&lt;br /&gt;
+&lt;/p&gt;&lt;br /&gt;
+&lt;p&gt;&lt;br /&gt;
+大意是通过设置 proxycommand 来实现，我也写过一个 &lt;a href="http://wdicc.com/cow-ssh-proxycommand/"&gt;http://wdicc.com/cow-ssh-proxycommand/&lt;/a&gt; 。配置如下&lt;br /&gt;
+&lt;/p&gt;&lt;br /&gt;
 
 
-&lt;pre class="prettyprint lang-conf">
+&lt;pre class="prettyprint lang-conf"&gt;
 # gateways
 Host abc
  Hostname abc.com
 
 # servers
 Host *.xxx
- ProxyCommand ssh abc exec nc %h %p 2>/dev/null
-&lt;/pre>&lt;br />
+ ProxyCommand ssh abc exec nc %h %p 2&gt;/dev/null
+&lt;/pre&gt;&lt;br /&gt;
 
-&lt;p>&lt;br />
-这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。&lt;br />
-&lt;/p></description></item><item><title>自动连接 ssh 并输入密码</title><link>https://wdicc.com/autossh-and-auto-enter-password/</link><pubDate>Wed, 13 Oct 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/autossh-and-auto-enter-password/</guid><description>这年头不翻墙就看不到真像了，前几天整了个 ssh 代理，就研究了下自动登录。&lt;br />
+&lt;p&gt;&lt;br /&gt;
+这样所有 .xxx 结尾的机器，都会使用 abc 这个机器来跳了。要注意的是，首先需要你机器和 abc 之间的 ssh 验证，这个使用使用的是你机器的 id_rsa 和 abc.com 的 authorized_keys。然后会是 proxy 起作用，需要你的机器和 .xxx 机器的验证，使用的是你的机器的 id_rsa 和 .xxx 的 authorized_keys，注意并不是 abc.com 和 .xxx 之间。&lt;br /&gt;
+&lt;/p&gt;</description></item><item><title>自动连接 ssh 并输入密码</title><link>https://wdicc.com/autossh-and-auto-enter-password/</link><pubDate>Wed, 13 Oct 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/autossh-and-auto-enter-password/</guid><description>这年头不翻墙就看不到真像了，前几天整了个 ssh 代理，就研究了下自动登录。&lt;br /&gt;
 
-ssh 自动登录首选就是使用 key 了，可对方不干，那就只能使用密码了。自动输入密码可以用 expect。查这个的时候发现了一个 expect-lite，发现也挺有意思的，他把写 expect 脚本简单化了，比如想 send xxx，那就用 >xxxx 就行了，想 expect yyy 那就 &lt;yyy 就好了，等等这些，呵呵。不过我后来没用这个，还是用的标准的 expect，代码如下。&lt;br />
+ssh 自动登录首选就是使用 key 了，可对方不干，那就只能使用密码了。自动输入密码可以用 expect。查这个的时候发现了一个 expect-lite，发现也挺有意思的，他把写 expect 脚本简单化了，比如想 send xxx，那就用 &gt;xxxx 就行了，想 expect yyy 那就 &lt;yyy 就好了，等等这些，呵呵。不过我后来没用这个，还是用的标准的 expect，代码如下。&lt;br /&gt;
 
-&lt;pre class="prettyprint lang-expect">
+&lt;pre class="prettyprint lang-expect"&gt;
 spawn autossh -M 20000 -p SSH_PORT -N -D 7070 YOUR_NAME@YOUR_SERVER
 set timeout 60
 expect {
@@ -46,57 +46,57 @@ expect {
 }
 if {[fork]!=0} exit
 disconnect
-&lt;/pre>&lt;br />
+&lt;/pre&gt;&lt;br /&gt;
 
-那里面那个 autossh 能自动给你重连，没仔细研究。那个 20000 后面的参数都是给 ssh 的，具体含意可以看 ssh 的 man。&lt;br />
+那里面那个 autossh 能自动给你重连，没仔细研究。那个 20000 后面的参数都是给 ssh 的，具体含意可以看 ssh 的 man。&lt;br /&gt;
 
-最主要是最后那两行，能做到连接上之后主程序就退出了，不占用你的终端，而不影响 ssh 的连接。&lt;br /></description></item><item><title>ssh 之穿越与反穿越</title><link>https://wdicc.com/ssh-proxy/</link><pubDate>Thu, 21 Jan 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/ssh-proxy/</guid><description>&lt;p>有时候我们不得不和网管对着干，去想办法去穿越某些防火墙，访问到我们要访问的资源。例如下面的情况，A 和 C 之间是有个墙的，不通。可有个 B 能访问到 C，而 A 又能访问到 B ，那我们可以通过你 ssh 做代理穿越那个墙。&lt;/p>&lt;p>A -&amp;gt; | -&amp;gt; C&lt;br /> \-&amp;gt; B -&amp;gt; C&lt;/p></description></item><item><title>NB 的 ssh proxycommand</title><link>https://wdicc.com/cow-ssh-proxycommand/</link><pubDate>Wed, 09 Dec 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/cow-ssh-proxycommand/</guid><description>是从水木上面学来的。还参考了&lt;a href="http://benno.id.au/blog/2006/06/08/ssh_proxy_command">这个&lt;/a>。&lt;br />
+最主要是最后那两行，能做到连接上之后主程序就退出了，不占用你的终端，而不影响 ssh 的连接。&lt;br /&gt;</description></item><item><title>ssh 之穿越与反穿越</title><link>https://wdicc.com/ssh-proxy/</link><pubDate>Thu, 21 Jan 2010 00:00:00 +0000</pubDate><guid>https://wdicc.com/ssh-proxy/</guid><description>&lt;p&gt;有时候我们不得不和网管对着干，去想办法去穿越某些防火墙，访问到我们要访问的资源。例如下面的情况，A 和 C 之间是有个墙的，不通。可有个 B 能访问到 C，而 A 又能访问到 B ，那我们可以通过你 ssh 做代理穿越那个墙。&lt;/p&gt;&lt;p&gt;A -&amp;gt; | -&amp;gt; C&lt;br /&gt; \-&amp;gt; B -&amp;gt; C&lt;/p&gt;</description></item><item><title>NB 的 ssh proxycommand</title><link>https://wdicc.com/cow-ssh-proxycommand/</link><pubDate>Wed, 09 Dec 2009 00:00:00 +0000</pubDate><guid>https://wdicc.com/cow-ssh-proxycommand/</guid><description>是从水木上面学来的。还参考了&lt;a href="http://benno.id.au/blog/2006/06/08/ssh_proxy_command"&gt;这个&lt;/a&gt;。&lt;br /&gt;
 
-如果你工作的环境是下面这样的，那 ssh 的 proxycommand 对你会很有用。&lt;br />
+如果你工作的环境是下面这样的，那 ssh 的 proxycommand 对你会很有用。&lt;br /&gt;
 
-your pc -> gw server -> work server&lt;br />
+your pc -&gt; gw server -&gt; work server&lt;br /&gt;
 
-一般公司的服务器的网络都会设置安全级别，防止出现安全问题。那个 gw 也叫跳板机。需要在 gw 机器上面有 nc 。&lt;br />
+一般公司的服务器的网络都会设置安全级别，防止出现安全问题。那个 gw 也叫跳板机。需要在 gw 机器上面有 nc 。&lt;br /&gt;
 
-修改 .ssh/config 文件，加上 &lt;br />
-Host gw&lt;br />
- Hostname gw.abc.com&lt;br />
+修改 .ssh/config 文件，加上 &lt;br /&gt;
+Host gw&lt;br /&gt;
+ Hostname gw.abc.com&lt;br /&gt;
 
-Host work&lt;br />
- Hostname work.abc.com&lt;br />
- User wd&lt;br />
- ProxyCommand ssh gw nc -q 0 %h %p 2>/dev/null&lt;br />
+Host work&lt;br /&gt;
+ Hostname work.abc.com&lt;br /&gt;
+ User wd&lt;br /&gt;
+ ProxyCommand ssh gw nc -q 0 %h %p 2&gt;/dev/null&lt;br /&gt;
 
-这样直接 ssh work 就好了。&lt;br />
+这样直接 ssh work 就好了。&lt;br /&gt;
 
-那个 -q 0 可能有些版本的 nc 不支持。去掉就好了。那个 %h 表示 hostname，那个 %p 表示 port，可以直接写死。其它的 man ssh_config 吧。&lt;br /></description></item><item><title>使用公匙密匙来登录ssh</title><link>https://wdicc.com/public-key-in-ssh/</link><pubDate>Tue, 26 Sep 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/public-key-in-ssh/</guid><description>ssh一种更加安全的登录方式是使用rsa/dsa方式来做验证。密码口令很可能被猜出来，但是用dsa方式验证的ssh，除非他弄到你的私匙，否则肯定是安全的。&lt;br />
+那个 -q 0 可能有些版本的 nc 不支持。去掉就好了。那个 %h 表示 hostname，那个 %p 表示 port，可以直接写死。其它的 man ssh_config 吧。&lt;br /&gt;</description></item><item><title>使用公匙密匙来登录ssh</title><link>https://wdicc.com/public-key-in-ssh/</link><pubDate>Tue, 26 Sep 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/public-key-in-ssh/</guid><description>ssh一种更加安全的登录方式是使用rsa/dsa方式来做验证。密码口令很可能被猜出来，但是用dsa方式验证的ssh，除非他弄到你的私匙，否则肯定是安全的。&lt;br /&gt;
 
-ssh-keygen命令可以用来生成rsa/dsa方式的公匙密匙。&lt;br />
-ssh-keygen或者ssh-keygen -t rsa生成rsa方式的密匙。ssh-keygen -d 或者 ssh-keygen -t dsa生成dsa方式的密匙。具体rsa和dsa的区别看 &lt;a href="http://www-128.ibm.com/developerworks/cn/linux/security/openssh/part1/index.html">这里&lt;/a> 。&lt;br />
+ssh-keygen命令可以用来生成rsa/dsa方式的公匙密匙。&lt;br /&gt;
+ssh-keygen或者ssh-keygen -t rsa生成rsa方式的密匙。ssh-keygen -d 或者 ssh-keygen -t dsa生成dsa方式的密匙。具体rsa和dsa的区别看 &lt;a href="http://www-128.ibm.com/developerworks/cn/linux/security/openssh/part1/index.html"&gt;这里&lt;/a&gt; 。&lt;br /&gt;
 
-上面的命令会在~/.ssh文件夹中生成公匙（id_*sa.pub）和密匙（id_*sa），将pub文件中的内容copy到远程服务器你的home目录下面的.ssh目录中的authorized_keys[2]这个文件中，有没有最后的那个2要看你用的是ssh1还是ssh2方式，通常都有2。&lt;br />
+上面的命令会在~/.ssh文件夹中生成公匙（id_*sa.pub）和密匙（id_*sa），将pub文件中的内容copy到远程服务器你的home目录下面的.ssh目录中的authorized_keys[2]这个文件中，有没有最后的那个2要看你用的是ssh1还是ssh2方式，通常都有2。&lt;br /&gt;
 
-然后就是远程服务器的这些文件需要有正确的权限，.ssh目录是700，authorized_keys2文件是644。&lt;br />
+然后就是远程服务器的这些文件需要有正确的权限，.ssh目录是700，authorized_keys2文件是644。&lt;br /&gt;
 
-此后再登录服务器的时候应该就不需要输入密码了。&lt;br />
+此后再登录服务器的时候应该就不需要输入密码了。&lt;br /&gt;
 
-有一个小tip，就是给服务器的ip设置一个好记的形式，那么多的ip记住不容易阿，而且每次还得一个一个输入。具体方法就是修改hosts文件，添加类似下面的内容就可以了，相当于自己做了一个dns，呵呵。&lt;br />
-#销售server&lt;br />
-218.x.2.128 s128 xs xiaoshou&lt;br />
-#db server&lt;br />
-218.x.23.189 s189 db oracle&lt;br />
-这样，以后访问s128或者s189就可以了，当然后面的xs、xiaoshou、db、oracle也都是别名，都可以用来访问。&lt;br />
+有一个小tip，就是给服务器的ip设置一个好记的形式，那么多的ip记住不容易阿，而且每次还得一个一个输入。具体方法就是修改hosts文件，添加类似下面的内容就可以了，相当于自己做了一个dns，呵呵。&lt;br /&gt;
+#销售server&lt;br /&gt;
+218.x.2.128 s128 xs xiaoshou&lt;br /&gt;
+#db server&lt;br /&gt;
+218.x.23.189 s189 db oracle&lt;br /&gt;
+这样，以后访问s128或者s189就可以了，当然后面的xs、xiaoshou、db、oracle也都是别名，都可以用来访问。&lt;br /&gt;
 
-还有一个tip，是关于term的。如果用的是urxvt，访问的远程服务器的时候可能会遇到“unknow terminal : rxvt-unicode” 类似的错误，如果出现了类似错误，会导致在服务器端vim和ls都没有颜色。解决方法是在.Xdefaults文件中添加URxvt.termName: xterm，或者.bash_profile里面自己设置一下TERM类型。&lt;br /></description></item><item><title>使用ssh的rsa和dsa验证登陆linux</title><link>https://wdicc.com/use-rsa-and-dsa/</link><pubDate>Mon, 24 Apr 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/use-rsa-and-dsa/</guid><description>参考地址：http://www.5ilinux.com/ssh01.html&lt;br />
+还有一个tip，是关于term的。如果用的是urxvt，访问的远程服务器的时候可能会遇到“unknow terminal : rxvt-unicode” 类似的错误，如果出现了类似错误，会导致在服务器端vim和ls都没有颜色。解决方法是在.Xdefaults文件中添加URxvt.termName: xterm，或者.bash_profile里面自己设置一下TERM类型。&lt;br /&gt;</description></item><item><title>使用ssh的rsa和dsa验证登陆linux</title><link>https://wdicc.com/use-rsa-and-dsa/</link><pubDate>Mon, 24 Apr 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/use-rsa-and-dsa/</guid><description>参考地址：http://www.5ilinux.com/ssh01.html&lt;br /&gt;
 
-按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。&lt;br />
+按照文档中的方法，使用SecureCRT生成公匙密匙，然后上传公匙，没问题。&lt;br /&gt;
 
-用putty使用这个密匙的时候就出问题了，验证不了。&lt;br />
+用putty使用这个密匙的时候就出问题了，验证不了。&lt;br /&gt;
 
-然后用putty生成公匙密匙，上传公匙，验证不了。&lt;br />
+然后用putty生成公匙密匙，上传公匙，验证不了。&lt;br /&gt;
 
-后来用openssh自带的ssh-keygen生成了公匙密匙，然后用putty的keygen转换了一下，用putty登陆就可以了。&lt;br /></description></item><item><title>限制ssh访问的ip</title><link>https://wdicc.com/limite-ssh-access-ip/</link><pubDate>Mon, 24 Apr 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/limite-ssh-access-ip/</guid><description>★ 需求&lt;br />
+后来用openssh自带的ssh-keygen生成了公匙密匙，然后用putty的keygen转换了一下，用putty登陆就可以了。&lt;br /&gt;</description></item><item><title>限制ssh访问的ip</title><link>https://wdicc.com/limite-ssh-access-ip/</link><pubDate>Mon, 24 Apr 2006 00:00:00 +0000</pubDate><guid>https://wdicc.com/limite-ssh-access-ip/</guid><description>★ 需求&lt;br /&gt;
 
-最近公司服务器上面某个用户的帐号密码被修改了好几次。查看了一下，确实有人用他的帐号从外网ip（国外的ip）登陆过，猜想可能是他自己的电脑中木马或者什么病毒了。用户自己没有安全意识是很头痛的一个问题，其实给他们新建帐号的时候使用的都是简单密码，但是似乎都没有人上服务器自己修改，但是你又不能要求你的用户如何如何（比如给自己电脑装防火墙、杀毒软件etc），因为那是人家自己的事情。那么我就想，有没有一个方法可以限制某个用户只能从某个ip（或者ip列表）登陆呢？下面是一些解决方法。&lt;br />
+最近公司服务器上面某个用户的帐号密码被修改了好几次。查看了一下，确实有人用他的帐号从外网ip（国外的ip）登陆过，猜想可能是他自己的电脑中木马或者什么病毒了。用户自己没有安全意识是很头痛的一个问题，其实给他们新建帐号的时候使用的都是简单密码，但是似乎都没有人上服务器自己修改，但是你又不能要求你的用户如何如何（比如给自己电脑装防火墙、杀毒软件etc），因为那是人家自己的事情。那么我就想，有没有一个方法可以限制某个用户只能从某个ip（或者ip列表）登陆呢？下面是一些解决方法。&lt;br /&gt;
 
-&lt;br></description></item></channel></rss>
+&lt;br&gt;</description></item></channel></rss>
