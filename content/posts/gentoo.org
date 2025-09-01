@@ -88,6 +88,10 @@ Gentoo wiki 有一篇[[https://wiki.gentoo.org/wiki/Suspend_and_hibernate][文�
 ** xremap
 我发现 Mac 和 Linux 的 mode 按键不一样。Ctrl, shift 这两个按键在两个系统是一样的。键盘空格左侧的两个是不一样的。在 Mac 上面依次是 Cmd, option，在 Linux 上面是 alt, super。我目前还没有想好怎么一次性解决这个问题。不过我找到了 [[https://github.com/xremap/xremap][xremap]] 可以像 karabiner 一样帮你改键。他可以实现例如按一次 cpas lock 是 esc，长按是 ctrl 这样的功能。另外也支持在特定程序里面（可以根据程序名字标题名字匹配）做特定的按键更改。
 类似工具在 Linux 上面还挺多，可以参考 [[https://github.com/jtroo/kanata][kanata]] 页面列出来的这些。
+而在 Firefox 这样的 gtk 程序里面，可以启用 Emacs key schame，这样在输入框里面 C-a/e 这些直接就可以使用。而如果你通过 remap 按键的形式，会导致一些意外的地方也会受影响。QT 程序应该也有类似的配置。
+#+begin_src
+❯ gsettings set org.gnome.desktop.interface gtk-key-theme "Emacs"
+#+end_src
 
 ** Fcitx5
 Fcitx5 可以在 wayland 上面用。我使用的是 [[https://github.com/Mintimate/oh-my-rime][oh-my-rime]] 这个集成的方案。我在 Mac 上面使用了很长一段时间，发现很好用。输入法本身的配置就是看他们 wiki 就行。我遇到了两个问题。第一个是 sway 里面没有候选词那个浮动窗口。这个只需要更新 sway 到最新的版本就行。第二个是每个候选词后面都有一个拼音提示。这个是因为 librime [[https://github.com/iDvel/rime-ice/issues/431][不支持 lua]] 导致的。安装 librime-lua 就可以。
@@ -97,4 +101,12 @@ Fcitx5 可以在 wayland 上面用。我使用的是 [[https://github.com/Mintim
 
 ** sway
 这个其实没有什么特别需要说的。基本就是装好之后参考 wiki 配置就可以了。我遇到一个比较烦人的问题是，触摸板设置 tap-to-click 之后，在切换 firefox tab 的时候会遇到触发 tap-and-drag 这个动作，就是把 tab 进行拖动。后来通过 =drag disabled= 解决的。反正我也从来不用拖动这个功能。我一般会通过物理按压触摸板，然后拖动的方式。
-现在 dark mode 已经是标配了，但是如果想要在 sway 下面实现还是需要动点手。参考这个[[https://www.reddit.com/r/archlinux/comments/17bkz58/comment/kh51tnc/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button][帖子]]，安装并启动 darkman，然后自己写入那两个文件，重启一下电脑，就会发现 firefox 里面支持自动 dark mode 了。据说这个是基于 geo 的，我还发现 fcitx 也自动支持暗黑了。但是还有一些 app 并没有，比如 emacs，可能还需要研究下怎么弄。另外 firefox 也依赖网站支持，比如 google 搜索是支持的，但是 gmail 就好像没有。。。但是总比完全没有强。。
+
+** dex
+sway 不会帮你启动那些支持自动启动的程序。需要安装 dex。然后在 sway 配置里面 =exec dex -a=, dex 会自动启动 fcitx，还有 geoclue 的 agent。
+
+** geoclue
+这个东西是用来帮你定位你自己的。一些程序，例如 darkman，redshift 都需要判断当前是不是应该给你启动黑暗模式。这个可以提供一个统一的 location service。要注意这个东西需要启动那个 agent，如果你用了 dex 会自动启动。你可以用 =/usr/libexec/geoclue-2.0/demos/where-am-i= 这个程序来验证 geoclue 是不是正常工作了。
+
+** darkman
+现在 dark mode 已经是标配了，但是如果想要在 sway 下面实现还是需要动点手。参考这个[[https://www.reddit.com/r/archlinux/comments/17bkz58/comment/kh51tnc/?utm_source=share&utm_medium=web3x&utm_name=web3xcss&utm_term=1&utm_content=share_button][帖子]]，安装并启动 darkman，然后自己写入那两个文件，重启一下电脑，就会发现 firefox 里面支持自动 dark mode 了。据说这个是基于 geo 的，我还发现 fcitx 也自动支持暗黑了。但是还有一些 app 并没有，比如 emacs，我看文档说可以用 =darkman.el= 。另外 firefox 也依赖网站支持，比如 google 搜索是支持的，但是 gmail 就好像没有。。。但是总比完全没有强。。
