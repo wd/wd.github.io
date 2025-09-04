@@ -1,0 +1,36 @@
+---
+title: "Istio Multi Cluster"
+date: 2025-08-07T18:39:44-07:00
+tags: ["istio", "multi-cluster"]
+toc: true
+---
+istio 对于多集群的支持方式有很多不同的方式。取决于组网模式，controlplane 模式。可以参考[[https://istio.io/latest/docs/ops/deployment/deployment-models/#network-models][这篇文章]]理解具体不同。
+  - single or multiple cluster
+  - single or multiple network
+  - single or multiple control plane
+  - single or multiple mesh
+
+网络模式，主要是关注集群之间是否可以直接连接。主要是指多个集群之间的 pod 是否可以直接互相访问。这主要是考虑是否用了 VPC-cni。例如 EKS 里面使用 vpc-cni 之后 pod 获取的 ip 和节点获取的 ip 是同一个子网的。只要是在一个互相做了连接的 vpc 中就可以互相访问。
+如果集群间 pod 可以互联，那就是 single network。如果不能互联，那就是 multiple network。
+
+我感觉在这个大的 mesh 里面，比较重要的主要是两个问题
+- pod 网络如何互通：因为 mesh 直接的互相请求需要 pod 之间能互通才可以。
+- 如何做 service discovery: mesh 中的所有服务都应该能被任何其他服务发现。这个不止是知道那个服务的名字，还涉及到针对那个服务的配置，什么的得需要也能下发到请求方的 istio proxy 配置里面。
+
+然后 network + mesh 可以搭配出来几种情况。
+- single network + single mesh: 这个估计是大部分人的起步配置，一个集群一个 mesh。
+- single network + multiple mesh：同一个 network 其实并不一定是相同的 vpc，可以想象如果两个 vpc 通过某种方式连接起来（例如 aws vpc peering）之后，他们两个 network 中的 ip 间是可以互相访问的。所以连接之后的多 vpc 实际上也适用这个情况。当然有的 CNI 分配的 pod 的 ip 实际上并不能和外部的网络互通，那这样的情况下，也得看成是 multiple network 的情况。
+- multiple network + single mesh: 这似乎是一种不可能存在。
+- multiple network + multiple mesh: 这个是非常常见的一种情况。
+
+在 multiple network 的情况下，pod 之间需要找到方法互通。其中一种方法就是通过 istio gateway。请求发送给对方 network 中的 istio gateway，然后再转发给对应的 pod。当然很明显通过其他的 ingress 理论上也能做到。 想要做 service discovery，还需要各自的 istiod 能连接到对方的 controlplane。这个可以通过使用 ingress 来 expose 这个 controlplane。
+
+当具备上面的条件之后，参考文档给 istiod pilot 做配置就可以了。其中有一个步骤是需要更新 ca 证书，这个是为了能让 mTLS 能在两个集群中继续发挥作用的。
+
+但是实际上还有一个潜在的 dns 问题。当一个 service 在两个集群都存在的时候，istio 会自动 merge 两个集群的 pod，并且还能自动通过 gateway 把请求转发到另外一个集群（当然我们肯定会配置 location aware 的配置，本集群的请求只发本集群，只有在本集群的服务不可用的时候才发送到另外集群）。当一个 service 只在一个集群里面存在的时候，可以看到另外集群的 istio proxy 的配置里面是包含这个 service 的，但是给这个 service 发送请求会失败。这是因为另外那个集群就不存在这个 service 的 dns，那个集群的服务给这个 service 发请求的时候，第一步 dns 解析就会失败。
+
+解决这个 dns 问题有几个办法，例如不做 dns 解析，随意发送给一个任意 ip。istio proxy 会根据你请求的 dns 自动路由给正确的 pod ip。
+
+也可以使用 annotation 来让 istio proxy 来 capture dns 请求，这样 istio proxy 就能够返回一个虚拟的 ip，然后后续把请求路由到正确的 pod。
+
+技术方面的解释差不多就这些了。理解了这些之后遇到问题就会比较清楚应该怎么去 debug 了。
