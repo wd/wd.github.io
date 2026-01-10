@@ -1,0 +1,110 @@
+---
+title: "Use Golang to Generate Eks Token"
+date: 2025-11-02T20:08:14-08:00
+tags: ["golang", "eks", "kubernetes"]
+toc: true
+---
+在研究 kubeconfig 配置文件的时候，看到如果使用 aws 命令来生成 token 的话，就需要传递 cluster name 和 region 给到 aws 命令。这样就相等于每个集群都配置一个相应的命令，感觉有点傻好像。
+
+研究的过程中发现 kubeconfig 的配置里面有一个 [[https://kubernetes.io/docs/reference/access-authn-authz/authentication/][KUBERNETES_EXEC_INFO]] 这样的变量，可以携带 cluster 中的配置给到执行的命令。这样好像就有可能使用这个特性来简化命令的配置了。
+
+但是 aws 命令是不支持那个环境变量的，简单的做法就是写一个 shell 脚本做 wrapper 来读取环境变量然后传递给 aws 命令。但是这样好像有点蛋疼，我就在想，是不是可以自己写一个命令来做这个事情呢，如果可以的话，还省去了对 aws 命令的依赖。
+
+下面是主要的代码。eks 比较搞笑的是，他们生成的并不是真正的 token，而是一个签名之后用来获取 sts credential 的 url。我中间遇到过生成的 token 有时候会很快过期的问题，不过后来也不知道怎么没有问题了。
+
+#+BEGIN_SRC go
+
+func (tsdb *Tsdb) generateClusterToken(cluster string, region string, profile string) (string, error) {
+	if len(cluster) == 0 {
+		kubeenv := os.Getenv("KUBERNETES_EXEC_INFO")
+		if len(kubeenv) == 0 {
+			log.Fatal().Msg("No kubeenv found")
+		}
+		var kubeenvJson authenticationv1beta1.ExecCredential
+		json.Unmarshal([]byte(kubeenv), &kubeenvJson)
+
+		var myconfig TsdbClusterExtension
+		json.Unmarshal(kubeenvJson.Spec.Cluster.Config.Raw, &myconfig)
+
+		cluster = myconfig.ClusterName
+		region = myconfig.Region
+		profile = myconfig.Profile
+	}
+
+	url, _ := getPresignUrl(profile, cluster, region)
+
+	token := "k8s-aws-v1." + base64.RawURLEncoding.EncodeToString([]byte(url))
+	expirationTime := metav1.NewTime(time.Now().Add(time.Hour))
+
+	execCredential := authenticationv1beta1.ExecCredential{
+		TypeMeta: metav1.TypeMeta{
+			APIVersion: ExecPluginAPIVersion,
+			Kind:       "ExecCredential",
+		},
+		Status: &authenticationv1beta1.ExecCredentialStatus{
+			Token:               token,
+			ExpirationTimestamp: &expirationTime,
+		},
+	}
+	tokenCR, err := json.MarshalIndent(execCredential, "", "  ")
+	return string(tokenCR), err
+}
+
+func getPresignUrl(profile string, clusterName string, region string) (string, error) {
+	if len(profile) == 0 {
+		profile = "default"
+	}
+	if len(region) == 0 {
+		region = "us-east-2"
+	}
+	cfg, _ := config.LoadDefaultConfig(context.TODO(),
+		config.WithRegion(region),
+		config.WithSharedConfigProfile(profile))
+
+	u := url.URL{
+		Scheme: "https",
+		Host:   "sts." + cfg.Region + ".amazonaws.com",
+		Path:   "/",
+	}
+
+	q := url.Values{}
+	q.Set("Action", "GetCallerIdentity")
+	q.Set("Version", "2011-06-15")
+	q.Set("X-Amz-Expires", "60")
+	u.RawQuery = q.Encode()
+
+	// set header
+	req, _ := http.NewRequest(http.MethodGet, u.String(), nil)
+	req.Header.Set("x-k8s-aws-id", clusterName)
+
+	h := sha256.New()
+	payloadHash := hex.EncodeToString(h.Sum(nil)) // e3b0c4...b855
+
+	//v4 Presign
+	creds, err := cfg.Credentials.Retrieve(context.TODO())
+	if err != nil {
+		return "", err
+	}
+
+	signer := v4.NewSigner()
+	signedURL, _, err := signer.PresignHTTP(context.TODO(), creds, req,
+		payloadHash, "sts", cfg.Region, time.Now().UTC())
+	if err != nil {
+		return "", err
+	}
+	return signedURL, nil
+}
+#+END_SRC
+
+Kubeconfig 的配置文件中需要类似这样的配置
+
+#+BEGIN_SRC yaml
+clusters:
+- cluster:
+    extensions:
+    - extension:
+        clusterName: xx
+        profile: yy
+        region: us-east-2
+      name: client.authentication.k8s.io/exec
+#+END_SRC

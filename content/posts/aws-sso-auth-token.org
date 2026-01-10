@@ -1,0 +1,24 @@
+---
+title: "聊聊 AWS SSO auth 的 token 管理"
+date: 2026-01-09T16:27:32-08:00
+tags: ["aws"]
+toc: true
+---
+最近使用 Golang 重构了一个使用 python 写的和 aws 认证的项目。研究了一下 AWS 这个 SSO 是怎么回事，记录一下。
+
+我们去年迁移到了 AWS identity center，通过 okta 来做 auth。okta 登录之后会根据用户所在 okta group 分配适当的权限。web 使用比较简单，这里主要说 cli 的使用。
+
+比较重要的内容大概如下：
+1. 使用 oidcClient.RegisterClient 注册 client。这个会返回一个 client id 和 secret，以及过期时间。这个过期时间很长，所以这些信息可以存起来可以复用。
+2. 使用 oidcClient.StartDeviceAuthorization 尝试注册这个 client。服务器会返回一个认证用的 url。需要在浏览器打开这个 url 并正确登录，这个需要通过 sso 的认证。
+3. 这个请求还会返回一个 device code，下一个请求需要带上这个 device code。
+4. 使用 oidcClient.CreateToken 检查之前那个 url 的认证状态。用户操作需要时间，所以需要重复多试几次。
+5. 这个会返回 access token 和过期时间，还有 refresh token。
+6. Access token 可以用来访问 aws 的 API，这个获取到的 token 只有 1 小时过期时间。
+7. Access token 过期之后，在 refresh token 的有效期内，可以使用 refresh token 来重新获取一个新的。
+8. Refresh token 的过期时间可以在 Identity center 中配置。默认似乎是 8 小时。
+
+这些 token 会保存在 ~/.aws/sso/cache/ 目录中的一个 json 文件中。Golang 中可以使用 ssocreds.StandardCachedTokenFilepath(sessionName) 来获取这个文件的路径，不过似乎没有现成的方法来保存这个文件。Python 中可以使用 SSOTokenProvider 来操作这个文件，比较方便。
+为什么提到这个呢？因为这个文件中的内容实际上是会需要和其他的程序来共享的。这个 cache 目录中是可以存在多个不同 session 的登录信息的。例如你有多个 aws org 需要访问。当 AWS 的 sdk 需要读取 credentials 的时候，需要知道使用哪个文件。所以确保使用标准的文件名很重要。如果只有你自己使用那当然随便存哪里了。
+
+.aws 目录中还有一个 .aws/cli/cache/ 目录，这其中也有一些 cache 的 credentials。这些似乎是给 aws 命令使用的。这里面 access token 应该有自己的过期时间，一旦生成之后就不依赖 sso 目录中的 cache 了。我估计是 aws 发展过程中的历史包袱。
