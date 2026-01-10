@@ -30,7 +30,7 @@ db = Beansdb(BEANSDBCFG, 16)
 </span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 4</span><span>    <span style=color:#007020;font-weight:700>union</span>
 </span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 5</span><span>    {
 </span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 6</span><span>        <span style=color:#902000>bool</span> free_value;    <span style=color:#60a0b0;font-style:italic>// free value or not
-</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7</span><span><span style=color:#60a0b0;font-style:italic></span>        <span style=color:#902000>uint32_t</span> crc;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 7</span><span>        <span style=color:#902000>uint32_t</span> crc;
 </span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 8</span><span>    };
 </span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f"> 9</span><span>    <span style=color:#902000>int32_t</span> tstamp;
 </span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">10</span><span>    <span style=color:#902000>int32_t</span> flag;
@@ -48,7 +48,7 @@ my ( $crc, $tstamp, $flag, $ver, $ksz, $vsz ) = unpack('I i i i I I', $header);
 </span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">5</span><span>    <span style=color:#902000>int32_t</span> version;
 </span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">6</span><span>    <span style=color:#902000>uint16_t</span> hash;
 </span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">7</span><span>    <span style=color:#902000>char</span> key[NAME_IN_RECORD]; <span style=color:#60a0b0;font-style:italic>// allign
-</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">8</span><span><span style=color:#60a0b0;font-style:italic></span><span>‌</span>} HintRecord;
+</span></span></span><span style=display:flex><span style="white-space:pre;-webkit-user-select:none;user-select:none;margin-right:.4em;padding:0 .4em;color:#7f7f7f">8</span><span><span>‌</span>} HintRecord;
 </span></span></code></pre></div><p>hint 文件比 data 文件稍微复杂一点，每一条记录是 <code>key_size + data_pos + ver + hash + key + padding</code>。</p><pre><code>my ( $ksz, $datapos, $ver, $hash ) = unpack(&quot;B8 B24 i B16&quot;, $header);
 
 $ksz = unpack(&quot;I&quot;, pack(&quot;B32&quot;, $ksz));
